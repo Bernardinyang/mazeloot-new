@@ -1,5 +1,8 @@
 <template>
-  <p v-if="message" :class="cn('text-sm font-medium text-destructive mt-1', $attrs.class)">
+  <p
+    v-if="message"
+    :class="cn('text-sm font-medium text-destructive mt-1', ($attrs.class as string) || '')"
+  >
     {{ message }}
   </p>
 </template>

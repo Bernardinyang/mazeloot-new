@@ -3,7 +3,7 @@
     <Label v-if="label" :for="id">{{ label }}</Label>
     <div class="flex justify-center gap-2">
       <input
-        v-for="(digit, index) in code"
+        v-for="(_digit, index) in code"
         :key="index"
         :id="index === 0 ? id : undefined"
         :ref="el => (inputRefs[index] = el as HTMLInputElement)"

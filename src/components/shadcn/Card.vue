@@ -1,5 +1,12 @@
 <template>
-  <div :class="cn('rounded-2xl border bg-card text-card-foreground shadow-sm', $attrs.class)">
+  <div
+    :class="
+      cn(
+        'rounded-2xl border bg-card text-card-foreground shadow-sm',
+        ($attrs.class as string) || ''
+      )
+    "
+  >
     <slot />
   </div>
 </template>

@@ -5,7 +5,7 @@
       :class="
         cn(
           'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-          $attrs.class
+          ($attrs.class as string) || ''
         )
       "
       type="text"
@@ -80,10 +80,9 @@ import {
   isSameDay,
   addMonths,
   subMonths,
-  getDay,
   startOfWeek,
   endOfWeek,
-  isToday,
+  isToday as isTodayDate,
 } from 'date-fns'
 import { cn } from '@/lib/utils'
 import IconCalendar from '@/icons/IconCalendar.vue'
@@ -123,7 +122,6 @@ const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const calendarDays = computed(() => {
   const monthStart = startOfMonth(currentDate.value)
   const monthEnd = endOfMonth(currentDate.value)
-  const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
 
   const start = startOfWeek(monthStart, { weekStartsOn: 0 })
   const end = endOfWeek(monthEnd, { weekStartsOn: 0 })
@@ -169,10 +167,11 @@ const isSelected = (day: number) => {
   return isSameDay(modelDate, checkDate)
 }
 
-const isToday = (day: number) => {
+const isToday = (day: number | null) => {
+  if (!day) return false
   const monthStart = startOfMonth(currentDate.value)
   const checkDate = new Date(monthStart.getFullYear(), monthStart.getMonth(), day)
-  return isToday(checkDate)
+  return isTodayDate(checkDate)
 }
 
 watch(
@@ -185,8 +184,12 @@ watch(
 )
 
 // Click outside directive
+interface HTMLElementWithClickOutside extends HTMLElement {
+  clickOutsideEvent?: (event: Event) => void
+}
+
 const vClickOutside = {
-  mounted(el: HTMLElement, binding: any) {
+  mounted(el: HTMLElementWithClickOutside, binding: any) {
     el.clickOutsideEvent = (event: Event) => {
       if (!(el === event.target || el.contains(event.target as Node))) {
         binding.value()
@@ -194,8 +197,10 @@ const vClickOutside = {
     }
     document.addEventListener('click', el.clickOutsideEvent)
   },
-  unmounted(el: any) {
-    document.removeEventListener('click', el.clickOutsideEvent)
+  unmounted(el: HTMLElementWithClickOutside) {
+    if (el.clickOutsideEvent) {
+      document.removeEventListener('click', el.clickOutsideEvent)
+    }
   },
 }
 </script>

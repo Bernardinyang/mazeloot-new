@@ -125,7 +125,7 @@ export function useUploader(options: UploadOptions = {}) {
     error.value = null
 
     try {
-      const uploadPromises = files.value.map(async (uploadFile, index) => {
+      const uploadPromises = files.value.map(async (uploadFile, _index) => {
         // Simulate progress
         for (let i = 0; i <= 100; i += 10) {
           uploadFile.progress = i

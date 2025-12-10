@@ -4,7 +4,7 @@
  */
 
 import { useUserStore } from '@/stores/user'
-import { parseError, type ApiError } from '@/utils/errors'
+import type { ApiError } from '@/utils/errors'
 
 export interface ApiRequestOptions extends RequestInit {
   skipAuth?: boolean
@@ -90,9 +90,9 @@ class ApiClient {
 
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...fetchOptions.headers,
+      ...(fetchOptions.headers as Record<string, string>),
     }
 
     // Add auth header if not skipped
@@ -225,8 +225,8 @@ class ApiClient {
     const formData = new FormData()
     formData.append('file', file)
 
-    const headers: HeadersInit = {
-      ...fetchOptions.headers,
+    const headers: Record<string, string> = {
+      ...(fetchOptions.headers as Record<string, string>),
     }
 
     // Add auth header if not skipped

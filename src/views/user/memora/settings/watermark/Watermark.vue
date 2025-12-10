@@ -186,7 +186,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Plus, X } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'

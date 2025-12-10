@@ -43,7 +43,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     title: string
     description: string

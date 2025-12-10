@@ -116,7 +116,7 @@ const groupedItems = computed(() => {
 </script>
 
 <template>
-  <template v-for="(group, groupIndex) in groupedItems" :key="`group-${groupIndex}`">
+  <template v-for="(group, _groupIndex) in groupedItems" :key="`group-${_groupIndex}`">
     <SidebarGroup>
       <SidebarGroupLabel>{{ group.label }}</SidebarGroupLabel>
       <SidebarMenu>

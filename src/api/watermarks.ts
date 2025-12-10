@@ -21,6 +21,10 @@ export interface Watermark {
   letterSpacing?: number
   padding?: number
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  borderRadius?: number
+  borderWidth?: number
+  borderColor?: string
+  borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none'
   imageUrl?: string
   scale: number
   opacity: number
@@ -41,6 +45,10 @@ export interface CreateWatermarkData {
   letterSpacing?: number
   padding?: number
   textTransform?: 'none' | 'uppercase' | 'lowercase' | 'capitalize'
+  borderRadius?: number
+  borderWidth?: number
+  borderColor?: string
+  borderStyle?: 'solid' | 'dashed' | 'dotted' | 'none'
   imageUrl?: string
   scale: number
   opacity: number

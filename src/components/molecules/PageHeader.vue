@@ -10,7 +10,7 @@
         />
         <Input
           :model-value="searchQuery"
-          @update:model-value="updateSearchQuery"
+          @update:model-value="(value: string | number) => updateSearchQuery(String(value))"
           type="text"
           placeholder="Search"
           :class="[
@@ -137,7 +137,7 @@ interface Props {
   showViewToggle?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   showSearch: true,
   showSort: true,
   showViewToggle: true,

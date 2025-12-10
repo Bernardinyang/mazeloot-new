@@ -4,9 +4,12 @@
 import { computed, type Ref } from 'vue'
 
 export interface SortableItem {
-  id: number
-  title: string
+  id: string | number
+  title?: string
+  name?: string
   dateCreated?: string
+  createdAt?: string
+  updatedAt?: string
   date?: string
   [key: string]: any
 }

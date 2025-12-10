@@ -16,7 +16,7 @@ const sizeClasses = {
 
 <template>
   <Avatar :class="[sizeClasses[size || 'md'], 'rounded-lg']">
-    <AvatarImage :src="avatar" :alt="name" />
+    <AvatarImage v-if="avatar" :src="avatar" :alt="name" />
     <AvatarFallback class="rounded-lg">
       {{ name.charAt(0).toUpperCase() }}
     </AvatarFallback>

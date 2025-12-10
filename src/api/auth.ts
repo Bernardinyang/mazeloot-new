@@ -148,7 +148,7 @@ const generateToken = (userId: string): string => {
  * Save token to storage
  */
 const saveToken = (userId: string, token: string, remember?: boolean): void => {
-  const tokens = storage.get<AuthToken[]>(TOKENS_STORAGE_KEY, [])
+  const tokens = storage.get<AuthToken[]>(TOKENS_STORAGE_KEY, []) || []
   const expiresAt = remember
     ? Date.now() + 30 * 24 * 60 * 60 * 1000 // 30 days
     : Date.now() + 24 * 60 * 60 * 1000 // 1 day
@@ -167,24 +167,24 @@ const saveToken = (userId: string, token: string, remember?: boolean): void => {
 }
 
 /**
- * Validate token
+ * Validate token (currently unused, kept for future use)
  */
-const validateToken = (token: string): boolean => {
-  const tokens = storage.get<AuthToken[]>(TOKENS_STORAGE_KEY, [])
-  const tokenData = tokens.find(t => t.token === token)
+// const validateToken = (_token: string): boolean => {
+//   const tokens = storage.get<AuthToken[]>(TOKENS_STORAGE_KEY, []) || []
+//   const tokenData = tokens.find(t => t.token === _token)
 
-  if (!tokenData) return false
+//   if (!tokenData) return false
 
-  // Check if token is expired
-  if (Date.now() > tokenData.expiresAt) {
-    // Remove expired token
-    const filteredTokens = tokens.filter(t => t.token !== token)
-    storage.set(TOKENS_STORAGE_KEY, filteredTokens)
-    return false
-  }
+//   // Check if token is expired
+//   if (Date.now() > tokenData.expiresAt) {
+//     // Remove expired token
+//     const filteredTokens = tokens.filter(t => t.token !== _token)
+//     storage.set(TOKENS_STORAGE_KEY, filteredTokens)
+//     return false
+//   }
 
-  return true
-}
+//   return true
+// }
 
 export function useAuthApi() {
   // Initialize mock users on first use
@@ -197,7 +197,7 @@ export function useAuthApi() {
     try {
       await new Promise(resolve => setTimeout(resolve, 800)) // Simulate API delay
 
-      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, [])
+      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
       const user = users.find(u => u.email.toLowerCase() === credentials.email.toLowerCase())
 
       if (!user) {
@@ -233,7 +233,7 @@ export function useAuthApi() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
 
-      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, [])
+      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
 
       // Check if email already exists
       const existingUser = users.find(u => u.email.toLowerCase() === data.email.toLowerCase())
@@ -318,7 +318,7 @@ export function useAuthApi() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
 
-      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, [])
+      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
       const user = users.find(u => u.email.toLowerCase() === email.toLowerCase())
 
       if (!user) {
@@ -354,7 +354,7 @@ export function useAuthApi() {
   /**
    * Reset password with token
    */
-  const resetPassword = async (token: string, password: string): Promise<void> => {
+  const resetPassword = async (_token: string, _password: string): Promise<void> => {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
 
@@ -375,7 +375,7 @@ export function useAuthApi() {
     try {
       await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
 
-      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, [])
+      const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
 
       // Check if Google user exists (using a special email pattern)
       let user = users.find(u => u.email === 'google.user@gmail.com')

@@ -262,7 +262,6 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Star, MoreVertical, Image, Maximize2, FolderOpen, Download, Copy } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
   DropdownMenuContent,

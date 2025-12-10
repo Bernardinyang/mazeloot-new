@@ -420,11 +420,11 @@ const emit = defineEmits<{
 }>()
 
 // Generate preview grid (always 4 cells, fill with null if less than 4 images)
-const previewGrid = computed(() => {
+const previewGrid = computed<(string | null)[]>(() => {
   if (!props.previewImages || props.previewImages.length === 0) {
     return [null, null, null, null]
   }
-  const grid = [...props.previewImages]
+  const grid: (string | null)[] = [...props.previewImages]
   // Fill remaining slots with null to show empty placeholders
   while (grid.length < 4) {
     grid.push(null)

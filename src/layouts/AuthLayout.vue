@@ -209,7 +209,7 @@ onUnmounted(() => {
           <!-- Dot Indicators -->
           <div class="flex gap-2.5 items-center pb-6 px-6">
             <button
-              v-for="(testimonial, index) in testimonials"
+              v-for="(_testimonial, index) in testimonials"
               :key="index"
               @click="goToSlide(index)"
               :aria-label="`Go to slide ${index + 1}`"

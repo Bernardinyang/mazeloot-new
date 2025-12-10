@@ -1,6 +1,6 @@
 <template>
   <svg
-    :class="cn('inline-block', sizeClass, $attrs.class)"
+    :class="cn('inline-block', sizeClass, ($attrs.class as string) || '')"
     :width="size"
     :height="size"
     viewBox="0 0 24 24"

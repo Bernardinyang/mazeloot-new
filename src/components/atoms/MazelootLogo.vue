@@ -39,10 +39,8 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useThemeStore } from '@/stores/theme'
 
-const theme = useThemeClasses()
 const themeStore = useThemeStore()
 
 const props = withDefaults(

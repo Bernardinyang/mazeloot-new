@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <form @submit.prevent="handleVerify" class="space-y-6">
+    <form @submit.prevent="() => handleVerify()" class="space-y-6">
       <OtpInput
         v-model="code"
         label="Enter verification code"

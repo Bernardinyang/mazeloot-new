@@ -623,6 +623,7 @@ export function useCollectionsApi() {
     collections[index] = {
       ...collections[index],
       ...data,
+      expiryDate: data.expiryDate === null ? undefined : data.expiryDate,
       updatedAt: new Date().toISOString(),
     }
 

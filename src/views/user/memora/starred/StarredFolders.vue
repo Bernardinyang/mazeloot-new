@@ -258,7 +258,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Folder, Circle, Star } from 'lucide-vue-next'
+import { Folder } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import {
   Select,
@@ -288,7 +288,7 @@ const { handleError } = useErrorHandler()
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
-const collectionsError = computed(() => galleryStore.error)
+// const collectionsError = computed(() => galleryStore.error) // Unused for now
 
 // View mode and sorting
 const viewMode = ref<'grid' | 'list'>('grid')

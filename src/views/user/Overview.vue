@@ -774,7 +774,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useLoadingStates } from '@/composables/useLoadingStates'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
-import { DROPDOWN_MENU_CLASSES, QUICK_ACTIONS, APP_SWITCHER_APPS } from '@/constants/dropdowns'
+// import { DROPDOWN_MENU_CLASSES, QUICK_ACTIONS, APP_SWITCHER_APPS } from '@/constants/dropdowns' // Unused for now
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useGalleryStore } from '@/stores/gallery'
 import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
@@ -842,7 +842,7 @@ const handleViewAllOrders = () => {
   // TODO: Implement view all orders logic
 }
 
-const handleOrderClick = (order: any) => {
+const handleOrderClick = (_order: any) => {
   // TODO: Implement order click logic
 }
 
@@ -850,7 +850,7 @@ const handleViewAllWishlist = () => {
   // TODO: Implement view all wishlist logic
 }
 
-const handleWishlistItemClick = (item: any) => {
+const handleWishlistItemClick = (_item: any) => {
   // TODO: Implement wishlist item click logic
 }
 
@@ -858,7 +858,7 @@ const handleViewAllPosts = () => {
   // TODO: Implement view all posts logic
 }
 
-const handlePostClick = (post: any) => {
+const handlePostClick = (_post: any) => {
   // TODO: Implement post click logic
 }
 
@@ -866,7 +866,7 @@ const handleManageProducts = () => {
   // TODO: Implement manage products logic
 }
 
-const handleServiceProductClick = (product: any) => {
+const handleServiceProductClick = (_product: any) => {
   // TODO: Implement service product click logic
 }
 
@@ -885,9 +885,9 @@ const handleProductClick = (product: MazelootProduct) => {
   handleAppSwitch(product)
 }
 
-const handleAppClick = (app: any) => {
-  // TODO: Implement app click logic
-}
+// const handleAppClick = (_app: any) => {
+//   // TODO: Implement app click logic
+// }
 
 // Get logged-in user from store
 const userStore = useUserStore()

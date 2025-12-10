@@ -14,6 +14,6 @@ app.use(router)
 
 // Initialize theme store to apply theme on mount
 import { useThemeStore } from './stores/theme'
-const themeStore = useThemeStore()
+useThemeStore() // Initialize theme store
 
 app.mount('#app')

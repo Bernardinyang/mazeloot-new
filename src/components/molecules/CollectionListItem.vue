@@ -14,7 +14,9 @@
         type="checkbox"
         :checked="isSelected"
         :disabled="isFolder"
-        @change="isFolder ? null : $emit('select', $event.target.checked)"
+        @change="
+          isFolder ? null : $emit('select', ($event.target as HTMLInputElement)?.checked ?? false)
+        "
         @click.stop
         :class="[
           'h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500',
@@ -240,11 +242,9 @@ import {
   Pencil,
   ArrowRightToLine,
   Trash2,
-  Info,
   Eye,
   EyeOff,
 } from 'lucide-vue-next'
-import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -395,62 +395,62 @@ const handleCopyLink = async () => {
   }
 }
 
-// Calculate PIN strength
-const pinStrength = computed(() => {
-  if (!props.downloadPin) return 0
+// Calculate PIN strength (currently unused, kept for future use)
+// const pinStrength = computed(() => {
+//   if (!props.downloadPin) return 0
 
-  const pin = props.downloadPin.toString()
-  let strength = 0
+//   const pin = props.downloadPin.toString()
+//   let strength = 0
 
-  // Length check
-  if (pin.length >= 4) strength++
-  if (pin.length >= 6) strength++
-  if (pin.length >= 8) strength++
+//   // Length check
+//   if (pin.length >= 4) strength++
+//   if (pin.length >= 6) strength++
+//   if (pin.length >= 8) strength++
 
-  // Complexity checks
-  if (/\d/.test(pin)) strength++ // Has numbers
-  if (/[a-zA-Z]/.test(pin)) strength++ // Has letters
-  if (/[^a-zA-Z0-9]/.test(pin)) strength++ // Has special characters
+//   // Complexity checks
+//   if (/\d/.test(pin)) strength++ // Has numbers
+//   if (/[a-zA-Z]/.test(pin)) strength++ // Has letters
+//   if (/[^a-zA-Z0-9]/.test(pin)) strength++ // Has special characters
 
-  // Deduct for weak patterns
-  if (/^(\d)\1+$/.test(pin)) strength = Math.max(0, strength - 2) // All same digit
-  if (/^(.)\1+$/.test(pin)) strength = Math.max(0, strength - 1) // All same character
-  if (/1234|4321|0000|1111|2222|3333|4444|5555|6666|7777|8888|9999/.test(pin)) {
-    strength = Math.max(0, strength - 2) // Common weak PINs
-  }
+//   // Deduct for weak patterns
+//   if (/^(\d)\1+$/.test(pin)) strength = Math.max(0, strength - 2) // All same digit
+//   if (/^(.)\1+$/.test(pin)) strength = Math.max(0, strength - 1) // All same character
+//   if (/1234|4321|0000|1111|2222|3333|4444|5555|6666|7777|8888|9999/.test(pin)) {
+//     strength = Math.max(0, strength - 2) // Common weak PINs
+//   }
 
-  return Math.min(5, strength) // Cap at 5
-})
+//   return Math.min(5, strength) // Cap at 5
+// })
 
-// PIN strength levels for visual indicator
-const pinStrengthLevels = computed(() => {
-  const strength = pinStrength.value
-  const levels = []
+// PIN strength levels for visual indicator (currently unused, kept for future use)
+// const pinStrengthLevels = computed(() => {
+//   const strength = pinStrength.value
+//   const levels = []
 
-  for (let i = 0; i < 5; i++) {
-    if (i < strength) {
-      // Color based on strength
-      if (strength <= 2) {
-        levels.push({ color: 'bg-red-500' })
-      } else if (strength <= 3) {
-        levels.push({ color: 'bg-yellow-500' })
-      } else {
-        levels.push({ color: 'bg-green-500' })
-      }
-    } else {
-      levels.push({ color: 'bg-gray-300 dark:bg-gray-600' })
-    }
-  }
+//   for (let i = 0; i < 5; i++) {
+//     if (i < strength) {
+//       // Color based on strength
+//       if (strength <= 2) {
+//         levels.push({ color: 'bg-red-500' })
+//       } else if (strength <= 3) {
+//         levels.push({ color: 'bg-yellow-500' })
+//       } else {
+//         levels.push({ color: 'bg-green-500' })
+//       }
+//     } else {
+//       levels.push({ color: 'bg-gray-300 dark:bg-gray-600' })
+//     }
+//   }
 
-  return levels
-})
+//   return levels
+// })
 
 // Generate preview grid (always 4 cells)
-const previewGrid = computed(() => {
+const previewGrid = computed<(string | null)[]>(() => {
   if (!props.previewImages || props.previewImages.length === 0) {
     return [null, null, null, null]
   }
-  const grid = [...props.previewImages]
+  const grid: (string | null)[] = [...props.previewImages]
   while (grid.length < 4) {
     grid.push(null)
   }

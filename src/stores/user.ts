@@ -7,7 +7,6 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { storage } from '@/utils/storage'
 import { useAuthApi } from '@/api/auth'
-import type { AuthResponse } from '@/api/auth'
 
 export interface User {
   id: string

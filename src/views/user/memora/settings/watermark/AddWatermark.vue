@@ -28,7 +28,7 @@
           :class="theme.textPrimary"
           @blur="handleNameBlur"
           @keyup.enter="handleNameBlur"
-          @keyup.esc="$event.target.blur()"
+          @keyup.esc="($event.target as HTMLInputElement)?.blur()"
           placeholder="Enter watermark name"
           maxlength="50"
         />
@@ -1018,14 +1018,14 @@ import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
 import { useWatermarkStore } from '@/stores/watermark'
-import { useThemeStore } from '@/stores/theme'
+// import { useThemeStore } from '@/stores/theme' // Unused for now
 import type { CreateWatermarkData, UpdateWatermarkData } from '@/api/watermarks'
 
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
-const themeStore = useThemeStore()
+// const themeStore = useThemeStore() // Unused for now
 
 // Check if editing existing watermark
 const isEditing = computed(() => !!route.params.id)
@@ -1046,7 +1046,7 @@ const textTransform = ref<'none' | 'uppercase' | 'lowercase' | 'capitalize'>('no
 const borderRadius = ref([0])
 const borderWidth = ref([0])
 const borderColor = ref('#000000')
-const borderStyle = ref<'solid' | 'dashed' | 'dotted' | 'double' | 'none'>('none')
+const borderStyle = ref<'solid' | 'dashed' | 'dotted' | 'none'>('none')
 const watermarkImageUrl = ref<string | null>(null)
 const scale = ref([70])
 const opacity = ref([90])
@@ -1118,18 +1118,19 @@ const getFontStyleProperties = (style: string) => {
   }
 }
 
-const getFontStylePreview = () => {
-  return getFontStyleProperties(fontStyle.value)
-}
+// Unused functions (kept for future use)
+// const getFontStylePreview = () => {
+//   return getFontStyleProperties(fontStyle.value)
+// }
 
 const getStylePreview = (styleValue: string) => {
   return getFontStyleProperties(styleValue)
 }
 
-const getFontStyleLabel = () => {
-  const option = fontStyleOptions.find(opt => opt.value === fontStyle.value)
-  return option?.label || 'Normal'
-}
+// const getFontStyleLabel = () => {
+//   const option = fontStyleOptions.find(opt => opt.value === fontStyle.value)
+//   return option?.label || 'Normal'
+// }
 
 const handleUploadImage = () => {
   const input = document.createElement('input')

@@ -4,7 +4,6 @@
  */
 
 import { ref, computed } from 'vue'
-import type { Ref } from 'vue'
 
 export interface FormField<T = any> {
   value: T
@@ -137,7 +136,7 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
    * Check if form is valid
    */
   const isValid = computed(() => {
-    return Object.values(fields.value).every(field => !field.error)
+    return (Object.values(fields.value) as FormField[]).every(field => !field.error)
   })
 
   /**

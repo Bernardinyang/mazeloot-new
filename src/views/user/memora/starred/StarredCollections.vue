@@ -229,7 +229,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Folder, Circle, Star } from 'lucide-vue-next'
+import { Folder, Star } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import {
   Select,
@@ -259,7 +259,7 @@ const { handleError } = useErrorHandler()
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
-const collectionsError = computed(() => galleryStore.error)
+// const collectionsError = computed(() => galleryStore.error) // Unused for now
 
 // View mode and sorting
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -555,37 +555,37 @@ const handlePreviewCollection = (collection: any) => {
   window.open(previewUrl, '_blank')
 }
 
-const handleMoveToFolder = async (draggedItem: any, targetFolder: any) => {
-  if (!targetFolder.isFolder) {
-    toast.error('Invalid target', {
-      description: 'You can only move items into folders.',
-    })
-    return
-  }
+// const handleMoveToFolder = async (draggedItem: any, targetFolder: any) => {
+//   if (!targetFolder.isFolder) {
+//     toast.error('Invalid target', {
+//       description: 'You can only move items into folders.',
+//     })
+//     return
+//   }
 
-  // Prevent moving folders into other folders
-  if (draggedItem.isFolder) {
-    toast.error('Cannot move folder', {
-      description: 'Folders cannot be moved into other folders.',
-    })
-    return
-  }
+//   // Prevent moving folders into other folders
+//   if (draggedItem.isFolder) {
+//     toast.error('Cannot move folder', {
+//       description: 'Folders cannot be moved into other folders.',
+//     })
+//     return
+//   }
 
-  try {
-    // Move collection - this will update UI optimistically without full reload
-    await galleryStore.moveCollection(draggedItem.id, targetFolder.id)
-    toast.success('Moved successfully', {
-      description: `Moved ${draggedItem.name || draggedItem.title} into ${targetFolder.name || targetFolder.title}`,
-    })
+//   try {
+//     // Move collection - this will update UI optimistically without full reload
+//     await galleryStore.moveCollection(draggedItem.id, targetFolder.id)
+//     toast.success('Moved successfully', {
+//       description: `Moved ${draggedItem.name || draggedItem.title} into ${targetFolder.name || targetFolder.title}`,
+//     })
 
-    // No need to refresh - optimistic update already applied
-    // The collection will animate out and folder will update its preview
-  } catch (error: any) {
-    handleError(error, {
-      fallbackMessage: 'Failed to move item.',
-    })
-  }
-}
+//     // No need to refresh - optimistic update already applied
+//     // The collection will animate out and folder will update its preview
+//   } catch (error: any) {
+//     handleError(error, {
+//       fallbackMessage: 'Failed to move item.',
+//     })
+//   }
+// }
 
 const handleBrowseCollections = () => {
   router.push({ name: 'manageCollections' })
@@ -607,139 +607,139 @@ onMounted(async () => {
   }
 })
 
-// Sample collections data (fallback - remove when API is ready)
-const mockCollections = ref([
-  {
-    id: 1,
-    title: 'Test Foolder',
-    itemCount: 0,
-    itemLabel: 'collections',
-    date: 'Nov 12, 2025',
-    dateCreated: 'Nov 30, 2025',
-    icon: Folder,
-    image: null,
-    isFolder: true,
-    isLocked: true,
-    previewImages: [],
-    password: 'password123',
-    downloadPin: '1234',
-    status: 'DRAFT',
-    starred: false,
-  },
-  {
-    id: 2,
-    title: 'Joseph X Cuppy',
-    itemCount: 2,
-    itemLabel: 'items',
-    date: 'Nov 29, 2025',
-    dateCreated: 'Nov 24, 2025',
-    itemIcon: Circle,
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '5678',
-    status: 'DRAFT',
-    starred: false,
-  },
-  {
-    id: 3,
-    title: 'MazeLoot Demo',
-    itemCount: 0,
-    itemLabel: 'items',
-    dateCreated: 'Nov 24, 2025',
-    starred: true,
-    badge: true,
-    badgeIcon: Circle,
-    image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '9012',
-    status: 'DRAFT',
-  },
-  {
-    id: 4,
-    title: 'Test',
-    itemCount: 0,
-    itemLabel: 'items',
-    date: 'Nov 5, 2025',
-    dateCreated: 'Nov 17, 2025',
-    itemIcon: Circle,
-    isLocked: true,
-    image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '3456',
-    status: 'DRAFT',
-    starred: false,
-  },
-  {
-    id: 5,
-    title: 'Mazeloot Demo',
-    itemCount: 0,
-    itemLabel: 'items',
-    date: 'Nov 13, 2025',
-    dateCreated: 'Nov 10, 2025',
-    itemIcon: Circle,
-    image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '7890',
-    status: 'DRAFT',
-    starred: false,
-  },
-  {
-    id: 6,
-    title: 'Mazeloot folder',
-    itemCount: 1,
-    itemLabel: 'collection',
-    dateCreated: 'Nov 10, 2025',
-    icon: Folder,
-    image: null,
-    isFolder: true,
-    isLocked: true,
-    previewImages: [
-      'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
-    ],
-    password: null,
-    downloadPin: null,
-    starred: false,
-  },
-  {
-    id: 7,
-    title: 'Test Folder',
-    itemCount: 0,
-    itemLabel: 'collections',
-    dateCreated: 'Sep 1, 2025',
-    icon: Folder,
-    image: null,
-    isFolder: true,
-    isLocked: false,
-    previewImages: [],
-    password: null,
-    downloadPin: null,
-    starred: false,
-  },
-  {
-    id: 8,
-    title: 'My Collection',
-    itemCount: 1,
-    itemLabel: 'item',
-    dateCreated: 'Sep 1, 2025',
-    itemIcon: Circle,
-    image: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '2468',
-    status: 'DRAFT',
-    starred: false,
-  },
-  {
-    id: 9,
-    title: 'My Sample Collection',
-    itemCount: 42,
-    itemLabel: 'items',
-    date: 'Sep 1, 2025',
-    dateCreated: 'Sep 1, 2025',
-    image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
-    password: null,
-    downloadPin: '1357',
-    status: 'PUBLISHED',
-    starred: false,
-  },
-])
+// Sample collections data (fallback - remove when API is ready) - Currently unused
+// const mockCollections = ref([
+//   {
+//     id: 1,
+//     title: 'Test Foolder',
+//     itemCount: 0,
+//     itemLabel: 'collections',
+//     date: 'Nov 12, 2025',
+//     dateCreated: 'Nov 30, 2025',
+//     icon: Folder,
+//     image: null,
+//     isFolder: true,
+//     isLocked: true,
+//     previewImages: [],
+//     password: 'password123',
+//     downloadPin: '1234',
+//     status: 'DRAFT',
+//     starred: false,
+//   },
+//   {
+//     id: 2,
+//     title: 'Joseph X Cuppy',
+//     itemCount: 2,
+//     itemLabel: 'items',
+//     date: 'Nov 29, 2025',
+//     dateCreated: 'Nov 24, 2025',
+//     itemIcon: Circle,
+//     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '5678',
+//     status: 'DRAFT',
+//     starred: false,
+//   },
+//   {
+//     id: 3,
+//     title: 'MazeLoot Demo',
+//     itemCount: 0,
+//     itemLabel: 'items',
+//     dateCreated: 'Nov 24, 2025',
+//     starred: true,
+//     badge: true,
+//     badgeIcon: Circle,
+//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '9012',
+//     status: 'DRAFT',
+//   },
+//   {
+//     id: 4,
+//     title: 'Test',
+//     itemCount: 0,
+//     itemLabel: 'items',
+//     date: 'Nov 5, 2025',
+//     dateCreated: 'Nov 17, 2025',
+//     itemIcon: Circle,
+//     isLocked: true,
+//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '3456',
+//     status: 'DRAFT',
+//     starred: false,
+//   },
+//   {
+//     id: 5,
+//     title: 'Mazeloot Demo',
+//     itemCount: 0,
+//     itemLabel: 'items',
+//     date: 'Nov 13, 2025',
+//     dateCreated: 'Nov 10, 2025',
+//     itemIcon: Circle,
+//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '7890',
+//     status: 'DRAFT',
+//     starred: false,
+//   },
+//   {
+//     id: 6,
+//     title: 'Mazeloot folder',
+//     itemCount: 1,
+//     itemLabel: 'collection',
+//     dateCreated: 'Nov 10, 2025',
+//     icon: Folder,
+//     image: null,
+//     isFolder: true,
+//     isLocked: true,
+//     previewImages: [
+//       'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
+//     ],
+//     password: null,
+//     downloadPin: null,
+//     starred: false,
+//   },
+//   {
+//     id: 7,
+//     title: 'Test Folder',
+//     itemCount: 0,
+//     itemLabel: 'collections',
+//     dateCreated: 'Sep 1, 2025',
+//     icon: Folder,
+//     image: null,
+//     isFolder: true,
+//     isLocked: false,
+//     previewImages: [],
+//     password: null,
+//     downloadPin: null,
+//     starred: false,
+//   },
+//   {
+//     id: 8,
+//     title: 'My Collection',
+//     itemCount: 1,
+//     itemLabel: 'item',
+//     dateCreated: 'Sep 1, 2025',
+//     itemIcon: Circle,
+//     image: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '2468',
+//     status: 'DRAFT',
+//     starred: false,
+//   },
+//   {
+//     id: 9,
+//     title: 'My Sample Collection',
+//     itemCount: 42,
+//     itemLabel: 'items',
+//     date: 'Sep 1, 2025',
+//     dateCreated: 'Sep 1, 2025',
+//     image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
+//     password: null,
+//     downloadPin: '1357',
+//     status: 'PUBLISHED',
+//     starred: false,
+//   },
+// ])
 </script>

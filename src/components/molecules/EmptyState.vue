@@ -18,7 +18,7 @@
 import { Button } from '@/components/shadcn/button'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     message: string
     actionLabel?: string

@@ -4,7 +4,6 @@
  */
 import {
   LayoutDashboard,
-  Images,
   Upload,
   Users,
   Settings,
@@ -18,7 +17,6 @@ import {
   Image as ImageIcon,
   Mail,
   Sliders,
-  HardDrive,
 } from 'lucide-vue-next'
 import type { NavItem } from '@/types/navigation'
 

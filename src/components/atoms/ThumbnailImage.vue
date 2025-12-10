@@ -6,8 +6,8 @@
       :alt="alt"
       class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
     />
-    <div v-else :class="fallbackClasses.value">
-      <span :class="fallbackTextClasses.value">{{ fallbackText || alt }}</span>
+    <div v-else :class="fallbackClasses">
+      <span :class="fallbackTextClasses">{{ fallbackText || alt }}</span>
     </div>
   </div>
 </template>
