@@ -50,4 +50,3 @@ const sizeClass = computed(() => {
   return sizeMap[props.size as number] || `w-${props.size} h-${props.size}`
 })
 </script>
-

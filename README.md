@@ -76,8 +76,25 @@ src/
 - ✅ Client-side routing
 - ✅ Modern UI components
 - ✅ Dark mode ready (CSS variables configured)
+- ✅ Prettier for code formatting
+- ✅ Husky Git hooks for automated formatting
+
+## Code Quality
+
+### Formatting
+
+This project uses Prettier for consistent code formatting. Files are automatically formatted on commit via Husky hooks.
+
+```bash
+# Format all files
+npm run format
+
+# Check formatting
+npm run format:check
+```
+
+See [PRETTIER_SETUP.md](./PRETTIER_SETUP.md) for more details.
 
 ## License
 
 ISC
-

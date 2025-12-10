@@ -29,4 +29,3 @@ export const HOMEPAGE_SORT_OPTIONS: SortOption[] = [
   { value: 'name-z-a', label: 'Name: Z-A' },
   { value: 'custom', label: 'Custom' },
 ]
-

@@ -1,5 +1,5 @@
 <script lang="ts">
-export const description = "A two column auth page with a cover image slider."
+export const description = 'A two column auth page with a cover image slider.'
 </script>
 
 <script setup lang="ts">
@@ -24,65 +24,68 @@ interface Testimonial {
 
 const testimonials: Testimonial[] = [
   {
-    quote: "We've been using MazeLoot to kick start every new project and can't imagine working without it.",
-    name: "Victoria Bassey",
-    title: "Lead Photographer, Layers Photography Agency",
-    image: "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=1200&fit=crop"
+    quote:
+      "We've been using MazeLoot to kick start every new project and can't imagine working without it.",
+    name: 'Victoria Bassey',
+    title: 'Lead Photographer, Layers Photography Agency',
+    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=1200&fit=crop',
   },
   {
-    quote: "MazeLoot has transformed how we approach creative projects. It's become essential to our workflow.",
-    name: "James Chen",
-    title: "Creative Director, Studio Design Co.",
-    image: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1200&fit=crop"
+    quote:
+      "MazeLoot has transformed how we approach creative projects. It's become essential to our workflow.",
+    name: 'James Chen',
+    title: 'Creative Director, Studio Design Co.',
+    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1200&fit=crop',
   },
   {
     quote: "The best tool we've discovered for managing our creative process. Highly recommend!",
-    name: "Sarah Martinez",
-    title: "Art Director, Creative Minds",
-    image: "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=1200&fit=crop"
+    name: 'Sarah Martinez',
+    title: 'Art Director, Creative Minds',
+    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=1200&fit=crop',
   },
   {
     quote: "MazeLoot streamlines our entire creative workflow. It's a game-changer for our team.",
-    name: "Michael Thompson",
-    title: "Founder, Digital Art Studio",
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop"
+    name: 'Michael Thompson',
+    title: 'Founder, Digital Art Studio',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop',
   },
   {
     quote: "We've increased our productivity by 40% since implementing MazeLoot. Incredible tool!",
-    name: "Emily Rodriguez",
-    title: "Project Manager, Creative Agency",
-    image: "https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=1200&fit=crop"
+    name: 'Emily Rodriguez',
+    title: 'Project Manager, Creative Agency',
+    image: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=1200&fit=crop',
   },
   {
     quote: "MazeLoot helps us stay organized and creative. It's perfect for our design team.",
-    name: "David Kim",
-    title: "Senior Designer, Pixel Perfect",
-    image: "https://images.unsplash.com/photo-1558403194-611308249627?w=800&h=1200&fit=crop"
+    name: 'David Kim',
+    title: 'Senior Designer, Pixel Perfect',
+    image: 'https://images.unsplash.com/photo-1558403194-611308249627?w=800&h=1200&fit=crop',
   },
   {
-    quote: "The collaboration features in MazeLoot are outstanding. Our team loves it!",
-    name: "Lisa Anderson",
-    title: "Creative Lead, Innovation Labs",
-    image: "https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&h=1200&fit=crop"
+    quote: 'The collaboration features in MazeLoot are outstanding. Our team loves it!',
+    name: 'Lisa Anderson',
+    title: 'Creative Lead, Innovation Labs',
+    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&h=1200&fit=crop',
   },
   {
-    quote: "MazeLoot has revolutionized how we manage creative projects. Simply amazing!",
-    name: "Robert Wilson",
-    title: "CEO, Creative Solutions Inc.",
-    image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=1200&fit=crop"
+    quote: 'MazeLoot has revolutionized how we manage creative projects. Simply amazing!',
+    name: 'Robert Wilson',
+    title: 'CEO, Creative Solutions Inc.',
+    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=1200&fit=crop',
   },
   {
     quote: "Best investment we've made for our creative team. MazeLoot is indispensable.",
-    name: "Jennifer Lee",
-    title: "Head of Design, Modern Studio",
-    image: "https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop"
+    name: 'Jennifer Lee',
+    title: 'Head of Design, Modern Studio',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop',
   },
   {
-    quote: "MazeLoot makes project management effortless. Our creative output has never been better.",
-    name: "Thomas Brown",
-    title: "Creative Strategist, Art Collective",
-    image: "https://images.unsplash.com/photo-1557683310-8555750e35cd?w=800&h=1200&fit=crop"
-  }
+    quote:
+      'MazeLoot makes project management effortless. Our creative output has never been better.',
+    name: 'Thomas Brown',
+    title: 'Creative Strategist, Art Collective',
+    image: 'https://images.unsplash.com/photo-1557683310-8555750e35cd?w=800&h=1200&fit=crop',
+  },
 ]
 
 const currentIndex = ref(0)
@@ -129,7 +132,9 @@ onUnmounted(() => {
       <!-- Logo -->
       <div class="flex justify-center gap-2 md:justify-start mb-8">
         <RouterLink to="/" class="flex items-center gap-2 font-medium">
-          <div class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md">
+          <div
+            class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md"
+          >
             <GalleryVerticalEnd class="size-4" />
           </div>
           Mazeloot
@@ -148,15 +153,19 @@ onUnmounted(() => {
       </div>
 
       <!-- Footer -->
-      <div class="mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground">
+      <div
+        class="mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground"
+      >
         <div>© MazeLoot 2025</div>
         <div class="flex items-center gap-2 mt-2 md:mt-0">
           <IconMail class="w-4 h-4" :size="16" />
-          <a href="mailto:help@mazeloot.com" class="hover:text-foreground transition-colors">help@mazeloot.com</a>
+          <a href="mailto:help@mazeloot.com" class="hover:text-foreground transition-colors"
+            >help@mazeloot.com</a
+          >
         </div>
       </div>
     </div>
-    <div 
+    <div
       class="bg-muted relative hidden lg:block overflow-hidden"
       @mouseenter="stopSlider"
       @mouseleave="startSlider"
@@ -164,10 +173,7 @@ onUnmounted(() => {
       <!-- Slider Container -->
       <div class="relative h-full w-full">
         <Transition name="fade" mode="out-in">
-          <div
-            :key="currentIndex"
-            class="absolute inset-0 h-full w-full"
-          >
+          <div :key="currentIndex" class="absolute inset-0 h-full w-full">
             <img
               :src="testimonials[currentIndex].image"
               :alt="`Testimonial ${currentIndex + 1}`"
@@ -177,13 +183,19 @@ onUnmounted(() => {
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20">
               <div class="absolute bottom-0 left-0 right-0 p-8 md:p-12 lg:p-16 text-white">
                 <div class="max-w-2xl">
-                  <blockquote class="text-xl md:text-2xl lg:text-3xl font-semibold mb-6 leading-relaxed">
+                  <blockquote
+                    class="text-xl md:text-2xl lg:text-3xl font-semibold mb-6 leading-relaxed"
+                  >
                     "{{ testimonials[currentIndex].quote }}"
                   </blockquote>
                   <div class="flex items-center gap-3 pt-4 border-t border-white/20">
                     <div class="flex-1">
-                      <p class="font-bold text-lg md:text-xl">{{ testimonials[currentIndex].name }}</p>
-                      <p class="text-sm md:text-base text-white/70 mt-1">{{ testimonials[currentIndex].title }}</p>
+                      <p class="font-bold text-lg md:text-xl">
+                        {{ testimonials[currentIndex].name }}
+                      </p>
+                      <p class="text-sm md:text-base text-white/70 mt-1">
+                        {{ testimonials[currentIndex].title }}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -208,7 +220,7 @@ onUnmounted(() => {
                   'block rounded-full transition-all duration-300 ease-in-out',
                   index === currentIndex
                     ? 'w-10 h-2.5 bg-white shadow-lg'
-                    : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/70 hover:w-3 hover:h-3'
+                    : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/70 hover:w-3 hover:h-3',
                 ]"
               />
             </button>
@@ -236,4 +248,3 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
-

@@ -1,8 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Overview
-    </template>
+    <template #breadcrumb> Overview </template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -55,7 +53,11 @@
           </CardHeader>
           <CardContent>
             <div class="space-y-4">
-              <div v-for="activity in recentActivity" :key="activity.id" class="flex items-center gap-4">
+              <div
+                v-for="activity in recentActivity"
+                :key="activity.id"
+                class="flex items-center gap-4"
+              >
                 <div class="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
                   <component :is="activity.icon" class="h-5 w-5 text-primary" />
                 </div>
@@ -111,7 +113,7 @@ import CardDescription from '@/components/shadcn/CardDescription.vue'
 import CardHeader from '@/components/shadcn/CardHeader.vue'
 import CardTitle from '@/components/shadcn/CardTitle.vue'
 import { Button } from '@/components/shadcn/button'
-import StatCard from '@/components/custom/StatCard.vue'
+import StatCard from '@/components/molecules/StatCard.vue'
 import { useNavigation } from '@/composables/useNavigation'
 
 const { navigateTo } = useNavigation()
@@ -165,4 +167,3 @@ const quickActions = [
   { route: { name: 'memora-collections' }, label: 'Create Album', icon: Folder },
 ]
 </script>
-

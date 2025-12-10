@@ -1,8 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Collections
-    </template>
+    <template #breadcrumb> Collections </template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -31,37 +29,44 @@
           >
             View Presets
           </Button>
-          
+
           <!-- New Collection Button with Split Dropdown -->
-          <div class="flex items-center rounded-md overflow-hidden border" :class="theme.borderSecondary">
+          <div
+            class="flex items-center rounded-md overflow-hidden border"
+            :class="theme.borderSecondary"
+          >
             <!-- Main Button (Left Side) -->
             <Button
               :class="[
                 'bg-teal-500 hover:bg-teal-600 text-white px-4 py-2 rounded-r-none border-r',
-                'rounded-l-md'
+                'rounded-l-md',
               ]"
               @click="handleCreateCollection"
             >
               New Collection
             </Button>
-            
+
             <!-- Dropdown Trigger (Right Side) -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button
                   :class="[
                     'bg-teal-500 hover:bg-teal-600 text-white px-2 py-2 rounded-l-none border-0',
-                    'rounded-r-md'
+                    'rounded-r-md',
                   ]"
                 >
                   <ChevronDown class="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
-                <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+                <DropdownMenuItem
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                >
                   Import Collection
                 </DropdownMenuItem>
-                <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+                <DropdownMenuItem
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                >
                   From Template
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -72,78 +77,110 @@
 
       <!-- Filter/Sort Bar -->
       <div class="flex items-center gap-3 flex-wrap">
-        <Select
-          :class="[
-            'w-[140px]',
-            theme.bgInput,
-            theme.borderInput,
-            theme.textInput
-          ]"
-        >
-          <option value="">Status</option>
-          <option value="active">Active</option>
-          <option value="archived">Archived</option>
-          <option value="draft">Draft</option>
+        <!-- Status Filter -->
+        <Select v-model="filterStatus">
+          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >All Status</SelectItem
+            >
+            <SelectItem value="active" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Active</SelectItem
+            >
+            <SelectItem value="archived" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Archived</SelectItem
+            >
+            <SelectItem value="draft" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Draft</SelectItem
+            >
+          </SelectContent>
         </Select>
 
-        <Select
-          :class="[
-            'w-[140px]',
-            theme.bgInput,
-            theme.borderInput,
-            theme.textInput
-          ]"
-        >
-          <option value="">Category Tag</option>
-          <option value="wedding">Wedding</option>
-          <option value="portrait">Portrait</option>
-          <option value="event">Event</option>
+        <!-- Category Tag Filter -->
+        <Select v-model="filterCategory">
+          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Category Tag" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >All Categories</SelectItem
+            >
+            <SelectItem value="wedding" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Wedding</SelectItem
+            >
+            <SelectItem value="portrait" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Portrait</SelectItem
+            >
+            <SelectItem value="event" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Event</SelectItem
+            >
+          </SelectContent>
         </Select>
 
-        <Select
-          :class="[
-            'w-[140px]',
-            theme.bgInput,
-            theme.borderInput,
-            theme.textInput
-          ]"
-        >
-          <option value="">Event Date</option>
-          <option value="recent">Recent</option>
-          <option value="oldest">Oldest</option>
+        <!-- Event Date Filter -->
+        <Select v-model="filterEventDate">
+          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Event Date" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >All Dates</SelectItem
+            >
+            <SelectItem value="recent" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Recent</SelectItem
+            >
+            <SelectItem value="oldest" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Oldest</SelectItem
+            >
+          </SelectContent>
         </Select>
 
-        <Select
-          :class="[
-            'w-[140px]',
-            theme.bgInput,
-            theme.borderInput,
-            theme.textInput
-          ]"
-        >
-          <option value="">Expiry Date</option>
-          <option value="soon">Expiring Soon</option>
-          <option value="expired">Expired</option>
+        <!-- Expiry Date Filter -->
+        <Select v-model="filterExpiryDate">
+          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Expiry Date" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >All Expiry</SelectItem
+            >
+            <SelectItem value="soon" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Expiring Soon</SelectItem
+            >
+            <SelectItem value="expired" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Expired</SelectItem
+            >
+          </SelectContent>
         </Select>
 
-        <Select
-          :class="[
-            'w-[140px]',
-            theme.bgInput,
-            theme.borderInput,
-            theme.textInput
-          ]"
-        >
-          <option value="">Starred</option>
-          <option value="yes">Starred Only</option>
-          <option value="no">Not Starred</option>
+        <!-- Starred Filter -->
+        <Select v-model="filterStarred">
+          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Starred" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >All</SelectItem
+            >
+            <SelectItem value="yes" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Starred Only</SelectItem
+            >
+            <SelectItem value="no" :class="[theme.textPrimary, theme.bgButtonHover]"
+              >Not Starred</SelectItem
+            >
+          </SelectContent>
         </Select>
       </div>
 
       <!-- Collections Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
-        <div v-if="isLoadingCollections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div
+          v-if="isLoadingCollections"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+        >
           <div
             v-for="i in 8"
             :key="i"
@@ -168,7 +205,10 @@
         </div>
 
         <!-- Empty State -->
-        <div v-else-if="sortedCollections.length === 0" class="flex items-center justify-center py-16">
+        <div
+          v-else-if="sortedCollections.length === 0"
+          class="flex items-center justify-center py-16"
+        >
           <EmptyState
             message="No collections found"
             action-label="Create New Collection"
@@ -178,13 +218,20 @@
         </div>
 
         <!-- Collections Grid -->
-        <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <TransitionGroup
+          v-else
+          name="list"
+          tag="div"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 relative"
+        >
           <CollectionCard
-            v-for="collection in sortedCollections"
+            v-for="(collection, index) in sortedCollections"
             :key="collection.id"
-            :image-src="collection.image"
-            :alt-text="collection.title"
-            :caption-text="collection.title"
+            :style="{ '--index': index }"
+            :is-moving="movingCollectionId === String(collection.id)"
+            :image-src="collection.image || collection.thumbnail"
+            :alt-text="collection.title || collection.name"
+            :caption-text="collection.title || collection.name"
             :subtitle="getSubtitle(collection)"
             container-height="auto"
             container-width="100%"
@@ -195,36 +242,29 @@
             :display-overlay-content="false"
             :show-content="true"
             :show-menu="true"
-            :show-star="!(collection.isFolder || !!collection.icon)"
-            :is-starred="collection.starred || false"
+            :show-star="!collection.icon"
+            :is-starred="collection.starred || collection.isStarred || false"
             :badge="collection.badge || false"
             :badge-icon="collection.badgeIcon"
-            :icon="collection.icon"
-            :folder-icon="collection.icon"
+            :icon="collection.isFolder ? Folder : collection.icon"
+            :folder-icon="collection.isFolder ? Folder : collection.icon"
             :preview-images="collection.previewImages"
             :is-locked="collection.isLocked || false"
-            :is-folder="collection.isFolder || !!collection.icon"
+            :is-folder="collection.isFolder || false"
+            :collection-data="collection"
             image-container-class="aspect-[4/3]"
             @star-click="toggleStar(collection)"
+            @drop="handleMoveToFolder($event, collection)"
+            @edit="handleEditCollection(collection)"
+            @duplicate="handleDuplicateCollection(collection)"
+            @delete="handleDeleteCollection(collection)"
+            @share="handleShareCollection(collection)"
           >
             <template #subtitle>
-              <div class="flex items-center gap-2 flex-wrap">
-                <span v-if="collection.itemCount !== undefined" class="flex items-center gap-1">
-                  <component
-                    v-if="collection.itemIcon"
-                    :is="collection.itemIcon"
-                    class="h-3 w-3"
-                  />
-                  <span>{{ collection.itemCount }} {{ collection.itemLabel }}</span>
-                </span>
-                <span v-if="collection.date" class="flex items-center gap-1.5">
-                  <span class="w-1 h-1 rounded-full bg-current opacity-50"></span>
-                  <span>{{ collection.date }}</span>
-                </span>
-              </div>
+              {{ getSubtitle(collection, subtitleSeparator) }}
             </template>
           </CollectionCard>
-        </div>
+        </TransitionGroup>
       </div>
 
       <!-- Collections List View -->
@@ -236,27 +276,66 @@
         empty-message="No collections found"
         empty-action-label="Create New Collection"
         :empty-icon="Folder"
+        :subtitle-separator="subtitleSeparator"
         @select="handleSelectCollection"
         @star-click="toggleStar"
         @link-click="handleCopyLink"
         @copy-pin="handleCopyPin"
         @item-click="handleCollectionClick"
         @empty-action="handleCreateCollection"
+        @edit="handleEditCollection"
+        @duplicate="handleDuplicateCollection"
+        @delete="handleDeleteCollection"
+        @publish="handlePublishCollection"
+        @preview="handlePreviewCollection"
+        @move-to="item => handleMoveToFolder(item, null)"
       />
     </div>
+
+    <!-- Create Collection Dialog -->
+    <CreateCollectionDialog
+      v-model:open="showCreateDialog"
+      @create="handleCreateCollectionSubmit"
+    />
+
+    <!-- Move Collection Modal -->
+    <MoveCollectionModal
+      v-if="pendingMove"
+      v-model="showMoveModal"
+      :item-name="pendingMove.item.name || pendingMove.item.title || 'Collection'"
+      :target-folder-name="
+        pendingMove.targetFolder.name || pendingMove.targetFolder.title || 'Folder'
+      "
+      @confirm="handleConfirmMove"
+      @cancel="handleCancelMove"
+    />
+
+    <!-- Delete Collection Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDeleteModal"
+      :item-name="getItemName(collectionToDelete)"
+      fallback-name="this collection"
+      title="Delete Collection"
+      warning-message="This collection will be permanently removed from your account."
+      :is-deleting="isDeleting"
+      @confirm="handleConfirmDelete"
+      @cancel="handleCancelDelete"
+    />
   </DashboardLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import {
-  ChevronDown,
-  Folder,
-  Circle,
-} from 'lucide-vue-next'
+import { ref, computed, onMounted, watch } from 'vue'
+import { ChevronDown, Folder, Circle } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
-import Select from '@/components/shadcn/Select.vue'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/shadcn/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -264,19 +343,25 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useLoadingStates } from '@/composables/useLoadingStates'
 import { useCollectionSort } from '@/composables/useCollectionSort'
 import { COLLECTION_SORT_OPTIONS } from '@/constants/sortOptions'
-import PageHeader from '@/components/custom/PageHeader.vue'
-import CollectionCard from '@/components/custom/CollectionCard.vue'
-import CollectionsTable from '@/components/custom/CollectionsTable.vue'
-import EmptyState from '@/components/custom/EmptyState.vue'
+import PageHeader from '@/components/molecules/PageHeader.vue'
+import CollectionCard from '@/components/molecules/CollectionCard.vue'
+import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import EmptyState from '@/components/molecules/EmptyState.vue'
+import CreateCollectionDialog from '@/components/organisms/CreateCollectionDialog.vue'
+import MoveCollectionModal from '@/components/organisms/MoveCollectionModal.vue'
+import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import { useGalleryStore } from '@/stores/gallery'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useRouter } from 'vue-router'
+import { toast } from 'vue-sonner'
 
 const theme = useThemeClasses()
-
-// Loading state
-const { states: loadingStates, setAllLoading } = useLoadingStates(['collections'], true)
-const isLoadingCollections = loadingStates.collections
+const router = useRouter()
+const galleryStore = useGalleryStore()
+const { handleError } = useErrorHandler()
 
 // View mode and sorting
 const viewMode = ref<'grid' | 'list'>('grid')
@@ -284,43 +369,200 @@ const sortBy = ref('created-new-old')
 const searchQuery = ref('')
 const sortOptions = COLLECTION_SORT_OPTIONS
 
+// Subtitle separator (can be customized)
+const subtitleSeparator = ref('•')
+
+// Filter states
+const filterStatus = ref('all')
+const filterCategory = ref('all')
+const filterEventDate = ref('all')
+const filterExpiryDate = ref('all')
+const filterStarred = ref('all')
+
 // Selected collections (for list view)
 const selectedCollections = ref<number[]>([])
 
-const getSubtitle = (collection: any) => {
+// Computed collections from store
+const collections = computed(() => galleryStore.collections)
+const isLoadingCollections = computed(() => galleryStore.isLoading)
+const collectionsError = computed(() => galleryStore.error)
+
+const getSubtitle = (collection: any, separator: string = '•') => {
   const parts = []
   if (collection.itemCount !== undefined) {
-    parts.push(`${collection.itemCount} ${collection.itemLabel}`)
+    const count = collection.itemCount
+    // Folders count collections, regular collections count items
+    if (collection.isFolder) {
+      const labelText = count === 1 ? 'collection' : 'collections'
+      parts.push(`${count} ${labelText}`)
+    } else {
+      const labelText = count === 1 ? 'item' : 'items'
+      parts.push(`${count} ${labelText}`)
+    }
   }
-  if (collection.date) {
-    parts.push(collection.date)
+  const date = collection.date || collection.dateCreated || collection.createdAt
+  if (date) {
+    const dateObj = new Date(date)
+    const formattedDate = dateObj.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    parts.push(formattedDate)
   }
-  return parts.join(' • ')
+  return parts.join(`  ${separator}  `)
 }
 
 // Filter and sort collections
 const filteredCollections = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return collections.value
+  let filtered = [...collections.value]
+
+  // Only show root-level items (parentId === null)
+  // Items moved to folders should not appear in root view
+  filtered = filtered.filter(collection => collection.parentId === null)
+
+  // Search filter
+  if (searchQuery.value.trim()) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(collection => {
+      const name = (collection.name || collection.title || '').toLowerCase()
+      const desc = (collection.description || '').toLowerCase()
+      return name.includes(query) || desc.includes(query)
+    })
   }
-  const query = searchQuery.value.toLowerCase()
-  return collections.value.filter(collection => 
-    collection.title.toLowerCase().includes(query)
-  )
+
+  // Status filter
+  if (filterStatus.value && filterStatus.value !== 'all') {
+    filtered = filtered.filter(collection => {
+      const status = (collection.status || '').toLowerCase()
+      return status === filterStatus.value.toLowerCase()
+    })
+  }
+
+  // Category filter
+  if (filterCategory.value && filterCategory.value !== 'all') {
+    filtered = filtered.filter(collection => {
+      const category = (collection.category || '').toLowerCase()
+      return category === filterCategory.value.toLowerCase()
+    })
+  }
+
+  // Event Date filter (filter by recency)
+  if (filterEventDate.value && filterEventDate.value !== 'all') {
+    const now = new Date()
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+
+    filtered = filtered.filter(collection => {
+      const dateStr = collection.date || collection.dateCreated || collection.createdAt
+      if (!dateStr) return false
+      const eventDate = new Date(dateStr)
+
+      if (filterEventDate.value === 'recent') {
+        // Show collections from the last 30 days
+        return eventDate >= thirtyDaysAgo
+      }
+      if (filterEventDate.value === 'oldest') {
+        // Show collections older than 30 days
+        return eventDate < thirtyDaysAgo
+      }
+      return true
+    })
+  }
+
+  // Expiry Date filter
+  if (filterExpiryDate.value && filterExpiryDate.value !== 'all') {
+    const now = new Date()
+    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
+    filtered = filtered.filter(collection => {
+      if (!collection.expiryDate) return false
+      const expiryDate = new Date(collection.expiryDate)
+
+      if (filterExpiryDate.value === 'soon') {
+        return expiryDate > now && expiryDate <= sevenDaysFromNow
+      }
+      if (filterExpiryDate.value === 'expired') {
+        return expiryDate < now
+      }
+      return true
+    })
+  }
+
+  // Starred filter
+  if (filterStarred.value && filterStarred.value !== 'all') {
+    if (filterStarred.value === 'yes') {
+      filtered = filtered.filter(
+        collection => collection.starred === true || collection.isStarred === true
+      )
+    } else if (filterStarred.value === 'no') {
+      filtered = filtered.filter(collection => !collection.starred && !collection.isStarred)
+    }
+  }
+
+  return filtered
 })
 
-const { sortedItems: sortedCollections } = useCollectionSort(filteredCollections, sortBy)
+// Only sort when not loading to prevent sorting before data is ready
+const { sortedItems: sortedCollections } = useCollectionSort(
+  computed(() => (isLoadingCollections.value ? [] : filteredCollections.value)),
+  sortBy
+)
 
-const handleCreateCollection = () => {
-  // TODO: Implement create collection logic
+const showCreateDialog = ref(false)
+const showMoveModal = ref(false)
+const pendingMove = ref<{ item: any; targetFolder: any } | null>(null)
+const movingCollectionId = ref<string | null>(null)
+
+// Delete confirmation using reusable composable
+const {
+  showDeleteModal,
+  itemToDelete: collectionToDelete,
+  isDeleting,
+  openDeleteModal,
+  closeDeleteModal,
+  getItemName,
+} = useDeleteConfirmation<any>()
+
+const handleCreateCollection = async () => {
+  showCreateDialog.value = true
+}
+
+const handleCreateCollectionSubmit = async (data: {
+  name: string
+  description?: string
+  category?: string
+}) => {
+  try {
+    await galleryStore.createCollection(data)
+    toast.success('Collection created', {
+      description: 'Your new collection has been created.',
+    })
+    // Refresh collections
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to create collection.',
+    })
+  }
 }
 
 const handleViewPresets = () => {
-  // TODO: Implement view presets logic
+  router.push({ name: 'presetSettings' })
 }
 
-const toggleStar = (collection: any) => {
-  collection.starred = !collection.starred
+const toggleStar = async (collection: any) => {
+  try {
+    // Store already handles optimistic update, no need to manually update
+    await galleryStore.toggleStar(String(collection.id))
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to update star status.',
+    })
+  }
 }
 
 const handleSelectCollection = (id: number, checked: boolean) => {
@@ -332,28 +574,257 @@ const handleSelectCollection = (id: number, checked: boolean) => {
 }
 
 const handleCollectionClick = (collection: any) => {
-  // TODO: Navigate to collection detail page
+  // Navigate to collection detail page
+  router
+    .push({
+      name: 'collectionDetail',
+      params: { id: collection.id },
+    })
+    .catch(() => {
+      // If route doesn't exist, show toast
+      toast.info('Collection detail', {
+        description: `Viewing ${collection.name || collection.title}`,
+      })
+    })
 }
 
-const handleCopyLink = (collection: any) => {
-  // TODO: Copy collection link to clipboard
+const handleCopyLink = async (collection: any) => {
+  const collectionId = collection.id || collection.name || collection.title
+  const link = `${window.location.origin}/collections/${collectionId}`
+
+  try {
+    await navigator.clipboard.writeText(link)
+    toast.success('Link copied', {
+      description: 'Collection link has been copied to clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy link:', error)
+    toast.error('Failed to copy', {
+      description: 'Could not copy link to clipboard.',
+    })
+  }
 }
 
-const handleCopyPin = (collection: any) => {
-  // TODO: Copy download PIN to clipboard
+const handleCopyPin = async (collection: any) => {
+  const pin = collection.downloadPin
+  if (!pin) {
+    toast.error('No PIN available', {
+      description: 'This collection does not have a download PIN.',
+    })
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(pin)
+    toast.success('PIN copied', {
+      description: 'Download PIN has been copied to clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy PIN:', error)
+    toast.error('Failed to copy', {
+      description: 'Could not copy PIN to clipboard.',
+    })
+  }
 }
 
-// Simulate loading on mount
-onMounted(() => {
-  // Set loading state to true initially
-  setAllLoading(true)
-  // Simulate data fetch - keep loading for 1.5 seconds to see skeleton loaders
-  setTimeout(() => {
-    setAllLoading(false)
-  }, 1500)
+const handleEditCollection = (collection: any) => {
+  // TODO: Open edit dialog
+  toast.info('Edit collection', {
+    description: `Editing ${collection.name || collection.title}`,
+  })
+}
+
+const handleDuplicateCollection = async (collection: any) => {
+  try {
+    await galleryStore.duplicateCollection(String(collection.id))
+    toast.success('Collection duplicated', {
+      description: `${collection.name || collection.title} has been duplicated.`,
+    })
+    // Refresh collections
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to duplicate collection.',
+    })
+  }
+}
+
+const handleDeleteCollection = (collection: any) => {
+  openDeleteModal(collection)
+}
+
+const handleConfirmDelete = async () => {
+  if (!collectionToDelete.value) return
+
+  isDeleting.value = true
+  try {
+    await galleryStore.deleteCollection(String(collectionToDelete.value.id))
+    toast.success('Collection deleted', {
+      description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
+    })
+    // Refresh collections
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+    closeDeleteModal()
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to delete collection.',
+    })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+const handleCancelDelete = () => {
+  closeDeleteModal()
+}
+
+const handlePublishCollection = async (collection: any) => {
+  const newStatus =
+    collection.status === 'active' || collection.status === 'PUBLISHED' ? 'draft' : 'active'
+  try {
+    await galleryStore.updateCollection(String(collection.id), { status: newStatus })
+    toast.success(newStatus === 'active' ? 'Collection published' : 'Collection unpublished', {
+      description: `${collection.name || collection.title} status updated.`,
+    })
+    // Refresh collections
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+    })
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to update collection status.',
+    })
+  }
+}
+
+const handleShareCollection = (collection: any) => {
+  handleCopyLink(collection)
+}
+
+const handlePreviewCollection = (collection: any) => {
+  // Open preview in new tab
+  const collectionId = collection.id || collection.name || collection.title
+  const previewUrl = `${window.location.origin}/preview/${collectionId}`
+  window.open(previewUrl, '_blank')
+}
+
+const handleMoveToFolder = async (draggedItem: any, targetFolder: any) => {
+  if (!targetFolder.isFolder) {
+    toast.error('Invalid target', {
+      description: 'You can only move items into folders.',
+    })
+    return
+  }
+
+  // Prevent moving folders into other folders
+  if (draggedItem.isFolder) {
+    toast.error('Cannot move folder', {
+      description: 'Folders cannot be moved into other folders.',
+    })
+    return
+  }
+
+  // Store pending move and show confirmation modal
+  pendingMove.value = {
+    item: draggedItem,
+    targetFolder: targetFolder,
+  }
+  showMoveModal.value = true
+}
+
+const handleConfirmMove = async () => {
+  if (!pendingMove.value) return
+
+  const { item, targetFolder } = pendingMove.value
+
+  // Set moving state to trigger animation
+  movingCollectionId.value = String(item.id)
+
+  try {
+    // Wait a bit for animation to start
+    await new Promise(resolve => setTimeout(resolve, 200))
+
+    // Move collection - this will update UI optimistically without full reload
+    await galleryStore.moveCollection(item.id, targetFolder.id)
+    toast.success('Moved successfully', {
+      description: `Moved ${item.name || item.title} into ${targetFolder.name || targetFolder.title}`,
+    })
+
+    // Clear moving state after animation completes
+    setTimeout(() => {
+      movingCollectionId.value = null
+    }, 500)
+  } catch (error: any) {
+    movingCollectionId.value = null
+    handleError(error, {
+      fallbackMessage: 'Failed to move item.',
+    })
+  } finally {
+    pendingMove.value = null
+    showMoveModal.value = false
+  }
+}
+
+const handleCancelMove = () => {
+  pendingMove.value = null
+  showMoveModal.value = false
+}
+
+// Fetch collections on mount
+onMounted(async () => {
+  try {
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error: any) {
+    // Only show error if not aborted
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to load collections.',
+      })
+    }
+  }
 })
 
-const collections = ref([
+// Watch for search/sort changes and refetch (debounced)
+let searchTimeout: ReturnType<typeof setTimeout> | null = null
+watch([searchQuery, sortBy], async () => {
+  // Debounce search
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  searchTimeout = setTimeout(async () => {
+    try {
+      await galleryStore.fetchCollections({
+        search: searchQuery.value,
+        sortBy: sortBy.value,
+        parentId: null, // Only fetch root-level collections
+      })
+    } catch (error: any) {
+      // Only show error if not aborted
+      if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+        handleError(error, {
+          fallbackMessage: 'Failed to load collections.',
+        })
+      }
+    }
+  }, 300) // 300ms debounce
+})
+
+// Mock collections data (remove when API is ready)
+const mockCollections = ref([
   {
     id: 1,
     title: 'Test Foolder',

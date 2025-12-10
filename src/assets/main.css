@@ -102,12 +102,12 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Light mode classes */
   .light {
     color-scheme: light;
   }
-  
+
   /* Dark mode classes */
   .dark {
     color-scheme: dark;
@@ -120,14 +120,16 @@
     background: hsl(var(--card)) !important;
     color: hsl(var(--card-foreground)) !important;
     border: 1px solid hsl(var(--border)) !important;
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
+    box-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1),
+      0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
   }
-  
-  [data-sonner-toast][data-type="success"] {
+
+  [data-sonner-toast][data-type='success'] {
     border-color: hsl(142.1 76.2% 36.3%) !important;
   }
-  
-  [data-sonner-toast][data-type="error"] {
+
+  [data-sonner-toast][data-type='error'] {
     border-color: hsl(var(--destructive)) !important;
   }
 }
@@ -209,4 +211,3 @@
 .slide-in-from-bottom-8 {
   animation: slide-in-from-bottom 0.8s ease-out;
 }
-

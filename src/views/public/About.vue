@@ -2,24 +2,21 @@
   <div class="max-w-4xl mx-auto space-y-8">
     <div class="text-center space-y-4">
       <h1 class="text-4xl md:text-5xl font-bold">About</h1>
-      <p class="text-xl text-muted-foreground">
-        Learn more about this modern web application
-      </p>
+      <p class="text-xl text-muted-foreground">Learn more about this modern web application</p>
     </div>
 
     <Card>
       <CardHeader>
         <CardTitle>Technology Stack</CardTitle>
-        <CardDescription>
-          Built with modern, industry-standard tools
-        </CardDescription>
+        <CardDescription> Built with modern, industry-standard tools </CardDescription>
       </CardHeader>
       <CardContent class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="space-y-2">
             <h3 class="font-semibold">Vue.js 3</h3>
             <p class="text-sm text-muted-foreground">
-              Progressive JavaScript framework using the Composition API for better code organization and reusability.
+              Progressive JavaScript framework using the Composition API for better code
+              organization and reusability.
             </p>
           </div>
           <div class="space-y-2">
@@ -69,4 +66,3 @@ import CardTitle from '@/components/shadcn/CardTitle.vue'
 import CardDescription from '@/components/shadcn/CardDescription.vue'
 import CardContent from '@/components/shadcn/CardContent.vue'
 </script>
-

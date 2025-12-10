@@ -1,13 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Settings > Preference
-    </template>
+    <template #breadcrumb> Settings > Preference </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="w-[50%]">
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Preference</h1>
+        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+          Preference
+        </h1>
         <p class="text-sm mb-4" :class="theme.textSecondary">
           Configure your collection preferences and settings.
         </p>
@@ -20,13 +20,7 @@
         <div class="space-y-2">
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Filename Display</h3>
           <Select v-model="filenameDisplay">
-            <SelectTrigger
-              :class="[
-                theme.bgInput,
-                theme.borderInput,
-                theme.textInput
-              ]"
-            >
+            <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
               <SelectValue placeholder="Select display option" />
             </SelectTrigger>
             <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -47,15 +41,11 @@
 
         <!-- Search Engine Visibility Section -->
         <div class="space-y-2">
-          <h3 class="text-base font-semibold" :class="theme.textPrimary">Search Engine Visibility</h3>
+          <h3 class="text-base font-semibold" :class="theme.textPrimary">
+            Search Engine Visibility
+          </h3>
           <Select v-model="searchEngineVisibility">
-            <SelectTrigger
-              :class="[
-                theme.bgInput,
-                theme.borderInput,
-                theme.textInput
-              ]"
-            >
+            <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
               <SelectValue placeholder="Select visibility option" />
             </SelectTrigger>
             <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -70,7 +60,8 @@
             </SelectContent>
           </Select>
           <p class="text-xs" :class="theme.textSecondary">
-            Choose whether you want your collections to be searchable on search engines (e.g. Google). 
+            Choose whether you want your collections to be searchable on search engines (e.g.
+            Google).
             <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
           </p>
         </div>
@@ -79,13 +70,7 @@
         <div class="space-y-2">
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Sharpening Level</h3>
           <Select v-model="sharpeningLevel">
-            <SelectTrigger
-              :class="[
-                theme.bgInput,
-                theme.borderInput,
-                theme.textInput
-              ]"
-            >
+            <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
               <SelectValue placeholder="Select sharpening level" />
             </SelectTrigger>
             <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -100,7 +85,8 @@
             </SelectContent>
           </Select>
           <p class="text-xs" :class="theme.textSecondary">
-            This setting only applies to web display copies of your photos. Your originals are not altered. 
+            This setting only applies to web display copies of your photos. Your originals are not
+            altered.
             <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
           </p>
         </div>
@@ -112,21 +98,30 @@
             <UpgradePopover v-if="isDisabled" v-model:open="showRawPhotoPopover" />
           </div>
           <div class="flex items-center justify-between">
-            <label class="relative inline-flex items-center group" :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+            <label
+              class="relative inline-flex items-center group"
+              :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+            >
               <input
                 type="checkbox"
                 v-model="rawPhotoSupport"
                 :disabled="isDisabled"
                 class="sr-only peer"
               />
-              <div class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"></div>
-              <span class="ml-3 text-sm font-medium" :class="rawPhotoSupport ? theme.textPrimary : theme.textSecondary">
+              <div
+                class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+              ></div>
+              <span
+                class="ml-3 text-sm font-medium"
+                :class="rawPhotoSupport ? theme.textPrimary : theme.textSecondary"
+              >
                 {{ rawPhotoSupport ? 'On' : 'Off' }}
               </span>
             </label>
           </div>
           <p class="text-xs" :class="theme.textSecondary">
-            Pro Feature: Enable RAW photos to be included in your galleries alongside other file formats.
+            Pro Feature: Enable RAW photos to be included in your galleries alongside other file
+            formats.
           </p>
         </div>
 
@@ -135,7 +130,10 @@
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Terms of Service</h3>
           <div class="space-y-2">
             <!-- Rich Text Editor Toolbar -->
-            <div class="flex items-center gap-2 p-2 rounded-t border-b" :class="[theme.bgCard, theme.borderSecondary]">
+            <div
+              class="flex items-center gap-2 p-2 rounded-t border-b"
+              :class="[theme.bgCard, theme.borderSecondary]"
+            >
               <button
                 type="button"
                 class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -183,12 +181,13 @@
                 theme.borderInput,
                 theme.textInput,
                 theme.placeholderInput,
-                'rounded-t-none'
+                'rounded-t-none',
               ]"
             />
           </div>
           <p class="text-xs" :class="theme.textSecondary">
-            Set the Terms of service that your customers are subject to. This will be shown in the footer of your collections.
+            Set the Terms of service that your customers are subject to. This will be shown in the
+            footer of your collections.
           </p>
         </div>
 
@@ -197,7 +196,10 @@
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Privacy Policy</h3>
           <div class="space-y-2">
             <!-- Rich Text Editor Toolbar -->
-            <div class="flex items-center gap-2 p-2 rounded-t border-b" :class="[theme.bgCard, theme.borderSecondary]">
+            <div
+              class="flex items-center gap-2 p-2 rounded-t border-b"
+              :class="[theme.bgCard, theme.borderSecondary]"
+            >
               <button
                 type="button"
                 class="p-1.5 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
@@ -245,12 +247,13 @@
                 theme.borderInput,
                 theme.textInput,
                 theme.placeholderInput,
-                'rounded-t-none'
+                'rounded-t-none',
               ]"
             />
           </div>
           <p class="text-xs" :class="theme.textSecondary">
-            Set the Privacy Policy that your customers are subject to. This will be shown in the footer of your collections.
+            Set the Privacy Policy that your customers are subject to. This will be shown in the
+            footer of your collections.
           </p>
         </div>
 
@@ -259,19 +262,21 @@
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Enable Cookie Banner</h3>
           <div class="flex items-center justify-between">
             <label class="relative inline-flex items-center group cursor-pointer">
-              <input
-                type="checkbox"
-                v-model="enableCookieBanner"
-                class="sr-only peer"
-              />
-              <div class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"></div>
-              <span class="ml-3 text-sm font-medium" :class="enableCookieBanner ? theme.textPrimary : theme.textSecondary">
+              <input type="checkbox" v-model="enableCookieBanner" class="sr-only peer" />
+              <div
+                class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+              ></div>
+              <span
+                class="ml-3 text-sm font-medium"
+                :class="enableCookieBanner ? theme.textPrimary : theme.textSecondary"
+              >
                 {{ enableCookieBanner ? 'On' : 'Off' }}
               </span>
             </label>
           </div>
           <p class="text-xs" :class="theme.textSecondary">
-            Enable banner to notify visitors that your site uses cookies. This will only appear for EU visitors.
+            Enable banner to notify visitors that your site uses cookies. This will only appear for
+            EU visitors.
           </p>
         </div>
       </div>
@@ -292,7 +297,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import Textarea from '@/components/shadcn/Textarea.vue'
-import UpgradePopover from '@/components/custom/UpgradePopover.vue'
+import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
@@ -326,4 +331,3 @@ const sharpeningLevelOptions = [
   { value: 'high', label: 'High' },
 ]
 </script>
-

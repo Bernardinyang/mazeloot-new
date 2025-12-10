@@ -2,7 +2,13 @@
   <SidebarProvider>
     <AppSidebar />
     <SidebarInset>
-      <header :class="['sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80', theme.borderPrimary, theme.transitionColors]">
+      <header
+        :class="[
+          'sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80',
+          theme.borderPrimary,
+          theme.transitionColors,
+        ]"
+      >
         <div class="flex items-center gap-2 px-4">
           <SidebarTrigger :class="['-ml-1', theme.textPrimary, theme.bgButtonHover]" />
           <Separator
@@ -13,7 +19,10 @@
             <BreadcrumbList>
               <BreadcrumbItem class="hidden md:block">
                 <BreadcrumbLink as-child>
-                  <RouterLink :to="{ name: 'overview' }" :class="[theme.textPrimary, 'hover:opacity-80', theme.transitionColors]">
+                  <RouterLink
+                    :to="{ name: 'overview' }"
+                    :class="[theme.textPrimary, 'hover:opacity-80', theme.transitionColors]"
+                  >
                     Dashboard
                   </RouterLink>
                 </BreadcrumbLink>
@@ -32,11 +41,19 @@
           <div class="flex items-center gap-2 pr-4">
             <!-- Search -->
             <div class="hidden md:flex items-center relative max-w-xs">
-              <Search :class="['absolute left-3 h-4 w-4 pointer-events-none', theme.textTertiary]" />
+              <Search
+                :class="['absolute left-3 h-4 w-4 pointer-events-none', theme.textTertiary]"
+              />
               <Input
                 type="search"
                 placeholder="Search..."
-                :class="['pl-9 pr-4 h-9 w-64 focus-visible:ring-white/20 dark:focus-visible:ring-white/20 light:focus-visible:ring-gray-400', theme.bgInput, theme.borderInput, theme.textInput, theme.placeholderInput]"
+                :class="[
+                  'pl-9 pr-4 h-9 w-64 focus-visible:ring-white/20 dark:focus-visible:ring-white/20 light:focus-visible:ring-gray-400',
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                ]"
               />
             </div>
 
@@ -46,12 +63,22 @@
             <!-- Notifications -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
-                <Button variant="ghost" size="icon" :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+                >
                   <Bell class="h-5 w-5" />
-                  <span v-if="notifications.length > 0" class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                  <span
+                    v-if="notifications.length > 0"
+                    class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"
+                  ></span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" :class="['w-80', theme.bgDropdown, theme.borderSecondary]">
+              <DropdownMenuContent
+                align="end"
+                :class="['w-80', theme.bgDropdown, theme.borderSecondary]"
+              >
                 <div class="flex items-center justify-between px-2 py-1.5">
                   <DropdownMenuLabel :class="theme.textPrimary">Notifications</DropdownMenuLabel>
                   <Button
@@ -66,19 +93,32 @@
                 </div>
                 <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
                 <div class="max-h-96 overflow-y-auto">
-                  <div v-if="notifications.length === 0" :class="['p-4 text-center text-sm', theme.textSecondary]">
+                  <div
+                    v-if="notifications.length === 0"
+                    :class="['p-4 text-center text-sm', theme.textSecondary]"
+                  >
                     No notifications
                   </div>
                   <DropdownMenuItem
                     v-for="notification in notifications"
                     :key="notification.id"
-                    :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer flex flex-col items-start p-3']"
+                    :class="[
+                      theme.textPrimary,
+                      theme.bgButtonHover,
+                      'cursor-pointer flex flex-col items-start p-3',
+                    ]"
                   >
                     <div class="flex items-start gap-2 w-full">
-                      <component :is="notification.icon" class="h-4 w-4 mt-0.5 shrink-0" :class="notification.iconColor" />
+                      <component
+                        :is="notification.icon"
+                        class="h-4 w-4 mt-0.5 shrink-0"
+                        :class="notification.iconColor"
+                      />
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium">{{ notification.title }}</p>
-                        <p :class="['text-xs mt-0.5', theme.textSecondary]">{{ notification.message }}</p>
+                        <p :class="['text-xs mt-0.5', theme.textSecondary]">
+                          {{ notification.message }}
+                        </p>
                         <p :class="['text-xs mt-1', theme.textTertiary]">{{ notification.time }}</p>
                       </div>
                     </div>
@@ -99,11 +139,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { Search, Bell, CheckCircle2, ShoppingCart } from 'lucide-vue-next'
-import {
-  SidebarProvider,
-  SidebarInset,
-  SidebarTrigger,
-} from '@/components/shadcn/sidebar'
+import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/shadcn/sidebar'
 import { Separator } from '@/components/shadcn/separator'
 import {
   Breadcrumb,
@@ -114,7 +150,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/shadcn/breadcrumb'
 import { Button } from '@/components/shadcn/button'
-import Input from '@/components/shadcn/Input.vue'
+import Input from '@/components/shadcn/input/Input.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -124,8 +160,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { RouterLink } from 'vue-router'
-import AppSidebar from '@/components/custom/AppSidebar.vue'
-import ThemeToggle from '@/components/custom/ThemeToggle.vue'
+import AppSidebar from '@/components/organisms/AppSidebar.vue'
+import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
@@ -154,4 +190,3 @@ const clearNotifications = () => {
   notifications.value = []
 }
 </script>
-

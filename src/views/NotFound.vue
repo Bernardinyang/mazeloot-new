@@ -4,9 +4,7 @@
       <h1 class="text-6xl font-bold">404</h1>
       <h2 class="text-2xl font-semibold">Page Not Found</h2>
       <p class="text-muted-foreground">The page you're looking for doesn't exist.</p>
-      <Button @click="goHome">
-        Go Home
-      </Button>
+      <Button @click="goHome"> Go Home </Button>
     </div>
   </div>
 </template>
@@ -21,4 +19,3 @@ const goHome = () => {
   router.push({ name: 'home' })
 }
 </script>
-

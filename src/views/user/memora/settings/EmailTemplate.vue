@@ -1,13 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Settings > Email Template
-    </template>
+    <template #breadcrumb> Settings > Email Template </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
       <div>
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Email Template</h1>
+        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+          Email Template
+        </h1>
         <p class="text-sm mb-4" :class="theme.textSecondary">
           Customize email templates for your client communications.
         </p>
@@ -85,11 +85,12 @@
                 />
               </svg>
             </div>
-            
+
             <div class="space-y-2">
               <h2 class="text-2xl font-semibold" :class="theme.textPrimary">Coming Soon</h2>
               <p class="text-sm max-w-md mx-auto" :class="theme.textSecondary">
-                Email template customization is currently under development. Check back soon for updates.
+                Email template customization is currently under development. Check back soon for
+                updates.
               </p>
             </div>
           </div>
@@ -106,4 +107,3 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 </script>
-

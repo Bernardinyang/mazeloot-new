@@ -2,9 +2,7 @@
   <div class="space-y-8">
     <!-- Hero Section -->
     <section class="text-center space-y-4 py-12">
-      <h1 class="text-4xl md:text-6xl font-bold tracking-tight">
-        Welcome to Mazeloot
-      </h1>
+      <h1 class="text-4xl md:text-6xl font-bold tracking-tight">Welcome to Mazeloot</h1>
       <p class="text-xl text-muted-foreground max-w-2xl mx-auto">
         A modern, responsive web application built with Vue.js 3, Tailwind CSS, and Pinia
       </p>
@@ -33,9 +31,7 @@
       <Card>
         <CardHeader>
           <CardTitle>Responsive Design</CardTitle>
-          <CardDescription>
-            Beautiful UI that works on all devices
-          </CardDescription>
+          <CardDescription> Beautiful UI that works on all devices </CardDescription>
         </CardHeader>
         <CardContent>
           <p class="text-sm text-muted-foreground">
@@ -47,9 +43,7 @@
       <Card>
         <CardHeader>
           <CardTitle>State Management</CardTitle>
-          <CardDescription>
-            Pinia for efficient state management
-          </CardDescription>
+          <CardDescription> Pinia for efficient state management </CardDescription>
         </CardHeader>
         <CardContent>
           <p class="text-sm text-muted-foreground">
@@ -64,16 +58,12 @@
       <Card class="max-w-md mx-auto">
         <CardHeader>
           <CardTitle>Pinia Store Example</CardTitle>
-          <CardDescription>
-            Interactive counter using Pinia state management
-          </CardDescription>
+          <CardDescription> Interactive counter using Pinia state management </CardDescription>
         </CardHeader>
         <CardContent class="space-y-4">
           <div class="text-center">
             <p class="text-4xl font-bold mb-2">{{ counter.count }}</p>
-            <p class="text-sm text-muted-foreground">
-              Double: {{ counter.doubleCount }}
-            </p>
+            <p class="text-sm text-muted-foreground">Double: {{ counter.doubleCount }}</p>
           </div>
           <div class="flex gap-2 justify-center">
             <Button @click="counter.decrement" variant="outline">-</Button>
@@ -88,7 +78,7 @@
 
 <script setup lang="ts">
 import { useCounterStore } from '@/stores/counter'
-import Button from '@/components/shadcn/Button.vue'
+import { Button } from '@/components/shadcn/button'
 import Card from '@/components/shadcn/Card.vue'
 import CardHeader from '@/components/shadcn/CardHeader.vue'
 import CardTitle from '@/components/shadcn/CardTitle.vue'
@@ -97,4 +87,3 @@ import CardContent from '@/components/shadcn/CardContent.vue'
 
 const counter = useCounterStore()
 </script>
-

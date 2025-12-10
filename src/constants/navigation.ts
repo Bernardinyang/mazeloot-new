@@ -3,12 +3,7 @@
  * @deprecated Use product-specific navigation from productNavigation.ts instead
  * This file is kept for backward compatibility
  */
-import {
-  LayoutDashboard,
-  Images,
-  Upload,
-  Users,
-} from 'lucide-vue-next'
+import { LayoutDashboard, Images, Upload, Users } from 'lucide-vue-next'
 import type { NavItem } from '@/types/navigation'
 
 /**

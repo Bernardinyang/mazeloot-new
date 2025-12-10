@@ -30,33 +30,33 @@ export function getProductFromRoute(path: string): ProductId {
  */
 export function useProductNavigation() {
   const route = useRoute()
-  
+
   const currentProduct = computed<ProductId>(() => {
     return getProductFromRoute(route.path)
   })
-  
+
   const navigationItems = computed<NavItem[]>(() => {
     return PRODUCT_NAVIGATION[currentProduct.value] || PRODUCT_NAVIGATION.default
   })
-  
+
   const navigationLabel = computed<string>(() => {
     return PRODUCT_NAVIGATION_LABELS[currentProduct.value] || PRODUCT_NAVIGATION_LABELS.default
   })
-  
+
   /**
    * Get navigation items for a specific product
    */
   const getNavigationForProduct = (productId: ProductId): NavItem[] => {
     return PRODUCT_NAVIGATION[productId] || PRODUCT_NAVIGATION.default
   }
-  
+
   /**
    * Get navigation label for a specific product
    */
   const getNavigationLabelForProduct = (productId: ProductId): string => {
     return PRODUCT_NAVIGATION_LABELS[productId] || PRODUCT_NAVIGATION_LABELS.default
   }
-  
+
   return {
     currentProduct,
     navigationItems,
@@ -65,4 +65,3 @@ export function useProductNavigation() {
     getNavigationLabelForProduct,
   }
 }
-

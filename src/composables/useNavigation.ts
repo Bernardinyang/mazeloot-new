@@ -16,14 +16,14 @@ export function useNavigation() {
       router.push(location)
       return
     }
-    
+
     // If it's a string, treat it as a route name (not a path)
     // This enforces using route names instead of paths
     if (typeof location === 'string') {
       router.push({ name: location })
       return
     }
-    
+
     // Fallback (shouldn't happen)
     router.push(location)
   }
@@ -33,30 +33,30 @@ export function useNavigation() {
     if (routeName && route.name === routeName) {
       return true
     }
-    
+
     // Check if current route has a parent that matches the routeName
     if (routeName && route.meta?.parent === routeName) {
       return true
     }
-    
+
     // Fallback to URL comparison
     if (urlOrName) {
       // Remove query params and trailing slashes for comparison
       const routePath = route.path.split('?')[0].replace(/\/$/, '')
       const comparePath = urlOrName.split('?')[0].replace(/\/$/, '')
-      
+
       // Exact match
       if (routePath === comparePath) {
         return true
       }
-      
+
       // Check if current route starts with the compare path (for nested routes)
       // Only if comparePath is not empty and routePath is longer
       if (comparePath && routePath.startsWith(comparePath + '/')) {
         return true
       }
     }
-    
+
     return false
   }
 
@@ -70,4 +70,3 @@ export function useNavigation() {
     router,
   }
 }
-

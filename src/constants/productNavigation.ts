@@ -12,6 +12,13 @@ import {
   Album,
   Grid3x3,
   FileImage,
+  Star,
+  Globe,
+  Palette,
+  Image as ImageIcon,
+  Mail,
+  Sliders,
+  HardDrive,
 } from 'lucide-vue-next'
 import type { NavItem } from '@/types/navigation'
 
@@ -25,15 +32,19 @@ export const MEMORA_NAVIGATION: NavItem[] = [
   {
     title: 'Collections',
     name: 'manageCollections',
-    icon: LayoutDashboard,
+    icon: FolderOpen,
   },
   {
     title: 'Starred',
-    icon: Images,
+    icon: Star,
     items: [
       {
         title: 'Collections',
         name: 'starredCollections',
+      },
+      {
+        title: 'Folders',
+        name: 'starredFolders',
       },
       {
         title: 'Photos',
@@ -44,7 +55,7 @@ export const MEMORA_NAVIGATION: NavItem[] = [
   {
     title: 'Homepage',
     name: 'homepageConfig',
-    icon: LayoutDashboard,
+    icon: Globe,
   },
   {
     title: 'Settings',
@@ -56,22 +67,27 @@ export const MEMORA_NAVIGATION: NavItem[] = [
       {
         title: 'Branding',
         name: 'brandingSettings',
+        icon: Palette,
       },
       {
         title: 'Watermark',
         name: 'watermarkSettings',
+        icon: ImageIcon,
       },
       {
         title: 'Preset',
         name: 'presetSettings',
+        icon: Sliders,
       },
       {
         title: 'Email Template',
         name: 'emailTemplateSettings',
+        icon: Mail,
       },
       {
         title: 'Preference',
         name: 'preferenceSettings',
+        icon: Settings,
       },
     ],
   },
@@ -81,7 +97,7 @@ export const MEMORA_NAVIGATION: NavItem[] = [
   {
     title: 'Storage',
     name: 'about',
-    icon: LayoutDashboard,
+    icon: Upload,
   },
 ]
 
@@ -286,4 +302,3 @@ export const PRODUCT_NAVIGATION: Record<string, NavItem[]> = {
   collections: COLLECTIONS_NAVIGATION,
   default: DEFAULT_NAVIGATION,
 }
-

@@ -1,0 +1,181 @@
+/* Move animation for collections - optimized for smoothness */
+@keyframes move-out {
+  0% {
+    opacity: 1;
+    transform: scale(1) translateY(0) translateZ(0);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.9) translateY(-30px) translateZ(0);
+  }
+}
+
+.animate-move-out {
+  animation: move-out 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Transition group animations - optimized */
+.list-enter-active {
+  transition:
+    opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.list-leave-active {
+  transition:
+    opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(15px) scale(0.96) translateZ(0);
+}
+
+.list-leave-to {
+  opacity: 0;
+  transform: translateY(-15px) scale(0.96) translateZ(0);
+}
+
+.list-move {
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+
+/* Fade in animation - optimized */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+/* Slide up animation - optimized */
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+/* Scale in animation - optimized */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+.animate-scale-in {
+  animation: scale-in 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Collection card enter animation - optimized */
+@keyframes card-enter {
+  from {
+    opacity: 0;
+    transform: translateY(15px) scale(0.96) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Stagger animation delay */
+.animate-card-enter:nth-child(1) {
+  animation-delay: 0ms;
+}
+.animate-card-enter:nth-child(2) {
+  animation-delay: 30ms;
+}
+.animate-card-enter:nth-child(3) {
+  animation-delay: 60ms;
+}
+.animate-card-enter:nth-child(4) {
+  animation-delay: 90ms;
+}
+.animate-card-enter:nth-child(5) {
+  animation-delay: 120ms;
+}
+.animate-card-enter:nth-child(6) {
+  animation-delay: 150ms;
+}
+.animate-card-enter:nth-child(7) {
+  animation-delay: 180ms;
+}
+.animate-card-enter:nth-child(8) {
+  animation-delay: 210ms;
+}
+
+/* Modal animation optimizations */
+[data-state='open'] {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+[data-state='closed'] {
+  animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Ensure smooth modal transitions */
+[data-state='open'].animate-in,
+[data-state='closed'].animate-out {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Optimize Dialog animations */
+[data-state='open'] .fixed.left-1\/2.top-1\/2 {
+  transform: translate(-50%, -50%) translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Optimize Sheet animations */
+[data-state='open'] .fixed.inset-y-0 {
+  transform: translateZ(0);
+  will-change: transform, opacity;
+}
+
+/* Smooth overlay fade */
+.fixed.inset-0.bg-black\/80 {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}

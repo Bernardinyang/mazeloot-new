@@ -45,4 +45,3 @@ const colorClass = computed(() => {
   return props.color ? `text-${props.color}` : ''
 })
 </script>
-

@@ -1,10 +1,22 @@
 <template>
   <div :class="['min-h-screen', theme.bgPage, theme.transitionColors]">
     <!-- Header -->
-    <header :class="['sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md', theme.borderPrimary, theme.bgHeader, theme.transition]">
+    <header
+      :class="[
+        'sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md',
+        theme.borderPrimary,
+        theme.bgHeader,
+        theme.transition,
+      ]"
+    >
       <!-- Left: Logo -->
       <div class="flex items-center gap-2">
-        <div :class="['h-8 w-8 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110 cursor-pointer', theme.bgCardSolid]">
+        <div
+          :class="[
+            'h-8 w-8 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110 cursor-pointer',
+            theme.bgCardSolid,
+          ]"
+        >
           <GalleryVerticalEnd :class="['h-5 w-5', theme.textPrimary]" />
         </div>
         <span :class="['text-lg font-semibold', theme.textPrimary]">mazeloot</span>
@@ -15,11 +27,18 @@
         <!-- App Switcher -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]">
+            <Button
+              variant="ghost"
+              size="icon"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+            >
               <Grid3x3 class="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" :class="['w-56', theme.bgDropdown, theme.borderSecondary]">
+          <DropdownMenuContent
+            align="end"
+            :class="['w-56', theme.bgDropdown, theme.borderSecondary]"
+          >
             <DropdownMenuLabel :class="theme.textPrimary">Switch App</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
@@ -36,11 +55,18 @@
         <!-- Quick Actions (Plus) -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]">
+            <Button
+              variant="ghost"
+              size="icon"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+            >
               <Plus class="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" :class="['w-56', theme.bgDropdown, theme.borderSecondary]">
+          <DropdownMenuContent
+            align="end"
+            :class="['w-56', theme.bgDropdown, theme.borderSecondary]"
+          >
             <DropdownMenuLabel :class="theme.textPrimary">Create New</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
@@ -80,28 +106,50 @@
         <!-- Notifications -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
-            <Button variant="ghost" size="icon" :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']">
+            <Button
+              variant="ghost"
+              size="icon"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+            >
               <Bell class="h-5 w-5" />
-              <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+              <span
+                class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"
+              ></span>
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" :class="['w-80', theme.bgDropdown, theme.borderSecondary]">
+          <DropdownMenuContent
+            align="end"
+            :class="['w-80', theme.bgDropdown, theme.borderSecondary]"
+          >
             <DropdownMenuLabel :class="theme.textPrimary">Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <div class="max-h-96 overflow-y-auto">
-              <div v-if="notifications.length === 0" :class="['p-4 text-center text-sm', theme.textSecondary]">
+              <div
+                v-if="notifications.length === 0"
+                :class="['p-4 text-center text-sm', theme.textSecondary]"
+              >
                 No notifications
               </div>
               <DropdownMenuItem
                 v-for="notification in notifications"
                 :key="notification.id"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer flex flex-col items-start p-3']"
+                :class="[
+                  theme.textPrimary,
+                  theme.bgButtonHover,
+                  'cursor-pointer flex flex-col items-start p-3',
+                ]"
               >
                 <div class="flex items-start gap-2 w-full">
-                  <component :is="notification.icon" class="h-4 w-4 mt-0.5 shrink-0" :class="notification.iconColor" />
+                  <component
+                    :is="notification.icon"
+                    class="h-4 w-4 mt-0.5 shrink-0"
+                    :class="notification.iconColor"
+                  />
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium">{{ notification.title }}</p>
-                    <p :class="['text-xs mt-0.5', theme.textSecondary]">{{ notification.message }}</p>
+                    <p :class="['text-xs mt-0.5', theme.textSecondary]">
+                      {{ notification.message }}
+                    </p>
                     <p :class="['text-xs mt-1', theme.textTertiary]">{{ notification.time }}</p>
                   </div>
                 </div>
@@ -117,11 +165,16 @@
               <AvatarDisplay :name="userData.name" :avatar="userData.avatar" size="md" />
             </div>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" :class="['w-64', theme.bgDropdown, theme.borderSecondary]">
+          <DropdownMenuContent
+            align="end"
+            :class="['w-64', theme.bgDropdown, theme.borderSecondary]"
+          >
             <DropdownMenuLabel :class="theme.textPrimary">
               <div class="flex flex-col gap-1">
                 <span class="font-semibold">{{ userData.name }}</span>
-                <span :class="['text-xs font-normal', theme.textSecondary]">{{ userData.email }}</span>
+                <span :class="['text-xs font-normal', theme.textSecondary]">{{
+                  userData.email
+                }}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
@@ -135,7 +188,10 @@
               <ChevronRight class="ml-auto h-4 w-4" />
             </DropdownMenuItem>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem class="text-red-400 dark:text-red-400 light:text-red-600 hover:bg-red-500/20 dark:hover:bg-red-500/20 light:hover:bg-red-50 cursor-pointer" @click="handleSignOut">
+            <DropdownMenuItem
+              class="text-red-500 dark:text-red-400 hover:bg-red-500/20 dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-500/20 dark:focus:bg-red-500/20"
+              @click="handleSignOut"
+            >
               <LogOut class="mr-2 h-4 w-4" />
               <span>Sign Out</span>
             </DropdownMenuItem>
@@ -148,9 +204,9 @@
     <main class="px-6 pb-8 pt-6">
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
         <!-- User Profile Widget -->
-        <UserProfileCard 
-          :name="userData.name" 
-          :email="userData.email" 
+        <UserProfileCard
+          :name="userData.name"
+          :email="userData.email"
           :avatar="userData.avatar"
           :loading="isLoading"
           @view-profile="handleViewProfile"
@@ -179,51 +235,63 @@
             <div
               v-for="app in apps"
               :key="app.id"
-              :class="['flex flex-col items-center gap-2 cursor-pointer hover:opacity-90 active:scale-95', theme.transition, theme.hoverScaleLarge]"
+              :class="[
+                'flex flex-col items-center gap-2 cursor-pointer hover:opacity-90 active:scale-95',
+                theme.transition,
+                theme.hoverScaleLarge,
+              ]"
               @click="handleAppClick(app)"
             >
-              <AppIcon
-                :container-class="app.containerClass"
-                :custom-type="app.customType"
-              />
+              <AppIcon :container-class="app.containerClass" :custom-type="app.customType" />
               <span :class="['text-sm font-medium', theme.textPrimary]">{{ app.name }}</span>
             </div>
           </div>
         </ListItemCard>
 
-      <!-- Storage Space Section -->
-      <ListItemCard
-        title="Storage"
-        description="Manage your cloud storage space"
-        :loading="isLoadingStorage"
-        animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
-        :show-footer="false"
-      >
-        <template #loading>
-          <div class="animate-pulse space-y-4">
-            <div :class="['h-8 w-24 rounded', theme.bgSkeleton]"></div>
-            <div :class="['h-4 w-48 rounded', theme.bgSkeleton]"></div>
-            <div :class="['h-20 rounded-lg', theme.bgSkeleton]"></div>
+        <!-- Storage Space Section -->
+        <ListItemCard
+          title="Storage"
+          description="Manage your cloud storage space"
+          :loading="isLoadingStorage"
+          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
+          :show-footer="false"
+        >
+          <template #loading>
+            <div class="animate-pulse space-y-4">
+              <div :class="['h-8 w-24 rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-4 w-48 rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-20 rounded-lg', theme.bgSkeleton]"></div>
+            </div>
+          </template>
+          <div class="flex items-center justify-between mb-4">
+            <div :class="[theme.transition, theme.hoverScale]">
+              <h3 :class="['text-2xl font-bold mb-1', theme.textPrimary]">5 GB</h3>
+              <p :class="['text-sm', theme.textSecondary]">Free 0 bytes • Used 5 GB</p>
+            </div>
           </div>
-        </template>
-        <div class="flex items-center justify-between mb-4">
-          <div :class="[theme.transition, theme.hoverScale]">
-            <h3 :class="['text-2xl font-bold mb-1', theme.textPrimary]">5 GB</h3>
-            <p :class="['text-sm', theme.textSecondary]">Free 0 bytes • Used 5 GB</p>
+          <div
+            class="bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-50 border border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-200 rounded-lg p-4 flex items-start gap-3 transition-all duration-300 hover:bg-yellow-500/25 dark:hover:bg-yellow-500/25 light:hover:bg-yellow-100 hover:border-yellow-500/40 dark:hover:border-yellow-500/40 light:hover:border-yellow-300 hover:scale-[1.02]"
+          >
+            <AlertCircle
+              class="h-5 w-5 text-yellow-400 dark:text-yellow-400 light:text-yellow-600 shrink-0 mt-0.5 animate-pulse"
+            />
+            <div class="flex-1">
+              <p
+                class="text-sm font-medium text-yellow-200 dark:text-yellow-200 light:text-yellow-800"
+              >
+                Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to
+                the cloud.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                class="mt-2 bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200 transition-all duration-300 hover:scale-110 active:scale-95"
+              >
+                Upgrade for ₦900.00/month
+              </Button>
+            </div>
           </div>
-        </div>
-        <div class="bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-50 border border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-200 rounded-lg p-4 flex items-start gap-3 transition-all duration-300 hover:bg-yellow-500/25 dark:hover:bg-yellow-500/25 light:hover:bg-yellow-100 hover:border-yellow-500/40 dark:hover:border-yellow-500/40 light:hover:border-yellow-300 hover:scale-[1.02]">
-          <AlertCircle class="h-5 w-5 text-yellow-400 dark:text-yellow-400 light:text-yellow-600 shrink-0 mt-0.5 animate-pulse" />
-          <div class="flex-1">
-            <p class="text-sm font-medium text-yellow-200 dark:text-yellow-200 light:text-yellow-800">
-              Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to the cloud.
-            </p>
-            <Button variant="outline" size="sm" class="mt-2 bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200 transition-all duration-300 hover:scale-110 active:scale-95">
-              Upgrade for ₦900.00/month
-            </Button>
-          </div>
-        </div>
-      </ListItemCard>
+        </ListItemCard>
 
         <!-- Recent Collections Widget -->
         <DashboardCard
@@ -263,8 +331,12 @@
               />
               <div class="flex-1 min-w-0">
                 <div class="flex items-center justify-between mb-1">
-                  <h3 :class="['text-sm font-semibold truncate', theme.textPrimary]">{{ collection.title }}</h3>
-                  <span :class="['text-xs ml-2 shrink-0', theme.textSecondary]">{{ collection.date }}</span>
+                  <h3 :class="['text-sm font-semibold truncate', theme.textPrimary]">
+                    {{ collection.title }}
+                  </h3>
+                  <span :class="['text-xs ml-2 shrink-0', theme.textSecondary]">{{
+                    collection.date
+                  }}</span>
                 </div>
                 <div :class="['flex items-center gap-4 text-xs', theme.textSecondary]">
                   <span>{{ collection.images }} images</span>
@@ -279,7 +351,11 @@
             </div>
           </div>
           <template #footer>
-            <Button variant="ghost" size="sm" :class="['w-full', theme.textSecondary, theme.bgButtonHover]">
+            <Button
+              variant="ghost"
+              size="sm"
+              :class="['w-full', theme.textSecondary, theme.bgButtonHover]"
+            >
               View All Collections
             </Button>
           </template>
@@ -321,14 +397,26 @@
               @click="handleOrderClick(order)"
               class="flex gap-3 flex-wrap"
             >
-              <div v-if="order.iconBg" :class="[order.iconBg, 'flex items-center justify-center p-2 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3']">
+              <div
+                v-if="order.iconBg"
+                :class="[
+                  order.iconBg,
+                  'flex items-center justify-center p-2 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3',
+                ]"
+              >
                 <component :is="order.icon" class="h-4 w-4 text-white" />
               </div>
               <div class="flex-1 min-w-0">
-                <p :class="['text-sm font-medium truncate', theme.textPrimary]">{{ order.product }}</p>
-                <p :class="['text-xs', theme.textSecondary]">{{ order.orderId }} • {{ order.time }}</p>
+                <p :class="['text-sm font-medium truncate', theme.textPrimary]">
+                  {{ order.product }}
+                </p>
+                <p :class="['text-xs', theme.textSecondary]">
+                  {{ order.orderId }} • {{ order.time }}
+                </p>
                 <div class="flex items-center justify-between mt-1">
-                  <span :class="['text-sm font-semibold', theme.textPrimary]">{{ order.price }}</span>
+                  <span :class="['text-sm font-semibold', theme.textPrimary]">{{
+                    order.price
+                  }}</span>
                   <StatusBadge :status="order.status" />
                 </div>
               </div>
@@ -369,7 +457,14 @@
               @click="handleWishlistItemClick(item)"
               class="flex gap-3 flex-wrap"
             >
-              <div :class="['flex items-center justify-center p-3 rounded-lg shrink-0 group-hover:scale-110 group-hover:rotate-3', theme.bgCard, theme.transition, 'group-hover:opacity-80']">
+              <div
+                :class="[
+                  'flex items-center justify-center p-3 rounded-lg shrink-0 group-hover:scale-110 group-hover:rotate-3',
+                  theme.bgCard,
+                  theme.transition,
+                  'group-hover:opacity-80',
+                ]"
+              >
                 <component :is="item.icon" :class="['h-4 w-4', theme.textPrimary]" />
               </div>
               <div class="flex-1 min-w-0">
@@ -395,7 +490,12 @@
         >
           <template #loading>
             <div class="animate-pulse space-y-3">
-              <div v-for="i in 3" :key="i" class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0" :class="theme.borderPrimary">
+              <div
+                v-for="i in 3"
+                :key="i"
+                class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
+                :class="theme.borderPrimary"
+              >
                 <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
                 <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
                 <div :class="['h-5 w-20 rounded', theme.bgSkeleton]"></div>
@@ -409,7 +509,12 @@
             <div
               v-for="(post, index) in recentPosts.slice(0, 3)"
               :key="post.id"
-              :class="[theme.listItem, 'flex flex-col gap-1 pb-3 border-b', theme.borderPrimary, 'last:border-0 last:pb-0']"
+              :class="[
+                theme.listItem,
+                'flex flex-col gap-1 pb-3 border-b',
+                theme.borderPrimary,
+                'last:border-0 last:pb-0',
+              ]"
               :style="{ animationDelay: `${index * 100}ms` }"
               @click="handlePostClick(post)"
             >
@@ -463,8 +568,12 @@
                 fallback-text="IMG"
               />
               <div class="flex-1 min-w-0">
-                <p :class="['text-sm font-medium truncate', theme.textPrimary]">{{ product.name }}</p>
-                <p :class="['text-xs', theme.textSecondary]">{{ product.type }} • {{ product.price }}</p>
+                <p :class="['text-sm font-medium truncate', theme.textPrimary]">
+                  {{ product.name }}
+                </p>
+                <p :class="['text-xs', theme.textSecondary]">
+                  {{ product.type }} • {{ product.price }}
+                </p>
                 <div class="mt-1">
                   <StatusBadge :status="product.status" />
                 </div>
@@ -480,13 +589,21 @@
       <div class="max-w-7xl mx-auto px-6 py-6">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-2">
-            <div :class="['h-6 w-6 rounded-lg flex items-center justify-center', theme.bgCardSolid]">
+            <div
+              :class="['h-6 w-6 rounded-lg flex items-center justify-center', theme.bgCardSolid]"
+            >
               <GalleryVerticalEnd :class="['h-4 w-4', theme.textPrimary]" />
             </div>
             <span :class="['text-sm font-semibold', theme.textPrimary]">mazeloot</span>
             <span :class="['text-xs', theme.textTertiary]">© 2024</span>
           </div>
-          <div :class="['flex items-center gap-6 text-sm', theme.textSecondary, theme.transitionColors]">
+          <div
+            :class="[
+              'flex items-center gap-6 text-sm',
+              theme.textSecondary,
+              theme.transitionColors,
+            ]"
+          >
             <a href="#" class="hover:opacity-100 opacity-70">Privacy</a>
             <a href="#" class="hover:opacity-100 opacity-70">Terms</a>
             <a href="#" class="hover:opacity-100 opacity-70">Support</a>
@@ -524,13 +641,13 @@ import {
   LogOut,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
-import AvatarDisplay from '@/components/custom/AvatarDisplay.vue'
-import ThemeToggle from '@/components/custom/ThemeToggle.vue'
-import UserProfileCard from '@/components/custom/UserProfileCard.vue'
-import DashboardCard from '@/components/custom/DashboardCard.vue'
-import EmptyState from '@/components/custom/EmptyState.vue'
-import ListItemCard from '@/components/custom/ListItemCard.vue'
-import AppIcon from '@/components/custom/AppIcon.vue'
+import AvatarDisplay from '@/components/atoms/AvatarDisplay.vue'
+import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import UserProfileCard from '@/components/organisms/UserProfileCard.vue'
+import DashboardCard from '@/components/organisms/DashboardCard.vue'
+import EmptyState from '@/components/molecules/EmptyState.vue'
+import ListItemCard from '@/components/molecules/ListItemCard.vue'
+import AppIcon from '@/components/atoms/AppIcon.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -541,10 +658,12 @@ import {
 } from '@/components/shadcn/dropdown-menu/index'
 import { useNavigation } from '@/composables/useNavigation'
 import { useThemeStore } from '@/stores/theme'
+import { useUserStore } from '@/stores/user'
+import { useLogout } from '@/composables/useLogout'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useLoadingStates } from '@/composables/useLoadingStates'
-import StatusBadge from '@/components/custom/StatusBadge.vue'
-import ThumbnailImage from '@/components/custom/ThumbnailImage.vue'
+import StatusBadge from '@/components/atoms/StatusBadge.vue'
+import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
 import { DROPDOWN_MENU_CLASSES, QUICK_ACTIONS, APP_SWITCHER_APPS } from '@/constants/dropdowns'
 import type { User } from '@/types/navigation'
 
@@ -554,7 +673,16 @@ const theme = useThemeClasses()
 
 // Loading states - consolidated
 // Start with loading=true to show skeleton loaders initially
-const loadingKeys = ['user', 'collections', 'orders', 'wishlist', 'posts', 'products', 'apps', 'storage']
+const loadingKeys = [
+  'user',
+  'collections',
+  'orders',
+  'wishlist',
+  'posts',
+  'products',
+  'apps',
+  'storage',
+]
 const { states: loadingStates, setAllLoading } = useLoadingStates(loadingKeys, true)
 // Vue templates automatically unwrap refs, so we can use them directly
 const isLoading = loadingStates.user
@@ -596,9 +724,10 @@ onMounted(() => {
   }, 2000)
 })
 
-const handleSignOut = () => {
-  // TODO: Implement sign out logic
-  navigateTo({ name: 'login' })
+const { logout } = useLogout()
+
+const handleSignOut = async () => {
+  await logout()
 }
 
 const handleViewProfile = () => {
@@ -641,12 +770,28 @@ const handleAppClick = (app: any) => {
   // TODO: Implement app click logic
 }
 
-// User data
-const userData: User = {
-  name: 'Bernard Inyang',
-  email: 'bernardinyang.bci@gmail.com',
-  avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
-}
+// Get logged-in user from store
+const userStore = useUserStore()
+
+// User data - use logged-in user from store, fallback to default if not available
+const userData = computed<User>(() => {
+  if (userStore.user) {
+    return {
+      name: userStore.user.name,
+      email: userStore.user.email,
+      avatar:
+        userStore.user.avatar ||
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+    }
+  }
+  // Fallback for when user is not logged in (shouldn't happen in protected routes)
+  return {
+    name: 'Guest',
+    email: 'guest@example.com',
+    avatar:
+      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
+  }
+})
 
 // Recent Collections
 const recentCollections = [
@@ -882,7 +1027,8 @@ const apps = [
     id: 7,
     name: 'Reminders',
     customType: 'reminders' as const,
-    containerClass: 'flex-col border border-gray-700 dark:border-gray-700 light:border-gray-300 p-3 gap-1.5',
+    containerClass:
+      'flex-col border border-gray-700 dark:border-gray-700 light:border-gray-300 p-3 gap-1.5',
   },
   {
     id: 8,
@@ -890,5 +1036,4 @@ const apps = [
     customType: 'invites' as const,
   },
 ]
-
 </script>

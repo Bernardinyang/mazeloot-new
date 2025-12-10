@@ -2,7 +2,8 @@
  * Common dropdown menu configuration constants
  */
 export const DROPDOWN_MENU_CLASSES = {
-  content: 'bg-gray-800 dark:bg-gray-800 light:bg-white border-gray-700 dark:border-gray-700 light:border-gray-200',
+  content:
+    'bg-gray-800 dark:bg-gray-800 light:bg-white border-gray-700 dark:border-gray-700 light:border-gray-200',
   separator: 'bg-gray-700 dark:bg-gray-700 light:bg-gray-200',
   item: 'text-white dark:text-white light:text-gray-900 hover:bg-white/10 dark:hover:bg-white/10 light:hover:bg-gray-100 cursor-pointer',
   label: 'text-white dark:text-white light:text-gray-900',
@@ -22,4 +23,3 @@ export const APP_SWITCHER_APPS = [
   { icon: 'GalleryVerticalEnd', label: 'Memora' },
   { icon: 'GalleryVerticalEnd', label: 'Collections' },
 ] as const
-

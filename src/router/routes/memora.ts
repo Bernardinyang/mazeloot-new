@@ -1,8 +1,9 @@
 import type { RouteRecordRaw } from 'vue-router'
 import DashboardView from '@/views/user/memora/Dashboard.vue'
 import CollectionsView from '@/views/user/memora/Collections.vue'
-import StarredCollectionsView from '@/views/user/memora/StarredCollections.vue'
-import StarredPhotosView from '@/views/user/memora/StarredPhotos.vue'
+import StarredCollectionsView from '@/views/user/memora/starred/StarredCollections.vue'
+import StarredFoldersView from '@/views/user/memora/starred/StarredFolders.vue'
+import StarredPhotosView from '@/views/user/memora/starred/StarredPhotos.vue'
 import HomepageView from '@/views/user/memora/Homepage.vue'
 import BrandingView from '@/views/user/memora/settings/Branding.vue'
 import WatermarkView from '@/views/user/memora/settings/watermark/Watermark.vue'
@@ -32,6 +33,14 @@ export const memoraRoutes: RouteRecordRaw[] = [
     path: '/memora/collections/starred',
     name: 'starredCollections',
     component: StarredCollectionsView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/folders/starred',
+    name: 'starredFolders',
+    component: StarredFoldersView,
     meta: {
       requiresAuth: true,
     },
@@ -111,4 +120,3 @@ export const memoraRoutes: RouteRecordRaw[] = [
     },
   },
 ]
-

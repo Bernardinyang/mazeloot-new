@@ -10,26 +10,40 @@ export const guestRoutes: RouteRecordRaw[] = [
     path: '/login',
     name: 'login',
     component: Login,
+    meta: {
+      isGuestRoute: true,
+    },
   },
   {
     path: '/register',
     name: 'register',
     component: Register,
+    meta: {
+      isGuestRoute: true,
+    },
   },
   {
     path: '/verify-email',
     name: 'verify-email',
     component: VerifyEmail,
+    meta: {
+      isGuestRoute: true,
+    },
   },
   {
     path: '/forgot-password',
     name: 'forgot-password',
     component: ForgotPassword,
+    meta: {
+      isGuestRoute: true,
+    },
   },
   {
     path: '/reset-password',
     name: 'reset-password',
     component: ResetPassword,
+    meta: {
+      isGuestRoute: true,
+    },
   },
 ]
-

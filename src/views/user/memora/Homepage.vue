@@ -1,8 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Homepage
-    </template>
+    <template #breadcrumb> Homepage </template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -13,7 +11,9 @@
       <!-- Page Header -->
       <div class="flex items-center justify-between">
         <div>
-          <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Homepage</h1>
+          <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+            Homepage
+          </h1>
           <p class="text-sm" :class="theme.textSecondary">
             Configure your public homepage settings and preview how it will appear to visitors
           </p>
@@ -34,23 +34,28 @@
           <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between">
               <div>
-                <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Status</h3>
+                <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
+                  Homepage Status
+                </h3>
                 <p class="text-sm" :class="theme.textSecondary">
                   Enable or disable your public homepage
                 </p>
               </div>
               <label class="relative inline-flex items-center cursor-pointer group">
-                <input
-                  type="checkbox"
-                  v-model="homepageStatus"
-                  class="sr-only peer"
-                />
-                <div class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"></div>
+                <input type="checkbox" v-model="homepageStatus" class="sr-only peer" />
+                <div
+                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                ></div>
               </label>
             </div>
             <p class="text-sm leading-relaxed" :class="theme.textSecondary">
-              Your Homepage is a public page where your collections are listed. You can also select which collections will be shown here under each collection's setting.
-              <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors">Learn more</a>
+              Your Homepage is a public page where your collections are listed. You can also select
+              which collections will be shown here under each collection's setting.
+              <a
+                href="#"
+                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+                >Learn more</a
+              >
             </p>
           </div>
 
@@ -76,7 +81,11 @@
               <Button
                 variant="outline"
                 size="sm"
-                :class="[theme.borderSecondary, theme.textSecondary, 'hover:bg-teal-50 dark:hover:bg-teal-900/20']"
+                :class="[
+                  theme.borderSecondary,
+                  theme.textSecondary,
+                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                ]"
                 @click="handleCopyUrl"
               >
                 <Copy class="h-4 w-4 mr-2" />
@@ -88,7 +97,9 @@
           <!-- Homepage Password Card -->
           <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
-              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Password</h3>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
+                Homepage Password
+              </h3>
               <p class="text-sm" :class="theme.textSecondary">
                 Protect your Homepage with a password
               </p>
@@ -103,13 +114,17 @@
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
-                  theme.placeholderInput
+                  theme.placeholderInput,
                 ]"
               />
               <Button
                 variant="outline"
                 size="sm"
-                :class="[theme.borderSecondary, theme.textSecondary, 'hover:bg-teal-50 dark:hover:bg-teal-900/20']"
+                :class="[
+                  theme.borderSecondary,
+                  theme.textSecondary,
+                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                ]"
                 @click="handleGeneratePassword"
               >
                 <RefreshCw class="h-4 w-4 mr-2" />
@@ -137,11 +152,14 @@
                   theme.borderInput,
                   theme.textInput,
                   theme.placeholderInput,
-                  'pr-16 resize-none'
+                  'pr-16 resize-none',
                 ]"
                 placeholder="Tell us about yourself..."
               />
-              <span class="absolute bottom-3 right-3 text-xs font-medium" :class="biography.length >= 180 ? 'text-orange-500' : theme.textTertiary">
+              <span
+                class="absolute bottom-3 right-3 text-xs font-medium"
+                :class="biography.length >= 180 ? 'text-orange-500' : theme.textTertiary"
+              >
                 {{ biography.length }} / 200
               </span>
             </div>
@@ -171,28 +189,32 @@
                 <span class="text-sm flex-1" :class="theme.textSecondary">{{ info.label }}</span>
               </label>
             </div>
-            <p class="text-sm leading-relaxed pt-2 border-t" :class="[theme.textSecondary, theme.borderSecondary]">
+            <p
+              class="text-sm leading-relaxed pt-2 border-t"
+              :class="[theme.textSecondary, theme.borderSecondary]"
+            >
               To update any of the above details, please go to your
-              <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors">profile</a>.
-              Any information left blank will not appear on your homepage.
+              <a
+                href="#"
+                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+                >profile</a
+              >. Any information left blank will not appear on your homepage.
             </p>
           </div>
 
           <!-- Collection Sort Order Card -->
           <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
-              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Collection Sort Order</h3>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
+                Collection Sort Order
+              </h3>
               <p class="text-sm" :class="theme.textSecondary">
                 Select the order you wish your collections to appear
               </p>
             </div>
             <Select
               v-model="collectionSortOrder"
-              :class="[
-                theme.bgInput,
-                theme.borderInput,
-                theme.textInput,
-              ]"
+              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
             >
               <option
                 v-for="option in HOMEPAGE_SORT_OPTIONS"
@@ -209,24 +231,51 @@
         <div class="lg:sticky lg:top-6 h-fit">
           <div class="rounded-lg border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between mb-4">
-              <h3 class="text-base sm:text-lg font-semibold" :class="theme.textPrimary">Live Preview</h3>
+              <h3 class="text-base sm:text-lg font-semibold" :class="theme.textPrimary">
+                Live Preview
+              </h3>
               <span class="text-xs px-2 py-1 rounded-full bg-teal-500/10 text-teal-500 font-medium">
                 Live
               </span>
             </div>
-            <div v-if="showPreviewContent" class="rounded-lg border shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl max-w-full" :class="[theme.bgCardSolid, theme.borderCard]">
+            <div
+              v-if="showPreviewContent"
+              class="rounded-lg border shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl max-w-full"
+              :class="[theme.bgCardSolid, theme.borderCard]"
+            >
               <!-- Preview Header -->
-              <div class="p-3 sm:p-4 border-b flex items-center justify-between" :class="[theme.bgCard, theme.borderSecondary]">
+              <div
+                class="p-3 sm:p-4 border-b flex items-center justify-between"
+                :class="[theme.bgCard, theme.borderSecondary]"
+              >
                 <div class="flex items-center gap-1.5 sm:gap-2">
                   <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
                   <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
                   <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
-                  <Facebook v-if="homepageInfo.includes('socialLinks')" :class="['h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-blue-600 transition-colors cursor-pointer', theme.textTertiary]" />
-                  <Instagram v-if="homepageInfo.includes('socialLinks')" :class="['h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-pink-600 transition-colors cursor-pointer', theme.textTertiary]" />
-                  <div v-if="homepageInfo.includes('socialLinks')" :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"></div>
-                  <div v-if="homepageInfo.includes('socialLinks')" :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"></div>
+                  <Facebook
+                    v-if="homepageInfo.includes('socialLinks')"
+                    :class="[
+                      'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-blue-600 transition-colors cursor-pointer',
+                      theme.textTertiary,
+                    ]"
+                  />
+                  <Instagram
+                    v-if="homepageInfo.includes('socialLinks')"
+                    :class="[
+                      'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-pink-600 transition-colors cursor-pointer',
+                      theme.textTertiary,
+                    ]"
+                  />
+                  <div
+                    v-if="homepageInfo.includes('socialLinks')"
+                    :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
+                  ></div>
+                  <div
+                    v-if="homepageInfo.includes('socialLinks')"
+                    :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
+                  ></div>
                 </div>
               </div>
 
@@ -234,8 +283,14 @@
               <div class="p-4 sm:p-6 space-y-4 sm:space-y-6" :class="theme.bgCardSolid">
                 <!-- Name -->
                 <div class="text-center space-y-2">
-                  <h2 class="text-xl sm:text-2xl font-bold" :class="theme.textPrimary">{{ displayName }}</h2>
-                  <p v-if="biography" class="text-xs sm:text-sm leading-relaxed max-w-full sm:max-w-md mx-auto px-2" :class="theme.textSecondary">
+                  <h2 class="text-xl sm:text-2xl font-bold" :class="theme.textPrimary">
+                    {{ displayName }}
+                  </h2>
+                  <p
+                    v-if="biography"
+                    class="text-xs sm:text-sm leading-relaxed max-w-full sm:max-w-md mx-auto px-2"
+                    :class="theme.textSecondary"
+                  >
                     {{ biography }}
                   </p>
                   <p v-else class="text-xs italic" :class="theme.textTertiary">
@@ -244,33 +299,66 @@
                 </div>
 
                 <!-- Contact Info -->
-                <div v-if="homepageInfo.length > 0 && (homepageInfo.includes('website') || homepageInfo.includes('email') || homepageInfo.includes('address') || homepageInfo.includes('phone'))" class="space-y-2 sm:space-y-3 pt-2">
-                  <div v-if="homepageInfo.includes('website')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                <div
+                  v-if="
+                    homepageInfo.length > 0 &&
+                    (homepageInfo.includes('website') ||
+                      homepageInfo.includes('email') ||
+                      homepageInfo.includes('address') ||
+                      homepageInfo.includes('phone'))
+                  "
+                  class="space-y-2 sm:space-y-3 pt-2"
+                >
+                  <div
+                    v-if="homepageInfo.includes('website')"
+                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
+                    :class="theme.textSecondary"
+                  >
                     <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
                       <Globe class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
                     </div>
                     <span class="truncate font-medium text-xs sm:text-sm">{{ homepageUrl }}</span>
                   </div>
-                  <div v-if="homepageInfo.includes('email')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                  <div
+                    v-if="homepageInfo.includes('email')"
+                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
+                    :class="theme.textSecondary"
+                  >
                     <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
                       <Mail class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
                     </div>
                     <span class="text-xs sm:text-sm">email@pixieset.com</span>
                   </div>
-                  <div v-if="homepageInfo.includes('address')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                  <div
+                    v-if="homepageInfo.includes('address')"
+                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
+                    :class="theme.textSecondary"
+                  >
                     <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
                       <MapPin class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
                     </div>
                     <span class="text-xs sm:text-sm">101 Main Street</span>
                   </div>
-                  <div v-if="homepageInfo.includes('phone')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                  <div
+                    v-if="homepageInfo.includes('phone')"
+                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
+                    :class="theme.textSecondary"
+                  >
                     <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
                       <Phone class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
                     </div>
                     <span class="text-xs sm:text-sm">123-456-7890</span>
                   </div>
                 </div>
-                <div v-else-if="!homepageInfo.includes('website') && !homepageInfo.includes('email') && !homepageInfo.includes('address') && !homepageInfo.includes('phone')" class="text-center py-4">
+                <div
+                  v-else-if="
+                    !homepageInfo.includes('website') &&
+                    !homepageInfo.includes('email') &&
+                    !homepageInfo.includes('address') &&
+                    !homepageInfo.includes('phone')
+                  "
+                  class="text-center py-4"
+                >
                   <p class="text-xs italic" :class="theme.textTertiary">
                     Select homepage info options to see them here
                   </p>
@@ -291,9 +379,13 @@
                           class="w-full h-full object-cover"
                           loading="lazy"
                         />
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div
+                          class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                        >
                           <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2">
-                            <p class="text-white text-[10px] sm:text-xs font-medium truncate">{{ collection.title }}</p>
+                            <p class="text-white text-[10px] sm:text-xs font-medium truncate">
+                              {{ collection.title }}
+                            </p>
                           </div>
                         </div>
                       </div>
@@ -307,13 +399,22 @@
                 </div>
               </div>
             </div>
-            <div v-else class="rounded-lg border shadow-xl overflow-hidden p-8 sm:p-12 text-center" :class="[theme.bgCardSolid, theme.borderCard]">
+            <div
+              v-else
+              class="rounded-lg border shadow-xl overflow-hidden p-8 sm:p-12 text-center"
+              :class="[theme.bgCardSolid, theme.borderCard]"
+            >
               <div class="space-y-3">
-                <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center" :class="theme.bgCard">
+                <div
+                  class="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center"
+                  :class="theme.bgCard"
+                >
                   <Globe class="h-6 w-6 sm:h-8 sm:w-8" :class="theme.textTertiary" />
                 </div>
                 <div>
-                  <h3 class="text-base sm:text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Disabled</h3>
+                  <h3 class="text-base sm:text-lg font-semibold mb-1" :class="theme.textPrimary">
+                    Homepage Disabled
+                  </h3>
                   <p class="text-xs sm:text-sm" :class="theme.textSecondary">
                     Enable homepage status to see preview
                   </p>
@@ -332,21 +433,12 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import {
-  Copy,
-  RefreshCw,
-  Globe,
-  Mail,
-  MapPin,
-  Phone,
-  Facebook,
-  Instagram,
-} from 'lucide-vue-next'
+import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
 import Textarea from '@/components/shadcn/Textarea.vue'
-import Select from '@/components/shadcn/Select.vue'
+import { Select } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useCollectionSort } from '@/composables/useCollectionSort'
 import { HOMEPAGE_SORT_OPTIONS } from '@/constants/sortOptions'
@@ -403,7 +495,10 @@ const sampleCollections = ref([
 ])
 
 // Computed: Sorted collections for preview based on sort order
-const { sortedItems: previewCollections } = useCollectionSort(sampleCollections, collectionSortOrder)
+const { sortedItems: previewCollections } = useCollectionSort(
+  sampleCollections,
+  collectionSortOrder
+)
 
 // Computed: Display name (could be from user profile, defaulting to BERNODE)
 const displayName = computed(() => {
@@ -463,4 +558,3 @@ const handleViewSite = () => {
   window.open(homepageUrl.value, '_blank')
 }
 </script>
-

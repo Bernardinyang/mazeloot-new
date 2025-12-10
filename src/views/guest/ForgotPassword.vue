@@ -1,12 +1,21 @@
 <template>
   <AuthLayout
     :title="showOtp ? 'Enter verification code' : 'Forgot password?'"
-    :description="showOtp ? `We've sent a 6-digit code to ${email}` : 'Enter your email address and we will send you a verification code to reset your password'"
+    :description="
+      showOtp
+        ? `We've sent a 6-digit code to ${email}`
+        : 'Enter your email address and we will send you a verification code to reset your password'
+    "
   >
     <Transition name="fade" mode="out-in">
       <!-- Email Form Section -->
       <div v-if="!showOtp" key="email-form" class="space-y-4">
-        <Form @submit="handleForgotPassword" :validation-schema="emailSchema" v-slot="{ meta }" class="space-y-4">
+        <Form
+          @submit="handleForgotPassword"
+          :validation-schema="emailSchema"
+          v-slot="{ meta }"
+          class="space-y-4"
+        >
           <FormField
             name="email"
             label="Email"
@@ -32,7 +41,7 @@
             id="otp"
             :resend-cooldown="otpResendCooldown"
             @resend="resendOtp"
-            @complete="(code) => handleVerifyOtp(code)"
+            @complete="code => handleVerifyOtp(code)"
           />
 
           <Button type="submit" class="w-full" :disabled="otpLoading || !isOtpComplete">
@@ -61,19 +70,20 @@ import { Form } from 'vee-validate'
 import * as yup from 'yup'
 import { toast } from 'vue-sonner'
 import AuthLayout from '@/layouts/AuthLayout.vue'
-import Button from '@/components/shadcn/Button.vue'
-import FormField from '@/components/custom/FormField.vue'
-import OtpInput from '@/components/custom/OtpInput.vue'
-import AuthLink from '@/components/custom/AuthLink.vue'
+import { Button } from '@/components/shadcn/button'
+import FormField from '@/components/molecules/FormField.vue'
+import OtpInput from '@/components/molecules/OtpInput.vue'
+import AuthLink from '@/components/molecules/AuthLink.vue'
+import { useAuthApi } from '@/api/auth'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const emailSchema = yup.object({
-  email: yup
-    .string()
-    .required('Email is required')
-    .email('Please enter a valid email address'),
+  email: yup.string().required('Email is required').email('Please enter a valid email address'),
 })
 
 const router = useRouter()
+const authApi = useAuthApi()
+const { handleError } = useErrorHandler()
 const loading = ref(false)
 const otpLoading = ref(false)
 const showOtp = ref(false)
@@ -89,17 +99,16 @@ const handleForgotPassword = async (values: any) => {
   loading.value = true
   email.value = values.email
   try {
-    // TODO: Implement actual forgot password logic
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-    
+    await authApi.forgotPassword(values.email)
+
     toast.success('Verification code sent', {
       description: 'Please check your email for the verification code.',
     })
     showOtp.value = true
   } catch (error: any) {
     console.error('Forgot password error:', error)
-    toast.error('Failed to send code', {
-      description: error.message || 'Something went wrong. Please try again.',
+    handleError(error, {
+      fallbackMessage: 'Something went wrong. Please try again.',
     })
   } finally {
     loading.value = false
@@ -112,20 +121,19 @@ const handleVerifyOtp = async (verificationCode?: string) => {
 
   otpLoading.value = true
   try {
-    // TODO: Implement actual OTP verification logic
-    await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API call
-    
+    const result = await authApi.verifyPasswordResetOtp(codeToVerify)
+
     toast.success('Code verified', {
       description: 'You can now reset your password.',
     })
     router.push({
       name: 'reset-password',
-      query: { token: codeToVerify } // In real app, this would be a secure token from the API
+      query: { token: result.token },
     })
   } catch (error: any) {
     console.error('OTP verification error:', error)
-    toast.error('Verification failed', {
-      description: error.message || 'Invalid code. Please try again.',
+    handleError(error, {
+      fallbackMessage: 'Invalid code. Please try again.',
     })
     otpCode.value = ''
   } finally {
@@ -137,7 +145,8 @@ const resendOtp = async () => {
   if (otpResendCooldown.value > 0) return
 
   try {
-    // TODO: Implement actual resend logic
+    await authApi.forgotPassword(email.value)
+
     otpResendCooldown.value = 60
     const interval = setInterval(() => {
       otpResendCooldown.value--
@@ -145,17 +154,15 @@ const resendOtp = async () => {
         clearInterval(interval)
       }
     }, 1000)
-    
+
     toast.success('Code resent', {
       description: 'Please check your email for the new code.',
     })
   } catch (error: any) {
     console.error('Resend error:', error)
-    toast.error('Failed to resend code', {
-      description: error.message || 'Please try again later.',
+    handleError(error, {
+      fallbackMessage: 'Please try again later.',
     })
   }
 }
-
 </script>
-

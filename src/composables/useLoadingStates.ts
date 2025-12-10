@@ -10,7 +10,7 @@ export interface LoadingStates {
 
 export function useLoadingStates(keys: string[], initialValue: boolean = false) {
   const states: LoadingStates = {}
-  
+
   keys.forEach(key => {
     states[key] = ref(initialValue)
   })
@@ -40,4 +40,3 @@ export function useLoadingStates(keys: string[], initialValue: boolean = false) 
     isLoading,
   }
 }
-

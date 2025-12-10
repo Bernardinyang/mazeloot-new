@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
+import { storage } from '@/utils/storage'
+
+const THEME_STORAGE_KEY = 'mazeloot_theme'
 
 type Theme = 'light' | 'dark' | 'system'
 
 export const useThemeStore = defineStore('theme', () => {
-  const theme = ref<Theme>((localStorage.getItem('theme') as Theme) || 'dark')
+  const theme = ref<Theme>(storage.get<Theme>(THEME_STORAGE_KEY) || 'dark')
   const systemTheme = ref<'light' | 'dark'>(
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   )
@@ -38,18 +41,28 @@ export const useThemeStore = defineStore('theme', () => {
     }
   }
 
+  // Persist theme to localStorage
+  const persistTheme = () => {
+    storage.set(THEME_STORAGE_KEY, theme.value)
+  }
+
+  // Watch theme and persist to localStorage
+  watch(theme, () => {
+    persistTheme()
+  })
+
   // Set theme
   const setTheme = (newTheme: Theme) => {
     theme.value = newTheme
-    localStorage.setItem('theme', newTheme)
-    
+
     if (newTheme === 'system') {
       effectiveTheme.value = systemTheme.value
     } else {
       effectiveTheme.value = newTheme
     }
-    
+
     applyTheme(effectiveTheme.value)
+    // Persistence is handled by watcher
   }
 
   // Toggle between light and dark
@@ -67,7 +80,7 @@ export const useThemeStore = defineStore('theme', () => {
   // Watch theme changes
   watch(
     () => theme.value,
-    (newTheme) => {
+    newTheme => {
       if (newTheme === 'system') {
         effectiveTheme.value = systemTheme.value
       } else {
@@ -84,4 +97,3 @@ export const useThemeStore = defineStore('theme', () => {
     toggleTheme,
   }
 })
-

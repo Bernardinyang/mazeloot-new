@@ -1,13 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb>
-      Settings > Preset
-    </template>
+    <template #breadcrumb> Settings > Preset </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
       <div class="w-[50%]">
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Collection Presets</h1>
+        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+          Collection Presets
+        </h1>
         <p class="text-sm mb-4" :class="theme.textSecondary">
           Manage default settings for collections to streamline your workflow.
         </p>
@@ -19,7 +19,7 @@
         <!-- Presets List -->
         <div class="space-y-4">
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Collection Presets</h3>
-          
+
           <!-- Presets List -->
           <div class="space-y-0">
             <div
@@ -29,13 +29,13 @@
               :class="[
                 theme.borderSecondary,
                 preset.isSelected ? theme.bgHover : '',
-                'hover:' + theme.bgHover
+                'hover:' + theme.bgHover,
               ]"
             >
               <span class="text-sm font-medium" :class="theme.textPrimary">
                 {{ preset.name }}
               </span>
-              
+
               <!-- Three-dot Menu -->
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
@@ -87,7 +87,8 @@
 
           <!-- Description -->
           <p class="text-xs mt-4" :class="theme.textSecondary">
-            Collection presets allow you to apply default settings when creating a new collection so you don't have to make changes every time. 
+            Collection presets allow you to apply default settings when creating a new collection so
+            you don't have to make changes every time.
             <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
           </p>
         </div>
@@ -170,4 +171,3 @@ const handleAddPreset = () => {
   toast.info('Adding new preset')
 }
 </script>
-

@@ -19,4 +19,3 @@ export const publicRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/NotFound.vue'),
   },
 ]
-

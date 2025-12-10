@@ -2,10 +2,12 @@
   <div class="relative">
     <input
       :value="displayValue"
-      :class="cn(
-        'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        $attrs.class
-      )"
+      :class="
+        cn(
+          'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          $attrs.class
+        )
+      "
       type="text"
       :placeholder="placeholder"
       readonly
@@ -27,19 +29,11 @@
       class="absolute z-50 mt-1 w-auto rounded-md border bg-popover p-4 text-popover-foreground shadow-md"
     >
       <div class="flex items-center justify-between mb-4">
-        <button
-          type="button"
-          @click="previousMonth"
-          class="p-1 hover:bg-accent rounded-md"
-        >
+        <button type="button" @click="previousMonth" class="p-1 hover:bg-accent rounded-md">
           <IconChevronLeft class="h-4 w-4" :size="16" />
         </button>
         <div class="font-semibold">{{ currentMonthYear }}</div>
-        <button
-          type="button"
-          @click="nextMonth"
-          class="p-1 hover:bg-accent rounded-md"
-        >
+        <button type="button" @click="nextMonth" class="p-1 hover:bg-accent rounded-md">
           <IconChevronRight class="h-4 w-4" :size="16" />
         </button>
       </div>
@@ -59,12 +53,14 @@
           v-for="(day, index) in calendarDays"
           :key="index"
           @click="selectDate(day)"
-          :class="cn(
-            'text-center text-sm p-2 rounded-md cursor-pointer hover:bg-accent',
-            day === null && 'text-muted-foreground/50 cursor-not-allowed',
-            day && isSelected(day) && 'bg-primary text-primary-foreground',
-            day && isToday(day) && !isSelected(day) && 'bg-accent font-semibold'
-          )"
+          :class="
+            cn(
+              'text-center text-sm p-2 rounded-md cursor-pointer hover:bg-accent',
+              day === null && 'text-muted-foreground/50 cursor-not-allowed',
+              day && isSelected(day) && 'bg-primary text-primary-foreground',
+              day && isToday(day) && !isSelected(day) && 'bg-accent font-semibold'
+            )
+          "
         >
           {{ day || '' }}
         </div>
@@ -75,7 +71,20 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, getDay, startOfWeek, endOfWeek, isToday } from 'date-fns'
+import {
+  format,
+  startOfMonth,
+  endOfMonth,
+  eachDayOfInterval,
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  getDay,
+  startOfWeek,
+  endOfWeek,
+  isToday,
+} from 'date-fns'
 import { cn } from '@/lib/utils'
 import IconCalendar from '@/icons/IconCalendar.vue'
 import IconChevronLeft from '@/icons/IconChevronLeft.vue'
@@ -89,7 +98,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Select a date',
-  format: 'MMM dd, yyyy'
+  format: 'MMM dd, yyyy',
 })
 
 const emit = defineEmits<{
@@ -115,11 +124,11 @@ const calendarDays = computed(() => {
   const monthStart = startOfMonth(currentDate.value)
   const monthEnd = endOfMonth(currentDate.value)
   const monthDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
-  
+
   const start = startOfWeek(monthStart, { weekStartsOn: 0 })
   const end = endOfWeek(monthEnd, { weekStartsOn: 0 })
   const allDays = eachDayOfInterval({ start, end })
-  
+
   return allDays.map(day => {
     if (!isSameMonth(day, monthStart)) return null
     return day.getDate()
@@ -144,7 +153,7 @@ const nextMonth = () => {
 
 const selectDate = (day: number | null) => {
   if (day === null) return
-  
+
   const monthStart = startOfMonth(currentDate.value)
   const selectedDate = new Date(monthStart.getFullYear(), monthStart.getMonth(), day)
   emit('update:modelValue', selectedDate)
@@ -153,7 +162,8 @@ const selectDate = (day: number | null) => {
 
 const isSelected = (day: number) => {
   if (!props.modelValue) return false
-  const modelDate = typeof props.modelValue === 'string' ? new Date(props.modelValue) : props.modelValue
+  const modelDate =
+    typeof props.modelValue === 'string' ? new Date(props.modelValue) : props.modelValue
   const monthStart = startOfMonth(currentDate.value)
   const checkDate = new Date(monthStart.getFullYear(), monthStart.getMonth(), day)
   return isSameDay(modelDate, checkDate)
@@ -165,11 +175,14 @@ const isToday = (day: number) => {
   return isToday(checkDate)
 }
 
-watch(() => props.modelValue, (newValue) => {
-  if (newValue) {
-    currentDate.value = typeof newValue === 'string' ? new Date(newValue) : newValue
+watch(
+  () => props.modelValue,
+  newValue => {
+    if (newValue) {
+      currentDate.value = typeof newValue === 'string' ? new Date(newValue) : newValue
+    }
   }
-})
+)
 
 // Click outside directive
 const vClickOutside = {
@@ -183,7 +196,6 @@ const vClickOutside = {
   },
   unmounted(el: any) {
     document.removeEventListener('click', el.clickOutsideEvent)
-  }
+  },
 }
 </script>
-
