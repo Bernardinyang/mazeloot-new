@@ -18,7 +18,7 @@
             <div class="px-4 py-2 rounded-lg border" :class="[theme.borderSecondary, theme.bgCard]">
               <div class="text-xs" :class="theme.textTertiary">Cover Style</div>
               <div class="text-sm font-semibold mt-0.5" :class="theme.textPrimary">
-                {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Summit' }}
+                {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Modern' }}
               </div>
             </div>
             <div class="px-4 py-2 rounded-lg border" :class="[theme.borderSecondary, theme.bgCard]">
@@ -48,11 +48,11 @@
               </div>
               <div class="px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
                 <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
-                  {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Summit' }}
+                  {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Modern' }}
                 </span>
               </div>
             </div>
-            <div class="grid grid-cols-7 gap-3">
+            <div class="grid grid-cols-4 md:grid-cols-7 gap-3">
               <button
                 v-for="cover in coverOptions"
                 :key="cover.id"
@@ -137,7 +137,6 @@
                     backgroundPosition: `${formData.coverFocalPoint.x}% ${formData.coverFocalPoint.y}%`,
                     backgroundRepeat: 'no-repeat',
                   }"
-                  @error="handleImageError"
                   @click="handleFocalPointClick"
                 >
                   <!-- Focal Point Indicator -->
@@ -427,7 +426,8 @@
                 v-for="size in thumbnailSizes"
                 :key="size.id"
                 @click="formData.thumbnailSize = size.id"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                :disabled="formData.gridStyle === 'masonry' && size.id === 'large'"
+                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 :class="[
                   formData.thumbnailSize === size.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
@@ -466,6 +466,13 @@
                 </div>
               </button>
             </div>
+            <p
+              v-if="formData.gridStyle === 'masonry'"
+              class="text-xs mt-2"
+              :class="theme.textTertiary"
+            >
+              Large thumbnail size is not available for masonry layout
+            </p>
           </div>
 
           <!-- Grid Spacing Section -->
@@ -474,54 +481,18 @@
             :class="[theme.borderSecondary, theme.bgCard]"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Grid Spacing</h3>
+              <div class="flex items-center justify-between mb-2">
+                <h3 class="text-lg font-bold" :class="theme.textPrimary">Grid Spacing</h3>
+                <span class="text-sm font-semibold" :class="theme.textSecondary">
+                  {{ formData.gridSpacing }}px
+                </span>
+              </div>
               <p class="text-xs" :class="theme.textSecondary">
-                Adjust the gap between gallery items
+                Adjust the gap between gallery items (1-100px)
               </p>
             </div>
-            <div class="flex gap-4">
-              <button
-                v-for="spacing in gridSpacings"
-                :key="spacing.id"
-                @click="formData.gridSpacing = spacing.id"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
-                :class="[
-                  formData.gridSpacing === spacing.id
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
-                  theme.bgCard,
-                ]"
-              >
-                <div class="flex items-center justify-center gap-3">
-                  <div
-                    class="p-2 rounded-lg transition-all duration-300"
-                    :class="
-                      formData.gridSpacing === spacing.id
-                        ? 'bg-teal-500/20'
-                        : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
-                    "
-                  >
-                    <Grid3x3
-                      class="h-6 w-6 transition-colors duration-200"
-                      :class="
-                        formData.gridSpacing === spacing.id
-                          ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textSecondary
-                      "
-                    />
-                  </div>
-                  <span
-                    class="text-sm font-semibold transition-colors duration-200"
-                    :class="
-                      formData.gridSpacing === spacing.id
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textPrimary
-                    "
-                  >
-                    {{ spacing.label }}
-                  </span>
-                </div>
-              </button>
+            <div class="px-2">
+              <Slider v-model="gridSpacingSlider" :min="1" :max="100" :step="1" class="w-full" />
             </div>
           </div>
 
@@ -678,6 +649,7 @@ import { ref, computed, watch, onMounted, onUnmounted, inject, type Ref } from '
 import { useRoute, useRouter } from 'vue-router'
 import { Check, Loader2, Grid3x3, LayoutGrid, ExternalLink, X } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
+import { Slider } from '@/components/shadcn/slider'
 import {
   Dialog,
   DialogContent,
@@ -724,7 +696,7 @@ const focalPointImageContainer = ref<HTMLElement | null>(null)
 
 // Design form data
 const formData = ref({
-  cover: 'center',
+  cover: 'modern',
   coverFocalPoint: { x: 50, y: 50 }, // Percentage coordinates (0-100)
   fontFamily: 'sans',
   fontStyle: 'bold',
@@ -732,26 +704,43 @@ const formData = ref({
   gridStyle: 'vertical',
   gridColumns: 3,
   thumbnailSize: 'regular',
-  gridSpacing: 'regular',
+  gridSpacing: 16, // Numeric value in pixels (1-100)
   navigationStyle: 'icon-only',
 })
 
-// Cover options - Unique Mazeloot names inspired by creative use cases
+// Computed property to convert gridSpacing number to array for Slider component
+const gridSpacingSlider = computed({
+  get: () => [formData.value.gridSpacing],
+  set: (value: number[]) => {
+    if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
+      formData.value.gridSpacing = Math.max(1, Math.min(100, value[0]))
+    }
+  },
+})
+
+// Cover options - 20 beautiful cover styles + none
 const coverOptions = [
-  { id: 'center', label: 'Summit' }, // Center placement - like a mountain peak
-  { id: 'joy', label: 'Celebration' }, // Joy style - for celebrations
-  { id: 'left', label: 'Horizon' }, // Left placement - like a horizon line
-  { id: 'novel', label: 'Split' }, // Novel split layout
-  { id: 'vintage', label: 'Timeless' }, // Vintage feel
-  { id: 'frame', label: 'Gallery' }, // Frame style - like a gallery frame
-  { id: 'stripe', label: 'Elegant' }, // Stripe with lines - elegant
-  { id: 'divider', label: 'Contrast' }, // Divider split - high contrast
-  { id: 'journal', label: 'Story' }, // Journal style - tells a story
-  { id: 'stamp', label: 'Minimal' }, // Stamp style - minimal
-  { id: 'outline', label: 'Focus' }, // Outline - focuses attention
-  { id: 'classic', label: 'Heritage' }, // Classic - heritage style
-  { id: 'none', label: 'Clean' }, // None - clean slate
-  { id: 'more', label: 'Custom' }, // More - custom options
+  { id: 'modern', label: 'Modern' },
+  { id: 'elegant', label: 'Elegant' },
+  { id: 'bold', label: 'Bold' },
+  { id: 'asymmetric', label: 'Asymmetric' },
+  { id: 'geometric', label: 'Geometric' },
+  { id: 'classic', label: 'Classic' },
+  { id: 'split', label: 'Split' },
+  { id: 'spotlight', label: 'Spotlight' },
+  { id: 'minimalist', label: 'Minimalist' },
+  { id: 'celebration', label: 'Celebration' },
+  { id: 'horizon', label: 'Horizon' },
+  { id: 'floating', label: 'Floating' },
+  { id: 'corner', label: 'Corner' },
+  { id: 'diagonal', label: 'Diagonal' },
+  { id: 'layered', label: 'Layered' },
+  { id: 'framed', label: 'Framed' },
+  { id: 'minimal', label: 'Minimal' },
+  { id: 'dynamic', label: 'Dynamic' },
+  { id: 'structured', label: 'Structured' },
+  { id: 'artistic', label: 'Artistic' },
+  { id: 'none', label: 'None' },
 ]
 
 // Handle focal point click
@@ -768,8 +757,6 @@ const handleFocalPointClick = (event: MouseEvent) => {
     y: Math.max(0, Math.min(100, y)),
   }
 }
-
-// Font families - now handled by FontFamilySelect component
 
 // Font styles
 const fontStyles = [
@@ -823,58 +810,11 @@ const thumbnailSizes = [
   { id: 'large', label: 'Large' },
 ]
 
-// Grid spacings
-const gridSpacings = [
-  { id: 'regular', label: 'Regular' },
-  { id: 'large', label: 'Large' },
-]
-
 // Navigation styles
 const navigationStyles = [
   { id: 'icon-only', label: 'Icon Only' },
   { id: 'icon-text', label: 'Icon & Text' },
 ]
-
-// Helper functions for preview
-const getFontFamilyClass = (fontFamily: string) => {
-  const fontMap: Record<string, string> = {
-    sans: 'font-sans',
-    serif: 'font-serif',
-    modern: 'font-mono',
-    playfair: 'font-playfair',
-    montserrat: 'font-montserrat',
-    lato: 'font-lato',
-    raleway: 'font-raleway',
-    opensans: 'font-opensans',
-    roboto: 'font-roboto',
-    poppins: 'font-poppins',
-    inter: 'font-inter',
-    nunito: 'font-nunito',
-    merriweather: 'font-merriweather',
-    crimson: 'font-crimson',
-    lora: 'font-lora',
-    source: 'font-source',
-    ubuntu: 'font-ubuntu',
-    dancing: 'font-dancing',
-    pacifico: 'font-pacifico',
-    caveat: 'font-caveat',
-  }
-  return fontMap[fontFamily] || 'font-sans'
-}
-
-const getFontStyleClass = (fontStyle: string) => {
-  const styleMap: Record<string, string> = {
-    timeless: 'font-light',
-    bold: 'font-bold',
-    subtle: 'font-normal',
-  }
-  return styleMap[fontStyle] || 'font-normal'
-}
-
-const getSelectedPaletteColors = () => {
-  const palette = colorPalettes.find(p => p.id === formData.value.colorPalette)
-  return palette?.colors || ['#FFFFFF', '#F5F5F5', '#000000']
-}
 
 // Load preset data
 const loadPresetData = () => {
@@ -882,7 +822,7 @@ const loadPresetData = () => {
     isLoadingData.value = true
     const designData = currentPreset.value.design || {}
     formData.value = {
-      cover: designData.cover || 'center',
+      cover: designData.cover || 'modern',
       coverFocalPoint:
         designData.coverFocalPoint && typeof designData.coverFocalPoint === 'object'
           ? designData.coverFocalPoint
@@ -893,7 +833,12 @@ const loadPresetData = () => {
       gridStyle: designData.gridStyle || 'vertical',
       gridColumns: designData.gridColumns || 3,
       thumbnailSize: designData.thumbnailSize || 'regular',
-      gridSpacing: designData.gridSpacing || 'regular',
+      gridSpacing:
+        typeof designData.gridSpacing === 'number'
+          ? designData.gridSpacing
+          : designData.gridSpacing === 'large'
+            ? 24
+            : 16,
       navigationStyle: designData.navigationStyle || 'icon-only',
     }
     presetStore.setCurrentPreset(currentPreset.value.id)
@@ -920,6 +865,16 @@ watch(
     }
   },
   { deep: true }
+)
+
+// Watch for grid style changes - disable large thumbnail size for masonry
+watch(
+  () => formData.value.gridStyle,
+  newStyle => {
+    if (newStyle === 'masonry' && formData.value.thumbnailSize === 'large') {
+      formData.value.thumbnailSize = 'regular'
+    }
+  }
 )
 
 // Keyboard shortcut handler
@@ -949,80 +904,62 @@ onUnmounted(() => {
   }
 })
 
-const handleSave = async () => {
+// Helper function to save preset design
+const savePresetDesign = async (): Promise<boolean> => {
   if (!presetId.value) {
     toast.error('Preset not found')
-    return
+    return false
   }
 
   try {
     await presetStore.updatePreset(presetId.value, {
       design: formData.value,
     })
-
     hasUnsavedChanges.value = false
-    toast.success('Preset saved successfully', {
-      description: `Design settings have been updated.`,
-      icon: Check,
-    })
+    return true
   } catch (error: any) {
     toast.error('Failed to save preset', {
       description: error.message || 'An error occurred while saving.',
+    })
+    return false
+  }
+}
+
+const handleSave = async () => {
+  const success = await savePresetDesign()
+  if (success) {
+    toast.success('Preset saved successfully', {
+      description: 'Design settings have been updated.',
+      icon: Check,
     })
   }
 }
 
 const handlePrevious = async () => {
-  if (!presetId.value) {
-    toast.error('Preset not found')
-    return
-  }
-
   isSubmitting.value = true
-
   try {
-    await presetStore.updatePreset(presetId.value, {
-      design: formData.value,
-    })
-
-    hasUnsavedChanges.value = false
-
-    router.push({
-      name: 'presetGeneral',
-      params: { name: route.params.name },
-    })
-  } catch (error: any) {
-    toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
-    })
+    const success = await savePresetDesign()
+    if (success) {
+      router.push({
+        name: 'presetGeneral',
+        params: { name: route.params.name },
+      })
+    }
   } finally {
     isSubmitting.value = false
   }
 }
 
 const handleNext = async () => {
-  if (!presetId.value) {
-    toast.error('Preset not found')
-    return
-  }
-
   isSubmitting.value = true
-
   try {
-    await presetStore.updatePreset(presetId.value, {
-      design: formData.value,
-    })
-
-    hasUnsavedChanges.value = false
-
-    router.push({
-      name: 'presetPrivacy',
-      params: { name: route.params.name },
-    })
-  } catch (error: any) {
-    toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
-    })
+    const success = await savePresetDesign()
+    if (success) {
+      router.push({
+        name: 'presetPrivacy',
+        params: { name: route.params.name },
+      })
+    }
   } finally {
     isSubmitting.value = false
   }
@@ -1039,22 +976,13 @@ const handleOpenPreviewInNewTab = async () => {
   }
 
   // Save current design changes before opening preview
-  try {
-    await presetStore.updatePreset(presetId.value, {
-      design: formData.value,
-    })
-    hasUnsavedChanges.value = false
-
-    // Open preview in new tab
+  const success = await savePresetDesign()
+  if (success) {
     const previewUrl = router.resolve({
       name: 'presetPreview',
       params: { name: presetName },
     }).href
     window.open(previewUrl, '_blank')
-  } catch (error: any) {
-    toast.error('Failed to save design', {
-      description: error.message || 'Could not save design before opening preview.',
-    })
   }
 }
 

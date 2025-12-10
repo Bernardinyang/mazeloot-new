@@ -1,7 +1,69 @@
 <template>
   <div class="min-h-screen" :style="{ backgroundColor: backgroundColor }">
-    <!-- Cover Section -->
+    <!-- Navbar Style (when cover is 'none') -->
     <div
+      v-if="coverConfig.specialLayout === 'none'"
+      class="sticky top-0 z-50 w-full border-b backdrop-blur-md"
+      :style="{
+        backgroundColor: `${backgroundColor}dd`,
+        borderColor: borderColor,
+      }"
+    >
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <h1
+              class="text-xl md:text-2xl font-bold"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ color: textColor }"
+            >
+              {{ collectionName }}
+            </h1>
+            <p
+              v-if="eventDate"
+              class="text-xs md:text-sm mt-1 uppercase tracking-wide"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ color: textColor, opacity: 0.8 }"
+            >
+              {{ formattedDate }}
+            </p>
+          </div>
+          <div class="flex gap-4">
+            <button
+              v-for="tab in tabs"
+              :key="tab"
+              class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
+              :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : '']"
+              :style="{
+                color: activeTab === tab ? accentColor : tabTextColor,
+                borderBottom: activeTab === tab ? `3px solid ${accentColor}` : 'none',
+                paddingBottom: '4px',
+                opacity: activeTab === tab ? 1 : 0.85,
+              }"
+              @click="activeTab = tab"
+            >
+              <component
+                v-if="
+                  designConfig.navigationStyle === 'icon-only' ||
+                  designConfig.navigationStyle === 'icon-text'
+                "
+                :is="getTabIcon(tab)"
+                class="h-4 w-4"
+              />
+              <span
+                v-if="!designConfig.navigationStyle || designConfig.navigationStyle === 'icon-text'"
+              >
+                {{ tab }}
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cover Section (when cover is not 'none') -->
+    <div
+      v-else
       class="relative w-full h-screen"
       :style="{
         backgroundImage: coverImageWithFallback ? `url(${coverImageWithFallback})` : undefined,
@@ -301,8 +363,12 @@
       class="container mx-auto px-4 py-8 md:py-12"
       :style="{ backgroundColor: contentBackgroundColor }"
     >
-      <!-- Navigation Tabs -->
-      <div class="mb-8 flex items-center gap-6 border-b pb-4" :style="{ borderColor: borderColor }">
+      <!-- Navigation Tabs (only show if cover is not 'none', as navbar handles it) -->
+      <div
+        v-if="coverConfig.specialLayout !== 'none'"
+        class="mb-8 flex items-center gap-6 border-b pb-4"
+        :style="{ borderColor: borderColor }"
+      >
         <div
           class="text-lg md:text-xl font-semibold"
           :class="[fontFamilyClass, fontStyleClass]"
@@ -314,7 +380,7 @@
           <button
             v-for="tab in tabs"
             :key="tab"
-            class="text-sm uppercase tracking-wide transition-all duration-200 font-medium"
+            class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
             :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : '']"
             :style="{
               color: activeTab === tab ? accentColor : tabTextColor,
@@ -324,50 +390,93 @@
             }"
             @click="activeTab = tab"
           >
-            {{ tab }}
+            <component
+              v-if="
+                designConfig.navigationStyle === 'icon-only' ||
+                designConfig.navigationStyle === 'icon-text'
+              "
+              :is="getTabIcon(tab)"
+              class="h-4 w-4"
+            />
+            <span
+              v-if="!designConfig.navigationStyle || designConfig.navigationStyle === 'icon-text'"
+            >
+              {{ tab }}
+            </span>
           </button>
         </div>
       </div>
 
       <!-- Media Grid -->
-      <div v-if="isLoading" :class="gridClasses">
+      <div
+        v-if="isLoading"
+        :class="[gridClasses, 'overflow-hidden']"
+        :style="
+          designConfig.gridStyle === 'masonry'
+            ? { columnGap: `${gridSpacingValue}px` }
+            : { gap: `${gridSpacingValue}px` }
+        "
+      >
         <div
           v-for="i in 6"
           :key="i"
+          class="overflow-hidden rounded-lg"
           :class="[
-            'rounded-lg bg-gray-200 dark:bg-gray-700 animate-pulse',
-            designConfig.gridStyle === 'masonry' ? 'mb-4 break-inside-avoid h-48' : 'aspect-square',
+            designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
+            designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
           ]"
-        ></div>
+          :style="
+            designConfig.gridStyle === 'masonry'
+              ? { marginBottom: `${gridSpacingValue}px`, height: '192px' }
+              : { aspectRatio: designConfig.gridStyle === 'vertical' ? '3/4' : '1/1' }
+          "
+        >
+          <div class="w-full h-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"></div>
+        </div>
       </div>
 
-      <div v-else-if="filteredMedia.length > 0" :class="gridClasses">
+      <div
+        v-else-if="filteredMedia.length > 0"
+        :class="[gridClasses, 'overflow-hidden']"
+        :style="
+          designConfig.gridStyle === 'masonry'
+            ? { columnGap: `${gridSpacingValue}px` }
+            : { gap: `${gridSpacingValue}px` }
+        "
+      >
         <div
           v-for="item in filteredMedia"
           :key="item.id"
-          class="group relative overflow-hidden rounded-lg cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
-          :class="designConfig.gridStyle === 'masonry' ? 'mb-4 break-inside-avoid' : ''"
+          class="overflow-hidden rounded-lg"
+          :class="[
+            designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
+            designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
+          ]"
           :style="
             designConfig.gridStyle === 'masonry'
-              ? {}
+              ? { marginBottom: `${gridSpacingValue}px` }
               : {
                   aspectRatio: designConfig.gridStyle === 'vertical' ? '3/4' : '1/1',
                 }
           "
-          @click="openMediaViewer(item)"
         >
-          <img
-            :src="item.thumbnail || item.url"
-            :alt="item.title || 'Media'"
-            :class="[
-              'w-full object-cover',
-              designConfig.gridStyle === 'masonry' ? 'h-auto' : 'h-full',
-            ]"
-            loading="lazy"
-          />
           <div
-            class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"
-          ></div>
+            class="group relative w-full h-full cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
+            @click="openMediaViewer(item)"
+          >
+            <img
+              :src="item.thumbnail || item.url"
+              :alt="item.title || 'Media'"
+              :class="[
+                'w-full object-cover',
+                designConfig.gridStyle === 'masonry' ? 'h-auto' : 'h-full',
+              ]"
+              loading="lazy"
+            />
+            <div
+              class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"
+            ></div>
+          </div>
         </div>
       </div>
 
@@ -420,7 +529,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { X } from 'lucide-vue-next'
+import { X, Sparkles, Grid3x3, Image as ImageIcon } from 'lucide-vue-next'
 import { useCollectionsApi, type Collection } from '@/api/collections'
 import { useMediaApi, type MediaItem } from '@/api/media'
 import { usePresetStore } from '@/stores/preset'
@@ -440,7 +549,7 @@ const props = defineProps<{
     colorPalette?: string
     gridStyle?: string
     thumbnailSize?: string
-    gridSpacing?: string
+    gridSpacing?: number | string
     navigationStyle?: string
   } | null
 }>()
@@ -497,7 +606,7 @@ const designConfig = computed(() => {
   // Use preset design or defaults
   return (
     preset?.design || {
-      cover: 'center',
+      cover: 'modern',
       coverFocalPoint: { x: 50, y: 50 },
       fontFamily: 'sans',
       fontStyle: 'bold',
@@ -505,7 +614,7 @@ const designConfig = computed(() => {
       gridStyle: 'vertical',
       gridColumns: 3,
       thumbnailSize: 'regular',
-      gridSpacing: 'regular',
+      gridSpacing: 16,
       navigationStyle: 'icon-only',
     }
   )
@@ -702,10 +811,21 @@ const fontStyleClass = computed(() => {
   return styleMap[designConfig.value.fontStyle || 'bold'] || 'font-bold'
 })
 
+// Get grid spacing value (convert string to number for backward compatibility)
+const gridSpacingValue = computed(() => {
+  const spacing = designConfig.value.gridSpacing
+  if (typeof spacing === 'number') {
+    return spacing
+  }
+  // Backward compatibility with string values
+  if (spacing === 'large') return 24
+  if (spacing === 'regular') return 16
+  return 16
+})
+
 const gridClasses = computed(() => {
   const gridStyle = designConfig.value.gridStyle
-  const spacing = designConfig.value.gridSpacing === 'large' ? 'gap-6' : 'gap-4'
-  const gridColumns = designConfig.value.gridColumns || 3
+  const gridColumns = adjustedGridColumns.value
 
   // Masonry layout uses CSS columns
   if (gridStyle === 'masonry') {
@@ -717,7 +837,7 @@ const gridClasses = computed(() => {
           : gridColumns === 5
             ? 'md:columns-5'
             : 'md:columns-3'
-    return `columns-2 ${columns} ${spacing}`
+    return `columns-2 ${columns}`
   }
 
   // Regular grid layouts
@@ -732,9 +852,34 @@ const gridClasses = computed(() => {
           : 'md:grid-cols-3'
 
   if (isVertical) {
-    return `grid grid-cols-2 ${colsClass} ${spacing}`
+    return `grid grid-cols-2 ${colsClass}`
   }
-  return `grid grid-cols-2 ${colsClass} ${spacing}`
+  return `grid grid-cols-2 ${colsClass}`
+})
+
+// Thumbnail size classes - affects the minimum size of grid items (only for masonry)
+const thumbnailSizeClasses = computed(() => {
+  const size = designConfig.value.thumbnailSize || 'regular'
+  if (size === 'large') {
+    // For large thumbnails in masonry layout, increase minimum height
+    return 'min-h-[250px] md:min-h-[350px]'
+  }
+  // regular size - default, no additional classes needed
+  return ''
+})
+
+// Adjust grid columns based on thumbnail size for regular grids
+const adjustedGridColumns = computed(() => {
+  const baseColumns = designConfig.value.gridColumns || 3
+  const thumbnailSize = designConfig.value.thumbnailSize || 'regular'
+
+  // For large thumbnails, reduce columns to make items appear larger
+  if (thumbnailSize === 'large' && designConfig.value.gridStyle !== 'masonry') {
+    // Reduce by 1 column, but not below 2
+    return Math.max(2, baseColumns - 1)
+  }
+
+  return baseColumns
 })
 
 const coverContentClasses = computed(() => {
@@ -833,6 +978,16 @@ const openMediaViewer = (item: MediaItem) => {
 
 const closeMediaViewer = () => {
   selectedMedia.value = null
+}
+
+// Get icon for navigation tabs
+const getTabIcon = (tab: string) => {
+  const iconMap: Record<string, any> = {
+    Highlights: Sparkles,
+    All: Grid3x3,
+    Photos: ImageIcon,
+  }
+  return iconMap[tab] || Grid3x3
 }
 
 // Watch for preview props changes

@@ -28,7 +28,7 @@
           :class="theme.textPrimary"
           @blur="handleNameBlur"
           @keyup.enter="handleNameBlur"
-          @keyup.esc="($event.target as HTMLInputElement)?.blur()"
+          @keyup.esc="handleEscKey"
           placeholder="Enter watermark name"
           maxlength="50"
         />
@@ -163,30 +163,7 @@
               <!-- Font Family -->
               <div class="space-y-3">
                 <h4 class="text-xs font-medium" :class="theme.textSecondary">Font Family</h4>
-                <Select v-model="fontFamily">
-                  <SelectTrigger
-                    class="transition-all"
-                    :class="[
-                      theme.bgInput,
-                      theme.borderInput,
-                      theme.textInput,
-                      'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
-                    ]"
-                  >
-                    <SelectValue placeholder="Select font" :style="{ fontFamily: fontFamily }" />
-                  </SelectTrigger>
-                  <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                    <SelectItem
-                      v-for="font in fontFamilyOptions"
-                      :key="font.value"
-                      :value="font.value"
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      :style="{ fontFamily: font.value }"
-                    >
-                      {{ font.label }}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+                <FontFamilySelect v-model="fontFamilyId" placeholder="Select font family" />
               </div>
 
               <!-- Font Style -->
@@ -1015,6 +992,7 @@ import {
 import { Slider } from '@/components/shadcn/slider'
 import ColorPicker from '@/components/shadcn/ColorPicker.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
 import { useWatermarkStore } from '@/stores/watermark'
@@ -1035,8 +1013,45 @@ const watermarkId = computed(() => (isEditing.value ? String(route.params.id) : 
 const watermarkName = ref('New Watermark')
 const watermarkType = ref<'text' | 'image'>('text')
 const watermarkText = ref('')
-const fontFamily = ref('Pacifico')
+const fontFamilyId = ref('pacifico')
 const fontStyle = ref('normal')
+
+// Map FontFamilySelect IDs to actual font family names
+const fontFamilyMap: Record<string, string> = {
+  sans: 'Arial, sans-serif',
+  serif: 'Georgia, serif',
+  modern: 'Courier New, monospace',
+  playfair: 'Playfair Display, serif',
+  montserrat: 'Montserrat, sans-serif',
+  lato: 'Lato, sans-serif',
+  raleway: 'Raleway, sans-serif',
+  opensans: 'Open Sans, sans-serif',
+  roboto: 'Roboto, sans-serif',
+  poppins: 'Poppins, sans-serif',
+  inter: 'Inter, sans-serif',
+  nunito: 'Nunito, sans-serif',
+  merriweather: 'Merriweather, serif',
+  crimson: 'Crimson Text, serif',
+  lora: 'Lora, serif',
+  source: 'Source Sans Pro, sans-serif',
+  ubuntu: 'Ubuntu, sans-serif',
+  dancing: 'Dancing Script, cursive',
+  pacifico: 'Pacifico, cursive',
+  caveat: 'Caveat, cursive',
+}
+
+// Computed fontFamily for CSS (converts ID to actual font name)
+const fontFamily = computed(() => {
+  return fontFamilyMap[fontFamilyId.value] || fontFamilyMap.pacifico
+})
+
+// Helper to convert font name to ID (for loading existing watermarks)
+const fontNameToId = (fontName: string): string => {
+  const entry = Object.entries(fontFamilyMap).find(([_, name]) =>
+    name.toLowerCase().includes(fontName.toLowerCase())
+  )
+  return entry?.[0] || 'pacifico'
+}
 const fontColor = ref('#FFFFFF')
 const backgroundColor = ref<string | null>(null)
 const lineHeight = ref([1.5])
@@ -1059,17 +1074,6 @@ const previewMode = ref<'desktop' | 'mobile'>('desktop')
 const previewImageUrl = ref(
   'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop'
 )
-
-const fontFamilyOptions = [
-  { value: 'Pacifico', label: 'Pacifico' },
-  { value: 'Arial', label: 'Arial' },
-  { value: 'Helvetica', label: 'Helvetica' },
-  { value: 'Times New Roman', label: 'Times New Roman' },
-  { value: 'Georgia', label: 'Georgia' },
-  { value: 'Verdana', label: 'Verdana' },
-  { value: 'Courier New', label: 'Courier New' },
-  { value: 'Comic Sans MS', label: 'Comic Sans MS' },
-]
 
 const fontStyleOptions = [
   { value: 'normal', label: 'Normal' },
@@ -1172,6 +1176,11 @@ const handleUploadImage = () => {
   input.click()
 }
 
+const handleEscKey = (event: KeyboardEvent) => {
+  const target = event.target as HTMLInputElement
+  target?.blur()
+}
+
 const handleNameBlur = () => {
   // Trim whitespace and ensure name is not empty
   if (!watermarkName.value.trim()) {
@@ -1204,7 +1213,7 @@ onMounted(async () => {
       watermarkName.value = watermark.name
       watermarkType.value = watermark.type
       watermarkText.value = watermark.text || ''
-      fontFamily.value = watermark.fontFamily || 'Pacifico'
+      fontFamilyId.value = fontNameToId(watermark.fontFamily || 'Pacifico')
       fontStyle.value = watermark.fontStyle || 'normal'
       fontColor.value = watermark.fontColor || '#FFFFFF'
       backgroundColor.value = watermark.backgroundColor || null

@@ -25,6 +25,7 @@
             <div
               v-for="preset in presets"
               :key="preset.id"
+              @click="handleEditPreset(preset.id)"
               class="flex items-center justify-between py-3 px-4 border-b transition-colors group cursor-pointer"
               :class="[
                 theme.borderSecondary,
@@ -40,6 +41,7 @@
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
+                    @click.stop="handleEditPreset(preset.id)"
                     class="h-8 w-8 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700"
                     :class="theme.textSecondary"
                   >
