@@ -60,14 +60,16 @@
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
                 <DropdownMenuItem
-                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                  :class="[
+                    theme.textPrimary,
+                    theme.bgButtonHover,
+                    'cursor-pointer',
+                    'flex items-center gap-2',
+                  ]"
+                  @click="handleCreateFolder"
                 >
-                  Import Collection
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                >
-                  From Template
+                  <Folder class="h-4 w-4" />
+                  Create Folder
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -298,6 +300,9 @@
       @create="handleCreateCollectionSubmit"
     />
 
+    <!-- Create Folder Dialog -->
+    <CreateFolderDialog v-model:open="showCreateFolderDialog" @create="handleCreateFolderSubmit" />
+
     <!-- Move Collection Modal -->
     <MoveCollectionModal
       v-if="pendingMove"
@@ -350,6 +355,7 @@ import CollectionCard from '@/components/molecules/CollectionCard.vue'
 import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import CreateCollectionDialog from '@/components/organisms/CreateCollectionDialog.vue'
+import CreateFolderDialog from '@/components/organisms/CreateFolderDialog.vue'
 import MoveCollectionModal from '@/components/organisms/MoveCollectionModal.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
@@ -509,6 +515,7 @@ const { sortedItems: sortedCollections } = useCollectionSort(
 )
 
 const showCreateDialog = ref(false)
+const showCreateFolderDialog = ref(false)
 const showMoveModal = ref(false)
 const pendingMove = ref<{ item: any; targetFolder: any } | null>(null)
 const movingCollectionId = ref<string | null>(null)
@@ -525,6 +532,38 @@ const {
 
 const handleCreateCollection = async () => {
   showCreateDialog.value = true
+}
+
+const handleCreateFolder = () => {
+  showCreateFolderDialog.value = true
+}
+
+const handleCreateFolderSubmit = async (data: {
+  name: string
+  eventDate?: Date | string | null
+  showOnHomepage?: boolean
+  password?: string | null
+}) => {
+  try {
+    const newFolder = await galleryStore.createCollection({
+      name: data.name,
+      isFolder: true,
+      password: data.password || null,
+      parentId: null, // Ensure it's a root-level folder
+      eventDate: data.eventDate || null,
+    })
+
+    // The optimistic update already adds it to the collections array
+    // No need to refetch since the store is reactive and will update the UI
+
+    toast.success('Folder created', {
+      description: 'Your new folder has been created.',
+    })
+  } catch (error: any) {
+    handleError(error, {
+      fallbackMessage: 'Failed to create folder.',
+    })
+  }
 }
 
 const handleCreateCollectionSubmit = async (data: {

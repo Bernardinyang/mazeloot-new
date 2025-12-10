@@ -94,6 +94,9 @@
         </div>
       </div>
     </div>
+
+    <!-- Create Preset Dialog -->
+    <CreatePresetDialog v-model:open="showCreatePresetDialog" @create="handleCreatePresetSubmit" />
   </DashboardLayout>
 </template>
 
@@ -111,8 +114,11 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
+import CreatePresetDialog from '@/components/organisms/CreatePresetDialog.vue'
 
 const theme = useThemeClasses()
+
+const showCreatePresetDialog = ref(false)
 
 interface Preset {
   id: number
@@ -167,7 +173,28 @@ const handleDeletePreset = (id: number) => {
 }
 
 const handleAddPreset = () => {
-  // TODO: Implement add preset logic
-  toast.info('Adding new preset')
+  showCreatePresetDialog.value = true
+}
+
+const handleCreatePresetSubmit = async (data: { name: string }) => {
+  try {
+    // Simulate API call delay to show loading state
+    await new Promise(resolve => setTimeout(resolve, 1000))
+
+    const newPreset: Preset = {
+      id: Date.now(),
+      name: data.name,
+      isSelected: false,
+    }
+    presets.value.push(newPreset)
+    toast.success('Preset created successfully', {
+      description: `"${data.name}" has been added to your presets.`,
+    })
+  } catch (error: any) {
+    toast.error('Failed to create preset', {
+      description: error.message || 'An error occurred while creating the preset.',
+    })
+    throw error // Re-throw to let dialog handle it
+  }
 }
 </script>

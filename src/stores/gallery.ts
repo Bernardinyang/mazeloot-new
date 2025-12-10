@@ -121,6 +121,9 @@ export const useGalleryStore = defineStore('gallery', () => {
     name: string
     description?: string
     parentId?: string | null
+    isFolder?: boolean
+    password?: string | null
+    eventDate?: Date | string | null
   }) => {
     isLoading.value = true
     error.value = null
@@ -138,6 +141,14 @@ export const useGalleryStore = defineStore('gallery', () => {
       itemCount: 0,
       isStarred: false,
       isLocked: false,
+      isFolder: data.isFolder || false,
+      previewImages: data.isFolder ? [] : undefined,
+      password: data.password || null,
+      date: data.eventDate
+        ? typeof data.eventDate === 'string'
+          ? data.eventDate
+          : data.eventDate.toISOString()
+        : undefined,
     }
 
     // Optimistic update - add to UI immediately

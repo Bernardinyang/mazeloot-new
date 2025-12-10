@@ -43,6 +43,9 @@ export interface CreateCollectionData {
   name: string
   description?: string
   parentId?: string | null
+  isFolder?: boolean
+  password?: string | null
+  eventDate?: Date | string | null
 }
 
 export interface UpdateCollectionData {
@@ -599,6 +602,14 @@ export function useCollectionsApi() {
       itemCount: 0,
       isStarred: false,
       isLocked: false,
+      isFolder: data.isFolder || false,
+      previewImages: data.isFolder ? [] : undefined,
+      password: data.password || null,
+      date: data.eventDate
+        ? typeof data.eventDate === 'string'
+          ? data.eventDate
+          : data.eventDate.toISOString()
+        : undefined,
     }
 
     collections.push(newCollection)

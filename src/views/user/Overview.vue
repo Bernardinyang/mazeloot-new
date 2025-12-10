@@ -247,7 +247,7 @@
               >
                 <AppIcon :custom-type="product.customType" />
               </div>
-              <span :class="['text-sm font-medium', theme.textPrimary]">{{
+              <span :class="['text-xs text-center font-medium mt-1', theme.textPrimary]">{{
                 product.displayName
               }}</span>
             </div>
