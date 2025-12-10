@@ -1,0 +1,466 @@
+<template>
+  <DashboardLayout>
+    <template #breadcrumb>
+      Homepage
+    </template>
+    <template #header>
+      <div class="flex items-center justify-end w-full">
+        <!-- Header actions can go here -->
+      </div>
+    </template>
+
+    <div class="space-y-6">
+      <!-- Page Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Homepage</h1>
+          <p class="text-sm" :class="theme.textSecondary">
+            Configure your public homepage settings and preview how it will appear to visitors
+          </p>
+        </div>
+        <Button
+          class="bg-teal-500 hover:bg-teal-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+          @click="handleViewSite"
+        >
+          <Globe class="h-4 w-4 mr-2" />
+          View Site
+        </Button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Left Section: Homepage Settings -->
+        <div class="space-y-6">
+          <!-- Homepage Status Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Status</h3>
+                <p class="text-sm" :class="theme.textSecondary">
+                  Enable or disable your public homepage
+                </p>
+              </div>
+              <label class="relative inline-flex items-center cursor-pointer group">
+                <input
+                  type="checkbox"
+                  v-model="homepageStatus"
+                  class="sr-only peer"
+                />
+                <div class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"></div>
+              </label>
+            </div>
+            <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              Your Homepage is a public page where your collections are listed. You can also select which collections will be shown here under each collection's setting.
+              <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors">Learn more</a>
+            </p>
+          </div>
+
+          <!-- Homepage URL Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage URL</h3>
+              <p class="text-sm" :class="theme.textSecondary">
+                Share this link to direct visitors to your homepage
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <Input
+                v-model="homepageUrl"
+                readonly
+                :class="[
+                  'flex-1 font-mono text-sm',
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                ]"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                :class="[theme.borderSecondary, theme.textSecondary, 'hover:bg-teal-50 dark:hover:bg-teal-900/20']"
+                @click="handleCopyUrl"
+              >
+                <Copy class="h-4 w-4 mr-2" />
+                Copy
+              </Button>
+            </div>
+          </div>
+
+          <!-- Homepage Password Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Password</h3>
+              <p class="text-sm" :class="theme.textSecondary">
+                Protect your Homepage with a password
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <Input
+                v-model="homepagePassword"
+                type="password"
+                placeholder="Add a password"
+                :class="[
+                  'flex-1',
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput
+                ]"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                :class="[theme.borderSecondary, theme.textSecondary, 'hover:bg-teal-50 dark:hover:bg-teal-900/20']"
+                @click="handleGeneratePassword"
+              >
+                <RefreshCw class="h-4 w-4 mr-2" />
+                Generate
+              </Button>
+            </div>
+          </div>
+
+          <!-- Biography Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Biography</h3>
+              <p class="text-sm" :class="theme.textSecondary">
+                Tell visitors about yourself or your business
+              </p>
+            </div>
+            <div class="relative">
+              <Textarea
+                v-model="biography"
+                @input="handleBiographyInput"
+                :maxlength="200"
+                rows="5"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  'pr-16 resize-none'
+                ]"
+                placeholder="Tell us about yourself..."
+              />
+              <span class="absolute bottom-3 right-3 text-xs font-medium" :class="biography.length >= 180 ? 'text-orange-500' : theme.textTertiary">
+                {{ biography.length }} / 200
+              </span>
+            </div>
+          </div>
+
+          <!-- Homepage Info Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Info</h3>
+              <p class="text-sm" :class="theme.textSecondary">
+                Select which information to display on your homepage
+              </p>
+            </div>
+            <div class="space-y-3">
+              <label
+                v-for="info in homepageInfoOptions"
+                :key="info.key"
+                class="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  v-model="homepageInfo"
+                  :value="info.key"
+                  class="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 cursor-pointer transition-all"
+                  :class="theme.borderSecondary"
+                />
+                <span class="text-sm flex-1" :class="theme.textSecondary">{{ info.label }}</span>
+              </label>
+            </div>
+            <p class="text-sm leading-relaxed pt-2 border-t" :class="[theme.textSecondary, theme.borderSecondary]">
+              To update any of the above details, please go to your
+              <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors">profile</a>.
+              Any information left blank will not appear on your homepage.
+            </p>
+          </div>
+
+          <!-- Collection Sort Order Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div>
+              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Collection Sort Order</h3>
+              <p class="text-sm" :class="theme.textSecondary">
+                Select the order you wish your collections to appear
+              </p>
+            </div>
+            <Select
+              v-model="collectionSortOrder"
+              :class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+              ]"
+            >
+              <option
+                v-for="option in HOMEPAGE_SORT_OPTIONS"
+                :key="option.value"
+                :value="option.value"
+              >
+                {{ option.label }}
+              </option>
+            </Select>
+          </div>
+        </div>
+
+        <!-- Right Section: Homepage Preview -->
+        <div class="lg:sticky lg:top-6 h-fit">
+          <div class="rounded-lg border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-base sm:text-lg font-semibold" :class="theme.textPrimary">Live Preview</h3>
+              <span class="text-xs px-2 py-1 rounded-full bg-teal-500/10 text-teal-500 font-medium">
+                Live
+              </span>
+            </div>
+            <div v-if="showPreviewContent" class="rounded-lg border shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl max-w-full" :class="[theme.bgCardSolid, theme.borderCard]">
+              <!-- Preview Header -->
+              <div class="p-3 sm:p-4 border-b flex items-center justify-between" :class="[theme.bgCard, theme.borderSecondary]">
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
+                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
+                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
+                </div>
+                <div class="flex items-center gap-2 sm:gap-3">
+                  <Facebook v-if="homepageInfo.includes('socialLinks')" :class="['h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-blue-600 transition-colors cursor-pointer', theme.textTertiary]" />
+                  <Instagram v-if="homepageInfo.includes('socialLinks')" :class="['h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-pink-600 transition-colors cursor-pointer', theme.textTertiary]" />
+                  <div v-if="homepageInfo.includes('socialLinks')" :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"></div>
+                  <div v-if="homepageInfo.includes('socialLinks')" :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"></div>
+                </div>
+              </div>
+
+              <!-- Preview Content -->
+              <div class="p-4 sm:p-6 space-y-4 sm:space-y-6" :class="theme.bgCardSolid">
+                <!-- Name -->
+                <div class="text-center space-y-2">
+                  <h2 class="text-xl sm:text-2xl font-bold" :class="theme.textPrimary">{{ displayName }}</h2>
+                  <p v-if="biography" class="text-xs sm:text-sm leading-relaxed max-w-full sm:max-w-md mx-auto px-2" :class="theme.textSecondary">
+                    {{ biography }}
+                  </p>
+                  <p v-else class="text-xs italic" :class="theme.textTertiary">
+                    Add a biography to see it here
+                  </p>
+                </div>
+
+                <!-- Contact Info -->
+                <div v-if="homepageInfo.length > 0 && (homepageInfo.includes('website') || homepageInfo.includes('email') || homepageInfo.includes('address') || homepageInfo.includes('phone'))" class="space-y-2 sm:space-y-3 pt-2">
+                  <div v-if="homepageInfo.includes('website')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
+                      <Globe class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
+                    </div>
+                    <span class="truncate font-medium text-xs sm:text-sm">{{ homepageUrl }}</span>
+                  </div>
+                  <div v-if="homepageInfo.includes('email')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
+                      <Mail class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
+                    </div>
+                    <span class="text-xs sm:text-sm">email@pixieset.com</span>
+                  </div>
+                  <div v-if="homepageInfo.includes('address')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
+                      <MapPin class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
+                    </div>
+                    <span class="text-xs sm:text-sm">101 Main Street</span>
+                  </div>
+                  <div v-if="homepageInfo.includes('phone')" class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors" :class="theme.textSecondary">
+                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
+                      <Phone class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
+                    </div>
+                    <span class="text-xs sm:text-sm">123-456-7890</span>
+                  </div>
+                </div>
+                <div v-else-if="!homepageInfo.includes('website') && !homepageInfo.includes('email') && !homepageInfo.includes('address') && !homepageInfo.includes('phone')" class="text-center py-4">
+                  <p class="text-xs italic" :class="theme.textTertiary">
+                    Select homepage info options to see them here
+                  </p>
+                </div>
+
+                <!-- Collections Grid Preview -->
+                <div class="pt-3 sm:pt-4 border-t" :class="theme.borderSecondary">
+                  <div v-if="previewCollections.length > 0" class="grid grid-cols-2 gap-2 sm:gap-3">
+                    <div
+                      v-for="collection in previewCollections.slice(0, 6)"
+                      :key="collection.id"
+                      class="aspect-square rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform duration-200"
+                    >
+                      <div class="relative w-full h-full">
+                        <img
+                          :src="collection.image"
+                          :alt="collection.title"
+                          class="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                          <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2">
+                            <p class="text-white text-[10px] sm:text-xs font-medium truncate">{{ collection.title }}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-center py-6 sm:py-8">
+                    <p class="text-xs italic" :class="theme.textTertiary">
+                      No collections to display
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="rounded-lg border shadow-xl overflow-hidden p-8 sm:p-12 text-center" :class="[theme.bgCardSolid, theme.borderCard]">
+              <div class="space-y-3">
+                <div class="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center" :class="theme.bgCard">
+                  <Globe class="h-6 w-6 sm:h-8 sm:w-8" :class="theme.textTertiary" />
+                </div>
+                <div>
+                  <h3 class="text-base sm:text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Disabled</h3>
+                  <p class="text-xs sm:text-sm" :class="theme.textSecondary">
+                    Enable homepage status to see preview
+                  </p>
+                </div>
+              </div>
+            </div>
+            <p class="text-xs text-center mt-3 sm:mt-4 px-2" :class="theme.textTertiary">
+              Preview updates in real-time as you make changes
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </DashboardLayout>
+</template>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import {
+  Copy,
+  RefreshCw,
+  Globe,
+  Mail,
+  MapPin,
+  Phone,
+  Facebook,
+  Instagram,
+} from 'lucide-vue-next'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import { Button } from '@/components/shadcn/button'
+import Input from '@/components/shadcn/input/Input.vue'
+import Textarea from '@/components/shadcn/Textarea.vue'
+import Select from '@/components/shadcn/Select.vue'
+import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useCollectionSort } from '@/composables/useCollectionSort'
+import { HOMEPAGE_SORT_OPTIONS } from '@/constants/sortOptions'
+import { toast } from 'vue-sonner'
+
+const theme = useThemeClasses()
+
+// Form state
+const homepageStatus = ref(true)
+const homepageUrl = ref('https://bernode.pixieset.com')
+const homepagePassword = ref('')
+const biography = ref('')
+const homepageInfo = ref(['biography', 'socialLinks', 'website', 'email', 'phone', 'address'])
+const collectionSortOrder = ref('date-new-old')
+
+// Sample collections data for preview
+const sampleCollections = ref([
+  {
+    id: 1,
+    title: 'Wedding Collection',
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=300&h=300&fit=crop',
+    dateCreated: '2025-01-15',
+  },
+  {
+    id: 2,
+    title: 'Portrait Session',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
+    dateCreated: '2025-01-10',
+  },
+  {
+    id: 3,
+    title: 'Nature Photography',
+    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop',
+    dateCreated: '2025-01-05',
+  },
+  {
+    id: 4,
+    title: 'Event Coverage',
+    image: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=300&h=300&fit=crop',
+    dateCreated: '2024-12-28',
+  },
+  {
+    id: 5,
+    title: 'Product Shots',
+    image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop',
+    dateCreated: '2024-12-20',
+  },
+  {
+    id: 6,
+    title: 'Family Session',
+    image: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=300&h=300&fit=crop',
+    dateCreated: '2024-12-15',
+  },
+])
+
+// Computed: Sorted collections for preview based on sort order
+const { sortedItems: previewCollections } = useCollectionSort(sampleCollections, collectionSortOrder)
+
+// Computed: Display name (could be from user profile, defaulting to BERNODE)
+const displayName = computed(() => {
+  // In a real app, this would come from user profile
+  return 'BERNODE'
+})
+
+// Computed: Check if preview should show content
+const showPreviewContent = computed(() => {
+  return homepageStatus.value
+})
+
+const homepageInfoOptions = [
+  { key: 'biography', label: 'Biography' },
+  { key: 'socialLinks', label: 'Social Links' },
+  { key: 'website', label: 'Website' },
+  { key: 'email', label: 'Contact Email' },
+  { key: 'phone', label: 'Phone Number' },
+  { key: 'address', label: 'Business Address' },
+]
+
+const handleCopyUrl = async () => {
+  try {
+    await navigator.clipboard.writeText(homepageUrl.value)
+    toast.success('URL copied', {
+      description: 'Homepage URL has been copied to clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy URL:', error)
+    toast.error('Failed to copy', {
+      description: 'Could not copy URL to clipboard.',
+    })
+  }
+}
+
+const handleBiographyInput = (e: Event) => {
+  const target = e.target as HTMLTextAreaElement
+  biography.value = target.value
+}
+
+const handleGeneratePassword = () => {
+  // Generate a random password
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+  const length = 12
+  let password = ''
+  for (let i = 0; i < length; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  homepagePassword.value = password
+  toast.success('Password generated', {
+    description: 'A new password has been generated.',
+  })
+}
+
+const handleViewSite = () => {
+  // TODO: Open homepage in new tab
+  window.open(homepageUrl.value, '_blank')
+}
+</script>
+

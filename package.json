@@ -1,0 +1,43 @@
+{
+  "name": "mazeloot-frontend-new",
+  "version": "1.0.0",
+  "description": "Modern Vue 3 web application",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc && vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@radix-icons/vue": "^1.0.0",
+    "@vee-validate/yup": "^4.15.1",
+    "@vitejs/plugin-vue": "^6.0.2",
+    "@vueuse/core": "^14.1.0",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "lucide-vue-next": "^0.556.0",
+    "pinia": "^3.0.4",
+    "radix-vue": "^1.9.17",
+    "reka-ui": "^2.6.1",
+    "tailwind-merge": "^3.4.0",
+    "vee-validate": "^4.15.1",
+    "vite": "^7.2.7",
+    "vue": "^3.5.25",
+    "vue-router": "^4.6.3",
+    "vue-sonner": "^2.0.9",
+    "yup": "^1.7.1"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.2",
+    "@vue/tsconfig": "^0.8.1",
+    "autoprefixer": "^10.4.22",
+    "postcss": "^8.5.6",
+    "shadcn-vue": "^2.4.2",
+    "tailwindcss": "^3.4.18",
+    "typescript": "^5.9.3"
+  }
+}
