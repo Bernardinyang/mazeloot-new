@@ -50,6 +50,19 @@
               {{ email }}
             </p>
           </div>
+
+          <!-- Logout Button -->
+          <Button
+            @click="$emit('logout')"
+            variant="outline"
+            size="lg"
+            class="mt-4 w-full bg-red-500/10 dark:bg-red-500/10 light:bg-red-50 border-red-500/30 dark:border-red-500/30 light:border-red-300 text-red-500 dark:text-red-400 light:text-red-700 hover:bg-red-500/20 dark:hover:bg-red-500/20 light:hover:bg-red-100 transition-all duration-300 hover:scale-105 active:scale-95 group"
+          >
+            <LogOut
+              class="mr-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
+            />
+            <span>Sign Out</span>
+          </Button>
         </div>
       </CardContent>
     </template>
@@ -57,8 +70,10 @@
 </template>
 
 <script setup lang="ts">
+import { LogOut } from 'lucide-vue-next'
 import Card from '@/components/shadcn/Card.vue'
 import CardContent from '@/components/shadcn/CardContent.vue'
+import { Button } from '@/components/shadcn/button'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
@@ -72,5 +87,6 @@ defineProps<{
 
 defineEmits<{
   viewProfile: []
+  logout: []
 }>()
 </script>

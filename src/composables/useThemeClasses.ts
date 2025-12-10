@@ -50,7 +50,7 @@ export function useThemeClasses() {
 
   // Shadow
   const shadowCard = 'shadow-sm dark:shadow-none light:shadow-md'
-  const shadowIcon = 'shadow-lg dark:shadow-xl dark:shadow-black/40 light:shadow-md'
+  const shadowIcon = 'shadow-sm dark:shadow-md dark:shadow-black/20 light:shadow-sm'
 
   // Skeleton loader - more visible and prominent
   const bgSkeleton = 'dark:bg-gray-700/80 light:bg-gray-300/80'

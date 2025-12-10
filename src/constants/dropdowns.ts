@@ -20,6 +20,11 @@ export const QUICK_ACTIONS = [
 ] as const
 
 export const APP_SWITCHER_APPS = [
-  { icon: 'GalleryVerticalEnd', label: 'Memora' },
-  { icon: 'GalleryVerticalEnd', label: 'Collections' },
+  { customType: 'memora', label: 'Memora' },
+  { customType: 'connect-stream', label: 'Connect Stream' },
+  { customType: 'creator-iq', label: 'Creator IQ' },
+  { customType: 'gear-hub', label: 'Gear Hub' },
+  { customType: 'vendor-iq', label: 'Vendor IQ' },
+  { customType: 'gig-finder', label: 'GigFinder' },
+  { customType: 'profolio', label: 'Profolio' },
 ] as const

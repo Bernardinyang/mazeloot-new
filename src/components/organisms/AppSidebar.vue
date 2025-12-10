@@ -1,7 +1,17 @@
 <template>
   <Sidebar variant="inset" collapsible="icon">
     <SidebarHeader>
-      <TeamSwitcher :teams="teams" />
+      <div
+        :class="[
+          'px-3 py-4 flex items-center justify-center border-b',
+          theme.bgCard,
+          theme.borderPrimary,
+          'bg-sidebar-background',
+        ]"
+      >
+        <MazelootLogo size="sm" :show-text="false" />
+      </div>
+      <AppSwitcher :teams="teams" :is-admin="isAdmin" />
     </SidebarHeader>
     <SidebarContent>
       <NavMain :items="navigationItems" :label="navigationLabel" />
@@ -14,8 +24,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { GalleryVerticalEnd } from 'lucide-vue-next'
+import { computed, h } from 'vue'
 import {
   Sidebar,
   SidebarContent,
@@ -25,10 +34,16 @@ import {
 } from '@/components/shadcn/sidebar'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
-import TeamSwitcher from './TeamSwitcher.vue'
+import AppSwitcher from './AppSwitcher.vue'
+import ProductIcon from '@/components/atoms/ProductIcon.vue'
+import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
 import { useProductNavigation } from '@/composables/useProductNavigation'
 import { useUserStore } from '@/stores/user'
+import { useThemeClasses } from '@/composables/useThemeClasses'
+import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import type { Team, User } from '@/types/navigation'
+
+const theme = useThemeClasses()
 
 // Get dynamic navigation based on current product/route
 const { navigationItems, navigationLabel } = useProductNavigation()
@@ -36,21 +51,19 @@ const { navigationItems, navigationLabel } = useProductNavigation()
 // Get logged-in user from store
 const userStore = useUserStore()
 
-// TODO: Replace with actual data from store/API
-const teams: Team[] = [
-  {
-    name: 'Mazeloot',
-    logo: GalleryVerticalEnd,
-    plan: 'Photo Gallery',
-    route: { name: 'overview' },
-  },
-  {
-    name: 'Mazeloot Pro',
-    logo: GalleryVerticalEnd,
-    plan: 'Enterprise',
-    route: { name: 'overview' },
-  },
-]
+// Check if user is admin
+const isAdmin = computed(() => {
+  // Mock admin check - in production, this would come from user store/API
+  return userStore.user?.email?.includes('admin') || false
+})
+
+// Convert Mazeloot products to teams format
+const teams: Team[] = MAZELOOT_PRODUCTS.map(product => ({
+  name: product.displayName,
+  logo: () => h(ProductIcon, { customType: product.customType }),
+  plan: product.description,
+  route: product.route || { name: 'overview' },
+}))
 
 // Use logged-in user from store, fallback to default if not available
 const userData = computed<User>(() => {

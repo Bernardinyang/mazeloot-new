@@ -10,17 +10,7 @@
       ]"
     >
       <!-- Left: Logo -->
-      <div class="flex items-center gap-2">
-        <div
-          :class="[
-            'h-8 w-8 rounded-lg flex items-center justify-center transition-transform duration-300 hover:scale-110 cursor-pointer',
-            theme.bgCardSolid,
-          ]"
-        >
-          <GalleryVerticalEnd :class="['h-5 w-5', theme.textPrimary]" />
-        </div>
-        <span :class="['text-lg font-semibold', theme.textPrimary]">mazeloot</span>
-      </div>
+      <MazelootLogo size="md" :show-text="true" />
 
       <!-- Right: Actions -->
       <div class="flex items-center gap-2">
@@ -41,13 +31,14 @@
           >
             <DropdownMenuLabel :class="theme.textPrimary">Switch App</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <GalleryVerticalEnd class="mr-2 h-4 w-4" />
-              <span>Memora</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <GalleryVerticalEnd class="mr-2 h-4 w-4" />
-              <span>Collections</span>
+            <DropdownMenuItem
+              v-for="product in mazelootProducts"
+              :key="product.id"
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click="handleAppSwitch(product)"
+            >
+              <AppIcon :custom-type="product.customType" size="sm" class="mr-2" />
+              <span>{{ product.displayName }}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -210,12 +201,13 @@
           :avatar="userData.avatar"
           :loading="isLoading"
           @view-profile="handleViewProfile"
+          @logout="handleSignOut"
         />
 
         <!-- App Launcher Card -->
         <ListItemCard
-          title="Apps"
-          description="Launch your favorite applications"
+          title="Mazeloot Products"
+          description="Switch between Mazeloot products"
           :loading="isLoadingApps"
           animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
           :show-footer="false"
@@ -233,17 +225,31 @@
           </template>
           <div class="grid grid-cols-4 gap-6">
             <div
-              v-for="app in apps"
-              :key="app.id"
+              v-for="product in mazelootProducts"
+              :key="product.id"
               :class="[
                 'flex flex-col items-center gap-2 cursor-pointer hover:opacity-90 active:scale-95',
                 theme.transition,
                 theme.hoverScaleLarge,
               ]"
-              @click="handleAppClick(app)"
+              @click="handleProductClick(product)"
             >
-              <AppIcon :container-class="app.containerClass" :custom-type="app.customType" />
-              <span :class="['text-sm font-medium', theme.textPrimary]">{{ app.name }}</span>
+              <div
+                :class="[
+                  'rounded-xl flex items-center justify-center relative overflow-hidden',
+                  'bg-gradient-to-br from-gray-900/50 to-gray-800/50 dark:from-gray-800/50 dark:to-gray-900/50 light:from-gray-50 light:to-white',
+                  'border border-gray-700/30 dark:border-gray-700/30 light:border-gray-200/50',
+                  'shadow-sm dark:shadow-md dark:shadow-black/20 light:shadow-sm',
+                  'hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/30 light:hover:shadow-md',
+                  'transition-all duration-300',
+                  'h-16 w-16',
+                ]"
+              >
+                <AppIcon :custom-type="product.customType" />
+              </div>
+              <span :class="['text-sm font-medium', theme.textPrimary]">{{
+                product.displayName
+              }}</span>
             </div>
           </div>
         </ListItemCard>
@@ -263,32 +269,92 @@
               <div :class="['h-20 rounded-lg', theme.bgSkeleton]"></div>
             </div>
           </template>
-          <div class="flex items-center justify-between mb-4">
-            <div :class="[theme.transition, theme.hoverScale]">
-              <h3 :class="['text-2xl font-bold mb-1', theme.textPrimary]">5 GB</h3>
-              <p :class="['text-sm', theme.textSecondary]">Free 0 bytes • Used 5 GB</p>
+          <div class="space-y-4">
+            <!-- Storage Info -->
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 :class="['text-2xl font-bold mb-1', theme.textPrimary]">
+                  {{ formatBytes(usedStorage) }} / {{ formatBytes(totalStorage) }}
+                </h3>
+                <p :class="['text-sm', theme.textSecondary]">
+                  {{ formatBytes(freeStorage) }} free • {{ formatBytes(usedStorage) }} used
+                </p>
+              </div>
             </div>
-          </div>
-          <div
-            class="bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-50 border border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-200 rounded-lg p-4 flex items-start gap-3 transition-all duration-300 hover:bg-yellow-500/25 dark:hover:bg-yellow-500/25 light:hover:bg-yellow-100 hover:border-yellow-500/40 dark:hover:border-yellow-500/40 light:hover:border-yellow-300 hover:scale-[1.02]"
-          >
-            <AlertCircle
-              class="h-5 w-5 text-yellow-400 dark:text-yellow-400 light:text-yellow-600 shrink-0 mt-0.5 animate-pulse"
-            />
-            <div class="flex-1">
-              <p
-                class="text-sm font-medium text-yellow-200 dark:text-yellow-200 light:text-yellow-800"
+
+            <!-- Storage Slider -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-xs" :class="theme.textSecondary">
+                <span>Storage Usage</span>
+                <span>{{ storagePercentage }}%</span>
+              </div>
+              <div
+                :class="[
+                  'h-3 rounded-full overflow-hidden relative',
+                  theme.bgCard,
+                  theme.borderPrimary,
+                ]"
               >
-                Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to
-                the cloud.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                class="mt-2 bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200 transition-all duration-300 hover:scale-110 active:scale-95"
-              >
-                Upgrade for ₦900.00/month
-              </Button>
+                <div
+                  :class="[
+                    'h-full rounded-full transition-all duration-500 ease-out',
+                    storagePercentage >= 90
+                      ? 'bg-red-500'
+                      : storagePercentage >= 70
+                        ? 'bg-yellow-500'
+                        : 'bg-green-500',
+                  ]"
+                  :style="{ width: `${storagePercentage}%` }"
+                ></div>
+              </div>
+            </div>
+
+            <!-- Warning/Upgrade Message -->
+            <div
+              v-if="storagePercentage >= 80"
+              :class="[
+                'rounded-lg p-4 flex items-start gap-3 transition-all duration-300',
+                storagePercentage >= 90
+                  ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-50 border border-red-500/30 dark:border-red-500/30 light:border-red-200'
+                  : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-50 border border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-200',
+              ]"
+            >
+              <AlertCircle
+                :class="[
+                  'h-5 w-5 shrink-0 mt-0.5',
+                  storagePercentage >= 90
+                    ? 'text-red-400 dark:text-red-400 light:text-red-600 animate-pulse'
+                    : 'text-yellow-400 dark:text-yellow-400 light:text-yellow-600',
+                ]"
+              />
+              <div class="flex-1">
+                <p
+                  :class="[
+                    'text-sm font-medium',
+                    storagePercentage >= 90
+                      ? 'text-red-200 dark:text-red-200 light:text-red-800'
+                      : 'text-yellow-200 dark:text-yellow-200 light:text-yellow-800',
+                  ]"
+                >
+                  {{
+                    storagePercentage >= 90
+                      ? 'Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to the cloud.'
+                      : 'Storage space is running low. Consider upgrading to Premium.'
+                  }}
+                </p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :class="[
+                    'mt-2 transition-all duration-300 hover:scale-110 active:scale-95',
+                    storagePercentage >= 90
+                      ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-100 border-red-500/30 dark:border-red-500/30 light:border-red-300 text-red-200 dark:text-red-200 light:text-red-800 hover:bg-red-500/30 dark:hover:bg-red-500/30 light:hover:bg-red-200'
+                      : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200',
+                  ]"
+                >
+                  Upgrade for ₦900.00/month
+                </Button>
+              </div>
             </div>
           </div>
         </ListItemCard>
@@ -315,38 +381,87 @@
           <div v-if="recentCollections.length === 0">
             <EmptyState message="No collections yet" action-label="Create Collection" />
           </div>
-          <div v-else class="space-y-4">
+          <div v-else class="space-y-2">
             <div
               v-for="(collection, index) in recentCollections.slice(0, 3)"
               :key="collection.id"
-              :class="[theme.listItem]"
-              :style="{ animationDelay: `${index * 100}ms` }"
-              class="flex gap-3 flex-wrap"
+              :class="[
+                'group relative flex items-center gap-4 p-3 rounded-lg cursor-pointer',
+                'transition-all duration-300 ease-out',
+                'hover:scale-[1.01] active:scale-[0.99]',
+                theme.bgCard,
+                theme.borderCard,
+                'border hover:border-opacity-100',
+                'hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/20',
+              ]"
+              :style="{ animationDelay: `${index * 50}ms` }"
+              @click="navigateTo({ name: 'manageCollections' })"
             >
-              <ThumbnailImage
-                :src="collection.thumbnail"
-                :alt="collection.title"
-                size="md"
-                :fallback-text="collection.title"
-              />
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center justify-between mb-1">
-                  <h3 :class="['text-sm font-semibold truncate', theme.textPrimary]">
-                    {{ collection.title }}
-                  </h3>
-                  <span :class="['text-xs ml-2 shrink-0', theme.textSecondary]">{{
-                    collection.date
-                  }}</span>
+              <!-- Hover effect background -->
+              <div
+                :class="[
+                  'absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300',
+                  'bg-gradient-to-r from-white/5 via-transparent to-transparent dark:from-white/5',
+                ]"
+              ></div>
+
+              <!-- Thumbnail -->
+              <div class="relative shrink-0 z-10">
+                <div
+                  :class="[
+                    'rounded-lg overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-50 transition-all duration-300',
+                    'group-hover:ring-gray-400/30 dark:group-hover:ring-gray-500/30',
+                  ]"
+                >
+                  <ThumbnailImage
+                    :src="collection.thumbnail || collection.previewImages?.[0] || ''"
+                    :alt="collection.name || collection.title || ''"
+                    size="md"
+                    :fallback-text="collection.name || collection.title || ''"
+                  />
                 </div>
-                <div :class="['flex items-center gap-4 text-xs', theme.textSecondary]">
-                  <span>{{ collection.images }} images</span>
-                  <span>{{ collection.downloads }} downloads</span>
-                  <span>{{ collection.likes }} likes</span>
-                  <span>{{ collection.messages }} messages</span>
+                <!-- Overlay on hover -->
+                <div
+                  class="absolute inset-0 rounded-lg bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+                ></div>
+              </div>
+
+              <!-- Content -->
+              <div class="flex-1 min-w-0 z-10">
+                <div class="flex items-start justify-between gap-3 mb-1.5">
+                  <div class="flex-1 min-w-0">
+                    <h3
+                      :class="[
+                        'text-sm font-semibold truncate mb-0.5 group-hover:text-opacity-90 transition-opacity',
+                        theme.textPrimary,
+                      ]"
+                    >
+                      {{ collection.name || collection.title }}
+                    </h3>
+                    <div :class="['flex items-center gap-2 text-xs', theme.textSecondary]">
+                      <span class="font-medium">{{ collection.itemCount || 0 }} items</span>
+                      <span class="opacity-40">•</span>
+                      <span class="opacity-70">
+                        {{
+                          formatDate(
+                            collection.updatedAt || collection.createdAt || collection.date || ''
+                          )
+                        }}
+                      </span>
+                    </div>
+                  </div>
+                  <StatusBadge :status="collection.status || 'active'" />
                 </div>
-                <div class="mt-1">
-                  <StatusBadge :status="collection.status" />
-                </div>
+              </div>
+
+              <!-- Arrow indicator -->
+              <div
+                :class="[
+                  'opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-4px] group-hover:translate-x-0',
+                  theme.textSecondary,
+                ]"
+              >
+                <ChevronRight class="h-4 w-4" />
               </div>
             </div>
           </div>
@@ -355,6 +470,7 @@
               variant="ghost"
               size="sm"
               :class="['w-full', theme.textSecondary, theme.bgButtonHover]"
+              @click="handleViewAllCollections"
             >
               View All Collections
             </Button>
@@ -558,7 +674,7 @@
               :key="product.id"
               :class="[theme.listItem, 'p-2']"
               :style="{ animationDelay: `${index * 100}ms` }"
-              @click="handleProductClick(product)"
+              @click="handleServiceProductClick(product)"
               class="flex gap-3 flex-wrap"
             >
               <ThumbnailImage
@@ -589,12 +705,7 @@
       <div class="max-w-7xl mx-auto px-6 py-6">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-2">
-            <div
-              :class="['h-6 w-6 rounded-lg flex items-center justify-center', theme.bgCardSolid]"
-            >
-              <GalleryVerticalEnd :class="['h-4 w-4', theme.textPrimary]" />
-            </div>
-            <span :class="['text-sm font-semibold', theme.textPrimary]">mazeloot</span>
+            <MazelootLogo size="sm" :show-text="true" />
             <span :class="['text-xs', theme.textTertiary]">© 2024</span>
           </div>
           <div
@@ -621,7 +732,6 @@ import {
   Plus,
   Bell,
   ChevronRight,
-  GalleryVerticalEnd,
   ShoppingCart,
   Camera,
   CheckCircle2,
@@ -665,7 +775,11 @@ import { useLoadingStates } from '@/composables/useLoadingStates'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
 import { DROPDOWN_MENU_CLASSES, QUICK_ACTIONS, APP_SWITCHER_APPS } from '@/constants/dropdowns'
+import { MAZELOOT_PRODUCTS } from '@/constants/products'
+import { useGalleryStore } from '@/stores/gallery'
+import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
 import type { User } from '@/types/navigation'
+import type { MazelootProduct } from '@/constants/products'
 
 const { navigateTo } = useNavigation()
 useThemeStore() // Initialize theme store for reactivity
@@ -714,16 +828,6 @@ const notifications = ref([
   },
 ])
 
-// Simulate loading on mount - start with loading true to show skeletons
-onMounted(() => {
-  // Set all loading states to true initially
-  setAllLoading(true)
-  // Simulate data fetch - keep loading for 2 seconds to see skeleton loaders
-  setTimeout(() => {
-    setAllLoading(false)
-  }, 2000)
-})
-
 const { logout } = useLogout()
 
 const handleSignOut = async () => {
@@ -762,8 +866,23 @@ const handleManageProducts = () => {
   // TODO: Implement manage products logic
 }
 
-const handleProductClick = (product: any) => {
-  // TODO: Implement product click logic
+const handleServiceProductClick = (product: any) => {
+  // TODO: Implement service product click logic
+}
+
+// Mazeloot Products
+const mazelootProducts = MAZELOOT_PRODUCTS
+
+const handleAppSwitch = (product: MazelootProduct) => {
+  if (product.route) {
+    navigateTo(product.route)
+  } else if (product.url) {
+    navigateTo({ path: product.url })
+  }
+}
+
+const handleProductClick = (product: MazelootProduct) => {
+  handleAppSwitch(product)
 }
 
 const handleAppClick = (app: any) => {
@@ -772,6 +891,7 @@ const handleAppClick = (app: any) => {
 
 // Get logged-in user from store
 const userStore = useUserStore()
+const galleryStore = useGalleryStore()
 
 // User data - use logged-in user from store, fallback to default if not available
 const userData = computed<User>(() => {
@@ -793,42 +913,60 @@ const userData = computed<User>(() => {
   }
 })
 
-// Recent Collections
-const recentCollections = [
-  {
-    id: 1,
-    title: 'HENTAI',
-    date: 'June 11th, 2025',
-    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop',
-    images: 0,
-    downloads: 0,
-    likes: 0,
-    messages: 0,
-    status: 'Preview',
-  },
-  {
-    id: 2,
-    title: 'AI GEN',
-    date: 'September 11th, 2025',
-    thumbnail: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-    images: 4,
-    downloads: 0,
-    likes: 0,
-    messages: 0,
-    status: 'Preview',
-  },
-  {
-    id: 3,
-    title: 'MURPHY',
-    date: 'October 21st, 2023',
-    thumbnail: null,
-    images: 45,
-    downloads: 0,
-    likes: 0,
-    messages: 1,
-    status: 'Published',
-  },
-]
+// Recent Collections - get from store
+const recentCollections = computed(() => {
+  const allCollections = galleryStore.collections.filter((c: any) => !c.isFolder)
+  // Sort by updatedAt or createdAt, get latest 3
+  return allCollections
+    .sort((a: any, b: any) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 3)
+})
+
+// Storage data
+const totalStorage = ref(5 * 1024 * 1024 * 1024) // 5 GB in bytes
+const usedStorage = ref(4.5 * 1024 * 1024 * 1024) // 4.5 GB used
+const freeStorage = computed(() => totalStorage.value - usedStorage.value)
+const storagePercentage = computed(() => Math.round((usedStorage.value / totalStorage.value) * 100))
+
+// Format bytes helper
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+// Format date helper
+const formatDate = (dateString?: string): string => {
+  if (!dateString) return ''
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Fetch collections on mount
+onMounted(async () => {
+  // Set all loading states to true initially
+  setAllLoading(true)
+  // Fetch collections
+  try {
+    await galleryStore.fetchCollections()
+  } catch (error) {
+    console.error('Failed to fetch collections:', error)
+  }
+  // Simulate data fetch - keep loading for 2 seconds to see skeleton loaders
+  setTimeout(() => {
+    setAllLoading(false)
+  }, 2000)
+})
+
+const handleViewAllCollections = () => {
+  navigateTo({ name: 'manageCollections' })
+}
 
 // Recent Orders
 const recentOrders = [
@@ -986,54 +1124,6 @@ const products = [
     price: '₦120,000',
     status: 'Draft',
     thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-  },
-]
-
-// Apps - Array of app objects with icon components for easy add/remove
-const apps = [
-  {
-    id: 1,
-    name: 'Mail',
-    customType: 'mail' as const,
-  },
-  {
-    id: 2,
-    name: 'Contacts',
-    customType: 'contacts' as const,
-  },
-  {
-    id: 3,
-    name: 'Calendar',
-    customType: 'calendar' as const,
-    containerClass: 'flex-col border border-gray-700 dark:border-gray-700 light:border-gray-300',
-  },
-  {
-    id: 4,
-    name: 'Photos',
-    customType: 'photos' as const,
-  },
-  {
-    id: 5,
-    name: 'Drive',
-    customType: 'drive' as const,
-  },
-  {
-    id: 6,
-    name: 'Notes',
-    customType: 'notes' as const,
-    containerClass: 'flex-col border border-gray-700 dark:border-gray-700 light:border-gray-300',
-  },
-  {
-    id: 7,
-    name: 'Reminders',
-    customType: 'reminders' as const,
-    containerClass:
-      'flex-col border border-gray-700 dark:border-gray-700 light:border-gray-300 p-3 gap-1.5',
-  },
-  {
-    id: 8,
-    name: 'Invites',
-    customType: 'invites' as const,
   },
 ]
 </script>

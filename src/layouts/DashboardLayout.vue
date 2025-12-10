@@ -60,6 +60,9 @@
             <!-- Theme Toggle -->
             <ThemeToggle />
 
+            <!-- App Switcher -->
+            <AppSwitcherCompact :teams="appTeams" :is-admin="isAdmin" />
+
             <!-- Notifications -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
@@ -159,12 +162,33 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
+import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
+import { h } from 'vue'
 import AppSidebar from '@/components/organisms/AppSidebar.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import AppSwitcherCompact from '@/components/organisms/AppSwitcherCompact.vue'
+import ProductIcon from '@/components/atoms/ProductIcon.vue'
+import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useUserStore } from '@/stores/user'
+import type { Team } from '@/types/navigation'
 
 const theme = useThemeClasses()
+const userStore = useUserStore()
+
+// Check if user is admin
+const isAdmin = computed(() => {
+  return userStore.user?.email?.includes('admin') || false
+})
+
+// Convert Mazeloot products to teams format for navbar
+const appTeams: Team[] = MAZELOOT_PRODUCTS.map(product => ({
+  name: product.displayName,
+  logo: () => h(ProductIcon, { customType: product.customType }),
+  plan: product.description,
+  route: product.route || { name: 'overview' },
+}))
 
 // Sample notifications - TODO: Replace with actual data from store/API
 const notifications = ref([
