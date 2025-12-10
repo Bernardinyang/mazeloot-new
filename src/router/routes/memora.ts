@@ -11,6 +11,9 @@ import PresetView from '@/views/user/memora/settings/Preset.vue'
 import EmailTemplateView from '@/views/user/memora/settings/EmailTemplate.vue'
 import PreferenceView from '@/views/user/memora/settings/Preference.vue'
 import AddWatermarkView from '@/views/user/memora/settings/watermark/AddWatermark.vue'
+import PresetGeneralView from '@/views/user/memora/preset/General.vue'
+import PresetDesignView from '@/views/user/memora/preset/Design.vue'
+import CollectionPreviewView from '@/views/user/memora/preview/CollectionPreview.vue'
 
 export const memoraRoutes: RouteRecordRaw[] = [
   {
@@ -117,6 +120,41 @@ export const memoraRoutes: RouteRecordRaw[] = [
     meta: {
       requiresAuth: true,
       parent: 'watermarkSettings',
+    },
+  },
+  {
+    path: '/memora/preset/:name/general',
+    name: 'presetGeneral',
+    component: PresetGeneralView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
+    path: '/memora/preset/:name/design',
+    name: 'presetDesign',
+    component: PresetDesignView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
+    path: '/memora/preset/:name/preview',
+    name: 'presetPreview',
+    component: CollectionPreviewView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
+    path: '/memora/preview/:id',
+    name: 'collectionPreview',
+    component: CollectionPreviewView,
+    meta: {
+      requiresAuth: false, // Public preview
     },
   },
 ]

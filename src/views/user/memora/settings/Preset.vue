@@ -101,7 +101,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { Plus, MoreVertical, Pencil, Copy, Trash2 } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Separator } from '@/components/shadcn/separator'
@@ -115,60 +116,45 @@ import {
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
 import CreatePresetDialog from '@/components/organisms/CreatePresetDialog.vue'
+import { usePresetStore, type Preset } from '@/stores/preset'
 
 const theme = useThemeClasses()
+const router = useRouter()
+const presetStore = usePresetStore()
 
 const showCreatePresetDialog = ref(false)
 
-interface Preset {
-  id: number
-  name: string
-  isSelected?: boolean
-}
+const presets = computed(() => presetStore.presets)
 
-const presets = ref<Preset[]>([
-  {
-    id: 1,
-    name: 'Wedding preset',
-    isSelected: false,
-  },
-  {
-    id: 2,
-    name: 'Demo',
-    isSelected: true,
-  },
-  {
-    id: 3,
-    name: 'test',
-    isSelected: false,
-  },
-])
-
-const handleEditPreset = (id: number) => {
-  // TODO: Implement preset edit logic
-  toast.info(`Editing preset ${id}`)
-}
-
-const handleDuplicatePreset = (id: number) => {
-  // TODO: Implement preset duplicate logic
+const handleEditPreset = (id: string) => {
   const preset = presets.value.find((p: Preset) => p.id === id)
   if (preset) {
-    const newPreset: Preset = {
-      id: Date.now(),
-      name: `${preset.name} (Copy)`,
-      isSelected: false,
-    }
-    presets.value.push(newPreset)
-    toast.success('Preset duplicated successfully')
+    router.push({
+      name: 'presetGeneral',
+      params: { name: preset.name.toLowerCase().replace(/\s+/g, '-') },
+    })
   }
 }
 
-const handleDeletePreset = (id: number) => {
-  // TODO: Implement preset delete logic
-  const index = presets.value.findIndex((p: Preset) => p.id === id)
-  if (index > -1) {
-    presets.value.splice(index, 1)
+const handleDuplicatePreset = async (id: string) => {
+  try {
+    await presetStore.duplicatePreset(id)
+    toast.success('Preset duplicated successfully')
+  } catch (error: any) {
+    toast.error('Failed to duplicate preset', {
+      description: error.message || 'An error occurred while duplicating the preset.',
+    })
+  }
+}
+
+const handleDeletePreset = async (id: string) => {
+  try {
+    await presetStore.deletePreset(id)
     toast.success('Preset deleted successfully')
+  } catch (error: any) {
+    toast.error('Failed to delete preset', {
+      description: error.message || 'An error occurred while deleting the preset.',
+    })
   }
 }
 
@@ -178,17 +164,16 @@ const handleAddPreset = () => {
 
 const handleCreatePresetSubmit = async (data: { name: string }) => {
   try {
-    // Simulate API call delay to show loading state
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await presetStore.createPreset({ name: data.name })
 
-    const newPreset: Preset = {
-      id: Date.now(),
-      name: data.name,
-      isSelected: false,
-    }
-    presets.value.push(newPreset)
     toast.success('Preset created successfully', {
       description: `"${data.name}" has been added to your presets.`,
+    })
+
+    // Route to preset general page
+    router.push({
+      name: 'presetGeneral',
+      params: { name: data.name.toLowerCase().replace(/\s+/g, '-') },
     })
   } catch (error: any) {
     toast.error('Failed to create preset', {
