@@ -361,15 +361,25 @@
 
         <!-- Collection Cover Image (only when expanded) -->
         <div v-if="!isSidebarCollapsed" class="mb-8">
+          <!-- Skeleton Loader -->
           <div
-            v-if="collection?.thumbnail || collection?.image"
+            v-if="isLoading"
+            class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 animate-pulse"
+            :class="theme.borderSecondary"
+          >
+            <div class="w-full h-full bg-gray-200 dark:bg-gray-700"></div>
+          </div>
+          <!-- Cover Image -->
+          <div
+            v-else-if="collection?.thumbnail || collection?.image"
             class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 group cursor-pointer relative"
             :class="theme.borderSecondary"
           >
             <img
-              :src="collection?.thumbnail ?? collection?.image ?? ''"
+              :src="collection?.thumbnail ?? collection?.image ?? placeholderImage"
               :alt="collection?.name ?? ''"
               class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+              @error="handleImageError"
             />
             <div
               class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -380,6 +390,7 @@
               <p class="text-white text-xs font-medium">Click to change cover</p>
             </div>
           </div>
+          <!-- No Cover Image Placeholder -->
           <div
             v-else
             class="w-full aspect-square rounded-2xl bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 flex items-center justify-center border-2 shadow-md border-dashed"
@@ -496,8 +507,11 @@
           <div class="h-px w-full" :class="theme.borderSecondary"></div>
         </div>
 
-        <!-- Collapsed Sidebar - Icon Only Navigation -->
-        <div v-else class="flex flex-col items-center gap-3 pt-4 h-full">
+        <!-- Collapsed Sidebar - Icon Only Navigation (only show for photos tab) -->
+        <div
+          v-else-if="activeTab === 'photos'"
+          class="flex flex-col items-center gap-3 pt-4 h-full"
+        >
           <!-- Cover Photo (Collapsed) -->
           <div
             class="w-12 h-12 rounded-lg overflow-hidden border-2 shadow-sm flex-shrink-0"
@@ -509,9 +523,10 @@
             ></div>
             <img
               v-else-if="collection?.thumbnail || collection?.image"
-              :src="collection?.thumbnail ?? collection?.image ?? ''"
+              :src="collection?.thumbnail ?? collection?.image ?? placeholderImage"
               :alt="collection?.name ?? ''"
               class="w-full h-full object-cover"
+              @error="handleImageError"
             />
             <div
               v-else
@@ -676,28 +691,62 @@
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-bold" :class="theme.textPrimary">Media Sets</h2>
             <button
-              @click="showCreateSetModal = true"
-              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border"
+              @click="handleAddSet"
+              :disabled="isSavingSets"
+              class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border disabled:opacity-50 disabled:cursor-not-allowed"
               :class="[
                 'bg-teal-500 hover:bg-teal-600 text-white border-teal-600',
                 'hover:shadow-md hover:scale-105 active:scale-95',
               ]"
             >
-              <Plus class="h-3.5 w-3.5" />
-              Add Set
+              <Loader2 v-if="isSavingSets" class="h-3.5 w-3.5 animate-spin" />
+              <Plus v-else class="h-3.5 w-3.5" />
+              <span v-if="isSavingSets">Saving...</span>
+              <span v-else>Add Set</span>
             </button>
+          </div>
+
+          <!-- Skeleton Loader for Sets -->
+          <div
+            v-if="isLoading"
+            class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1"
+          >
+            <div
+              v-for="i in 3"
+              :key="`skeleton-${i}`"
+              class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-gray-800/50 border-2 border-transparent animate-pulse"
+            >
+              <div class="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
+              <div class="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+              <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+            </div>
           </div>
 
           <!-- Media Sets List -->
           <div
-            v-if="mediaSets.length > 0"
-            class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1 custom-scrollbar"
+            v-else-if="mediaSets.length > 0"
+            class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1 custom-scrollbar relative"
           >
+            <!-- Loading overlay -->
+            <Transition name="fade">
+              <div
+                v-if="isSavingSets"
+                class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
+              >
+                <div class="flex flex-col items-center gap-2">
+                  <Loader2 class="h-5 w-5 animate-spin text-teal-500" />
+                  <span class="text-xs font-medium text-gray-600 dark:text-gray-400"
+                    >Saving...</span
+                  >
+                </div>
+              </div>
+            </Transition>
             <TransitionGroup name="set-list" tag="div" class="space-y-2.5">
               <div
                 v-for="(set, index) in sortedMediaSets"
                 :key="set.id"
-                draggable="true"
+                :draggable="!isSavingSets"
                 class="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out cursor-move group relative overflow-hidden"
                 :class="[
                   selectedSetId === set.id
@@ -705,6 +754,7 @@
                     : 'bg-white dark:bg-gray-800/50 border-2 border-transparent hover:border-gray-200 dark:hover:border-gray-700 hover:shadow-sm hover:scale-[1.005]',
                   draggedSetId === set.id ? 'opacity-50 scale-95' : '',
                   dragOverIndex === index ? 'ring-2 ring-teal-500 ring-offset-2 scale-[1.02]' : '',
+                  isSavingSets ? 'opacity-60 pointer-events-none' : '',
                 ]"
                 @click="selectedSetId = set.id"
                 @dragstart="handleSetDragStart($event, set.id, index)"
@@ -727,6 +777,7 @@
                     selectedSetId === set.id
                       ? 'text-teal-600 dark:text-teal-400'
                       : theme.textTertiary,
+                    isSavingSets ? 'opacity-30 cursor-not-allowed' : '',
                   ]"
                 />
                 <span
@@ -769,7 +820,8 @@
                 <DropdownMenu>
                   <DropdownMenuTrigger as-child>
                     <button
-                      class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95"
+                      :disabled="isSavingSets"
+                      class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                       :class="[
                         selectedSetId === set.id
                           ? 'hover:bg-teal-100 dark:hover:bg-teal-900/30'
@@ -787,6 +839,7 @@
                   >
                     <DropdownMenuItem
                       :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      :disabled="isSavingSets"
                       @click.stop="handleEditSet(set.id)"
                     >
                       <Pencil class="h-4 w-4 mr-2" />
@@ -798,6 +851,7 @@
                         'hover:bg-red-50 dark:hover:bg-red-900/20',
                         'cursor-pointer',
                       ]"
+                      :disabled="isSavingSets"
                       @click.stop="handleDeleteSet(set.id)"
                     >
                       <Trash2 class="h-4 w-4 mr-2" />
@@ -996,6 +1050,126 @@
               {{ selectedSet?.name || 'Highlights' }}
             </h2>
             <div class="flex items-center gap-3">
+              <!-- Sort Menu -->
+              <Popover v-model:open="isSortMenuOpen">
+                <PopoverTrigger as-child>
+                  <button
+                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    :class="[
+                      theme.borderSecondary,
+                      theme.bgCard,
+                      isSortMenuOpen ? 'ring-2 ring-teal-500/20' : '',
+                    ]"
+                  >
+                    <ArrowUpDown class="h-4 w-4" :class="theme.textSecondary" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  class="w-56 p-0"
+                  :class="[theme.bgCard, theme.borderSecondary]"
+                >
+                  <div class="p-2">
+                    <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                      Sort by
+                    </p>
+                    <div class="mt-1 space-y-0.5">
+                      <button
+                        v-for="option in sortOptions"
+                        :key="option.value"
+                        @click="handleSortChange(option.value)"
+                        class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors"
+                        :class="[
+                          sortOrder === option.value
+                            ? theme.bgButtonHover + ' ' + theme.textPrimary
+                            : theme.textPrimary + ' hover:' + theme.bgButtonHover,
+                        ]"
+                      >
+                        {{ option.label }}
+                      </button>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              <!-- View Options Menu (only show in grid view) -->
+              <Popover v-if="viewMode === 'grid'" v-model:open="isViewMenuOpen">
+                <PopoverTrigger as-child>
+                  <button
+                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    :class="[
+                      theme.borderSecondary,
+                      theme.bgCard,
+                      isViewMenuOpen ? 'ring-2 ring-teal-500/20' : '',
+                    ]"
+                  >
+                    <Grid3x3 class="h-4 w-4" :class="theme.textSecondary" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent
+                  align="end"
+                  class="w-56 p-0"
+                  :class="[theme.bgCard, theme.borderSecondary]"
+                >
+                  <div class="p-2 space-y-4">
+                    <!-- Grid Size -->
+                    <div>
+                      <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                        Grid Size
+                      </p>
+                      <div class="mt-1 space-y-0.5">
+                        <button
+                          v-for="size in gridSizeOptions"
+                          :key="size.value"
+                          @click="handleGridSizeChange(size.value)"
+                          class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between"
+                          :class="[
+                            gridSize === size.value
+                              ? theme.bgButtonHover + ' ' + theme.textPrimary
+                              : theme.textPrimary + ' hover:' + theme.bgButtonHover,
+                          ]"
+                        >
+                          <span>{{ size.label }}</span>
+                          <Check v-if="gridSize === size.value" class="h-4 w-4 text-teal-500" />
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Divider -->
+                    <div class="h-px" :class="theme.borderSecondary"></div>
+
+                    <!-- Show Filename -->
+                    <div>
+                      <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                        Show
+                      </p>
+                      <div class="mt-1 px-2 py-1.5">
+                        <div class="flex items-center justify-between">
+                          <label class="text-sm" :class="theme.textPrimary">Filename</label>
+                          <label class="relative inline-flex items-center cursor-pointer">
+                            <input
+                              type="checkbox"
+                              :checked="showFilename"
+                              @change="handleFilenameToggle"
+                              class="sr-only peer"
+                            />
+                            <div
+                              class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600"
+                            ></div>
+                            <span
+                              class="ml-3 text-sm font-medium"
+                              :class="showFilename ? theme.textPrimary : theme.textSecondary"
+                            >
+                              {{ showFilename ? 'On' : 'Off' }}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+
               <div
                 class="flex items-center gap-0.5 p-0.5 rounded-lg bg-white dark:bg-gray-900 border shadow-sm"
                 :class="theme.borderSecondary"
@@ -1035,8 +1209,272 @@
             </div>
           </div>
 
+          <!-- Media Grid/List View -->
+          <div v-if="sortedMediaItems.length > 0" class="mb-8">
+            <div
+              v-if="viewMode === 'grid'"
+              :class="[
+                'grid gap-4',
+                gridSize === 'small'
+                  ? 'grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                  : 'grid-cols-2 md:grid-cols-4 lg:grid-cols-6',
+              ]"
+            >
+              <div v-for="item in sortedMediaItems" :key="item.id" class="group">
+                <div
+                  class="relative aspect-square rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-lg"
+                  @click="openMediaViewer(item)"
+                >
+                  <img
+                    :src="item.thumbnail || item.url || placeholderImage"
+                    :alt="item.title || 'Media'"
+                    class="w-full h-full object-cover"
+                    @error="handleImageError"
+                  />
+                  <!-- Context Menu Button -->
+                  <div
+                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+                    @click.stop
+                  >
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <button
+                          class="p-1.5 rounded-md bg-black/50 hover:bg-black/70 backdrop-blur-sm transition-colors"
+                          @click.stop
+                        >
+                          <MoreVertical class="h-4 w-4 text-white" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        class="w-48"
+                        :class="[theme.bgDropdown, theme.borderSecondary]"
+                        @click.stop
+                      >
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleOpenMedia(item)"
+                        >
+                          <ExternalLink class="h-4 w-4 mr-2" />
+                          Open
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleQuickShare(item)"
+                        >
+                          <Share2 class="h-4 w-4 mr-2" />
+                          Quick share link
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleDownloadMedia(item)"
+                        >
+                          <Download class="h-4 w-4 mr-2" />
+                          Download
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleMoveCopy(item)"
+                        >
+                          <Move class="h-4 w-4 mr-2" />
+                          Move/Copy
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleCopyFilenames(item)"
+                        >
+                          <Copy class="h-4 w-4 mr-2" />
+                          Copy filenames
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleSetAsCover(item)"
+                        >
+                          <FileImage class="h-4 w-4 mr-2" />
+                          Set as cover
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleRenameMedia(item)"
+                        >
+                          <PencilIcon class="h-4 w-4 mr-2" />
+                          Rename
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleReplacePhoto(item)"
+                        >
+                          <FileImage class="h-4 w-4 mr-2" />
+                          Replace photo
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          @click.stop="handleWatermarkMedia(item)"
+                        >
+                          <Eye class="h-4 w-4 mr-2" />
+                          Watermark
+                        </DropdownMenuItem>
+                        <div class="h-px my-1" :class="theme.borderSecondary"></div>
+                        <DropdownMenuItem
+                          :class="[
+                            'text-red-600 dark:text-red-400',
+                            'hover:bg-red-50 dark:hover:bg-red-900/20',
+                            'cursor-pointer',
+                          ]"
+                          @click.stop="handleDeleteMedia(item)"
+                        >
+                          <Trash2 class="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+                <!-- Filename below image -->
+                <p
+                  v-if="showFilename && item.title"
+                  class="text-xs font-medium truncate mt-2 text-center"
+                  :class="theme.textPrimary"
+                >
+                  {{ item.title }}
+                </p>
+              </div>
+            </div>
+            <div v-else class="space-y-2">
+              <div
+                v-for="item in sortedMediaItems"
+                :key="item.id"
+                class="group flex items-center gap-4 p-4 rounded-lg border bg-white dark:bg-gray-900 hover:shadow-md transition-all duration-200 cursor-pointer"
+                :class="theme.borderSecondary"
+                @click="openMediaViewer(item)"
+              >
+                <img
+                  :src="item.thumbnail || item.url || placeholderImage"
+                  :alt="item.title || 'Media'"
+                  class="w-20 h-20 object-cover rounded-lg"
+                  @error="handleImageError"
+                />
+                <div class="flex-1 min-w-0">
+                  <p
+                    v-if="showFilename && item.title"
+                    class="text-sm font-medium truncate"
+                    :class="theme.textPrimary"
+                  >
+                    {{ item.title }}
+                  </p>
+                  <p v-else class="text-sm font-medium truncate" :class="theme.textTertiary">
+                    Media Item
+                  </p>
+                  <p class="text-xs mt-1" :class="theme.textTertiary">
+                    {{ formatMediaDate(item.createdAt) }}
+                  </p>
+                </div>
+                <!-- Context Menu Button -->
+                <div
+                  class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                  @click.stop
+                >
+                  <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                      <button
+                        class="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                        :class="theme.textSecondary"
+                        @click.stop
+                      >
+                        <MoreVertical class="h-4 w-4" />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      class="w-48"
+                      :class="[theme.bgDropdown, theme.borderSecondary]"
+                      @click.stop
+                    >
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleOpenMedia(item)"
+                      >
+                        <ExternalLink class="h-4 w-4 mr-2" />
+                        Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleQuickShare(item)"
+                      >
+                        <Share2 class="h-4 w-4 mr-2" />
+                        Quick share link
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleDownloadMedia(item)"
+                      >
+                        <Download class="h-4 w-4 mr-2" />
+                        Download
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleMoveCopy(item)"
+                      >
+                        <Move class="h-4 w-4 mr-2" />
+                        Move/Copy
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleCopyFilenames(item)"
+                      >
+                        <Copy class="h-4 w-4 mr-2" />
+                        Copy filenames
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleSetAsCover(item)"
+                      >
+                        <FileImage class="h-4 w-4 mr-2" />
+                        Set as cover
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleRenameMedia(item)"
+                      >
+                        <PencilIcon class="h-4 w-4 mr-2" />
+                        Rename
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleReplacePhoto(item)"
+                      >
+                        <FileImage class="h-4 w-4 mr-2" />
+                        Replace photo
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        @click.stop="handleWatermarkMedia(item)"
+                      >
+                        <Eye class="h-4 w-4 mr-2" />
+                        Watermark
+                      </DropdownMenuItem>
+                      <div class="h-px my-1" :class="theme.borderSecondary"></div>
+                      <DropdownMenuItem
+                        :class="[
+                          'text-red-600 dark:text-red-400',
+                          'hover:bg-red-50 dark:hover:bg-red-900/20',
+                          'cursor-pointer',
+                        ]"
+                        @click.stop="handleDeleteMedia(item)"
+                      >
+                        <Trash2 class="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Empty State / Upload Zone -->
           <div
+            v-if="sortedMediaItems.length === 0"
             class="border-2 border-dashed rounded-2xl p-20 text-center transition-all duration-300 bg-white dark:bg-gray-900"
             :class="[
               theme.borderSecondary,
@@ -1190,6 +1628,38 @@
       @confirm="handleConfirmDeleteSet"
       @cancel="closeDeleteModal"
     />
+
+    <!-- Media Viewer Modal -->
+    <div
+      v-if="selectedMedia"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
+      @click="closeMediaViewer"
+    >
+      <div class="relative max-w-7xl max-h-full">
+        <img
+          :src="selectedMedia.url || selectedMedia.thumbnail || placeholderImage"
+          :alt="selectedMedia.title || 'Media'"
+          class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+          @error="handleImageError"
+        />
+        <button
+          class="absolute top-4 right-4 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
+          @click.stop="closeMediaViewer"
+        >
+          <X class="w-6 h-6" />
+        </button>
+        <!-- Media Info -->
+        <div
+          v-if="selectedMedia.title"
+          class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg bg-black/70 backdrop-blur-md text-white max-w-md text-center"
+        >
+          <p class="font-semibold">{{ selectedMedia.title }}</p>
+          <p v-if="selectedMedia.description" class="text-sm opacity-90 mt-1">
+            {{ selectedMedia.description }}
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -1215,9 +1685,18 @@ import {
   Check,
   X,
   Pencil,
-  Copy,
   Trash2,
   Radio,
+  ArrowUpDown,
+  ArrowDown,
+  ExternalLink,
+  Download,
+  Share2,
+  Copy,
+  Move,
+  Eye,
+  FileImage,
+  Pencil as PencilIcon,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -1252,7 +1731,8 @@ import { useGalleryStore } from '@/stores/gallery'
 import { useWatermarkStore } from '@/stores/watermark'
 import { usePresetStore } from '@/stores/preset'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
-import type { Collection } from '@/api/collections'
+import type { Collection, MediaSet as ApiMediaSet } from '@/api/collections'
+import { useMediaApi, type MediaItem } from '@/api/media'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
@@ -1261,17 +1741,53 @@ const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 const watermarkStore = useWatermarkStore()
 const presetStore = usePresetStore()
+const mediaApi = useMediaApi()
 
 const collection = ref<Collection | null>(null)
 const collectionStatus = ref('draft')
 const eventDate = ref<Date | null>(null)
 const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('photos')
 const isSidebarCollapsed = ref(false)
+
+// Auto-expand sidebar when switching to non-photos tabs
+watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
+  if (newTab !== 'photos') {
+    isSidebarCollapsed.value = false
+  }
+})
 const selectedSetId = ref<string | null>(null)
 const selectedWatermark = ref('none')
 const selectedPresetId = ref<string>('none')
 const isDragging = ref(false)
 const viewMode = ref<'list' | 'grid'>('grid')
+const gridSize = ref<'small' | 'large'>('small')
+const showFilename = ref(true)
+const sortOrder = ref<
+  | 'uploaded-new-old'
+  | 'uploaded-old-new'
+  | 'date-taken-new-old'
+  | 'date-taken-old-new'
+  | 'name-a-z'
+  | 'name-z-a'
+  | 'random'
+>('uploaded-new-old')
+const isSortMenuOpen = ref(false)
+const isViewMenuOpen = ref(false)
+const mediaItems = ref<MediaItem[]>([])
+const isLoadingMedia = ref(false)
+const selectedMedia = ref<MediaItem | null>(null)
+
+// Fallback placeholder image (SVG data URL)
+const placeholderImage =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
+
+// Handle image load errors
+const handleImageError = (event: Event) => {
+  const img = event.target as HTMLImageElement
+  if (img.src !== placeholderImage) {
+    img.src = placeholderImage
+  }
+}
 const isEditingName = ref(false)
 const editingName = ref('')
 const nameInputRef = ref<HTMLInputElement | null>(null)
@@ -1294,6 +1810,7 @@ const showCreateSetModal = ref(false)
 const newSetName = ref('')
 const newSetDescription = ref('')
 const isCreatingSet = ref(false)
+const isSavingSets = ref(false)
 const editingSetIdInModal = ref<string | null>(null)
 const {
   showDeleteModal,
@@ -1307,11 +1824,12 @@ const {
 interface MediaSet {
   id: string
   name: string
+  description?: string
   count: number
   order?: number
 }
 
-const mediaSets = ref<MediaSet[]>([{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }])
+const mediaSets = ref<MediaSet[]>([])
 
 // Sort media sets by order
 const sortedMediaSets = computed(() => {
@@ -1329,6 +1847,243 @@ const selectedSet = computed(() => {
     sortedMediaSets.value[0]
   )
 })
+
+// Sort options
+const sortOptions = [
+  { label: 'Uploaded: New → Old', value: 'uploaded-new-old' },
+  { label: 'Uploaded: Old → New', value: 'uploaded-old-new' },
+  { label: 'Date Taken: New → Old', value: 'date-taken-new-old' },
+  { label: 'Date Taken: Old → New', value: 'date-taken-old-new' },
+  { label: 'Name: A-Z', value: 'name-a-z' },
+  { label: 'Name: Z-A', value: 'name-z-a' },
+  { label: 'Random', value: 'random' },
+]
+
+const gridSizeOptions = [
+  { label: 'Small', value: 'small' },
+  { label: 'Large', value: 'large' },
+]
+
+// Sorted media items based on sort order
+const sortedMediaItems = computed(() => {
+  const items = [...mediaItems.value]
+
+  switch (sortOrder.value) {
+    case 'uploaded-new-old':
+      return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    case 'uploaded-old-new':
+      return items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    case 'date-taken-new-old':
+      // Assuming dateTaken is stored in description or we use createdAt as fallback
+      return items.sort((a, b) => {
+        const dateA = (a as any).dateTaken
+          ? new Date((a as any).dateTaken).getTime()
+          : new Date(a.createdAt).getTime()
+        const dateB = (b as any).dateTaken
+          ? new Date((b as any).dateTaken).getTime()
+          : new Date(b.createdAt).getTime()
+        return dateB - dateA
+      })
+    case 'date-taken-old-new':
+      return items.sort((a, b) => {
+        const dateA = (a as any).dateTaken
+          ? new Date((a as any).dateTaken).getTime()
+          : new Date(a.createdAt).getTime()
+        const dateB = (b as any).dateTaken
+          ? new Date((b as any).dateTaken).getTime()
+          : new Date(b.createdAt).getTime()
+        return dateA - dateB
+      })
+    case 'name-a-z':
+      return items.sort((a, b) => {
+        const nameA = (a.title || '').toLowerCase()
+        const nameB = (b.title || '').toLowerCase()
+        return nameA.localeCompare(nameB)
+      })
+    case 'name-z-a':
+      return items.sort((a, b) => {
+        const nameA = (a.title || '').toLowerCase()
+        const nameB = (b.title || '').toLowerCase()
+        return nameB.localeCompare(nameA)
+      })
+    case 'random':
+      return items.sort(() => Math.random() - 0.5)
+    default:
+      return items
+  }
+})
+
+// Handle sort change
+const handleSortChange = (value: string) => {
+  sortOrder.value = value as typeof sortOrder.value
+  isSortMenuOpen.value = false
+}
+
+// Handle grid size change
+const handleGridSizeChange = (value: string) => {
+  gridSize.value = value as 'small' | 'large'
+}
+
+// Handle filename toggle
+const handleFilenameToggle = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  showFilename.value = target.checked
+}
+
+// Open media viewer
+const openMediaViewer = (item: MediaItem) => {
+  selectedMedia.value = item
+}
+
+// Close media viewer
+const closeMediaViewer = () => {
+  selectedMedia.value = null
+}
+
+// Format date helper for media items (using existing formatDate for event dates)
+const formatMediaDate = (dateString: string) => {
+  const date = new Date(dateString)
+  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+// Load media items for selected set
+const loadMediaItems = async () => {
+  if (!collection.value || !selectedSetId.value) {
+    mediaItems.value = []
+    return
+  }
+
+  isLoadingMedia.value = true
+  try {
+    const items = await mediaApi.fetchCollectionMedia(collection.value.id)
+    // Filter by selected set if needed (for now, show all media for the collection)
+    mediaItems.value = items
+  } catch (error) {
+    console.error('Failed to load media items:', error)
+    toast.error('Failed to load media', {
+      description: 'An error occurred while loading media items.',
+    })
+  } finally {
+    isLoadingMedia.value = false
+  }
+}
+
+// Media item context menu handlers
+const handleOpenMedia = (item: MediaItem) => {
+  window.open(item.url, '_blank')
+}
+
+const handleQuickShare = async (item: MediaItem) => {
+  try {
+    const shareUrl = `${window.location.origin}/share/${item.id}`
+    await navigator.clipboard.writeText(shareUrl)
+    toast.success('Share link copied', {
+      description: 'The share link has been copied to your clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy share link:', error)
+    toast.error('Failed to copy link', {
+      description: 'Could not copy the share link to clipboard.',
+    })
+  }
+}
+
+const handleDownloadMedia = (item: MediaItem) => {
+  const link = document.createElement('a')
+  link.href = item.url
+  link.download = item.title || `media-${item.id}`
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  toast.success('Download started', {
+    description: 'Your download should start shortly.',
+  })
+}
+
+const handleMoveCopy = (item: MediaItem) => {
+  toast.info('Move/Copy', {
+    description: 'Move/Copy functionality will be implemented soon.',
+  })
+}
+
+const handleCopyFilenames = async (item: MediaItem) => {
+  try {
+    const filename = item.title || `media-${item.id}`
+    await navigator.clipboard.writeText(filename)
+    toast.success('Filename copied', {
+      description: 'The filename has been copied to your clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy filename:', error)
+    toast.error('Failed to copy filename', {
+      description: 'Could not copy the filename to clipboard.',
+    })
+  }
+}
+
+const handleSetAsCover = async (item: MediaItem) => {
+  if (!collection.value) return
+
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      thumbnail: item.thumbnail || item.url,
+      image: item.url,
+    } as any)
+    toast.success('Cover updated', {
+      description: 'The cover image has been updated.',
+    })
+  } catch (error) {
+    console.error('Failed to set cover:', error)
+    toast.error('Failed to set cover', {
+      description: 'An error occurred while updating the cover image.',
+    })
+  }
+}
+
+const handleRenameMedia = (item: MediaItem) => {
+  toast.info('Rename', {
+    description: 'Rename functionality will be implemented soon.',
+  })
+}
+
+const handleReplacePhoto = (item: MediaItem) => {
+  toast.info('Replace photo', {
+    description: 'Replace photo functionality will be implemented soon.',
+  })
+}
+
+const handleWatermarkMedia = (item: MediaItem) => {
+  toast.info('Watermark', {
+    description: 'Watermark functionality will be implemented soon.',
+  })
+}
+
+const handleDeleteMedia = async (item: MediaItem) => {
+  if (!item) return
+
+  try {
+    await mediaApi.deleteMedia(item.id)
+    // Remove from local array
+    const index = mediaItems.value.findIndex(m => m.id === item.id)
+    if (index !== -1) {
+      mediaItems.value.splice(index, 1)
+      // Update set count
+      const set = mediaSets.value.find((s: MediaSet) => s.id === selectedSetId.value)
+      if (set && set.count > 0) {
+        set.count -= 1
+        await saveMediaSets()
+      }
+    }
+    toast.success('Media deleted', {
+      description: 'The media item has been deleted.',
+    })
+  } catch (error) {
+    console.error('Failed to delete media:', error)
+    toast.error('Failed to delete media', {
+      description: 'An error occurred while deleting the media item.',
+    })
+  }
+}
 
 const watermarks = computed(() => watermarkStore.watermarks)
 const presets = computed(() => presetStore.presets)
@@ -1412,8 +2167,19 @@ const loadCollection = async () => {
     // Set watermark if available (assuming collection has watermarkId field)
     selectedWatermark.value = (collectionData as any).watermarkId || 'none'
 
-    // Load sets order
-    loadSetsOrder()
+    // Load media sets from collection data
+    if (collectionData.mediaSets && collectionData.mediaSets.length > 0) {
+      mediaSets.value = collectionData.mediaSets.map((set: ApiMediaSet) => ({
+        id: set.id,
+        name: set.name,
+        description: set.description,
+        count: set.count || 0,
+        order: set.order ?? 0,
+      }))
+    } else {
+      // Initialize with default "Highlights" set if no sets exist
+      mediaSets.value = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
+    }
 
     // Set default selected set
     if (mediaSets.value.length > 0) {
@@ -1429,7 +2195,7 @@ const loadCollection = async () => {
   }
 }
 
-// Watch store's collections array for real-time updates (preset/watermark changes from other components)
+// Watch store's collections array for real-time updates (preset/watermark/mediaSets changes from other components)
 watch(
   () => galleryStore.collections,
   (collections: any[]) => {
@@ -1444,15 +2210,32 @@ watch(
         // Update status if changed
         collectionStatus.value =
           updatedCollection.status === 'active' ? 'published' : updatedCollection.status || 'draft'
+
+        // Update media sets if they changed
+        if (updatedCollection.mediaSets) {
+          mediaSets.value = updatedCollection.mediaSets.map((set: ApiMediaSet) => ({
+            id: set.id,
+            name: set.name,
+            description: set.description,
+            count: set.count || 0,
+            order: set.order ?? 0,
+          }))
+        }
       }
     }
   },
   { deep: true }
 )
 
+// Watch for selected set changes to reload media
+watch(selectedSetId, () => {
+  loadMediaItems()
+})
+
 // Load watermarks and presets
 onMounted(async () => {
   await loadCollection()
+  await loadMediaItems()
   try {
     await watermarkStore.fetchWatermarks()
   } catch (error) {
@@ -1499,7 +2282,7 @@ const handleCreateSet = async () => {
       if (set) {
         set.name = trimmedName
         set.description = newSetDescription.value.trim() || undefined
-        saveSetsOrder()
+        await saveMediaSets()
 
         showCreateSetModal.value = false
         editingSetIdInModal.value = null
@@ -1522,7 +2305,7 @@ const handleCreateSet = async () => {
       }
       mediaSets.value.push(newSet)
       selectedSetId.value = newSet.id
-      saveSetsOrder()
+      await saveMediaSets()
 
       showCreateSetModal.value = false
       newSetName.value = ''
@@ -1565,7 +2348,7 @@ const autoSaveSetName = debounce((setId: string, newName: string) => {
   if (!set || set.name === newName) return
 
   set.name = newName
-  saveSetsOrder()
+  saveMediaSets()
 }, 500) as (setId: string, newName: string) => void
 
 const saveSetName = (setId: string) => {
@@ -1581,7 +2364,7 @@ const saveSetName = (setId: string) => {
 
   if (trimmedName !== set.name) {
     set.name = trimmedName
-    saveSetsOrder()
+    saveMediaSets()
   }
   editingSetId.value = null
 }
@@ -1625,7 +2408,7 @@ const handleConfirmDeleteSet = async () => {
       if (selectedSetId.value === set.id) {
         selectedSetId.value = mediaSets.value[0]?.id || null
       }
-      saveSetsOrder()
+      await saveMediaSets()
       closeDeleteModal()
       toast.success('Set deleted', {
         description: `"${set.name}" has been deleted.`,
@@ -1706,6 +2489,9 @@ const processFiles = async (files: File[]) => {
       set.count += validFiles.length
     }
 
+    // Reload media items to show newly uploaded files
+    await loadMediaItems()
+
     // Simulate upload (in real app, upload to server)
     await new Promise(resolve => setTimeout(resolve, 1000))
 
@@ -1739,37 +2525,35 @@ const handleCopyLink = () => {
     })
 }
 
-// Save sets order to localStorage or API
-const saveSetsOrder = async () => {
+// Save media sets to collection via API
+const saveMediaSets = async () => {
+  if (!collection.value || isSavingSets.value) return
+
+  isSavingSets.value = true
   try {
-    // In a real app, this would call an API to save the order
-    // For now, we'll use localStorage as a mock
-    const orderData = mediaSets.value.map((set: MediaSet) => ({
+    const setsToSave: ApiMediaSet[] = mediaSets.value.map((set: MediaSet) => ({
       id: set.id,
+      name: set.name,
+      description: set.description,
+      count: set.count,
       order: set.order ?? 0,
     }))
-    localStorage.setItem(`mediaSets_order_${route.params.uuid}`, JSON.stringify(orderData))
-  } catch (error) {
-    console.error('Failed to save sets order:', error)
-  }
-}
 
-// Load sets order from localStorage
-const loadSetsOrder = () => {
-  try {
-    const orderData = localStorage.getItem(`mediaSets_order_${route.params.uuid}`)
-    if (orderData) {
-      const order = JSON.parse(orderData) as Array<{ id: string; order: number }>
-      const orderMap = new Map<string, number>(order.map(item => [item.id, item.order]))
-      mediaSets.value.forEach((set: MediaSet) => {
-        const orderValue = orderMap.get(set.id)
-        if (orderValue !== undefined) {
-          set.order = orderValue
-        }
-      })
+    await galleryStore.updateCollection(collection.value.id, {
+      mediaSets: setsToSave,
+    } as any)
+
+    // Update local collection ref
+    if (collection.value) {
+      collection.value.mediaSets = setsToSave
     }
   } catch (error) {
-    console.error('Failed to load sets order:', error)
+    console.error('Failed to save media sets:', error)
+    toast.error('Failed to save media sets', {
+      description: 'An error occurred while saving.',
+    })
+  } finally {
+    isSavingSets.value = false
   }
 }
 
@@ -1801,7 +2585,7 @@ const handleSetDragLeave = () => {
   dragOverIndex.value = null
 }
 
-const handleSetDrop = (e: DragEvent, dropIndex: number) => {
+const handleSetDrop = async (e: DragEvent, dropIndex: number) => {
   e.preventDefault()
   dragOverIndex.value = null
 
@@ -1829,7 +2613,7 @@ const handleSetDrop = (e: DragEvent, dropIndex: number) => {
     }
   })
 
-  saveSetsOrder()
+  await saveMediaSets()
 
   draggedSetId.value = null
   draggedSetIndex.value = null
@@ -2258,5 +3042,16 @@ watch(
 /* Smooth scale utilities */
 .scale-102 {
   transform: scale(1.02);
+}
+
+/* Fade transition for loading overlay */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

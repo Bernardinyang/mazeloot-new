@@ -194,6 +194,7 @@ export const useGalleryStore = defineStore('gallery', () => {
       eventDate?: Date | string | null
       presetId?: string | undefined
       watermarkId?: string | undefined
+      mediaSets?: any[]
     }
   ) => {
     isLoading.value = true
@@ -235,6 +236,10 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
       if ('watermarkId' in updatedData && updatedData.watermarkId === undefined) {
         updatedData.watermarkId = null
+      }
+      // Handle mediaSets - keep as is if provided
+      if ('mediaSets' in updatedData) {
+        // mediaSets is already in updatedData, no conversion needed
       }
       collections.value[index] = {
         ...collections.value[index],

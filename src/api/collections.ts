@@ -10,6 +10,14 @@ import { delay } from '@/utils/delay'
 
 const COLLECTIONS_STORAGE_KEY = 'mazeloot_collections'
 
+export interface MediaSet {
+  id: string
+  name: string
+  description?: string
+  count: number
+  order?: number
+}
+
 export interface Collection {
   id: string
   name: string
@@ -29,6 +37,7 @@ export interface Collection {
   downloadPin?: string | null
   presetId?: string | null
   watermarkId?: string | null
+  mediaSets?: MediaSet[] // Photo sets for organizing media
   // Legacy fields for compatibility
   title?: string
   date?: string
@@ -64,6 +73,7 @@ export interface UpdateCollectionData {
   eventDate?: Date | string | null
   presetId?: string | undefined
   watermarkId?: string | undefined
+  mediaSets?: MediaSet[]
 }
 
 export interface MoveCollectionData {
@@ -674,6 +684,7 @@ export function useCollectionsApi() {
       presetId: data.presetId !== undefined ? data.presetId : collections[index].presetId,
       watermarkId:
         data.watermarkId !== undefined ? data.watermarkId : collections[index].watermarkId,
+      mediaSets: data.mediaSets !== undefined ? data.mediaSets : collections[index].mediaSets,
       updatedAt: new Date().toISOString(),
     }
 
