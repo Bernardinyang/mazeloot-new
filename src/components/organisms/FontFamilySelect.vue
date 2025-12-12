@@ -16,6 +16,7 @@
         v-for="font in fontOptions"
         :key="font.id"
         :value="font.id"
+        :label="font.label"
         :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer', font.class]"
       >
         {{ font.label }}

@@ -255,6 +255,7 @@
             :is-folder="collection.isFolder || false"
             :collection-data="collection"
             image-container-class="aspect-[4/3]"
+            @click="handleCollectionCardClick(collection)"
             @star-click="toggleStar(collection)"
             @drop="handleMoveToFolder($event, collection)"
             @edit="handleEditCollection(collection)"
@@ -568,19 +569,19 @@ const handleCreateFolderSubmit = async (data: {
 
 const handleCreateCollectionSubmit = async (data: {
   name: string
-  description?: string
-  category?: string
+  eventDate?: string
+  presetId?: string
+  watermarkId?: string
 }) => {
   try {
-    await galleryStore.createCollection(data)
+    const newCollection = await galleryStore.createCollection(data)
     toast.success('Collection created', {
       description: 'Your new collection has been created.',
     })
-    // Refresh collections
-    await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+    // Route to the new collection's photos page
+    router.push({
+      name: 'collectionPhotos',
+      params: { uuid: newCollection.id },
     })
   } catch (error: any) {
     handleError(error, {
@@ -613,18 +614,25 @@ const handleSelectCollection = (id: number, checked: boolean) => {
 }
 
 const handleCollectionClick = (collection: any) => {
-  // Navigate to collection detail page
-  router
-    .push({
-      name: 'collectionDetail',
-      params: { id: collection.id },
-    })
-    .catch(() => {
-      // If route doesn't exist, show toast
-      toast.info('Collection detail', {
-        description: `Viewing ${collection.name || collection.title}`,
-      })
-    })
+  // Navigate to collection photos page
+  const collectionId = collection.id || collection.name || collection.title
+  router.push({
+    name: 'collectionPhotos',
+    params: { uuid: collectionId },
+  })
+}
+
+const handleCollectionCardClick = (collection: any) => {
+  // Only navigate if it's not a folder
+  if (collection.isFolder) {
+    return
+  }
+  // Navigate to collection photos page
+  const collectionId = collection.id || collection.name || collection.title
+  router.push({
+    name: 'collectionPhotos',
+    params: { uuid: collectionId },
+  })
 }
 
 const handleCopyLink = async (collection: any) => {

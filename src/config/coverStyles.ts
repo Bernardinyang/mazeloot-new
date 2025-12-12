@@ -1005,6 +1005,45 @@ export const coverStyleConfigs: Record<string, CoverStyleConfig> = {
       { type: 'square', position: { x: 15, y: 70 }, size: 10, color: 'accent', opacity: 0.25 },
     ],
   },
+  // Joy - Special layout with title, avatar in O, date, name, button
+  joy: {
+    id: 'joy',
+    label: 'Joy',
+    textPosition: 'center',
+    textAlignment: 'center',
+    borders: {
+      enabled: false,
+      sides: [],
+      width: 0,
+      style: 'solid',
+      color: 'accent',
+      radius: 0,
+    },
+    lines: {
+      horizontal: [],
+      vertical: [],
+    },
+    dividers: {
+      enabled: false,
+      type: 'vertical',
+      position: 0,
+      width: 0,
+      color: 'accent',
+      style: 'solid',
+    },
+    frame: {
+      enabled: false,
+      type: 'full',
+      sides: [],
+      width: 0,
+      color: 'accent',
+      padding: 0,
+      radius: 0,
+    },
+    backgroundSections: [],
+    decorations: [],
+    specialLayout: 'joy',
+  },
   // None - No cover photo, content as navbar
   none: {
     id: 'none',

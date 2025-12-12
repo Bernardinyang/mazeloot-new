@@ -996,7 +996,6 @@ import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
 import { useWatermarkStore } from '@/stores/watermark'
-// import { useThemeStore } from '@/stores/theme' // Unused for now
 import type { CreateWatermarkData, UpdateWatermarkData } from '@/api/watermarks'
 
 const route = useRoute()

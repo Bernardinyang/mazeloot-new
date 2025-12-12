@@ -1,10 +1,12 @@
 <template>
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
-      <Button size="sm" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-500 border-0">
-        <Rocket class="h-4 w-4 mr-1.5" />
-        UPGRADE
-      </Button>
+      <slot name="trigger">
+        <Button size="sm" class="bg-teal-500/10 hover:bg-teal-500/20 text-teal-500 border-0">
+          <Rocket class="h-4 w-4 mr-1.5" />
+          UPGRADE
+        </Button>
+      </slot>
     </PopoverTrigger>
     <PopoverContent
       class="w-[280px] max-w-[90vw] p-0 overflow-hidden"
@@ -53,7 +55,6 @@
 </template>
 
 <script setup lang="ts">
-// import { ref } from 'vue' // Unused for now
 import { Rocket } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'

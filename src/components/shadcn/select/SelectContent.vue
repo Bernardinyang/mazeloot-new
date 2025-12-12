@@ -1,26 +1,52 @@
 <script setup lang="ts">
+import { ref, provide, watch } from 'vue'
 import type { SelectContentEmits, SelectContentProps } from 'reka-ui'
 import type { HTMLAttributes } from 'vue'
 import { reactiveOmit } from '@vueuse/core'
 import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } from 'reka-ui'
 import { cn } from '@/lib/utils'
 import { SelectScrollDownButton, SelectScrollUpButton } from '.'
+import { Input } from '@/components/shadcn/input'
+import { Search, X } from 'lucide-vue-next'
+import { useThemeClasses } from '@/composables/useThemeClasses'
 
 defineOptions({
   inheritAttrs: false,
 })
 
+const theme = useThemeClasses()
+
 const props = withDefaults(
-  defineProps<SelectContentProps & { class?: HTMLAttributes['class'] }>(),
+  defineProps<SelectContentProps & { class?: HTMLAttributes['class']; searchable?: boolean }>(),
   {
     position: 'popper',
+    searchable: true,
   }
 )
 const emits = defineEmits<SelectContentEmits>()
 
-const delegatedProps = reactiveOmit(props, 'class')
+const delegatedProps = reactiveOmit(props, 'class', 'searchable')
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+const searchQuery = ref('')
+
+// Provide search query to child components for filtering
+provide('selectSearchQuery', searchQuery)
+
+// Clear search when content closes
+watch(
+  () => props.open,
+  (isOpen: boolean) => {
+    if (!isOpen) {
+      searchQuery.value = ''
+    }
+  }
+)
+
+const clearSearch = () => {
+  searchQuery.value = ''
+}
 </script>
 
 <template>
@@ -36,6 +62,31 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
         )
       "
     >
+      <!-- Search Input -->
+      <div v-if="searchable" class="p-2 border-b" :class="theme.borderSecondary">
+        <div class="relative">
+          <Search
+            class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4"
+            :class="theme.textTertiary"
+          />
+          <Input
+            v-model="searchQuery"
+            placeholder="Search..."
+            :class="['pl-8 pr-8 h-9 text-sm', theme.bgInput, theme.borderInput, theme.textInput]"
+            @click.stop
+            @keydown.stop
+          />
+          <button
+            v-if="searchQuery"
+            @click.stop="clearSearch"
+            class="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+            :class="theme.textSecondary"
+          >
+            <X class="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+
       <SelectScrollUpButton />
       <SelectViewport
         :class="

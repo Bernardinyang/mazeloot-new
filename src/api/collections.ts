@@ -5,6 +5,8 @@
  */
 
 import { storage } from '@/utils/storage'
+import { generateUUID } from '@/utils/uuid'
+import { delay } from '@/utils/delay'
 
 const COLLECTIONS_STORAGE_KEY = 'mazeloot_collections'
 
@@ -25,6 +27,8 @@ export interface Collection {
   parentId?: string | null // ID of parent folder (null for root level)
   password?: string | null
   downloadPin?: string | null
+  presetId?: string | null
+  watermarkId?: string | null
   // Legacy fields for compatibility
   title?: string
   date?: string
@@ -57,26 +61,14 @@ export interface UpdateCollectionData {
   downloadPin?: string | null
   category?: 'wedding' | 'portrait' | 'event' | 'other'
   expiryDate?: string | null
+  eventDate?: Date | string | null
+  presetId?: string | undefined
+  watermarkId?: string | undefined
 }
 
 export interface MoveCollectionData {
   collectionId: string
   targetFolderId: string | null
-}
-
-/**
- * Generate a UUID v4
- */
-const generateUUID = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
 }
 
 /**
@@ -153,6 +145,13 @@ const initializeMockData = (): Collection[] => {
   const oldDate = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000) // 60 days ago
   const expiringSoon = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000) // 5 days from now
   const expiredDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
+
+  // Get available presets from localStorage to assign to collections
+  const PRESETS_STORAGE_KEY = 'mazeloot_presets'
+  const presets = storage.get<any[]>(PRESETS_STORAGE_KEY) || []
+  const presetIds = presets.length > 0 ? presets.map(p => p.id) : []
+  const firstPresetId = presetIds.length > 0 ? presetIds[0] : undefined
+  const secondPresetId = presetIds.length > 1 ? presetIds[1] : undefined
 
   let imageIndex = 0
 
@@ -255,6 +254,9 @@ const initializeMockData = (): Collection[] => {
       password: 'wedding2024',
       downloadPin: '1234',
       parentId: null,
+      presetId: firstPresetId,
+      watermarkId: undefined,
+      date: new Date('2024-06-15').toISOString(),
     },
     {
       id: generateUUID(),
@@ -271,6 +273,9 @@ const initializeMockData = (): Collection[] => {
       password: 'family2024',
       downloadPin: '5678',
       parentId: null,
+      presetId: secondPresetId || firstPresetId,
+      watermarkId: undefined,
+      date: new Date('2024-07-20').toISOString(),
     },
     {
       id: generateUUID(),
@@ -286,6 +291,8 @@ const initializeMockData = (): Collection[] => {
       isLocked: false,
       downloadPin: '9012',
       parentId: null,
+      presetId: firstPresetId,
+      watermarkId: undefined,
     },
 
     // Draft collections (NO previewImages)
@@ -303,6 +310,8 @@ const initializeMockData = (): Collection[] => {
       isLocked: true,
       password: 'prep2024',
       parentId: null,
+      presetId: firstPresetId,
+      watermarkId: undefined,
     },
     {
       id: generateUUID(),
@@ -317,6 +326,8 @@ const initializeMockData = (): Collection[] => {
       isStarred: false,
       isLocked: false,
       parentId: null,
+      presetId: undefined,
+      watermarkId: undefined,
     },
     {
       id: generateUUID(),
@@ -331,6 +342,8 @@ const initializeMockData = (): Collection[] => {
       isStarred: false,
       isLocked: true,
       parentId: null,
+      presetId: secondPresetId || firstPresetId,
+      watermarkId: undefined,
     },
 
     // Archived collections (NO previewImages)
@@ -394,6 +407,8 @@ const initializeMockData = (): Collection[] => {
       isLocked: true,
       expiryDate: expiringSoon.toISOString(),
       parentId: null,
+      presetId: firstPresetId,
+      watermarkId: undefined,
     },
     {
       id: generateUUID(),
@@ -408,6 +423,8 @@ const initializeMockData = (): Collection[] => {
       isStarred: false,
       isLocked: false,
       parentId: null,
+      presetId: secondPresetId || firstPresetId,
+      watermarkId: undefined,
     },
     {
       id: generateUUID(),
@@ -422,6 +439,8 @@ const initializeMockData = (): Collection[] => {
       isStarred: true,
       isLocked: false,
       parentId: null,
+      presetId: firstPresetId,
+      watermarkId: undefined,
     },
 
     // Collections with expiring soon (NO previewImages)
@@ -535,7 +554,7 @@ export function useCollectionsApi() {
     parentId?: string | null
   }): Promise<Collection[]> => {
     // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     let collections = getAllCollections()
 
@@ -572,13 +591,18 @@ export function useCollectionsApi() {
    * Fetch single collection by ID
    */
   const fetchCollection = async (id: string): Promise<Collection> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const collections = getAllCollections()
     const collection = collections.find(c => c.id === id)
 
     if (!collection) {
-      throw new Error('Collection not found')
+      console.error('Collection not found. ID:', id)
+      console.error(
+        'Available collections:',
+        collections.map(c => ({ id: c.id, name: c.name }))
+      )
+      throw new Error(`Collection not found: ${id}`)
     }
 
     return collection
@@ -588,7 +612,7 @@ export function useCollectionsApi() {
    * Create new collection
    */
   const createCollection = async (data: CreateCollectionData): Promise<Collection> => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await delay(1000)
 
     const collections = getAllCollections()
     const newCollection: Collection = {
@@ -622,7 +646,7 @@ export function useCollectionsApi() {
    * Update collection
    */
   const updateCollection = async (id: string, data: UpdateCollectionData): Promise<Collection> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const collections = getAllCollections()
     const index = collections.findIndex(c => c.id === id)
@@ -631,23 +655,40 @@ export function useCollectionsApi() {
       throw new Error('Collection not found')
     }
 
+    // Handle eventDate conversion to date field
+    let dateValue: string | undefined = collections[index].date
+    if (data.eventDate !== undefined) {
+      if (data.eventDate === null) {
+        dateValue = undefined
+      } else {
+        dateValue =
+          typeof data.eventDate === 'string' ? data.eventDate : data.eventDate.toISOString()
+      }
+    }
+
     collections[index] = {
       ...collections[index],
       ...data,
       expiryDate: data.expiryDate === null ? undefined : data.expiryDate,
+      date: dateValue,
+      presetId: data.presetId !== undefined ? data.presetId : collections[index].presetId,
+      watermarkId:
+        data.watermarkId !== undefined ? data.watermarkId : collections[index].watermarkId,
       updatedAt: new Date().toISOString(),
     }
 
     saveCollections(collections)
 
-    return collections[index]
+    // Return collection without eventDate (it's stored as 'date')
+    const { eventDate: _, ...collectionToReturn } = collections[index]
+    return collectionToReturn as Collection
   }
 
   /**
    * Delete collection
    */
   const deleteCollection = async (id: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const collections = getAllCollections()
     const filtered = collections.filter(c => c.id !== id)
@@ -668,7 +709,7 @@ export function useCollectionsApi() {
    * Toggle star status
    */
   const toggleStar = async (id: string, isStarred: boolean): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await delay(300)
 
     const collections = getAllCollections()
     const index = collections.findIndex(c => c.id === id)
@@ -686,7 +727,7 @@ export function useCollectionsApi() {
     collectionId: string,
     targetFolderId: string | null
   ): Promise<Collection> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const collections = getAllCollections()
     const collectionIndex = collections.findIndex(c => c.id === collectionId)
@@ -776,7 +817,7 @@ export function useCollectionsApi() {
    * Duplicate collection
    */
   const duplicateCollection = async (id: string): Promise<Collection> => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await delay(1000)
 
     const collections = getAllCollections()
     const original = collections.find(c => c.id === id)

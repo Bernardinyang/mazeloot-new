@@ -105,7 +105,6 @@
 </template>
 
 <script setup lang="ts">
-// import { computed } from 'vue' // Unused for now
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import CollectionListItem from '@/components/molecules/CollectionListItem.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'

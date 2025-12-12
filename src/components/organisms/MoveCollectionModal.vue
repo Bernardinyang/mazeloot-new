@@ -22,19 +22,22 @@
     </div>
 
     <template #footer>
-      <Button variant="outline" @click="handleCancel"> Cancel </Button>
-      <Button :class="['bg-teal-500 hover:bg-teal-600 text-white']" @click="handleConfirm">
-        Move
-      </Button>
+      <ActionButtonGroup
+        cancel-label="Cancel"
+        confirm-label="Move"
+        confirm-button-class="bg-teal-500 hover:bg-teal-600 text-white"
+        @cancel="handleCancel"
+        @confirm="handleConfirm"
+      />
     </template>
   </CenterModal>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Button } from '@/components/shadcn/button'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 
 const theme = useThemeClasses()
 

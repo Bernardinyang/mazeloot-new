@@ -774,7 +774,6 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useLoadingStates } from '@/composables/useLoadingStates'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
-// import { DROPDOWN_MENU_CLASSES, QUICK_ACTIONS, APP_SWITCHER_APPS } from '@/constants/dropdowns' // Unused for now
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useGalleryStore } from '@/stores/gallery'
 import MazelootLogo from '@/components/atoms/MazelootLogo.vue'

@@ -1,5 +1,5 @@
 <template>
-  <Toaster position="top-right" richColors :theme="toastTheme" />
+  <Toaster position="top-right" richColors :theme="toastTheme" closeButton />
 </template>
 
 <script setup lang="ts">
@@ -13,3 +13,15 @@ const toastTheme = computed(() => {
   return themeStore.effectiveTheme === 'dark' ? 'dark' : 'light'
 })
 </script>
+
+<style>
+/* Ensure close button is on the right side of toast */
+[data-sonner-toast] {
+  padding-right: 2.5rem !important;
+}
+
+[data-sonner-toast] [data-close-button] {
+  right: 0.5rem !important;
+  left: auto !important;
+}
+</style>

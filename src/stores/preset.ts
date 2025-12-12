@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { storage } from '@/utils/storage'
+import { generateUUID } from '@/utils/uuid'
 
 const PRESETS_STORAGE_KEY = 'mazeloot_presets'
 
@@ -32,8 +33,37 @@ export interface Preset {
     gridStyle?: string
     gridColumns?: number
     thumbnailSize?: string
-    gridSpacing?: string
+    gridSpacing?: string | number
     navigationStyle?: string
+    // Joy cover style customization
+    joyCoverTitle?: string
+    joyCoverAvatar?: string | null
+    joyCoverShowDate?: boolean
+    joyCoverShowName?: boolean
+    joyCoverButtonText?: string
+    joyCoverShowButton?: boolean
+    joyCoverBackgroundPattern?: 'crosses' | 'sparkles' | 'none'
+  }
+  // Privacy settings
+  privacy?: {
+    collectionPassword?: boolean
+    showOnHomepage?: boolean
+  }
+  // Download settings
+  download?: {
+    photoDownload?: boolean
+    highResolutionEnabled?: boolean
+    highResolutionSize?: string
+    webSizeEnabled?: boolean
+    webSize?: string
+    videoDownload?: boolean
+    downloadPin?: boolean
+    restrictToContacts?: boolean
+  }
+  // Favorite settings
+  favorite?: {
+    favoritePhotos?: boolean
+    favoriteNotes?: boolean
   }
   // Additional settings can be added here
   createdAt?: string
@@ -62,21 +92,45 @@ export interface CreatePresetData {
   }
 }
 
-export interface UpdatePresetData extends Partial<CreatePresetData> {}
-
-/**
- * Generate a UUID v4
- */
-const generateUUID = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
+export interface UpdatePresetData extends Partial<CreatePresetData> {
+  design?: {
+    cover?: string
+    coverFocalPoint?: string | { x: number; y: number }
+    fontFamily?: string
+    fontStyle?: string
+    colorPalette?: string
+    gridStyle?: string
+    gridColumns?: number
+    thumbnailSize?: string
+    gridSpacing?: string | number
+    navigationStyle?: string
+    // Joy cover style customization
+    joyCoverTitle?: string
+    joyCoverAvatar?: string | null
+    joyCoverShowDate?: boolean
+    joyCoverShowName?: boolean
+    joyCoverButtonText?: string
+    joyCoverShowButton?: boolean
+    joyCoverBackgroundPattern?: 'crosses' | 'sparkles' | 'none'
   }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
+  privacy?: {
+    collectionPassword?: boolean
+    showOnHomepage?: boolean
+  }
+  download?: {
+    photoDownload?: boolean
+    highResolutionEnabled?: boolean
+    highResolutionSize?: string
+    webSizeEnabled?: boolean
+    webSize?: string
+    videoDownload?: boolean
+    downloadPin?: boolean
+    restrictToContacts?: boolean
+  }
+  favorite?: {
+    favoritePhotos?: boolean
+    favoriteNotes?: boolean
+  }
 }
 
 /**

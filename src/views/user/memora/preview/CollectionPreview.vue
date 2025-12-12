@@ -103,100 +103,129 @@
           {{ brandingText }}
         </div>
 
-        <!-- Cover Type: Celebration (Joy) - Special Layout -->
-        <div v-if="coverConfig.specialLayout === 'joy'" class="flex flex-col items-center">
-          <!-- Decorative sparkles -->
+        <!-- Cover Type: Joy - Special Layout with title, avatar in O, date, name, button -->
+        <div
+          v-if="coverConfig.specialLayout === 'joy'"
+          class="flex flex-col items-center justify-center h-full"
+        >
+          <!-- Background pattern (crosses) -->
           <div
-            class="absolute top-1/4 left-1/4 w-1.5 h-1.5 rounded-full opacity-40"
-            :style="{ backgroundColor: accentColor }"
-          ></div>
-          <div
-            class="absolute top-1/3 right-1/4 w-1 h-1 rounded-full opacity-50"
-            :style="{ backgroundColor: accentColor }"
-          ></div>
-          <div
-            class="absolute bottom-1/3 left-1/3 w-1.5 h-1.5 rounded-full opacity-35"
-            :style="{ backgroundColor: accentColor }"
-          ></div>
-
-          <div class="flex items-center gap-4 md:gap-6 mb-4">
-            <span
-              class="text-7xl md:text-9xl font-black leading-none drop-shadow-2xl"
-              :class="[fontFamilyClass, fontStyleClass]"
-              :style="{
-                color: accentColor,
-                textShadow: `0 6px 30px rgba(0,0,0,0.3), 0 3px 12px rgba(0,0,0,0.2)`,
-              }"
-            >
-              J
-            </span>
+            v-if="
+              (designConfig as any).joyCoverBackgroundPattern === 'crosses' ||
+              !(designConfig as any).joyCoverBackgroundPattern
+            "
+            class="absolute inset-0 opacity-30"
+            style="
+              background-image:
+                repeating-linear-gradient(
+                  0deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(239, 68, 68, 0.1) 2px,
+                  rgba(239, 68, 68, 0.1) 4px
+                ),
+                repeating-linear-gradient(
+                  90deg,
+                  transparent,
+                  transparent 2px,
+                  rgba(239, 68, 68, 0.1) 2px,
+                  rgba(239, 68, 68, 0.1) 4px
+                );
+            "
+          >
+            <!-- Scattered crosses -->
             <div
-              v-if="coverImageWithFallback"
-              class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 overflow-hidden shadow-2xl ring-4 ring-white/20"
+              v-for="i in 20"
+              :key="i"
+              class="absolute"
               :style="{
-                borderColor: primaryColor,
-                boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 0 4px ${primaryColor}20`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                width: '4px',
+                height: '4px',
+                transform: 'rotate(45deg)',
+                backgroundColor: 'rgba(239, 68, 68, 0.3)',
               }"
-            >
-              <img
-                :src="coverImageWithFallback"
-                alt="Cover"
-                class="w-full h-full object-cover"
-                @error="handleCoverImageError"
-              />
-            </div>
-            <div
-              v-else
-              class="w-24 h-24 md:w-32 md:h-32 rounded-full border-4 overflow-hidden shadow-2xl ring-4 ring-white/20"
-              :style="{
-                borderColor: primaryColor,
-                boxShadow: `0 10px 40px rgba(0,0,0,0.3), 0 0 0 4px ${primaryColor}20`,
-              }"
-            >
-              <div
-                class="w-full h-full bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 flex items-center justify-center relative"
-              >
-                <!-- Face placeholder with better design -->
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                  <div class="w-16 h-16 rounded-full bg-white/30 backdrop-blur-sm mb-1"></div>
-                  <div class="w-12 h-8 rounded-t-full bg-white/20 backdrop-blur-sm"></div>
-                </div>
-              </div>
-            </div>
-            <span
-              class="text-7xl md:text-9xl font-black leading-none drop-shadow-2xl"
-              :class="[fontFamilyClass, fontStyleClass]"
-              :style="{
-                color: accentColor,
-                textShadow: `0 6px 30px rgba(0,0,0,0.3), 0 3px 12px rgba(0,0,0,0.2)`,
-              }"
-            >
-              Y
-            </span>
+            ></div>
           </div>
+
+          <!-- Title with avatar in O -->
+          <div class="flex items-center gap-4 md:gap-8 mb-6 md:mb-8 z-10">
+            <template
+              v-for="(char, index) in ((designConfig as any).joyCoverTitle || 'JOY').split('')"
+              :key="index"
+            >
+              <span
+                v-if="char.toUpperCase() !== 'O'"
+                class="text-6xl md:text-8xl lg:text-9xl font-black leading-none"
+                :class="[fontFamilyClass, fontStyleClass]"
+                :style="{
+                  color: '#DC2626',
+                  textShadow: 'none',
+                }"
+              >
+                {{ char }}
+              </span>
+              <div v-else class="relative">
+                <div
+                  v-if="(designConfig as any).joyCoverAvatar || coverImageWithFallback"
+                  class="w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full overflow-hidden"
+                  :style="{
+                    border: 'none',
+                  }"
+                >
+                  <img
+                    :src="(designConfig as any).joyCoverAvatar || coverImageWithFallback"
+                    alt="Avatar"
+                    class="w-full h-full object-cover"
+                    @error="handleCoverImageError"
+                  />
+                </div>
+                <div
+                  v-else
+                  class="w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700"
+                ></div>
+              </div>
+            </template>
+          </div>
+
+          <!-- Date -->
           <div
-            v-if="eventDate"
-            class="text-base md:text-xl uppercase tracking-widest font-semibold mt-3"
+            v-if="(designConfig as any).joyCoverShowDate !== false && eventDate"
+            class="text-sm md:text-base lg:text-lg uppercase tracking-widest font-medium mb-4 z-10"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
               color: textColor,
-              opacity: 0.95,
-              letterSpacing: '0.25em',
-              textShadow: `0 2px 10px rgba(0,0,0,0.2)`,
+              opacity: 0.8,
+              letterSpacing: '0.15em',
             }"
           >
             {{ formattedDate }}
           </div>
+
+          <!-- Name -->
           <div
-            class="text-3xl md:text-5xl font-black uppercase mt-6 tracking-tight"
+            v-if="(designConfig as any).joyCoverShowName !== false"
+            class="text-2xl md:text-3xl lg:text-4xl font-black uppercase mb-6 md:mb-8 z-10"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
               color: textColor,
-              textShadow: `0 4px 20px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.15)`,
             }"
           >
             {{ collectionName }}
           </div>
+
+          <!-- Button -->
+          <button
+            v-if="(designConfig as any).joyCoverShowButton !== false"
+            class="px-6 md:px-8 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-semibold uppercase tracking-wider text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 z-10"
+            :style="{
+              backgroundColor: '#6B7280',
+            }"
+            @click="scrollToGallery"
+          >
+            {{ (designConfig as any).joyCoverButtonText || 'VIEW GALLERY' }}
+          </button>
         </div>
 
         <!-- Cover Type: Summit (Center) -->
@@ -445,7 +474,7 @@
         "
       >
         <div
-          v-for="item in filteredMedia"
+          v-for="item in paginatedMedia"
           :key="item.id"
           class="overflow-hidden rounded-lg"
           :class="[
@@ -491,6 +520,75 @@
           No media found in this collection.
         </p>
       </div>
+
+      <!-- Pagination Controls -->
+      <div
+        v-if="filteredMedia.length > 0 && pagination.totalPages.value > 1"
+        class="flex items-center justify-center gap-2 mt-8 pt-6 border-t"
+        :style="{ borderColor: borderColor }"
+      >
+        <button
+          @click="pagination.prev()"
+          :disabled="!pagination.hasPrev.value"
+          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          :style="{
+            borderColor: !pagination.hasPrev.value ? borderColor : accentColor,
+            color: !pagination.hasPrev.value ? textColor : accentColor,
+            backgroundColor: 'transparent',
+          }"
+          :class="[
+            !pagination.hasPrev.value ? 'cursor-not-allowed' : 'hover:opacity-80 cursor-pointer',
+          ]"
+        >
+          <ChevronLeft class="h-4 w-4" />
+        </button>
+
+        <!-- Page Numbers -->
+        <div class="flex items-center gap-1">
+          <button
+            v-for="page in visiblePages"
+            :key="page"
+            @click="pagination.goTo(page)"
+            class="min-w-[2.5rem] px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium"
+            :style="
+              pagination.currentPage.value === page
+                ? {
+                    backgroundColor: accentColor,
+                    borderColor: accentColor,
+                    color: '#FFFFFF',
+                  }
+                : {
+                    borderColor: borderColor,
+                    color: textColor,
+                    backgroundColor: 'transparent',
+                  }
+            "
+            :class="
+              pagination.currentPage.value === page
+                ? 'shadow-md'
+                : 'hover:opacity-80 cursor-pointer'
+            "
+          >
+            {{ page }}
+          </button>
+        </div>
+
+        <button
+          @click="pagination.next()"
+          :disabled="!pagination.hasNext.value"
+          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          :style="{
+            borderColor: !pagination.hasNext.value ? borderColor : accentColor,
+            color: !pagination.hasNext.value ? textColor : accentColor,
+            backgroundColor: 'transparent',
+          }"
+          :class="[
+            !pagination.hasNext.value ? 'cursor-not-allowed' : 'hover:opacity-80 cursor-pointer',
+          ]"
+        >
+          <ChevronRight class="h-4 w-4" />
+        </button>
+      </div>
     </div>
 
     <!-- Media Viewer Modal -->
@@ -529,13 +627,22 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { X, Sparkles, Grid3x3, Image as ImageIcon } from 'lucide-vue-next'
+import {
+  X,
+  Sparkles,
+  Grid3x3,
+  Image as ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-vue-next'
 import { useCollectionsApi, type Collection } from '@/api/collections'
 import { useMediaApi, type MediaItem } from '@/api/media'
 import { usePresetStore } from '@/stores/preset'
+import { useGalleryStore } from '@/stores/gallery'
 import { format } from 'date-fns'
 import { getCoverStyleConfig } from '@/config/coverStyles'
 import CoverDecorations from '@/components/organisms/CoverDecorations.vue'
+import { usePagination } from '@/composables/usePagination'
 
 // Props for preview mode
 const props = defineProps<{
@@ -558,6 +665,7 @@ const route = useRoute()
 const collectionsApi = useCollectionsApi()
 const mediaApi = useMediaApi()
 const presetStore = usePresetStore()
+const galleryStore = useGalleryStore()
 
 // Collection data
 const collection = ref<Collection | null>(null)
@@ -967,6 +1075,67 @@ const filteredMedia = computed(() => {
   return filtered
 })
 
+// Pagination setup
+const itemsPerPage = 12 // Show 12 items per page
+const pagination = usePagination({
+  totalItems: filteredMedia.value.length,
+  itemsPerPage: itemsPerPage,
+  initialPage: 1,
+})
+
+// Update pagination total when filteredMedia changes
+watch(
+  () => filteredMedia.value.length,
+  (newLength: number) => {
+    pagination.updateTotal(newLength)
+  }
+)
+
+// Paginated media
+const paginatedMedia = computed(() => {
+  const { start, end } = pagination.range.value
+  return filteredMedia.value.slice(start, end)
+})
+
+// Visible page numbers (show max 5 pages)
+const visiblePages = computed(() => {
+  const total = pagination.totalPages.value
+  const current = pagination.currentPage.value
+  const pages: number[] = []
+
+  if (total <= 5) {
+    // Show all pages if 5 or fewer
+    for (let i = 1; i <= total; i++) {
+      pages.push(i)
+    }
+  } else {
+    // Show pages around current page
+    if (current <= 3) {
+      // Near the start
+      for (let i = 1; i <= 5; i++) {
+        pages.push(i)
+      }
+    } else if (current >= total - 2) {
+      // Near the end
+      for (let i = total - 4; i <= total; i++) {
+        pages.push(i)
+      }
+    } else {
+      // In the middle
+      for (let i = current - 2; i <= current + 2; i++) {
+        pages.push(i)
+      }
+    }
+  }
+
+  return pages
+})
+
+// Reset pagination when tab changes
+watch(activeTab, () => {
+  pagination.reset()
+})
+
 // Methods
 const scrollToGallery = () => {
   document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })
@@ -1093,4 +1262,19 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Watch store's collections array for real-time updates (preset/watermark changes)
+watch(
+  () => galleryStore.collections,
+  (collections: any[]) => {
+    if (!props.previewMode && collectionId.value && collection.value) {
+      const updatedCollection = collections.find((c: any) => c.id === collectionId.value)
+      if (updatedCollection && updatedCollection.id === collection.value.id) {
+        // Update local collection ref with latest data from store
+        collection.value = { ...collection.value, ...updatedCollection }
+      }
+    }
+  },
+  { deep: true }
+)
 </script>

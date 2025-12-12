@@ -259,7 +259,6 @@ const { handleError } = useErrorHandler()
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
-// const collectionsError = computed(() => galleryStore.error) // Unused for now
 
 // View mode and sorting
 const viewMode = ref<'grid' | 'list'>('grid')

@@ -4,6 +4,7 @@
  */
 
 import { ref, computed } from 'vue'
+import { getErrorMessage } from '@/utils/errors'
 
 export interface FormField<T = any> {
   value: T
@@ -125,7 +126,7 @@ export function useForm<T extends Record<string, any>>(options: UseFormOptions<T
       await options.onSubmit(getValues())
       return true
     } catch (error: any) {
-      submitError.value = error.message || 'An error occurred'
+      submitError.value = getErrorMessage(error, 'An error occurred')
       return false
     } finally {
       isSubmitting.value = false

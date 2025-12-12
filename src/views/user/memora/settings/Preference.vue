@@ -28,6 +28,7 @@
                 v-for="option in filenameDisplayOptions"
                 :key="option.value"
                 :value="option.value"
+                :label="option.label"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               >
                 {{ option.label }}
@@ -53,6 +54,7 @@
                 v-for="option in searchEngineVisibilityOptions"
                 :key="option.value"
                 :value="option.value"
+                :label="option.label"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               >
                 {{ option.label }}
@@ -78,6 +80,7 @@
                 v-for="option in sharpeningLevelOptions"
                 :key="option.value"
                 :value="option.value"
+                :label="option.label"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               >
                 {{ option.label }}

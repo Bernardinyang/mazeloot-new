@@ -20,29 +20,25 @@
     </div>
 
     <template #footer>
-      <Button variant="outline" @click="handleCancel" :disabled="isDeleting"> Cancel </Button>
-      <Button
-        class="bg-red-500 hover:bg-red-600 text-white"
-        @click="handleConfirm"
+      <ActionButtonGroup
+        :loading="isDeleting"
         :disabled="isDeleting"
-      >
-        <span v-if="isDeleting" class="flex items-center gap-2">
-          <span
-            class="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"
-          ></span>
-          Deleting...
-        </span>
-        <span v-else>Delete</span>
-      </Button>
+        cancel-label="Cancel"
+        confirm-label="Delete"
+        loading-label="Deleting..."
+        confirm-button-class="bg-red-500 hover:bg-red-600 text-white"
+        @cancel="handleCancel"
+        @confirm="handleConfirm"
+      />
     </template>
   </CenterModal>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Button } from '@/components/shadcn/button'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 
 interface Props {
   modelValue: boolean

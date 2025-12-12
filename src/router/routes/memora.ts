@@ -13,7 +13,11 @@ import PreferenceView from '@/views/user/memora/settings/Preference.vue'
 import AddWatermarkView from '@/views/user/memora/settings/watermark/AddWatermark.vue'
 import PresetGeneralView from '@/views/user/memora/preset/General.vue'
 import PresetDesignView from '@/views/user/memora/preset/Design.vue'
+import PresetPrivacyView from '@/views/user/memora/preset/Privacy.vue'
+import PresetDownloadView from '@/views/user/memora/preset/Download.vue'
+import PresetFavoriteView from '@/views/user/memora/preset/Favorite.vue'
 import CollectionPreviewView from '@/views/user/memora/preview/CollectionPreview.vue'
+import CollectionPhotosView from '@/views/user/memora/collections/Photos.vue'
 
 export const memoraRoutes: RouteRecordRaw[] = [
   {
@@ -141,6 +145,33 @@ export const memoraRoutes: RouteRecordRaw[] = [
     },
   },
   {
+    path: '/memora/preset/:name/privacy',
+    name: 'presetPrivacy',
+    component: PresetPrivacyView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
+    path: '/memora/preset/:name/download',
+    name: 'presetDownload',
+    component: PresetDownloadView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
+    path: '/memora/preset/:name/favorite',
+    name: 'presetFavorite',
+    component: PresetFavoriteView,
+    meta: {
+      requiresAuth: true,
+      parent: 'presetSettings',
+    },
+  },
+  {
     path: '/memora/preset/:name/preview',
     name: 'presetPreview',
     component: CollectionPreviewView,
@@ -155,6 +186,14 @@ export const memoraRoutes: RouteRecordRaw[] = [
     component: CollectionPreviewView,
     meta: {
       requiresAuth: false, // Public preview
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/photos',
+    name: 'collectionPhotos',
+    component: CollectionPhotosView,
+    meta: {
+      requiresAuth: true,
     },
   },
 ]

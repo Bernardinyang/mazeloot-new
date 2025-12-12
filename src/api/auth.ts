@@ -6,6 +6,8 @@
 
 import { storage } from '@/utils/storage'
 import { parseError } from '@/utils/errors'
+import { generateUUID } from '@/utils/uuid'
+import { delay } from '@/utils/delay'
 
 const USERS_STORAGE_KEY = 'mazeloot_users'
 const TOKENS_STORAGE_KEY = 'mazeloot_auth_tokens'
@@ -49,21 +51,6 @@ export interface AuthToken {
   token: string
   expiresAt: number
   createdAt: number
-}
-
-/**
- * Generate a UUID v4
- */
-const generateUUID = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
 }
 
 /**
@@ -195,7 +182,7 @@ export function useAuthApi() {
    */
   const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 800)) // Simulate API delay
+      await delay(800) // Simulate API delay
 
       const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
       const user = users.find(u => u.email.toLowerCase() === credentials.email.toLowerCase())
@@ -231,7 +218,7 @@ export function useAuthApi() {
    */
   const register = async (data: RegisterData): Promise<AuthResponse> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      await delay(1000) // Simulate API delay
 
       const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
 
@@ -282,7 +269,7 @@ export function useAuthApi() {
    */
   const verifyEmail = async (code: string): Promise<void> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      await delay(1000) // Simulate API delay
 
       // Mock: Accept any 6-digit code
       if (!/^\d{6}$/.test(code)) {
@@ -305,7 +292,7 @@ export function useAuthApi() {
       // await apiClient.post('/auth/resend-verification', {}, { skipAuth: true })
 
       // Mock implementation for now
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await delay(500)
     } catch (error) {
       throw parseError(error)
     }
@@ -316,7 +303,7 @@ export function useAuthApi() {
    */
   const forgotPassword = async (email: string): Promise<void> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      await delay(1000) // Simulate API delay
 
       const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
       const user = users.find(u => u.email.toLowerCase() === email.toLowerCase())
@@ -356,7 +343,7 @@ export function useAuthApi() {
    */
   const resetPassword = async (_token: string, _password: string): Promise<void> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      await delay(1000) // Simulate API delay
 
       // In a real app, we'd validate the reset token
       // For mock, we accept any token and update password
@@ -373,7 +360,7 @@ export function useAuthApi() {
    */
   const googleSignIn = async (): Promise<AuthResponse> => {
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      await delay(1000) // Simulate API delay
 
       const users = storage.get<MockUser[]>(USERS_STORAGE_KEY, []) || []
 
@@ -422,7 +409,7 @@ export function useAuthApi() {
       // await apiClient.post('/auth/logout')
 
       // Mock implementation for now
-      await new Promise(resolve => setTimeout(resolve, 500))
+      await delay(500)
     } catch (error) {
       throw parseError(error)
     }

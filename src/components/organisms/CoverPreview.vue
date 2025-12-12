@@ -106,6 +106,27 @@
       <span class="text-[8px] font-bold text-gray-900 dark:text-white z-10">TITLE</span>
     </div>
 
+    <!-- 11. Joy - Title with avatar in O, crosses background -->
+    <div
+      v-else-if="type === 'joy'"
+      class="w-full h-full bg-gray-50 dark:bg-gray-800 flex flex-col items-center justify-center relative overflow-hidden"
+    >
+      <!-- Background crosses pattern -->
+      <div class="absolute inset-0 opacity-20">
+        <div class="absolute top-2 left-2 w-0.5 h-0.5 bg-red-400 rotate-45"></div>
+        <div class="absolute top-3 right-3 w-0.5 h-0.5 bg-red-400 rotate-45"></div>
+        <div class="absolute bottom-2 left-4 w-0.5 h-0.5 bg-red-400 rotate-45"></div>
+        <div class="absolute bottom-3 right-2 w-0.5 h-0.5 bg-red-400 rotate-45"></div>
+        <div class="absolute top-1/2 left-1/3 w-0.5 h-0.5 bg-red-400 rotate-45"></div>
+      </div>
+      <!-- Title with avatar placeholder -->
+      <div class="flex items-center gap-1 z-10">
+        <span class="text-[6px] font-bold text-red-600 dark:text-red-400">J</span>
+        <div class="w-2 h-2 rounded-full bg-teal-500/30 border border-teal-500/50"></div>
+        <span class="text-[6px] font-bold text-red-600 dark:text-red-400">Y</span>
+      </div>
+    </div>
+
     <!-- 11. Horizon - Bottom left -->
     <div
       v-else-if="type === 'horizon'"

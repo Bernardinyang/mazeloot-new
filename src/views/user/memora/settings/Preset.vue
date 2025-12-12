@@ -9,7 +9,8 @@
           Collection Presets
         </h1>
         <p class="text-sm mb-4" :class="theme.textSecondary">
-          Manage default settings for collections to streamline your workflow.
+          Save time by setting up default settings for your collections. Create a preset once, use
+          it everywhere! 🎨
         </p>
         <Separator :class="theme.borderSecondary" />
       </div>
@@ -18,22 +19,52 @@
       <div class="space-y-6 w-[50%]">
         <!-- Presets List -->
         <div class="space-y-4">
-          <h3 class="text-base font-semibold" :class="theme.textPrimary">Collection Presets</h3>
+          <div class="flex items-center justify-between">
+            <h3 class="text-base font-semibold" :class="theme.textPrimary">Your Presets</h3>
+            <Button
+              @click="handleAddPreset"
+              size="sm"
+              class="bg-teal-500 hover:bg-teal-600 text-white"
+            >
+              <Plus class="mr-1.5 h-3.5 w-3.5" />
+              Add New
+            </Button>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            v-if="presets.length === 0"
+            class="flex flex-col items-center justify-center py-12 px-6 rounded-xl border-2 border-dashed"
+            :class="[theme.borderSecondary, theme.bgCard]"
+          >
+            <div
+              class="w-12 h-12 rounded-full bg-teal-500/10 dark:bg-teal-500/20 flex items-center justify-center mb-3"
+            >
+              <Plus class="h-6 w-6 text-teal-500" />
+            </div>
+            <p class="text-sm text-center mb-4" :class="theme.textSecondary">
+              No presets yet. Create one to get started!
+            </p>
+            <Button
+              @click="handleAddPreset"
+              size="sm"
+              class="bg-teal-500 hover:bg-teal-600 text-white"
+            >
+              <Plus class="mr-1.5 h-3.5 w-3.5" />
+              Create Your First Preset
+            </Button>
+          </div>
 
           <!-- Presets List -->
-          <div class="space-y-0">
+          <div v-else class="space-y-0">
             <div
               v-for="preset in presets"
               :key="preset.id"
               @click="handleEditPreset(preset.id)"
               class="flex items-center justify-between py-3 px-4 border-b transition-colors group cursor-pointer"
-              :class="[
-                theme.borderSecondary,
-                preset.isSelected ? theme.bgHover : '',
-                'hover:' + theme.bgHover,
-              ]"
+              :class="[theme.borderSecondary, 'hover:' + theme.bgHover]"
             >
-              <span class="text-sm font-medium" :class="theme.textPrimary">
+              <span class="text-sm font-medium truncate" :class="theme.textPrimary">
                 {{ preset.name }}
               </span>
 
@@ -41,7 +72,7 @@
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
-                    @click.stop="handleEditPreset(preset.id)"
+                    @click.stop
                     class="h-8 w-8 flex items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700"
                     :class="theme.textSecondary"
                   >
@@ -51,14 +82,14 @@
                 <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
                   <DropdownMenuItem
                     :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                    @click="handleEditPreset(preset.id)"
+                    @click.stop="handleEditPreset(preset.id)"
                   >
                     <Pencil class="mr-2 h-4 w-4" :class="theme.textSecondary" />
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                    @click="handleDuplicatePreset(preset.id)"
+                    @click.stop="handleDuplicatePreset(preset.id)"
                   >
                     <Copy class="mr-2 h-4 w-4" :class="theme.textSecondary" />
                     Duplicate
@@ -66,7 +97,7 @@
                   <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
                   <DropdownMenuItem
                     :class="['text-red-500', theme.bgButtonHover, 'cursor-pointer']"
-                    @click="handleDeletePreset(preset.id)"
+                    @click.stop="handleDeletePreset(preset.id)"
                   >
                     <Trash2 class="mr-2 h-4 w-4 text-red-500" />
                     Delete
@@ -76,21 +107,10 @@
             </div>
           </div>
 
-          <!-- Add Preset Button -->
-          <button
-            @click="handleAddPreset"
-            class="flex items-center gap-2 text-teal-500 hover:text-teal-600 transition-colors mt-4"
-          >
-            <div class="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center">
-              <Plus class="h-4 w-4 text-white" />
-            </div>
-            <span class="text-sm font-medium">Add Preset</span>
-          </button>
-
           <!-- Description -->
           <p class="text-xs mt-4" :class="theme.textSecondary">
-            Collection presets allow you to apply default settings when creating a new collection so
-            you don't have to make changes every time.
+            Presets let you apply your favorite settings to new collections automatically. Set it up
+            once, and you're good to go!
             <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
           </p>
         </div>
@@ -108,6 +128,7 @@ import { useRouter } from 'vue-router'
 import { Plus, MoreVertical, Pencil, Copy, Trash2 } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Separator } from '@/components/shadcn/separator'
+import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
   DropdownMenuContent,

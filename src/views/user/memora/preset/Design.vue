@@ -7,7 +7,25 @@
       <div class="mb-10">
         <div class="flex items-start justify-between mb-4">
           <div>
-            <h1 class="text-3xl font-bold mb-2" :class="theme.textPrimary">Design</h1>
+            <div class="flex items-center gap-3 mb-2">
+              <h1 class="text-3xl font-bold" :class="theme.textPrimary">Design</h1>
+              <Transition
+                enter-active-class="transition-all duration-300 ease-out"
+                enter-from-class="opacity-0 scale-95 -translate-x-2"
+                enter-to-class="opacity-100 scale-100 translate-x-0"
+                leave-active-class="transition-all duration-200 ease-in"
+                leave-from-class="opacity-100 scale-100 translate-x-0"
+                leave-to-class="opacity-0 scale-95 -translate-x-2"
+              >
+                <div
+                  v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
+                  class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/20 dark:border-amber-500/30"
+                >
+                  <div class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></div>
+                  <span>Unsaved changes</span>
+                </div>
+              </Transition>
+            </div>
             <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
               Customize the visual appearance and design settings for your collection preset. See
               your changes in real-time in the preview panel.
@@ -52,34 +70,47 @@
                 </span>
               </div>
             </div>
-            <div class="grid grid-cols-4 md:grid-cols-7 gap-3">
-              <button
-                v-for="cover in coverOptions"
-                :key="cover.id"
-                @click="formData.cover = cover.id"
-                class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
-                :class="[
-                  formData.cover === cover.id
-                    ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
-                    : [
-                        theme.borderSecondary,
-                        'hover:border-teal-500/60 hover:shadow-md',
-                        'active:scale-95',
-                      ],
-                  theme.bgCard,
-                ]"
-              >
-                <!-- Selected indicator -->
-                <div
-                  v-if="formData.cover === cover.id"
-                  class="absolute top-1 right-1 z-20 w-4 h-4 rounded-full bg-teal-500 flex items-center justify-center shadow-md"
+            <div
+              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-4 md:gap-5"
+            >
+              <div v-for="cover in coverOptions" :key="cover.id" class="flex flex-col gap-3">
+                <button
+                  @click="formData.cover = cover.id"
+                  class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
+                  :class="[
+                    formData.cover === cover.id
+                      ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
+                      : [
+                          theme.borderSecondary,
+                          'hover:border-teal-500/60 hover:shadow-md',
+                          'active:scale-95',
+                        ],
+                    theme.bgCard,
+                  ]"
                 >
-                  <Check class="h-2.5 w-2.5 text-white" />
-                </div>
+                  <!-- Selected indicator -->
+                  <div
+                    v-if="formData.cover === cover.id"
+                    class="absolute top-2 right-2 z-20 w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center shadow-lg"
+                  >
+                    <Check class="h-3 w-3 text-white" />
+                  </div>
 
-                <!-- Cover previews based on type -->
-                <CoverPreview :type="cover.id" />
-              </button>
+                  <!-- Cover previews based on type -->
+                  <CoverPreview :type="cover.id" />
+                </button>
+                <!-- Cover style label -->
+                <span
+                  class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
+                  :class="
+                    formData.cover === cover.id
+                      ? 'text-teal-600 dark:text-teal-400'
+                      : theme.textSecondary
+                  "
+                >
+                  {{ cover.label }}
+                </span>
+              </div>
             </div>
           </div>
 
@@ -104,21 +135,205 @@
             </Button>
           </div>
 
+          <!-- Joy Cover Style Customization -->
+          <div
+            v-if="formData.cover === 'joy'"
+            class="space-y-5 p-6 rounded-2xl border-2"
+            :class="[theme.borderSecondary, theme.bgCard]"
+          >
+            <div class="mb-1">
+              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">
+                Joy Cover Customization
+              </h3>
+              <p class="text-xs" :class="theme.textSecondary">
+                Customize the title, avatar, and display options for your Joy cover
+              </p>
+            </div>
+
+            <div class="space-y-4">
+              <!-- Title Text -->
+              <div>
+                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                  Title Text
+                </label>
+                <input
+                  v-model="formData.joyCoverTitle"
+                  type="text"
+                  placeholder="JOY"
+                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
+                  :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                />
+                <p class="text-xs mt-1.5" :class="theme.textTertiary">
+                  The letter "O" will be replaced with your avatar image
+                </p>
+              </div>
+
+              <!-- Avatar Upload -->
+              <div>
+                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                  Profile Picture / Avatar
+                </label>
+                <div class="flex items-center gap-4">
+                  <div
+                    v-if="formData.joyCoverAvatar"
+                    class="w-20 h-20 rounded-full overflow-hidden border-2"
+                    :class="theme.borderSecondary"
+                  >
+                    <img
+                      :src="formData.joyCoverAvatar"
+                      alt="Avatar"
+                      class="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div
+                    v-else
+                    class="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center"
+                    :class="[theme.borderSecondary, theme.textTertiary]"
+                  >
+                    <span class="text-xs">No image</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                    @click="handleAvatarUpload"
+                  >
+                    {{ formData.joyCoverAvatar ? 'Change' : 'Upload' }}
+                  </Button>
+                  <Button
+                    v-if="formData.joyCoverAvatar"
+                    variant="ghost"
+                    size="sm"
+                    :class="[theme.textSecondary, theme.bgButtonHover]"
+                    @click="formData.joyCoverAvatar = null"
+                  >
+                    Remove
+                  </Button>
+                </div>
+                <input
+                  ref="avatarInputRef"
+                  type="file"
+                  accept="image/*"
+                  class="hidden"
+                  @change="handleAvatarFileChange"
+                />
+              </div>
+
+              <!-- Show Date Toggle -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                    Show Date
+                  </label>
+                  <p class="text-xs" :class="theme.textSecondary">
+                    Display the event date below the title
+                  </p>
+                </div>
+                <ToggleSwitch
+                  v-model="formData.joyCoverShowDate"
+                  label=""
+                  on-label="On"
+                  off-label="Off"
+                />
+              </div>
+
+              <!-- Show Name Toggle -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                    Show Name
+                  </label>
+                  <p class="text-xs" :class="theme.textSecondary">
+                    Display the collection name below the date
+                  </p>
+                </div>
+                <ToggleSwitch
+                  v-model="formData.joyCoverShowName"
+                  label=""
+                  on-label="On"
+                  off-label="Off"
+                />
+              </div>
+
+              <!-- Button Text -->
+              <div>
+                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                  Button Text
+                </label>
+                <input
+                  v-model="formData.joyCoverButtonText"
+                  type="text"
+                  placeholder="VIEW GALLERY"
+                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
+                  :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                />
+              </div>
+
+              <!-- Show Button Toggle -->
+              <div class="flex items-center justify-between">
+                <div>
+                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                    Show Button
+                  </label>
+                  <p class="text-xs" :class="theme.textSecondary">
+                    Display the call-to-action button
+                  </p>
+                </div>
+                <ToggleSwitch
+                  v-model="formData.joyCoverShowButton"
+                  label=""
+                  on-label="On"
+                  off-label="Off"
+                />
+              </div>
+
+              <!-- Background Pattern -->
+              <div>
+                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                  Background Pattern
+                </label>
+                <div class="flex gap-3">
+                  <button
+                    v-for="pattern in [
+                      { id: 'crosses', label: 'Crosses' },
+                      { id: 'sparkles', label: 'Sparkles' },
+                      { id: 'none', label: 'None' },
+                    ]"
+                    :key="pattern.id"
+                    @click="handleJoyPatternChange(pattern.id)"
+                    class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
+                    :class="[
+                      formData.joyCoverBackgroundPattern === pattern.id
+                        ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
+                        : [theme.borderSecondary, 'hover:border-teal-500/60'],
+                      theme.bgCard,
+                    ]"
+                  >
+                    <span
+                      class="text-xs font-medium block text-center"
+                      :class="
+                        formData.joyCoverBackgroundPattern === pattern.id
+                          ? 'text-teal-600 dark:text-teal-400'
+                          : theme.textPrimary
+                      "
+                    >
+                      {{ pattern.label }}
+                    </span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Focal Point Modal -->
           <Dialog :open="showFocalPointModal" @update:open="showFocalPointModal = $event">
-            <DialogContent :class="[theme.bgCard, theme.borderCard, 'sm:max-w-4xl p-0']">
+            <DialogContent
+              :class="[theme.bgCard, theme.borderCard, 'sm:max-w-4xl p-0', 'focal-point-dialog']"
+            >
               <DialogHeader class="px-6 pt-6 pb-4">
-                <div class="flex items-center justify-between">
-                  <DialogTitle :class="['text-lg font-semibold uppercase', theme.textPrimary]">
-                    SET FOCAL POINT
-                  </DialogTitle>
-                  <DialogClose
-                    class="p-1 rounded-md transition-colors"
-                    :class="[theme.bgButtonHover, 'hover:opacity-70']"
-                  >
-                    <X class="h-4 w-4" :class="theme.textSecondary" />
-                  </DialogClose>
-                </div>
+                <DialogTitle :class="['text-lg font-semibold uppercase', theme.textPrimary]">
+                  SET FOCAL POINT
+                </DialogTitle>
               </DialogHeader>
 
               <div class="px-6 pb-6">
@@ -618,48 +833,79 @@
       </div>
 
       <!-- Bottom Navigation -->
-      <div class="flex justify-between mt-12 pt-8 border-t" :class="theme.borderSecondary">
-        <Button
-          @click="handlePrevious"
-          variant="ghost"
-          :class="[
-            theme.textSecondary,
-            theme.bgButtonHover,
-            'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
-          ]"
+      <div class="lg:col-span-3">
+        <div
+          class="flex justify-between items-center mt-12 pt-8 border-t"
+          :class="theme.borderSecondary"
         >
-          ← Previous
-        </Button>
-        <Button
-          @click="handleNext"
-          :disabled="isSubmitting || isSaving"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
-        >
-          <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting || isSaving">Saving...</span>
-          <span v-else>Next →</span>
-        </Button>
+          <Button
+            @click="handlePrevious"
+            variant="ghost"
+            :disabled="isSubmitting || isSaving"
+            :class="[
+              theme.textSecondary,
+              theme.bgButtonHover,
+              'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+              'disabled:opacity-50 disabled:cursor-not-allowed',
+            ]"
+          >
+            ← Previous
+          </Button>
+          <div class="flex items-center gap-3">
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 scale-95 translate-x-2"
+              enter-to-class="opacity-100 scale-100 translate-x-0"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 scale-100 translate-x-0"
+              leave-to-class="opacity-0 scale-95 translate-x-2"
+            >
+              <span
+                v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
+                class="text-xs"
+                :class="theme.textTertiary"
+              >
+                Unsaved changes
+              </span>
+            </Transition>
+            <Button
+              @click="handleNext"
+              :disabled="isSubmitting || isSaving"
+              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+            >
+              <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
+              <span v-if="isSubmitting || isSaving">Saving...</span>
+              <span v-else>Next →</span>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- Unsaved Changes Modal -->
+    <UnsavedChangesModal
+      v-model="showUnsavedChangesModal"
+      :is-saving="isSubmitting || isSaving"
+      @save="handleSaveAndLeave"
+      @discard="handleDiscardAndLeave"
+      @cancel="handleCancelNavigation"
+    />
   </PresetLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted, inject, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Check, Loader2, Grid3x3, LayoutGrid, ExternalLink, X } from 'lucide-vue-next'
+import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
+import { Check, Loader2, Grid3x3, LayoutGrid, ExternalLink } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Slider } from '@/components/shadcn/slider'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogClose,
-} from '@/components/shadcn/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import PresetLayout from '@/layouts/PresetLayout.vue'
+import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import CoverPreview from '@/components/organisms/CoverPreview.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
+import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import type { Collection } from '@/api/collections'
@@ -688,11 +934,12 @@ const presetId = computed(() => {
   return currentPreset.value?.id || null
 })
 
-const hasUnsavedChanges = ref(false)
 const isSubmitting = ref(false)
 const isLoadingData = ref(false)
 const showFocalPointModal = ref(false)
 const focalPointImageContainer = ref<HTMLElement | null>(null)
+const showUnsavedChangesModal = ref(false)
+const avatarInputRef = ref<HTMLInputElement | null>(null)
 
 // Design form data
 const formData = ref({
@@ -706,6 +953,44 @@ const formData = ref({
   thumbnailSize: 'regular',
   gridSpacing: 16, // Numeric value in pixels (1-100)
   navigationStyle: 'icon-only',
+  // Joy cover style customization
+  joyCoverTitle: 'JOY',
+  joyCoverAvatar: null as string | null,
+  joyCoverShowDate: true,
+  joyCoverShowName: true,
+  joyCoverButtonText: 'VIEW GALLERY',
+  joyCoverShowButton: true,
+  joyCoverBackgroundPattern: 'crosses' as 'crosses' | 'sparkles' | 'none',
+})
+
+// Store original loaded data for comparison
+const originalData = ref<typeof formData.value | null>(null)
+
+// Check if there are actual unsaved changes by comparing with original data
+const hasUnsavedChanges = computed(() => {
+  if (!originalData.value || isLoadingData.value) {
+    return false
+  }
+  return (
+    formData.value.cover !== originalData.value.cover ||
+    formData.value.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
+    formData.value.coverFocalPoint.y !== originalData.value.coverFocalPoint.y ||
+    formData.value.fontFamily !== originalData.value.fontFamily ||
+    formData.value.fontStyle !== originalData.value.fontStyle ||
+    formData.value.colorPalette !== originalData.value.colorPalette ||
+    formData.value.gridStyle !== originalData.value.gridStyle ||
+    formData.value.gridColumns !== originalData.value.gridColumns ||
+    formData.value.thumbnailSize !== originalData.value.thumbnailSize ||
+    formData.value.gridSpacing !== originalData.value.gridSpacing ||
+    formData.value.navigationStyle !== originalData.value.navigationStyle ||
+    formData.value.joyCoverTitle !== originalData.value.joyCoverTitle ||
+    formData.value.joyCoverAvatar !== originalData.value.joyCoverAvatar ||
+    formData.value.joyCoverShowDate !== originalData.value.joyCoverShowDate ||
+    formData.value.joyCoverShowName !== originalData.value.joyCoverShowName ||
+    formData.value.joyCoverButtonText !== originalData.value.joyCoverButtonText ||
+    formData.value.joyCoverShowButton !== originalData.value.joyCoverShowButton ||
+    formData.value.joyCoverBackgroundPattern !== originalData.value.joyCoverBackgroundPattern
+  )
 })
 
 // Computed property to convert gridSpacing number to array for Slider component
@@ -718,7 +1003,7 @@ const gridSpacingSlider = computed({
   },
 })
 
-// Cover options - 20 beautiful cover styles + none
+// Cover options - 21 beautiful cover styles + none
 const coverOptions = [
   { id: 'modern', label: 'Modern' },
   { id: 'elegant', label: 'Elegant' },
@@ -730,6 +1015,7 @@ const coverOptions = [
   { id: 'spotlight', label: 'Spotlight' },
   { id: 'minimalist', label: 'Minimalist' },
   { id: 'celebration', label: 'Celebration' },
+  { id: 'joy', label: 'Joy' },
   { id: 'horizon', label: 'Horizon' },
   { id: 'floating', label: 'Floating' },
   { id: 'corner', label: 'Corner' },
@@ -755,6 +1041,33 @@ const handleFocalPointClick = (event: MouseEvent) => {
   formData.value.coverFocalPoint = {
     x: Math.max(0, Math.min(100, x)),
     y: Math.max(0, Math.min(100, y)),
+  }
+}
+
+// Handle joy pattern change
+const handleJoyPatternChange = (patternId: string) => {
+  if (patternId === 'crosses' || patternId === 'sparkles' || patternId === 'none') {
+    formData.value.joyCoverBackgroundPattern = patternId
+  }
+}
+
+// Handle avatar upload
+const handleAvatarUpload = () => {
+  avatarInputRef.value?.click()
+}
+
+const handleAvatarFileChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const file = target.files?.[0]
+  if (file) {
+    // Create a preview URL
+    const reader = new FileReader()
+    reader.onload = e => {
+      if (e.target?.result) {
+        formData.value.joyCoverAvatar = e.target.result as string
+      }
+    }
+    reader.readAsDataURL(file)
   }
 }
 
@@ -821,11 +1134,11 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const designData = currentPreset.value.design || {}
-    formData.value = {
+    const loadedData = {
       cover: designData.cover || 'modern',
       coverFocalPoint:
         designData.coverFocalPoint && typeof designData.coverFocalPoint === 'object'
-          ? designData.coverFocalPoint
+          ? { ...designData.coverFocalPoint }
           : { x: 50, y: 50 },
       fontFamily: designData.fontFamily || 'sans',
       fontStyle: designData.fontStyle || 'bold',
@@ -840,9 +1153,22 @@ const loadPresetData = () => {
             ? 24
             : 16,
       navigationStyle: designData.navigationStyle || 'icon-only',
+      // Joy cover settings
+      joyCoverTitle: designData.joyCoverTitle || 'JOY',
+      joyCoverAvatar: designData.joyCoverAvatar || null,
+      joyCoverShowDate:
+        designData.joyCoverShowDate !== undefined ? designData.joyCoverShowDate : true,
+      joyCoverShowName:
+        designData.joyCoverShowName !== undefined ? designData.joyCoverShowName : true,
+      joyCoverButtonText: designData.joyCoverButtonText || 'VIEW GALLERY',
+      joyCoverShowButton:
+        designData.joyCoverShowButton !== undefined ? designData.joyCoverShowButton : true,
+      joyCoverBackgroundPattern:
+        (designData.joyCoverBackgroundPattern as 'crosses' | 'sparkles' | 'none') || 'crosses',
     }
+    formData.value = { ...loadedData }
+    originalData.value = { ...loadedData }
     presetStore.setCurrentPreset(currentPreset.value.id)
-    hasUnsavedChanges.value = false
     isLoadingData.value = false
   }
 }
@@ -854,17 +1180,6 @@ watch(
     loadPresetData()
   },
   { immediate: false }
-)
-
-// Watch for form changes
-watch(
-  formData,
-  () => {
-    if (!isLoadingData.value) {
-      hasUnsavedChanges.value = true
-    }
-  },
-  { deep: true }
 )
 
 // Watch for grid style changes - disable large thumbnail size for masonry
@@ -915,7 +1230,10 @@ const savePresetDesign = async (): Promise<boolean> => {
     await presetStore.updatePreset(presetId.value, {
       design: formData.value,
     })
-    hasUnsavedChanges.value = false
+    // Update original data after successful save
+    if (originalData.value) {
+      originalData.value = { ...formData.value }
+    }
     return true
   } catch (error: any) {
     toast.error('Failed to save preset', {
@@ -966,6 +1284,24 @@ const handleNext = async () => {
 }
 
 const isSaving = computed(() => presetStore.isLoading)
+
+// Set up unsaved changes guard
+// Discard function to reset form data to original state
+const discardChanges = () => {
+  if (originalData.value) {
+    formData.value = { ...originalData.value }
+  }
+}
+
+const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
+  useUnsavedChangesGuard({
+    hasUnsavedChanges,
+    isSubmitting,
+    isSaving,
+    saveFunction: savePresetDesign,
+    discardFunction: discardChanges,
+    showUnsavedChangesModal,
+  })
 
 // Open preview in new tab
 const handleOpenPreviewInNewTab = async () => {
@@ -1032,3 +1368,10 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
   }))
 })
 </script>
+
+<style scoped>
+/* Hide the default DialogContent close button in focal point modal */
+:deep(.focal-point-dialog > button[class*='absolute'][class*='right-4'][class*='top-4']) {
+  display: none !important;
+}
+</style>

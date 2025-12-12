@@ -191,6 +191,9 @@ export const useGalleryStore = defineStore('gallery', () => {
       downloadPin?: string | null
       category?: 'wedding' | 'portrait' | 'event' | 'other'
       expiryDate?: string | null
+      eventDate?: Date | string | null
+      presetId?: string | undefined
+      watermarkId?: string | undefined
     }
   ) => {
     isLoading.value = true
@@ -214,6 +217,25 @@ export const useGalleryStore = defineStore('gallery', () => {
       if ('expiryDate' in updatedData && updatedData.expiryDate === null) {
         updatedData.expiryDate = undefined
       }
+      // Handle eventDate conversion to date field for optimistic update
+      if ('eventDate' in updatedData) {
+        if (updatedData.eventDate === null || updatedData.eventDate === undefined) {
+          ;(updatedData as any).date = undefined
+        } else {
+          ;(updatedData as any).date =
+            typeof updatedData.eventDate === 'string'
+              ? updatedData.eventDate
+              : updatedData.eventDate.toISOString()
+        }
+        delete updatedData.eventDate
+      }
+      // Handle presetId and watermarkId - convert undefined to null for consistency
+      if ('presetId' in updatedData && updatedData.presetId === undefined) {
+        updatedData.presetId = null
+      }
+      if ('watermarkId' in updatedData && updatedData.watermarkId === undefined) {
+        updatedData.watermarkId = null
+      }
       collections.value[index] = {
         ...collections.value[index],
         ...updatedData,
@@ -222,9 +244,20 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
 
     try {
-      await collectionsApi.updateCollection(id, data)
-      // Refresh to get updated data
-      await fetchCollections()
+      const updatedCollection = await collectionsApi.updateCollection(id, data)
+      // Update the collection in the store with the returned data
+      if (index !== -1) {
+        collections.value[index] = {
+          ...collections.value[index],
+          ...updatedCollection,
+        }
+      }
+      // Also update in the collections array if it exists there
+      const collectionInList = collections.value.find(c => c.id === id)
+      if (collectionInList) {
+        Object.assign(collectionInList, updatedCollection)
+      }
+      return updatedCollection
     } catch (err: any) {
       // Revert on error
       if (index !== -1) {
@@ -428,6 +461,27 @@ export const useGalleryStore = defineStore('gallery', () => {
   // Initialize on store creation
   initStarred()
 
+  /**
+   * Fetch a single collection by ID
+   */
+  const fetchCollection = async (id: string): Promise<Collection> => {
+    isLoading.value = true
+    error.value = null
+    try {
+      const collection = await collectionsApi.fetchCollection(id)
+      // Update starred status
+      if (starredCollectionIds.value.has(collection.id)) {
+        collection.isStarred = true
+      }
+      return collection
+    } catch (err: any) {
+      error.value = err.message || 'Failed to fetch collection'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     collections,
     starredCollectionIds,
@@ -435,6 +489,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     error,
     starredCollections,
     fetchCollections,
+    fetchCollection,
     toggleStar,
     createCollection,
     updateCollection,

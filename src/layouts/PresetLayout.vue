@@ -14,9 +14,61 @@
           >
             <X class="h-5 w-5 group-hover:scale-110 transition-transform" />
           </button>
-          <h2 class="text-lg font-semibold truncate" :class="theme.textPrimary">
-            {{ presetName }}
-          </h2>
+          <div v-if="!isEditingTitle" class="flex items-center gap-2 flex-1 min-w-0 group">
+            <h2
+              @click="startEditingTitle"
+              class="text-lg font-semibold truncate cursor-text hover:opacity-80 transition-opacity px-1 -mx-1 rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+              :class="theme.textPrimary"
+              title="Click to edit preset name"
+            >
+              {{ presetName }}
+            </h2>
+            <button
+              @click.stop="startEditingTitle"
+              class="p-1.5 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all shrink-0 opacity-0 group-hover:opacity-100"
+              :class="theme.textSecondary"
+              title="Edit preset name"
+            >
+              <Pencil class="h-4 w-4" />
+            </button>
+          </div>
+          <form v-else @submit.prevent="saveTitle" class="flex items-center gap-2 flex-1 min-w-0">
+            <input
+              ref="titleInputRef"
+              v-model="editingTitle"
+              @keydown.enter="handleEnterKey"
+              @keydown.esc="cancelEditingTitle"
+              @blur="handleBlur"
+              :disabled="isSavingTitle"
+              class="flex-1 text-lg font-semibold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              :class="[theme.bgInput, theme.borderInput, theme.textInput, 'min-w-0']"
+              placeholder="Preset name"
+            />
+            <div class="flex items-center gap-1 shrink-0">
+              <button
+                type="submit"
+                @mousedown.prevent
+                :disabled="isSavingTitle"
+                class="p-1.5 rounded-lg hover:bg-teal-500/20 active:bg-teal-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="theme.textSecondary"
+                title="Save (Enter)"
+              >
+                <Check v-if="!isSavingTitle" class="h-4 w-4 text-teal-500" />
+                <Loader2 v-else class="h-4 w-4 text-teal-500 animate-spin" />
+              </button>
+              <button
+                type="button"
+                @mousedown.prevent
+                @click="cancelEditingTitle"
+                :disabled="isSavingTitle"
+                class="p-1.5 rounded-lg hover:bg-red-500/20 active:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                :class="theme.textSecondary"
+                title="Cancel (Esc)"
+              >
+                <X class="h-4 w-4 text-red-500" />
+              </button>
+            </div>
+          </form>
         </div>
         <div class="flex items-center gap-3">
           <ThemeToggle />
@@ -108,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, provide } from 'vue'
+import { computed, ref, provide, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   X,
@@ -117,13 +169,16 @@ import {
   Lock,
   Download,
   Heart,
-  ShoppingCart,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Check,
+  Loader2,
 } from 'lucide-vue-next'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { usePresetStore } from '@/stores/preset'
+import { usePresetStore, type Preset } from '@/stores/preset'
+import { toast } from 'vue-sonner'
 
 const route = useRoute()
 const router = useRouter()
@@ -149,6 +204,101 @@ const presetName = computed(() => {
   return currentPreset.value?.name || 'Demo Test Preset'
 })
 
+// Title editing state
+const isEditingTitle = ref(false)
+const editingTitle = ref('')
+const titleInputRef = ref<HTMLInputElement | null>(null)
+const isSavingTitle = ref(false)
+const isBlurring = ref(false)
+
+// Watch preset name changes to update editing title
+watch(
+  () => currentPreset.value?.name,
+  (newName: string | undefined) => {
+    if (newName && !isEditingTitle.value) {
+      editingTitle.value = newName
+    }
+  },
+  { immediate: true }
+)
+
+const startEditingTitle = async () => {
+  if (!currentPreset.value) return
+  editingTitle.value = currentPreset.value.name || ''
+  isEditingTitle.value = true
+  await nextTick()
+  titleInputRef.value?.focus()
+  titleInputRef.value?.select()
+}
+
+const cancelEditingTitle = () => {
+  if (isSavingTitle.value) return
+  isEditingTitle.value = false
+  editingTitle.value = currentPreset.value?.name || ''
+}
+
+const handleEnterKey = (e: KeyboardEvent) => {
+  e.preventDefault()
+  saveTitle()
+}
+
+const handleBlur = () => {
+  // Use setTimeout to allow click events on buttons to fire first
+  setTimeout(() => {
+    if (!isBlurring.value && !isSavingTitle.value) {
+      saveTitle()
+    }
+    isBlurring.value = false
+  }, 200)
+}
+
+const saveTitle = async () => {
+  if (!currentPreset.value || isSavingTitle.value) return
+
+  const newName = editingTitle.value.trim()
+  const oldName = currentPreset.value.name
+
+  // Don't save if name hasn't changed or is empty
+  if (newName === oldName || !newName) {
+    cancelEditingTitle()
+    return
+  }
+
+  // Check if name already exists (excluding current preset)
+  const existingPreset = presetStore.presets.find(
+    p => p.name.toLowerCase() === newName.toLowerCase() && p.id !== currentPreset.value?.id
+  )
+  if (existingPreset) {
+    toast.error('A preset with this name already exists')
+    titleInputRef.value?.focus()
+    return
+  }
+
+  isSavingTitle.value = true
+  isBlurring.value = true
+  try {
+    await presetStore.updatePreset(currentPreset.value.id, { name: newName })
+
+    // Update route if name changed
+    if (oldName !== newName) {
+      router.replace({
+        name: route.name as string,
+        params: { name: newName },
+      })
+    }
+
+    toast.success('Preset name updated')
+    isEditingTitle.value = false
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update preset name'
+    toast.error(errorMessage)
+    titleInputRef.value?.focus()
+  } finally {
+    isSavingTitle.value = false
+    isBlurring.value = false
+  }
+}
+
 // Navigation items
 const navigationItems = [
   { id: 'general', label: 'General', icon: Settings, route: 'presetGeneral' },
@@ -156,7 +306,6 @@ const navigationItems = [
   { id: 'privacy', label: 'Privacy', icon: Lock, route: 'presetPrivacy' },
   { id: 'download', label: 'Download', icon: Download, route: 'presetDownload' },
   { id: 'favorite', label: 'Favorite', icon: Heart, route: 'presetFavorite' },
-  { id: 'store', label: 'Store', icon: ShoppingCart, route: 'presetStore' },
 ]
 
 // Determine active tab based on current route
@@ -167,7 +316,6 @@ const activeTab = computed(() => {
   if (routeName === 'presetPrivacy') return 'privacy'
   if (routeName === 'presetDownload') return 'download'
   if (routeName === 'presetFavorite') return 'favorite'
-  if (routeName === 'presetStore') return 'store'
   return 'general'
 })
 

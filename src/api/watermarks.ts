@@ -5,6 +5,8 @@
  */
 
 import { storage } from '@/utils/storage'
+import { generateUUID } from '@/utils/uuid'
+import { delay } from '@/utils/delay'
 
 const WATERMARKS_STORAGE_KEY = 'mazeloot_watermarks'
 
@@ -56,21 +58,6 @@ export interface CreateWatermarkData {
 }
 
 export interface UpdateWatermarkData extends Partial<CreateWatermarkData> {}
-
-/**
- * Generate a UUID v4
- */
-const generateUUID = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  // Fallback for environments without crypto.randomUUID
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
-}
 
 /**
  * Initialize mock data in localStorage if not exists
@@ -205,7 +192,7 @@ export function useWatermarksApi() {
    * Fetch all watermarks
    */
   const fetchWatermarks = async (): Promise<Watermark[]> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
     return getAllWatermarks()
   }
 
@@ -213,7 +200,7 @@ export function useWatermarksApi() {
    * Fetch single watermark by ID
    */
   const fetchWatermark = async (id: string): Promise<Watermark> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const watermarks = getAllWatermarks()
     const watermark = watermarks.find(w => w.id === id)
@@ -229,7 +216,7 @@ export function useWatermarksApi() {
    * Create new watermark
    */
   const createWatermark = async (data: CreateWatermarkData): Promise<Watermark> => {
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await delay(1000)
 
     const watermarks = getAllWatermarks()
     const newWatermark: Watermark = {
@@ -267,7 +254,7 @@ export function useWatermarksApi() {
    * Update watermark
    */
   const updateWatermark = async (id: string, data: UpdateWatermarkData): Promise<Watermark> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const watermarks = getAllWatermarks()
     const index = watermarks.findIndex(w => w.id === id)
@@ -290,7 +277,7 @@ export function useWatermarksApi() {
    * Delete watermark
    */
   const deleteWatermark = async (id: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 500))
+    await delay(500)
 
     const watermarks = getAllWatermarks()
     const filtered = watermarks.filter(w => w.id !== id)
@@ -302,7 +289,7 @@ export function useWatermarksApi() {
    */
   const uploadWatermarkImage = async (file: File): Promise<{ url: string }> => {
     // TODO: Replace with actual API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await delay(1000)
 
     // Mock: create object URL for preview
     return { url: URL.createObjectURL(file) }

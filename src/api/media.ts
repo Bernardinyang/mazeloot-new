@@ -5,6 +5,8 @@
  */
 
 import { storage } from '@/utils/storage'
+import { generateUUID } from '@/utils/uuid'
+import { delay } from '@/utils/delay'
 
 const MEDIA_STORAGE_KEY = 'mazeloot_media'
 
@@ -19,17 +21,6 @@ export interface MediaItem {
   order?: number
   createdAt: string
   updatedAt: string
-}
-
-const generateUUID = (): string => {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = (Math.random() * 16) | 0
-    const v = c === 'x' ? r : (r & 0x3) | 0x8
-    return v.toString(16)
-  })
 }
 
 /**
@@ -127,7 +118,7 @@ export function useMediaApi() {
    * Fetch media for a collection
    */
   const fetchCollectionMedia = async (collectionId: string): Promise<MediaItem[]> => {
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await delay(300)
 
     const allMedia = getAllMedia()
     const collectionMedia = allMedia
@@ -144,7 +135,7 @@ export function useMediaApi() {
     collectionId: string,
     mediaData: Partial<MediaItem>
   ): Promise<MediaItem> => {
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await delay(300)
 
     const allMedia = getAllMedia()
     const newMedia: MediaItem = {
@@ -169,7 +160,7 @@ export function useMediaApi() {
    * Delete media
    */
   const deleteMedia = async (mediaId: string): Promise<void> => {
-    await new Promise(resolve => setTimeout(resolve, 300))
+    await delay(300)
 
     const allMedia = getAllMedia()
     const filtered = allMedia.filter(m => m.id !== mediaId)
