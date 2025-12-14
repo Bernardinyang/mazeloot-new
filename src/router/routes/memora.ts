@@ -18,6 +18,16 @@ import PresetDownloadView from '@/views/user/memora/preset/Download.vue'
 import PresetFavoriteView from '@/views/user/memora/preset/Favorite.vue'
 import CollectionPreviewView from '@/views/user/memora/preview/CollectionPreview.vue'
 import CollectionPhotosView from '@/views/user/memora/collections/Photos.vue'
+import CollectionCoverView from '@/views/user/memora/collections/design/Cover.vue'
+import CollectionTypographyView from '@/views/user/memora/collections/design/Typography.vue'
+import CollectionColorView from '@/views/user/memora/collections/design/Color.vue'
+import CollectionGridView from '@/views/user/memora/collections/design/Grid.vue'
+import CollectionSettingsGeneralView from '@/views/user/memora/collections/settings/General.vue'
+import CollectionSettingsPrivacyView from '@/views/user/memora/collections/settings/Privacy.vue'
+import CollectionSettingsDownloadView from '@/views/user/memora/collections/settings/Download.vue'
+import CollectionSettingsDownloadGeneralView from '@/views/user/memora/collections/settings/DownloadGeneral.vue'
+import CollectionSettingsDownloadAdvancedView from '@/views/user/memora/collections/settings/DownloadAdvanced.vue'
+import CollectionSettingsFavoriteView from '@/views/user/memora/collections/settings/Favorite.vue'
 
 export const memoraRoutes: RouteRecordRaw[] = [
   {
@@ -192,6 +202,92 @@ export const memoraRoutes: RouteRecordRaw[] = [
     path: '/memora/collections/:uuid/photos',
     name: 'collectionPhotos',
     component: CollectionPhotosView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/design/cover',
+    name: 'collectionCover',
+    component: CollectionCoverView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/design/typography',
+    name: 'collectionTypography',
+    component: CollectionTypographyView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/design/color',
+    name: 'collectionColor',
+    component: CollectionColorView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/design/grid',
+    name: 'collectionGrid',
+    component: CollectionGridView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/settings/general',
+    name: 'collectionSettingsGeneral',
+    component: CollectionSettingsGeneralView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/settings/privacy',
+    name: 'collectionSettingsPrivacy',
+    component: CollectionSettingsPrivacyView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/settings/download',
+    name: 'collectionSettingsDownload',
+    component: CollectionSettingsDownloadView,
+    redirect: to => ({
+      name: 'collectionSettingsDownloadGeneral',
+      params: to.params,
+    }),
+    meta: {
+      requiresAuth: true,
+    },
+    children: [
+      {
+        path: 'general',
+        name: 'collectionSettingsDownloadGeneral',
+        component: CollectionSettingsDownloadGeneralView,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+      {
+        path: 'advanced',
+        name: 'collectionSettingsDownloadAdvanced',
+        component: CollectionSettingsDownloadAdvancedView,
+        meta: {
+          requiresAuth: true,
+        },
+      },
+    ],
+  },
+  {
+    path: '/memora/collections/:uuid/settings/favorite',
+    name: 'collectionSettingsFavorite',
+    component: CollectionSettingsFavoriteView,
     meta: {
       requiresAuth: true,
     },

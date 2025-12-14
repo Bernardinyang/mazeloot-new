@@ -23,9 +23,28 @@ export const storage = {
    */
   set<T>(key: string, value: T): void {
     try {
-      localStorage.setItem(key, JSON.stringify(value))
-    } catch (error) {
-      console.error(`Error writing to localStorage key "${key}":`, error)
+      const serialized = JSON.stringify(value)
+      localStorage.setItem(key, serialized)
+    } catch (error: any) {
+      // Check for quota exceeded error in multiple ways
+      const isQuotaError =
+        error?.name === 'QuotaExceededError' ||
+        error?.code === 22 ||
+        error?.message?.includes('quota') ||
+        error?.message?.includes('QuotaExceededError') ||
+        error?.toString()?.includes('quota') ||
+        error?.toString()?.includes('QuotaExceededError')
+
+      if (isQuotaError) {
+        const quotaError: any = new Error(
+          `Storage quota exceeded for key "${key}". Please clear some data or reduce file sizes.`
+        )
+        quotaError.name = 'QuotaExceededError'
+        quotaError.code = 22
+        quotaError.originalError = error
+        throw quotaError
+      }
+      throw error
     }
   },
 

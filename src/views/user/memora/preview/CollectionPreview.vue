@@ -64,7 +64,7 @@
     <!-- Cover Section (when cover is not 'none') -->
     <div
       v-else
-      class="relative w-full h-screen"
+      class="relative w-full min-h-screen"
       :style="{
         backgroundImage: coverImageWithFallback ? `url(${coverImageWithFallback})` : undefined,
         backgroundSize: coverImageWithFallback ? 'cover' : undefined,
@@ -106,59 +106,51 @@
         <!-- Cover Type: Joy - Special Layout with title, avatar in O, date, name, button -->
         <div
           v-if="coverConfig.specialLayout === 'joy'"
-          class="flex flex-col items-center justify-center h-full"
+          class="flex flex-col items-center justify-center h-full relative"
+          :style="{ backgroundColor: '#FAFAFA' }"
         >
-          <!-- Background pattern (crosses) -->
+          <!-- Background pattern (subtle stars/plus signs) -->
           <div
-            v-if="
-              (designConfig as any).joyCoverBackgroundPattern === 'crosses' ||
-              !(designConfig as any).joyCoverBackgroundPattern
-            "
-            class="absolute inset-0 opacity-30"
-            style="
-              background-image:
-                repeating-linear-gradient(
-                  0deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(239, 68, 68, 0.1) 2px,
-                  rgba(239, 68, 68, 0.1) 4px
-                ),
-                repeating-linear-gradient(
-                  90deg,
-                  transparent,
-                  transparent 2px,
-                  rgba(239, 68, 68, 0.1) 2px,
-                  rgba(239, 68, 68, 0.1) 4px
-                );
-            "
+            v-if="joyCoverBackgroundPattern === 'crosses' || !joyCoverBackgroundPattern"
+            class="absolute inset-0 opacity-20"
           >
-            <!-- Scattered crosses -->
+            <!-- Scattered star/plus patterns -->
             <div
-              v-for="i in 20"
+              v-for="i in 25"
               :key="i"
               class="absolute"
               :style="{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                width: '4px',
-                height: '4px',
+                top: `${10 + Math.random() * 80}%`,
+                left: `${10 + Math.random() * 80}%`,
+                width: '3px',
+                height: '3px',
                 transform: 'rotate(45deg)',
-                backgroundColor: 'rgba(239, 68, 68, 0.3)',
+                backgroundColor: Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'transparent',
+                border: Math.random() > 0.5 ? '1px solid rgba(220, 38, 38, 0.2)' : 'none',
+                filter: 'blur(0.5px)',
               }"
             ></div>
           </div>
 
+          <!-- Top Branding: BERNODE -->
+          <div
+            class="text-xs uppercase tracking-[0.2em] font-light mb-8 z-10"
+            :class="['font-sans']"
+            :style="{
+              color: '#1F2937',
+              letterSpacing: '0.2em',
+            }"
+          >
+            BERNODE
+          </div>
+
           <!-- Title with avatar in O -->
-          <div class="flex items-center gap-4 md:gap-8 mb-6 md:mb-8 z-10">
-            <template
-              v-for="(char, index) in ((designConfig as any).joyCoverTitle || 'JOY').split('')"
-              :key="index"
-            >
+          <div class="flex items-center gap-4 md:gap-6 mb-6 md:mb-8 z-10">
+            <template v-for="(char, index) in joyCoverTitle.split('')" :key="`char-${index}`">
               <span
                 v-if="char.toUpperCase() !== 'O'"
-                class="text-6xl md:text-8xl lg:text-9xl font-black leading-none"
-                :class="[fontFamilyClass, fontStyleClass]"
+                class="text-7xl md:text-8xl lg:text-9xl font-bold leading-none"
+                :class="['font-serif']"
                 :style="{
                   color: '#DC2626',
                   textShadow: 'none',
@@ -168,14 +160,14 @@
               </span>
               <div v-else class="relative">
                 <div
-                  v-if="(designConfig as any).joyCoverAvatar || coverImageWithFallback"
-                  class="w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full overflow-hidden"
+                  v-if="joyCoverAvatar || coverImageWithFallback"
+                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
                   :style="{
                     border: 'none',
                   }"
                 >
                   <img
-                    :src="(designConfig as any).joyCoverAvatar || coverImageWithFallback"
+                    :src="joyCoverAvatar || coverImageWithFallback"
                     alt="Avatar"
                     class="w-full h-full object-cover"
                     @error="handleCoverImageError"
@@ -183,7 +175,7 @@
                 </div>
                 <div
                   v-else
-                  class="w-20 h-20 md:w-28 md:h-28 lg:w-36 lg:h-36 rounded-full bg-gradient-to-br from-gray-300 to-gray-400 dark:from-gray-600 dark:to-gray-700"
+                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-amber-50 to-amber-100"
                 ></div>
               </div>
             </template>
@@ -191,25 +183,24 @@
 
           <!-- Date -->
           <div
-            v-if="(designConfig as any).joyCoverShowDate !== false && eventDate"
-            class="text-sm md:text-base lg:text-lg uppercase tracking-widest font-medium mb-4 z-10"
-            :class="[fontFamilyClass, fontStyleClass]"
+            v-if="joyCoverShowDate !== false && eventDate"
+            class="text-sm md:text-base uppercase tracking-[0.15em] font-light mb-4 z-10"
+            :class="['font-sans']"
             :style="{
-              color: textColor,
-              opacity: 0.8,
+              color: '#1F2937',
               letterSpacing: '0.15em',
             }"
           >
             {{ formattedDate }}
           </div>
 
-          <!-- Name -->
+          <!-- Collection Title (Name) -->
           <div
-            v-if="(designConfig as any).joyCoverShowName !== false"
-            class="text-2xl md:text-3xl lg:text-4xl font-black uppercase mb-6 md:mb-8 z-10"
-            :class="[fontFamilyClass, fontStyleClass]"
+            v-if="joyCoverShowName !== false"
+            class="text-xl md:text-2xl lg:text-3xl font-normal italic mb-6 md:mb-8 z-10"
+            :class="['font-serif']"
             :style="{
-              color: textColor,
+              color: '#1F2937',
             }"
           >
             {{ collectionName }}
@@ -217,14 +208,15 @@
 
           <!-- Button -->
           <button
-            v-if="(designConfig as any).joyCoverShowButton !== false"
-            class="px-6 md:px-8 py-2.5 md:py-3 rounded-lg text-sm md:text-base font-semibold uppercase tracking-wider text-white shadow-lg transition-all duration-300 hover:shadow-xl hover:scale-105 z-10"
+            v-if="joyCoverShowButton !== false"
+            class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
             :style="{
-              backgroundColor: '#6B7280',
+              backgroundColor: '#374151',
+              borderRadius: '0',
             }"
             @click="scrollToGallery"
           >
-            {{ (designConfig as any).joyCoverButtonText || 'VIEW GALLERY' }}
+            {{ joyCoverButtonText || 'VIEW GALLERY' }}
           </button>
         </div>
 
@@ -395,43 +387,66 @@
       <!-- Navigation Tabs (only show if cover is not 'none', as navbar handles it) -->
       <div
         v-if="coverConfig.specialLayout !== 'none'"
-        class="mb-8 flex items-center gap-6 border-b pb-4"
+        class="mb-8 flex items-center justify-between pb-4"
         :style="{ borderColor: borderColor }"
       >
-        <div
-          class="text-lg md:text-xl font-semibold"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{ color: textColor }"
-        >
-          {{ collectionName }}
+        <!-- Left: Collection Name and Branding -->
+        <div class="flex flex-col">
+          <div
+            class="text-base md:text-lg font-semibold uppercase tracking-wide"
+            :class="['font-sans']"
+            :style="{ color: textColor }"
+          >
+            {{ collectionName.toUpperCase() }}
+          </div>
+          <div
+            class="text-xs md:text-sm font-light uppercase tracking-wide mt-0.5"
+            :class="['font-sans']"
+            :style="{ color: textColor, opacity: 0.8 }"
+          >
+            {{ brandingText }}
+          </div>
         </div>
-        <div class="flex gap-4">
+
+        <!-- Center: Navigation Links -->
+        <div class="flex items-center gap-6">
           <button
             v-for="tab in tabs"
             :key="tab"
-            class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
-            :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : '']"
+            class="text-sm font-normal transition-all duration-200"
+            :class="['font-sans', activeTab === tab ? 'font-semibold' : '']"
             :style="{
-              color: activeTab === tab ? accentColor : tabTextColor,
-              borderBottom: activeTab === tab ? `3px solid ${accentColor}` : 'none',
-              paddingBottom: '4px',
-              opacity: activeTab === tab ? 1 : 0.85,
+              color: activeTab === tab ? textColor : tabTextColor,
+              opacity: activeTab === tab ? 1 : 0.7,
             }"
             @click="activeTab = tab"
           >
-            <component
-              v-if="
-                designConfig.navigationStyle === 'icon-only' ||
-                designConfig.navigationStyle === 'icon-text'
-              "
-              :is="getTabIcon(tab)"
-              class="h-4 w-4"
-            />
-            <span
-              v-if="!designConfig.navigationStyle || designConfig.navigationStyle === 'icon-text'"
-            >
-              {{ tab }}
-            </span>
+            {{ tab }}
+          </button>
+        </div>
+
+        <!-- Right: Action Icons -->
+        <div class="flex items-center gap-4">
+          <button
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
+            :style="{ color: textColor }"
+            title="Like"
+          >
+            <Heart class="h-5 w-5" />
+          </button>
+          <button
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
+            :style="{ color: textColor }"
+            title="Share"
+          >
+            <Share2 class="h-5 w-5" />
+          </button>
+          <button
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
+            :style="{ color: textColor }"
+            title="More"
+          >
+            <MoreVertical class="h-5 w-5" />
           </button>
         </div>
       </div>
@@ -476,7 +491,7 @@
         <div
           v-for="item in paginatedMedia"
           :key="item.id"
-          class="overflow-hidden rounded-lg"
+          class="overflow-hidden"
           :class="[
             designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
             designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
@@ -621,6 +636,27 @@
         </div>
       </div>
     </div>
+
+    <!-- Preview Controls Footer -->
+    <div
+      class="sticky bottom-0 w-full border-t bg-gray-100 dark:bg-gray-900 px-4 py-2 flex items-center justify-center gap-4 z-50"
+      :style="{ borderColor: borderColor }"
+    >
+      <button
+        class="p-2 transition-opacity duration-200 hover:opacity-70"
+        :style="{ color: textColor }"
+        title="Desktop View"
+      >
+        <Monitor class="h-4 w-4" />
+      </button>
+      <button
+        class="p-2 transition-opacity duration-200 hover:opacity-70 opacity-60"
+        :style="{ color: textColor }"
+        title="Mobile View"
+      >
+        <Smartphone class="h-4 w-4" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -634,6 +670,11 @@ import {
   Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
+  Heart,
+  Share2,
+  MoreVertical,
+  Monitor,
+  Smartphone,
 } from 'lucide-vue-next'
 import { useCollectionsApi, type Collection } from '@/api/collections'
 import { useMediaApi, type MediaItem } from '@/api/media'
@@ -1039,6 +1080,17 @@ const formattedDate = computed(() => {
 
 const showBranding = computed(() => true) // Can be made configurable
 const brandingText = computed(() => 'BERNODE') // Can come from branding settings
+
+// Joy cover config computed properties
+const joyCoverTitle = computed(() => (designConfig.value as any).joyCoverTitle || 'JOY')
+const joyCoverAvatar = computed(() => (designConfig.value as any).joyCoverAvatar)
+const joyCoverBackgroundPattern = computed(
+  () => (designConfig.value as any).joyCoverBackgroundPattern
+)
+const joyCoverShowDate = computed(() => (designConfig.value as any).joyCoverShowDate)
+const joyCoverShowName = computed(() => (designConfig.value as any).joyCoverShowName)
+const joyCoverShowButton = computed(() => (designConfig.value as any).joyCoverShowButton)
+const joyCoverButtonText = computed(() => (designConfig.value as any).joyCoverButtonText)
 
 const tabs = computed(() => {
   // Get tabs from preset or use defaults

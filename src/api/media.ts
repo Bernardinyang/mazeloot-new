@@ -2,19 +2,47 @@
  * Media API composable
  * Handles all media-related API calls for collections
  * Uses localStorage for persistence until backend is ready
+ * Falls back to IndexedDB when localStorage quota is exceeded
  */
 
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
+import {
+  getMediaFromIndexedDB,
+  saveMediaToIndexedDB,
+  isIndexedDBAvailable,
+} from '@/utils/indexedDB'
 
 const MEDIA_STORAGE_KEY = 'mazeloot_media'
+const USE_INDEXED_DB_KEY = 'mazeloot_use_indexeddb'
+let useIndexedDB = false
+
+// Check if we should use IndexedDB (persisted preference)
+const checkIndexedDBPreference = (): boolean => {
+  const preference = storage.get<boolean>(USE_INDEXED_DB_KEY)
+  return preference === true
+}
+
+// Set IndexedDB preference
+const setIndexedDBPreference = (value: boolean): void => {
+  try {
+    storage.set(USE_INDEXED_DB_KEY, value)
+  } catch {
+    // Ignore errors when setting preference
+  }
+}
+
+// Initialize useIndexedDB from preference
+useIndexedDB = checkIndexedDBPreference()
 
 export interface MediaItem {
   id: string
   collectionId: string
+  setId?: string // ID of the media set this item belongs to
   url: string
   thumbnail?: string
+  originalUrl?: string // Original image URL before watermark was applied
   type: 'image' | 'video'
   title?: string
   description?: string
@@ -64,41 +92,41 @@ const initializeMockMedia = (): MediaItem[] => {
     return stored
   }
 
-  // Generate media for existing collections
-  const collections = storage.get<any[]>('mazeloot_collections') || []
-  const media: MediaItem[] = []
-  let imageIndex = 0
-
-  collections.forEach(collection => {
-    if (!collection.isFolder && collection.id) {
-      // Generate 6-12 media items per collection
-      const itemCount = Math.floor(Math.random() * 7) + 6
-      const now = new Date()
-
-      for (let i = 0; i < itemCount; i++) {
-        media.push({
-          id: generateUUID(),
-          collectionId: collection.id,
-          url: getImageUrl(imageIndex++),
-          thumbnail: getImageUrl(imageIndex - 1) + '&w=400&h=300',
-          type: 'image',
-          title: `Photo ${i + 1}`,
-          order: i,
-          createdAt: now.toISOString(),
-          updatedAt: now.toISOString(),
-        })
-      }
-    }
-  })
-
-  storage.set(MEDIA_STORAGE_KEY, media)
-  return media
+  // Return empty array - no default images
+  return []
 }
 
 /**
  * Get all media items
  */
-const getAllMedia = (): MediaItem[] => {
+const getAllMedia = async (): Promise<MediaItem[]> => {
+  // If using IndexedDB, read from there
+  if (useIndexedDB && isIndexedDBAvailable()) {
+    try {
+      const indexedMedia = await getMediaFromIndexedDB()
+      if (indexedMedia && indexedMedia.length > 0) {
+        return indexedMedia
+      }
+    } catch (error) {
+      console.error('Failed to read from IndexedDB:', error)
+      // Fall back to localStorage if IndexedDB fails
+    }
+  }
+
+  // Try localStorage
+  const stored = storage.get<MediaItem[]>(MEDIA_STORAGE_KEY)
+  if (stored && stored.length > 0) {
+    return stored
+  }
+
+  return initializeMockMedia()
+}
+
+/**
+ * Get all media items synchronously (for backward compatibility)
+ * This will use localStorage only
+ */
+const getAllMediaSync = (): MediaItem[] => {
   const stored = storage.get<MediaItem[]>(MEDIA_STORAGE_KEY)
   if (stored && stored.length > 0) {
     return stored
@@ -108,22 +136,93 @@ const getAllMedia = (): MediaItem[] => {
 
 /**
  * Save media to storage
+ * Handles quota exceeded errors gracefully by falling back to IndexedDB
  */
-const saveMedia = (media: MediaItem[]) => {
-  storage.set(MEDIA_STORAGE_KEY, media)
+const saveMedia = async (media: MediaItem[]): Promise<void> => {
+  // Try localStorage first (if not already using IndexedDB)
+  if (!useIndexedDB) {
+    try {
+      storage.set(MEDIA_STORAGE_KEY, media)
+      return
+    } catch (error: any) {
+      // Check for quota exceeded error in multiple ways
+      const isQuotaError =
+        error?.name === 'QuotaExceededError' ||
+        error?.code === 22 ||
+        error?.message?.includes('quota exceeded') ||
+        error?.message?.includes('QuotaExceededError') ||
+        error?.toString()?.includes('quota') ||
+        error?.toString()?.includes('QuotaExceededError') ||
+        error?.originalError?.name === 'QuotaExceededError'
+
+      if (isQuotaError) {
+        console.warn(
+          'localStorage quota exceeded. Switching to IndexedDB for media storage...',
+          error
+        )
+
+        if (isIndexedDBAvailable()) {
+          useIndexedDB = true
+          setIndexedDBPreference(true) // Persist preference
+          try {
+            // Get existing data from localStorage before it's lost
+            const existing = getAllMediaSync()
+            const allMediaToSave = [...existing, ...media]
+
+            // Remove duplicates based on id
+            const uniqueMedia = allMediaToSave.reduce((acc, item) => {
+              if (!acc.find(m => m.id === item.id)) {
+                acc.push(item)
+              }
+              return acc
+            }, [] as MediaItem[])
+
+            // Save all media to IndexedDB
+            await saveMediaToIndexedDB(uniqueMedia)
+            console.log('Successfully migrated to IndexedDB')
+            return
+          } catch (indexedError) {
+            console.error('Failed to save to IndexedDB:', indexedError)
+            throw new Error(
+              'Storage quota exceeded and IndexedDB save failed. Please clear some data.'
+            )
+          }
+        } else {
+          throw new Error(
+            'Storage quota exceeded and IndexedDB is not available. Please clear some data or reduce file sizes.'
+          )
+        }
+      }
+      // Re-throw other errors
+      throw error
+    }
+  }
+
+  // If using IndexedDB, save there
+  if (useIndexedDB && isIndexedDBAvailable()) {
+    await saveMediaToIndexedDB(media)
+  }
 }
 
 export function useMediaApi() {
   /**
    * Fetch media for a collection
    */
-  const fetchCollectionMedia = async (collectionId: string): Promise<MediaItem[]> => {
+  const fetchCollectionMedia = async (
+    collectionId: string,
+    setId?: string
+  ): Promise<MediaItem[]> => {
     await delay(300)
 
-    const allMedia = getAllMedia()
-    const collectionMedia = allMedia
-      .filter(m => m.collectionId === collectionId)
-      .sort((a, b) => (a.order || 0) - (b.order || 0))
+    const allMedia = await getAllMedia()
+    let collectionMedia = allMedia.filter(m => m.collectionId === collectionId)
+
+    // Filter by set if provided
+    if (setId) {
+      collectionMedia = collectionMedia.filter(m => m.setId === setId)
+    }
+
+    collectionMedia.sort((a, b) => (a.order || 0) - (b.order || 0))
 
     return collectionMedia
   }
@@ -137,10 +236,11 @@ export function useMediaApi() {
   ): Promise<MediaItem> => {
     await delay(300)
 
-    const allMedia = getAllMedia()
+    const allMedia = await getAllMedia()
     const newMedia: MediaItem = {
       id: generateUUID(),
       collectionId,
+      setId: mediaData.setId,
       url: mediaData.url || '',
       thumbnail: mediaData.thumbnail,
       type: mediaData.type || 'image',
@@ -152,8 +252,29 @@ export function useMediaApi() {
     }
 
     allMedia.push(newMedia)
-    saveMedia(allMedia)
+    await saveMedia(allMedia)
     return newMedia
+  }
+
+  /**
+   * Update media
+   */
+  const updateMedia = async (mediaId: string, updates: Partial<MediaItem>): Promise<MediaItem> => {
+    await delay(300)
+
+    const allMedia = await getAllMedia()
+    const index = allMedia.findIndex(m => m.id === mediaId)
+    if (index === -1) {
+      throw new Error('Media not found')
+    }
+
+    allMedia[index] = {
+      ...allMedia[index],
+      ...updates,
+      updatedAt: new Date().toISOString(),
+    }
+    await saveMedia(allMedia)
+    return allMedia[index]
   }
 
   /**
@@ -162,14 +283,15 @@ export function useMediaApi() {
   const deleteMedia = async (mediaId: string): Promise<void> => {
     await delay(300)
 
-    const allMedia = getAllMedia()
+    const allMedia = await getAllMedia()
     const filtered = allMedia.filter(m => m.id !== mediaId)
-    saveMedia(filtered)
+    await saveMedia(filtered)
   }
 
   return {
     fetchCollectionMedia,
     addMedia,
+    updateMedia,
     deleteMedia,
   }
 }

@@ -42,6 +42,171 @@
       >
     </div>
 
+    <!-- Left - Title on left side -->
+    <div
+      v-else-if="type === 'left'"
+      class="w-full h-full bg-gradient-to-br from-sky-200 to-blue-300 dark:from-sky-800 dark:to-blue-900 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/20"></div>
+      <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[7px] font-bold text-white z-10"
+        >TITLE</span
+      >
+    </div>
+
+    <!-- Center - Title centered -->
+    <div
+      v-else-if="type === 'center'"
+      class="w-full h-full bg-gradient-to-br from-amber-200 to-orange-300 dark:from-amber-800 dark:to-orange-900 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/20"></div>
+      <span
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[7px] font-bold text-white z-10"
+        >TITLE</span
+      >
+    </div>
+
+    <!-- Novel - Title bottom center -->
+    <div
+      v-else-if="type === 'novel'"
+      class="w-full h-full bg-gradient-to-br from-amber-100 to-yellow-200 dark:from-amber-900 dark:to-yellow-800 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/10"></div>
+      <span
+        class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[7px] font-semibold text-white z-10"
+        >TITLE</span
+      >
+    </div>
+
+    <!-- Vintage - Title bottom center -->
+    <div
+      v-else-if="type === 'vintage'"
+      class="w-full h-full bg-gradient-to-br from-green-200 to-emerald-300 dark:from-green-800 dark:to-emerald-900 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/15"></div>
+      <span
+        class="absolute bottom-2 left-1/2 -translate-x-1/2 text-[7px] font-semibold text-white z-10"
+        >TITLE</span
+      >
+    </div>
+
+    <!-- Stripe - Title on horizontal white stripe -->
+    <div
+      v-else-if="type === 'stripe'"
+      class="w-full h-full bg-gradient-to-br from-blue-200 to-cyan-300 dark:from-blue-800 dark:to-cyan-900 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/10"></div>
+      <div
+        class="absolute top-1/2 left-0 right-0 h-3 bg-white/90 dark:bg-gray-800/90 -translate-y-1/2"
+      ></div>
+      <span
+        class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[7px] font-bold text-gray-900 dark:text-white z-10"
+        >TITLE</span
+      >
+    </div>
+
+    <!-- Divider - Title on both halves of split -->
+    <div v-else-if="type === 'divider'" class="w-full h-full flex relative">
+      <div
+        class="w-1/2 h-full relative"
+        :style="{
+          backgroundImage:
+            'url(https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=200&h=300&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'left',
+        }"
+      >
+        <div class="absolute inset-0 bg-black/20"></div>
+        <span
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[6px] font-semibold text-white z-10"
+          >TITLE</span
+        >
+      </div>
+      <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white"></div>
+      <div
+        class="w-1/2 h-full relative"
+        :style="{
+          backgroundImage:
+            'url(https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=200&h=300&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'right',
+        }"
+      >
+        <div class="absolute inset-0 bg-black/20"></div>
+        <span
+          class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[6px] font-semibold text-white z-10"
+          >TITLE</span
+        >
+      </div>
+    </div>
+
+    <!-- Journal - Small image, title below -->
+    <div
+      v-else-if="type === 'journal'"
+      class="w-full h-full bg-white dark:bg-gray-800 flex flex-col relative"
+    >
+      <div
+        class="w-full h-2/3 relative"
+        :style="{
+          backgroundImage:
+            'url(https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=400&h=200&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }"
+      ></div>
+      <div class="flex-1 flex items-center justify-center">
+        <span class="text-[7px] font-semibold text-gray-900 dark:text-white">TITLE</span>
+      </div>
+    </div>
+
+    <!-- Stamp - Small image, title below -->
+    <div
+      v-else-if="type === 'stamp'"
+      class="w-full h-full bg-white dark:bg-gray-800 flex flex-col relative"
+    >
+      <div
+        class="w-3/4 h-2/3 mx-auto mt-2 relative rounded-sm overflow-hidden"
+        :style="{
+          backgroundImage:
+            'url(https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=300&h=200&fit=crop)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }"
+      ></div>
+      <div class="flex-1 flex items-center justify-center">
+        <span class="text-[7px] font-semibold text-gray-900 dark:text-white">TITLE</span>
+      </div>
+    </div>
+
     <!-- 5. Geometric - Shapes -->
     <div
       v-else-if="type === 'geometric'"
@@ -197,6 +362,25 @@
       <div class="absolute inset-0 border border-teal-500/40"></div>
       <div class="absolute inset-1 border border-teal-500/60"></div>
       <span class="text-[7px] font-semibold text-gray-900 dark:text-white z-10">TITLE</span>
+    </div>
+
+    <!-- Frame - White frame at bottom with title -->
+    <div
+      v-else-if="type === 'frame'"
+      class="w-full h-full bg-gradient-to-br from-slate-200 to-gray-300 dark:from-slate-800 dark:to-gray-700 relative"
+      :style="{
+        backgroundImage:
+          'url(https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=300&fit=crop)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }"
+    >
+      <div class="absolute inset-0 bg-black/10"></div>
+      <div class="absolute bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-800/95 px-2 py-1.5">
+        <span class="text-[7px] font-semibold text-gray-900 dark:text-white block text-center"
+          >TITLE</span
+        >
+      </div>
     </div>
 
     <!-- 17. Minimal - Ultra clean -->
