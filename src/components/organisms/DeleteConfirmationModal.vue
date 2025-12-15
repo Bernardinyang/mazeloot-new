@@ -1,19 +1,19 @@
 <template>
   <CenterModal
     v-model="isOpen"
-    :title="title"
     :description="description"
+    :title="title"
     content-class="sm:max-w-[425px]"
   >
     <div class="space-y-4 py-4">
       <div class="space-y-2">
-        <p class="text-sm" :class="theme.textSecondary">
+        <p :class="theme.textSecondary" class="text-sm">
           Are you sure you want to delete
-          <span class="font-semibold" :class="theme.textPrimary">
+          <span :class="theme.textPrimary" class="font-semibold">
             {{ itemName || fallbackName }} </span
           >?
         </p>
-        <p class="text-xs" :class="theme.textTertiary">
+        <p :class="theme.textTertiary" class="text-xs">
           {{ warningMessage }}
         </p>
       </div>
@@ -21,12 +21,12 @@
 
     <template #footer>
       <ActionButtonGroup
-        :loading="isDeleting"
         :disabled="isDeleting"
+        :loading="isDeleting"
         cancel-label="Cancel"
+        confirm-button-class="bg-red-500 hover:bg-red-600 text-white"
         confirm-label="Delete"
         loading-label="Deleting..."
-        confirm-button-class="bg-red-500 hover:bg-red-600 text-white"
         @cancel="handleCancel"
         @confirm="handleConfirm"
       />
@@ -34,7 +34,7 @@
   </CenterModal>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { computed } from 'vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'

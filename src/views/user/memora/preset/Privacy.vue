@@ -1,12 +1,12 @@
 <template>
   <PresetLayout>
     <div
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-7xl'"
     >
       <div class="mb-10">
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="text-3xl font-bold" :class="theme.textPrimary">Privacy</h1>
+          <h1 :class="theme.textPrimary" class="text-3xl font-bold">Privacy</h1>
           <Transition
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -24,7 +24,7 @@
             </div>
           </Transition>
         </div>
-        <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+        <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
           Configure privacy and visibility settings for collections created from this preset.
         </p>
       </div>
@@ -32,17 +32,17 @@
       <div class="space-y-8 max-w-3xl">
         <!-- Collection Password Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.collectionPassword ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-lg font-bold mb-2" :class="theme.textPrimary">Collection Password</h3>
-              <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Collection Password</h3>
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 If enabled, all collections created from this collection preset will have a secure
                 password set automatically at the time of their creation.
               </p>
@@ -51,8 +51,8 @@
               <ToggleSwitch
                 v-model="formData.collectionPassword"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -60,17 +60,17 @@
 
         <!-- Show on Homepage Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.showOnHomepage ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-lg font-bold mb-2" :class="theme.textPrimary">Show on Homepage</h3>
-              <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Show on Homepage</h3>
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 Show your collections on your Homepage. Manage Homepage in
                 <router-link
                   :to="{ name: 'homepageConfig' }"
@@ -85,8 +85,8 @@
               <ToggleSwitch
                 v-model="formData.showOnHomepage"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -96,19 +96,19 @@
       <!-- Bottom Navigation -->
       <div class="max-w-3xl">
         <div
-          class="flex justify-between items-center mt-12 pt-8 border-t"
           :class="theme.borderSecondary"
+          class="flex justify-between items-center mt-12 pt-8 border-t"
         >
           <Button
-            @click="handlePrevious"
-            variant="ghost"
-            :disabled="isSubmitting || isSaving"
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
               'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
+            :disabled="isSubmitting || isSaving"
+            variant="ghost"
+            @click="handlePrevious"
           >
             <ArrowLeft class="mr-2 h-4 w-4" />
             Back
@@ -116,15 +116,15 @@
           <div class="flex items-center gap-3">
             <span
               v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
-              class="text-xs"
               :class="theme.textTertiary"
+              class="text-xs"
             >
               Unsaved changes
             </span>
             <Button
-              @click="handleNext"
               :disabled="isSubmitting || isSaving"
               class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
               <ArrowRight v-else class="mr-2 h-4 w-4" />
@@ -140,27 +140,27 @@
     <UnsavedChangesModal
       v-model="showUnsavedChangesModal"
       :is-saving="isSubmitting || isSaving"
-      @save="handleSaveAndLeave"
-      @discard="handleDiscardAndLeave"
       @cancel="handleCancelNavigation"
+      @discard="handleDiscardAndLeave"
+      @save="handleSaveAndLeave"
     />
   </PresetLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
+<script lang="ts" setup>
 import type { Ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Loader2, Check, ArrowLeft, ArrowRight } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import { usePresetStore } from '@/stores/preset'
 import type { Preset } from '@/stores/preset'
+import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
 const router = useRouter()

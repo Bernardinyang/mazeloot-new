@@ -1,21 +1,21 @@
 <template>
   <CollectionLayout
-    :collection="collection"
-    :is-loading="isLoading"
-    :is-editing-name="false"
-    :editing-name="''"
-    :is-saving-name="false"
+    v-model:active-tab="activeTab"
     v-model:collection-status="collectionStatus"
-    :is-saving-status="false"
+    v-model:is-sidebar-collapsed="isSidebarCollapsed"
+    :collection="collection"
+    :editing-name="''"
     :event-date="eventDate"
+    :is-editing-name="false"
+    :is-loading="isLoading"
+    :is-saving-name="false"
+    :is-saving-status="false"
+    :presets="presets"
     :selected-preset-id="selectedPresetId"
     :selected-preset-name="selectedPresetName"
     :selected-watermark="selectedWatermark"
     :selected-watermark-name="selectedWatermarkName"
-    :presets="presets"
     :watermarks="watermarks"
-    v-model:active-tab="activeTab"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
     @go-back="goBack"
     @handle-status-change="handleStatusChange"
     @handle-date-change="handleDateChange"
@@ -25,82 +25,82 @@
     <template #sidebar>
       <!-- SETTINGS Section - Expanded -->
       <div v-if="activeTab === 'settings' && !isSidebarCollapsed" class="space-y-5">
-        <h2 class="text-xs font-bold uppercase tracking-wider mb-4" :class="theme.textSecondary">
+        <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
           SETTINGS
         </h2>
         <div class="space-y-1">
           <router-link
             v-if="collection?.id"
-            :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
             :class="[
               $route.name === 'collectionSettingsGeneral'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
             ]"
+            :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
-            <Settings class="h-4 w-4 flex-shrink-0" :class="theme.textSecondary" />
-            <span class="text-sm font-medium" :class="theme.textPrimary">General</span>
+            <Settings :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
+            <span :class="theme.textPrimary" class="text-sm font-medium">General</span>
           </router-link>
           <router-link
             v-if="collection?.id"
-            :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
             :class="[
               $route.name === 'collectionSettingsPrivacy'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
             ]"
+            :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
-            <Lock class="h-4 w-4 flex-shrink-0" :class="theme.textSecondary" />
-            <span class="text-sm font-medium" :class="theme.textPrimary">Privacy</span>
+            <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
+            <span :class="theme.textPrimary" class="text-sm font-medium">Privacy</span>
           </router-link>
           <router-link
             v-if="collection?.id"
-            :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
             :class="[
               $route.name?.toString().startsWith('collectionSettingsDownload')
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
             ]"
+            :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
           >
             <div class="flex items-center gap-3">
-              <Download class="h-4 w-4 flex-shrink-0" :class="theme.textSecondary" />
-              <span class="text-sm font-medium" :class="theme.textPrimary">Download</span>
+              <Download :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
+              <span :class="theme.textPrimary" class="text-sm font-medium">Download</span>
             </div>
             <span
-              class="px-2 py-0.5 rounded-full text-xs font-semibold"
               :class="
                 downloadEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
               "
+              class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
               {{ downloadEnabled ? 'ON' : 'OFF' }}
             </span>
           </router-link>
           <router-link
             v-if="collection?.id"
-            :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
             :class="[
               $route.name === 'collectionSettingsFavorite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
                 : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
             ]"
+            :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
+            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
           >
             <div class="flex items-center gap-3">
-              <Heart class="h-4 w-4 flex-shrink-0" :class="theme.textSecondary" />
-              <span class="text-sm font-medium" :class="theme.textPrimary">Favorite</span>
+              <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
+              <span :class="theme.textPrimary" class="text-sm font-medium">Favorite</span>
             </div>
             <span
-              class="px-2 py-0.5 rounded-full text-xs font-semibold"
               :class="
                 favoriteEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
                   : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
               "
+              class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
               {{ favoriteEnabled ? 'ON' : 'OFF' }}
             </span>
@@ -118,13 +118,13 @@
             <TooltipTrigger as-child>
               <router-link
                 v-if="collection?.id"
-                :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
                 :class="[
                   $route.name === 'collectionSettingsGeneral'
                     ? 'bg-teal-500 text-white'
                     : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                 ]"
+                :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
+                class="p-3 rounded-lg transition-all duration-200"
               >
                 <Settings class="h-5 w-5" />
               </router-link>
@@ -137,13 +137,13 @@
             <TooltipTrigger as-child>
               <router-link
                 v-if="collection?.id"
-                :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
                 :class="[
                   $route.name === 'collectionSettingsPrivacy'
                     ? 'bg-teal-500 text-white'
                     : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                 ]"
+                :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
+                class="p-3 rounded-lg transition-all duration-200"
               >
                 <Lock class="h-5 w-5" />
               </router-link>
@@ -156,13 +156,13 @@
             <TooltipTrigger as-child>
               <router-link
                 v-if="collection?.id"
-                :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200 relative"
                 :class="[
                   $route.name?.toString().startsWith('collectionSettingsDownload')
                     ? 'bg-teal-500 text-white'
                     : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                 ]"
+                :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
+                class="p-3 rounded-lg transition-all duration-200 relative"
               >
                 <Download class="h-5 w-5" />
                 <span
@@ -179,13 +179,13 @@
             <TooltipTrigger as-child>
               <router-link
                 v-if="collection?.id"
-                :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200 relative"
                 :class="[
                   $route.name === 'collectionSettingsFavorite'
                     ? 'bg-teal-500 text-white'
                     : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                 ]"
+                :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
+                class="p-3 rounded-lg transition-all duration-200 relative"
               >
                 <Heart class="h-5 w-5" />
                 <span
@@ -204,27 +204,27 @@
 
     <template #content>
       <div
-        class="flex-1 overflow-y-auto custom-scrollbar"
         :class="isSidebarCollapsed ? 'ml-0' : ''"
+        class="flex-1 overflow-y-auto custom-scrollbar"
       >
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
-            <Loader2 class="h-8 w-8 animate-spin mx-auto" :class="theme.textSecondary" />
-            <p class="text-sm" :class="theme.textSecondary">Loading settings...</p>
+            <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
+            <p :class="theme.textSecondary" class="text-sm">Loading settings...</p>
           </div>
         </div>
 
         <div
           v-else
-          class="max-w-[50%] mx-auto p-6 md:p-8 transition-all duration-300"
           :class="isSidebarCollapsed ? 'max-w-full' : ''"
+          class="max-w-[50%] p-6 md:p-8 transition-all duration-300"
         >
           <!-- Page Header -->
           <div class="mb-10">
-            <h1 class="text-2xl md:text-3xl font-bold mb-2" :class="theme.textPrimary">
+            <h1 :class="theme.textPrimary" class="text-2xl md:text-3xl font-bold mb-2">
               Privacy Settings
             </h1>
-            <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+            <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
               Configure privacy and visibility settings for your collection including passwords,
               client access, and homepage visibility.
             </p>
@@ -234,31 +234,31 @@
           <div class="space-y-6">
             <!-- Collection Password -->
             <div
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div>
-                <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                   Collection Password
                 </h3>
-                <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                   Require visitors to enter this password in order to see the collection.
                 </p>
               </div>
               <div class="flex items-center gap-3 max-w-md">
                 <Input
-                  :model-value="collectionPassword"
-                  @update:model-value="collectionPassword = $event"
-                  :type="collectionPassword ? 'password' : 'text'"
-                  placeholder="Add a password"
-                  class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                  :model-value="collectionPassword"
+                  :type="collectionPassword ? 'password' : 'text'"
+                  class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                  placeholder="Add a password"
+                  @update:model-value="collectionPassword = $event"
                 />
                 <Button
-                  variant="outline"
-                  size="sm"
-                  class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
                   :class="[theme.borderSecondary, theme.textPrimary]"
+                  class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                  size="sm"
+                  variant="outline"
                   @click="generatePassword"
                 >
                   <RefreshCw
@@ -271,17 +271,17 @@
 
             <!-- Show on Homepage -->
             <div
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
-                  <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                     Show on Homepage
                   </h3>
-                  <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Show this collection on your Homepage. Manage Homepage in
-                    <a href="#" class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
                       >Homepage settings</a
                     >.
                   </p>
@@ -294,17 +294,17 @@
 
             <!-- Client Exclusive Access -->
             <div
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
-                  <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                     Client Exclusive Access
                   </h3>
-                  <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Give clients exclusive access to sets and the ability to mark photos private.
-                    <a href="#" class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -318,42 +318,42 @@
             <!-- Client Private Password -->
             <div
               v-if="clientExclusiveAccess"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div>
-                <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                   Client Private Password
                 </h3>
-                <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                   This unique client password will be required to see all photos and mark photos
                   private.
                 </p>
               </div>
               <div class="flex items-center gap-3 max-w-md">
                 <Input
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                   :model-value="clientPrivatePassword"
-                  @update:model-value="clientPrivatePassword = $event"
                   :type="showClientPassword ? 'text' : 'password'"
                   class="flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all"
-                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                  @update:model-value="clientPrivatePassword = $event"
                 />
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  @click="showClientPassword = !showClientPassword"
-                  class="hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-110 active:scale-95"
                   :class="theme.textSecondary"
+                  class="hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-110 active:scale-95"
+                  size="sm"
+                  variant="ghost"
+                  @click="showClientPassword = !showClientPassword"
                 >
                   <Eye v-if="!showClientPassword" class="h-4 w-4" />
                   <EyeOff v-else class="h-4 w-4" />
                 </Button>
                 <Button
-                  variant="ghost"
-                  size="sm"
-                  @click="copyClientPassword"
-                  class="hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-110 active:scale-95"
                   :class="theme.textSecondary"
+                  class="hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-110 active:scale-95"
+                  size="sm"
+                  variant="ghost"
+                  @click="copyClientPassword"
                 >
                   <Copy class="h-4 w-4" />
                 </Button>
@@ -363,14 +363,14 @@
             <!-- Client-Only Photo Sets -->
             <div
               v-if="clientExclusiveAccess"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div>
-                <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                   Client-Only Photo Sets
                 </h3>
-                <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                   Restrict specific photo sets to client-only so that visitors cannot see them.
                 </p>
               </div>
@@ -381,12 +381,12 @@
                   class="flex items-center gap-3 cursor-pointer p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                 >
                   <input
-                    type="checkbox"
                     :checked="selectedClientSets.includes(set.id)"
-                    @change="toggleClientSet(set.id)"
                     class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 transition-all"
+                    type="checkbox"
+                    @change="toggleClientSet(set.id)"
                   />
-                  <span class="text-sm font-medium" :class="theme.textPrimary">{{ set.name }}</span>
+                  <span :class="theme.textPrimary" class="text-sm font-medium">{{ set.name }}</span>
                 </label>
               </div>
             </div>
@@ -394,18 +394,18 @@
             <!-- Allow Clients to Mark Photos Private -->
             <div
               v-if="clientExclusiveAccess"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
-                  <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
                     Allow Clients to Mark Photos Private
                   </h3>
-                  <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Give clients the ability to mark photos private. Private photos are not visible
                     to public guests and only clients can see them.
-                    <a href="#" class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -422,19 +422,19 @@
   </CollectionLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+<script lang="ts" setup>
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
-  Settings,
-  Lock,
+  Copy,
   Download,
-  Heart,
-  Loader2,
-  RefreshCw,
   Eye,
   EyeOff,
-  Copy,
+  Heart,
+  Loader2,
+  Lock,
+  RefreshCw,
+  Settings,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
@@ -614,4 +614,75 @@ const toggleClientSet = (setId: string) => {
     selectedClientSets.value.push(setId)
   }
 }
+
+// Watch and save privacy settings changes
+watch(collectionPassword, async newPassword => {
+  if (!collection.value) return
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      password: newPassword || null,
+    } as any)
+  } catch (error: any) {
+    toast.error('Failed to update password')
+  }
+})
+
+watch(showOnHomepage, async newValue => {
+  if (!collection.value) return
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      showOnHomepage: newValue,
+    } as any)
+  } catch (error: any) {
+    toast.error('Failed to update homepage visibility')
+  }
+})
+
+watch(clientExclusiveAccess, async newValue => {
+  if (!collection.value) return
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      clientExclusiveAccess: newValue,
+    } as any)
+  } catch (error: any) {
+    toast.error('Failed to update client exclusive access')
+  }
+})
+
+watch(clientPrivatePassword, async newPassword => {
+  if (!collection.value) return
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      clientPrivatePassword: newPassword || null,
+    } as any)
+  } catch (error: any) {
+    toast.error('Failed to update client password')
+  }
+})
+
+watch(allowClientsMarkPrivate, async newValue => {
+  if (!collection.value) return
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      allowClientsMarkPrivate: newValue,
+    } as any)
+  } catch (error: any) {
+    toast.error('Failed to update allow clients mark private')
+  }
+})
+
+watch(
+  selectedClientSets,
+  async newSets => {
+    if (!collection.value) return
+    try {
+      await galleryStore.updateCollection(collection.value.id, {
+        clientOnlySets: newSets,
+      } as any)
+    } catch (error: any) {
+      toast.error('Failed to update client-only sets')
+    }
+  },
+  { deep: true }
+)
 </script>

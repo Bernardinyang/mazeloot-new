@@ -1,21 +1,21 @@
 <template>
   <CollectionLayout
-    :collection="collection"
-    :is-loading="isLoading"
-    :is-editing-name="false"
-    :editing-name="''"
-    :is-saving-name="false"
+    v-model:active-tab="activeTab"
     v-model:collection-status="collectionStatus"
-    :is-saving-status="false"
+    v-model:is-sidebar-collapsed="isSidebarCollapsed"
+    :collection="collection"
+    :editing-name="''"
     :event-date="eventDate"
+    :is-editing-name="false"
+    :is-loading="isLoading"
+    :is-saving-name="false"
+    :is-saving-status="false"
+    :presets="presets"
     :selected-preset-id="selectedPresetId"
     :selected-preset-name="selectedPresetName"
     :selected-watermark="selectedWatermark"
     :selected-watermark-name="selectedWatermarkName"
-    :presets="presets"
     :watermarks="watermarks"
-    v-model:active-tab="activeTab"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
     @go-back="goBack"
     @handle-status-change="handleStatusChange"
     @handle-date-change="handleDateChange"
@@ -28,49 +28,49 @@
         <!-- Design Sub-Navigation -->
         <div class="space-y-1">
           <router-link
-            :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
             :class="
               route.name === 'collectionCover'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
                 : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
             "
+            :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <ImageIcon class="h-4 w-4 shrink-0" />
             <span class="text-sm font-medium">Cover</span>
           </router-link>
           <router-link
-            :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
             :class="
               route.name === 'collectionTypography'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
                 : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
             "
+            :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <span class="text-lg font-bold">T</span>
             <span class="text-sm font-medium">Typography</span>
           </router-link>
           <router-link
-            :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
             :class="
               route.name === 'collectionColor'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
                 : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
             "
+            :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
-            <div class="w-4 h-4 rounded border" :class="theme.borderSecondary"></div>
+            <div :class="theme.borderSecondary" class="w-4 h-4 rounded border"></div>
             <span class="text-sm font-medium">Color</span>
           </router-link>
           <router-link
-            :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
             :class="
               route.name === 'collectionGrid'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
                 : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
             "
+            :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <Grid3x3 class="h-4 w-4 shrink-0" />
             <span class="text-sm font-medium">Grid</span>
@@ -87,19 +87,19 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
                 :class="
                   route.name === 'collectionCover'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
                     : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
                 "
+                :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+                class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <ImageIcon class="h-5 w-5" />
               </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right" :class="[theme.bgCard, theme.borderCard]">
-              <p class="text-sm font-semibold" :class="theme.textPrimary">Cover</p>
+            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+              <p :class="theme.textPrimary" class="text-sm font-semibold">Cover</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -107,19 +107,19 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
                 :class="
                   route.name === 'collectionTypography'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
                     : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
                 "
+                :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+                class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <span class="text-lg font-bold">T</span>
               </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right" :class="[theme.bgCard, theme.borderCard]">
-              <p class="text-sm font-semibold" :class="theme.textPrimary">Typography</p>
+            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+              <p :class="theme.textPrimary" class="text-sm font-semibold">Typography</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -127,19 +127,19 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
                 :class="
                   route.name === 'collectionColor'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
                     : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
                 "
+                :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+                class="p-2.5 rounded-lg transition-all duration-200"
               >
-                <div class="w-5 h-5 rounded border" :class="theme.borderSecondary"></div>
+                <div :class="theme.borderSecondary" class="w-5 h-5 rounded border"></div>
               </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right" :class="[theme.bgCard, theme.borderCard]">
-              <p class="text-sm font-semibold" :class="theme.textPrimary">Color</p>
+            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+              <p :class="theme.textPrimary" class="text-sm font-semibold">Color</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -147,19 +147,19 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
                 :class="
                   route.name === 'collectionGrid'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
                     : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
                 "
+                :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+                class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <Grid3x3 class="h-5 w-5" />
               </router-link>
             </TooltipTrigger>
-            <TooltipContent side="right" :class="[theme.bgCard, theme.borderCard]">
-              <p class="text-sm font-semibold" :class="theme.textPrimary">Grid</p>
+            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+              <p :class="theme.textPrimary" class="text-sm font-semibold">Grid</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -168,14 +168,14 @@
 
     <template #content>
       <div
-        class="mx-auto p-8 pb-16 transition-all duration-300 h-full overflow-y-auto"
-        :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-7xl'"
+        :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+        class="p-8 pb-16 transition-all duration-300 h-full overflow-y-auto"
       >
         <div class="mb-10">
           <div class="flex items-start justify-between mb-4">
             <div>
               <div class="flex items-center gap-3 mb-2">
-                <h1 class="text-3xl font-bold" :class="theme.textPrimary">Typography</h1>
+                <h1 :class="theme.textPrimary" class="text-3xl font-bold">Typography</h1>
                 <Transition
                   enter-active-class="transition-all duration-300 ease-out"
                   enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -193,7 +193,7 @@
                   </div>
                 </Transition>
               </div>
-              <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
                 Select fonts that match your brand and style. See your changes in real-time in the
                 preview panel.
               </p>
@@ -201,11 +201,11 @@
             <!-- Quick Stats -->
             <div class="hidden md:flex gap-4">
               <div
-                class="px-4 py-2 rounded-lg border"
                 :class="[theme.borderSecondary, theme.bgCard]"
+                class="px-4 py-2 rounded-lg border"
               >
-                <div class="text-xs" :class="theme.textTertiary">Font Style</div>
-                <div class="text-sm font-semibold mt-0.5" :class="theme.textPrimary">
+                <div :class="theme.textTertiary" class="text-xs">Font Style</div>
+                <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
                   {{ fontStyles.find(s => s.id === formData.fontStyle)?.label || 'Bold' }}
                 </div>
               </div>
@@ -219,13 +219,13 @@
             <div class="flex-1 overflow-y-auto space-y-12 pr-2 min-h-0">
               <!-- Typography Section -->
               <div
-                class="space-y-6 p-6 rounded-2xl border-2 transition-shadow duration-300"
                 :class="[theme.borderSecondary, theme.bgCard]"
+                class="space-y-6 p-6 rounded-2xl border-2 transition-shadow duration-300"
               >
                 <div class="flex items-center justify-between mb-2">
                   <div>
-                    <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">Typography</h3>
-                    <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                    <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Typography</h3>
+                    <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                       Select fonts that match your brand and style
                     </p>
                   </div>
@@ -234,8 +234,8 @@
                   <!-- Font Families -->
                   <div>
                     <label
-                      class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                       :class="theme.textSecondary"
+                      class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                       >Font Family</label
                     >
                     <FontFamilySelect
@@ -246,16 +246,14 @@
                   <!-- Font Weights/Styles -->
                   <div>
                     <label
-                      class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                       :class="theme.textSecondary"
+                      class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                       >Font Style</label
                     >
                     <div class="grid grid-cols-3 gap-3">
                       <button
                         v-for="style in fontStyles"
                         :key="style.id"
-                        @click="formData.fontStyle = style.id"
-                        class="group px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
                         :class="[
                           formData.fontStyle === style.id
                             ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 ring-2 ring-teal-500/20'
@@ -266,15 +264,17 @@
                               ],
                           theme.bgCard,
                         ]"
+                        class="group px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
+                        @click="formData.fontStyle = style.id"
                       >
                         <span
-                          class="text-base font-medium block text-center transition-colors duration-200"
                           :class="[
                             formData.fontStyle === style.id
                               ? 'text-teal-600 dark:text-teal-400 font-bold'
                               : theme.textPrimary,
                             style.class,
                           ]"
+                          class="text-base font-medium block text-center transition-colors duration-200"
                         >
                           {{ style.label }}
                         </span>
@@ -287,21 +287,21 @@
 
             <!-- Bottom Navigation -->
             <div
-              class="mt-8 pt-6 border-t flex-shrink-0 bg-gradient-to-r from-transparent via-gray-50/50 dark:via-gray-900/50 to-transparent"
               :class="theme.borderSecondary"
+              class="mt-8 pt-6 border-t flex-shrink-0 bg-gradient-to-r from-transparent via-gray-50/50 dark:via-gray-900/50 to-transparent"
             >
               <div class="flex justify-between items-center">
                 <Button
-                  @click="goBack"
-                  variant="ghost"
-                  :disabled="isSubmitting || isSaving"
-                  class="px-4 py-2 rounded-lg font-medium"
                   :class="[
                     theme.textSecondary,
                     theme.bgButtonHover,
                     'hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all duration-200',
                     'disabled:opacity-50 disabled:cursor-not-allowed',
                   ]"
+                  :disabled="isSubmitting || isSaving"
+                  class="px-4 py-2 rounded-lg font-medium"
+                  variant="ghost"
+                  @click="goBack"
                 >
                   ← Back
                 </Button>
@@ -325,9 +325,9 @@
                     </div>
                   </Transition>
                   <Button
-                    @click="handleSave"
                     :disabled="isSubmitting || isSaving || !hasUnsavedChanges"
                     class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
+                    @click="handleSave"
                   >
                     <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
                     <Check v-else-if="!hasUnsavedChanges" class="mr-2 h-4 w-4" />
@@ -344,36 +344,36 @@
           <div class="lg:col-span-3">
             <div class="sticky top-24">
               <div
-                class="rounded-xl border-2 overflow-hidden backdrop-blur-md bg-white/80 dark:bg-gray-900/80"
                 :class="[theme.borderSecondary, theme.bgCard]"
+                class="rounded-xl border-2 overflow-hidden backdrop-blur-md bg-white/80 dark:bg-gray-900/80"
               >
                 <div
-                  class="p-5 border-b bg-gradient-to-r from-teal-50/50 to-blue-50/50 dark:from-teal-950/30 dark:to-blue-950/30"
                   :class="theme.borderSecondary"
+                  class="p-5 border-b bg-gradient-to-r from-teal-50/50 to-blue-50/50 dark:from-teal-950/30 dark:to-blue-950/30"
                 >
                   <div class="flex items-center justify-between">
                     <div>
                       <h3
-                        class="text-lg font-semibold flex items-center gap-2"
                         :class="theme.textPrimary"
+                        class="text-lg font-semibold flex items-center gap-2"
                       >
                         <div class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
                         Live Preview
                       </h3>
-                      <p class="text-xs mt-1.5" :class="theme.textSecondary">
+                      <p :class="theme.textSecondary" class="text-xs mt-1.5">
                         See exactly how your design will look
                       </p>
                     </div>
                     <Button
-                      @click="handleOpenPreviewInNewTab"
-                      variant="ghost"
-                      size="sm"
-                      class="shrink-0 hover:bg-white/80 dark:hover:bg-gray-800/80"
                       :class="[
                         theme.textSecondary,
                         'hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200',
                       ]"
+                      class="shrink-0 hover:bg-white/80 dark:hover:bg-gray-800/80"
+                      size="sm"
                       title="Open preview in new tab"
+                      variant="ghost"
+                      @click="handleOpenPreviewInNewTab"
                     >
                       <ExternalLink class="h-4 w-4 mr-1.5" />
                       <span class="text-xs font-medium">Open</span>
@@ -398,7 +398,7 @@
                     >
                       <div class="flex flex-col items-center gap-3">
                         <Loader2 class="h-8 w-8 animate-spin text-teal-500" />
-                        <p class="text-sm font-medium" :class="theme.textSecondary">
+                        <p :class="theme.textSecondary" class="text-sm font-medium">
                           Loading preview...
                         </p>
                       </div>
@@ -407,10 +407,10 @@
                   <!-- Full Collection Preview -->
                   <CollectionPreview
                     v-if="!isLoading"
-                    :preview-mode="true"
                     :preview-collection="mockPreviewCollection"
-                    :preview-media="mockPreviewMedia"
                     :preview-design-config="previewDesignConfig"
+                    :preview-media="mockPreviewMedia"
+                    :preview-mode="true"
                   />
                 </div>
               </div>
@@ -423,19 +423,19 @@
       <UnsavedChangesModal
         v-model="showUnsavedChangesModal"
         :is-saving="isSubmitting || isSaving"
-        @save="handleSaveAndLeave"
-        @discard="handleDiscardAndLeave"
         @cancel="handleCancelNavigation"
+        @discard="handleDiscardAndLeave"
+        @save="handleSaveAndLeave"
       />
     </template>
   </CollectionLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Check, Loader2, Grid3x3, ExternalLink, ImageIcon } from 'lucide-vue-next'
+import { Check, ExternalLink, Grid3x3, ImageIcon, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   Tooltip,

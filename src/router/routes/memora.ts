@@ -28,6 +28,12 @@ import CollectionSettingsDownloadView from '@/views/user/memora/collections/sett
 import CollectionSettingsDownloadGeneralView from '@/views/user/memora/collections/settings/DownloadGeneral.vue'
 import CollectionSettingsDownloadAdvancedView from '@/views/user/memora/collections/settings/DownloadAdvanced.vue'
 import CollectionSettingsFavoriteView from '@/views/user/memora/collections/settings/Favorite.vue'
+import CollectionActivitiesView from '@/views/user/memora/collections/activities/Activities.vue'
+import CollectionActivitiesDownloadView from '@/views/user/memora/collections/activities/DownloadActivity.vue'
+import CollectionActivitiesFavouriteView from '@/views/user/memora/collections/activities/FavouriteActivity.vue'
+import CollectionActivitiesEmailRegistrationView from '@/views/user/memora/collections/activities/EmailRegistration.vue'
+import CollectionActivitiesQuickShareView from '@/views/user/memora/collections/activities/QuickShareLinks.vue'
+import CollectionActivitiesPrivatePhotosView from '@/views/user/memora/collections/activities/PrivatePhotos.vue'
 
 export const memoraRoutes: RouteRecordRaw[] = [
   {
@@ -288,6 +294,54 @@ export const memoraRoutes: RouteRecordRaw[] = [
     path: '/memora/collections/:uuid/settings/favorite',
     name: 'collectionSettingsFavorite',
     component: CollectionSettingsFavoriteView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities',
+    name: 'collectionActivities',
+    component: CollectionActivitiesView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities/download',
+    name: 'collectionActivitiesDownload',
+    component: CollectionActivitiesDownloadView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities/favourite',
+    name: 'collectionActivitiesFavourite',
+    component: CollectionActivitiesFavouriteView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities/email-registration',
+    name: 'collectionActivitiesEmailRegistration',
+    component: CollectionActivitiesEmailRegistrationView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities/quick-share',
+    name: 'collectionActivitiesQuickShare',
+    component: CollectionActivitiesQuickShareView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/collections/:uuid/activities/private-photos',
+    name: 'collectionActivitiesPrivatePhotos',
+    component: CollectionActivitiesPrivatePhotosView,
     meta: {
       requiresAuth: true,
     },

@@ -1,14 +1,14 @@
 <template>
   <PresetLayout>
     <div
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-7xl'"
     >
       <div class="mb-10">
         <div class="flex items-start justify-between mb-4">
           <div>
             <div class="flex items-center gap-3 mb-2">
-              <h1 class="text-3xl font-bold" :class="theme.textPrimary">Design</h1>
+              <h1 :class="theme.textPrimary" class="text-3xl font-bold">Design</h1>
               <Transition
                 enter-active-class="transition-all duration-300 ease-out"
                 enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -26,22 +26,22 @@
                 </div>
               </Transition>
             </div>
-            <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+            <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
               Customize the visual appearance and design settings for your collection preset. See
               your changes in real-time in the preview panel.
             </p>
           </div>
           <!-- Quick Stats -->
           <div class="hidden md:flex gap-4">
-            <div class="px-4 py-2 rounded-lg border" :class="[theme.borderSecondary, theme.bgCard]">
-              <div class="text-xs" :class="theme.textTertiary">Cover Style</div>
-              <div class="text-sm font-semibold mt-0.5" :class="theme.textPrimary">
+            <div :class="[theme.borderSecondary, theme.bgCard]" class="px-4 py-2 rounded-lg border">
+              <div :class="theme.textTertiary" class="text-xs">Cover Style</div>
+              <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
                 {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Modern' }}
               </div>
             </div>
-            <div class="px-4 py-2 rounded-lg border" :class="[theme.borderSecondary, theme.bgCard]">
-              <div class="text-xs" :class="theme.textTertiary">Color Palette</div>
-              <div class="text-sm font-semibold mt-0.5" :class="theme.textPrimary">
+            <div :class="[theme.borderSecondary, theme.bgCard]" class="px-4 py-2 rounded-lg border">
+              <div :class="theme.textTertiary" class="text-xs">Color Palette</div>
+              <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
                 {{ colorPalettes.find(p => p.id === formData.colorPalette)?.label || 'Light' }}
               </div>
             </div>
@@ -54,13 +54,13 @@
         <div class="lg:col-span-2 space-y-12">
           <!-- Cover Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Cover Style</h3>
-                <p class="text-xs" :class="theme.textSecondary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Cover Style</h3>
+                <p :class="theme.textSecondary" class="text-xs">
                   Choose how your collection title appears on the cover
                 </p>
               </div>
@@ -75,8 +75,6 @@
             >
               <div v-for="cover in coverOptions" :key="cover.id" class="flex flex-col gap-3">
                 <button
-                  @click="formData.cover = cover.id"
-                  class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
                   :class="[
                     formData.cover === cover.id
                       ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
@@ -87,6 +85,8 @@
                         ],
                     theme.bgCard,
                   ]"
+                  class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
+                  @click="formData.cover = cover.id"
                 >
                   <!-- Selected indicator -->
                   <div
@@ -101,12 +101,12 @@
                 </button>
                 <!-- Cover style label -->
                 <span
-                  class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
                   :class="
                     formData.cover === cover.id
                       ? 'text-teal-600 dark:text-teal-400'
                       : theme.textSecondary
                   "
+                  class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
                 >
                   {{ cover.label }}
                 </span>
@@ -116,20 +116,20 @@
 
           <!-- Cover Focal Point Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Cover Focal Point</h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Cover Focal Point</h3>
+              <p :class="theme.textSecondary" class="text-xs">
                 Choose where to focus the cover image
               </p>
             </div>
             <Button
-              @click="showFocalPointModal = true"
-              variant="outline"
-              class="w-full"
               :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+              class="w-full"
+              variant="outline"
+              @click="showFocalPointModal = true"
             >
               <span>Set Focal Point</span>
             </Button>
@@ -138,14 +138,14 @@
           <!-- Joy Cover Style Customization -->
           <div
             v-if="formData.cover === 'joy'"
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">
                 Joy Cover Customization
               </h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-xs">
                 Customize the title, avatar, and display options for your Joy cover
               </p>
             </div>
@@ -153,31 +153,31 @@
             <div class="space-y-4">
               <!-- Title Text -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
                   Title Text
                 </label>
                 <input
                   v-model="formData.joyCoverTitle"
-                  type="text"
-                  placeholder="JOY"
-                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
                   :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
+                  placeholder="JOY"
+                  type="text"
                 />
-                <p class="text-xs mt-1.5" :class="theme.textTertiary">
+                <p :class="theme.textTertiary" class="text-xs mt-1.5">
                   The letter "O" will be replaced with your avatar image
                 </p>
               </div>
 
               <!-- Avatar Upload -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
                   Profile Picture / Avatar
                 </label>
                 <div class="flex items-center gap-4">
                   <div
                     v-if="formData.joyCoverAvatar"
-                    class="w-20 h-20 rounded-full overflow-hidden border-2"
                     :class="theme.borderSecondary"
+                    class="w-20 h-20 rounded-full overflow-hidden border-2"
                   >
                     <img
                       :src="formData.joyCoverAvatar"
@@ -187,24 +187,24 @@
                   </div>
                   <div
                     v-else
-                    class="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center"
                     :class="[theme.borderSecondary, theme.textTertiary]"
+                    class="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center"
                   >
                     <span class="text-xs">No image</span>
                   </div>
                   <Button
-                    variant="outline"
-                    size="sm"
                     :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                    size="sm"
+                    variant="outline"
                     @click="handleAvatarUpload"
                   >
                     {{ formData.joyCoverAvatar ? 'Change' : 'Upload' }}
                   </Button>
                   <Button
                     v-if="formData.joyCoverAvatar"
-                    variant="ghost"
-                    size="sm"
                     :class="[theme.textSecondary, theme.bgButtonHover]"
+                    size="sm"
+                    variant="ghost"
                     @click="formData.joyCoverAvatar = null"
                   >
                     Remove
@@ -212,9 +212,9 @@
                 </div>
                 <input
                   ref="avatarInputRef"
-                  type="file"
                   accept="image/*"
                   class="hidden"
+                  type="file"
                   @change="handleAvatarFileChange"
                 />
               </div>
@@ -222,74 +222,74 @@
               <!-- Show Date Toggle -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
                     Show Date
                   </label>
-                  <p class="text-xs" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs">
                     Display the event date below the title
                   </p>
                 </div>
                 <ToggleSwitch
                   v-model="formData.joyCoverShowDate"
                   label=""
-                  on-label="On"
                   off-label="Off"
+                  on-label="On"
                 />
               </div>
 
               <!-- Show Name Toggle -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
                     Show Name
                   </label>
-                  <p class="text-xs" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs">
                     Display the collection name below the date
                   </p>
                 </div>
                 <ToggleSwitch
                   v-model="formData.joyCoverShowName"
                   label=""
-                  on-label="On"
                   off-label="Off"
+                  on-label="On"
                 />
               </div>
 
               <!-- Button Text -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
                   Button Text
                 </label>
                 <input
                   v-model="formData.joyCoverButtonText"
-                  type="text"
-                  placeholder="VIEW GALLERY"
-                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
                   :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
+                  placeholder="VIEW GALLERY"
+                  type="text"
                 />
               </div>
 
               <!-- Show Button Toggle -->
               <div class="flex items-center justify-between">
                 <div>
-                  <label class="text-xs font-medium block mb-1" :class="theme.textPrimary">
+                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
                     Show Button
                   </label>
-                  <p class="text-xs" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs">
                     Display the call-to-action button
                   </p>
                 </div>
                 <ToggleSwitch
                   v-model="formData.joyCoverShowButton"
                   label=""
-                  on-label="On"
                   off-label="Off"
+                  on-label="On"
                 />
               </div>
 
               <!-- Background Pattern -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary">
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
                   Background Pattern
                 </label>
                 <div class="flex gap-3">
@@ -300,22 +300,22 @@
                       { id: 'none', label: 'None' },
                     ]"
                     :key="pattern.id"
-                    @click="handleJoyPatternChange(pattern.id)"
-                    class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
                     :class="[
                       formData.joyCoverBackgroundPattern === pattern.id
                         ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
                         : [theme.borderSecondary, 'hover:border-teal-500/60'],
                       theme.bgCard,
                     ]"
+                    class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
+                    @click="handleJoyPatternChange(pattern.id)"
                   >
                     <span
-                      class="text-xs font-medium block text-center"
                       :class="
                         formData.joyCoverBackgroundPattern === pattern.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textPrimary
                       "
+                      class="text-xs font-medium block text-center"
                     >
                       {{ pattern.label }}
                     </span>
@@ -339,7 +339,6 @@
               <div class="px-6 pb-6">
                 <div
                   ref="focalPointImageContainer"
-                  class="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-crosshair"
                   :style="{
                     aspectRatio: '16/9',
                     backgroundImage:
@@ -352,16 +351,17 @@
                     backgroundPosition: `${formData.coverFocalPoint.x}% ${formData.coverFocalPoint.y}%`,
                     backgroundRepeat: 'no-repeat',
                   }"
+                  class="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-crosshair"
                   @click="handleFocalPointClick"
                 >
                   <!-- Focal Point Indicator -->
                   <div
-                    class="absolute w-8 h-8 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none transition-all duration-100"
                     :style="{
                       left: `${formData.coverFocalPoint.x}%`,
                       top: `${formData.coverFocalPoint.y}%`,
                       transform: 'translate(-50%, -50%)',
                     }"
+                    class="absolute w-8 h-8 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none transition-all duration-100"
                   >
                     <div class="w-full h-full rounded-full bg-white/30"></div>
                   </div>
@@ -369,16 +369,16 @@
 
                 <div class="flex items-center justify-end gap-3 mt-4">
                   <Button
+                    :class="[theme.textSecondary, theme.bgButtonHover]"
                     type="button"
                     variant="ghost"
-                    :class="[theme.textSecondary, theme.bgButtonHover]"
                     @click="showFocalPointModal = false"
                   >
                     Cancel
                   </Button>
                   <Button
-                    type="button"
                     class="bg-teal-500 hover:bg-teal-600 text-white"
+                    type="button"
                     @click="showFocalPointModal = false"
                   >
                     Done
@@ -390,13 +390,13 @@
 
           <!-- Typography Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Typography</h3>
-                <p class="text-xs" :class="theme.textSecondary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Typography</h3>
+                <p :class="theme.textSecondary" class="text-xs">
                   Select fonts that match your brand and style
                 </p>
               </div>
@@ -404,37 +404,37 @@
             <div class="space-y-4">
               <!-- Font Families -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary"
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block"
                   >Font Family</label
                 >
                 <FontFamilySelect v-model="formData.fontFamily" placeholder="Select font family" />
               </div>
               <!-- Font Weights/Styles -->
               <div>
-                <label class="text-xs font-medium mb-2 block" :class="theme.textSecondary"
+                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block"
                   >Font Style</label
                 >
                 <div class="flex gap-3">
                   <button
                     v-for="style in fontStyles"
                     :key="style.id"
-                    @click="formData.fontStyle = style.id"
-                    class="group flex-1 px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
                     :class="[
                       formData.fontStyle === style.id
                         ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
                         : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
                       theme.bgCard,
                     ]"
+                    class="group flex-1 px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                    @click="formData.fontStyle = style.id"
                   >
                     <span
-                      class="text-base font-medium block text-center transition-colors duration-200"
                       :class="[
                         formData.fontStyle === style.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textPrimary,
                         style.class,
                       ]"
+                      class="text-base font-medium block text-center transition-colors duration-200"
                     >
                       {{ style.label }}
                     </span>
@@ -446,13 +446,13 @@
 
           <!-- Color Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="flex items-center justify-between mb-1">
               <div>
-                <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Color Palette</h3>
-                <p class="text-xs" :class="theme.textSecondary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Color Palette</h3>
+                <p :class="theme.textSecondary" class="text-xs">
                   Choose a color scheme that reflects your collection's mood
                 </p>
               </div>
@@ -466,8 +466,6 @@
               <button
                 v-for="palette in colorPalettes"
                 :key="palette.id"
-                @click="formData.colorPalette = palette.id"
-                class="group flex flex-col gap-3 p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
                 :class="[
                   formData.colorPalette === palette.id
                     ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
@@ -478,6 +476,8 @@
                       ],
                   theme.bgCard,
                 ]"
+                class="group flex flex-col gap-3 p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
+                @click="formData.colorPalette = palette.id"
               >
                 <!-- Selected indicator -->
                 <div
@@ -491,18 +491,18 @@
                   <div
                     v-for="(color, index) in palette.colors"
                     :key="index"
-                    class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 shadow-sm transition-transform duration-300 group-hover:scale-110"
-                    :style="{ backgroundColor: color }"
                     :class="{ 'delay-75': index === 1, 'delay-150': index === 2 }"
+                    :style="{ backgroundColor: color }"
+                    class="w-7 h-7 rounded-full border-2 border-white dark:border-gray-800 shadow-sm transition-transform duration-300 group-hover:scale-110"
                   ></div>
                 </div>
                 <span
-                  class="text-xs font-semibold text-center transition-colors duration-200"
                   :class="
                     formData.colorPalette === palette.id
                       ? 'text-teal-600 dark:text-teal-400'
                       : theme.textPrimary
                   "
+                  class="text-xs font-semibold text-center transition-colors duration-200"
                 >
                   {{ palette.label }}
                 </span>
@@ -512,12 +512,12 @@
 
           <!-- Grid Style Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Grid Layout</h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Grid Layout</h3>
+              <p :class="theme.textSecondary" class="text-xs">
                 Choose how photos are arranged in your gallery
               </p>
             </div>
@@ -525,41 +525,41 @@
               <button
                 v-for="style in gridStyles"
                 :key="style.id"
-                @click="formData.gridStyle = style.id"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
                 :class="[
                   formData.gridStyle === style.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
                     : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
                   theme.bgCard,
                 ]"
+                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                @click="formData.gridStyle = style.id"
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    class="p-2 rounded-lg transition-all duration-300"
                     :class="
                       formData.gridStyle === style.id
                         ? 'bg-teal-500/20'
                         : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
                     "
+                    class="p-2 rounded-lg transition-all duration-300"
                   >
                     <component
                       :is="style.id === 'masonry' ? LayoutGrid : Grid3x3"
-                      class="h-6 w-6 transition-colors duration-200"
                       :class="
                         formData.gridStyle === style.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textSecondary
                       "
+                      class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
-                    class="text-sm font-semibold transition-colors duration-200"
                     :class="
                       formData.gridStyle === style.id
                         ? 'text-teal-600 dark:text-teal-400'
                         : theme.textPrimary
                     "
+                    class="text-sm font-semibold transition-colors duration-200"
                   >
                     {{ style.label }}
                   </span>
@@ -570,12 +570,12 @@
 
           <!-- Grid Columns Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Images Per Row</h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Images Per Row</h3>
+              <p :class="theme.textSecondary" class="text-xs">
                 Select how many images appear in each row
               </p>
             </div>
@@ -583,40 +583,40 @@
               <button
                 v-for="cols in gridColumnsOptions"
                 :key="cols.value"
-                @click="formData.gridColumns = cols.value"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
                 :class="[
                   formData.gridColumns === cols.value
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
                     : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
                   theme.bgCard,
                 ]"
+                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                @click="formData.gridColumns = cols.value"
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    class="p-2 rounded-lg transition-all duration-300"
                     :class="
                       formData.gridColumns === cols.value
                         ? 'bg-teal-500/20'
                         : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
                     "
+                    class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
-                      class="h-6 w-6 transition-colors duration-200"
                       :class="
                         formData.gridColumns === cols.value
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textSecondary
                       "
+                      class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
-                    class="text-sm font-semibold transition-colors duration-200"
                     :class="
                       formData.gridColumns === cols.value
                         ? 'text-teal-600 dark:text-teal-400'
                         : theme.textPrimary
                     "
+                    class="text-sm font-semibold transition-colors duration-200"
                   >
                     {{ cols.label }}
                   </span>
@@ -627,12 +627,12 @@
 
           <!-- Thumbnail Size Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Thumbnail Size</h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Thumbnail Size</h3>
+              <p :class="theme.textSecondary" class="text-xs">
                 Control the size of gallery thumbnails
               </p>
             </div>
@@ -640,41 +640,41 @@
               <button
                 v-for="size in thumbnailSizes"
                 :key="size.id"
-                @click="formData.thumbnailSize = size.id"
-                :disabled="formData.gridStyle === 'masonry' && size.id === 'large'"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 :class="[
                   formData.thumbnailSize === size.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
                     : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
                   theme.bgCard,
                 ]"
+                :disabled="formData.gridStyle === 'masonry' && size.id === 'large'"
+                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                @click="formData.thumbnailSize = size.id"
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    class="p-2 rounded-lg transition-all duration-300"
                     :class="
                       formData.thumbnailSize === size.id
                         ? 'bg-teal-500/20'
                         : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
                     "
+                    class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
-                      class="h-6 w-6 transition-colors duration-200"
                       :class="
                         formData.thumbnailSize === size.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textSecondary
                       "
+                      class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
-                    class="text-sm font-semibold transition-colors duration-200"
                     :class="
                       formData.thumbnailSize === size.id
                         ? 'text-teal-600 dark:text-teal-400'
                         : theme.textPrimary
                     "
+                    class="text-sm font-semibold transition-colors duration-200"
                   >
                     {{ size.label }}
                   </span>
@@ -683,8 +683,8 @@
             </div>
             <p
               v-if="formData.gridStyle === 'masonry'"
-              class="text-xs mt-2"
               :class="theme.textTertiary"
+              class="text-xs mt-2"
             >
               Large thumbnail size is not available for masonry layout
             </p>
@@ -692,33 +692,33 @@
 
           <!-- Grid Spacing Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
               <div class="flex items-center justify-between mb-2">
-                <h3 class="text-lg font-bold" :class="theme.textPrimary">Grid Spacing</h3>
-                <span class="text-sm font-semibold" :class="theme.textSecondary">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold">Grid Spacing</h3>
+                <span :class="theme.textSecondary" class="text-sm font-semibold">
                   {{ formData.gridSpacing }}px
                 </span>
               </div>
-              <p class="text-xs" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-xs">
                 Adjust the gap between gallery items (1-100px)
               </p>
             </div>
             <div class="px-2">
-              <Slider v-model="gridSpacingSlider" :min="1" :max="100" :step="1" class="w-full" />
+              <Slider v-model="gridSpacingSlider" :max="100" :min="1" :step="1" class="w-full" />
             </div>
           </div>
 
           <!-- Navigation Style Section -->
           <div
-            class="space-y-5 p-6 rounded-2xl border-2"
             :class="[theme.borderSecondary, theme.bgCard]"
+            class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 class="text-lg font-bold mb-1" :class="theme.textPrimary">Navigation Style</h3>
-              <p class="text-xs" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Navigation Style</h3>
+              <p :class="theme.textSecondary" class="text-xs">
                 Choose how navigation elements are displayed
               </p>
             </div>
@@ -726,18 +726,17 @@
               <button
                 v-for="nav in navigationStyles"
                 :key="nav.id"
-                @click="formData.navigationStyle = nav.id"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
                 :class="[
                   formData.navigationStyle === nav.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
                     : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
                   theme.bgCard,
                 ]"
+                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                @click="formData.navigationStyle = nav.id"
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    class="w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
                     :class="[
                       formData.navigationStyle === nav.id
                         ? 'border-teal-500 bg-teal-500/10 shadow-sm'
@@ -747,35 +746,36 @@
                             'bg-gray-100/50 dark:bg-gray-800/50',
                           ],
                     ]"
+                    class="w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
                   >
                     <span
                       v-if="nav.id === 'icon-text'"
-                      class="text-xs font-bold transition-colors duration-200"
                       :class="
                         formData.navigationStyle === nav.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : theme.textSecondary
                       "
+                      class="text-xs font-bold transition-colors duration-200"
                     >
                       A
                     </span>
                     <div
                       v-else
-                      class="w-3 h-3 rounded border transition-colors duration-200"
                       :class="
                         formData.navigationStyle === nav.id
                           ? 'border-teal-500 bg-teal-500/20'
                           : theme.borderSecondary
                       "
+                      class="w-3 h-3 rounded border transition-colors duration-200"
                     ></div>
                   </div>
                   <span
-                    class="text-sm font-semibold transition-colors duration-200"
                     :class="
                       formData.navigationStyle === nav.id
                         ? 'text-teal-600 dark:text-teal-400'
                         : theme.textPrimary
                     "
+                    class="text-sm font-semibold transition-colors duration-200"
                   >
                     {{ nav.label }}
                   </span>
@@ -789,30 +789,30 @@
         <div class="lg:col-span-1">
           <div class="sticky top-24">
             <div
-              class="rounded-xl border-2 overflow-hidden backdrop-blur-md bg-white/50 dark:bg-gray-900/50"
               :class="[theme.borderSecondary, theme.bgCard]"
+              class="rounded-xl border-2 overflow-hidden backdrop-blur-md bg-white/50 dark:bg-gray-900/50"
             >
               <div
-                class="p-4 border-b flex items-center justify-between"
                 :class="theme.borderSecondary"
+                class="p-4 border-b flex items-center justify-between"
               >
                 <div>
-                  <h3 class="text-lg font-semibold" :class="theme.textPrimary">Live Preview</h3>
-                  <p class="text-xs mt-1" :class="theme.textSecondary">
+                  <h3 :class="theme.textPrimary" class="text-lg font-semibold">Live Preview</h3>
+                  <p :class="theme.textSecondary" class="text-xs mt-1">
                     See exactly how your design will look
                   </p>
                 </div>
                 <Button
-                  @click="handleOpenPreviewInNewTab"
-                  variant="ghost"
-                  size="sm"
-                  class="shrink-0"
                   :class="[
                     theme.textSecondary,
                     theme.bgButtonHover,
                     'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
                   ]"
+                  class="shrink-0"
+                  size="sm"
                   title="Open preview in new tab"
+                  variant="ghost"
+                  @click="handleOpenPreviewInNewTab"
                 >
                   <ExternalLink class="h-4 w-4 mr-1.5" />
                   <span class="text-xs">Open</span>
@@ -821,10 +821,10 @@
               <div class="h-[800px] overflow-y-auto">
                 <!-- Full Collection Preview -->
                 <CollectionPreview
-                  :preview-mode="true"
                   :preview-collection="mockPreviewCollection"
-                  :preview-media="mockPreviewMedia"
                   :preview-design-config="formData"
+                  :preview-media="mockPreviewMedia"
+                  :preview-mode="true"
                 />
               </div>
             </div>
@@ -835,19 +835,19 @@
       <!-- Bottom Navigation -->
       <div class="lg:col-span-3">
         <div
-          class="flex justify-between items-center mt-12 pt-8 border-t"
           :class="theme.borderSecondary"
+          class="flex justify-between items-center mt-12 pt-8 border-t"
         >
           <Button
-            @click="handlePrevious"
-            variant="ghost"
-            :disabled="isSubmitting || isSaving"
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
               'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
+            :disabled="isSubmitting || isSaving"
+            variant="ghost"
+            @click="handlePrevious"
           >
             ← Previous
           </Button>
@@ -862,16 +862,16 @@
             >
               <span
                 v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
-                class="text-xs"
                 :class="theme.textTertiary"
+                class="text-xs"
               >
                 Unsaved changes
               </span>
             </Transition>
             <Button
-              @click="handleNext"
               :disabled="isSubmitting || isSaving"
               class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
               <span v-if="isSubmitting || isSaving">Saving...</span>
@@ -886,18 +886,18 @@
     <UnsavedChangesModal
       v-model="showUnsavedChangesModal"
       :is-saving="isSubmitting || isSaving"
-      @save="handleSaveAndLeave"
-      @discard="handleDiscardAndLeave"
       @cancel="handleCancelNavigation"
+      @discard="handleDiscardAndLeave"
+      @save="handleSaveAndLeave"
     />
   </PresetLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, inject, type Ref } from 'vue'
+<script lang="ts" setup>
+import { computed, inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Check, Loader2, Grid3x3, LayoutGrid, ExternalLink } from 'lucide-vue-next'
+import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Slider } from '@/components/shadcn/slider'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'

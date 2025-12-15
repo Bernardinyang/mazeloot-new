@@ -1,21 +1,21 @@
 <template>
   <CollectionLayout
-    :collection="collection"
-    :is-loading="isLoading"
-    :is-editing-name="isEditingName"
-    v-model:editing-name="editingName"
-    :is-saving-name="isSavingName"
+    v-model:active-tab="activeTab"
     v-model:collection-status="collectionStatus"
-    :is-saving-status="isSavingStatus"
+    v-model:editing-name="editingName"
+    v-model:is-sidebar-collapsed="isSidebarCollapsed"
+    :collection="collection"
     :event-date="eventDate"
+    :is-editing-name="isEditingName"
+    :is-loading="isLoading"
+    :is-saving-name="isSavingName"
+    :is-saving-status="isSavingStatus"
+    :presets="presets"
     :selected-preset-id="selectedPresetId"
     :selected-preset-name="selectedPresetName"
     :selected-watermark="selectedWatermark"
     :selected-watermark-name="selectedWatermarkName"
-    :presets="presets"
     :watermarks="watermarks"
-    v-model:active-tab="activeTab"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
     @go-back="goBack"
     @start-editing-name="startEditingName"
     @save-name="saveName"
@@ -32,15 +32,15 @@
       <!-- PHOTOS Section -->
       <div v-if="activeTab === 'photos' && !isSidebarCollapsed">
         <div class="flex items-center justify-between mb-4">
-          <h2 class="text-sm font-bold" :class="theme.textPrimary">Media Sets</h2>
+          <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
           <button
-            @click="handleAddSet"
-            :disabled="isSavingSets"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border disabled:opacity-50 disabled:cursor-not-allowed"
             :class="[
               'bg-teal-500 hover:bg-teal-600 text-white border-teal-600',
               'hover:shadow-md hover:scale-105 active:scale-95',
             ]"
+            :disabled="isSavingSets"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleAddSet"
           >
             <Loader2 v-if="isSavingSets" class="h-3.5 w-3.5 animate-spin" />
             <Plus v-else class="h-3.5 w-3.5" />
@@ -83,12 +83,10 @@
               </div>
             </div>
           </Transition>
-          <TransitionGroup name="set-list" tag="div" class="space-y-2.5">
+          <TransitionGroup class="space-y-2.5" name="set-list" tag="div">
             <div
               v-for="(set, index) in sortedMediaSets"
               :key="set.id"
-              :draggable="!isSavingSets"
-              class="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out cursor-move group relative overflow-hidden"
               :class="[
                 selectedSetId === set.id
                   ? 'bg-white dark:bg-gray-800/50 border-2 border-teal-200 dark:border-teal-800 shadow-sm scale-[1.01]'
@@ -97,12 +95,14 @@
                 dragOverIndex === index ? 'ring-2 ring-teal-500 ring-offset-2 scale-[1.02]' : '',
                 isSavingSets ? 'opacity-60 pointer-events-none' : '',
               ]"
+              :draggable="!isSavingSets"
+              class="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out cursor-move group relative overflow-hidden"
               @click="selectedSetId = set.id"
-              @dragstart="handleSetDragStart($event, set.id, index)"
               @dragend="handleSetDragEnd"
-              @dragover.prevent="handleSetDragOver($event, index)"
               @dragleave="handleSetDragLeave"
+              @dragstart="handleSetDragStart($event, set.id, index)"
               @drop="handleSetDrop($event, index)"
+              @dragover.prevent="handleSetDragOver($event, index)"
             >
               <!-- Active indicator bar -->
               <Transition name="indicator">
@@ -113,20 +113,20 @@
               </Transition>
 
               <GripVertical
-                class="h-4 w-4 flex-shrink-0 opacity-50 transition-all duration-200 ml-1 hover:opacity-70 hover:scale-110"
                 :class="[
                   selectedSetId === set.id
                     ? 'text-teal-600 dark:text-teal-400'
                     : theme.textTertiary,
                   isSavingSets ? 'opacity-30 cursor-not-allowed' : '',
                 ]"
+                class="h-4 w-4 flex-shrink-0 opacity-50 transition-all duration-200 ml-1 hover:opacity-70 hover:scale-110"
               />
               <span
                 v-if="!editingSetId || editingSetId !== set.id"
-                class="flex-1 text-xs font-bold tracking-wide truncate"
                 :class="[
                   selectedSetId === set.id ? 'text-teal-700 dark:text-teal-300' : theme.textPrimary,
                 ]"
+                class="flex-1 text-xs font-bold tracking-wide truncate"
               >
                 {{ set.name }}
               </span>
@@ -134,43 +134,43 @@
                 v-else
                 ref="setNameInputRef"
                 v-model="editingSetName"
-                @keydown.enter="saveSetName(set.id)"
-                @keydown.esc="cancelSetNameEdit"
-                @blur="saveSetName(set.id)"
-                class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all duration-200"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
                   'focus:border-teal-500',
                 ]"
+                class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all duration-200"
+                @blur="saveSetName(set.id)"
+                @keydown.enter="saveSetName(set.id)"
+                @keydown.esc="cancelSetNameEdit"
                 @click.stop
               />
               <span
-                class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
                 :class="[
                   selectedSetId === set.id
                     ? 'bg-teal-500 text-white shadow-sm'
                     : 'bg-gray-100 dark:bg-gray-700/50 text-gray-600 dark:text-gray-400',
                 ]"
+                class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
               >
                 {{ set.count }}
               </span>
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
-                    :disabled="isSavingSets"
-                    class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     :class="[
                       selectedSetId === set.id ? 'hover:bg-teal-100 dark:hover:bg-teal-900/30' : '',
                       theme.textSecondary,
                     ]"
+                    :disabled="isSavingSets"
+                    class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                     @click.stop
                   >
                     <MoreVertical class="h-4 w-4 transition-transform duration-200" />
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
+                <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
                   <DropdownMenuItem
                     :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                     :disabled="isSavingSets"
@@ -198,10 +198,10 @@
         </div>
         <div v-else class="text-center py-10">
           <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 w-fit mx-auto mb-4 shadow-sm">
-            <ImageIcon class="h-8 w-8 opacity-40" :class="theme.textTertiary" />
+            <ImageIcon :class="theme.textTertiary" class="h-8 w-8 opacity-40" />
           </div>
-          <p class="text-sm font-semibold mb-1.5" :class="theme.textPrimary">No sets yet</p>
-          <p class="text-xs" :class="theme.textTertiary">
+          <p :class="theme.textPrimary" class="text-sm font-semibold mb-1.5">No sets yet</p>
+          <p :class="theme.textTertiary" class="text-xs">
             Create your first media set to get started
           </p>
         </div>
@@ -213,14 +213,14 @@
           <div
             class="p-6 rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-900/10 border-2 border-teal-200 dark:border-teal-800"
           >
-            <h3 class="text-sm font-bold mb-2" :class="theme.textPrimary">Design Settings</h3>
-            <p class="text-xs mb-4" :class="theme.textSecondary">
+            <h3 :class="theme.textPrimary" class="text-sm font-bold mb-2">Design Settings</h3>
+            <p :class="theme.textSecondary" class="text-xs mb-4">
               Customize the appearance and layout of your collection
             </p>
             <Button
-              variant="outline"
-              class="w-full"
               :class="[theme.borderSecondary, theme.bgButtonHover]"
+              class="w-full"
+              variant="outline"
               @click="router.push({ name: 'presetDesign', params: { name: 'default' } })"
             >
               <Paintbrush class="h-4 w-4 mr-2" />
@@ -228,9 +228,9 @@
             </Button>
           </div>
           <div class="text-center py-8">
-            <Paintbrush class="h-12 w-12 mx-auto mb-3 opacity-30" :class="theme.textTertiary" />
-            <p class="text-sm font-medium mb-1" :class="theme.textPrimary">Design customization</p>
-            <p class="text-xs" :class="theme.textTertiary">
+            <Paintbrush :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Design customization</p>
+            <p :class="theme.textTertiary" class="text-xs">
               Configure cover styles, fonts, and layouts
             </p>
           </div>
@@ -242,7 +242,7 @@
         <div class="space-y-5">
           <!-- Preset Selection -->
           <div class="space-y-2">
-            <label class="block text-sm font-bold mb-2.5" :class="theme.textPrimary">
+            <label :class="theme.textPrimary" class="block text-sm font-bold mb-2.5">
               Collection Preset
             </label>
             <Select v-model="selectedPresetId" @update:model-value="handlePresetChange">
@@ -259,31 +259,31 @@
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
                 <SelectItem
-                  value="none"
-                  label="No preset"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  label="No preset"
+                  value="none"
                 >
                   No preset
                 </SelectItem>
                 <SelectItem
                   v-for="preset in presets"
                   :key="preset.id"
-                  :value="preset.id"
-                  :label="preset.name"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :label="preset.name"
+                  :value="preset.id"
                 >
                   {{ preset.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs mt-2 leading-relaxed" :class="theme.textTertiary">
+            <p :class="theme.textTertiary" class="text-xs mt-2 leading-relaxed">
               Apply a preset to automatically configure collection settings
             </p>
           </div>
 
           <!-- Watermark Selection -->
           <div class="space-y-2">
-            <label class="block text-sm font-bold mb-2.5" :class="theme.textPrimary">
+            <label :class="theme.textPrimary" class="block text-sm font-bold mb-2.5">
               Watermark
             </label>
             <Select v-model="selectedWatermark" @update:model-value="handleWatermarkChange">
@@ -300,24 +300,24 @@
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
                 <SelectItem
-                  value="none"
-                  label="No watermark"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  label="No watermark"
+                  value="none"
                 >
                   No watermark
                 </SelectItem>
                 <SelectItem
                   v-for="watermark in watermarks"
                   :key="watermark.id"
-                  :value="watermark.id"
-                  :label="watermark.name"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :label="watermark.name"
+                  :value="watermark.id"
                 >
                   {{ watermark.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p class="text-xs mt-2 leading-relaxed" :class="theme.textTertiary">
+            <p :class="theme.textTertiary" class="text-xs mt-2 leading-relaxed">
               Add a watermark to protect your images
             </p>
           </div>
@@ -330,15 +330,15 @@
           <div
             class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-900/10 border-2 border-purple-200 dark:border-purple-800"
           >
-            <h3 class="text-sm font-bold mb-2" :class="theme.textPrimary">Collection Activities</h3>
-            <p class="text-xs mb-4" :class="theme.textSecondary">
+            <h3 :class="theme.textPrimary" class="text-sm font-bold mb-2">Collection Activities</h3>
+            <p :class="theme.textSecondary" class="text-xs mb-4">
               View and manage activities related to this collection
             </p>
           </div>
           <div class="text-center py-8">
-            <Radio class="h-12 w-12 mx-auto mb-3 opacity-30" :class="theme.textTertiary" />
-            <p class="text-sm font-medium mb-1" :class="theme.textPrimary">No activities yet</p>
-            <p class="text-xs" :class="theme.textTertiary">Activities will appear here</p>
+            <Radio :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-3 opacity-30" />
+            <p :class="theme.textPrimary" class="text-sm font-medium mb-1">No activities yet</p>
+            <p :class="theme.textTertiary" class="text-xs">Activities will appear here</p>
           </div>
         </div>
       </div>
@@ -348,34 +348,34 @@
       <!-- Hidden File Input -->
       <input
         ref="fileInputRef"
-        type="file"
-        multiple
         accept="image/*,video/*"
         class="hidden"
+        multiple
+        type="file"
         @change="handleFileSelect"
       />
 
       <!-- Main Content Area -->
       <main
-        class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300"
         :class="isSidebarCollapsed ? 'ml-0' : ''"
+        class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300"
       >
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
-            <Loader2 class="h-8 w-8 animate-spin mx-auto" :class="theme.textTertiary" />
-            <p class="text-sm font-medium" :class="theme.textSecondary">Loading collection...</p>
+            <Loader2 :class="theme.textTertiary" class="h-8 w-8 animate-spin mx-auto" />
+            <p :class="theme.textSecondary" class="text-sm font-medium">Loading collection...</p>
           </div>
         </div>
 
         <div
           v-else
-          class="p-8"
           :class="isSidebarCollapsed ? 'max-w-full' : 'max-w-[90rem] mx-auto'"
+          class="p-8"
         >
           <!-- Content -->
           <!-- Section Header -->
           <div class="flex items-center justify-between mb-8">
-            <h2 class="text-3xl font-bold tracking-tight" :class="theme.textPrimary">
+            <h2 :class="theme.textPrimary" class="text-3xl font-bold tracking-tight">
               {{ selectedSet?.name || 'Highlights' }}
             </h2>
             <div class="flex items-center gap-3">
@@ -383,39 +383,36 @@
               <Popover v-model:open="isSortMenuOpen">
                 <PopoverTrigger as-child>
                   <button
-                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                     :class="[
                       theme.borderSecondary,
                       theme.bgCard,
                       isSortMenuOpen ? 'ring-2 ring-teal-500/20' : '',
                     ]"
+                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <ArrowUpDown class="h-4 w-4" :class="theme.textSecondary" />
+                    <ArrowUpDown :class="theme.textSecondary" class="h-4 w-4" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
+                  :class="[theme.bgCard, theme.borderSecondary]"
                   align="end"
                   class="w-56 p-0"
-                  :class="[theme.bgCard, theme.borderSecondary]"
                 >
                   <div class="p-2">
-                    <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                    <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
                       Sort by
                     </p>
                     <div class="mt-1 space-y-0.5">
                       <button
                         v-for="option in sortOptions"
                         :key="option.value"
-                        @click="
-                          isSortMenuOpen = false
-                          handleSortChange(option.value)
-                        "
-                        class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors"
                         :class="[
                           sortOrder === option.value
                             ? theme.bgButtonHover + ' ' + theme.textPrimary
                             : theme.textPrimary + ' hover:' + theme.bgButtonHover,
                         ]"
+                        class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors"
+                        @click="handleSortChange(option.value)"
                       >
                         {{ option.label }}
                       </button>
@@ -428,41 +425,38 @@
               <Popover v-if="viewMode === 'grid'" v-model:open="isViewMenuOpen">
                 <PopoverTrigger as-child>
                   <button
-                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                     :class="[
                       theme.borderSecondary,
                       theme.bgCard,
                       isViewMenuOpen ? 'ring-2 ring-teal-500/20' : '',
                     ]"
+                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
                   >
-                    <Grid3x3 class="h-4 w-4" :class="theme.textSecondary" />
+                    <Grid3x3 :class="theme.textSecondary" class="h-4 w-4" />
                   </button>
                 </PopoverTrigger>
                 <PopoverContent
+                  :class="[theme.bgCard, theme.borderSecondary]"
                   align="end"
                   class="w-56 p-0"
-                  :class="[theme.bgCard, theme.borderSecondary]"
                 >
                   <div class="p-2 space-y-4">
                     <!-- Grid Size -->
                     <div>
-                      <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                      <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
                         Grid Size
                       </p>
                       <div class="mt-1 space-y-0.5">
                         <button
                           v-for="size in gridSizeOptions"
                           :key="size.value"
-                          @click="
-                            isViewMenuOpen = false
-                            handleGridSizeChange(size.value)
-                          "
-                          class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between"
                           :class="[
                             gridSize === size.value
                               ? theme.bgButtonHover + ' ' + theme.textPrimary
                               : theme.textPrimary + ' hover:' + theme.bgButtonHover,
                           ]"
+                          class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between"
+                          @click="handleGridSizeChange(size.value)"
                         >
                           <span>{{ size.label }}</span>
                           <Check v-if="gridSize === size.value" class="h-4 w-4 text-teal-500" />
@@ -471,29 +465,29 @@
                     </div>
 
                     <!-- Divider -->
-                    <div class="h-px" :class="theme.borderSecondary"></div>
+                    <div :class="theme.borderSecondary" class="h-px"></div>
 
                     <!-- Show Filename -->
                     <div>
-                      <p class="px-2 py-1.5 text-xs font-semibold" :class="theme.textTertiary">
+                      <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
                         Show
                       </p>
                       <div class="mt-1 px-2 py-1.5">
                         <div class="flex items-center justify-between">
-                          <label class="text-sm" :class="theme.textPrimary">Filename</label>
+                          <label :class="theme.textPrimary" class="text-sm">Filename</label>
                           <label class="relative inline-flex items-center cursor-pointer">
                             <input
-                              type="checkbox"
                               :checked="showFilename"
-                              @change="handleFilenameToggle"
                               class="sr-only peer"
+                              type="checkbox"
+                              @change="handleFilenameToggle"
                             />
                             <div
                               class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600"
                             ></div>
                             <span
-                              class="ml-3 text-sm font-medium"
                               :class="showFilename ? theme.textPrimary : theme.textSecondary"
+                              class="ml-3 text-sm font-medium"
                             >
                               {{ showFilename ? 'On' : 'Off' }}
                             </span>
@@ -506,27 +500,27 @@
               </Popover>
 
               <div
-                class="flex items-center gap-0.5 p-0.5 rounded-lg bg-white dark:bg-gray-900 border shadow-sm"
                 :class="theme.borderSecondary"
+                class="flex items-center gap-0.5 p-0.5 rounded-lg bg-white dark:bg-gray-900 border shadow-sm"
               >
                 <button
-                  class="p-2 rounded-md transition-all duration-200"
                   :class="[
                     viewMode === 'list'
                       ? 'bg-teal-500 text-white shadow-sm'
                       : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                   ]"
+                  class="p-2 rounded-md transition-all duration-200"
                   @click="viewMode = 'list'"
                 >
                   <List class="h-4 w-4" />
                 </button>
                 <button
-                  class="p-2 rounded-md transition-all duration-200"
                   :class="[
                     viewMode === 'grid'
                       ? 'bg-teal-500 text-white shadow-sm'
                       : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
                   ]"
+                  class="p-2 rounded-md transition-all duration-200"
                   @click="viewMode = 'grid'"
                 >
                   <Grid3x3 class="h-4 w-4" />
@@ -535,15 +529,15 @@
               <!-- Select All Button - Always visible when there are items -->
               <Button
                 v-if="sortedMediaItems.length > 0"
-                class="border-2 shadow-sm transition-all duration-200 font-medium"
                 :class="[
                   selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
                     ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300'
                     : theme.borderSecondary + ' ' + theme.bgCard + ' ' + theme.textPrimary,
                   'hover:bg-gray-100 dark:hover:bg-gray-800',
                 ]"
-                @click="handleToggleSelectAll"
+                class="border-2 shadow-sm transition-all duration-200 font-medium"
                 title="Select or deselect all items"
+                @click="handleToggleSelectAll"
               >
                 <CheckSquare2
                   v-if="
@@ -551,7 +545,7 @@
                   "
                   class="h-4 w-4 mr-2 text-teal-500"
                 />
-                <Square v-else class="h-4 w-4 mr-2" :class="theme.textSecondary" />
+                <Square v-else :class="theme.textSecondary" class="h-4 w-4 mr-2" />
                 <span class="font-semibold">{{
                   selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
                     ? 'Deselect All'
@@ -559,9 +553,9 @@
                 }}</span>
               </Button>
               <Button
+                :disabled="isUploading"
                 class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
                 @click="handleAddMedia"
-                :disabled="isUploading"
               >
                 <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
                 <ImagePlus v-else class="h-4 w-4 mr-2" />
@@ -572,18 +566,18 @@
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
-            :selected-count="selectedMediaIds.size"
             :is-all-selected="selectedMediaIds.size === sortedMediaItems.length"
             :is-favorite-loading="isBulkFavoriteLoading"
-            @clear-selection="selectedMediaIds = new Set()"
-            @select-all="handleToggleSelectAll"
-            @favorite="handleBulkFavorite"
-            @view="handleBulkView"
-            @tag="handleBulkTag"
-            @watermark="handleBulkWatermark"
-            @move="showMoveCopyModal = true"
+            :selected-count="selectedMediaIds.size"
             @delete="handleBulkDelete"
             @edit="handleBulkEdit"
+            @favorite="handleBulkFavorite"
+            @move="showMoveCopyModal = true"
+            @tag="handleBulkTag"
+            @view="handleBulkView"
+            @watermark="handleBulkWatermark"
+            @clear-selection="selectedMediaIds = new Set()"
+            @select-all="handleToggleSelectAll"
           />
 
           <!-- Media Grid/List View -->
@@ -599,17 +593,17 @@
             >
               <div v-for="item in sortedMediaItems" :key="item.id" class="group">
                 <div
-                  class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-gray-200 dark:border-gray-700"
                   :class="
                     selectedMediaIds.has(item.id)
                       ? 'ring-2 ring-teal-500 ring-offset-2'
                       : 'hover:border-teal-300 dark:hover:border-teal-600'
                   "
+                  class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-gray-200 dark:border-gray-700"
                 >
                   <!-- Selection Checkbox -->
                   <div
-                    class="absolute top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     :class="selectedMediaIds.has(item.id) ? 'opacity-100' : ''"
+                    class="absolute top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
                     @click.stop="handleToggleMediaSelection(item.id)"
                   >
                     <button
@@ -625,8 +619,8 @@
                   </div>
                   <div class="w-full h-full cursor-pointer" @click="openMediaViewer(item)">
                     <img
-                      :src="item.thumbnail || item.url || placeholderImage"
                       :alt="item.title || 'Media'"
+                      :src="item.thumbnail || item.url || placeholderImage"
                       class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                       @error="handleImageError"
                     />
@@ -646,9 +640,9 @@
                         </button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
+                        :class="[theme.bgDropdown, theme.borderSecondary]"
                         align="end"
                         class="w-48"
-                        :class="[theme.bgDropdown, theme.borderSecondary]"
                         @click.stop
                       >
                         <DropdownMenuItem
@@ -722,7 +716,7 @@
                           <Eye class="h-4 w-4 mr-2" />
                           {{ item.originalUrl ? 'Change Watermark' : 'Apply Watermark' }}
                         </DropdownMenuItem>
-                        <div class="h-px my-1" :class="theme.borderSecondary"></div>
+                        <div :class="theme.borderSecondary" class="h-px my-1"></div>
                         <DropdownMenuItem
                           :class="[
                             'text-red-600 dark:text-red-400',
@@ -741,8 +735,8 @@
                 <!-- Filename below image -->
                 <p
                   v-if="showFilename && item.title"
-                  class="text-xs font-medium truncate mt-2 text-center"
                   :class="theme.textPrimary"
+                  class="text-xs font-medium truncate mt-2 text-center"
                 >
                   {{ item.title }}
                 </p>
@@ -752,13 +746,13 @@
               <div
                 v-for="item in sortedMediaItems"
                 :key="item.id"
-                class="group flex items-center gap-4 p-4 rounded-xl border bg-white dark:bg-gray-900 hover:shadow-lg transition-all duration-200"
                 :class="[
                   theme.borderSecondary,
                   selectedMediaIds.has(item.id)
                     ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20'
                     : 'hover:border-teal-300 dark:hover:border-teal-600',
                 ]"
+                class="group flex items-center gap-4 p-4 rounded-xl border bg-white dark:bg-gray-900 hover:shadow-lg transition-all duration-200"
               >
                 <!-- Selection Checkbox -->
                 <button
@@ -769,30 +763,30 @@
                     v-if="selectedMediaIds.has(item.id)"
                     class="h-5 w-5 text-teal-500"
                   />
-                  <Square v-else class="h-5 w-5" :class="theme.textSecondary" />
+                  <Square v-else :class="theme.textSecondary" class="h-5 w-5" />
                 </button>
                 <div
                   class="flex items-center gap-4 flex-1 cursor-pointer"
                   @click="openMediaViewer(item)"
                 >
                   <img
-                    :src="item.thumbnail || item.url || placeholderImage"
                     :alt="item.title || 'Media'"
+                    :src="item.thumbnail || item.url || placeholderImage"
                     class="w-20 h-20 object-cover rounded-lg shadow-sm"
                     @error="handleImageError"
                   />
                   <div class="flex-1 min-w-0">
                     <p
                       v-if="showFilename && item.title"
-                      class="text-sm font-medium truncate"
                       :class="theme.textPrimary"
+                      class="text-sm font-medium truncate"
                     >
                       {{ item.title }}
                     </p>
-                    <p v-else class="text-sm font-medium truncate" :class="theme.textTertiary">
+                    <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">
                       Media Item
                     </p>
-                    <p class="text-xs mt-1" :class="theme.textTertiary">
+                    <p :class="theme.textTertiary" class="text-xs mt-1">
                       {{ formatMediaDate(item.createdAt) }}
                     </p>
                   </div>
@@ -805,17 +799,17 @@
                   <DropdownMenu>
                     <DropdownMenuTrigger as-child>
                       <button
-                        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110"
                         :class="theme.textSecondary"
+                        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110"
                         @click.stop
                       >
                         <MoreVertical class="h-4 w-4" />
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
+                      :class="[theme.bgDropdown, theme.borderSecondary]"
                       align="end"
                       class="w-48"
-                      :class="[theme.bgDropdown, theme.borderSecondary]"
                       @click.stop
                     >
                       <DropdownMenuItem
@@ -889,7 +883,7 @@
                         <Eye class="h-4 w-4 mr-2" />
                         {{ item.originalUrl ? 'Change Watermark' : 'Apply Watermark' }}
                       </DropdownMenuItem>
-                      <div class="h-px my-1" :class="theme.borderSecondary"></div>
+                      <div :class="theme.borderSecondary" class="h-px my-1"></div>
                       <DropdownMenuItem
                         :class="[
                           'text-red-600 dark:text-red-400',
@@ -911,40 +905,40 @@
           <!-- Empty State / Upload Zone -->
           <div
             v-if="sortedMediaItems.length === 0"
-            class="border-2 border-dashed rounded-2xl p-20 text-center transition-all duration-300 bg-white dark:bg-gray-900"
             :class="[
               theme.borderSecondary,
               isDragging
                 ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 scale-[1.01] shadow-xl ring-4 ring-teal-500/20'
                 : 'hover:border-teal-400 dark:hover:border-teal-600 hover:bg-gray-50 dark:hover:bg-gray-900/50',
             ]"
+            class="border-2 border-dashed rounded-2xl p-20 text-center transition-all duration-300 bg-white dark:bg-gray-900"
+            @dragleave="isDragging = false"
             @drop="handleDrop"
             @dragover.prevent="isDragging = true"
-            @dragleave="isDragging = false"
           >
             <div class="flex flex-col items-center justify-center space-y-6 max-w-lg mx-auto">
               <div
-                class="p-6 rounded-full transition-all duration-300"
                 :class="[
                   isDragging
                     ? 'bg-teal-100 dark:bg-teal-900/40 scale-110 ring-4 ring-teal-500/30'
                     : 'bg-gray-100 dark:bg-gray-800',
                 ]"
+                class="p-6 rounded-full transition-all duration-300"
               >
                 <ImagePlus
-                  class="h-12 w-12 transition-all duration-300"
                   :class="[
                     isDragging
                       ? 'text-teal-600 dark:text-teal-400 scale-110 rotate-6'
                       : theme.textTertiary,
                   ]"
+                  class="h-12 w-12 transition-all duration-300"
                 />
               </div>
               <div class="space-y-3">
-                <p class="text-xl font-bold" :class="theme.textPrimary">
+                <p :class="theme.textPrimary" class="text-xl font-bold">
                   Drag photos and videos here to upload
                 </p>
-                <p class="text-sm" :class="theme.textSecondary">
+                <p :class="theme.textSecondary" class="text-sm">
                   or
                   <button
                     class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold underline underline-offset-4 transition-colors"
@@ -967,33 +961,33 @@
       >
         <div class="space-y-6 py-4">
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary">
+            <label :class="theme.textPrimary" class="text-sm font-semibold">
               Photo Set Name <span class="text-red-500">*</span>
             </label>
             <Input
               v-model="newSetName"
-              placeholder="e.g. Ceremony, Reception, Getting ready"
-              class="w-full"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              class="w-full"
+              placeholder="e.g. Ceremony, Reception, Getting ready"
               @keydown.enter="handleCreateSet"
               @keydown.esc="handleCancelCreateSet"
             />
           </div>
 
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Description </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Description </label>
             <Textarea
               v-model="newSetDescription"
-              placeholder="Optional"
-              class="w-full min-h-[100px] resize-none"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
               :maxlength="500"
+              class="w-full min-h-[100px] resize-none"
+              placeholder="Optional"
             />
             <div class="flex items-center justify-between">
-              <p class="text-xs" :class="theme.textTertiary">
+              <p :class="theme.textTertiary" class="text-xs">
                 Description is shown to clients viewing this photo set for additional storytelling.
               </p>
-              <span class="text-xs" :class="theme.textTertiary">
+              <span :class="theme.textTertiary" class="text-xs">
                 {{ newSetDescription.length }}/500
               </span>
             </div>
@@ -1002,11 +996,11 @@
 
         <template #footer>
           <ActionButtonGroup
-            :loading="isCreatingSet"
-            :disabled="isCreatingSet"
-            cancel-label="Cancel"
             :confirm-label="editingSetIdInModal ? 'Update' : 'Save'"
+            :disabled="isCreatingSet"
+            :loading="isCreatingSet"
             :loading-label="editingSetIdInModal ? 'Updating...' : 'Creating...'"
+            cancel-label="Cancel"
             @cancel="handleCancelCreateSet"
             @confirm="handleCreateSet"
           />
@@ -1016,46 +1010,46 @@
       <!-- Delete Confirmation Modal -->
       <DeleteConfirmationModal
         v-model="showDeleteModal"
+        :is-deleting="isDeleting"
         :item-name="getItemName(itemToDelete)"
         :title="getDeleteModalTitle()"
-        description="This action cannot be undone."
         :warning-message="getDeleteModalWarning()"
-        :is-deleting="isDeleting"
-        @confirm="handleConfirmDeleteItem"
+        description="This action cannot be undone."
         @cancel="closeDeleteModal"
+        @confirm="handleConfirmDeleteItem"
       />
 
       <!-- Bulk Delete Confirmation Modal -->
       <DeleteConfirmationModal
         v-model="showBulkDeleteModal"
-        :item-name="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
-        title="Delete Media"
-        description="This action cannot be undone."
-        :warning-message="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''} will be permanently deleted.`"
         :is-deleting="isBulkDeleteLoading"
-        @confirm="handleConfirmBulkDelete"
+        :item-name="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
+        :warning-message="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''} will be permanently deleted.`"
+        description="This action cannot be undone."
+        title="Delete Media"
         @cancel="showBulkDeleteModal = false"
+        @confirm="handleConfirmBulkDelete"
       />
 
       <!-- Edit Filename Modal -->
-      <CenterModal v-model="showEditModal" title="EDIT FILENAMES" content-class="sm:max-w-[500px]">
+      <CenterModal v-model="showEditModal" content-class="sm:max-w-[500px]" title="EDIT FILENAMES">
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             Append text to {{ selectedMediaIds.size }} item{{
               selectedMediaIds.size > 1 ? 's' : ''
             }}
             filename{{ selectedMediaIds.size > 1 ? 's' : '' }}:
           </p>
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Text to Append </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Text to Append </label>
             <Input
               v-model="editAppendText"
-              placeholder="e.g., _edited, _final"
-              class="w-full"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              class="w-full"
+              placeholder="e.g., _edited, _final"
               @keydown.enter="handleConfirmEdit"
             />
-            <p class="text-xs" :class="theme.textTertiary">
+            <p :class="theme.textTertiary" class="text-xs">
               This text will be appended to all selected filenames.
             </p>
           </div>
@@ -1075,30 +1069,30 @@
       <!-- Bulk Watermark Modal -->
       <CenterModal
         v-model="showBulkWatermarkModal"
-        title="APPLY WATERMARK"
         content-class="sm:max-w-[500px]"
+        title="APPLY WATERMARK"
       >
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             Select a watermark to apply to {{ selectedMediaIds.size }} item{{
               selectedMediaIds.size > 1 ? 's' : ''
             }}:
           </p>
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Watermark </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Watermark </label>
             <Select v-model="selectedBulkWatermark">
               <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
                 <SelectValue placeholder="Select a watermark" />
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem value="none" :class="[theme.textPrimary, theme.bgButtonHover]">
+                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="none">
                   None
                 </SelectItem>
                 <SelectItem
                   v-for="watermark in watermarks"
                   :key="watermark.id"
-                  :value="watermark.id"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :value="watermark.id"
                 >
                   {{ watermark.name }}
                 </SelectItem>
@@ -1119,9 +1113,9 @@
           <ActionButtonGroup
             :disabled="isBulkWatermarkLoading"
             :loading="isBulkWatermarkLoading"
-            loading-label="Applying watermark..."
             cancel-label="Cancel"
             confirm-label="Apply"
+            loading-label="Applying watermark..."
             @cancel="handleCancelBulkWatermark"
             @confirm="handleConfirmBulkWatermark"
           />
@@ -1129,21 +1123,21 @@
       </CenterModal>
 
       <!-- Tag Modal -->
-      <CenterModal v-model="showTagModal" title="ADD TAGS" content-class="sm:max-w-[500px]">
+      <CenterModal v-model="showTagModal" content-class="sm:max-w-[500px]" title="ADD TAGS">
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             Add tags to {{ selectedMediaIds.size }} item{{ selectedMediaIds.size > 1 ? 's' : '' }}:
           </p>
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Tags </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Tags </label>
             <Input
               v-model="tagInput"
-              placeholder="Enter tags separated by commas"
-              class="w-full"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              class="w-full"
+              placeholder="Enter tags separated by commas"
               @keydown.enter.prevent="handleAddTag"
             />
-            <p class="text-xs" :class="theme.textTertiary">
+            <p :class="theme.textTertiary" class="text-xs">
               Separate multiple tags with commas (e.g., wedding, ceremony, outdoor)
             </p>
             <div v-if="existingTags.length > 0" class="flex flex-wrap gap-2 mt-2">
@@ -1167,9 +1161,9 @@
           <ActionButtonGroup
             :disabled="(!tagInput.trim() && existingTags.length === 0) || isBulkTagLoading"
             :loading="isBulkTagLoading"
-            loading-label="Adding tags..."
             cancel-label="Cancel"
             confirm-label="Add Tags"
+            loading-label="Adding tags..."
             @cancel="handleCancelTag"
             @confirm="handleConfirmTag"
           />
@@ -1179,11 +1173,11 @@
       <!-- Duplicate Files Modal -->
       <CenterModal
         v-model="showDuplicateFilesModal"
-        title="DUPLICATE FILES DETECTED"
         content-class="sm:max-w-[600px]"
+        title="DUPLICATE FILES DETECTED"
       >
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             The following file{{ duplicateFiles.length > 1 ? 's' : '' }} already exist{{
               duplicateFiles.length === 1 ? 's' : ''
             }}
@@ -1193,20 +1187,19 @@
             <div
               v-for="item in duplicateFiles"
               :key="item.file.name"
-              class="flex items-center justify-between p-3 rounded-lg border"
               :class="[theme.bgInput, theme.borderSecondary]"
+              class="flex items-center justify-between p-3 rounded-lg border"
             >
               <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium truncate" :class="theme.textPrimary">
+                <p :class="theme.textPrimary" class="text-sm font-medium truncate">
                   {{ item.file.name }}
                 </p>
-                <p class="text-xs mt-1" :class="theme.textTertiary">
+                <p :class="theme.textTertiary" class="text-xs mt-1">
                   Existing: {{ item.existingMedia.title || item.file.name }}
                 </p>
               </div>
               <div class="flex items-center gap-2 ml-4">
                 <button
-                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
                   :class="
                     duplicateFileActions.get(item.file.name) === 'replace'
                       ? 'bg-teal-500 text-white border-teal-500'
@@ -1217,12 +1210,12 @@
                           'hover:' + theme.bgButtonHover,
                         ]
                   "
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
                   @click="duplicateFileActions.set(item.file.name, 'replace')"
                 >
                   Replace
                 </button>
                 <button
-                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
                   :class="
                     duplicateFileActions.get(item.file.name) === 'skip'
                       ? 'bg-gray-500 text-white border-gray-500'
@@ -1233,6 +1226,7 @@
                           'hover:' + theme.bgButtonHover,
                         ]
                   "
+                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
                   @click="duplicateFileActions.set(item.file.name, 'skip')"
                 >
                   Skip
@@ -1240,15 +1234,15 @@
               </div>
             </div>
           </div>
-          <div class="flex items-center gap-2 pt-2 border-t" :class="theme.borderSecondary">
+          <div :class="theme.borderSecondary" class="flex items-center gap-2 pt-2 border-t">
             <button
-              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               :class="[
                 theme.bgInput,
                 theme.borderSecondary,
                 theme.textPrimary,
                 'hover:' + theme.bgButtonHover,
               ]"
+              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               @click="
                 duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
               "
@@ -1256,13 +1250,13 @@
               Replace All
             </button>
             <button
-              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               :class="[
                 theme.bgInput,
                 theme.borderSecondary,
                 theme.textPrimary,
                 'hover:' + theme.bgButtonHover,
               ]"
+              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
               @click="
                 duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))
               "
@@ -1275,9 +1269,9 @@
           <ActionButtonGroup
             :disabled="isUploading"
             :loading="isUploading"
-            loading-label="Uploading..."
             cancel-label="Cancel"
             confirm-label="Continue"
+            loading-label="Uploading..."
             @cancel="handleCancelDuplicateFiles"
             @confirm="handleConfirmDuplicateFiles"
           />
@@ -1287,18 +1281,18 @@
       <!-- Rename Media Modal -->
       <CenterModal
         v-model="showRenameMediaModal"
-        title="RENAME MEDIA"
         content-class="sm:max-w-[500px]"
+        title="RENAME MEDIA"
       >
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">Enter a new name for this media item:</p>
+          <p :class="theme.textSecondary" class="text-sm">Enter a new name for this media item:</p>
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Name </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Name </label>
             <Input
               v-model="newMediaName"
-              placeholder="Enter media name"
-              class="w-full"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              class="w-full"
+              placeholder="Enter media name"
               @keydown.enter="handleConfirmRenameMedia"
             />
           </div>
@@ -1317,25 +1311,25 @@
       <!-- Replace Photo Modal -->
       <CenterModal
         v-model="showReplacePhotoModal"
-        title="REPLACE PHOTO"
         content-class="sm:max-w-[500px]"
+        title="REPLACE PHOTO"
       >
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             Select a new image file to replace the current photo:
           </p>
           <div class="space-y-2">
             <input
               ref="replaceFileInputRef"
-              type="file"
               accept="image/*"
               class="hidden"
+              type="file"
               @change="handleReplacePhotoFileSelect"
             />
             <Button
-              variant="outline"
-              class="w-full"
               :disabled="isReplacingPhoto"
+              class="w-full"
+              variant="outline"
               @click="replaceFileInputRef?.click()"
             >
               <Loader2 v-if="isReplacingPhoto" class="h-4 w-4 mr-2 animate-spin" />
@@ -1347,8 +1341,8 @@
         <template #footer>
           <div class="flex items-center justify-end gap-3">
             <Button
-              variant="outline"
               :disabled="isReplacingPhoto"
+              variant="outline"
               @click="handleCancelReplacePhoto"
             >
               Cancel
@@ -1364,7 +1358,7 @@
         content-class="sm:max-w-[500px]"
       >
         <div class="space-y-4 py-4">
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             {{
               mediaToWatermark?.originalUrl
                 ? 'This image has a watermark. Select a new watermark or remove it:'
@@ -1372,20 +1366,20 @@
             }}
           </p>
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Watermark </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Watermark </label>
             <Select v-model="selectedWatermarkForMedia">
               <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
                 <SelectValue placeholder="Select a watermark" />
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem value="none" :class="[theme.textPrimary, theme.bgButtonHover]">
+                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="none">
                   {{ mediaToWatermark?.originalUrl ? 'Remove Watermark' : 'None' }}
                 </SelectItem>
                 <SelectItem
                   v-for="watermark in watermarks"
                   :key="watermark.id"
-                  :value="watermark.id"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :value="watermark.id"
                 >
                   {{ watermark.name }}
                 </SelectItem>
@@ -1403,15 +1397,15 @@
         </div>
         <template #footer>
           <ActionButtonGroup
-            :disabled="isApplyingWatermark"
-            :loading="isApplyingWatermark"
-            loading-label="Processing..."
-            cancel-label="Cancel"
             :confirm-label="
               selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl
                 ? 'Remove'
                 : 'Apply'
             "
+            :disabled="isApplyingWatermark"
+            :loading="isApplyingWatermark"
+            cancel-label="Cancel"
+            loading-label="Processing..."
             @cancel="handleCancelWatermarkMedia"
             @confirm="handleConfirmWatermarkMedia"
           />
@@ -1427,26 +1421,26 @@
         <div class="space-y-4 py-4">
           <!-- Action Type Selection -->
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Action </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Action </label>
             <div class="flex gap-2">
               <button
-                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
                 :class="[
                   moveCopyAction === 'move'
                     ? 'bg-teal-500 text-white border-teal-500'
                     : theme.bgInput + ' ' + theme.borderSecondary + ' ' + theme.textPrimary,
                 ]"
+                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
                 @click="moveCopyAction = 'move'"
               >
                 Move
               </button>
               <button
-                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
                 :class="[
                   moveCopyAction === 'copy'
                     ? 'bg-teal-500 text-white border-teal-500'
                     : theme.bgInput + ' ' + theme.borderSecondary + ' ' + theme.textPrimary,
                 ]"
+                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
                 @click="moveCopyAction = 'copy'"
               >
                 Copy
@@ -1454,7 +1448,7 @@
             </div>
           </div>
 
-          <p class="text-sm" :class="theme.textSecondary">
+          <p :class="theme.textSecondary" class="text-sm">
             {{ moveCopyAction === 'move' ? 'Move' : 'Copy' }} {{ selectedMediaIds.size }} item{{
               selectedMediaIds.size > 1 ? 's' : ''
             }}
@@ -1463,7 +1457,7 @@
 
           <!-- Collection Selection -->
           <div class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary">
+            <label :class="theme.textPrimary" class="text-sm font-semibold">
               Select Collection
             </label>
             <Select
@@ -1471,25 +1465,25 @@
               @update:model-value="handleTargetCollectionChange"
             >
               <SelectTrigger
-                class="w-full"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                class="w-full"
               >
                 <SelectValue placeholder="Choose a collection" />
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
                 <SelectItem
-                  :value="collection?.id || ''"
-                  :label="collection?.name || 'Current Collection'"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :label="collection?.name || 'Current Collection'"
+                  :value="collection?.id || ''"
                 >
                   {{ collection?.name || 'Current Collection' }}
                 </SelectItem>
                 <SelectItem
                   v-for="col in availableCollections"
                   :key="col.id"
-                  :value="col.id"
-                  :label="col.name"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :label="col.name"
+                  :value="col.id"
                 >
                   {{ col.name }}
                 </SelectItem>
@@ -1499,47 +1493,47 @@
 
           <!-- Set Selection (only show if collection is selected) -->
           <div v-if="targetCollectionIdForMove" class="space-y-2">
-            <label class="text-sm font-semibold" :class="theme.textPrimary"> Select Set </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold"> Select Set </label>
             <Select v-model="targetSetIdInCollection" :disabled="isLoadingTargetCollectionSets">
               <SelectTrigger
-                class="w-full"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                class="w-full"
               >
                 <SelectValue placeholder="Choose a set" />
               </SelectTrigger>
               <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
                 <SelectItem
                   v-if="targetCollectionSets.length === 0 && !isLoadingTargetCollectionSets"
-                  value="none"
-                  label="No sets available"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
                   disabled
+                  label="No sets available"
+                  value="none"
                 >
                   No sets available
                 </SelectItem>
                 <SelectItem
                   v-for="set in targetCollectionSets"
                   :key="set.id"
-                  :value="set.id"
-                  :label="set.name"
                   :class="[theme.textPrimary, theme.bgButtonHover]"
+                  :label="set.name"
+                  :value="set.id"
                 >
                   {{ set.name }}
                 </SelectItem>
               </SelectContent>
             </Select>
-            <p v-if="isLoadingTargetCollectionSets" class="text-xs" :class="theme.textTertiary">
+            <p v-if="isLoadingTargetCollectionSets" :class="theme.textTertiary" class="text-xs">
               Loading sets...
             </p>
           </div>
         </div>
         <template #footer>
           <ActionButtonGroup
-            :loading="isMovingMedia"
-            :disabled="isMovingMedia || !targetCollectionIdForMove"
-            cancel-label="Cancel"
             :confirm-label="moveCopyAction === 'move' ? 'Move' : 'Copy'"
+            :disabled="isMovingMedia || !targetCollectionIdForMove"
+            :loading="isMovingMedia"
             :loading-label="moveCopyAction === 'move' ? 'Moving...' : 'Copying...'"
+            cancel-label="Cancel"
             @cancel="handleCancelMoveCopy"
             @confirm="handleConfirmMoveCopy"
           />
@@ -1554,8 +1548,8 @@
       >
         <div class="relative max-w-7xl max-h-full">
           <img
-            :src="selectedMedia.url || selectedMedia.thumbnail || placeholderImage"
             :alt="selectedMedia.title || 'Media'"
+            :src="selectedMedia.url || selectedMedia.thumbnail || placeholderImage"
             class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
             @error="handleImageError"
           />
@@ -1585,15 +1579,15 @@
         @click="closeMediaViewer"
       >
         <div class="relative max-w-7xl max-h-full w-full">
-          <Transition name="fade" mode="out-in">
+          <Transition mode="out-in" name="fade">
             <div :key="currentViewIndex" class="relative">
               <img
+                :alt="selectedMediaForView[currentViewIndex].title || 'Media'"
                 :src="
                   selectedMediaForView[currentViewIndex].url ||
                   selectedMediaForView[currentViewIndex].thumbnail ||
                   placeholderImage
                 "
-                :alt="selectedMediaForView[currentViewIndex].title || 'Media'"
                 class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl mx-auto"
                 @error="handleImageError"
               />
@@ -1643,53 +1637,38 @@
   </CollectionLayout>
 </template>
 
-<script setup lang="ts">
-import {
-  ref,
-  computed,
-  onMounted,
-  onUnmounted,
-  watch,
-  nextTick,
-  Transition,
-  TransitionGroup,
-} from 'vue'
+<script lang="ts" setup>
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { debounce } from '@/utils/debounce'
 import {
-  ImageIcon,
-  Paintbrush,
-  Settings,
-  Plus,
-  GripVertical,
-  MoreVertical,
-  ChevronsLeft,
-  ChevronsRight,
-  ChevronLeft,
-  ChevronDown,
-  List,
-  Grid3x3,
-  ImagePlus,
-  Loader2,
-  Check,
-  X,
-  Pencil,
-  Trash2,
-  Radio,
   ArrowUpDown,
-  ArrowDown,
-  ExternalLink,
-  Download,
-  Share2,
+  Check,
+  CheckSquare2,
+  ChevronLeft,
+  ChevronsRight,
   Copy,
-  Move,
+  Download,
+  ExternalLink,
   Eye,
   FileImage,
+  Grid3x3,
+  GripVertical,
+  ImageIcon,
+  ImagePlus,
+  List,
+  Loader2,
+  MoreVertical,
+  Move,
+  Paintbrush,
+  Pencil,
   Pencil as PencilIcon,
-  CheckSquare2,
+  Plus,
+  Radio,
+  Share2,
   Square,
-  Star,
-  Tag,
+  Trash2,
+  X,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -1705,15 +1684,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
-import { Calendar } from '@/components/shadcn/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-  TooltipProvider,
-} from '@/components/shadcn/tooltip'
-import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
@@ -1728,7 +1699,7 @@ import { usePresetStore } from '@/stores/preset'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import type { Collection, MediaSet as ApiMediaSet } from '@/api/collections'
-import { useMediaApi, type MediaItem } from '@/api/media'
+import { type MediaItem, useMediaApi } from '@/api/media'
 import type { Watermark } from '@/api/watermarks'
 import { toast } from 'vue-sonner'
 
@@ -1763,6 +1734,14 @@ watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
   if (newTab === 'settings') {
     router.push({
       name: 'collectionSettingsGeneral',
+      params: { uuid: collection.value.id },
+    })
+  }
+
+  // Navigate to Download Activity when activities tab is clicked
+  if (newTab === 'activities') {
+    router.push({
+      name: 'collectionActivitiesDownload',
       params: { uuid: collection.value.id },
     })
   }
@@ -1979,6 +1958,7 @@ const handleSortChange = (value: string) => {
 // Handle grid size change
 const handleGridSizeChange = (value: string) => {
   gridSize.value = value as 'small' | 'large'
+  isViewMenuOpen.value = false
 }
 
 // Handle filename toggle
@@ -2620,9 +2600,12 @@ const getDeleteModalWarning = () => {
 }
 
 const handleConfirmDeleteItem = async () => {
+  console.log(itemToDelete.value)
   if (!itemToDelete.value) return
 
   const item = itemToDelete.value as any
+
+  console.log(item.collectionId)
 
   // Check if it's a MediaSet or MediaItem
   if (item.collectionId) {
@@ -2650,7 +2633,7 @@ const handleConfirmDeleteItem = async () => {
     }
   } else {
     // It's a MediaSet - call the existing handler
-    handleConfirmDeleteSet()
+    await handleConfirmDeleteSet()
   }
 }
 
@@ -3331,7 +3314,7 @@ const loadCollection = async () => {
   const uuid = route.params.uuid as string
   if (!uuid) {
     toast.error('Collection ID is required')
-    router.push({ name: 'manageCollections' })
+    await router.push({ name: 'manageCollections' })
     return
   }
 
@@ -3346,7 +3329,7 @@ const loadCollection = async () => {
       toast.error('Collection not found', {
         description: `Collection with ID ${uuid} could not be found.`,
       })
-      router.push({ name: 'manageCollections' })
+      await router.push({ name: 'manageCollections' })
       return
     }
 
@@ -3647,6 +3630,8 @@ const handleConfirmDeleteSet = async () => {
 
   const set = itemToDelete.value
   const index = mediaSets.value.findIndex((s: MediaSet) => s.id === set.id)
+
+  console.log(mediaSets.value)
 
   if (index !== -1) {
     isDeleting.value = true

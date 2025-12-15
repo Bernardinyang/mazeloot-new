@@ -1,12 +1,12 @@
 <template>
   <PresetLayout>
     <div
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-7xl'"
     >
       <div class="mb-10">
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="text-3xl font-bold" :class="theme.textPrimary">Favorite</h1>
+          <h1 :class="theme.textPrimary" class="text-3xl font-bold">Favorite</h1>
           <Transition
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -24,7 +24,7 @@
             </div>
           </Transition>
         </div>
-        <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+        <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
           Configure favorite settings for collections created from this preset.
         </p>
       </div>
@@ -32,7 +32,6 @@
       <div class="space-y-6 max-w-3xl">
         <!-- Favorite Photos Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
@@ -40,30 +39,31 @@
               ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
               : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                   :class="
                     formData.favoritePhotos
                       ? 'bg-teal-500/10 dark:bg-teal-500/20'
                       : 'bg-gray-100/50 dark:bg-gray-800/50'
                   "
+                  class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <Heart
-                    class="h-4 w-4 transition-colors"
                     :class="
                       formData.favoritePhotos
                         ? 'text-teal-600 dark:text-teal-400 fill-teal-600 dark:fill-teal-400'
                         : theme.textSecondary
                     "
+                    class="h-4 w-4 transition-colors"
                   />
                 </div>
-                <h3 class="text-lg font-bold" :class="theme.textPrimary">Favorite Photos</h3>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold">Favorite Photos</h3>
               </div>
-              <p class="text-sm leading-relaxed ml-11" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed ml-11">
                 Allow visitors to favorite photos. You can review these afterwards in
                 <span class="font-medium text-teal-600 dark:text-teal-400">Favorite Activity</span>.
               </p>
@@ -72,8 +72,8 @@
               <ToggleSwitch
                 v-model="formData.favoritePhotos"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -81,7 +81,6 @@
 
         <!-- Favorite Notes Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
@@ -89,34 +88,35 @@
               ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
               : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                   :class="
                     formData.favoriteNotes
                       ? 'bg-teal-500/10 dark:bg-teal-500/20'
                       : 'bg-gray-100/50 dark:bg-gray-800/50'
                   "
+                  class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <StickyNote
-                    class="h-4 w-4 transition-colors"
                     :class="
                       formData.favoriteNotes
                         ? 'text-teal-600 dark:text-teal-400'
                         : theme.textSecondary
                     "
+                    class="h-4 w-4 transition-colors"
                   />
                 </div>
-                <h3 class="text-lg font-bold" :class="theme.textPrimary">Favorite Notes</h3>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold">Favorite Notes</h3>
               </div>
-              <p class="text-sm leading-relaxed ml-11" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed ml-11">
                 Allow clients to add notes to photos they have favorited.
                 <a
-                  href="#"
                   class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  href="#"
                 >
                   Learn more
                 </a>
@@ -126,8 +126,8 @@
               <ToggleSwitch
                 v-model="formData.favoriteNotes"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -137,19 +137,19 @@
       <!-- Bottom Navigation -->
       <div class="max-w-3xl">
         <div
-          class="flex justify-between items-center mt-12 pt-8 border-t"
           :class="theme.borderSecondary"
+          class="flex justify-between items-center mt-12 pt-8 border-t"
         >
           <Button
-            @click="handlePrevious"
-            variant="ghost"
-            :disabled="isSubmitting || isSaving"
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
               'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
+            :disabled="isSubmitting || isSaving"
+            variant="ghost"
+            @click="handlePrevious"
           >
             <ArrowLeft class="mr-2 h-4 w-4" />
             Back
@@ -165,16 +165,16 @@
             >
               <span
                 v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
-                class="text-xs"
                 :class="theme.textTertiary"
+                class="text-xs"
               >
                 Unsaved changes
               </span>
             </Transition>
             <Button
-              @click="handleNext"
               :disabled="isSubmitting || isSaving"
               class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
               <ArrowRight v-else class="mr-2 h-4 w-4" />
@@ -190,27 +190,27 @@
     <UnsavedChangesModal
       v-model="showUnsavedChangesModal"
       :is-saving="isSubmitting || isSaving"
-      @save="handleSaveAndLeave"
-      @discard="handleDiscardAndLeave"
       @cancel="handleCancelNavigation"
+      @discard="handleDiscardAndLeave"
+      @save="handleSaveAndLeave"
     />
   </PresetLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
+<script lang="ts" setup>
 import type { Ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Loader2, Check, ArrowLeft, ArrowRight, Heart, StickyNote } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Check, Heart, Loader2, StickyNote } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import { usePresetStore } from '@/stores/preset'
 import type { Preset } from '@/stores/preset'
+import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
 const router = useRouter()

@@ -1,12 +1,12 @@
 <template>
   <PresetLayout>
     <div
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-7xl'"
     >
       <div class="mb-10">
         <div class="flex items-center gap-3 mb-2">
-          <h1 class="text-3xl font-bold" :class="theme.textPrimary">Download</h1>
+          <h1 :class="theme.textPrimary" class="text-3xl font-bold">Download</h1>
           <Transition
             enter-active-class="transition-all duration-300 ease-out"
             enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -24,7 +24,7 @@
             </div>
           </Transition>
         </div>
-        <p class="text-sm leading-relaxed max-w-2xl" :class="theme.textSecondary">
+        <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
           Configure download settings and restrictions for collections created from this preset.
         </p>
       </div>
@@ -32,11 +32,11 @@
       <div class="space-y-8 max-w-3xl">
         <!-- Upgrade Banner -->
         <div
-          class="rounded-xl border-2 p-5 space-y-3 transition-all duration-200 hover:shadow-md"
           :class="[
             'bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20',
             'border-blue-300 dark:border-blue-800/50',
           ]"
+          class="rounded-xl border-2 p-5 space-y-3 transition-all duration-200 hover:shadow-md"
         >
           <div class="flex items-start gap-4">
             <div
@@ -57,9 +57,9 @@
               <UpgradePopover v-model:open="showUpgradePopover">
                 <template #trigger>
                   <a
+                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 underline transition-colors group"
                     href="#"
                     @click.prevent="showUpgradePopover = true"
-                    class="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-700 dark:text-blue-300 hover:text-blue-800 dark:hover:text-blue-200 underline transition-colors group"
                   >
                     <span>Upgrade</span>
                     <ArrowRight
@@ -74,23 +74,23 @@
 
         <!-- Photo Download Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.photoDownload ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-lg font-bold mb-2" :class="theme.textPrimary">Photo Download</h3>
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Photo Download</h3>
             </div>
             <div class="flex-shrink-0 pt-1">
               <ToggleSwitch
                 v-model="formData.photoDownload"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -98,22 +98,22 @@
           <!-- Additional Options (Collapsible) -->
           <div
             v-if="formData.photoDownload"
-            class="space-y-4 pt-4 border-t"
             :class="theme.borderSecondary"
+            class="space-y-4 pt-4 border-t"
           >
             <button
-              @click="showPhotoOptions = !showPhotoOptions"
-              class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
               :class="[
                 showPhotoOptions
                   ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-950/20'
                   : theme.textSecondary,
               ]"
+              class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
+              @click="showPhotoOptions = !showPhotoOptions"
             >
               <span>Additional options</span>
               <ChevronDown
-                class="h-4 w-4 transition-transform duration-200"
                 :class="showPhotoOptions ? 'rotate-180' : ''"
+                class="h-4 w-4 transition-transform duration-200"
               />
             </button>
 
@@ -128,33 +128,33 @@
             >
               <div v-if="showPhotoOptions" class="space-y-4 overflow-hidden">
                 <div>
-                  <h4 class="text-base font-semibold mb-3" :class="theme.textPrimary">
+                  <h4 :class="theme.textPrimary" class="text-base font-semibold mb-3">
                     Photo Downloadable Sizes
                   </h4>
 
                   <!-- High Resolution -->
                   <div
-                    class="space-y-3 mb-5 p-4 rounded-xl border transition-all duration-200"
                     :class="[
                       formData.highResolutionEnabled
                         ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
                         : [theme.borderSecondary, theme.bgCard],
                     ]"
+                    class="space-y-3 mb-5 p-4 rounded-xl border transition-all duration-200"
                   >
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
-                        type="checkbox"
                         v-model="formData.highResolutionEnabled"
-                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                         :class="
                           formData.highResolutionEnabled
                             ? 'border-teal-500 bg-teal-500'
                             : theme.borderSecondary
                         "
+                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                        type="checkbox"
                       />
                       <div class="flex-1">
                         <div class="flex items-center gap-2 mb-1.5">
-                          <span class="text-sm font-semibold" :class="theme.textPrimary">
+                          <span :class="theme.textPrimary" class="text-sm font-semibold">
                             High Resolution
                           </span>
                           <span
@@ -165,9 +165,9 @@
                           <UpgradePopover v-model:open="showUpgradePopover">
                             <template #trigger>
                               <a
+                                class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors"
                                 href="#"
                                 @click.prevent="showUpgradePopover = true"
-                                class="text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 underline transition-colors"
                               >
                                 Upgrade
                               </a>
@@ -180,30 +180,30 @@
                         >
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
-                              type="radio"
                               v-model="formData.highResolutionSize"
-                              value="3600px"
                               class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              type="radio"
+                              value="3600px"
                             />
                             <span
-                              class="text-sm font-medium transition-colors"
                               :class="
                                 formData.highResolutionSize === '3600px'
                                   ? 'text-teal-600 dark:text-teal-400'
                                   : theme.textSecondary
                               "
+                              class="text-sm font-medium transition-colors"
                               >3600px</span
                             >
                           </label>
                           <label class="flex items-center gap-2.5 cursor-not-allowed opacity-50">
                             <input
-                              type="radio"
                               v-model="formData.highResolutionSize"
-                              value="original"
-                              disabled
                               class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-not-allowed"
+                              disabled
+                              type="radio"
+                              value="original"
                             />
-                            <span class="text-sm font-medium" :class="theme.textSecondary"
+                            <span :class="theme.textSecondary" class="text-sm font-medium"
                               >Original</span
                             >
                             <span
@@ -219,26 +219,26 @@
 
                   <!-- Web Size -->
                   <div
-                    class="space-y-3 p-4 rounded-xl border transition-all duration-200"
                     :class="[
                       formData.webSizeEnabled
                         ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
                         : [theme.borderSecondary, theme.bgCard],
                     ]"
+                    class="space-y-3 p-4 rounded-xl border transition-all duration-200"
                   >
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
-                        type="checkbox"
                         v-model="formData.webSizeEnabled"
-                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                         :class="
                           formData.webSizeEnabled
                             ? 'border-teal-500 bg-teal-500'
                             : theme.borderSecondary
                         "
+                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                        type="checkbox"
                       />
                       <div class="flex-1">
-                        <span class="text-sm font-semibold mb-2 block" :class="theme.textPrimary"
+                        <span :class="theme.textPrimary" class="text-sm font-semibold mb-2 block"
                           >Web Size</span
                         >
                         <div
@@ -247,52 +247,52 @@
                         >
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
-                              type="radio"
                               v-model="formData.webSize"
-                              value="2048px"
                               class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              type="radio"
+                              value="2048px"
                             />
                             <span
-                              class="text-sm font-medium transition-colors"
                               :class="
                                 formData.webSize === '2048px'
                                   ? 'text-teal-600 dark:text-teal-400'
                                   : theme.textSecondary
                               "
+                              class="text-sm font-medium transition-colors"
                               >2048px</span
                             >
                           </label>
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
-                              type="radio"
                               v-model="formData.webSize"
-                              value="1024px"
                               class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              type="radio"
+                              value="1024px"
                             />
                             <span
-                              class="text-sm font-medium transition-colors"
                               :class="
                                 formData.webSize === '1024px'
                                   ? 'text-teal-600 dark:text-teal-400'
                                   : theme.textSecondary
                               "
+                              class="text-sm font-medium transition-colors"
                               >1024px</span
                             >
                           </label>
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
-                              type="radio"
                               v-model="formData.webSize"
-                              value="640px"
                               class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              type="radio"
+                              value="640px"
                             />
                             <span
-                              class="text-sm font-medium transition-colors"
                               :class="
                                 formData.webSize === '640px'
                                   ? 'text-teal-600 dark:text-teal-400'
                                   : theme.textSecondary
                               "
+                              class="text-sm font-medium transition-colors"
                               >640px</span
                             >
                           </label>
@@ -301,11 +301,11 @@
                     </label>
                   </div>
 
-                  <p class="text-xs mt-4 leading-relaxed pl-1" :class="theme.textSecondary">
+                  <p :class="theme.textSecondary" class="text-xs mt-4 leading-relaxed pl-1">
                     Allow photos to be downloaded in select sizes.
                     <a
-                      href="#"
                       class="text-teal-500 hover:text-teal-600 dark:hover:text-teal-400 underline transition-colors font-medium"
+                      href="#"
                     >
                       Learn more
                     </a>
@@ -318,19 +318,19 @@
 
         <!-- Video Download Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.videoDownload ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-lg font-bold mb-2" :class="theme.textPrimary">Video Download</h3>
-              <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Video Download</h3>
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 Allow videos to be downloaded for offline viewing.
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
+                <a class="text-teal-500 hover:text-teal-600 underline transition-colors" href="#">
                   Learn more
                 </a>
               </p>
@@ -339,8 +339,8 @@
               <ToggleSwitch
                 v-model="formData.videoDownload"
                 label=""
-                on-label="On"
                 off-label="Off"
+                on-label="On"
               />
             </div>
           </div>
@@ -348,59 +348,59 @@
 
         <!-- Download PIN Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.downloadPin ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-lg font-bold mb-2" :class="theme.textPrimary">Download PIN</h3>
-              <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Download PIN</h3>
+              <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 If enabled, all collections created from this collection preset will have a download
                 PIN set automatically at the time of their creation.
               </p>
             </div>
             <div class="flex-shrink-0 pt-1">
-              <ToggleSwitch v-model="formData.downloadPin" label="" on-label="On" off-label="Off" />
+              <ToggleSwitch v-model="formData.downloadPin" label="" off-label="Off" on-label="On" />
             </div>
           </div>
         </div>
 
         <!-- Advanced Settings Section -->
         <div
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
           :class="[
             theme.borderSecondary,
             theme.bgCard,
             formData.restrictToContacts ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
           ]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
-          <h3 class="text-lg font-bold uppercase tracking-wide" :class="theme.textPrimary">
+          <h3 :class="theme.textPrimary" class="text-lg font-bold uppercase tracking-wide">
             Advanced Settings
           </h3>
           <div class="space-y-3 pt-2">
             <label
-              class="flex items-center gap-3 cursor-pointer group p-3 rounded-lg transition-all duration-200 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
               :class="formData.restrictToContacts ? 'bg-teal-50/30 dark:bg-teal-950/20' : ''"
+              class="flex items-center gap-3 cursor-pointer group p-3 rounded-lg transition-all duration-200 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
             >
               <input
-                type="checkbox"
                 v-model="formData.restrictToContacts"
-                class="h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                 :class="
                   formData.restrictToContacts
                     ? 'border-teal-500 bg-teal-500'
                     : theme.borderSecondary
                 "
+                class="h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                type="checkbox"
               />
-              <span class="text-sm font-medium flex-1" :class="theme.textPrimary">
+              <span :class="theme.textPrimary" class="text-sm font-medium flex-1">
                 Restrict Downloads to Collection Contacts
               </span>
             </label>
-            <p class="text-xs leading-relaxed pl-7" :class="theme.textSecondary">
+            <p :class="theme.textSecondary" class="text-xs leading-relaxed pl-7">
               Only allow downloads for users who are added as contacts to the collection.
             </p>
           </div>
@@ -410,19 +410,19 @@
       <!-- Bottom Navigation -->
       <div class="max-w-3xl">
         <div
-          class="flex justify-between items-center mt-12 pt-8 border-t"
           :class="theme.borderSecondary"
+          class="flex justify-between items-center mt-12 pt-8 border-t"
         >
           <Button
-            @click="handlePrevious"
-            variant="ghost"
-            :disabled="isSubmitting || isSaving"
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
               'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
+            :disabled="isSubmitting || isSaving"
+            variant="ghost"
+            @click="handlePrevious"
           >
             <ArrowLeft class="mr-2 h-4 w-4" />
             Back
@@ -438,16 +438,16 @@
             >
               <span
                 v-if="hasUnsavedChanges && !isSubmitting && !isSaving"
-                class="text-xs"
                 :class="theme.textTertiary"
+                class="text-xs"
               >
                 Unsaved changes
               </span>
             </Transition>
             <Button
-              @click="handleNext"
               :disabled="isSubmitting || isSaving"
               class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
               <ArrowRight v-else class="mr-2 h-4 w-4" />
@@ -463,19 +463,19 @@
     <UnsavedChangesModal
       v-model="showUnsavedChangesModal"
       :is-saving="isSubmitting || isSaving"
-      @save="handleSaveAndLeave"
-      @discard="handleDiscardAndLeave"
       @cancel="handleCancelNavigation"
+      @discard="handleDiscardAndLeave"
+      @save="handleSaveAndLeave"
     />
   </PresetLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted, inject } from 'vue'
+<script lang="ts" setup>
 import type { Ref } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Loader2, Check, ArrowLeft, ArrowRight, Info, ChevronDown } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Info, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
@@ -483,8 +483,8 @@ import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import { usePresetStore } from '@/stores/preset'
 import type { Preset } from '@/stores/preset'
+import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
 const router = useRouter()

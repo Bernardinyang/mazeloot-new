@@ -38,6 +38,37 @@ export interface Collection {
   presetId?: string | null
   watermarkId?: string | null
   mediaSets?: MediaSet[] // Photo sets for organizing media
+  // Settings - General
+  url?: string
+  tags?: string[]
+  emailRegistration?: boolean
+  galleryAssist?: boolean
+  slideshow?: boolean
+  slideshowOptions?: string[]
+  socialSharing?: boolean
+  language?: string
+  // Settings - Privacy
+  showOnHomepage?: boolean
+  clientExclusiveAccess?: boolean
+  clientPrivatePassword?: string | null
+  allowClientsMarkPrivate?: boolean
+  clientOnlySets?: string[]
+  // Settings - Download
+  downloadEnabled?: boolean
+  photoDownload?: boolean
+  highResolutionEnabled?: boolean
+  highResolutionSize?: string
+  webSizeEnabled?: boolean
+  webSize?: string
+  downloadPinEnabled?: boolean
+  limitDownloads?: boolean
+  downloadLimit?: number
+  restrictToContacts?: boolean
+  downloadableSets?: string[]
+  // Settings - Favorite
+  favoriteEnabled?: boolean
+  favoritePhotos?: boolean
+  favoriteNotes?: boolean
   // Legacy fields for compatibility
   title?: string
   date?: string
@@ -74,6 +105,37 @@ export interface UpdateCollectionData {
   presetId?: string | undefined
   watermarkId?: string | undefined
   mediaSets?: MediaSet[]
+  // Settings - General
+  url?: string
+  tags?: string[]
+  emailRegistration?: boolean
+  galleryAssist?: boolean
+  slideshow?: boolean
+  slideshowOptions?: string[]
+  socialSharing?: boolean
+  language?: string
+  // Settings - Privacy
+  showOnHomepage?: boolean
+  clientExclusiveAccess?: boolean
+  clientPrivatePassword?: string | null
+  allowClientsMarkPrivate?: boolean
+  clientOnlySets?: string[]
+  // Settings - Download
+  downloadEnabled?: boolean
+  photoDownload?: boolean
+  highResolutionEnabled?: boolean
+  highResolutionSize?: string
+  webSizeEnabled?: boolean
+  webSize?: string
+  downloadPinEnabled?: boolean
+  limitDownloads?: boolean
+  downloadLimit?: number
+  restrictToContacts?: boolean
+  downloadableSets?: string[]
+  // Settings - Favorite
+  favoriteEnabled?: boolean
+  favoritePhotos?: boolean
+  favoriteNotes?: boolean
 }
 
 export interface MoveCollectionData {
@@ -139,6 +201,51 @@ const getImageUrl = (
 }
 
 /**
+ * Add default settings to a collection
+ */
+const addDefaultSettings = (collection: Collection): Collection => {
+  // Only add settings to non-folder collections
+  if (collection.isFolder) {
+    return collection
+  }
+
+  return {
+    ...collection,
+    // Settings - General
+    url: collection.url || '',
+    tags: collection.tags || [],
+    emailRegistration: collection.emailRegistration ?? false,
+    galleryAssist: collection.galleryAssist ?? false,
+    slideshow: collection.slideshow ?? true,
+    slideshowOptions: collection.slideshowOptions || [],
+    socialSharing: collection.socialSharing ?? true,
+    language: collection.language || 'en',
+    // Settings - Privacy
+    showOnHomepage: collection.showOnHomepage ?? true,
+    clientExclusiveAccess: collection.clientExclusiveAccess ?? false,
+    clientPrivatePassword: collection.clientPrivatePassword || null,
+    allowClientsMarkPrivate: collection.allowClientsMarkPrivate ?? false,
+    clientOnlySets: collection.clientOnlySets || [],
+    // Settings - Download
+    downloadEnabled: collection.downloadEnabled ?? true,
+    photoDownload: collection.photoDownload ?? true,
+    highResolutionEnabled: collection.highResolutionEnabled ?? true,
+    highResolutionSize: collection.highResolutionSize || '3600px',
+    webSizeEnabled: collection.webSizeEnabled ?? true,
+    webSize: collection.webSize || '1024px',
+    downloadPinEnabled: collection.downloadPinEnabled ?? false,
+    limitDownloads: collection.limitDownloads ?? false,
+    downloadLimit: collection.downloadLimit || 1,
+    restrictToContacts: collection.restrictToContacts ?? false,
+    downloadableSets: collection.downloadableSets || [],
+    // Settings - Favorite
+    favoriteEnabled: collection.favoriteEnabled ?? true,
+    favoritePhotos: collection.favoritePhotos ?? true,
+    favoriteNotes: collection.favoriteNotes ?? true,
+  }
+}
+
+/**
  * Initialize mock data in localStorage if not exists
  * This data structure matches what the backend will send
  */
@@ -146,7 +253,11 @@ const initializeMockData = (): Collection[] => {
   // Check if data already exists
   const existing = storage.get<Collection[]>(COLLECTIONS_STORAGE_KEY)
   if (existing && existing.length > 0) {
-    return existing
+    // Add default settings to existing collections that don't have them
+    return existing.map(collection => {
+      if (collection.isFolder) return collection
+      return addDefaultSettings(collection)
+    })
   }
 
   // Mock data structured to match backend format
@@ -515,10 +626,13 @@ const initializeMockData = (): Collection[] => {
 
   updateFolderCounts(mockCollections)
 
-  // Save to localStorage
-  storage.set(COLLECTIONS_STORAGE_KEY, mockCollections)
+  // Add default settings to all non-folder collections
+  const collectionsWithSettings = mockCollections.map(collection => addDefaultSettings(collection))
 
-  return mockCollections
+  // Save to localStorage
+  storage.set(COLLECTIONS_STORAGE_KEY, collectionsWithSettings)
+
+  return collectionsWithSettings
 }
 
 /**
