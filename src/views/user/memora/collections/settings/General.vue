@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsGeneral'
+              route.name === 'collectionSettingsGeneral'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,9 +45,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsPrivacy'
+              route.name === 'collectionSettingsPrivacy'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -58,9 +58,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name?.toString().startsWith('collectionSettingsDownload')
+              route.name?.toString().startsWith('collectionSettingsDownload')
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -73,7 +73,7 @@
               :class="
                 downloadEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
               "
               class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
@@ -83,9 +83,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsFavorite'
+              route.name === 'collectionSettingsFavorite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -98,7 +98,7 @@
               :class="
                 favoriteEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
               "
               class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
@@ -119,9 +119,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsGeneral'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsGeneral' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -138,9 +136,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsPrivacy'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsPrivacy' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -157,9 +153,9 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name?.toString().startsWith('collectionSettingsDownload')
+                  route.name?.toString().startsWith('collectionSettingsDownload')
                     ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                    : '',
                 ]"
                 :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -180,9 +176,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsFavorite'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsFavorite' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -203,10 +197,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -214,11 +205,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-[50%] p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -455,7 +442,7 @@
                 <div class="flex-1">
                   <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Slideshow</h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                    Allow visitors to view the images in their collection as a slideshow.
+                    Allow visitors to view the images in their collection slideshow.
                     <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
@@ -593,7 +580,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, Info, Loader2, Lock, Plus, Settings } from 'lucide-vue-next'
@@ -612,13 +599,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
@@ -628,37 +614,37 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('settings')
+const activeTab = ref('settings')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Settings state
 const collectionUrl = ref('')
 const categoryTags = ref('')
-const autoExpiryDate = ref<string | null>(null)
+const autoExpiryDate = ref(null)
 const emailRegistration = ref(false)
 const galleryAssist = ref(false)
 const slideshow = ref(true)
-const slideshowOptions = ref<string>('')
+const slideshowOptions = ref('')
 const socialSharing = ref(true)
 const language = ref('en')
 const downloadEnabled = ref(true)
@@ -666,7 +652,7 @@ const favoriteEnabled = ref(true)
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -675,24 +661,24 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    collectionUrl.value = (collectionData as any).url || ''
-    categoryTags.value = (collectionData as any).tags?.join(', ') || ''
-    autoExpiryDate.value = (collectionData as any).expiryDate || null
-    emailRegistration.value = (collectionData as any).emailRegistration || false
-    galleryAssist.value = (collectionData as any).galleryAssist || false
-    slideshow.value = (collectionData as any).slideshow !== false
-    slideshowOptions.value = Array.isArray((collectionData as any).slideshowOptions)
-      ? (collectionData as any).slideshowOptions[0] || ''
-      : (collectionData as any).slideshowOptions || ''
-    socialSharing.value = (collectionData as any).socialSharing !== false
-    language.value = (collectionData as any).language || 'en'
-    downloadEnabled.value = (collectionData as any).downloadEnabled !== false
-    favoriteEnabled.value = (collectionData as any).favoriteEnabled !== false
-  } catch (error: any) {
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    collectionUrl.value = collectionData.url || ''
+    categoryTags.value = collectionData.tags?.join(', ') || ''
+    autoExpiryDate.value = collectionData.expiryDate || null
+    emailRegistration.value = collectionData.emailRegistration || false
+    galleryAssist.value = collectionData.galleryAssist || false
+    slideshow.value = collectionData.slideshow !== false
+    slideshowOptions.value = Array.isArray(collectionData.slideshowOptions)
+      ? collectionData.slideshowOptions[0] || ''
+      : ''
+    socialSharing.value = collectionData.socialSharing !== false
+    language.value = collectionData.language || 'en'
+    downloadEnabled.value = collectionData.downloadEnabled !== false
+    favoriteEnabled.value = collectionData.favoriteEnabled !== false
+  } catch (error) {
     toast.error('Failed to load collection', {
-      description: error.message || 'An error occurred while loading the collection.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   } finally {
     isLoading.value = false
@@ -701,67 +687,66 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
   try {
-    const apiStatus =
-      newStatus === 'published' ? 'active' : (newStatus as 'draft' | 'active' | 'archived')
+    const apiStatus = newStatus === 'published' ? 'active' : 'draft'
     await galleryStore.updateCollection(collection.value.id, {
       status: apiStatus,
-    } as any)
+    })
 
-    collectionStatus.value = newStatus as 'draft' | 'published'
+    collectionStatus.value = newStatus === 'published' ? 'published' : 'draft'
     toast.success('Collection status updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update collection status', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 
   try {
-    const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
+    const dateString = newDate instanceof Date ? newDate.toISOString() : null
     await galleryStore.updateCollection(collection.value.id, {
       eventDate: dateString,
-    } as any)
+    })
 
     eventDate.value = newDate
     toast.success('Event date updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update event date', {
-      description: error.message || 'An error occurred while updating.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
   // Auto-save preset change
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
   try {
     await galleryStore.updateCollection(collection.value.id, {
       watermarkId: watermarkId === 'none' ? undefined : watermarkId,
-    } as any)
+    })
     toast.success('Watermark updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update watermark', {
-      description: error.message || 'An error occurred while updating.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
@@ -770,9 +755,11 @@ const handleWatermarkChange = async (watermarkId: string) => {
 watch(collectionUrl, async newUrl => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { url: newUrl } as any)
-  } catch (error: any) {
-    toast.error('Failed to update URL')
+    await galleryStore.updateCollection(collection.value.id, { url: newUrl })
+  } catch (error) {
+    toast.error('Failed to update URL', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
@@ -783,9 +770,11 @@ watch(categoryTags, async newTags => {
       .split(',')
       .map(tag => tag.trim())
       .filter(tag => tag.length > 0)
-    await galleryStore.updateCollection(collection.value.id, { tags: tagsArray } as any)
-  } catch (error: any) {
-    toast.error('Failed to update tags')
+    await galleryStore.updateCollection(collection.value.id, { tags: tagsArray })
+  } catch (error) {
+    toast.error('Failed to update tags', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
@@ -793,9 +782,9 @@ watch(autoExpiryDate, async newDate => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      expiryDate: newDate || null,
-    } as any)
-  } catch (error: any) {
+      expiryDate,
+    })
+  } catch (error) {
     toast.error('Failed to update expiry date')
   }
 })
@@ -804,9 +793,9 @@ watch(emailRegistration, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      emailRegistration: newValue,
-    } as any)
-  } catch (error: any) {
+      emailRegistration,
+    })
+  } catch (error) {
     toast.error('Failed to update email registration')
   }
 })
@@ -814,18 +803,22 @@ watch(emailRegistration, async newValue => {
 watch(galleryAssist, async newValue => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { galleryAssist: newValue } as any)
-  } catch (error: any) {
-    toast.error('Failed to update gallery assist')
+    await galleryStore.updateCollection(collection.value.id, { galleryAssist: newValue })
+  } catch (error) {
+    toast.error('Failed to update gallery assist', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
 watch(slideshow, async newValue => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { slideshow: newValue } as any)
-  } catch (error: any) {
-    toast.error('Failed to update slideshow')
+    await galleryStore.updateCollection(collection.value.id, { slideshow: newValue })
+  } catch (error) {
+    toast.error('Failed to update slideshow', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
@@ -833,9 +826,9 @@ watch(slideshowOptions, async newOption => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      slideshowOptions: newOption ? [newOption] : [],
-    } as any)
-  } catch (error: any) {
+      slideshowOptions: Array.isArray(newOption) ? newOption : [newOption],
+    })
+  } catch (error) {
     toast.error('Failed to update slideshow options')
   }
 })
@@ -843,23 +836,27 @@ watch(slideshowOptions, async newOption => {
 watch(socialSharing, async newValue => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { socialSharing: newValue } as any)
-  } catch (error: any) {
-    toast.error('Failed to update social sharing')
+    await galleryStore.updateCollection(collection.value.id, { socialSharing: newValue })
+  } catch (error) {
+    toast.error('Failed to update social sharing', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
 watch(language, async newLanguage => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { language: newLanguage } as any)
-  } catch (error: any) {
-    toast.error('Failed to update language')
+    await galleryStore.updateCollection(collection.value.id, { language: newLanguage })
+  } catch (error) {
+    toast.error('Failed to update language', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
 // Format date helper
-const formatDate = (dateString: string | null) => {
+const formatDate = dateString => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })

@@ -28,48 +28,55 @@
         <!-- Design Sub-Navigation -->
         <div class="space-y-1">
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionCover'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionCover', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <ImageIcon class="h-4 w-4 shrink-0" />
             <span class="text-sm font-medium">Cover</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionTypography'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{
+              name: 'collectionTypography',
+              params: { uuid: collection?.id || route.params.uuid },
+            }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <span class="text-lg font-bold">T</span>
             <span class="text-sm font-medium">Typography</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionColor'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionColor', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <div :class="theme.borderSecondary" class="w-4 h-4 rounded border"></div>
             <span class="text-sm font-medium">Color</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionGrid'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionGrid', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <Grid3x3 class="h-4 w-4 shrink-0" />
@@ -87,12 +94,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionCover'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionCover',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <ImageIcon class="h-5 w-5" />
@@ -107,12 +118,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionTypography'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionTypography',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <span class="text-lg font-bold">T</span>
@@ -127,12 +142,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionColor'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionColor',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <div :class="theme.borderSecondary" class="w-5 h-5 rounded border"></div>
@@ -147,12 +166,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionGrid'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionGrid',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <Grid3x3 class="h-5 w-5" />
@@ -167,15 +190,18 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
-        class="mx-auto p-8 pb-16 transition-all duration-300 h-full overflow-y-auto"
-      >
+      <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
+        <div class="text-center space-y-4">
+          <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
+          <p :class="theme.textSecondary" class="text-sm">Loading color config...</p>
+        </div>
+      </div>
+      <div v-else class="mx-auto p-8 pb-16 transition-all duration-300 h-full overflow-y-auto">
         <div class="mb-10">
           <div class="flex items-start justify-between mb-4">
             <div>
               <div class="flex items-center gap-3 mb-2">
-                <h1 :class="theme.textPrimary" class="text-3xl font-bold">Typography</h1>
+                <h1 :class="theme.textPrimary" class="text-3xl font-bold">Color</h1>
                 <Transition
                   enter-active-class="transition-all duration-300 ease-out"
                   enter-from-class="opacity-0 scale-95 -translate-x-2"
@@ -194,7 +220,7 @@
                 </Transition>
               </div>
               <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
-                Select fonts that match your brand and style. See your changes in real-time in the
+                Select colors that match your brand and style. See your changes in real-time in the
                 preview panel.
               </p>
             </div>
@@ -265,7 +291,7 @@
 
                     <div class="flex gap-2.5 justify-center relative">
                       <div
-                        v-for="(color, index) in palette.colors"
+                        v-for="(color, index) in palette.colors.slice(0, 3)"
                         :key="index"
                         :class="{ 'delay-75': index === 1, 'delay-150': index === 2 }"
                         :style="{ backgroundColor: color }"
@@ -276,7 +302,7 @@
                       :class="
                         formData.colorPalette === palette.id
                           ? 'text-teal-600 dark:text-teal-400 font-bold'
-                          : theme.textPrimary
+                          : ''
                       "
                       class="text-xs font-semibold text-center transition-colors duration-200 mt-1"
                     >
@@ -433,7 +459,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -445,16 +471,16 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
-import type { MediaItem } from '@/api/media'
 import { toast } from 'vue-sonner'
+
+const description = ''
 
 const route = useRoute()
 const router = useRouter()
@@ -463,27 +489,27 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('design')
+const activeTab = ref('design')
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
 const isSaving = ref(false)
@@ -496,7 +522,7 @@ const formData = ref({
 })
 
 // Store original loaded data for comparison
-const originalData = ref<typeof formData.value | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes
 const hasUnsavedChanges = computed(() => {
@@ -508,19 +534,24 @@ const hasUnsavedChanges = computed(() => {
 
 // Get merged design config for preview (from collection store)
 const previewDesignConfig = computed(() => {
+  const defaults = {
+    cover: 'none',
+    coverFocalPoint: { x: 50, y: 50 },
+    fontFamily: 'sans',
+    fontStyle: 'bold',
+    colorPalette: 'light',
+    gridStyle: 'vertical',
+    gridColumns: 3,
+    thumbnailSize: 'regular',
+    gridSpacing: 16,
+    navigationStyle: 'icon-text',
+  }
+
   if (!collection.value) {
     // Fallback to formData if collection not loaded
     return {
-      cover: 'left',
-      coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: 'sans',
-      fontStyle: 'bold',
-      colorPalette: formData.value.colorPalette,
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      ...defaults,
+      colorPalette: formData.value.colorPalette || defaults.colorPalette,
     }
   }
 
@@ -528,37 +559,25 @@ const previewDesignConfig = computed(() => {
   if (!collectionInStore) {
     // Fallback to formData if not in store
     return {
-      cover: 'left',
-      coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: 'sans',
-      fontStyle: 'bold',
-      colorPalette: formData.value.colorPalette,
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      ...defaults,
+      colorPalette: formData.value.colorPalette || defaults.colorPalette,
     }
   }
 
   // Get all design configs from the collection in store (which is updated by the watcher)
-  const coverDesign = (collectionInStore as any).coverDesign || {}
-  const typographyDesign = (collectionInStore as any).typographyDesign || {}
-  const colorDesign = (collectionInStore as any).colorDesign || {}
-  const gridDesign = (collectionInStore as any).gridDesign || {}
+  const coverDesign = collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.typographyDesign || {}
+  const colorDesign = collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.gridDesign || {}
 
   // Return merged config from store
   return {
-    cover: coverDesign.cover || 'left',
-    coverFocalPoint: coverDesign.coverFocalPoint || { x: 50, y: 50 },
-    fontFamily: typographyDesign.fontFamily || 'sans',
-    fontStyle: typographyDesign.fontStyle || 'bold',
-    colorPalette: colorDesign.colorPalette || formData.value.colorPalette || 'light',
-    gridStyle: gridDesign.gridStyle || 'vertical',
-    gridColumns: gridDesign.gridColumns || 3,
-    thumbnailSize: gridDesign.thumbnailSize || 'regular',
-    gridSpacing: gridDesign.gridSpacing || 16,
-    navigationStyle: gridDesign.navigationStyle || 'icon-only',
+    ...defaults,
+    ...gridDesign,
+    ...typographyDesign,
+    ...coverDesign,
+    ...colorDesign,
+    colorPalette: colorDesign.colorPalette || formData.value.colorPalette || defaults.colorPalette,
   }
 })
 
@@ -572,7 +591,7 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      ;(collectionInStore as any).colorDesign = { ...newData }
+      collectionInStore.colorDesign = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -582,30 +601,29 @@ watch(
 
 // Color palettes
 const colorPalettes = [
-  { id: 'light', label: 'Light', colors: ['#FFFFFF', '#E5E7EB', '#1F2937'] },
-  { id: 'gold', label: 'Gold', colors: ['#FEF3C7', '#F59E0B', '#78350F'] },
-  { id: 'rose', label: 'Rose', colors: ['#FDF2F8', '#EC4899', '#831843'] },
-  { id: 'terracotta', label: 'Terracotta', colors: ['#FED7AA', '#EA580C', '#7C2D12'] },
-  { id: 'lavender', label: 'Lavender', colors: ['#F3E8FF', '#A855F7', '#581C87'] },
-  { id: 'olive', label: 'Olive', colors: ['#F7FEE7', '#84CC16', '#365314'] },
-  { id: 'agave', label: 'Agave', colors: ['#D1FAE5', '#10B981', '#064E3B'] },
-  { id: 'sea', label: 'Sea', colors: ['#E0F2FE', '#0EA5E9', '#0C4A6E'] },
-  { id: 'coral', label: 'Coral', colors: ['#FFF1F2', '#F43F5E', '#9F1239'] },
-  { id: 'sage', label: 'Sage', colors: ['#F0FDF4', '#22C55E', '#14532D'] },
-  { id: 'peach', label: 'Peach', colors: ['#FFF7ED', '#FB923C', '#7C2D12'] },
-  { id: 'mint', label: 'Mint', colors: ['#F0FDFA', '#14B8A6', '#134E4A'] },
-  { id: 'slate', label: 'Slate', colors: ['#F8FAFC', '#64748B', '#0F172A'] },
-  { id: 'amber', label: 'Amber', colors: ['#FFFBEB', '#F59E0B', '#78350F'] },
-  { id: 'indigo', label: 'Indigo', colors: ['#EEF2FF', '#6366F1', '#312E81'] },
-  { id: 'emerald', label: 'Emerald', colors: ['#ECFDF5', '#10B981', '#064E3B'] },
-  { id: 'cyan', label: 'Cyan', colors: ['#ECFEFF', '#06B6D4', '#164E63'] },
-  { id: 'violet', label: 'Violet', colors: ['#F5F3FF', '#8B5CF6', '#4C1D95'] },
-  { id: 'dark', label: 'Dark', colors: ['#1F2937', '#374151', '#F9FAFB'] },
+  { id: 'light', label: 'Light', colors: ['#E5E7EB', '#1F2937', '#000000'] },
+  { id: 'gold', label: 'Gold', colors: ['#F59E0B', '#78350F', '#000000'] },
+  { id: 'rose', label: 'Rose', colors: ['#EC4899', '#831843', '#000000'] },
+  { id: 'terracotta', label: 'Terracotta', colors: ['#EA580C', '#7C2D12', '#000000'] },
+  { id: 'lavender', label: 'Lavender', colors: ['#A855F7', '#581C87', '#FFFFFF'] },
+  { id: 'olive', label: 'Olive', colors: ['#84CC16', '#365314', '#000000'] },
+  { id: 'agave', label: 'Agave', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
+  { id: 'sea', label: 'Sea', colors: ['#0EA5E9', '#0C4A6E', '#FFFFFF'] },
+  { id: 'coral', label: 'Coral', colors: ['#F43F5E', '#9F1239', '#FFFFFF'] },
+  { id: 'sage', label: 'Sage', colors: ['#22C55E', '#14532D', '#000000'] },
+  { id: 'peach', label: 'Peach', colors: ['#FB923C', '#7C2D12', '#000000'] },
+  { id: 'mint', label: 'Mint', colors: ['#14B8A6', '#134E4A', '#FFFFFF'] },
+  { id: 'slate', label: 'Slate', colors: ['#64748B', '#0F172A', '#FFFFFF'] },
+  { id: 'indigo', label: 'Indigo', colors: ['#6366F1', '#312E81', '#FFFFFF'] },
+  { id: 'emerald', label: 'Emerald', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
+  { id: 'cyan', label: 'Cyan', colors: ['#06B6D4', '#164E63', '#FFFFFF'] },
+  { id: 'violet', label: 'Violet', colors: ['#8B5CF6', '#4C1D95', '#FFFFFF'] },
+  { id: 'dark', label: 'Dark', colors: ['#374151', '#F9FAFB', '#FFFFFF'] },
 ]
 
 // Load collection data
 const loadCollectionData = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     router.push({ name: 'manageCollections' })
     return
@@ -619,30 +637,29 @@ const loadCollectionData = async () => {
     }
 
     collection.value = collectionData
-    collectionStatus.value =
-      collectionData.status === 'active' ? 'published' : collectionData.status || 'draft'
+    collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
 
     // Set preset if available
-    const presetId = (collectionData as any).presetId
+    const presetId = collectionData.presetId
     selectedPresetId.value = presetId != null ? String(presetId) : 'none'
 
     // Set watermark if available
-    const watermarkId = (collectionData as any).watermarkId
+    const watermarkId = collectionData.watermarkId
     selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
     // Load color design data
-    const colorDesign = (collectionData as any).colorDesign || {}
+    const colorDesign = collectionData.colorDesign || {}
     const loadedData = {
       colorPalette: colorDesign.colorPalette || 'light',
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to load collection', {
-      description: error.message || 'An error occurred',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
-    router.push({ name: 'manageCollections' })
+    router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
   } finally {
     isLoading.value = false
   }
@@ -658,7 +675,7 @@ watch(
 )
 
 // Watch for activeTab changes and navigate accordingly
-watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
+watch(activeTab, newTab => {
   if (!collection.value) return
 
   if (newTab === 'photos') {
@@ -677,7 +694,7 @@ watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
 })
 
 // Save color design
-const saveColorDesign = async (): Promise<boolean> => {
+const saveColorDesign = async () => {
   if (!collection.value) {
     toast.error('Collection not found')
     return false
@@ -687,16 +704,16 @@ const saveColorDesign = async (): Promise<boolean> => {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
       colorDesign: formData.value,
-    } as any)
+    })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save color design', {
-      description: error.message || 'An error occurred while saving.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
     return false
   } finally {
@@ -705,42 +722,41 @@ const saveColorDesign = async (): Promise<boolean> => {
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
   try {
     // Map 'published' to 'active' for the API
-    const apiStatus =
-      newStatus === 'published' ? 'active' : (newStatus as 'draft' | 'active' | 'archived')
+    const apiStatus = newStatus === 'published' ? 'active' : 'draft'
     await galleryStore.updateCollection(collection.value.id, {
       status: apiStatus,
-    } as any)
+    })
 
-    collectionStatus.value = newStatus as 'draft' | 'published'
+    collectionStatus.value = newStatus === 'published' ? 'published' : 'draft'
     toast.success('Collection status updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update collection status', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 
   try {
     // Convert Date to ISO string for storage, or null to clear
-    const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
+    const dateString = newDate instanceof Date ? newDate.toISOString() : null
     await galleryStore.updateCollection(collection.value.id, {
       eventDate: dateString,
-    } as any)
+    })
 
     eventDate.value = newDate
     toast.success('Event date updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update event date', {
-      description: error.message || 'An error occurred while updating.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
@@ -748,10 +764,7 @@ const handleDateChange = async (newDate: Date | null) => {
 const handleSave = async () => {
   const success = await saveColorDesign()
   if (success) {
-    toast.success('Color design saved successfully', {
-      description: 'Color settings have been updated.',
-      icon: Check,
-    })
+    toast.success('Color design saved successfully')
   }
 }
 
@@ -780,7 +793,7 @@ const goBack = async () => {
     if (success) {
       router.push({
         name: 'collectionPhotos',
-        params: { uuid: route.params.uuid },
+        params: { uuid: collection.value.id },
       })
     }
   } finally {
@@ -788,16 +801,16 @@ const goBack = async () => {
   }
 }
 
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   selectedPresetId.value = presetId
 }
 
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   selectedWatermark.value = watermarkId
 }
 
 const handleOpenPreviewInNewTab = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     toast.error('Collection not found')
     return
@@ -808,7 +821,7 @@ const handleOpenPreviewInNewTab = async () => {
   if (success) {
     const previewUrl = router.resolve({
       name: 'collectionPreview',
-      params: { id: collectionId },
+      params: { uuid: collectionId },
     }).href
     window.open(previewUrl, '_blank')
   }
@@ -819,19 +832,19 @@ const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
 
 // Mock data for preview
-const mockPreviewCollection = computed<Collection>(() => ({
-  id: collection.value?.id || 'preview',
-  name: collection.value?.name || 'My Sample Collection',
-  date: collection.value?.eventDate || '2025-09-01',
-  eventDate: collection.value?.eventDate || '2025-09-01',
+const mockPreviewCollection = computed(() => ({
+  id: collection.value?.id || 'mock-id',
+  name: collection.value?.name || 'Sample Collection',
+  date: collection.value?.date || new Date().toISOString().split('T')[0],
+  eventDate: collection.value?.eventDate || new Date().toISOString().split('T')[0],
   thumbnail: collection.value?.thumbnail || fallbackImageUrl,
-  createdAt: collection.value?.createdAt || new Date().toISOString(),
-  updatedAt: collection.value?.updatedAt || new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
   status: collection.value?.status || 'active',
-  category: collection.value?.category || 'event',
+  category: collection.value?.category || 'general',
 }))
 
-const mockPreviewMedia = computed<MediaItem[]>(() => {
+const mockPreviewMedia = computed(() => {
   const photoIds = [
     '1519741497674-611481863552',
     '1516589178581-6cd7833ae3b2',
@@ -848,11 +861,11 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
   ]
 
   return photoIds.map((id, index) => ({
-    id: `preview-${index}`,
-    collectionId: collection.value?.id || 'preview',
-    url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
-    thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-    type: 'image' as const,
+    id: `mock-media-${id}`,
+    collectionId: collection.value?.id || 'mock-id',
+    url: `https://images.unsplash.com/photo-${id}?w=800&h=800&fit=crop`,
+    thumbnail: `https://images.unsplash.com/photo-${id}?w=300&h=300&fit=crop`,
+    type: 'image',
     title: `Photo ${index + 1}`,
     order: index,
     createdAt: new Date().toISOString(),
@@ -864,30 +877,30 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
 <style scoped>
 /* Custom scrollbar styling */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.3);
-  border-radius: 10px;
+  background: rgba(163, 163, 184, 0.3);
+  border-radius: 4px;
   transition: background 0.2s;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.5);
+  background: rgba(163, 163, 184, 0.5);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.4);
+  background: rgba(85, 85, 105, 0.4);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 0.6);
+  background: rgba(85, 85, 105, 0.6);
 }
 </style>

@@ -175,7 +175,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button } from '@/components/shadcn/button'
@@ -184,13 +184,12 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { RefreshCw } from 'lucide-vue-next'
 import { toast } from 'vue-sonner'
 import { useGalleryStore } from '@/stores/gallery'
-import type { Collection } from '@/api/collections'
 
 const route = useRoute()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 
 const photoDownload = ref(true)
 const highResolutionEnabled = ref(true)
@@ -201,19 +200,19 @@ const downloadPin = ref('2434')
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    photoDownload.value = (collectionData as any).photoDownload !== false
-    highResolutionEnabled.value = (collectionData as any).highResolutionEnabled !== false
-    webSizeEnabled.value = (collectionData as any).webSizeEnabled !== false
-    webSize.value = (collectionData as any).webSize || '1024px'
-    downloadPinEnabled.value = (collectionData as any).downloadPinEnabled || false
-    downloadPin.value = (collectionData as any).downloadPin || '2434'
-  } catch (error: any) {
+    photoDownload.value = collectionData.photoDownload !== false
+    highResolutionEnabled.value = collectionData.highResolutionEnabled !== false
+    webSizeEnabled.value = collectionData.webSizeEnabled !== false
+    webSize.value = collectionData.webSize || '1024px'
+    downloadPinEnabled.value = collectionData.downloadPinEnabled || false
+    downloadPin.value = collectionData.downloadPin || '2434'
+  } catch (error) {
     toast.error('Failed to load collection')
   }
 })
@@ -224,11 +223,11 @@ const resetPin = async () => {
   if (collection.value) {
     try {
       await galleryStore.updateCollection(collection.value.id, {
-        downloadPin: newPin,
-        downloadPinEnabled: downloadPinEnabled.value,
-      } as any)
+        downloadPin,
+        downloadPinEnabled,
+      })
       toast.success('PIN reset successfully')
-    } catch (error: any) {
+    } catch (error) {
       toast.error('Failed to reset PIN')
     }
   }
@@ -239,10 +238,10 @@ watch(photoDownload, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      photoDownload: newValue,
-      downloadEnabled: newValue,
-    } as any)
-  } catch (error: any) {
+      photoDownload,
+      downloadEnabled,
+    })
+  } catch (error) {
     toast.error('Failed to update photo download')
   }
 })
@@ -251,9 +250,9 @@ watch(highResolutionEnabled, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      highResolutionEnabled: newValue,
-    } as any)
-  } catch (error: any) {
+      highResolutionEnabled,
+    })
+  } catch (error) {
     toast.error('Failed to update high resolution')
   }
 })
@@ -262,9 +261,9 @@ watch(webSizeEnabled, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      webSizeEnabled: newValue,
-    } as any)
-  } catch (error: any) {
+      webSizeEnabled,
+    })
+  } catch (error) {
     toast.error('Failed to update web size')
   }
 })
@@ -272,9 +271,11 @@ watch(webSizeEnabled, async newValue => {
 watch(webSize, async newSize => {
   if (!collection.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, { webSize: newSize } as any)
-  } catch (error: any) {
-    toast.error('Failed to update web size option')
+    await galleryStore.updateCollection(collection.value.id, { webSize: newSize })
+  } catch (error) {
+    toast.error('Failed to update web size option', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
   }
 })
 
@@ -283,9 +284,9 @@ watch(downloadPinEnabled, async newValue => {
   try {
     await galleryStore.updateCollection(collection.value.id, {
       downloadPinEnabled: newValue,
-      downloadPin: newValue ? downloadPin.value : null,
-    } as any)
-  } catch (error: any) {
+      downloadPin: downloadPin.value,
+    })
+  } catch (error) {
     toast.error('Failed to update download PIN')
   }
 })

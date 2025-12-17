@@ -2,16 +2,16 @@
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <Button
-        variant="ghost"
-        size="icon"
         :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+        size="icon"
+        variant="ghost"
       >
         <div class="flex items-center justify-center rounded-lg">
-          <component :is="activeTeam.logo" class="size-5" />
+          <component :is="activeTeam.logo" class="size-6" />
         </div>
       </Button>
     </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" :class="['w-72', theme.bgDropdown, theme.borderSecondary]">
+    <DropdownMenuContent :class="['w-72', theme.bgDropdown, theme.borderSecondary]" align="end">
       <DropdownMenuLabel :class="theme.textPrimary">Apps</DropdownMenuLabel>
       <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
       <DropdownMenuItem
@@ -52,8 +52,8 @@
   </DropdownMenu>
 </template>
 
-<script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+<script lang="ts" setup>
+import { computed, ref, watch } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import {
   DropdownMenu,

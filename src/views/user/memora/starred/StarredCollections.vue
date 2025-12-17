@@ -168,8 +168,8 @@
             :is-starred="collection.starred || collection.isStarred || false"
             :badge="collection.badge || false"
             :badge-icon="collection.badgeIcon"
-            :icon="collection.isFolder ? Folder : collection.icon"
-            :folder-icon="collection.isFolder ? Folder : collection.icon"
+            :icon="collection.isFolder ? Folder : undefined"
+            :folder-icon="collection.isFolder ? Folder : undefined"
             :preview-images="collection.previewImages"
             :is-locked="collection.isLocked || false"
             :is-folder="collection.isFolder || false"
@@ -226,7 +226,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Folder, Star } from 'lucide-vue-next'
@@ -251,6 +251,8 @@ import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { toast } from 'vue-sonner'
 
+const description = ''
+
 const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
@@ -261,7 +263,7 @@ const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
 
 // View mode and sorting
-const viewMode = ref<'grid' | 'list'>('grid')
+const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
 const sortOptions = COLLECTION_SORT_OPTIONS
@@ -276,19 +278,19 @@ const filterExpiryDate = ref('all')
 const subtitleSeparator = ref('•')
 
 // Selected collections (for list view)
-const selectedCollections = ref<number[]>([])
+const selectedCollections = ref([])
 
 // Delete confirmation using reusable composable
 const {
   showDeleteModal,
-  itemToDelete: collectionToDelete,
+  itemToDelete,
   isDeleting,
   openDeleteModal,
   closeDeleteModal,
   getItemName,
-} = useDeleteConfirmation<any>()
+} = useDeleteConfirmation()
 
-const getSubtitle = (collection: any, separator: string = '•') => {
+const getSubtitle = collection => {
   const parts = []
   if (collection.itemCount !== undefined) {
     const count = collection.itemCount
@@ -305,9 +307,9 @@ const getSubtitle = (collection: any, separator: string = '•') => {
   if (date) {
     const dateObj = new Date(date)
     const formattedDate = dateObj.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+      month,
+      day,
+      year,
     })
     parts.push(formattedDate)
   }
@@ -401,60 +403,60 @@ const { sortedItems: sortedCollections } = useCollectionSort(
   sortBy
 )
 
-const toggleStar = async (collection: any) => {
+const toggleStar = async collection => {
   try {
     // Store already handles optimistic update, no need to manually update
     await galleryStore.toggleStar(String(collection.id))
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to update star status.',
+      fallbackMessage,
     })
   }
 }
 
-const handleSelectCollection = (id: number, checked: boolean) => {
+const handleSelectCollection = id => {
   if (checked) {
     selectedCollections.value.push(id)
   } else {
-    selectedCollections.value = selectedCollections.value.filter((selId: number) => selId !== id)
+    selectedCollections.value = selectedCollections.value.filter(selId => selId !== id)
   }
 }
 
-const handleCollectionClick = (collection: any) => {
+const handleCollectionClick = collection => {
   router
     .push({
-      name: 'collectionDetail',
-      params: { id: collection.id },
+      name,
+      params,
     })
     .catch(() => {
       toast.info('Collection detail', {
-        description: `Viewing ${collection.name || collection.title}`,
+        description,
       })
     })
 }
 
-const handleCopyLink = async (collection: any) => {
+const handleCopyLink = async collection => {
   const collectionId = collection.id || collection.name || collection.title
   const link = `${window.location.origin}/collections/${collectionId}`
 
   try {
     await navigator.clipboard.writeText(link)
     toast.success('Link copied', {
-      description: 'Collection link has been copied to clipboard.',
+      description,
     })
   } catch (error) {
     console.error('Failed to copy link:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy link to clipboard.',
+      description,
     })
   }
 }
 
-const handleCopyPin = async (collection: any) => {
+const handleCopyPin = async collection => {
   const pin = collection.downloadPin
   if (!pin) {
     toast.error('No PIN available', {
-      description: 'This collection does not have a download PIN.',
+      description,
     })
     return
   }
@@ -462,41 +464,41 @@ const handleCopyPin = async (collection: any) => {
   try {
     await navigator.clipboard.writeText(pin)
     toast.success('PIN copied', {
-      description: 'Download PIN has been copied to clipboard.',
+      description,
     })
   } catch (error) {
     console.error('Failed to copy PIN:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy PIN to clipboard.',
+      description,
     })
   }
 }
 
-const handleEditCollection = (collection: any) => {
+const handleEditCollection = collection => {
   toast.info('Edit collection', {
-    description: `Editing ${collection.name || collection.title}`,
+    description,
   })
 }
 
-const handleDuplicateCollection = async (collection: any) => {
+const handleDuplicateCollection = async collection => {
   try {
     await galleryStore.duplicateCollection(String(collection.id))
     toast.success('Collection duplicated', {
-      description: `${collection.name || collection.title} has been duplicated.`,
+      description,
     })
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      search,
+      sortBy,
+      parentId, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to duplicate collection.',
+      fallbackMessage,
     })
   }
 }
 
-const handleDeleteCollection = (collection: any) => {
+const handleDeleteCollection = collection => {
   openDeleteModal(collection)
 }
 
@@ -507,17 +509,17 @@ const handleConfirmDelete = async () => {
   try {
     await galleryStore.deleteCollection(String(collectionToDelete.value.id))
     toast.success('Collection deleted', {
-      description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
+      description,
     })
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      search,
+      sortBy,
+      parentId, // Only fetch root-level collections
     })
     closeDeleteModal()
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to delete collection.',
+      fallbackMessage,
     })
   } finally {
     isDeleting.value = false
@@ -528,36 +530,39 @@ const handleCancelDelete = () => {
   closeDeleteModal()
 }
 
-const handlePublishCollection = async (collection: any) => {
+const handlePublishCollection = async collection => {
   const newStatus =
     collection.status === 'active' || collection.status === 'PUBLISHED' ? 'draft' : 'active'
   try {
     await galleryStore.updateCollection(String(collection.id), { status: newStatus })
     toast.success(newStatus === 'active' ? 'Collection published' : 'Collection unpublished', {
-      description: `${collection.name || collection.title} status updated.`,
+      description:
+        newStatus === 'active'
+          ? 'Your collection is now live and accessible.'
+          : 'Your collection has been unpublished.',
     })
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
       parentId: null, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to update collection status.',
+      fallbackMessage: 'Failed to update collection status. Please try again.',
     })
   }
 }
 
-const handlePreviewCollection = (collection: any) => {
+const handlePreviewCollection = collection => {
   const collectionId = collection.id || collection.name || collection.title
   const previewUrl = `${window.location.origin}/preview/${collectionId}`
   window.open(previewUrl, '_blank')
 }
 
-// const handleMoveToFolder = async (draggedItem: any, targetFolder: any) => {
+// const handleMoveToFolder = async (draggedItem) => {
 //   if (!targetFolder.isFolder) {
 //     toast.error('Invalid target', {
-//       description: 'You can only move items into folders.',
+//       description,
 //     })
 //     return
 //   }
@@ -565,7 +570,7 @@ const handlePreviewCollection = (collection: any) => {
 //   // Prevent moving folders into other folders
 //   if (draggedItem.isFolder) {
 //     toast.error('Cannot move folder', {
-//       description: 'Folders cannot be moved into other folders.',
+//       description,
 //     })
 //     return
 //   }
@@ -574,14 +579,14 @@ const handlePreviewCollection = (collection: any) => {
 //     // Move collection - this will update UI optimistically without full reload
 //     await galleryStore.moveCollection(draggedItem.id, targetFolder.id)
 //     toast.success('Moved successfully', {
-//       description: `Moved ${draggedItem.name || draggedItem.title} into ${targetFolder.name || targetFolder.title}`,
+//       description,
 //     })
 
 //     // No need to refresh - optimistic update already applied
 //     // The collection will animate out and folder will update its preview
-//   } catch (error: any) {
+//   } catch (error) {
 //     handleError(error, {
-//       fallbackMessage: 'Failed to move item.',
+//       fallbackMessage,
 //     })
 //   }
 // }
@@ -594,13 +599,13 @@ const handleBrowseCollections = () => {
 onMounted(async () => {
   try {
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
+      search,
+      sortBy,
     })
-  } catch (error: any) {
+  } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
       handleError(error, {
-        fallbackMessage: 'Failed to load collections.',
+        fallbackMessage,
       })
     }
   }
@@ -609,136 +614,136 @@ onMounted(async () => {
 // Sample collections data (fallback - remove when API is ready) - Currently unused
 // const mockCollections = ref([
 //   {
-//     id: 1,
-//     title: 'Test Foolder',
-//     itemCount: 0,
-//     itemLabel: 'collections',
-//     date: 'Nov 12, 2025',
-//     dateCreated: 'Nov 30, 2025',
-//     icon: Folder,
-//     image: null,
-//     isFolder: true,
-//     isLocked: true,
-//     previewImages: [],
-//     password: 'password123',
-//     downloadPin: '1234',
-//     status: 'DRAFT',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     date, 2025',
+//     dateCreated, 2025',
+//     icon,
+//     image,
+//     isFolder,
+//     isLocked,
+//     previewImages,
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 //   {
-//     id: 2,
-//     title: 'Joseph X Cuppy',
-//     itemCount: 2,
-//     itemLabel: 'items',
-//     date: 'Nov 29, 2025',
-//     dateCreated: 'Nov 24, 2025',
-//     itemIcon: Circle,
-//     image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '5678',
-//     status: 'DRAFT',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     date, 2025',
+//     dateCreated, 2025',
+//     itemIcon,
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 //   {
-//     id: 3,
-//     title: 'MazeLoot Demo',
-//     itemCount: 0,
-//     itemLabel: 'items',
-//     dateCreated: 'Nov 24, 2025',
-//     starred: true,
-//     badge: true,
-//     badgeIcon: Circle,
-//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '9012',
-//     status: 'DRAFT',
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     dateCreated, 2025',
+//     starred,
+//     badge,
+//     badgeIcon,
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
 //   },
 //   {
-//     id: 4,
-//     title: 'Test',
-//     itemCount: 0,
-//     itemLabel: 'items',
-//     date: 'Nov 5, 2025',
-//     dateCreated: 'Nov 17, 2025',
-//     itemIcon: Circle,
-//     isLocked: true,
-//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '3456',
-//     status: 'DRAFT',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     date, 2025',
+//     dateCreated, 2025',
+//     itemIcon,
+//     isLocked,
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 //   {
-//     id: 5,
-//     title: 'Mazeloot Demo',
-//     itemCount: 0,
-//     itemLabel: 'items',
-//     date: 'Nov 13, 2025',
-//     dateCreated: 'Nov 10, 2025',
-//     itemIcon: Circle,
-//     image: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '7890',
-//     status: 'DRAFT',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     date, 2025',
+//     dateCreated, 2025',
+//     itemIcon,
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 //   {
-//     id: 6,
-//     title: 'Mazeloot folder',
-//     itemCount: 1,
-//     itemLabel: 'collection',
-//     dateCreated: 'Nov 10, 2025',
-//     icon: Folder,
-//     image: null,
-//     isFolder: true,
-//     isLocked: true,
-//     previewImages: [
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     dateCreated, 2025',
+//     icon,
+//     image,
+//     isFolder,
+//     isLocked,
+//     previewImages
 //       'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=400&h=300&fit=crop',
 //     ],
-//     password: null,
-//     downloadPin: null,
-//     starred: false,
+//     password,
+//     downloadPin,
+//     starred,
 //   },
 //   {
-//     id: 7,
-//     title: 'Test Folder',
-//     itemCount: 0,
-//     itemLabel: 'collections',
-//     dateCreated: 'Sep 1, 2025',
-//     icon: Folder,
-//     image: null,
-//     isFolder: true,
-//     isLocked: false,
-//     previewImages: [],
-//     password: null,
-//     downloadPin: null,
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     dateCreated, 2025',
+//     icon,
+//     image,
+//     isFolder,
+//     isLocked,
+//     previewImages,
+//     password,
+//     downloadPin,
+//     starred,
 //   },
 //   {
-//     id: 8,
-//     title: 'My Collection',
-//     itemCount: 1,
-//     itemLabel: 'item',
-//     dateCreated: 'Sep 1, 2025',
-//     itemIcon: Circle,
-//     image: 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '2468',
-//     status: 'DRAFT',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     dateCreated, 2025',
+//     itemIcon,
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 //   {
-//     id: 9,
-//     title: 'My Sample Collection',
-//     itemCount: 42,
-//     itemLabel: 'items',
-//     date: 'Sep 1, 2025',
-//     dateCreated: 'Sep 1, 2025',
-//     image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=400&h=300&fit=crop',
-//     password: null,
-//     downloadPin: '1357',
-//     status: 'PUBLISHED',
-//     starred: false,
+//     id,
+//     title,
+//     itemCount,
+//     itemLabel,
+//     date, 2025',
+//     dateCreated, 2025',
+//     image=300&fit=crop',
+//     password,
+//     downloadPin,
+//     status,
+//     starred,
 //   },
 // ])
 </script>

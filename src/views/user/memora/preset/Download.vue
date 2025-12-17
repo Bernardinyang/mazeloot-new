@@ -1,7 +1,7 @@
 <template>
   <PresetLayout>
     <div
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-3xl'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
     >
       <div class="mb-10">
@@ -105,7 +105,7 @@
               :class="[
                 showPhotoOptions
                   ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-950/20'
-                  : theme.textSecondary,
+                  : '',
               ]"
               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
               @click="showPhotoOptions = !showPhotoOptions"
@@ -137,18 +137,15 @@
                     :class="[
                       formData.highResolutionEnabled
                         ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
-                        : [theme.borderSecondary, theme.bgCard],
+                        : '',
+                      theme.bgCard,
                     ]"
                     class="space-y-3 mb-5 p-4 rounded-xl border transition-all duration-200"
                   >
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
                         v-model="formData.highResolutionEnabled"
-                        :class="
-                          formData.highResolutionEnabled
-                            ? 'border-teal-500 bg-teal-500'
-                            : theme.borderSecondary
-                        "
+                        :class="formData.highResolutionEnabled ? 'border-teal-500 bg-teal-500' : ''"
                         class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                         type="checkbox"
                       />
@@ -189,7 +186,7 @@
                               :class="
                                 formData.highResolutionSize === '3600px'
                                   ? 'text-teal-600 dark:text-teal-400'
-                                  : theme.textSecondary
+                                  : ''
                               "
                               class="text-sm font-medium transition-colors"
                               >3600px</span
@@ -222,18 +219,15 @@
                     :class="[
                       formData.webSizeEnabled
                         ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
-                        : [theme.borderSecondary, theme.bgCard],
+                        : '',
+                      theme.bgCard,
                     ]"
                     class="space-y-3 p-4 rounded-xl border transition-all duration-200"
                   >
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
                         v-model="formData.webSizeEnabled"
-                        :class="
-                          formData.webSizeEnabled
-                            ? 'border-teal-500 bg-teal-500'
-                            : theme.borderSecondary
-                        "
+                        :class="formData.webSizeEnabled ? 'border-teal-500 bg-teal-500' : ''"
                         class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                         type="checkbox"
                       />
@@ -256,7 +250,7 @@
                               :class="
                                 formData.webSize === '2048px'
                                   ? 'text-teal-600 dark:text-teal-400'
-                                  : theme.textSecondary
+                                  : ''
                               "
                               class="text-sm font-medium transition-colors"
                               >2048px</span
@@ -273,7 +267,7 @@
                               :class="
                                 formData.webSize === '1024px'
                                   ? 'text-teal-600 dark:text-teal-400'
-                                  : theme.textSecondary
+                                  : ''
                               "
                               class="text-sm font-medium transition-colors"
                               >1024px</span
@@ -290,7 +284,7 @@
                               :class="
                                 formData.webSize === '640px'
                                   ? 'text-teal-600 dark:text-teal-400'
-                                  : theme.textSecondary
+                                  : ''
                               "
                               class="text-sm font-medium transition-colors"
                               >640px</span
@@ -388,11 +382,7 @@
             >
               <input
                 v-model="formData.restrictToContacts"
-                :class="
-                  formData.restrictToContacts
-                    ? 'border-teal-500 bg-teal-500'
-                    : theme.borderSecondary
-                "
+                :class="formData.restrictToContacts ? 'border-teal-500 bg-teal-500' : ''"
                 class="h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
                 type="checkbox"
               />
@@ -401,7 +391,7 @@
               </span>
             </label>
             <p :class="theme.textSecondary" class="text-xs leading-relaxed pl-7">
-              Only allow downloads for users who are added as contacts to the collection.
+              Only allow downloads for users who are added to the collection.
             </p>
           </div>
         </div>
@@ -470,8 +460,7 @@
   </PresetLayout>
 </template>
 
-<script lang="ts" setup>
-import type { Ref } from 'vue'
+<script setup>
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -483,7 +472,6 @@ import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import type { Preset } from '@/stores/preset'
 import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
@@ -492,18 +480,18 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject<Ref<boolean>>('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
-const currentPreset = computed((): Preset | undefined => {
-  const nameParam = route.params.name as string
+const currentPreset = computed(() => {
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
   return undefined
 })
 
-const presetId = computed((): string | null => {
+const presetId = computed(() => {
   return currentPreset.value?.id || null
 })
 
@@ -514,30 +502,19 @@ const showPhotoOptions = ref(true) // Auto-expand by default
 const showUpgradePopover = ref(false)
 
 // Download form data
-interface DownloadFormData {
-  photoDownload: boolean
-  highResolutionEnabled: boolean
-  highResolutionSize: string
-  webSizeEnabled: boolean
-  webSize: string
-  videoDownload: boolean
-  downloadPin: boolean
-  restrictToContacts: boolean
-}
-
-const formData = ref<DownloadFormData>({
-  photoDownload: true,
-  highResolutionEnabled: true,
-  highResolutionSize: '3600px',
-  webSizeEnabled: true,
-  webSize: '1024px',
-  videoDownload: false,
-  downloadPin: true,
-  restrictToContacts: false,
+const formData = ref({
+  photoDownload,
+  highResolutionEnabled,
+  highResolutionSize,
+  webSizeEnabled,
+  webSize,
+  videoDownload,
+  downloadPin,
+  restrictToContacts,
 })
 
 // Store original loaded data for comparison
-const originalData = ref<DownloadFormData | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
@@ -561,18 +538,18 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const downloadData = currentPreset.value.download || {}
-    const loadedData: DownloadFormData = {
-      photoDownload: downloadData.photoDownload !== undefined ? downloadData.photoDownload : true,
+    const loadedData = {
+      photoDownload: downloadData.photoDownload !== undefined ? downloadData.photoDownload : false,
       highResolutionEnabled:
         downloadData.highResolutionEnabled !== undefined
           ? downloadData.highResolutionEnabled
-          : true,
-      highResolutionSize: downloadData.highResolutionSize || '3600px',
+          : false,
+      highResolutionSize,
       webSizeEnabled:
-        downloadData.webSizeEnabled !== undefined ? downloadData.webSizeEnabled : true,
-      webSize: downloadData.webSize || '1024px',
+        downloadData.webSizeEnabled !== undefined ? downloadData.webSizeEnabled : false,
+      webSize,
       videoDownload: downloadData.videoDownload !== undefined ? downloadData.videoDownload : false,
-      downloadPin: downloadData.downloadPin !== undefined ? downloadData.downloadPin : true,
+      downloadPin: downloadData.downloadPin !== undefined ? downloadData.downloadPin : false,
       restrictToContacts:
         downloadData.restrictToContacts !== undefined ? downloadData.restrictToContacts : false,
     }
@@ -591,13 +568,13 @@ watch(
   () => {
     loadPresetData()
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 // Auto-expand photo options when photo download is enabled
 watch(
   () => formData.value.photoDownload,
-  (enabled: boolean) => {
+  enabled => {
     if (enabled && !showPhotoOptions.value) {
       showPhotoOptions.value = true
     }
@@ -605,14 +582,14 @@ watch(
 )
 
 // Keyboard shortcut handler
-let keyDownHandler: ((e: KeyboardEvent) => void) | null = null
+let keyDownHandler = null
 
 // Initialize on mount
 onMounted(() => {
   loadPresetData()
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
-  keyDownHandler = (e: KeyboardEvent): void => {
+  keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       if (!isSaving.value && hasUnsavedChanges.value && presetId.value) {
@@ -632,7 +609,7 @@ onUnmounted(() => {
 })
 
 // Helper function to save preset download
-const savePresetDownload = async (): Promise<boolean> => {
+const savePresetDownload = async () => {
   if (!presetId.value) {
     toast.error('Preset not found')
     return false
@@ -640,17 +617,17 @@ const savePresetDownload = async (): Promise<boolean> => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      download: formData.value,
+      download,
     })
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred while saving.'
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     toast.error('Failed to save preset', {
-      description: errorMessage,
+      description,
     })
     return false
   }
@@ -660,8 +637,8 @@ const handleSave = async () => {
   const success = await savePresetDownload()
   if (success) {
     toast.success('Preset saved successfully', {
-      description: 'Download settings have been updated.',
-      icon: Check,
+      description,
+      icon,
     })
   }
 }
@@ -672,8 +649,8 @@ const handlePrevious = async () => {
     const success = await savePresetDownload()
     if (success) {
       router.push({
-        name: 'presetPrivacy',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -687,8 +664,8 @@ const handleNext = async () => {
     const success = await savePresetDownload()
     if (success) {
       router.push({
-        name: 'presetFavorite',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -711,8 +688,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction: savePresetDownload,
-    discardFunction: discardChanges,
+    saveFunction,
+    discardFunction,
     showUnsavedChangesModal,
   })
 </script>

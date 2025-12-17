@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-vue-next'
 import {
   DropdownMenu,
@@ -15,16 +15,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/shadcn/sidebar'
-import type { User } from '@/types/navigation'
 import AvatarDisplay from '@/components/atoms/AvatarDisplay.vue'
 import { useNavigation } from '@/composables/useNavigation'
 import { useLogout } from '@/composables/useLogout'
 
-const props = defineProps<{
-  user: User
-}>()
+const props = defineProps({
+  user: {
+    type: Object,
+    required: true,
+  },
+})
 
-const { isMobile } = useSidebar()
+const { isMobile, state } = useSidebar()
 const { navigateTo } = useNavigation()
 const { logout } = useLogout()
 
@@ -41,13 +43,21 @@ const handleLogout = async () => {
           <SidebarMenuButton
             size="lg"
             class="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            :tooltip="props.user.name"
           >
-            <AvatarDisplay :name="props.user.name" :avatar="props.user.avatar" />
-            <div class="grid flex-1 text-left text-sm leading-tight">
+            <AvatarDisplay
+              :name="props.user.name"
+              :avatar="props.user.avatar"
+              :size="state === 'collapsed' && !isMobile ? 'lg' : 'md'"
+            />
+            <div
+              v-if="state !== 'collapsed' || isMobile"
+              class="grid flex-1 text-left text-sm leading-tight"
+            >
               <span class="truncate font-medium">{{ props.user.name }}</span>
               <span class="truncate text-xs">{{ props.user.email }}</span>
             </div>
-            <ChevronsUpDown class="ml-auto size-4" />
+            <ChevronsUpDown v-if="state !== 'collapsed' || isMobile" class="ml-auto size-4" />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent

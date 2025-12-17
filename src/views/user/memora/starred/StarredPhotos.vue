@@ -1,6 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Starred Photos </template>
+    <template #breadcrumb> Starred Photos</template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -10,12 +10,12 @@
     <div class="space-y-6">
       <!-- Top Header Bar -->
       <PageHeader
-        title="Starred Photos"
         :search-query="searchQuery"
         :sort-by="sortBy"
-        :view-mode="viewMode"
         :sort-options="sortOptions"
+        :view-mode="viewMode"
         sort-label="Sort photos by"
+        title="Starred Photos"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
@@ -31,17 +31,17 @@
           <div
             v-for="i in 20"
             :key="i"
-            class="aspect-square rounded-lg overflow-hidden animate-pulse"
             :class="theme.bgSkeleton"
+            class="aspect-square rounded-lg overflow-hidden animate-pulse"
           />
         </div>
 
         <!-- Empty State -->
         <div v-else-if="sortedPhotos.length === 0" class="flex items-center justify-center py-16">
           <EmptyState
-            message="No starred photos found"
-            action-label="Browse Photos"
             :icon="Image"
+            action-label="Browse Photos"
+            message="No starred photos found"
             @action="handleBrowsePhotos"
           />
         </div>
@@ -51,13 +51,13 @@
           <div
             v-for="photo in sortedPhotos"
             :key="photo.id"
-            class="group relative aspect-square rounded-lg overflow-hidden cursor-pointer"
             :class="[theme.bgCardSolid, theme.borderSecondary, 'border']"
+            class="group relative aspect-square rounded-lg overflow-hidden cursor-pointer"
             @click="handlePhotoClick(photo)"
           >
             <img
-              :src="photo.thumbnail || photo.url"
               :alt="photo.title || 'Photo'"
+              :src="photo.thumbnail || photo.url"
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               loading="lazy"
             />
@@ -67,16 +67,13 @@
             >
               <!-- Star button - bottom right -->
               <button
-                type="button"
-                class="absolute bottom-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
-                @click.stop="toggleStar(photo)"
                 :title="photo.starred ? 'Unstar' : 'Star'"
+                class="absolute bottom-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
+                type="button"
+                @click.stop="toggleStar(photo)"
               >
                 <Star
-                  :class="[
-                    'h-4 w-4',
-                    photo.starred ? 'fill-yellow-400 text-yellow-400' : 'text-white',
-                  ]"
+                  :class="['h-4 w-4', photo.starred ? 'fill-yellow-400 text-yellow-400' : '']"
                 />
               </button>
 
@@ -84,17 +81,17 @@
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
-                    type="button"
                     class="absolute top-2 right-2 h-8 w-8 flex items-center justify-center rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-all opacity-0 group-hover:opacity-100"
-                    @click.stop
                     title="More options"
+                    type="button"
+                    @click.stop
                   >
                     <MoreVertical class="h-4 w-4 text-white" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  align="end"
                   :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[180px]']"
+                  align="end"
                 >
                   <DropdownMenuItem
                     :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -138,8 +135,8 @@
           <div
             v-for="i in 10"
             :key="i"
-            class="flex items-center gap-4 p-4 rounded-lg animate-pulse"
             :class="theme.bgSkeleton"
+            class="flex items-center gap-4 p-4 rounded-lg animate-pulse"
           >
             <div :class="['w-16 h-16 rounded', theme.bgSkeleton]"></div>
             <div class="flex-1 space-y-2">
@@ -152,9 +149,9 @@
         <!-- Empty State -->
         <div v-else-if="sortedPhotos.length === 0" class="flex items-center justify-center py-16">
           <EmptyState
-            message="No starred photos found"
-            action-label="Browse Photos"
             :icon="Image"
+            action-label="Browse Photos"
+            message="No starred photos found"
             @action="handleBrowsePhotos"
           />
         </div>
@@ -164,52 +161,49 @@
           <div
             v-for="photo in sortedPhotos"
             :key="photo.id"
-            class="flex items-center gap-4 p-4 rounded-lg border transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
             :class="[theme.bgCard, theme.borderSecondary]"
+            class="flex items-center gap-4 p-4 rounded-lg border transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer"
             @click="handlePhotoClick(photo)"
           >
             <img
-              :src="photo.thumbnail || photo.url"
               :alt="photo.title || 'Photo'"
+              :src="photo.thumbnail || photo.url"
               class="w-16 h-16 rounded object-cover flex-shrink-0"
               loading="lazy"
             />
             <div class="flex-1 min-w-0">
-              <h3 class="font-medium text-sm truncate" :class="theme.textPrimary">
+              <h3 :class="theme.textPrimary" class="font-medium text-sm truncate">
                 {{ photo.title || 'Untitled Photo' }}
               </h3>
-              <p class="text-xs mt-0.5 truncate" :class="theme.textSecondary">
+              <p :class="theme.textSecondary" class="text-xs mt-0.5 truncate">
                 {{ photo.collection || 'No collection' }} • {{ photo.date || 'Unknown date' }}
               </p>
             </div>
             <div class="flex items-center gap-2">
               <button
-                type="button"
-                class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-                @click.stop="toggleStar(photo)"
                 :title="photo.starred ? 'Unstar' : 'Star'"
+                class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                type="button"
+                @click.stop="toggleStar(photo)"
               >
                 <Star
-                  :class="[
-                    'h-4 w-4',
-                    photo.starred ? 'fill-yellow-400 text-yellow-400' : theme.textSecondary,
-                  ]"
+                  :class="['h-4 w-4', photo.starred ? 'fill-yellow-400 text-yellow-400' : '']"
                 />
               </button>
               <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                   <button
-                    type="button"
                     class="h-8 w-8 flex items-center justify-center rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors opacity-0 group-hover:opacity-100"
-                    @click.stop
                     title="More options"
+                    type="button"
+                    @click.stop
                   >
-                    <MoreVertical class="h-4 w-4" :class="theme.textSecondary" />
+                    <MoreVertical :class="theme.textSecondary" class="h-4 w-4" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
-                  align="end"
                   :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[180px]']"
+                  align="end"
                 >
                   <DropdownMenuItem
                     :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -250,17 +244,17 @@
     <!-- Photo Viewer Modal -->
     <PhotoViewer
       v-model="showPhotoViewer"
-      :photos="sortedPhotos"
       :initial-index="selectedPhotoIndex"
+      :photos="sortedPhotos"
       @download="handleDownloadPhoto"
     />
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+<script setup>
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { Star, MoreVertical, Image, Maximize2, FolderOpen, Download, Copy } from 'lucide-vue-next'
+import { Copy, Download, FolderOpen, Image, Maximize2, MoreVertical, Star } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import {
   DropdownMenu,
@@ -281,11 +275,17 @@ const router = useRouter()
 const theme = useThemeClasses()
 
 // Loading state
-const { states: loadingStates, setAllLoading } = useLoadingStates(['photos'], true)
+const loadingKeys = ['photos']
+const {
+  states,
+  setLoading,
+  setAllLoading,
+  isLoading: loadingStates,
+} = useLoadingStates(loadingKeys, true)
 const isLoadingPhotos = loadingStates.photos
 
 // View mode and sorting
-const viewMode = ref<'grid' | 'list'>('grid')
+const viewMode = ref('grid')
 const sortBy = ref('date-new-old')
 const searchQuery = ref('')
 const sortOptions = PHOTO_SORT_OPTIONS
@@ -307,16 +307,19 @@ const filteredPhotos = computed(() => {
   )
 })
 
-const { sortedItems: sortedPhotos } = useCollectionSort(filteredPhotos, sortBy)
+const { sortedItems: sortedPhotos } = useCollectionSort(
+  computed(() => filteredPhotos.value),
+  sortBy
+)
 
-const toggleStar = (photo: any) => {
+const toggleStar = photo => {
   photo.starred = !photo.starred
 }
 
 const showPhotoViewer = ref(false)
 const selectedPhotoIndex = ref(0)
 
-const handlePhotoClick = (photo: any) => {
+const handlePhotoClick = photo => {
   const index = sortedPhotos.value.findIndex(p => p.id === photo.id)
   if (index !== -1) {
     selectedPhotoIndex.value = index
@@ -324,28 +327,28 @@ const handlePhotoClick = (photo: any) => {
   }
 }
 
-const handleOpenPhoto = (photo: any) => {
+const handleOpenPhoto = photo => {
   handlePhotoClick(photo)
 }
 
-const handleViewCollection = (photo: any) => {
-  // TODO: Navigate to the collection this photo belongs to
+const handleViewCollection = photo => {
+  // TODO
   console.log('View collection:', photo.collection)
   if (photo.collection) {
     toast.info('Viewing collection...', {
-      description: photo.collection,
+      description: 'Opening collection in a new tab',
     })
-    // router.push({ name: 'collectionDetail', params: { collectionId: photo.collectionId } })
+    // router.push({ name)
   } else {
     toast.error('No collection found', {
-      description: 'This photo does not belong to a collection.',
+      description: 'This photo is not associated with a collection',
     })
   }
 }
 
-const handleDownloadPhoto = async (photo: any) => {
+const handleDownloadPhoto = async photo => {
   try {
-    // TODO: Implement actual download logic
+    // TODO
     const link = document.createElement('a')
     link.href = photo.url || photo.thumbnail
     link.download = photo.title || 'photo.jpg'
@@ -355,33 +358,33 @@ const handleDownloadPhoto = async (photo: any) => {
     document.body.removeChild(link)
 
     toast.success('Download started', {
-      description: photo.title || 'Photo',
+      description: 'Your download has started',
     })
   } catch (error) {
     console.error('Failed to download photo:', error)
     toast.error('Download failed', {
-      description: 'Could not download photo. Please try again.',
+      description: error.message || 'Failed to start download',
     })
   }
 }
 
-const handleCopyFilenames = async (photo: any) => {
+const handleCopyFilenames = async photo => {
   try {
     const filename = photo.title || photo.filename || 'untitled.jpg'
     await navigator.clipboard.writeText(filename)
     toast.success('Filename copied', {
-      description: 'Photo filename has been copied to clipboard.',
+      description: 'The filename has been copied to your clipboard',
     })
   } catch (error) {
     console.error('Failed to copy filename:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy filename to clipboard.',
+      description: error.message || 'Could not copy to clipboard',
     })
   }
 }
 
 const handleBrowsePhotos = () => {
-  // TODO: Navigate to all photos page
+  // TODO
   router.push({ name: 'manageCollections' })
 }
 
@@ -397,66 +400,5 @@ onMounted(() => {
 
 // Sample photos data
 // In a real app, this would come from an API/store
-const photos = ref([
-  {
-    id: 1,
-    title: 'Sunset Beach',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=200&h=200&fit=crop',
-    collection: 'Nature Collection',
-    date: '2025-01-15',
-    dateCreated: '2025-01-15',
-    starred: true,
-  },
-  {
-    id: 2,
-    title: 'Mountain View',
-    url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=200&h=200&fit=crop',
-    collection: 'Landscape Collection',
-    date: '2025-01-14',
-    dateCreated: '2025-01-14',
-    starred: true,
-  },
-  {
-    id: 3,
-    title: 'City Lights',
-    url: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=200&h=200&fit=crop',
-    collection: 'Urban Collection',
-    date: '2025-01-13',
-    dateCreated: '2025-01-13',
-    starred: true,
-  },
-  {
-    id: 4,
-    title: 'Forest Path',
-    url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop',
-    collection: 'Nature Collection',
-    date: '2025-01-12',
-    dateCreated: '2025-01-12',
-    starred: true,
-  },
-  {
-    id: 5,
-    title: 'Ocean Waves',
-    url: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=200&h=200&fit=crop',
-    collection: 'Nature Collection',
-    date: '2025-01-11',
-    dateCreated: '2025-01-11',
-    starred: true,
-  },
-  {
-    id: 6,
-    title: 'Desert Landscape',
-    url: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=400&h=400&fit=crop',
-    thumbnail: 'https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=200&h=200&fit=crop',
-    collection: 'Landscape Collection',
-    date: '2025-01-10',
-    dateCreated: '2025-01-10',
-    starred: true,
-  },
-])
+const photos = ref([])
 </script>

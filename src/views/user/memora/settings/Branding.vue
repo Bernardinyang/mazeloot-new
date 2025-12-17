@@ -88,9 +88,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  isDisabled
-                    ? 'cursor-not-allowed opacity-50'
-                    : 'cursor-pointer hover:border-teal-500',
+                  isDisabled ? 'cursor-not-allowed opacity-50' : '',
                 ]"
                 @click="!isDisabled && handleUploadLogo()"
               >
@@ -122,9 +120,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  isDisabled
-                    ? 'cursor-not-allowed opacity-50'
-                    : 'cursor-pointer hover:border-teal-500',
+                  isDisabled ? 'cursor-not-allowed opacity-50' : '',
                 ]"
                 @click="!isDisabled && handleUploadFavicon()"
               >
@@ -158,7 +154,7 @@
           </div>
           <label
             class="relative inline-flex items-center group"
-            :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+            :class="isDisabled ? 'cursor-not-allowed opacity-50' : ''"
           >
             <input
               type="checkbox"
@@ -182,7 +178,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -197,8 +193,8 @@ const theme = useThemeClasses()
 // Form state
 const domain = ref('bernode.pixieset.com')
 const customDomain = ref('')
-const logoPreview = ref<string | null>(null)
-const faviconPreview = ref<string | null>(null)
+const logoPreview = ref(null)
+const faviconPreview = ref(null)
 const showPixiesetBranding = ref(true)
 const showCustomDomainPopover = ref(false)
 const showBrandControlPopover = ref(false)
@@ -206,16 +202,16 @@ const isDisabled = ref(true)
 
 const handleUploadLogo = () => {
   if (isDisabled.value) return
-  // TODO: Implement logo upload logic
+  // TODO
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
-  input.onchange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
+  input.onchange = e => {
+    const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = event => {
-        logoPreview.value = event.target?.result as string
+        logoPreview.value = event.target?.result
         toast.success('Logo uploaded successfully')
       }
       reader.readAsDataURL(file)
@@ -226,16 +222,16 @@ const handleUploadLogo = () => {
 
 const handleUploadFavicon = () => {
   if (isDisabled.value) return
-  // TODO: Implement favicon upload logic
+  // TODO
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*,.gif,.ico'
-  input.onchange = (e: Event) => {
-    const file = (e.target as HTMLInputElement).files?.[0]
+  input.onchange = e => {
+    const file = e.target.files?.[0]
     if (file) {
       const reader = new FileReader()
       reader.onload = event => {
-        faviconPreview.value = event.target?.result as string
+        faviconPreview.value = event.target?.result
         toast.success('Favicon uploaded successfully')
       }
       reader.readAsDataURL(file)

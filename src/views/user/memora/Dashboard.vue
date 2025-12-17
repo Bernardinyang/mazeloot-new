@@ -94,7 +94,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import {
   Images,
@@ -119,51 +119,51 @@ import { useNavigation } from '@/composables/useNavigation'
 const { navigateTo } = useNavigation()
 
 const stats = ref({
-  totalPhotos: 1247,
-  newPhotosThisMonth: 89,
-  activeClients: 24,
-  newClientsThisMonth: 3,
-  totalAlbums: 156,
-  activeAlbums: 42,
-  storageUsed: '12.4 GB',
-  storagePercentage: 62,
+  totalPhotos: 0,
+  newPhotosThisMonth: 0,
+  activeClients: 0,
+  newClientsThisMonth: 0,
+  totalAlbums: 0,
+  activeAlbums: 0,
+  storageUsed: '0 GB',
+  storagePercentage: 0,
 })
 
 const recentActivity = ref([
   {
-    id: 1,
+    id: '1',
     title: 'New photos uploaded',
-    description: 'Sarah uploaded 15 photos to "Summer Collection"',
+    description: 'Client uploaded 25 new photos',
     time: '2 hours ago',
-    icon: Camera,
+    icon: Upload,
   },
   {
-    id: 2,
-    title: 'New client added',
-    description: 'John Smith was added to the system',
+    id: '2',
+    title: 'New collection created',
+    description: 'Wedding Collection created',
     time: '5 hours ago',
-    icon: UserPlus,
-  },
-  {
-    id: 3,
-    title: 'Album created',
-    description: 'New album "Wedding Photos 2025" created',
-    time: '1 day ago',
     icon: FolderPlus,
   },
   {
-    id: 4,
-    title: 'Photos shared',
-    description: '45 photos shared with client "ABC Photography"',
+    id: '3',
+    title: 'New client added',
+    description: 'John Doe added to system',
+    time: '1 day ago',
+    icon: UserPlus,
+  },
+  {
+    id: '4',
+    title: 'Photos captured',
+    description: 'Event photos captured',
     time: '2 days ago',
-    icon: Images,
+    icon: Camera,
   },
 ])
 
 const quickActions = [
-  { route: { name: 'memora-upload' }, label: 'Upload Photos', icon: Upload },
-  { route: { name: 'memora-gallery' }, label: 'View Gallery', icon: Images },
-  { route: { name: 'memora-clients' }, label: 'Manage Clients', icon: Users },
-  { route: { name: 'memora-collections' }, label: 'Create Album', icon: Folder },
+  { route: { name: 'manageCollections' }, label: 'View Collections', icon: Folder },
+  { route: { name: 'collectionPhotos' }, label: 'Upload Photos', icon: Upload },
+  { route: { name: 'manageCollections' }, label: 'Create Collection', icon: FolderPlus },
+  { route: { name: 'manageCollections' }, label: 'Add Client', icon: UserPlus },
 ]
 </script>

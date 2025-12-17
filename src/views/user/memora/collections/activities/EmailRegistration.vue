@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesDownload'
+              route.name === 'collectionActivitiesDownload'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,11 +45,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesFavourite'
+              route.name === 'collectionActivitiesFavourite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -58,11 +58,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesEmailRegistration'
+              route.name === 'collectionActivitiesEmailRegistration'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesEmailRegistration', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Mail :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -71,11 +71,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesQuickShare'
+              route.name === 'collectionActivitiesQuickShare'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Link :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -84,11 +84,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesPrivatePhotos'
+              route.name === 'collectionActivitiesPrivatePhotos'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -99,10 +99,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -110,11 +107,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-7xl p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-8">
             <div class="flex items-center justify-between mb-2">
@@ -304,7 +297,7 @@
                         :class="
                           registration.verified
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                         "
                         class="px-2 py-1 rounded-full text-xs font-semibold"
                       >
@@ -317,6 +310,7 @@
                           registration.lastAccessAt
                             ? formatDate(registration.lastAccessAt)
                             : 'Never'
+                        }}
                         }}
                       </div>
                     </td>
@@ -344,7 +338,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
@@ -357,21 +351,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
-
-interface EmailRegistration {
-  id: string
-  email: string
-  name: string | null
-  registeredAt: string
-  verified: boolean
-  lastAccessAt: string | null
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -380,31 +364,31 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('activities')
+const activeTab = ref('activities')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Registration data
-const registrations = ref<EmailRegistration[]>([])
+const registrations = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
 const verificationFilter = ref('all')
@@ -460,26 +444,26 @@ const filteredRegistrations = computed(() => {
 })
 
 // Generate demo data
-const generateDemoData = (): EmailRegistration[] => {
+const generateDemoData = () => {
   const now = new Date()
-  const demoRegistrations: EmailRegistration[] = []
+  const demoRegistrations = []
 
   const demoUsers = [
-    { name: 'Sarah Johnson', email: 'sarah.johnson@example.com' },
-    { name: 'Michael Chen', email: 'michael.chen@example.com' },
-    { name: 'Emily Rodriguez', email: 'emily.rodriguez@example.com' },
-    { name: 'David Thompson', email: 'david.thompson@example.com' },
-    { name: 'Jessica Martinez', email: 'jessica.martinez@example.com' },
-    { name: 'Robert Wilson', email: 'robert.wilson@example.com' },
-    { name: 'Amanda Brown', email: 'amanda.brown@example.com' },
-    { name: 'James Taylor', email: 'james.taylor@example.com' },
-    { name: 'Lisa Anderson', email: 'lisa.anderson@example.com' },
-    { name: 'Christopher Lee', email: 'christopher.lee@example.com' },
-    { name: 'Maria Garcia', email: 'maria.garcia@example.com' },
-    { name: 'Daniel White', email: 'daniel.white@example.com' },
-    { name: 'Jennifer Davis', email: 'jennifer.davis@example.com' },
-    { name: 'Matthew Harris', email: 'matthew.harris@example.com' },
-    { name: 'Ashley Clark', email: 'ashley.clark@example.com' },
+    { name: 'John Doe', email: 'john@example.com' },
+    { name: 'Jane Smith', email: 'jane@example.com' },
+    { name: 'Bob Johnson', email: 'bob@example.com' },
+    { name: 'Alice Williams', email: 'alice@example.com' },
+    { name: 'Charlie Brown', email: 'charlie@example.com' },
+    { name: 'Diana Prince', email: 'diana@example.com' },
+    { name: 'Edward Norton', email: 'edward@example.com' },
+    { name: 'Fiona Apple', email: 'fiona@example.com' },
+    { name: 'George Lucas', email: 'george@example.com' },
+    { name: 'Helen Mirren', email: 'helen@example.com' },
+    { name: 'Ian McKellen', email: 'ian@example.com' },
+    { name: 'Julia Roberts', email: 'julia@example.com' },
+    { name: 'Kevin Spacey', email: 'kevin@example.com' },
+    { name: 'Liam Neeson', email: 'liam@example.com' },
+    { name: 'Meryl Streep', email: 'meryl@example.com' },
   ]
 
   // Generate registrations for the past 60 days
@@ -512,8 +496,8 @@ const generateDemoData = (): EmailRegistration[] => {
       email: user.email,
       name: user.name,
       registeredAt: registeredAt.toISOString(),
-      verified,
-      lastAccessAt,
+      verified: verified,
+      lastAccessAt: lastAccessAt,
     })
   }
 
@@ -521,10 +505,9 @@ const generateDemoData = (): EmailRegistration[] => {
     (a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime()
   )
 }
-
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -533,13 +516,13 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    // TODO: Fetch email registrations from API
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    // TODO
     // registrations.value = await fetchEmailRegistrations(collectionId)
     // For now, use demo data
     registrations.value = generateDemoData()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     registrations.value = generateDemoData()
@@ -550,33 +533,33 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
 }
 
 // Format helpers
-const formatDate = (dateString: string) => {
+const formatDate = dateString => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -584,16 +567,16 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const formatTime = (dateString: string) => {
+const formatTime = dateString => {
   return new Date(dateString).toLocaleTimeString('en-US', {
-    hour: '2-digit',
+    hour: 'numeric',
     minute: '2-digit',
   })
 }
 
 // Export data
 const exportData = () => {
-  // TODO: Implement export functionality
+  // TODO
   console.log('Exporting email registration data...')
 }
 </script>

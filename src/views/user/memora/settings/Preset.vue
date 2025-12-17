@@ -122,7 +122,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, MoreVertical, Pencil, Copy, Trash2 } from 'lucide-vue-next'
@@ -139,7 +139,7 @@ import {
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
 import CreatePresetDialog from '@/components/organisms/CreatePresetDialog.vue'
-import { usePresetStore, type Preset } from '@/stores/preset'
+import { usePresetStore } from '@/stores/preset'
 
 const theme = useThemeClasses()
 const router = useRouter()
@@ -149,34 +149,34 @@ const showCreatePresetDialog = ref(false)
 
 const presets = computed(() => presetStore.presets)
 
-const handleEditPreset = (id: string) => {
-  const preset = presets.value.find((p: Preset) => p.id === id)
+const handleEditPreset = id => {
+  const preset = presets.value.find(p => p.id === id)
   if (preset) {
     router.push({
-      name: 'presetGeneral',
-      params: { name: preset.name.toLowerCase().replace(/\s+/g, '-') },
+      name: 'presetSettings',
+      params: { uuid: preset.id },
     })
   }
 }
 
-const handleDuplicatePreset = async (id: string) => {
+const handleDuplicatePreset = async id => {
   try {
     await presetStore.duplicatePreset(id)
     toast.success('Preset duplicated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to duplicate preset', {
-      description: error.message || 'An error occurred while duplicating the preset.',
+      description,
     })
   }
 }
 
-const handleDeletePreset = async (id: string) => {
+const handleDeletePreset = async id => {
   try {
     await presetStore.deletePreset(id)
     toast.success('Preset deleted successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to delete preset', {
-      description: error.message || 'An error occurred while deleting the preset.',
+      description,
     })
   }
 }
@@ -185,22 +185,22 @@ const handleAddPreset = () => {
   showCreatePresetDialog.value = true
 }
 
-const handleCreatePresetSubmit = async (data: { name: string }) => {
+const handleCreatePresetSubmit = async data => {
   try {
     await presetStore.createPreset({ name: data.name })
 
     toast.success('Preset created successfully', {
-      description: `"${data.name}" has been added to your presets.`,
+      description,
     })
 
     // Route to preset general page
     router.push({
-      name: 'presetGeneral',
-      params: { name: data.name.toLowerCase().replace(/\s+/g, '-') },
+      name: 'presetSettings',
+      params: { uuid: preset.id },
     })
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to create preset', {
-      description: error.message || 'An error occurred while creating the preset.',
+      description,
     })
     throw error // Re-throw to let dialog handle it
   }

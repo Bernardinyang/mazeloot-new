@@ -330,7 +330,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted, watch } from 'vue'
 import { ChevronDown, Folder } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -371,7 +371,7 @@ const galleryStore = useGalleryStore()
 const { handleError } = useErrorHandler()
 
 // View mode and sorting
-const viewMode = ref<'grid' | 'list'>('grid')
+const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
 const sortOptions = COLLECTION_SORT_OPTIONS
@@ -387,14 +387,14 @@ const filterExpiryDate = ref('all')
 const filterStarred = ref('all')
 
 // Selected collections (for list view)
-const selectedCollections = ref<number[]>([])
+const selectedCollections = ref([])
 
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
 // const collectionsError = computed(() => galleryStore.error) // Unused for now
 
-const getSubtitle = (collection: any, separator: string = '•') => {
+const getSubtitle = (collection, separator = '•') => {
   const parts = []
   if (collection.itemCount !== undefined) {
     const count = collection.itemCount
@@ -518,8 +518,8 @@ const { sortedItems: sortedCollections } = useCollectionSort(
 const showCreateDialog = ref(false)
 const showCreateFolderDialog = ref(false)
 const showMoveModal = ref(false)
-const pendingMove = ref<{ item: any; targetFolder: any } | null>(null)
-const movingCollectionId = ref<string | null>(null)
+const pendingMove = ref(null)
+const movingCollectionId = ref(null)
 
 // Delete confirmation using reusable composable
 const {
@@ -529,7 +529,7 @@ const {
   openDeleteModal,
   closeDeleteModal,
   getItemName,
-} = useDeleteConfirmation<any>()
+} = useDeleteConfirmation()
 
 const handleCreateCollection = async () => {
   showCreateDialog.value = true
@@ -539,12 +539,7 @@ const handleCreateFolder = () => {
   showCreateFolderDialog.value = true
 }
 
-const handleCreateFolderSubmit = async (data: {
-  name: string
-  eventDate?: Date | string | null
-  showOnHomepage?: boolean
-  password?: string | null
-}) => {
+const handleCreateFolderSubmit = async data => {
   try {
     const newFolder = await galleryStore.createCollection({
       name: data.name,
@@ -560,19 +555,14 @@ const handleCreateFolderSubmit = async (data: {
     toast.success('Folder created', {
       description: 'Your new folder has been created.',
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to create folder.',
     })
   }
 }
 
-const handleCreateCollectionSubmit = async (data: {
-  name: string
-  eventDate?: string
-  presetId?: string
-  watermarkId?: string
-}) => {
+const handleCreateCollectionSubmit = async data => {
   try {
     const newCollection = await galleryStore.createCollection(data)
     toast.success('Collection created', {
@@ -583,7 +573,7 @@ const handleCreateCollectionSubmit = async (data: {
       name: 'collectionPhotos',
       params: { uuid: newCollection.id },
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to create collection.',
     })
@@ -594,26 +584,26 @@ const handleViewPresets = () => {
   router.push({ name: 'presetSettings' })
 }
 
-const toggleStar = async (collection: any) => {
+const toggleStar = async collection => {
   try {
     // Store already handles optimistic update, no need to manually update
     await galleryStore.toggleStar(String(collection.id))
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to update star status.',
     })
   }
 }
 
-const handleSelectCollection = (id: number, checked: boolean) => {
+const handleSelectCollection = (id, checked) => {
   if (checked) {
     selectedCollections.value.push(id)
   } else {
-    selectedCollections.value = selectedCollections.value.filter((selId: number) => selId !== id)
+    selectedCollections.value = selectedCollections.value.filter(selId => selId !== id)
   }
 }
 
-const handleCollectionClick = (collection: any) => {
+const handleCollectionClick = collection => {
   // Navigate to collection photos page
   const collectionId = collection.id || collection.name || collection.title
   router.push({
@@ -622,7 +612,7 @@ const handleCollectionClick = (collection: any) => {
   })
 }
 
-const handleCollectionCardClick = (collection: any) => {
+const handleCollectionCardClick = collection => {
   // Only navigate if it's not a folder
   if (collection.isFolder) {
     return
@@ -635,7 +625,7 @@ const handleCollectionCardClick = (collection: any) => {
   })
 }
 
-const handleCopyLink = async (collection: any) => {
+const handleCopyLink = async collection => {
   const collectionId = collection.id || collection.name || collection.title
   const link = `${window.location.origin}/collections/${collectionId}`
 
@@ -652,7 +642,7 @@ const handleCopyLink = async (collection: any) => {
   }
 }
 
-const handleCopyPin = async (collection: any) => {
+const handleCopyPin = async collection => {
   const pin = collection.downloadPin
   if (!pin) {
     toast.error('No PIN available', {
@@ -674,14 +664,14 @@ const handleCopyPin = async (collection: any) => {
   }
 }
 
-const handleEditCollection = (collection: any) => {
+const handleEditCollection = collection => {
   // TODO: Open edit dialog
   toast.info('Edit collection', {
     description: `Editing ${collection.name || collection.title}`,
   })
 }
 
-const handleDuplicateCollection = async (collection: any) => {
+const handleDuplicateCollection = async collection => {
   try {
     await galleryStore.duplicateCollection(String(collection.id))
     toast.success('Collection duplicated', {
@@ -693,14 +683,14 @@ const handleDuplicateCollection = async (collection: any) => {
       sortBy: sortBy.value,
       parentId: null, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to duplicate collection.',
     })
   }
 }
 
-const handleDeleteCollection = (collection: any) => {
+const handleDeleteCollection = collection => {
   openDeleteModal(collection)
 }
 
@@ -720,7 +710,7 @@ const handleConfirmDelete = async () => {
       parentId: null, // Only fetch root-level collections
     })
     closeDeleteModal()
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to delete collection.',
     })
@@ -733,7 +723,7 @@ const handleCancelDelete = () => {
   closeDeleteModal()
 }
 
-const handlePublishCollection = async (collection: any) => {
+const handlePublishCollection = async collection => {
   const newStatus =
     collection.status === 'active' || collection.status === 'PUBLISHED' ? 'draft' : 'active'
   try {
@@ -746,25 +736,25 @@ const handlePublishCollection = async (collection: any) => {
       search: searchQuery.value,
       sortBy: sortBy.value,
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to update collection status.',
     })
   }
 }
 
-const handleShareCollection = (collection: any) => {
+const handleShareCollection = collection => {
   handleCopyLink(collection)
 }
 
-const handlePreviewCollection = (collection: any) => {
+const handlePreviewCollection = collection => {
   // Open preview in new tab
   const collectionId = collection.id || collection.name || collection.title
   const previewUrl = `${window.location.origin}/preview/${collectionId}`
   window.open(previewUrl, '_blank')
 }
 
-const handleMoveToFolder = async (draggedItem: any, targetFolder: any) => {
+const handleMoveToFolder = async (draggedItem, targetFolder) => {
   if (!targetFolder.isFolder) {
     toast.error('Invalid target', {
       description: 'You can only move items into folders.',
@@ -810,7 +800,7 @@ const handleConfirmMove = async () => {
     setTimeout(() => {
       movingCollectionId.value = null
     }, 500)
-  } catch (error: any) {
+  } catch (error) {
     movingCollectionId.value = null
     handleError(error, {
       fallbackMessage: 'Failed to move item.',
@@ -834,7 +824,7 @@ onMounted(async () => {
       sortBy: sortBy.value,
       parentId: null, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     // Only show error if not aborted
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
       handleError(error, {
@@ -845,7 +835,7 @@ onMounted(async () => {
 })
 
 // Watch for search/sort changes and refetch (debounced)
-let searchTimeout: ReturnType<typeof setTimeout> | null = null
+let searchTimeout = null
 watch([searchQuery, sortBy], async () => {
   // Debounce search
   if (searchTimeout) {
@@ -859,7 +849,7 @@ watch([searchQuery, sortBy], async () => {
         sortBy: sortBy.value,
         parentId: null, // Only fetch root-level collections
       })
-    } catch (error: any) {
+    } catch (error) {
       // Only show error if not aborted
       if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
         handleError(error, {

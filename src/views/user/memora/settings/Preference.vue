@@ -103,7 +103,7 @@
           <div class="flex items-center justify-between">
             <label
               class="relative inline-flex items-center group"
-              :class="isDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+              :class="isDisabled ? 'cursor-not-allowed opacity-50' : ''"
             >
               <input
                 type="checkbox"
@@ -122,10 +122,7 @@
               </span>
             </label>
           </div>
-          <p class="text-xs" :class="theme.textSecondary">
-            Pro Feature: Enable RAW photos to be included in your galleries alongside other file
-            formats.
-          </p>
+          <p class="text-xs" :class="theme.textSecondary">Pro Feature formats.</p>
         </div>
 
         <!-- Terms of Service Section -->
@@ -287,7 +284,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import { Bold, Italic, Underline, Link, Unlink } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -316,21 +313,9 @@ const privacyPolicy = ref('')
 const enableCookieBanner = ref(false)
 const showRawPhotoPopover = ref(false)
 
-const filenameDisplayOptions = [
-  { value: 'show', label: 'Show' },
-  { value: 'hide', label: 'Hide' },
-]
+const filenameDisplayOptions = []
 
-const searchEngineVisibilityOptions = [
-  { value: 'homepage-only', label: 'Homepage Only' },
-  { value: 'all', label: 'All Collections' },
-  { value: 'none', label: 'None' },
-]
+const searchEngineVisibilityOptions = []
 
-const sharpeningLevelOptions = [
-  { value: 'optimal', label: 'Optimal' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-]
+const sharpeningLevelOptions = []
 </script>

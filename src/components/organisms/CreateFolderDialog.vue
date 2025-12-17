@@ -64,7 +64,7 @@
   </Dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import { Input } from '@/components/shadcn/input'
@@ -74,33 +74,23 @@ import FormFieldWithError from '@/components/molecules/FormFieldWithError.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import FormDialogFooter from '@/components/molecules/FormDialogFooter.vue'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const props = defineProps({
+  open: Boolean,
+})
 
-const emit = defineEmits<{
-  'update:open': [value: boolean]
-  create: [
-    data: {
-      name: string
-      eventDate?: Date | string | null
-      showOnHomepage?: boolean
-      password?: string | null
-    },
-  ]
-}>()
+const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
 
 const formData = ref({
   name: '',
-  eventDate: null as Date | string | null,
+  eventDate: null,
   showOnHomepage: true,
   globalPassword: false,
   password: '',
 })
 
-const errors = ref<{ name?: string }>({})
+const errors = ref({})
 const isSubmitting = ref(false)
 const showHomepageInfo = ref(false)
 const showPasswordInfo = ref(false)

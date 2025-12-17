@@ -9,25 +9,25 @@
         theme.transition,
       ]"
     >
-      <!-- Left: Logo -->
-      <MazelootLogo size="md" :show-text="true" />
+      <!-- Left -->
+      <MazelootLogo :show-text="true" size="md" />
 
-      <!-- Right: Actions -->
+      <!-- Right -->
       <div class="flex items-center gap-2">
         <!-- App Switcher -->
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
-              variant="ghost"
-              size="icon"
               :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+              size="icon"
+              variant="ghost"
             >
               <Grid3x3 class="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
             :class="['w-56', theme.bgDropdown, theme.borderSecondary]"
+            align="end"
           >
             <DropdownMenuLabel :class="theme.textPrimary">Switch App</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
@@ -37,7 +37,7 @@
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click="handleAppSwitch(product)"
             >
-              <AppIcon :custom-type="product.customType" size="sm" class="mr-2" />
+              <AppIcon :custom-type="product.customType" class="mr-2" size="sm" />
               <span>{{ product.displayName }}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -47,16 +47,16 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
-              variant="ghost"
-              size="icon"
               :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+              size="icon"
+              variant="ghost"
             >
               <Plus class="h-5 w-5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
             :class="['w-56', theme.bgDropdown, theme.borderSecondary]"
+            align="end"
           >
             <DropdownMenuLabel :class="theme.textPrimary">Create New</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
@@ -98,9 +98,9 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
-              variant="ghost"
-              size="icon"
               :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+              size="icon"
+              variant="ghost"
             >
               <Bell class="h-5 w-5" />
               <span
@@ -109,8 +109,8 @@
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
             :class="['w-80', theme.bgDropdown, theme.borderSecondary]"
+            align="end"
           >
             <DropdownMenuLabel :class="theme.textPrimary">Notifications</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
@@ -133,8 +133,8 @@
                 <div class="flex items-start gap-2 w-full">
                   <component
                     :is="notification.icon"
-                    class="h-4 w-4 mt-0.5 shrink-0"
                     :class="notification.iconColor"
+                    class="h-4 w-4 mt-0.5 shrink-0"
                   />
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium">{{ notification.title }}</p>
@@ -153,12 +153,12 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <div class="transition-transform duration-300 hover:scale-110 cursor-pointer">
-              <AvatarDisplay :name="userData.name" :avatar="userData.avatar" size="md" />
+              <AvatarDisplay :avatar="userData.avatar" :name="userData.name" size="md" />
             </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
             :class="['w-64', theme.bgDropdown, theme.borderSecondary]"
+            align="end"
           >
             <DropdownMenuLabel :class="theme.textPrimary">
               <div class="flex flex-col gap-1">
@@ -196,21 +196,21 @@
       <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
         <!-- User Profile Widget -->
         <UserProfileCard
-          :name="userData.name"
-          :email="userData.email"
           :avatar="userData.avatar"
+          :email="userData.email"
           :loading="isLoading"
-          @view-profile="handleViewProfile"
+          :name="userData.name"
           @logout="handleSignOut"
+          @view-profile="handleViewProfile"
         />
 
         <!-- App Launcher Card -->
         <ListItemCard
-          title="Mazeloot Products"
-          description="Switch between Mazeloot products"
           :loading="isLoadingApps"
-          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
           :show-footer="false"
+          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
+          description="Switch between Mazeloot products"
+          title="Mazeloot Products"
         >
           <template #loading>
             <div class="animate-pulse">
@@ -256,11 +256,11 @@
 
         <!-- Storage Space Section -->
         <ListItemCard
-          title="Storage"
-          description="Manage your cloud storage space"
           :loading="isLoadingStorage"
-          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
           :show-footer="false"
+          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
+          description="Manage your cloud storage space"
+          title="Storage"
         >
           <template #loading>
             <div class="animate-pulse space-y-4">
@@ -284,7 +284,7 @@
 
             <!-- Storage Slider -->
             <div class="space-y-2">
-              <div class="flex items-center justify-between text-xs" :class="theme.textSecondary">
+              <div :class="theme.textSecondary" class="flex items-center justify-between text-xs">
                 <span>Storage Usage</span>
                 <span>{{ storagePercentage }}%</span>
               </div>
@@ -339,18 +339,18 @@
                   {{
                     storagePercentage >= 90
                       ? 'Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to the cloud.'
-                      : 'Storage space is running low. Consider upgrading to Premium.'
+                      : 'Storage space is running low. Consider upgrading to Premium for more space.'
                   }}
                 </p>
                 <Button
-                  variant="outline"
-                  size="sm"
                   :class="[
                     'mt-2 transition-all duration-300 hover:scale-110 active:scale-95',
                     storagePercentage >= 90
                       ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-100 border-red-500/30 dark:border-red-500/30 light:border-red-300 text-red-200 dark:text-red-200 light:text-red-800 hover:bg-red-500/30 dark:hover:bg-red-500/30 light:hover:bg-red-200'
                       : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200',
                   ]"
+                  size="sm"
+                  variant="outline"
                 >
                   Upgrade for ₦900.00/month
                 </Button>
@@ -361,11 +361,11 @@
 
         <!-- Recent Collections Widget -->
         <DashboardCard
-          title="Recent Collections"
-          description="Your latest photo collections and galleries"
           :loading="isLoadingCollections"
-          col-span="lg:col-span-2"
           animation-class="animate-in fade-in slide-in-from-right-4"
+          col-span="lg:col-span-2"
+          description="Your latest photo collections and galleries"
+          title="Recent Collections"
         >
           <template #loading>
             <div class="animate-pulse space-y-4">
@@ -379,7 +379,7 @@
             </div>
           </template>
           <div v-if="recentCollections.length === 0">
-            <EmptyState message="No collections yet" action-label="Create Collection" />
+            <EmptyState action-label="Create Collection" message="No collections yet" />
           </div>
           <div v-else class="space-y-2">
             <div
@@ -394,8 +394,8 @@
                 'border hover:border-opacity-100',
                 'hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/20',
               ]"
-              :style="{ animationDelay: `${index * 50}ms` }"
-              @click="navigateTo({ name: 'manageCollections' })"
+              :style="{ animationDelay: `${index * 100}ms` }"
+              @click="navigateTo({ name: 'collectionPhotos', params: { uuid: collection.id } })"
             >
               <!-- Hover effect background -->
               <div
@@ -414,10 +414,10 @@
                   ]"
                 >
                   <ThumbnailImage
-                    :src="collection.thumbnail || collection.previewImages?.[0] || ''"
                     :alt="collection.name || collection.title || ''"
-                    size="md"
                     :fallback-text="collection.name || collection.title || ''"
+                    :src="collection.thumbnail || collection.previewImages?.[0] || ''"
+                    size="md"
                   />
                 </div>
                 <!-- Overlay on hover -->
@@ -467,9 +467,9 @@
           </div>
           <template #footer>
             <Button
-              variant="ghost"
-              size="sm"
               :class="['w-full', theme.textSecondary, theme.bgButtonHover]"
+              size="sm"
+              variant="ghost"
               @click="handleViewAllCollections"
             >
               View All Collections
@@ -479,11 +479,11 @@
 
         <!-- Recent Orders Widget -->
         <ListItemCard
-          title="Recent Orders"
-          description="Your latest purchases and transactions"
           :loading="isLoadingOrders"
           :show-footer="true"
+          description="Your latest purchases and transactions"
           footer-label="View All Orders"
+          title="Recent Orders"
           @footer-click="handleViewAllOrders"
         >
           <template #loading>
@@ -509,9 +509,9 @@
               v-for="(order, index) in recentOrders.slice(0, 3)"
               :key="order.id"
               :class="[theme.listItem]"
-              :style="{ animationDelay: `${index * 100}ms` }"
-              @click="handleOrderClick(order)"
+              :style="{ animationDelay: `${index * 50}ms` }"
               class="flex gap-3 flex-wrap"
+              @click="handleOrderClick(order)"
             >
               <div
                 v-if="order.iconBg"
@@ -542,11 +542,11 @@
 
         <!-- Wishlist Widget -->
         <ListItemCard
-          title="Wishlist"
-          description="Items you want to purchase later"
           :loading="isLoadingWishlist"
           :show-footer="true"
+          description="Items you want to purchase later"
           footer-label="View All Wishlist Items"
+          title="Wishlist"
           @footer-click="handleViewAllWishlist"
         >
           <template #loading>
@@ -569,9 +569,9 @@
               v-for="(item, index) in wishlist.slice(0, 3)"
               :key="item.id"
               :class="[theme.listItem, 'p-2']"
-              :style="{ animationDelay: `${index * 100}ms` }"
-              @click="handleWishlistItemClick(item)"
+              :style="{ animationDelay: `${index * 50}ms` }"
               class="flex gap-3 flex-wrap"
+              @click="handleWishlistItemClick(item)"
             >
               <div
                 :class="[
@@ -596,12 +596,12 @@
 
         <!-- Recent Posts Widget -->
         <ListItemCard
-          title="Recent Posts"
-          description="Your latest blog posts and articles"
           :loading="isLoadingPosts"
-          animation-class="animate-in fade-in slide-in-from-left-4"
           :show-footer="true"
+          animation-class="animate-in fade-in slide-in-from-left-4"
+          description="Your latest blog posts and articles"
           footer-label="View All Posts"
+          title="Recent Posts"
           @footer-click="handleViewAllPosts"
         >
           <template #loading>
@@ -609,8 +609,8 @@
               <div
                 v-for="i in 3"
                 :key="i"
-                class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
                 :class="theme.borderPrimary"
+                class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
               >
                 <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
                 <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
@@ -631,7 +631,7 @@
                 theme.borderPrimary,
                 'last:border-0 last:pb-0',
               ]"
-              :style="{ animationDelay: `${index * 100}ms` }"
+              :style="{ animationDelay: `${index * 50}ms` }"
               @click="handlePostClick(post)"
             >
               <p :class="['text-sm font-medium truncate', theme.textPrimary]">{{ post.title }}</p>
@@ -645,12 +645,12 @@
 
         <!-- Products Widget -->
         <ListItemCard
-          title="Products"
-          description="Your available products and services"
           :loading="isLoadingProducts"
-          animation-class="animate-in fade-in slide-in-from-right-4"
           :show-footer="true"
+          animation-class="animate-in fade-in slide-in-from-right-4"
+          description="Your available products and services"
           footer-label="Manage Products"
+          title="Products"
           @footer-click="handleManageProducts"
         >
           <template #loading>
@@ -673,15 +673,15 @@
               v-for="(product, index) in products.slice(0, 3)"
               :key="product.id"
               :class="[theme.listItem, 'p-2']"
-              :style="{ animationDelay: `${index * 100}ms` }"
-              @click="handleServiceProductClick(product)"
+              :style="{ animationDelay: `${index * 50}ms` }"
               class="flex gap-3 flex-wrap"
+              @click="handleServiceProductClick(product)"
             >
               <ThumbnailImage
-                :src="product.thumbnail"
                 :alt="product.name"
-                size="sm"
+                :src="product.thumbnail"
                 fallback-text="IMG"
+                size="sm"
               />
               <div class="flex-1 min-w-0">
                 <p :class="['text-sm font-medium truncate', theme.textPrimary]">
@@ -705,7 +705,7 @@
       <div class="max-w-7xl mx-auto px-6 py-6">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-2">
-            <MazelootLogo size="sm" :show-text="true" />
+            <MazelootLogo :show-text="true" size="sm" />
             <span :class="['text-xs', theme.textTertiary]">© 2024</span>
           </div>
           <div
@@ -715,10 +715,10 @@
               theme.transitionColors,
             ]"
           >
-            <a href="#" class="hover:opacity-100 opacity-70">Privacy</a>
-            <a href="#" class="hover:opacity-100 opacity-70">Terms</a>
-            <a href="#" class="hover:opacity-100 opacity-70">Support</a>
-            <a href="#" class="hover:opacity-100 opacity-70">About</a>
+            <a class="hover:opacity-100 opacity-70" href="#">Privacy</a>
+            <a class="hover:opacity-100 opacity-70" href="#">Terms</a>
+            <a class="hover:opacity-100 opacity-70" href="#">Support</a>
+            <a class="hover:opacity-100 opacity-70" href="#">About</a>
           </div>
         </div>
       </div>
@@ -726,29 +726,25 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+<script setup>
+import { computed, onMounted, ref } from 'vue'
 import {
-  Plus,
-  Bell,
-  ChevronRight,
-  ShoppingCart,
-  Camera,
-  CheckCircle2,
-  Sun,
-  Grid3x3,
-  Zap,
   AlertCircle,
-  Mail,
+  Bell,
   Calendar,
-  StickyNote,
-  ListTodo,
+  ChevronRight,
   FileEdit,
   FileSpreadsheet,
+  Grid3x3,
+  ListTodo,
+  LogOut,
+  Mail,
+  Plus,
   Presentation,
   Settings,
-  User as UserIcon,
-  LogOut,
+  ShoppingCart,
+  StickyNote,
+  Zap,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import AvatarDisplay from '@/components/atoms/AvatarDisplay.vue'
@@ -777,8 +773,6 @@ import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useGalleryStore } from '@/stores/gallery'
 import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
-import type { User } from '@/types/navigation'
-import type { MazelootProduct } from '@/constants/products'
 
 const { navigateTo } = useNavigation()
 useThemeStore() // Initialize theme store for reactivity
@@ -810,20 +804,20 @@ const isLoadingStorage = loadingStates.storage
 // Notifications
 const notifications = ref([
   {
-    id: 1,
-    title: 'New Collection Published',
-    message: 'Your collection "HENTAI" has been published successfully',
-    time: '2 minutes ago',
-    icon: CheckCircle2,
-    iconColor: 'text-green-400',
+    id: 'notif-1',
+    title: 'Welcome back',
+    message: 'Your recent uploads are ready.',
+    time: 'Just now',
+    icon: Mail,
+    iconColor: 'text-blue-500',
   },
   {
-    id: 2,
-    title: 'Order Shipped',
-    message: 'Your order #ORD-2024-002 has been shipped',
-    time: '1 hour ago',
-    icon: ShoppingCart,
-    iconColor: 'text-blue-400',
+    id: 'notif-2',
+    title: 'Reminder',
+    message: 'You have items waiting to be organized.',
+    time: '2h ago',
+    icon: Bell,
+    iconColor: 'text-yellow-400',
   },
 ])
 
@@ -834,45 +828,45 @@ const handleSignOut = async () => {
 }
 
 const handleViewProfile = () => {
-  // TODO: Implement view profile logic
+  // TODO
 }
 
 const handleViewAllOrders = () => {
-  // TODO: Implement view all orders logic
+  // TODO
 }
 
-const handleOrderClick = (_order: any) => {
-  // TODO: Implement order click logic
+const handleOrderClick = _order => {
+  // TODO
 }
 
 const handleViewAllWishlist = () => {
-  // TODO: Implement view all wishlist logic
+  // TODO
 }
 
-const handleWishlistItemClick = (_item: any) => {
-  // TODO: Implement wishlist item click logic
+const handleWishlistItemClick = _item => {
+  // TODO
 }
 
 const handleViewAllPosts = () => {
-  // TODO: Implement view all posts logic
+  // TODO
 }
 
-const handlePostClick = (_post: any) => {
-  // TODO: Implement post click logic
+const handlePostClick = _post => {
+  // TODO
 }
 
 const handleManageProducts = () => {
-  // TODO: Implement manage products logic
+  // TODO
 }
 
-const handleServiceProductClick = (_product: any) => {
-  // TODO: Implement service product click logic
+const handleServiceProductClick = _product => {
+  // TODO
 }
 
 // Mazeloot Products
 const mazelootProducts = MAZELOOT_PRODUCTS
 
-const handleAppSwitch = (product: MazelootProduct) => {
+const handleAppSwitch = product => {
   if (product.route) {
     navigateTo(product.route)
   } else if (product.url) {
@@ -880,12 +874,12 @@ const handleAppSwitch = (product: MazelootProduct) => {
   }
 }
 
-const handleProductClick = (product: MazelootProduct) => {
+const handleProductClick = product => {
   handleAppSwitch(product)
 }
 
-// const handleAppClick = (_app: any) => {
-//   // TODO: Implement app click logic
+// const handleAppClick = (_app) => {
+//   // TODO
 // }
 
 // Get logged-in user from store
@@ -893,11 +887,11 @@ const userStore = useUserStore()
 const galleryStore = useGalleryStore()
 
 // User data - use logged-in user from store, fallback to default if not available
-const userData = computed<User>(() => {
+const userData = computed(() => {
   if (userStore.user) {
     return {
-      name: userStore.user.name,
-      email: userStore.user.email,
+      name: userStore.user.name || 'User',
+      email: userStore.user.email || '',
       avatar:
         userStore.user.avatar ||
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
@@ -905,8 +899,8 @@ const userData = computed<User>(() => {
   }
   // Fallback for when user is not logged in (shouldn't happen in protected routes)
   return {
-    name: 'Guest',
-    email: 'guest@example.com',
+    name: 'User',
+    email: '',
     avatar:
       'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=face',
   }
@@ -914,10 +908,10 @@ const userData = computed<User>(() => {
 
 // Recent Collections - get from store
 const recentCollections = computed(() => {
-  const allCollections = galleryStore.collections.filter((c: any) => !c.isFolder)
+  const allCollections = galleryStore.collections.filter(c => !c.isFolder)
   // Sort by updatedAt or createdAt, get latest 3
   return allCollections
-    .sort((a: any, b: any) => {
+    .sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
@@ -932,7 +926,7 @@ const freeStorage = computed(() => totalStorage.value - usedStorage.value)
 const storagePercentage = computed(() => Math.round((usedStorage.value / totalStorage.value) * 100))
 
 // Format bytes helper
-const formatBytes = (bytes: number): string => {
+const formatBytes = bytes => {
   if (bytes === 0) return '0 Bytes'
   const k = 1024
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
@@ -941,7 +935,7 @@ const formatBytes = (bytes: number): string => {
 }
 
 // Format date helper
-const formatDate = (dateString?: string): string => {
+const formatDate = dateString => {
   if (!dateString) return ''
   const date = new Date(dateString)
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
@@ -970,75 +964,41 @@ const handleViewAllCollections = () => {
 // Recent Orders
 const recentOrders = [
   {
-    id: 1,
-    product: 'Premium Camera Lens',
-    orderId: '#ORD-2024-001',
-    time: '2 days ago',
-    price: '$299.99',
-    status: 'Processing',
+    id: 'order-1',
+    product: 'Premium Subscription',
+    orderId: 'INV-0001',
+    time: '3 days ago',
+    price: '₦4,500.00',
+    status: 'completed',
+    icon: ShoppingCart,
+    iconBg: 'bg-green-500',
+  },
+  {
+    id: 'order-2',
+    product: 'Photo Prints',
+    orderId: 'INV-0002',
+    time: '1 week ago',
+    price: '₦2,200.00',
+    status: 'processing',
     icon: ShoppingCart,
     iconBg: 'bg-blue-500',
-  },
-  {
-    id: 2,
-    product: 'Studio Lighting Kit',
-    orderId: '#ORD-2024-002',
-    time: '5 days ago',
-    price: '$149.99',
-    status: 'Shipped',
-    icon: Camera,
-    iconBg: 'bg-purple-500',
-  },
-  {
-    id: 3,
-    product: 'Wireless Microphone',
-    orderId: '#ORD-2024-003',
-    time: '1 week ago',
-    price: '$89.99',
-    status: 'Delivered',
-    icon: CheckCircle2,
-    iconBg: 'bg-green-500',
-  },
-  {
-    id: 4,
-    product: 'Tripod Stand',
-    orderId: '#ORD-2024-004',
-    time: '2 weeks ago',
-    price: '$79.99',
-    status: 'Delivered',
-    icon: CheckCircle2,
-    iconBg: 'bg-green-500',
   },
 ]
 
 // Wishlist
 const wishlist = [
   {
-    id: 1,
-    name: 'Studio Lighting Setup',
-    type: 'Product • Wishlist',
-    status: 'In stock',
-    icon: Sun,
-  },
-  {
-    id: 2,
-    name: 'AI Backdrop Pack',
-    type: 'Digital Asset',
-    status: 'New',
-    icon: Grid3x3,
-  },
-  {
-    id: 3,
-    name: 'Retouching Presets',
-    type: 'Plugin',
-    status: 'Promo',
+    id: 'wish-1',
+    name: 'Premium Template Pack',
+    type: 'Template',
+    status: 'available',
     icon: Zap,
   },
   {
-    id: 4,
-    name: 'Powerful Presets',
-    type: 'Plugin',
-    status: 'Promo',
+    id: 'wish-2',
+    name: 'Extra Storage',
+    type: 'Storage',
+    status: 'available',
     icon: Zap,
   },
 ]
@@ -1046,83 +1006,21 @@ const wishlist = [
 // Recent Posts
 const recentPosts = [
   {
-    id: 1,
-    title: 'Studio portraits for the Lagos Fashion Week',
-    source: "Thru' the Lens",
-    date: 'Today - 2:15 PM',
-    status: 'Draft',
+    id: 'post-1',
+    title: 'How to organize your photos',
+    source: 'Mazeloot Blog',
+    date: 'Nov 10, 2025',
+    status: 'published',
   },
   {
-    id: 2,
-    title: 'How we set up our AI-powered workflow',
-    source: 'Community Lens',
-    date: 'Yesterday',
-    status: 'Published',
-  },
-  {
-    id: 3,
-    title: 'New preset pack drop for wedding photographers',
-    source: 'Preset Market',
-    date: '3 days ago',
-    status: 'Scheduled',
-  },
-  {
-    id: 4,
-    title: 'New preset pack drop for wedding photographers',
-    source: 'Preset Market',
-    date: '3 days ago',
-    status: 'Scheduled',
-  },
-  {
-    id: 5,
-    title: 'New preset pack drop for wedding photographers',
-    source: 'Preset Market',
-    date: '3 days ago',
-    status: 'Scheduled',
+    id: 'post-2',
+    title: 'New features in Mazeloot',
+    source: 'Mazeloot News',
+    date: 'Oct 21, 2025',
+    status: 'published',
   },
 ]
 
 // Products
-const products = [
-  {
-    id: 1,
-    name: 'Studio Portrait Session',
-    type: 'Service',
-    price: '₦85,000',
-    status: 'Active',
-    thumbnail: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
-  },
-  {
-    id: 2,
-    name: 'AI Retouching Pack',
-    type: 'Digital',
-    price: '₦35,000',
-    status: 'Active',
-    thumbnail: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=200&h=200&fit=crop',
-  },
-  {
-    id: 3,
-    name: 'Outdoor Session (Gold)',
-    type: 'Service',
-    price: '₦120,000',
-    status: 'Draft',
-    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-  },
-  {
-    id: 4,
-    name: 'Outdoor Session (Gold)',
-    type: 'Service',
-    price: '₦120,000',
-    status: 'Draft',
-    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-  },
-  {
-    id: 5,
-    name: 'Outdoor Session (Gold)',
-    type: 'Service',
-    price: '₦120,000',
-    status: 'Draft',
-    thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
-  },
-]
+const products = []
 </script>

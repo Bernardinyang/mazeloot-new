@@ -90,49 +90,48 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Input } from '@/components/shadcn/input'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
-import type { Collection } from '@/api/collections'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 
 const limitDownloads = ref(true)
 const downloadLimit = ref(1)
 const restrictToContacts = ref(false)
 const photoSets = ref([
-  { id: '1', name: 'Highlights' },
-  { id: '2', name: 'trad' },
+  { id: 'highlights', name: 'Highlights' },
+  { id: 'all', name: 'All Photos' },
 ])
-const selectedSets = ref<string[]>(['1', '2'])
+const selectedSets = ref(['1', '2'])
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    limitDownloads.value = (collectionData as any).limitDownloads || false
-    downloadLimit.value = (collectionData as any).downloadLimit || 1
-    restrictToContacts.value = (collectionData as any).restrictToContacts || false
-    selectedSets.value = (collectionData as any).downloadableSets || []
-  } catch (error: any) {
+    limitDownloads.value = collectionData.limitDownloads || false
+    downloadLimit.value = collectionData.downloadLimit || 1
+    restrictToContacts.value = collectionData.restrictToContacts || false
+    selectedSets.value = collectionData.downloadableSets || []
+  } catch (error) {
     toast.error('Failed to load collection')
   }
 })
 
-const toggleSet = (setId: string) => {
+const toggleSet = setId => {
   const index = selectedSets.value.indexOf(setId)
   if (index > -1) {
     selectedSets.value.splice(index, 1)
@@ -146,9 +145,9 @@ watch(limitDownloads, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      limitDownloads: newValue,
-    } as any)
-  } catch (error: any) {
+      limitDownloads,
+    })
+  } catch (error) {
     toast.error('Failed to update download limit')
   }
 })
@@ -157,9 +156,9 @@ watch(downloadLimit, async newLimit => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      downloadLimit: newLimit,
-    } as any)
-  } catch (error: any) {
+      downloadLimit,
+    })
+  } catch (error) {
     toast.error('Failed to update download limit count')
   }
 })
@@ -168,9 +167,9 @@ watch(restrictToContacts, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      restrictToContacts: newValue,
-    } as any)
-  } catch (error: any) {
+      restrictToContacts,
+    })
+  } catch (error) {
     toast.error('Failed to update restrict to contacts')
   }
 })
@@ -181,9 +180,9 @@ watch(
     if (!collection.value) return
     try {
       await galleryStore.updateCollection(collection.value.id, {
-        downloadableSets: newSets,
-      } as any)
-    } catch (error: any) {
+        downloadableSets,
+      })
+    } catch (error) {
       toast.error('Failed to update downloadable sets')
     }
   },

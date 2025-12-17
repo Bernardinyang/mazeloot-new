@@ -1,11 +1,14 @@
-<script setup lang="ts">
+<script setup>
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/shadcn/avatar'
 
-defineProps<{
-  name: string
-  avatar?: string
-  size?: 'sm' | 'md' | 'lg'
-}>()
+defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+  avatar: String,
+  size: String,
+})
 
 const sizeClasses = {
   sm: 'h-6 w-6',

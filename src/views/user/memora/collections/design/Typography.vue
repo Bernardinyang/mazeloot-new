@@ -236,8 +236,9 @@
                     <label
                       :class="theme.textSecondary"
                       class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
-                      >Font Family</label
                     >
+                      Font Family
+                    </label>
                     <FontFamilySelect
                       v-model="formData.fontFamily"
                       placeholder="Select font family"
@@ -248,8 +249,9 @@
                     <label
                       :class="theme.textSecondary"
                       class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
-                      >Font Style</label
                     >
+                      Font Style
+                    </label>
                     <div class="grid grid-cols-3 gap-3">
                       <button
                         v-for="style in fontStyles"
@@ -431,7 +433,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -443,7 +445,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
@@ -451,8 +453,6 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
-import type { MediaItem } from '@/api/media'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
@@ -462,27 +462,27 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('design')
+const activeTab = ref('design')
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
 const isSaving = ref(false)
@@ -496,7 +496,7 @@ const formData = ref({
 })
 
 // Store original loaded data for comparison
-const originalData = ref<typeof formData.value | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes
 const hasUnsavedChanges = computed(() => {
@@ -545,10 +545,10 @@ const previewDesignConfig = computed(() => {
   }
 
   // Get all design configs from the collection in store (which is updated by the watcher)
-  const coverDesign = (collectionInStore as any).coverDesign || {}
-  const typographyDesign = (collectionInStore as any).typographyDesign || {}
-  const colorDesign = (collectionInStore as any).colorDesign || {}
-  const gridDesign = (collectionInStore as any).gridDesign || {}
+  const coverDesign = collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.typographyDesign || {}
+  const colorDesign = collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.gridDesign || {}
 
   // Return merged config from store
   return {
@@ -575,7 +575,7 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      ;(collectionInStore as any).typographyDesign = { ...newData }
+      collectionInStore.typographyDesign = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -592,7 +592,7 @@ const fontStyles = [
 
 // Load collection data
 const loadCollectionData = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     router.push({ name: 'manageCollections' })
     return
@@ -611,22 +611,22 @@ const loadCollectionData = async () => {
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
 
     // Set preset if available
-    const presetId = (collectionData as any).presetId
+    const presetId = collectionData.presetId
     selectedPresetId.value = presetId != null ? String(presetId) : 'none'
 
     // Set watermark if available
-    const watermarkId = (collectionData as any).watermarkId
+    const watermarkId = collectionData.watermarkId
     selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
     // Load typography design data
-    const typographyDesign = (collectionData as any).typographyDesign || {}
+    const typographyDesign = collectionData.typographyDesign || {}
     const loadedData = {
       fontFamily: typographyDesign.fontFamily || 'sans',
       fontStyle: typographyDesign.fontStyle || 'bold',
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to load collection', {
       description: error.message || 'An error occurred',
     })
@@ -646,7 +646,7 @@ watch(
 )
 
 // Watch for activeTab changes and navigate accordingly
-watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
+watch(activeTab, newTab => {
   if (!collection.value) return
 
   if (newTab === 'photos') {
@@ -665,7 +665,7 @@ watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
 })
 
 // Save typography design
-const saveTypographyDesign = async (): Promise<boolean> => {
+const saveTypographyDesign = async () => {
   if (!collection.value) {
     toast.error('Collection not found')
     return false
@@ -675,14 +675,14 @@ const saveTypographyDesign = async (): Promise<boolean> => {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
       typographyDesign: formData.value,
-    } as any)
+    })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save typography design', {
       description: error.message || 'An error occurred while saving.',
     })
@@ -693,20 +693,19 @@ const saveTypographyDesign = async (): Promise<boolean> => {
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
   try {
     // Map 'published' to 'active' for the API
-    const apiStatus =
-      newStatus === 'published' ? 'active' : (newStatus as 'draft' | 'active' | 'archived')
+    const apiStatus = newStatus === 'published' ? 'active' : newStatus
     await galleryStore.updateCollection(collection.value.id, {
       status: apiStatus,
-    } as any)
+    })
 
-    collectionStatus.value = newStatus as 'draft' | 'published'
+    collectionStatus.value = newStatus
     toast.success('Collection status updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update collection status', {
       description: error.message || 'An error occurred while updating.',
     })
@@ -714,7 +713,7 @@ const handleStatusChange = async (newStatus: string) => {
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 
   try {
@@ -722,11 +721,11 @@ const handleDateChange = async (newDate: Date | null) => {
     const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
     await galleryStore.updateCollection(collection.value.id, {
       eventDate: dateString,
-    } as any)
+    })
 
     eventDate.value = newDate
     toast.success('Event date updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update event date', {
       description: error.message || 'An error occurred while updating.',
     })
@@ -776,16 +775,16 @@ const goBack = async () => {
   }
 }
 
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   selectedPresetId.value = presetId
 }
 
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   selectedWatermark.value = watermarkId
 }
 
 const handleOpenPreviewInNewTab = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     toast.error('Collection not found')
     return
@@ -807,7 +806,7 @@ const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
 
 // Mock data for preview
-const mockPreviewCollection = computed<Collection>(() => ({
+const mockPreviewCollection = computed(() => ({
   id: collection.value?.id || 'preview',
   name: collection.value?.name || 'My Sample Collection',
   date: collection.value?.eventDate || '2025-09-01',
@@ -819,7 +818,7 @@ const mockPreviewCollection = computed<Collection>(() => ({
   category: collection.value?.category || 'event',
 }))
 
-const mockPreviewMedia = computed<MediaItem[]>(() => {
+const mockPreviewMedia = computed(() => {
   const photoIds = [
     '1519741497674-611481863552',
     '1516589178581-6cd7833ae3b2',
@@ -840,7 +839,7 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
     collectionId: collection.value?.id || 'preview',
     url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
     thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-    type: 'image' as const,
+    type: 'image',
     title: `Photo ${index + 1}`,
     order: index,
     createdAt: new Date().toISOString(),

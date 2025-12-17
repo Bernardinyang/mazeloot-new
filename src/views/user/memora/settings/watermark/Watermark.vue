@@ -47,9 +47,9 @@
                     v-if="watermark.type === 'text'"
                     class="text-lg"
                     :style="{
-                      fontFamily: watermark.fontFamily || 'sans-serif',
-                      color: getAutoContrastColor(watermark.fontColor),
-                      textShadow: getTextShadow(),
+                      fontFamily: watermark.fontFamily || 'Pacifico',
+                      color: watermark.color || getAutoContrastColor(watermark.color),
+                      textShadow: watermark.textShadow || 'none',
                       backgroundColor: watermark.backgroundColor || 'transparent',
                       lineHeight: watermark.lineHeight || 1.5,
                       letterSpacing: watermark.letterSpacing
@@ -185,7 +185,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Plus, X } from 'lucide-vue-next'
@@ -198,7 +198,8 @@ import { toast } from 'vue-sonner'
 import { useRouter } from 'vue-router'
 import { useWatermarkStore } from '@/stores/watermark'
 import { useThemeStore } from '@/stores/theme'
-import type { Watermark } from '@/api/watermarks'
+
+const description = ''
 
 const router = useRouter()
 const theme = useThemeClasses()
@@ -210,7 +211,7 @@ const applyToWebDownloads = ref(true)
 
 // Delete confirmation state
 const showDeleteModal = ref(false)
-const watermarkToDelete = ref<Watermark | null>(null)
+const watermarkToDelete = ref(null)
 const isDeleting = ref(false)
 
 // Use storeToRefs to maintain reactivity
@@ -220,7 +221,7 @@ const { watermarks, isLoading } = storeToRefs(watermarkStore)
  * Get font style properties from saved style string
  * Handles combinations like "bold-italic-underline"
  */
-const getFontStyleProperties = (style: string | undefined) => {
+const getFontStyleProperties = style => {
   if (!style) {
     return {
       fontWeight: 'normal',
@@ -241,12 +242,12 @@ const getFontStyleProperties = (style: string | undefined) => {
  * Get auto-contrast text color based on theme and saved color
  * Ensures good visibility while respecting user's color choice
  */
-const getAutoContrastColor = (savedColor: string | undefined) => {
+const getAutoContrastColor = savedColor => {
   const isDark = themeStore.effectiveTheme === 'dark'
 
   // If no saved color, use theme-appropriate default
   if (!savedColor) {
-    return isDark ? '#E5E7EB' : '#374151' // Light gray for dark theme, dark gray for light
+    return isDark ? '#E5E7EB' : '#1F2937' // light gray for dark theme, dark gray for light theme
   }
 
   // Parse the saved color
@@ -258,8 +259,8 @@ const getAutoContrastColor = (savedColor: string | undefined) => {
   // Calculate relative luminance
   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
 
-  // For dark theme: prefer lighter colors, but ensure minimum contrast
-  // For light theme: prefer darker colors, but ensure minimum contrast
+  // For dark theme, but ensure minimum contrast
+  // For light theme, but ensure minimum contrast
   if (isDark) {
     // If color is too dark for dark theme, lighten it
     if (luminance < 0.4) {
@@ -301,15 +302,15 @@ const getTextShadow = () => {
 onMounted(async () => {
   try {
     await watermarkStore.fetchWatermarks()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch watermarks:', error)
     toast.error('Failed to load watermarks', {
-      description: error.message || 'An error occurred',
+      description,
     })
   }
 })
 
-const handleEditWatermark = (id: string) => {
+const handleEditWatermark = id => {
   router.push({ name: 'editWatermark', params: { id } })
 }
 
@@ -317,7 +318,7 @@ const handleAddWatermark = () => {
   router.push({ name: 'addWatermark' })
 }
 
-const handleDeleteWatermark = (id: string) => {
+const handleDeleteWatermark = id => {
   const watermark = watermarks.value.find(w => w.id === id)
   if (watermark) {
     watermarkToDelete.value = watermark
@@ -332,13 +333,13 @@ const handleConfirmDelete = async () => {
   try {
     await watermarkStore.deleteWatermark(watermarkToDelete.value.id)
     toast.success('Watermark deleted successfully', {
-      description: `${watermarkToDelete.value.name} has been deleted.`,
+      description,
     })
     showDeleteModal.value = false
     watermarkToDelete.value = null
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to delete watermark', {
-      description: error.message || 'An error occurred',
+      description,
     })
   } finally {
     isDeleting.value = false

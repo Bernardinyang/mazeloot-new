@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsGeneral'
+              route.name === 'collectionSettingsGeneral'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,9 +45,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsPrivacy'
+              route.name === 'collectionSettingsPrivacy'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -58,9 +58,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name?.toString().startsWith('collectionSettingsDownload')
+              route.name?.toString().startsWith('collectionSettingsDownload')
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -73,7 +73,7 @@
               :class="
                 downloadEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  : ''
               "
               class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
@@ -83,9 +83,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionSettingsFavorite'
+              route.name === 'collectionSettingsFavorite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -98,7 +98,7 @@
               :class="
                 favoriteEnabled
                   ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                  : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
+                  : ''
               "
               class="px-2 py-0.5 rounded-full text-xs font-semibold"
             >
@@ -119,9 +119,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsGeneral'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsGeneral' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -138,9 +136,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsPrivacy'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsPrivacy' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -157,9 +153,9 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name?.toString().startsWith('collectionSettingsDownload')
+                  route.name?.toString().startsWith('collectionSettingsDownload')
                     ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                    : '',
                 ]"
                 :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -180,9 +176,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionSettingsFavorite'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionSettingsFavorite' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -203,10 +197,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -214,11 +205,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-[50%] p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -322,7 +309,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, Info, Loader2, Lock, Settings } from 'lucide-vue-next'
@@ -333,14 +320,15 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
 import { toast } from 'vue-sonner'
+
+const description = ''
 
 const route = useRoute()
 const router = useRouter()
@@ -349,27 +337,27 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('settings')
+const activeTab = ref('settings')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Favorite settings state
@@ -380,7 +368,7 @@ const favoriteEnabled = ref(true)
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -389,15 +377,15 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    favoritePhotos.value = (collectionData as any).favoritePhotos !== false
-    favoriteNotes.value = (collectionData as any).favoriteNotes !== false
-    downloadEnabled.value = (collectionData as any).downloadEnabled !== false
-    favoriteEnabled.value = (collectionData as any).favoriteEnabled !== false
-  } catch (error: any) {
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    favoritePhotos.value = collectionData.favoritePhotos !== false
+    favoriteNotes.value = collectionData.favoriteNotes !== false
+    downloadEnabled.value = collectionData.downloadEnabled !== false
+    favoriteEnabled.value = collectionData.favoriteEnabled !== false
+  } catch (error) {
     toast.error('Failed to load collection', {
-      description: error.message || 'An error occurred while loading the collection.',
+      description,
     })
   } finally {
     isLoading.value = false
@@ -406,56 +394,55 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
   try {
-    const apiStatus =
-      newStatus === 'published' ? 'active' : (newStatus as 'draft' | 'active' | 'archived')
+    const apiStatus = newStatus === 'published' ? 'active' : 'draft'
     await galleryStore.updateCollection(collection.value.id, {
-      status: apiStatus,
-    } as any)
+      status,
+    })
 
-    collectionStatus.value = newStatus as 'draft' | 'published'
+    collectionStatus.value = newStatus === 'published' ? 'published' : 'draft'
     toast.success('Collection status updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update collection status', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 
   try {
-    const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
+    const dateString = newDate instanceof Date ? newDate.toISOString() : null
     await galleryStore.updateCollection(collection.value.id, {
-      eventDate: dateString,
-    } as any)
+      eventDate,
+    })
 
     eventDate.value = newDate
     toast.success('Event date updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update event date', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
 }
@@ -465,10 +452,10 @@ watch(favoritePhotos, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      favoritePhotos: newValue,
-      favoriteEnabled: newValue || favoriteNotes.value,
-    } as any)
-  } catch (error: any) {
+      favoritePhotos,
+      favoriteEnabled,
+    })
+  } catch (error) {
     toast.error('Failed to update favorite photos')
   }
 })
@@ -477,10 +464,10 @@ watch(favoriteNotes, async newValue => {
   if (!collection.value) return
   try {
     await galleryStore.updateCollection(collection.value.id, {
-      favoriteNotes: newValue,
-      favoriteEnabled: favoritePhotos.value || newValue,
-    } as any)
-  } catch (error: any) {
+      favoriteNotes,
+      favoriteEnabled,
+    })
+  } catch (error) {
     toast.error('Failed to update favorite notes')
   }
 })

@@ -1,10 +1,10 @@
 <template>
   <svg
-    :class="cn('inline-block', sizeClass, ($attrs.class as string) || '')"
-    :width="size"
+    :class="cn('inline-block', sizeClass, $attrs.class || '')"
     :height="size"
-    viewBox="0 0 24 24"
+    :width="size"
     v-bind="$attrs"
+    viewBox="0 0 24 24"
   >
     <path
       d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -25,28 +25,27 @@
   </svg>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import { cn } from '@/lib/utils'
 
-interface Props {
-  size?: number | string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  size: 16,
+const props = defineProps({
+  size: {
+    type: [Number, String],
+    default: 24,
+  },
 })
 
 const sizeClass = computed(() => {
   if (typeof props.size === 'string') {
     return props.size
   }
-  const sizeMap: Record<number, string> = {
+  const sizeMap = {
     16: 'w-4 h-4',
     20: 'w-5 h-5',
     24: 'w-6 h-6',
     32: 'w-8 h-8',
   }
-  return sizeMap[props.size as number] || `w-${props.size} h-${props.size}`
+  return sizeMap[props.size] || `w-${props.size} h-${props.size}`
 })
 </script>

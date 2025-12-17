@@ -5,7 +5,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { RouterView } from 'vue-router'
 import Toaster from './components/organisms/Toaster.vue'
 </script>

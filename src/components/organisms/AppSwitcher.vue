@@ -1,6 +1,6 @@
-<script setup lang="ts">
+<script setup>
 import { ChevronsUpDown, Plus } from 'lucide-vue-next'
-import { ref, watch, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,16 +16,18 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/shadcn/sidebar'
-import type { Team } from '@/types/navigation'
 import { useNavigation } from '@/composables/useNavigation'
 import { useUserStore } from '@/stores/user'
 
-const props = defineProps<{
-  teams: Team[]
-  isAdmin?: boolean
-}>()
+const props = defineProps({
+  teams: {
+    type: Array,
+    required: true,
+  },
+  isAdmin: Boolean,
+})
 
-const { isMobile } = useSidebar()
+const { isMobile, state } = useSidebar()
 const { navigateTo } = useNavigation()
 const userStore = useUserStore()
 const activeTeam = ref(props.teams[0])
@@ -55,28 +57,35 @@ watch(activeTeam, newTeam => {
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
-            size="lg"
+            :tooltip="activeTeam?.name"
             class="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground hover:bg-sidebar-accent/50 transition-colors"
+            size="lg"
           >
             <div
-              class="flex aspect-square size-9 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-background shadow-sm"
+              class="flex aspect-square size-10 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-background shadow-sm"
             >
-              <component :is="activeTeam.logo" class="size-4.5" />
+              <component :is="activeTeam.logo" class="size-10" />
             </div>
-            <div class="grid flex-1 text-left text-sm leading-tight gap-0.5">
+            <div
+              v-if="state !== 'collapsed' || isMobile"
+              class="grid flex-1 text-left text-sm leading-tight gap-0.5"
+            >
               <span class="truncate font-semibold">
                 {{ activeTeam.name }}
               </span>
               <span class="truncate text-xs text-muted-foreground">{{ activeTeam.plan }}</span>
             </div>
-            <ChevronsUpDown class="ml-auto size-4 text-muted-foreground" />
+            <ChevronsUpDown
+              v-if="state !== 'collapsed' || isMobile"
+              class="ml-auto size-4 text-muted-foreground"
+            />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-          align="start"
           :side="isMobile ? 'bottom' : 'right'"
           :side-offset="4"
+          align="start"
+          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
         >
           <DropdownMenuLabel class="text-xs text-muted-foreground px-2 py-1.5">
             Apps
@@ -84,10 +93,10 @@ watch(activeTeam, newTeam => {
           <DropdownMenuItem
             v-for="(team, index) in teams"
             :key="team.name"
-            class="gap-2.5 p-2.5 mx-1 rounded-md"
             :class="{
               'bg-sidebar-accent text-sidebar-accent-foreground': activeTeam.name === team.name,
             }"
+            class="gap-2.5 p-2.5 mx-1 rounded-md"
             @click="activeTeam = team"
           >
             <div

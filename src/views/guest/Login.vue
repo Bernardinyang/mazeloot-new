@@ -1,47 +1,47 @@
 <template>
-  <AuthLayout title="Welcome back!" description="Welcome back! Please enter your details.">
-    <Form @submit="handleLogin" :validation-schema="schema" v-slot="{ meta }" class="space-y-4">
+  <AuthLayout description="Welcome back! Please enter your details." title="Welcome back!">
+    <Form v-slot="{ meta }" :validation-schema="schema" class="space-y-4" @submit="handleLogin">
       <FormField
-        name="email"
-        label="Email"
-        type="email"
-        placeholder="name@example.com"
         autocomplete="email"
+        label="Email"
+        name="email"
+        placeholder="name@example.com"
+        type="email"
       />
 
       <div class="space-y-2">
         <div class="flex items-center justify-between">
           <Label for="password">Password</Label>
           <RouterLink
-            :to="{ name: 'forgot-password' }"
+            :to="{ name: 'forgotPassword' }"
             class="text-sm text-primary hover:underline font-medium"
           >
             Forgot password
           </RouterLink>
         </div>
         <FormField
-          name="password"
-          type="password"
-          placeholder="Enter your password"
           autocomplete="current-password"
+          name="password"
+          placeholder="Enter your password"
+          type="password"
         />
       </div>
 
       <div class="flex items-center space-x-2">
-        <Field name="remember" type="checkbox" v-slot="{ field }" :value="true">
+        <Field v-slot="{ field }" :value="true" name="remember" type="checkbox">
           <input
             id="remember"
-            v-bind="field"
-            type="checkbox"
             class="h-4 w-4 rounded border-input"
+            type="checkbox"
+            v-bind="field"
           />
         </Field>
-        <Label for="remember" class="text-sm font-normal cursor-pointer">
+        <Label class="text-sm font-normal cursor-pointer" for="remember">
           Remember for 30 days
         </Label>
       </div>
 
-      <Button type="submit" class="w-full" :disabled="loading || !meta.valid">
+      <Button :disabled="loading || !meta.valid" class="w-full" type="submit">
         {{ loading ? 'Signing in...' : 'Sign in' }}
       </Button>
     </Form>
@@ -50,14 +50,14 @@
 
     <GoogleButton text="Sign in with Google" @click="handleGoogleSignIn" />
 
-    <AuthLink to="register" text="Sign up" prefix="Don't have an account?" />
+    <AuthLink prefix="Don't have an account?" text="Sign up" to="register" />
   </AuthLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
-import { useRouter, useRoute, RouterLink } from 'vue-router'
-import { Form, Field } from 'vee-validate'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+import { Field, Form } from 'vee-validate'
 import * as yup from 'yup'
 import { toast } from 'vue-sonner'
 import AuthLayout from '@/layouts/AuthLayout.vue'
@@ -68,10 +68,12 @@ import Divider from '@/components/atoms/Divider.vue'
 import GoogleButton from '@/components/molecules/GoogleButton.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useUserStore } from '@/stores/user'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const { handleError } = useErrorHandler()
 const loading = computed(() => userStore.isLoading)
 
 const schema = yup.object({
@@ -83,21 +85,22 @@ const schema = yup.object({
   remember: yup.boolean(),
 })
 
-const handleLogin = async (values: any) => {
+const handleLogin = async values => {
+  console.log('Login values:', values)
   try {
     await userStore.login(values.email, values.password, values.remember)
 
     toast.success('Login successful!', {
-      description: 'Welcome back!',
+      description: 'Welcome back! Redirecting...',
     })
 
     // Redirect to the original destination or overview
-    const redirect = route.query.redirect as string
-    router.push(redirect || { name: 'overview' })
-  } catch (error: any) {
+    const redirect = route.query.redirect
+    await router.push(redirect || { name: 'overview' })
+  } catch (error) {
     console.error('Login error:', error)
-    toast.error('Login failed', {
-      description: error.message || 'Invalid email or password. Please try again.',
+    await handleError(error, {
+      fallbackMessage: 'Invalid email or password. Please try again.',
     })
   }
 }
@@ -113,16 +116,16 @@ const handleGoogleSignIn = async () => {
     // Persistence is handled by store watchers
 
     toast.success('Login successful!', {
-      description: 'Welcome back!',
+      description: 'Welcome back! Redirecting...',
     })
 
     // Redirect to the original destination or overview
-    const redirect = route.query.redirect as string
-    router.push(redirect || { name: 'overview' })
-  } catch (error: any) {
+    const redirect = route.query.redirect
+    await router.push(redirect || { name: 'overview' })
+  } catch (error) {
     console.error('Google sign in error:', error)
-    toast.error('Google sign in failed', {
-      description: error.message || 'Something went wrong. Please try again.',
+    await handleError(error, {
+      fallbackMessage: 'Google sign in failed. Please try again.',
     })
   }
 }

@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesDownload'
+              route.name === 'collectionActivitiesDownload'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,9 +45,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesFavourite'
+              route.name === 'collectionActivitiesFavourite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -58,9 +58,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesEmailRegistration'
+              route.name === 'collectionActivitiesEmailRegistration'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesEmailRegistration', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -71,9 +71,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesQuickShare'
+              route.name === 'collectionActivitiesQuickShare'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -84,9 +84,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesPrivatePhotos'
+              route.name === 'collectionActivitiesPrivatePhotos'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -99,10 +99,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -110,11 +107,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-7xl p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-8">
             <div class="flex items-center justify-between mb-2">
@@ -304,7 +297,7 @@
                         :class="
                           activity.accessType === 'granted'
                             ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                         "
                         class="px-2 py-1 rounded-full text-xs font-semibold"
                       >
@@ -340,7 +333,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, ImageIcon, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
@@ -353,23 +346,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
-
-interface PrivatePhotoActivity {
-  id: string
-  timestamp: string
-  userName: string | null
-  userEmail: string | null
-  photoName: string
-  photoThumbnail: string | null
-  accessType: 'granted' | 'denied'
-  duration: number | null
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -378,31 +359,31 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('activities')
+const activeTab = ref('activities')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Activity data
-const activities = ref<PrivatePhotoActivity[]>([])
+const activities = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
 
@@ -455,29 +436,29 @@ const filteredActivities = computed(() => {
 })
 
 // Generate demo data
-const generateDemoData = (): PrivatePhotoActivity[] => {
+const generateDemoData = () => {
   const now = new Date()
-  const demoActivities: PrivatePhotoActivity[] = []
+  const demoActivities = []
 
   const demoUsers = [
-    { name: 'Sarah Johnson', email: 'sarah.johnson@example.com' },
-    { name: 'Michael Chen', email: 'michael.chen@example.com' },
-    { name: 'Emily Rodriguez', email: 'emily.rodriguez@example.com' },
-    { name: 'David Thompson', email: 'david.thompson@example.com' },
-    { name: 'Jessica Martinez', email: 'jessica.martinez@example.com' },
-    { name: 'Robert Wilson', email: 'robert.wilson@example.com' },
-    { name: null, email: 'guest@example.com' }, // Anonymous user
+    { name: 'John Doe', email: 'john@example.com' },
+    { name: 'Jane Smith', email: 'jane@example.com' },
+    { name: 'Bob Johnson', email: 'bob@example.com' },
+    { name: 'Alice Williams', email: 'alice@example.com' },
+    { name: 'Charlie Brown', email: 'charlie@example.com' },
+    { name: 'Diana Prince', email: 'diana@example.com' },
+    { name: 'Anonymous User', email: 'anonymous@example.com' }, // Anonymous user
   ]
 
   const demoPhotos = [
-    { name: 'PRIVATE_001.jpg', thumbnail: 'https://picsum.photos/seed/private1/200/200' },
-    { name: 'PRIVATE_002.jpg', thumbnail: 'https://picsum.photos/seed/private2/200/200' },
-    { name: 'PRIVATE_003.jpg', thumbnail: 'https://picsum.photos/seed/private3/200/200' },
-    { name: 'PRIVATE_004.jpg', thumbnail: 'https://picsum.photos/seed/private4/200/200' },
-    { name: 'PRIVATE_005.jpg', thumbnail: 'https://picsum.photos/seed/private5/200/200' },
+    { name: 'photo1.jpg', thumbnail: 'https://via.placeholder.com/150' },
+    { name: 'photo2.jpg', thumbnail: 'https://via.placeholder.com/150' },
+    { name: 'photo3.jpg', thumbnail: 'https://via.placeholder.com/150' },
+    { name: 'photo4.jpg', thumbnail: 'https://via.placeholder.com/150' },
+    { name: 'photo5.jpg', thumbnail: 'https://via.placeholder.com/150' },
   ]
 
-  const accessTypes: ('granted' | 'denied')[] = ['granted', 'denied']
+  const accessTypes = ['granted', 'denied']
 
   // Generate activities for the past 30 days
   for (let i = 0; i < 28; i++) {
@@ -498,14 +479,14 @@ const generateDemoData = (): PrivatePhotoActivity[] => {
     const duration = accessType === 'granted' ? Math.floor(Math.random() * 120) + 5 : null
 
     demoActivities.push({
-      id: `private-${i + 1}`,
+      id: `activity-${i + 1}`,
       timestamp: timestamp.toISOString(),
       userName: user.name,
       userEmail: user.email,
       photoName: photo.name,
       photoThumbnail: photo.thumbnail,
-      accessType,
-      duration,
+      accessType: accessType,
+      duration: duration,
     })
   }
 
@@ -516,7 +497,7 @@ const generateDemoData = (): PrivatePhotoActivity[] => {
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -525,13 +506,13 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    // TODO: Fetch private photo activities from API
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    // TODO
     // activities.value = await fetchPrivatePhotoActivities(collectionId)
     // For now, use demo data
     activities.value = generateDemoData()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     activities.value = generateDemoData()
@@ -542,33 +523,33 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
 }
 
 // Format helpers
-const formatDate = (dateString: string) => {
+const formatDate = dateString => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -576,7 +557,7 @@ const formatDate = (dateString: string) => {
   })
 }
 
-const formatTime = (dateString: string) => {
+const formatTime = dateString => {
   return new Date(dateString).toLocaleTimeString('en-US', {
     hour: '2-digit',
     minute: '2-digit',
@@ -585,7 +566,7 @@ const formatTime = (dateString: string) => {
 
 // Export data
 const exportData = () => {
-  // TODO: Implement export functionality
+  // TODO
   console.log('Exporting private photo activity data...')
 }
 </script>

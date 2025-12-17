@@ -28,48 +28,55 @@
         <!-- Cover Sub-Navigation -->
         <div class="space-y-1">
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionCover'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionCover', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <ImageIcon class="h-4 w-4 shrink-0" />
             <span class="text-sm font-medium">Cover</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionTypography'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{
+              name: 'collectionTypography',
+              params: { uuid: collection?.id || route.params.uuid },
+            }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <span class="text-lg font-bold">T</span>
             <span class="text-sm font-medium">Typography</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionColor'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionColor', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <div :class="theme.borderSecondary" class="w-4 h-4 rounded border"></div>
             <span class="text-sm font-medium">Color</span>
           </router-link>
           <router-link
-            :class="
+            :class="[
               route.name === 'collectionGrid'
                 ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+                : '',
+              'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ]"
+            :to="{ name: 'collectionGrid', params: { uuid: collection?.id || route.params.uuid } }"
             class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
           >
             <Grid3x3 class="h-4 w-4 shrink-0" />
@@ -87,12 +94,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionCover'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionCover',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <ImageIcon class="h-5 w-5" />
@@ -107,12 +118,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionTypography'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionTypography',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <span class="text-lg font-bold">T</span>
@@ -127,12 +142,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionColor'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionColor',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <div :class="theme.borderSecondary" class="w-5 h-5 rounded border"></div>
@@ -147,12 +166,16 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <router-link
-                :class="
+                :class="[
                   route.name === 'collectionGrid'
                     ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
+                    : '',
+                  'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ]"
+                :to="{
+                  name: 'collectionGrid',
+                  params: { uuid: collection?.id || route.params.uuid },
+                }"
                 class="p-2.5 rounded-lg transition-all duration-200"
               >
                 <Grid3x3 class="h-5 w-5" />
@@ -167,10 +190,13 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
-        class="p-8 pb-16 transition-all duration-300 w-full h-full overflow-y-auto"
-      >
+      <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
+        <div class="text-center space-y-4">
+          <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
+          <p :class="theme.textSecondary" class="text-sm">Loading cover styles...</p>
+        </div>
+      </div>
+      <div v-else class="p-8 pb-16 transition-all duration-300 w-full h-full overflow-y-auto">
         <div class="mb-10">
           <div class="flex items-start justify-between mb-4">
             <div>
@@ -475,11 +501,11 @@
                 aspectRatio: '16/9',
                 backgroundImage: collectionCoverImage
                   ? `url(${collectionCoverImage})`
-                  : collection?.thumbnail
+                  : collection.thumbnail
                     ? `url(${collection.thumbnail})`
-                    : `url(${fallbackImageUrl})`,
+                    : 'none',
                 backgroundSize: 'cover',
-                backgroundPosition: `${formData.coverFocalPoint.x}% ${formData.coverFocalPoint.y}%`,
+                backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat',
               }"
               class="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-crosshair"
@@ -531,7 +557,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -544,7 +570,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import CoverPreview from '@/components/organisms/CoverPreview.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
@@ -552,9 +578,11 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
-import type { MediaItem } from '@/api/media'
 import { toast } from 'vue-sonner'
+// Cover options - matching the image description
+import { coverStyleConfigs } from '@/config/coverStyles'
+
+const description = ''
 
 const route = useRoute()
 const router = useRouter()
@@ -563,44 +591,44 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('design')
+const activeTab = ref('design')
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
 const showFocalPointModal = ref(false)
-const focalPointImageContainer = ref<HTMLElement | null>(null)
-const collectionCoverImage = ref<string | null>(null)
+const focalPointImageContainer = ref(null)
+const collectionCoverImage = ref(null)
 const isSaving = ref(false)
 const isSubmitting = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Cover form data
 const formData = ref({
-  cover: 'left',
+  cover: 'none',
   coverFocalPoint: { x: 50, y: 50 },
 })
 
 // Store original loaded data for comparison
-const originalData = ref<typeof formData.value | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes
 const hasUnsavedChanges = computed(() => {
@@ -616,19 +644,25 @@ const hasUnsavedChanges = computed(() => {
 
 // Get merged design config for preview (from collection store)
 const previewDesignConfig = computed(() => {
+  const defaults = {
+    cover: 'none',
+    coverFocalPoint: { x: 50, y: 50 },
+    fontFamily: 'sans',
+    fontStyle: 'normal',
+    colorPalette: 'light',
+    gridStyle: 'classic',
+    gridColumns: 3,
+    thumbnailSize: 'medium',
+    gridSpacing: 'normal',
+    navigationStyle: 'icon-text',
+  }
+
   if (!collection.value) {
     // Fallback to formData if collection not loaded
     return {
+      ...defaults,
       cover: formData.value.cover,
-      coverFocalPoint: formData.value.coverFocalPoint,
-      fontFamily: 'sans',
-      fontStyle: 'bold',
-      colorPalette: 'light',
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
     }
   }
 
@@ -636,38 +670,28 @@ const previewDesignConfig = computed(() => {
   if (!collectionInStore) {
     // Fallback to formData if not in store
     return {
+      ...defaults,
       cover: formData.value.cover,
-      coverFocalPoint: formData.value.coverFocalPoint,
-      fontFamily: 'sans',
-      fontStyle: 'bold',
-      colorPalette: 'light',
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
     }
   }
 
   // Get all design configs from the collection in store (which is updated by the watcher)
-  const coverDesign = (collectionInStore as any).coverDesign || {}
-  const typographyDesign = (collectionInStore as any).typographyDesign || {}
-  const colorDesign = (collectionInStore as any).colorDesign || {}
-  const gridDesign = (collectionInStore as any).gridDesign || {}
+  const coverDesign = collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.typographyDesign || {}
+  const colorDesign = collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.gridDesign || {}
 
   // Return merged config from store
   return {
-    cover: coverDesign.cover || formData.value.cover || 'left',
-    coverFocalPoint: coverDesign.coverFocalPoint ||
-      formData.value.coverFocalPoint || { x: 50, y: 50 },
-    fontFamily: typographyDesign.fontFamily || 'sans',
-    fontStyle: typographyDesign.fontStyle || 'bold',
-    colorPalette: colorDesign.colorPalette || 'light',
-    gridStyle: gridDesign.gridStyle || 'vertical',
-    gridColumns: gridDesign.gridColumns || 3,
-    thumbnailSize: gridDesign.thumbnailSize || 'regular',
-    gridSpacing: gridDesign.gridSpacing || 16,
-    navigationStyle: gridDesign.navigationStyle || 'icon-only',
+    ...defaults,
+    ...typographyDesign,
+    ...colorDesign,
+    ...gridDesign,
+    ...coverDesign,
+    cover: coverDesign.cover ?? formData.value.cover,
+    coverFocalPoint:
+      coverDesign.coverFocalPoint ?? formData.value.coverFocalPoint ?? defaults.coverFocalPoint,
   }
 })
 
@@ -681,7 +705,7 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      ;(collectionInStore as any).coverDesign = { ...newData }
+      collectionInStore.coverDesign = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -689,22 +713,13 @@ watch(
   { deep: true }
 )
 
-// Cover options - matching the image description
-const coverOptions = [
-  { id: 'left', label: 'Left' },
-  { id: 'center', label: 'Center' },
-  { id: 'joy', label: 'Joy' },
-  { id: 'novel', label: 'Novel' },
-  { id: 'vintage', label: 'Vintage' },
-  { id: 'frame', label: 'Frame' },
-  { id: 'stripe', label: 'Stripe' },
-  { id: 'divider', label: 'Divider' },
-  { id: 'journal', label: 'Journal' },
-  { id: 'stamp', label: 'Stamp' },
-]
+const coverOptions = Object.values(coverStyleConfigs).map(config => ({
+  id: config.id,
+  label: config.label,
+}))
 
 // Handle focal point click
-const handleFocalPointClick = (event: MouseEvent) => {
+const handleFocalPointClick = event => {
   if (!focalPointImageContainer.value) return
 
   const rect = focalPointImageContainer.value.getBoundingClientRect()
@@ -713,22 +728,22 @@ const handleFocalPointClick = (event: MouseEvent) => {
 
   // Clamp values between 0 and 100
   formData.value.coverFocalPoint = {
-    x: Math.max(0, Math.min(100, x)),
-    y: Math.max(0, Math.min(100, y)),
+    x: Math.min(100, Math.max(0, x)),
+    y: Math.min(100, Math.max(0, y)),
   }
 }
 
 // Handle cover photo click
 const handleCoverPhotoClick = () => {
-  // TODO: Implement cover photo selection
+  // TODO
   toast.info('Cover Photo', {
-    description: 'Cover photo selection will be implemented soon.',
+    description,
   })
 }
 
 // Load collection data
 const loadCollectionData = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     router.push({ name: 'manageCollections' })
     return
@@ -742,22 +757,21 @@ const loadCollectionData = async () => {
     }
 
     collection.value = collectionData
-    collectionStatus.value =
-      collectionData.status === 'active' ? 'published' : collectionData.status || 'draft'
+    collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
 
     // Set preset if available
-    const presetId = (collectionData as any).presetId
+    const presetId = collectionData.presetId
     selectedPresetId.value = presetId != null ? String(presetId) : 'none'
 
     // Set watermark if available
-    const watermarkId = (collectionData as any).watermarkId
+    const watermarkId = collectionData.watermarkId
     selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
     // Load cover design data
-    const coverDesign = (collectionData as any).coverDesign || {}
+    const coverDesign = collectionData.coverDesign || {}
     const loadedData = {
-      cover: coverDesign.cover || 'left',
+      cover: coverDesign.cover || 'none',
       coverFocalPoint:
         coverDesign.coverFocalPoint && typeof coverDesign.coverFocalPoint === 'object'
           ? { ...coverDesign.coverFocalPoint }
@@ -768,11 +782,11 @@ const loadCollectionData = async () => {
 
     // Set cover image
     collectionCoverImage.value = collectionData.thumbnail || null
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to load collection', {
-      description: error.message || 'An error occurred',
+      description,
     })
-    router.push({ name: 'manageCollections' })
+    router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
   } finally {
     isLoading.value = false
   }
@@ -788,7 +802,7 @@ watch(
 )
 
 // Watch for activeTab changes and navigate accordingly
-watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
+watch(activeTab, newTab => {
   if (!collection.value) return
 
   if (newTab === 'photos') {
@@ -807,7 +821,7 @@ watch(activeTab, (newTab: 'photos' | 'design' | 'settings' | 'activities') => {
 })
 
 // Save cover design
-const saveCoverDesign = async (): Promise<boolean> => {
+const saveCoverDesign = async () => {
   if (!collection.value) {
     toast.error('Collection not found')
     return false
@@ -817,16 +831,16 @@ const saveCoverDesign = async (): Promise<boolean> => {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
       coverDesign: formData.value,
-    } as any)
+    })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save cover design', {
-      description: error.message || 'An error occurred while saving.',
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
     return false
   } finally {
@@ -835,42 +849,41 @@ const saveCoverDesign = async (): Promise<boolean> => {
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
   try {
     // Map 'published' to 'active' for the API
-    const apiStatus =
-      newStatus === 'published' ? 'active' : (newStatus as 'draft' | 'active' | 'archived')
+    const apiStatus = newStatus === 'published' ? 'active' : 'draft'
     await galleryStore.updateCollection(collection.value.id, {
       status: apiStatus,
-    } as any)
+    })
 
-    collectionStatus.value = newStatus as 'draft' | 'published'
+    collectionStatus.value = newStatus
     toast.success('Collection status updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update collection status', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 
   try {
     // Convert Date to ISO string for storage, or null to clear
-    const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
+    const dateString = newDate instanceof Date ? newDate.toISOString() : null
     await galleryStore.updateCollection(collection.value.id, {
       eventDate: dateString,
-    } as any)
+    })
 
     eventDate.value = newDate
     toast.success('Event date updated successfully')
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to update event date', {
-      description: error.message || 'An error occurred while updating.',
+      description,
     })
   }
 }
@@ -879,8 +892,7 @@ const handleSave = async () => {
   const success = await saveCoverDesign()
   if (success) {
     toast.success('Cover design saved successfully', {
-      description: 'Cover settings have been updated.',
-      icon: Check,
+      description,
     })
   }
 }
@@ -918,18 +930,18 @@ const goBack = async () => {
   }
 }
 
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   // Handle preset change if needed
   selectedPresetId.value = presetId
 }
 
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   // Handle watermark change if needed
   selectedWatermark.value = watermarkId
 }
 
 const handleOpenPreviewInNewTab = async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) {
     toast.error('Collection not found')
     return
@@ -940,7 +952,7 @@ const handleOpenPreviewInNewTab = async () => {
   if (success) {
     const previewUrl = router.resolve({
       name: 'collectionPreview',
-      params: { id: collectionId },
+      params: { uuid: collectionId },
     }).href
     window.open(previewUrl, '_blank')
   }
@@ -951,19 +963,19 @@ const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
 
 // Mock data for preview
-const mockPreviewCollection = computed<Collection>(() => ({
-  id: collection.value?.id || 'preview',
-  name: collection.value?.name || 'My Sample Collection',
-  date: collection.value?.eventDate || '2025-09-01',
-  eventDate: collection.value?.eventDate || '2025-09-01',
-  thumbnail: collectionCoverImage.value || collection.value?.thumbnail || fallbackImageUrl,
-  createdAt: collection.value?.createdAt || new Date().toISOString(),
-  updatedAt: collection.value?.updatedAt || new Date().toISOString(),
-  status: collection.value?.status || 'active',
-  category: collection.value?.category || 'event',
+const mockPreviewCollection = computed(() => ({
+  id: collection.value?.id || 'mock-id',
+  name: collection.value?.name || 'Sample Collection',
+  date: collection.value?.date || new Date().toISOString().split('T')[0],
+  eventDate: eventDate.value ? eventDate.value.toISOString().split('T')[0] : null,
+  thumbnail: collection.value?.thumbnail || fallbackImageUrl,
+  createdAt: new Date().toISOString(),
+  updatedAt: new Date().toISOString(),
+  status: 'active',
+  category: 'wedding',
 }))
 
-const mockPreviewMedia = computed<MediaItem[]>(() => {
+const mockPreviewMedia = computed(() => {
   const photoIds = [
     '1519741497674-611481863552',
     '1516589178581-6cd7833ae3b2',
@@ -980,11 +992,11 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
   ]
 
   return photoIds.map((id, index) => ({
-    id: `preview-${index}`,
-    collectionId: collection.value?.id || 'preview',
-    url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
-    thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-    type: 'image' as const,
+    id: `mock-media-${id}`,
+    collectionId: collection.value?.id || 'mock-id',
+    url: `https://images.unsplash.com/photo-${id}?w=800&h=800&fit=crop`,
+    thumbnail: `https://images.unsplash.com/photo-${id}?w=300&h=300&fit=crop`,
+    type: 'image',
     title: `Photo ${index + 1}`,
     order: index,
     createdAt: new Date().toISOString(),
@@ -996,23 +1008,23 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
 <style scoped>
 /* Hide the default DialogContent close button in focal point modal */
 :deep(.focal-point-dialog > button[class*='absolute'][class*='right-4'][class*='top-4']) {
-  display: none !important;
+  display: none;
 }
 
 /* Custom scrollbar styling */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background: rgba(148, 163, 184, 0.3);
-  border-radius: 10px;
+  border-radius: 4px;
   transition: background 0.2s;
 }
 
@@ -1021,10 +1033,10 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(71, 85, 105, 0.4);
+  background: rgba(51, 85, 105, 0.4);
 }
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 0.6);
+  background: rgba(51, 85, 105, 0.6);
 }
 </style>

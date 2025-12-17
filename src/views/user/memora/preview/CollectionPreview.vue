@@ -1,29 +1,29 @@
 <template>
-  <div class="min-h-screen" :style="{ backgroundColor: backgroundColor }">
+  <div :style="{ backgroundColor: backgroundColor }">
     <!-- Navbar Style (when cover is 'none') -->
     <div
       v-if="coverConfig.specialLayout === 'none'"
-      class="sticky top-0 z-50 w-full border-b backdrop-blur-md"
       :style="{
-        backgroundColor: `${backgroundColor}dd`,
+        backgroundColor: backgroundColor,
         borderColor: borderColor,
       }"
+      class="sticky top-0 z-50 w-full border-b backdrop-blur-md"
     >
       <div class="container mx-auto px-4 py-4">
         <div class="flex items-center justify-between">
           <div>
             <h1
-              class="text-xl md:text-2xl font-bold"
               :class="[fontFamilyClass, fontStyleClass]"
               :style="{ color: textColor }"
+              class="text-xl md:text-2xl font-bold"
             >
               {{ collectionName }}
             </h1>
             <p
               v-if="eventDate"
-              class="text-xs md:text-sm mt-1 uppercase tracking-wide"
               :class="[fontFamilyClass, fontStyleClass]"
               :style="{ color: textColor, opacity: 0.8 }"
+              class="text-xs md:text-sm mt-1 uppercase tracking-wide"
             >
               {{ formattedDate }}
             </p>
@@ -32,22 +32,22 @@
             <button
               v-for="tab in tabs"
               :key="tab"
-              class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
-              :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : '']"
+              :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : 'font-normal']"
               :style="{
-                color: activeTab === tab ? accentColor : tabTextColor,
+                color: activeTab === tab ? accentColor : textColor,
                 borderBottom: activeTab === tab ? `3px solid ${accentColor}` : 'none',
-                paddingBottom: '4px',
-                opacity: activeTab === tab ? 1 : 0.85,
+                paddingBottom: '8px',
+                opacity: activeTab === tab ? 1 : 0.7,
               }"
+              class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
               @click="activeTab = tab"
             >
               <component
+                :is="getTabIcon(tab)"
                 v-if="
                   designConfig.navigationStyle === 'icon-only' ||
                   designConfig.navigationStyle === 'icon-text'
                 "
-                :is="getTabIcon(tab)"
                 class="h-4 w-4"
               />
               <span
@@ -64,50 +64,50 @@
     <!-- Cover Section (when cover is not 'none') -->
     <div
       v-else
-      class="relative w-full min-h-screen"
       :style="{
-        backgroundImage: coverImageWithFallback ? `url(${coverImageWithFallback})` : undefined,
-        backgroundSize: coverImageWithFallback ? 'cover' : undefined,
-        backgroundPosition: coverImageWithFallback ? coverFocalPoint : undefined,
-        backgroundRepeat: coverImageWithFallback ? 'no-repeat' : undefined,
-        backgroundColor: coverImageWithFallback ? undefined : coverGradient,
+        backgroundImage: coverImageWithFallback ? `url(${coverImageWithFallback})` : 'none',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundColor: backgroundColor,
       }"
+      class="relative w-full min-h-screen"
     >
       <!-- Cover Overlay with better contrast -->
       <div
-        class="absolute inset-0"
         :style="{
-          backgroundColor: overlayColor,
+          backgroundColor: 'transparent',
           background: coverImageWithFallback
             ? `linear-gradient(to bottom, ${overlayColor} 0%, ${overlayColor} 40%, rgba(0,0,0,0.5) 100%)`
             : overlayColor,
         }"
+        class="absolute inset-0"
       ></div>
 
       <!-- Cover Decorations (borders, lines, frames, dividers, etc.) -->
       <CoverDecorations :config="coverConfig" :palette-colors="paletteColors" />
 
       <!-- Cover Content based on cover type -->
-      <div class="relative z-10 container mx-auto px-4 h-full flex" :class="coverContentClasses">
+      <div :class="coverContentClasses" class="relative z-10 container mx-auto px-4 h-full flex">
         <!-- Top Branding -->
         <div
           v-if="showBranding"
-          class="text-xs uppercase tracking-wider mb-4 font-semibold"
           :class="[fontFamilyClass, fontStyleClass]"
           :style="{
             color: textColor,
-            textShadow: coverImageWithFallback ? '0 2px 8px rgba(0,0,0,0.5)' : 'none',
-            opacity: coverImageWithFallback ? 0.95 : 0.8,
+            textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+            opacity: 0.8,
           }"
+          class="text-xs uppercase tracking-wider mb-4 font-semibold"
         >
           {{ brandingText }}
         </div>
 
-        <!-- Cover Type: Joy - Special Layout with title, avatar in O, date, name, button -->
+        <!-- Cover Type, avatar in O, date, name, button -->
         <div
           v-if="coverConfig.specialLayout === 'joy'"
+          :style="{ backgroundColor: backgroundColor }"
           class="flex flex-col items-center justify-center h-full relative"
-          :style="{ backgroundColor: '#FAFAFA' }"
         >
           <!-- Background pattern (subtle stars/plus signs) -->
           <div
@@ -118,28 +118,29 @@
             <div
               v-for="i in 25"
               :key="i"
-              class="absolute"
               :style="{
-                top: `${10 + Math.random() * 80}%`,
-                left: `${10 + Math.random() * 80}%`,
-                width: '3px',
-                height: '3px',
-                transform: 'rotate(45deg)',
-                backgroundColor: Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'transparent',
+                top: `${Math.random() * 80}%`,
+                left: `${Math.random() * 80}%`,
+                width: `${Math.random() * 4 + 2}px`,
+                height: `${Math.random() * 4 + 2}px`,
+                transform: `rotate(${Math.random() * 360}deg)`,
+                backgroundColor:
+                  Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'rgba(220, 38, 38, 0.1)',
                 border: Math.random() > 0.5 ? '1px solid rgba(220, 38, 38, 0.2)' : 'none',
                 filter: 'blur(0.5px)',
               }"
+              class="absolute"
             ></div>
           </div>
 
-          <!-- Top Branding: BERNODE -->
+          <!-- Top Branding -->
           <div
-            class="text-xs uppercase tracking-[0.2em] font-light mb-8 z-10"
-            :class="['font-sans']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{
-              color: '#1F2937',
+              color: textColor,
               letterSpacing: '0.2em',
             }"
+            class="text-xs uppercase tracking-[0.2em] mb-8 z-10"
           >
             BERNODE
           </div>
@@ -149,22 +150,22 @@
             <template v-for="(char, index) in joyCoverTitle.split('')" :key="`char-${index}`">
               <span
                 v-if="char.toUpperCase() !== 'O'"
-                class="text-7xl md:text-8xl lg:text-9xl font-bold leading-none"
-                :class="['font-serif']"
+                :class="[fontFamilyClass, fontStyleClass]"
                 :style="{
-                  color: '#DC2626',
-                  textShadow: 'none',
+                  color: textColor,
+                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
                 }"
+                class="text-7xl md:text-8xl lg:text-9xl leading-none"
               >
                 {{ char }}
               </span>
               <div v-else class="relative">
                 <div
                   v-if="joyCoverAvatar || coverImageWithFallback"
-                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
                   :style="{
-                    border: 'none',
+                    border,
                   }"
+                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
                 >
                   <img
                     :src="joyCoverAvatar || coverImageWithFallback"
@@ -184,12 +185,12 @@
           <!-- Date -->
           <div
             v-if="joyCoverShowDate !== false && eventDate"
-            class="text-sm md:text-base uppercase tracking-[0.15em] font-light mb-4 z-10"
-            :class="['font-sans']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{
-              color: '#1F2937',
-              letterSpacing: '0.15em',
+              color: textColor,
+              letterSpacing: '0.2em',
             }"
+            class="text-sm md:text-base uppercase tracking-[0.15em] mb-4 z-10"
           >
             {{ formattedDate }}
           </div>
@@ -197,11 +198,11 @@
           <!-- Collection Title (Name) -->
           <div
             v-if="joyCoverShowName !== false"
-            class="text-xl md:text-2xl lg:text-3xl font-normal italic mb-6 md:mb-8 z-10"
-            :class="['font-serif']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{
-              color: '#1F2937',
+              color: textColor,
             }"
+            class="text-xl md:text-2xl lg:text-3xl italic mb-6 md:mb-8 z-10"
           >
             {{ collectionName }}
           </div>
@@ -209,18 +210,18 @@
           <!-- Button -->
           <button
             v-if="joyCoverShowButton !== false"
-            class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
             :style="{
-              backgroundColor: '#374151',
-              borderRadius: '0',
+              backgroundColor: accentColor,
+              borderRadius: '8px',
             }"
+            class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
             @click="scrollToGallery"
           >
             {{ joyCoverButtonText || 'VIEW GALLERY' }}
           </button>
         </div>
 
-        <!-- Cover Type: Summit (Center) -->
+        <!-- Cover Type) -->
         <div
           v-else-if="
             coverConfig.textPosition === 'center' &&
@@ -231,43 +232,43 @@
         >
           <!-- Decorative elements -->
           <div
+            :style="{ backgroundColor: backgroundColor }"
             class="absolute top-1/4 left-1/4 w-2 h-2 rounded-full opacity-20"
-            :style="{ backgroundColor: accentColor }"
           ></div>
           <div
+            :style="{ backgroundColor: backgroundColor }"
             class="absolute top-1/3 right-1/4 w-1.5 h-1.5 rounded-full opacity-30"
-            :style="{ backgroundColor: accentColor }"
           ></div>
           <div
+            :style="{ backgroundColor: backgroundColor }"
             class="absolute bottom-1/4 left-1/3 w-1 h-1 rounded-full opacity-25"
-            :style="{ backgroundColor: accentColor }"
           ></div>
 
           <div
-            class="text-5xl md:text-7xl font-black mb-6 leading-tight"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
               color: textColor,
-              textShadow: `0 4px 20px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15)`,
+              textShadow: `0 2px 4px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15)`,
             }"
+            class="text-5xl md:text-7xl font-black mb-6 leading-tight"
           >
             {{ collectionName }}
           </div>
           <div
             v-if="eventDate"
-            class="text-base md:text-xl uppercase tracking-widest font-medium"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
               color: textColor,
               opacity: 0.9,
-              letterSpacing: '0.2em',
+              letterSpacing: '0.05em',
             }"
+            class="text-base md:text-xl uppercase tracking-widest font-medium"
           >
             {{ formattedDate }}
           </div>
         </div>
 
-        <!-- Cover Type: Horizon (Left) -->
+        <!-- Cover Type) -->
         <div
           v-else-if="
             coverConfig.textPosition === 'bottom' &&
@@ -278,29 +279,29 @@
         >
           <!-- Decorative line -->
           <div
+            :style="{ backgroundColor: backgroundColor, opacity: 0.8 }"
             class="w-16 h-0.5 mb-4"
-            :style="{ backgroundColor: accentColor, opacity: 0.8 }"
           ></div>
 
           <div
-            class="text-4xl md:text-6xl font-black mb-3 leading-tight"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
-              color: textColor,
-              textShadow: `0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)`,
+              color,
+              textShadow: `0 2px 4px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)`,
             }"
+            class="text-4xl md:text-6xl font-black mb-3 leading-tight"
           >
             {{ collectionName }}
           </div>
           <div
             v-if="eventDate"
-            class="text-sm md:text-lg uppercase tracking-widest font-medium"
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{
               color: textColor,
-              opacity: 0.85,
-              letterSpacing: '0.15em',
+              opacity: 0.9,
+              letterSpacing: '0.05em',
             }"
+            class="text-sm md:text-lg uppercase tracking-widest font-medium"
           >
             {{ formattedDate }}
           </div>
@@ -309,7 +310,6 @@
         <!-- Dynamic Cover - Based on config -->
         <div v-else class="w-full">
           <div
-            class="text-3xl md:text-5xl font-bold mb-4"
             :class="[
               fontFamilyClass,
               fontStyleClass,
@@ -325,12 +325,12 @@
                 ? '0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)'
                 : 'none',
             }"
+            class="text-3xl md:text-5xl font-bold mb-4"
           >
             {{ collectionName }}
           </div>
           <div
             v-if="eventDate"
-            class="text-base md:text-lg uppercase tracking-wide"
             :class="[
               fontFamilyClass,
               fontStyleClass,
@@ -343,8 +343,9 @@
             :style="{
               color: textColor,
               opacity: 0.9,
-              textShadow: coverImageWithFallback ? '0 2px 10px rgba(0,0,0,0.2)' : 'none',
+              textShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }"
+            class="text-base md:text-lg uppercase tracking-wide"
           >
             {{ formattedDate }}
           </div>
@@ -352,7 +353,6 @@
 
         <!-- View Gallery Button -->
         <div
-          class="mt-8 flex"
           :class="{
             'justify-center':
               coverConfig.textAlignment === 'center' || coverConfig.textPosition === 'center',
@@ -363,13 +363,14 @@
               coverConfig.specialLayout === 'split' ||
               coverConfig.specialLayout === 'story',
           }"
+          class="mt-8 flex"
         >
           <button
-            class="px-8 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-110 hover:-translate-y-0.5"
             :style="{
               backgroundColor: accentColor,
-              boxShadow: `0 8px 30px ${accentColor}40, 0 4px 12px rgba(0,0,0,0.2)`,
+              boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
             }"
+            class="px-8 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-110 hover:-translate-y-0.5"
             @click="scrollToGallery"
           >
             View Gallery
@@ -381,69 +382,69 @@
     <!-- Gallery Content Section -->
     <div
       id="gallery"
+      :style="{ backgroundColor: backgroundColor }"
       class="container mx-auto px-4 py-8 md:py-12"
-      :style="{ backgroundColor: contentBackgroundColor }"
     >
-      <!-- Navigation Tabs (only show if cover is not 'none', as navbar handles it) -->
+      <!-- Navigation Tabs (only show if cover is not 'none', handles it) -->
       <div
         v-if="coverConfig.specialLayout !== 'none'"
-        class="mb-8 flex items-center justify-between pb-4"
         :style="{ borderColor: borderColor }"
+        class="mb-8 flex items-center justify-between pb-4"
       >
-        <!-- Left: Collection Name and Branding -->
+        <!-- Left -->
         <div class="flex flex-col">
           <div
-            class="text-base md:text-lg font-semibold uppercase tracking-wide"
-            :class="['font-sans']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{ color: textColor }"
+            class="text-base md:text-lg uppercase tracking-wide"
           >
             {{ collectionName.toUpperCase() }}
           </div>
           <div
-            class="text-xs md:text-sm font-light uppercase tracking-wide mt-0.5"
-            :class="['font-sans']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{ color: textColor, opacity: 0.8 }"
+            class="text-xs md:text-sm uppercase tracking-wide mt-0.5"
           >
             {{ brandingText }}
           </div>
         </div>
 
-        <!-- Center: Navigation Links -->
+        <!-- Center -->
         <div class="flex items-center gap-6">
           <button
             v-for="tab in tabs"
             :key="tab"
-            class="text-sm font-normal transition-all duration-200"
-            :class="['font-sans', activeTab === tab ? 'font-semibold' : '']"
+            :class="[fontFamilyClass, fontStyleClass]"
             :style="{
-              color: activeTab === tab ? textColor : tabTextColor,
+              color: activeTab === tab ? accentColor : textColor,
               opacity: activeTab === tab ? 1 : 0.7,
             }"
+            class="text-sm transition-all duration-200"
             @click="activeTab = tab"
           >
             {{ tab }}
           </button>
         </div>
 
-        <!-- Right: Action Icons -->
+        <!-- Right -->
         <div class="flex items-center gap-4">
           <button
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
             :style="{ color: textColor }"
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
             title="Like"
           >
             <Heart class="h-5 w-5" />
           </button>
           <button
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
             :style="{ color: textColor }"
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
             title="Share"
           >
             <Share2 class="h-5 w-5" />
           </button>
           <button
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
             :style="{ color: textColor }"
+            class="p-2 transition-opacity duration-200 hover:opacity-70"
             title="More"
           >
             <MoreVertical class="h-5 w-5" />
@@ -457,23 +458,23 @@
         :class="[gridClasses, 'overflow-hidden']"
         :style="
           designConfig.gridStyle === 'masonry'
-            ? { columnGap: `${gridSpacingValue}px` }
-            : { gap: `${gridSpacingValue}px` }
+            ? { columnGap: `${designConfig.gridSpacing * 0.5}rem` }
+            : {}
         "
       >
         <div
           v-for="i in 6"
           :key="i"
-          class="overflow-hidden rounded-lg"
           :class="[
             designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
             designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
           ]"
           :style="
             designConfig.gridStyle === 'masonry'
-              ? { marginBottom: `${gridSpacingValue}px`, height: '192px' }
-              : { aspectRatio: designConfig.gridStyle === 'vertical' ? '3/4' : '1/1' }
+              ? { marginBottom: '1rem', height: 'auto' }
+              : { aspectRatio: designConfig.thumbnailSize === 'vertical' ? '3/4' : '4/3' }
           "
+          class="overflow-hidden rounded-lg"
         >
           <div class="w-full h-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"></div>
         </div>
@@ -484,37 +485,34 @@
         :class="[gridClasses, 'overflow-hidden']"
         :style="
           designConfig.gridStyle === 'masonry'
-            ? { columnGap: `${gridSpacingValue}px` }
-            : { gap: `${gridSpacingValue}px` }
+            ? { columnGap: `${designConfig.gridSpacing * 0.5}rem` }
+            : {}
         "
       >
         <div
           v-for="item in paginatedMedia"
           :key="item.id"
-          class="overflow-hidden"
           :class="[
             designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
             designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
           ]"
           :style="
             designConfig.gridStyle === 'masonry'
-              ? { marginBottom: `${gridSpacingValue}px` }
+              ? { marginBottom: '1rem' }
               : {
-                  aspectRatio: designConfig.gridStyle === 'vertical' ? '3/4' : '1/1',
+                  aspectRatio: designConfig.thumbnailSize === 'vertical' ? '3/4' : '4/3',
                 }
           "
+          class="overflow-hidden rounded-xl"
         >
           <div
             class="group relative w-full h-full cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
             @click="openMediaViewer(item)"
           >
             <img
-              :src="item.thumbnail || item.url"
               :alt="item.title || 'Media'"
-              :class="[
-                'w-full object-cover',
-                designConfig.gridStyle === 'masonry' ? 'h-auto' : 'h-full',
-              ]"
+              :class="['w-full object-cover', designConfig.gridStyle === 'masonry' ? 'h-auto' : '']"
+              :src="item.thumbnail || item.url"
               loading="lazy"
             />
             <div
@@ -526,11 +524,11 @@
 
       <div v-else class="text-center py-12">
         <p
-          class="text-lg font-medium"
           :style="{
             color: textColor,
             opacity: 0.8,
           }"
+          class="text-lg font-medium"
         >
           No media found in this collection.
         </p>
@@ -539,21 +537,19 @@
       <!-- Pagination Controls -->
       <div
         v-if="filteredMedia.length > 0 && pagination.totalPages.value > 1"
-        class="flex items-center justify-center gap-2 mt-8 pt-6 border-t"
         :style="{ borderColor: borderColor }"
+        class="flex items-center justify-center gap-2 mt-8 pt-6 border-t"
       >
         <button
-          @click="pagination.prev()"
+          :class="[!pagination.hasPrev.value ? 'cursor-not-allowed' : '']"
           :disabled="!pagination.hasPrev.value"
-          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           :style="{
-            borderColor: !pagination.hasPrev.value ? borderColor : accentColor,
-            color: !pagination.hasPrev.value ? textColor : accentColor,
-            backgroundColor: 'transparent',
+            borderColor: borderColor,
+            color: textColor,
+            backgroundColor: backgroundColor,
           }"
-          :class="[
-            !pagination.hasPrev.value ? 'cursor-not-allowed' : 'hover:opacity-80 cursor-pointer',
-          ]"
+          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="pagination.prev()"
         >
           <ChevronLeft class="h-4 w-4" />
         </button>
@@ -563,43 +559,37 @@
           <button
             v-for="page in visiblePages"
             :key="page"
-            @click="pagination.goTo(page)"
-            class="min-w-[2.5rem] px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium"
+            :class="pagination.currentPage.value === page ? 'shadow-md' : ''"
             :style="
               pagination.currentPage.value === page
                 ? {
                     backgroundColor: accentColor,
                     borderColor: accentColor,
-                    color: '#FFFFFF',
+                    color: textColor,
                   }
                 : {
                     borderColor: borderColor,
                     color: textColor,
-                    backgroundColor: 'transparent',
+                    backgroundColor: backgroundColor,
                   }
             "
-            :class="
-              pagination.currentPage.value === page
-                ? 'shadow-md'
-                : 'hover:opacity-80 cursor-pointer'
-            "
+            class="min-w-[2.5rem] px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium"
+            @click="pagination.goTo(page)"
           >
             {{ page }}
           </button>
         </div>
 
         <button
-          @click="pagination.next()"
+          :class="[!pagination.hasNext.value ? 'cursor-not-allowed' : '']"
           :disabled="!pagination.hasNext.value"
-          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           :style="{
-            borderColor: !pagination.hasNext.value ? borderColor : accentColor,
-            color: !pagination.hasNext.value ? textColor : accentColor,
-            backgroundColor: 'transparent',
+            borderColor: borderColor,
+            color: textColor,
+            backgroundColor: backgroundColor,
           }"
-          :class="[
-            !pagination.hasNext.value ? 'cursor-not-allowed' : 'hover:opacity-80 cursor-pointer',
-          ]"
+          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="pagination.next()"
         >
           <ChevronRight class="h-4 w-4" />
         </button>
@@ -614,8 +604,8 @@
     >
       <div class="relative max-w-7xl max-h-full">
         <img
-          :src="selectedMedia.url"
           :alt="selectedMedia.title || 'Media'"
+          :src="selectedMedia.url"
           class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
         />
         <button
@@ -639,19 +629,19 @@
 
     <!-- Preview Controls Footer -->
     <div
-      class="sticky bottom-0 w-full border-t bg-gray-100 dark:bg-gray-900 px-4 py-2 flex items-center justify-center gap-4 z-50"
       :style="{ borderColor: borderColor }"
+      class="sticky bottom-0 w-full border-t bg-gray-100 dark:bg-gray-900 px-4 py-2 flex items-center justify-center gap-4 z-50"
     >
       <button
-        class="p-2 transition-opacity duration-200 hover:opacity-70"
         :style="{ color: textColor }"
+        class="p-2 transition-opacity duration-200 hover:opacity-70"
         title="Desktop View"
       >
         <Monitor class="h-4 w-4" />
       </button>
       <button
-        class="p-2 transition-opacity duration-200 hover:opacity-70 opacity-60"
         :style="{ color: textColor }"
+        class="p-2 transition-opacity duration-200 hover:opacity-70 opacity-60"
         title="Mobile View"
       >
         <Smartphone class="h-4 w-4" />
@@ -660,24 +650,24 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+<script setup>
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
-  X,
-  Sparkles,
-  Grid3x3,
-  Image as ImageIcon,
   ChevronLeft,
   ChevronRight,
+  Grid3x3,
   Heart,
-  Share2,
-  MoreVertical,
+  Image,
   Monitor,
+  MoreVertical,
+  Share2,
   Smartphone,
+  Sparkles,
+  X,
 } from 'lucide-vue-next'
-import { useCollectionsApi, type Collection } from '@/api/collections'
-import { useMediaApi, type MediaItem } from '@/api/media'
+import { useCollectionsApi } from '@/api/collections'
+import { useMediaApi } from '@/api/media'
 import { usePresetStore } from '@/stores/preset'
 import { useGalleryStore } from '@/stores/gallery'
 import { format } from 'date-fns'
@@ -686,21 +676,12 @@ import CoverDecorations from '@/components/organisms/CoverDecorations.vue'
 import { usePagination } from '@/composables/usePagination'
 
 // Props for preview mode
-const props = defineProps<{
-  previewMode?: boolean
-  previewCollection?: Collection | null
-  previewMedia?: MediaItem[]
-  previewDesignConfig?: {
-    cover?: string
-    fontFamily?: string
-    fontStyle?: string
-    colorPalette?: string
-    gridStyle?: string
-    thumbnailSize?: string
-    gridSpacing?: number | string
-    navigationStyle?: string
-  } | null
-}>()
+const props = defineProps({
+  previewMode: String,
+  previewCollection: Object,
+  previewMedia: Array,
+  previewDesignConfig: Object,
+})
 
 const route = useRoute()
 const collectionsApi = useCollectionsApi()
@@ -709,16 +690,16 @@ const presetStore = usePresetStore()
 const galleryStore = useGalleryStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
-const media = ref<MediaItem[]>([])
+const collection = ref(null)
+const media = ref([])
 const isLoading = ref(true)
-const selectedMedia = ref<MediaItem | null>(null)
+const selectedMedia = ref(null)
 const activeTab = ref('Highlights')
 
 // Get collection ID from route (only if not in preview mode)
 const collectionId = computed(() => {
   if (props.previewMode) return ''
-  return (route.params.id as string) || ''
+  return route.params.id || ''
 })
 
 // Get preset design config (use preview config, collection's preset, or default)
@@ -730,7 +711,7 @@ const designConfig = computed(() => {
 
   // Check if this is a preset preview route
   if (route.name === 'presetPreview') {
-    const presetName = route.params.name as string
+    const presetName = route.params.name
     if (presetName) {
       const preset = presetStore.getPresetByName(presetName)
       if (preset?.design) {
@@ -741,7 +722,7 @@ const designConfig = computed(() => {
 
   // Try to get preset from collection if it has a presetId
   // Otherwise use the current preset from store or defaults
-  const collectionPresetId = (collection.value as any)?.presetId
+  const collectionPresetId = collection.value?.presetId
   let preset = null
 
   if (collectionPresetId) {
@@ -755,42 +736,42 @@ const designConfig = computed(() => {
   // Use preset design or defaults
   return (
     preset?.design || {
-      cover: 'modern',
+      cover,
       coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: 'sans',
-      fontStyle: 'bold',
-      colorPalette: 'light',
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      fontFamily,
+      fontStyle,
+      colorPalette,
+      gridStyle,
+      gridColumns,
+      thumbnailSize,
+      gridSpacing,
+      navigationStyle,
     }
   )
 })
 
 // Color palette mapping with improved contrast - no duplicates
 // Format: [background, accent, text] - ensuring WCAG AA contrast ratios
-const colorPalettes: Record<string, string[]> = {
-  light: ['#FFFFFF', '#E5E7EB', '#1F2937'], // White bg, gray accent, dark gray text
-  gold: ['#FEF3C7', '#F59E0B', '#78350F'], // Light gold bg, amber accent, dark brown text
-  rose: ['#FDF2F8', '#EC4899', '#831843'], // Light pink bg, pink accent, dark pink text
-  terracotta: ['#FED7AA', '#EA580C', '#7C2D12'], // Light orange bg, orange accent, dark brown text
-  lavender: ['#F3E8FF', '#A855F7', '#581C87'], // Light purple bg, purple accent, dark purple text
-  olive: ['#F7FEE7', '#84CC16', '#365314'], // Light green bg, green accent, dark green text
-  agave: ['#D1FAE5', '#10B981', '#064E3B'], // Light teal bg, emerald accent, dark teal text
-  sea: ['#E0F2FE', '#0EA5E9', '#0C4A6E'], // Light blue bg, sky accent, dark blue text
-  coral: ['#FFF1F2', '#F43F5E', '#9F1239'], // Light coral bg, rose accent, dark red text
-  sage: ['#F0FDF4', '#22C55E', '#14532D'], // Light sage bg, green accent, dark green text
-  peach: ['#FFF7ED', '#FB923C', '#7C2D12'], // Light peach bg, orange accent, dark brown text
-  mint: ['#F0FDFA', '#14B8A6', '#134E4A'], // Light mint bg, teal accent, dark teal text
-  slate: ['#F8FAFC', '#64748B', '#0F172A'], // Light slate bg, slate accent, dark slate text
-  amber: ['#FFFBEB', '#F59E0B', '#78350F'], // Light amber bg, amber accent, dark brown text
-  indigo: ['#EEF2FF', '#6366F1', '#312E81'], // Light indigo bg, indigo accent, dark indigo text
-  emerald: ['#ECFDF5', '#10B981', '#064E3B'], // Light emerald bg, emerald accent, dark emerald text
-  cyan: ['#ECFEFF', '#06B6D4', '#164E63'], // Light cyan bg, cyan accent, dark cyan text
-  violet: ['#F5F3FF', '#8B5CF6', '#4C1D95'], // Light violet bg, violet accent, dark violet text
-  dark: ['#1F2937', '#374151', '#F9FAFB'], // Dark gray bg, medium gray accent, light text
+const colorPalettes = {
+  light: ['#E5E7EB', '#1F2937', '#000000'],
+  gold: ['#F59E0B', '#78350F', '#000000'],
+  rose: ['#EC4899', '#831843', '#000000'],
+  terracotta: ['#EA580C', '#7C2D12', '#000000'],
+  lavender: ['#A855F7', '#581C87', '#FFFFFF'],
+  olive: ['#84CC16', '#365314', '#000000'],
+  agave: ['#10B981', '#064E3B', '#FFFFFF'],
+  sea: ['#0EA5E9', '#0C4A6E', '#FFFFFF'],
+  coral: ['#F43F5E', '#9F1239', '#FFFFFF'],
+  sage: ['#22C55E', '#14532D', '#000000'],
+  peach: ['#FB923C', '#7C2D12', '#000000'],
+  mint: ['#14B8A6', '#134E4A', '#FFFFFF'],
+  slate: ['#64748B', '#0F172A', '#FFFFFF'],
+  amber: ['#F59E0B', '#78350F', '#000000'],
+  indigo: ['#6366F1', '#312E81', '#FFFFFF'],
+  emerald: ['#10B981', '#064E3B', '#FFFFFF'],
+  cyan: ['#06B6D4', '#164E63', '#FFFFFF'],
+  violet: ['#8B5CF6', '#4C1D95', '#FFFFFF'],
+  dark: ['#374151', '#F9FAFB', '#FFFFFF'],
 }
 
 const paletteColors = computed(() => {
@@ -837,11 +818,11 @@ const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
 
 const coverImage = computed(() => {
-  const mediaToUse = props.previewMode && props.previewMedia ? props.previewMedia : media.value
+  const mediaToUse = props.previewMode && props.previewMedia ? props.previewMedia : null
   const collectionToUse =
-    props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+    props.previewMode && props.previewCollection ? props.previewCollection : null
 
-  // Use first media item as cover photo
+  // Use first media item photo
   if (mediaToUse && mediaToUse.length > 0) {
     return mediaToUse[0].url
   }
@@ -871,7 +852,7 @@ const handleCoverImageError = () => {
 
 // Get focal point for cover image positioning
 const coverFocalPoint = computed(() => {
-  const focalPoint = (designConfig.value as any).coverFocalPoint
+  const focalPoint = designConfig.value.coverFocalPoint
   // Support both old string format and new object format
   if (
     typeof focalPoint === 'object' &&
@@ -883,7 +864,7 @@ const coverFocalPoint = computed(() => {
   }
   // Fallback for old string format
   if (typeof focalPoint === 'string') {
-    const focalPointMap: Record<string, string> = {
+    const focalPointMap = {
       center: 'center center',
       top: 'center top',
       bottom: 'center bottom',
@@ -926,36 +907,36 @@ const overlayColor = computed(() => {
 })
 
 const fontFamilyClass = computed(() => {
-  const fontMap: Record<string, string> = {
+  const fontMap = {
     sans: 'font-sans',
     serif: 'font-serif',
-    modern: 'font-mono',
-    playfair: 'font-playfair',
-    montserrat: 'font-montserrat',
-    lato: 'font-lato',
-    raleway: 'font-raleway',
-    opensans: 'font-opensans',
-    roboto: 'font-roboto',
-    poppins: 'font-poppins',
-    inter: 'font-inter',
-    nunito: 'font-nunito',
-    merriweather: 'font-merriweather',
-    crimson: 'font-crimson',
-    lora: 'font-lora',
-    source: 'font-source',
-    ubuntu: 'font-ubuntu',
-    dancing: 'font-dancing',
-    pacifico: 'font-pacifico',
-    caveat: 'font-caveat',
+    modern: 'font-serif',
+    playfair: 'font-serif',
+    montserrat: 'font-sans',
+    lato: 'font-sans',
+    raleway: 'font-sans',
+    opensans: 'font-sans',
+    roboto: 'font-sans',
+    poppins: 'font-sans',
+    inter: 'font-sans',
+    nunito: 'font-sans',
+    merriweather: 'font-serif',
+    crimson: 'font-serif',
+    lora: 'font-serif',
+    source: 'font-sans',
+    ubuntu: 'font-sans',
+    dancing: 'font-serif',
+    pacifico: 'font-serif',
+    caveat: 'font-serif',
   }
   return fontMap[designConfig.value.fontFamily || 'sans'] || 'font-sans'
 })
 
 const fontStyleClass = computed(() => {
-  const styleMap: Record<string, string> = {
-    timeless: 'font-light',
+  const styleMap = {
+    timeless: 'font-serif',
     bold: 'font-bold',
-    subtle: 'font-normal',
+    subtle: 'font-light',
   }
   return styleMap[designConfig.value.fontStyle || 'bold'] || 'font-bold'
 })
@@ -1054,14 +1035,14 @@ const collectionName = computed(() => {
 
 const eventDate = computed(() => {
   if (props.previewMode && props.previewCollection) {
-    return (props.previewCollection as any).date || (props.previewCollection as any).eventDate
+    return props.previewCollection.date || props.previewCollection.eventDate
   }
-  return (collection.value as any)?.date || (collection.value as any)?.eventDate
+  return collection.value?.date || collection.value?.eventDate
 })
 const formattedDate = computed(() => {
   if (!eventDate.value) return ''
   try {
-    let date: Date
+    let date
     if (typeof eventDate.value === 'string') {
       date = new Date(eventDate.value)
     } else if (eventDate.value instanceof Date) {
@@ -1082,15 +1063,13 @@ const showBranding = computed(() => true) // Can be made configurable
 const brandingText = computed(() => 'BERNODE') // Can come from branding settings
 
 // Joy cover config computed properties
-const joyCoverTitle = computed(() => (designConfig.value as any).joyCoverTitle || 'JOY')
-const joyCoverAvatar = computed(() => (designConfig.value as any).joyCoverAvatar)
-const joyCoverBackgroundPattern = computed(
-  () => (designConfig.value as any).joyCoverBackgroundPattern
-)
-const joyCoverShowDate = computed(() => (designConfig.value as any).joyCoverShowDate)
-const joyCoverShowName = computed(() => (designConfig.value as any).joyCoverShowName)
-const joyCoverShowButton = computed(() => (designConfig.value as any).joyCoverShowButton)
-const joyCoverButtonText = computed(() => (designConfig.value as any).joyCoverButtonText)
+const joyCoverTitle = computed(() => designConfig.value.joyCoverTitle || 'JOY')
+const joyCoverAvatar = computed(() => designConfig.value.joyCoverAvatar)
+const joyCoverBackgroundPattern = computed(() => designConfig.value.joyCoverBackgroundPattern)
+const joyCoverShowDate = computed(() => designConfig.value.joyCoverShowDate)
+const joyCoverShowName = computed(() => designConfig.value.joyCoverShowName)
+const joyCoverShowButton = computed(() => designConfig.value.joyCoverShowButton)
+const joyCoverButtonText = computed(() => designConfig.value.joyCoverButtonText)
 
 const tabs = computed(() => {
   // Get tabs from preset or use defaults
@@ -1098,7 +1077,7 @@ const tabs = computed(() => {
 
   // If this is a preset preview route, get the preset by name
   if (route.name === 'presetPreview') {
-    const presetName = route.params.name as string
+    const presetName = route.params.name
     if (presetName) {
       const presetByName = presetStore.getPresetByName(presetName)
       if (presetByName) {
@@ -1107,7 +1086,7 @@ const tabs = computed(() => {
     }
   }
 
-  return preset?.photoSets && preset.photoSets.length > 0 ? preset.photoSets : ['Highlights']
+  return preset?.photoSets && preset.photoSets.length > 0 ? preset.photoSets : []
 })
 
 const filteredMedia = computed(() => {
@@ -1129,16 +1108,18 @@ const filteredMedia = computed(() => {
 
 // Pagination setup
 const itemsPerPage = 12 // Show 12 items per page
+const totalItems = computed(() => filteredMedia.value.length)
+const initialPage = 1
 const pagination = usePagination({
-  totalItems: filteredMedia.value.length,
-  itemsPerPage: itemsPerPage,
-  initialPage: 1,
+  totalItems,
+  itemsPerPage,
+  initialPage,
 })
 
 // Update pagination total when filteredMedia changes
 watch(
   () => filteredMedia.value.length,
-  (newLength: number) => {
+  newLength => {
     pagination.updateTotal(newLength)
   }
 )
@@ -1153,7 +1134,7 @@ const paginatedMedia = computed(() => {
 const visiblePages = computed(() => {
   const total = pagination.totalPages.value
   const current = pagination.currentPage.value
-  const pages: number[] = []
+  const pages = []
 
   if (total <= 5) {
     // Show all pages if 5 or fewer
@@ -1193,7 +1174,7 @@ const scrollToGallery = () => {
   document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })
 }
 
-const openMediaViewer = (item: MediaItem) => {
+const openMediaViewer = item => {
   selectedMedia.value = item
 }
 
@@ -1202,11 +1183,11 @@ const closeMediaViewer = () => {
 }
 
 // Get icon for navigation tabs
-const getTabIcon = (tab: string) => {
-  const iconMap: Record<string, any> = {
+const getTabIcon = tab => {
+  const iconMap = {
     Highlights: Sparkles,
     All: Grid3x3,
-    Photos: ImageIcon,
+    Photos: Grid3x3,
   }
   return iconMap[tab] || Grid3x3
 }
@@ -1245,7 +1226,7 @@ onMounted(async () => {
   // Check if this is a preset preview route
   if (route.name === 'presetPreview') {
     // Get preset to use its name and settings
-    const presetName = route.params.name as string
+    const presetName = route.params.name
     const preset = presetName ? presetStore.getPresetByName(presetName) : null
 
     // Set current preset so tabs and other computed properties work
@@ -1255,8 +1236,8 @@ onMounted(async () => {
 
     // Use mock data for preset preview with a good collection name
     collection.value = {
-      id: 'preset-preview',
-      name: 'JOSEPH X CUPPY',
+      id: 'mock-collection-id',
+      name: 'Sample Collection',
       date: new Date().toISOString().split('T')[0],
       eventDate: new Date().toISOString().split('T')[0],
       thumbnail:
@@ -1264,8 +1245,8 @@ onMounted(async () => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: 'active',
-      category: 'event',
-    } as Collection
+      category: 'wedding',
+    }
 
     // Generate mock media
     const photoIds = [
@@ -1284,11 +1265,11 @@ onMounted(async () => {
     ]
 
     media.value = photoIds.map((id, index) => ({
-      id: `preview-${index}`,
-      collectionId: 'preset-preview',
-      url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
-      thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-      type: 'image' as const,
+      id: `mock-media-${id}`,
+      collectionId: 'mock-collection-id',
+      url: `https://images.unsplash.com/photo-${id}?w=800&h=800&fit=crop`,
+      thumbnail: `https://images.unsplash.com/photo-${id}?w=300&h=300&fit=crop`,
+      type: 'image',
       title: `Photo ${index + 1}`,
       order: index,
       createdAt: new Date().toISOString(),
@@ -1299,7 +1280,7 @@ onMounted(async () => {
     return
   }
 
-  // Normal mode: fetch data
+  // Normal mode
   try {
     isLoading.value = true
     const [collectionData, mediaData] = await Promise.all([
@@ -1318,9 +1299,9 @@ onMounted(async () => {
 // Watch store's collections array for real-time updates (preset/watermark changes)
 watch(
   () => galleryStore.collections,
-  (collections: any[]) => {
+  collections => {
     if (!props.previewMode && collectionId.value && collection.value) {
-      const updatedCollection = collections.find((c: any) => c.id === collectionId.value)
+      const updatedCollection = collections.find(c => c.id === collectionId.value)
       if (updatedCollection && updatedCollection.id === collection.value.id) {
         // Update local collection ref with latest data from store
         collection.value = { ...collection.value, ...updatedCollection }

@@ -1,6 +1,6 @@
 <template>
   <AuthLayout
-    :title="showOtp ? 'Enter verification code' : 'Forgot password?'"
+    :title="showOtp ? 'Enter verification code' : 'Forgot Password'"
     :description="
       showOtp
         ? `We've sent a 6-digit code to ${email}`
@@ -25,7 +25,7 @@
           />
 
           <Button type="submit" class="w-full" :disabled="loading || !meta.valid">
-            {{ loading ? 'Sending...' : 'Send verification code' }}
+            {{ loading ? 'Sending...' : 'Send Code' }}
           </Button>
         </Form>
 
@@ -45,7 +45,7 @@
           />
 
           <Button type="submit" class="w-full" :disabled="otpLoading || !isOtpComplete">
-            {{ otpLoading ? 'Verifying...' : 'Verify code' }}
+            {{ otpLoading ? 'Verifying...' : 'Verify Code' }}
           </Button>
         </form>
 
@@ -63,7 +63,7 @@
   </AuthLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Form } from 'vee-validate'
@@ -76,6 +76,8 @@ import OtpInput from '@/components/molecules/OtpInput.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/api/auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+
+const description = ''
 
 const emailSchema = yup.object({
   email: yup.string().required('Email is required').email('Please enter a valid email address'),
@@ -95,27 +97,27 @@ const isOtpComplete = computed(() => {
   return otpCode.value.length === 6
 })
 
-const handleForgotPassword = async (values: any) => {
+const handleForgotPassword = async values => {
   loading.value = true
   email.value = values.email
   try {
     await authApi.forgotPassword(values.email)
 
     toast.success('Verification code sent', {
-      description: 'Please check your email for the verification code.',
+      description,
     })
     showOtp.value = true
-  } catch (error: any) {
+  } catch (error) {
     console.error('Forgot password error:', error)
     handleError(error, {
-      fallbackMessage: 'Something went wrong. Please try again.',
+      fallbackMessage,
     })
   } finally {
     loading.value = false
   }
 }
 
-const handleVerifyOtp = async (verificationCode?: string) => {
+const handleVerifyOtp = async verificationCode => {
   const codeToVerify = verificationCode || otpCode.value
   if (!codeToVerify || codeToVerify.length !== 6) return
 
@@ -124,16 +126,16 @@ const handleVerifyOtp = async (verificationCode?: string) => {
     const result = await authApi.verifyPasswordResetOtp(codeToVerify)
 
     toast.success('Code verified', {
-      description: 'You can now reset your password.',
+      description,
     })
     router.push({
-      name: 'reset-password',
-      query: { token: result.token },
+      name,
+      query,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('OTP verification error:', error)
     handleError(error, {
-      fallbackMessage: 'Invalid code. Please try again.',
+      fallbackMessage,
     })
     otpCode.value = ''
   } finally {
@@ -156,12 +158,12 @@ const resendOtp = async () => {
     }, 1000)
 
     toast.success('Code resent', {
-      description: 'Please check your email for the new code.',
+      description,
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Resend error:', error)
     handleError(error, {
-      fallbackMessage: 'Please try again later.',
+      fallbackMessage,
     })
   }
 }

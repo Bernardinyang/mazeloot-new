@@ -125,9 +125,7 @@
             <component
               :is="item.icon"
               class="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
-              :class="
-                activeTab === item.id ? 'text-teal-600 dark:text-teal-400' : theme.textSecondary
-              "
+              :class="activeTab === item.id ? 'text-teal-600 dark:text-teal-400' : ''"
             />
             <span
               v-if="!isSidebarCollapsed"
@@ -159,7 +157,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, provide, nextTick, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -177,7 +175,7 @@ import {
 } from 'lucide-vue-next'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { usePresetStore, type Preset } from '@/stores/preset'
+import { usePresetStore } from '@/stores/preset'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
@@ -193,7 +191,7 @@ provide('isSidebarCollapsed', isSidebarCollapsed)
 
 // Get preset from store based on route params
 const currentPreset = computed(() => {
-  const nameParam = route.params.name as string
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
@@ -207,14 +205,14 @@ const presetName = computed(() => {
 // Title editing state
 const isEditingTitle = ref(false)
 const editingTitle = ref('')
-const titleInputRef = ref<HTMLInputElement | null>(null)
+const titleInputRef = ref(null)
 const isSavingTitle = ref(false)
 const isBlurring = ref(false)
 
 // Watch preset name changes to update editing title
 watch(
   () => currentPreset.value?.name,
-  (newName: string | undefined) => {
+  newName => {
     if (newName && !isEditingTitle.value) {
       editingTitle.value = newName
     }
@@ -237,7 +235,7 @@ const cancelEditingTitle = () => {
   editingTitle.value = currentPreset.value?.name || ''
 }
 
-const handleEnterKey = (e: KeyboardEvent) => {
+const handleEnterKey = e => {
   e.preventDefault()
   saveTitle()
 }
@@ -277,20 +275,20 @@ const saveTitle = async () => {
   isSavingTitle.value = true
   isBlurring.value = true
   try {
-    await presetStore.updatePreset(currentPreset.value.id, { name: newName })
+    await presetStore.updatePreset(currentPreset.value.id, { name: editingName.value })
 
     // Update route if name changed
     if (oldName !== newName) {
       router.replace({
-        name: route.name as string,
-        params: { name: newName },
+        name,
+        params,
       })
     }
 
     toast.success('Preset name updated')
     isEditingTitle.value = false
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update preset name'
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An error occurred'
     toast.error(errorMessage)
     titleInputRef.value?.focus()
   } finally {
@@ -310,7 +308,7 @@ const navigationItems = [
 
 // Determine active tab based on current route
 const activeTab = computed(() => {
-  const routeName = route.name as string
+  const routeName = route.name
   if (routeName === 'presetGeneral') return 'general'
   if (routeName === 'presetDesign') return 'design'
   if (routeName === 'presetPrivacy') return 'privacy'
@@ -323,11 +321,11 @@ const handleClose = () => {
   router.push({ name: 'presetSettings' })
 }
 
-const handleNavClick = (_tabId: string, routeName?: string) => {
+const handleNavClick = _tabId => {
   if (routeName && routeName !== route.name) {
     router.push({
-      name: routeName,
-      params: { name: route.params.name },
+      name,
+      params,
     })
   }
 }

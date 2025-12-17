@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesDownload'
+              route.name === 'collectionActivitiesDownload'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,11 +45,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesFavourite'
+              route.name === 'collectionActivitiesFavourite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -58,11 +58,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesEmailRegistration'
+              route.name === 'collectionActivitiesEmailRegistration'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesEmailRegistration', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Mail :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -71,11 +71,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesQuickShare'
+              route.name === 'collectionActivitiesQuickShare'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Link :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -84,11 +84,11 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesPrivatePhotos'
+              route.name === 'collectionActivitiesPrivatePhotos'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
-            :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
+            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
           >
             <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
@@ -99,10 +99,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -110,11 +107,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-7xl p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-8">
             <div class="flex items-center justify-between mb-2">
@@ -187,7 +180,7 @@
                       :class="
                         link.active
                           ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                       "
                       class="px-2 py-1 rounded-full text-xs font-semibold"
                     >
@@ -217,14 +210,14 @@
                     {{ link.description || 'No description' }}
                   </p>
                   <div :class="theme.textSecondary" class="flex items-center gap-6 text-xs">
-                    <span>Created: {{ formatDate(link.createdAt) }}</span>
+                    <span>Created) }}</span>
                     <span>•</span>
                     <span>{{ link.clickCount }} clicks</span>
                     <span>•</span>
                     <span
                       >Last used:
-                      {{ link.lastUsedAt ? formatDate(link.lastUsedAt) : 'Never' }}</span
-                    >
+                      {{ link.lastUsedAt ? formatDate(link.lastUsedAt) : 'Never' }}
+                    </span>
                   </div>
                 </div>
                 <div class="flex items-center gap-2 ml-4">
@@ -279,7 +272,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
@@ -295,24 +288,12 @@ import {
   Trash2,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
 import { toast } from 'vue-sonner'
-
-interface ShareLink {
-  id: string
-  name: string
-  url: string
-  description: string | null
-  active: boolean
-  createdAt: string
-  clickCount: number
-  lastUsedAt: string | null
-}
 
 const route = useRoute()
 const router = useRouter()
@@ -321,31 +302,31 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('activities')
+const activeTab = ref('activities')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Share links data
-const shareLinks = ref<ShareLink[]>([])
+const shareLinks = ref([])
 const showCreateModal = ref(false)
 
 // Computed stats
@@ -359,9 +340,9 @@ const thisWeekClicks = computed(() => {
 })
 
 // Generate demo data
-const generateDemoData = (): ShareLink[] => {
+const generateDemoData = () => {
   const now = new Date()
-  const demoLinks: ShareLink[] = []
+  const demoLinks = []
 
   const linkNames = [
     'Wedding Highlights',
@@ -412,22 +393,21 @@ const generateDemoData = (): ShareLink[] => {
 
     demoLinks.push({
       id: `link-${i + 1}`,
-      name: linkNames[i] || `Share Link ${i + 1}`,
+      name: linkNames[i % linkNames.length],
       url: `${baseUrl}/share/${Math.random().toString(36).substring(7)}`,
       description: descriptions[Math.floor(Math.random() * descriptions.length)],
-      active,
+      active: active,
       createdAt: createdAt.toISOString(),
-      clickCount,
-      lastUsedAt,
+      clickCount: clickCount,
+      lastUsedAt: lastUsedAt,
     })
   }
 
   return demoLinks.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 }
-
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -436,13 +416,13 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    // TODO: Fetch share links from API
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    // TODO
     // shareLinks.value = await fetchShareLinks(collectionId)
     // For now, use demo data
     shareLinks.value = generateDemoData()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     shareLinks.value = generateDemoData()
@@ -453,33 +433,33 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
 }
 
 // Format helpers
-const formatDate = (dateString: string) => {
+const formatDate = dateString => {
   return new Date(dateString).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'short',
@@ -488,7 +468,7 @@ const formatDate = (dateString: string) => {
 }
 
 // Copy to clipboard
-const copyToClipboard = async (text: string) => {
+const copyToClipboard = async text => {
   try {
     await navigator.clipboard.writeText(text)
     toast.success('Link copied to clipboard')
@@ -498,14 +478,14 @@ const copyToClipboard = async (text: string) => {
 }
 
 // Edit link
-const editLink = (link: ShareLink) => {
-  // TODO: Implement edit functionality
+const editLink = link => {
+  // TODO
   console.log('Edit link:', link)
 }
 
 // Delete link
-const deleteLink = async (linkId: string) => {
-  // TODO: Implement delete functionality
+const deleteLink = async linkId => {
+  // TODO
   console.log('Delete link:', linkId)
   toast.success('Link deleted')
 }

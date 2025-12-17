@@ -268,7 +268,7 @@
             <div class="flex-1">
               <h3 class="text-base font-semibold mb-1.5" :class="theme.textPrimary">Slideshow</h3>
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-                Allow visitors to view the images in their collection as a slideshow.
+                Allow visitors to view the images in their collection slideshow.
                 <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
                   Learn more
                 </a>
@@ -448,7 +448,7 @@
   </PresetLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -477,7 +477,7 @@ const watermarkStore = useWatermarkStore()
 
 // Get preset from store based on route params
 const currentPreset = computed(() => {
-  const nameParam = route.params.name as string
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
@@ -500,31 +500,25 @@ const showUpgradePopover = ref(false)
 
 // Form data
 const formData = ref({
-  collectionTags: '',
-  defaultWatermark: 'none',
-  emailRegistration: false,
-  galleryAssist: false,
-  slideshow: true,
-  socialSharing: true,
-  language: 'en',
+  collectionTags,
+  defaultWatermark,
+  emailRegistration,
+  galleryAssist,
+  slideshow,
+  socialSharing,
+  language,
 })
 
 // Collection tags with tag input
-const collectionTags = ref<string[]>([])
+const collectionTags = ref([])
 const collectionTagInput = ref('')
 
 // Photo sets with tags
-const photoSets = ref<string[]>(['Highlights'])
+const photoSets = ref(['Highlights'])
 const photoSetInput = ref('')
 
 // Store original loaded data for comparison
-interface OriginalData {
-  formData: typeof formData.value
-  collectionTags: string[]
-  photoSets: string[]
-}
-
-const originalData = ref<OriginalData | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
@@ -543,16 +537,12 @@ const hasUnsavedChanges = computed(() => {
   // Compare collection tags (deep comparison)
   const collectionTagsChanged =
     collectionTags.value.length !== originalData.value.collectionTags.length ||
-    collectionTags.value.some(
-      (tag: string, index: number) => tag !== originalData.value!.collectionTags[index]
-    )
+    collectionTags.value.some((tag, index) => tag !== originalData.value.collectionTags[index])
 
   // Compare photo sets (deep comparison)
   const photoSetsChanged =
     photoSets.value.length !== originalData.value.photoSets.length ||
-    photoSets.value.some(
-      (set: string, index: number) => set !== originalData.value!.photoSets[index]
-    )
+    photoSets.value.some((set, index) => set !== originalData.value.photoSets[index])
 
   return formChanged || collectionTagsChanged || photoSetsChanged
 })
@@ -565,26 +555,26 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const loadedFormData = {
-      collectionTags: '', // Keep for backward compatibility but we'll use collectionTags array
-      defaultWatermark: currentPreset.value.defaultWatermark || 'none',
-      emailRegistration: currentPreset.value.emailRegistration ?? false,
-      galleryAssist: currentPreset.value.galleryAssist ?? false,
-      slideshow: currentPreset.value.slideshow ?? true,
-      socialSharing: currentPreset.value.socialSharing ?? true,
-      language: currentPreset.value.language || 'en',
+      collectionTags, // Keep for backward compatibility but we'll use collectionTags array
+      defaultWatermark,
+      emailRegistration,
+      galleryAssist,
+      slideshow,
+      socialSharing,
+      language,
     }
 
     // Load collection tags - support both string (comma-separated) and array formats
-    let loadedCollectionTags: string[] = []
+    let loadedCollectionTags
     if (currentPreset.value.collectionTags) {
       if (typeof currentPreset.value.collectionTags === 'string') {
         // Parse comma-separated string
         loadedCollectionTags = currentPreset.value.collectionTags
           .split(',')
-          .map((tag: string) => tag.trim())
-          .filter((tag: string) => tag.length > 0)
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0)
       } else if (Array.isArray(currentPreset.value.collectionTags)) {
-        loadedCollectionTags = [...(currentPreset.value.collectionTags as string[])]
+        loadedCollectionTags = [...currentPreset.value.collectionTags]
       }
     }
 
@@ -597,9 +587,9 @@ const loadPresetData = () => {
     collectionTags.value = loadedCollectionTags
     photoSets.value = loadedPhotoSets
     originalData.value = {
-      formData: { ...loadedFormData },
-      collectionTags: [...loadedCollectionTags],
-      photoSets: [...loadedPhotoSets],
+      formData,
+      collectionTags,
+      photoSets,
     }
     presetStore.setCurrentPreset(currentPreset.value.id)
     isLoadingData.value = false
@@ -612,11 +602,11 @@ watch(
   () => {
     loadPresetData()
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 // Keyboard shortcut handler
-let keyDownHandler: ((e: KeyboardEvent) => void) | null = null
+let keyDownHandler = null
 
 // Initialize on mount
 onMounted(async () => {
@@ -625,12 +615,12 @@ onMounted(async () => {
   // Fetch watermarks
   try {
     await watermarkStore.fetchWatermarks()
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to fetch watermarks:', error)
   }
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
-  keyDownHandler = (e: KeyboardEvent) => {
+  keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       if (!isSaving.value && hasUnsavedChanges.value && presetId.value) {
@@ -653,8 +643,8 @@ const addCollectionTag = () => {
   if (collectionTagInput.value.trim()) {
     const tags = collectionTagInput.value
       .split(',')
-      .map((tag: string) => tag.trim())
-      .filter((tag: string) => tag && !collectionTags.value.includes(tag))
+      .map(tag => tag.trim())
+      .filter(tag => tag && !collectionTags.value.includes(tag))
     if (tags.length > 0) {
       collectionTags.value.push(...tags)
       collectionTagInput.value = ''
@@ -662,7 +652,7 @@ const addCollectionTag = () => {
   }
 }
 
-const removeCollectionTag = (index: number) => {
+const removeCollectionTag = index => {
   collectionTags.value.splice(index, 1)
 }
 
@@ -670,8 +660,8 @@ const addPhotoSet = () => {
   if (photoSetInput.value.trim()) {
     const tags = photoSetInput.value
       .split(',')
-      .map((tag: string) => tag.trim())
-      .filter((tag: string) => tag && !photoSets.value.includes(tag))
+      .map(tag => tag.trim())
+      .filter(tag => tag && !photoSets.value.includes(tag))
     if (tags.length > 0) {
       photoSets.value.push(...tags)
       photoSetInput.value = ''
@@ -679,7 +669,7 @@ const addPhotoSet = () => {
   }
 }
 
-const removePhotoSet = (index: number) => {
+const removePhotoSet = index => {
   photoSets.value.splice(index, 1)
 }
 
@@ -691,30 +681,30 @@ const handleSave = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      collectionTags: collectionTags.value.join(', '), // Save as comma-separated string for backward compatibility
-      photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      collectionTags: collectionTags.join(','), // Save as comma-separated string for backward compatibility
+      photoSets,
+      defaultWatermark,
+      emailRegistration,
+      galleryAssist,
+      slideshow,
+      socialSharing,
+      language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
-        photoSets: [...photoSets.value],
+        formData,
+        photoSets,
       }
     }
     toast.success('Preset saved successfully', {
-      description: `"${presetName.value}" has been updated.`,
-      icon: Check,
+      description,
+      icon,
     })
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
+      description,
     })
   }
 }
@@ -730,40 +720,40 @@ const handleNext = async () => {
   try {
     // Always save all data before navigating
     await presetStore.updatePreset(presetId.value, {
-      collectionTags: collectionTags.value.join(', '), // Save as comma-separated string for backward compatibility
-      photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      collectionTags: collectionTags.join(','), // Save as comma-separated string for backward compatibility
+      photoSets,
+      defaultWatermark,
+      emailRegistration,
+      galleryAssist,
+      slideshow,
+      socialSharing,
+      language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
-        collectionTags: [...collectionTags.value],
-        photoSets: [...photoSets.value],
+        formData,
+        collectionTags,
+        photoSets,
       }
     }
 
     // Navigate to Design tab
     router.push({
-      name: 'presetDesign',
-      params: { name: route.params.name },
+      name,
+      params,
     })
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
+      description,
     })
   } finally {
     isSubmitting.value = false
   }
 }
 
-const savePresetGeneral = async (): Promise<boolean> => {
+const savePresetGeneral = async () => {
   if (!presetId.value) {
     toast.error('Preset not found')
     return false
@@ -771,28 +761,28 @@ const savePresetGeneral = async (): Promise<boolean> => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      collectionTags: collectionTags.value.join(', '), // Save as comma-separated string for backward compatibility
-      photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      collectionTags: collectionTags.join(','), // Save as comma-separated string for backward compatibility
+      photoSets,
+      defaultWatermark,
+      emailRegistration,
+      galleryAssist,
+      slideshow,
+      socialSharing,
+      language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
-        collectionTags: [...collectionTags.value],
-        photoSets: [...photoSets.value],
+        formData,
+        collectionTags,
+        photoSets,
       }
     }
     return true
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
+      description,
     })
     return false
   }
@@ -815,8 +805,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction: savePresetGeneral,
-    discardFunction: discardChanges,
+    saveFunction,
+    discardFunction,
     showUnsavedChangesModal,
   })
 </script>

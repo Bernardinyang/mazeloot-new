@@ -1,7 +1,7 @@
 <template>
   <PresetLayout>
     <div
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-3xl'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
     >
       <div class="mb-10">
@@ -147,8 +147,7 @@
   </PresetLayout>
 </template>
 
-<script lang="ts" setup>
-import type { Ref } from 'vue'
+<script setup>
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -159,7 +158,6 @@ import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import type { Preset } from '@/stores/preset'
 import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
@@ -168,18 +166,18 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject<Ref<boolean>>('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject < Ref < boolean >> ('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
-const currentPreset = computed((): Preset | undefined => {
-  const nameParam = route.params.name as string
+const currentPreset = computed(() => {
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
   return undefined
 })
 
-const presetId = computed((): string | null => {
+const presetId = computed(() => {
   return currentPreset.value?.id || null
 })
 
@@ -188,18 +186,13 @@ const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Privacy form data
-interface PrivacyFormData {
-  collectionPassword: boolean
-  showOnHomepage: boolean
-}
-
-const formData = ref<PrivacyFormData>({
-  collectionPassword: false,
-  showOnHomepage: true,
+const formData = ref({
+  collectionPassword,
+  showOnHomepage,
 })
 
 // Store original loaded data for comparison
-const originalData = ref<PrivacyFormData | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
@@ -217,9 +210,10 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const privacyData = currentPreset.value.privacy || {}
-    const loadedData: PrivacyFormData = {
-      collectionPassword: privacyData.collectionPassword || false,
-      showOnHomepage: privacyData.showOnHomepage !== undefined ? privacyData.showOnHomepage : true,
+    const loadedData = {
+      collectionPassword:
+        privacyData.collectionPassword !== undefined ? privacyData.collectionPassword : '',
+      showOnHomepage: privacyData.showOnHomepage !== undefined ? privacyData.showOnHomepage : false,
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -234,18 +228,18 @@ watch(
   () => {
     loadPresetData()
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 // Keyboard shortcut handler
-let keyDownHandler: ((e: KeyboardEvent) => void) | null = null
+let keyDownHandler = null
 
 // Initialize on mount
 onMounted(() => {
   loadPresetData()
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
-  keyDownHandler = (e: KeyboardEvent): void => {
+  keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       if (!isSaving.value && hasUnsavedChanges.value && presetId.value) {
@@ -265,7 +259,7 @@ onUnmounted(() => {
 })
 
 // Helper function to save preset privacy
-const savePresetPrivacy = async (): Promise<boolean> => {
+const savePresetPrivacy = async () => {
   if (!presetId.value) {
     toast.error('Preset not found')
     return false
@@ -273,15 +267,15 @@ const savePresetPrivacy = async (): Promise<boolean> => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      privacy: formData.value,
+      privacy,
     })
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred while saving.'
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     toast.error('Failed to save preset', {
       description: errorMessage,
     })
@@ -293,8 +287,8 @@ const handleSave = async () => {
   const success = await savePresetPrivacy()
   if (success) {
     toast.success('Preset saved successfully', {
-      description: 'Privacy settings have been updated.',
-      icon: Check,
+      description,
+      icon,
     })
   }
 }
@@ -305,8 +299,8 @@ const handlePrevious = async () => {
     const success = await savePresetPrivacy()
     if (success) {
       router.push({
-        name: 'presetDesign',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -320,8 +314,8 @@ const handleNext = async () => {
     const success = await savePresetPrivacy()
     if (success) {
       router.push({
-        name: 'presetDownload',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -344,8 +338,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction: savePresetPrivacy,
-    discardFunction: discardChanges,
+    saveFunction,
+    discardFunction,
     showUnsavedChangesModal,
   })
 </script>

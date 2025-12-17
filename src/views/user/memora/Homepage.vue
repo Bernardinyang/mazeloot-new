@@ -28,7 +28,7 @@
       </div>
 
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Left Section: Homepage Settings -->
+        <!-- Left Section -->
         <div class="space-y-6">
           <!-- Homepage Status Card -->
           <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
@@ -158,7 +158,7 @@
               />
               <span
                 class="absolute bottom-3 right-3 text-xs font-medium"
-                :class="biography.length >= 180 ? 'text-orange-500' : theme.textTertiary"
+                :class="biography.length >= 180 ? 'text-orange-500' : 'text-gray-500'"
               >
                 {{ biography.length }} / 200
               </span>
@@ -227,7 +227,7 @@
           </div>
         </div>
 
-        <!-- Right Section: Homepage Preview -->
+        <!-- Right Section -->
         <div class="lg:sticky lg:top-6 h-fit">
           <div class="rounded-lg border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between mb-4">
@@ -431,7 +431,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from 'vue'
 import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -444,6 +444,8 @@ import { useCollectionSort } from '@/composables/useCollectionSort'
 import { HOMEPAGE_SORT_OPTIONS } from '@/constants/sortOptions'
 import { toast } from 'vue-sonner'
 
+const description = ''
+
 const theme = useThemeClasses()
 
 // Form state
@@ -455,87 +457,43 @@ const homepageInfo = ref(['biography', 'socialLinks', 'website', 'email', 'phone
 const collectionSortOrder = ref('date-new-old')
 
 // Sample collections data for preview
-const sampleCollections = ref([
-  {
-    id: 1,
-    title: 'Wedding Collection',
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=300&h=300&fit=crop',
-    dateCreated: '2025-01-15',
-  },
-  {
-    id: 2,
-    title: 'Portrait Session',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=300&fit=crop',
-    dateCreated: '2025-01-10',
-  },
-  {
-    id: 3,
-    title: 'Nature Photography',
-    image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=300&h=300&fit=crop',
-    dateCreated: '2025-01-05',
-  },
-  {
-    id: 4,
-    title: 'Event Coverage',
-    image: 'https://images.unsplash.com/photo-1514565131-fce0801e5785?w=300&h=300&fit=crop',
-    dateCreated: '2024-12-28',
-  },
-  {
-    id: 5,
-    title: 'Product Shots',
-    image: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=300&fit=crop',
-    dateCreated: '2024-12-20',
-  },
-  {
-    id: 6,
-    title: 'Family Session',
-    image: 'https://images.unsplash.com/photo-1505142468610-359e7d316be0?w=300&h=300&fit=crop',
-    dateCreated: '2024-12-15',
-  },
-])
+const sampleCollections = ref([])
 
-// Computed: Sorted collections for preview based on sort order
+// Computed
 const { sortedItems: previewCollections } = useCollectionSort(
-  sampleCollections,
+  computed(() => sampleCollections.value),
   collectionSortOrder
 )
 
-// Computed: Display name (could be from user profile, defaulting to BERNODE)
+// Computed, defaulting to BERNODE)
 const displayName = computed(() => {
   // In a real app, this would come from user profile
   return 'BERNODE'
 })
 
-// Computed: Check if preview should show content
+// Computed
 const showPreviewContent = computed(() => {
   return homepageStatus.value
 })
 
-const homepageInfoOptions = [
-  { key: 'biography', label: 'Biography' },
-  { key: 'socialLinks', label: 'Social Links' },
-  { key: 'website', label: 'Website' },
-  { key: 'email', label: 'Contact Email' },
-  { key: 'phone', label: 'Phone Number' },
-  { key: 'address', label: 'Business Address' },
-]
+const homepageInfoOptions = []
 
 const handleCopyUrl = async () => {
   try {
     await navigator.clipboard.writeText(homepageUrl.value)
     toast.success('URL copied', {
-      description: 'Homepage URL has been copied to clipboard.',
+      description,
     })
   } catch (error) {
     console.error('Failed to copy URL:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy URL to clipboard.',
+      description,
     })
   }
 }
 
-const handleBiographyInput = (e: Event) => {
-  const target = e.target as HTMLTextAreaElement
+const handleBiographyInput = e => {
+  const target = e.target
   biography.value = target.value
 }
 
@@ -549,12 +507,12 @@ const handleGeneratePassword = () => {
   }
   homepagePassword.value = password
   toast.success('Password generated', {
-    description: 'A new password has been generated.',
+    description,
   })
 }
 
 const handleViewSite = () => {
-  // TODO: Open homepage in new tab
+  // TODO
   window.open(homepageUrl.value, '_blank')
 }
 </script>

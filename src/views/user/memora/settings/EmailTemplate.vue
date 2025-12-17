@@ -100,7 +100,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Separator } from '@/components/shadcn/separator'
 import { useThemeClasses } from '@/composables/useThemeClasses'

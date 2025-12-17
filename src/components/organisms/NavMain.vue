@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import { computed, ref, watch } from 'vue'
 import { ChevronRight } from 'lucide-vue-next'
 import {
@@ -15,30 +15,33 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  useSidebar,
 } from '@/components/shadcn/sidebar'
 import { RouterLink } from 'vue-router'
-import type { NavItem } from '@/types/navigation'
 import { useNavigation } from '@/composables/useNavigation'
 
-const props = withDefaults(
-  defineProps<{
-    items: NavItem[]
-    label?: string
-  }>(),
-  {
-    label: 'Main',
-  }
-)
+const props = defineProps({
+  items: {
+    type: Array,
+    default: () => [],
+  },
+  label: {
+    type: String,
+    default: 'Main',
+  },
+})
 
 const { isActiveRoute, route } = useNavigation()
+const { state, isMobile } = useSidebar()
+const isCollapsed = computed(() => state === 'collapsed')
 
 // Check if an item is label-only (only has title, no navigation properties)
-const isLabelOnly = (item: NavItem): boolean => {
+const isLabelOnly = item => {
   return !item.name && !item.url && !item.icon && (!item.items || item.items.length === 0)
 }
 
 // Check if an item or any of its children is active
-const isItemActive = (item: NavItem): boolean => {
+const isItemActive = item => {
   // Check if the item itself is active
   if (isActiveRoute(item.url, item.name)) {
     return true
@@ -53,14 +56,14 @@ const isItemActive = (item: NavItem): boolean => {
 }
 
 // Check if a collapsible should be open (if item or any child is active)
-const shouldBeOpen = (item: NavItem): boolean => {
+const shouldBeOpen = item => {
   return isItemActive(item)
 }
 
 // Initialize open states for all collapsible items
 const initializeOpenStates = () => {
-  const states: Record<string, boolean> = {}
-  props.items.forEach(item => {
+  const states = {}
+  ;(props.items || []).forEach(item => {
     if (item.items && item.items.length > 0) {
       states[item.title] = shouldBeOpen(item)
     }
@@ -69,13 +72,13 @@ const initializeOpenStates = () => {
 }
 
 // Track open state for each collapsible item
-const openStates = ref<Record<string, boolean>>(initializeOpenStates())
+const openStates = ref(initializeOpenStates())
 
 // Watch route changes and update open states reactively
 watch(
   () => route.path,
   () => {
-    props.items.forEach(item => {
+    ;(props.items || []).forEach(item => {
       if (item.items && item.items.length > 0) {
         // Update open state based on whether item or any child is active
         openStates.value[item.title] = shouldBeOpen(item)
@@ -87,10 +90,10 @@ watch(
 
 // Group items by labels
 const groupedItems = computed(() => {
-  const groups: Array<{ label: string; items: NavItem[] }> = []
-  let currentGroup: { label: string; items: NavItem[] } | null = null
+  const groups = []
+  let currentGroup = null
 
-  for (const item of props.items) {
+  for (const item of props.items || []) {
     if (isLabelOnly(item)) {
       // Start a new group
       if (currentGroup) {
@@ -111,66 +114,65 @@ const groupedItems = computed(() => {
     groups.push(currentGroup)
   }
 
-  return groups.length > 0 ? groups : [{ label: props.label, items: props.items }]
+  return groups.length > 0 ? groups : [{ label: props.label, items: props.items || [] }]
 })
 </script>
 
 <template>
   <template v-for="(group, _groupIndex) in groupedItems" :key="`group-${_groupIndex}`">
     <SidebarGroup>
+      <!-- Match shadcn demo: label exists, sidebar styles hide it in collapsed mode -->
       <SidebarGroupLabel>{{ group.label }}</SidebarGroupLabel>
       <SidebarMenu>
         <template v-for="item in group.items" :key="item.title">
-          <!-- Items with sub-items: Collapsible -->
-          <Collapsible
-            v-if="item.items && item.items.length > 0"
-            as-child
-            v-model:open="openStates[item.title]"
-            class="group/collapsible"
-          >
-            <SidebarMenuItem>
-              <CollapsibleTrigger as-child>
-                <SidebarMenuButton :tooltip="item.title">
-                  <component :is="item.icon" v-if="item.icon" />
-                  <span>{{ item.title }}</span>
-                  <ChevronRight
-                    class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
-                  />
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenuSub>
-                  <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
-                    <SidebarMenuSubButton as-child size="sm">
-                      <RouterLink
-                        :to="subItem.name ? { name: subItem.name } : subItem.url || '#'"
-                        :class="{
-                          'bg-sidebar-accent text-sidebar-accent-foreground': isActiveRoute(
-                            subItem.url,
-                            subItem.name
-                          ),
-                        }"
-                      >
-                        <span>{{ subItem.title }}</span>
-                      </RouterLink>
-                    </SidebarMenuSubButton>
-                  </SidebarMenuSubItem>
-                </SidebarMenuSub>
-              </CollapsibleContent>
-            </SidebarMenuItem>
-          </Collapsible>
+          <!-- Items with sub-items -->
+          <SidebarMenuItem v-if="item.items && item.items.length > 0">
+            <!-- Match shadcn demo: always Collapsible; sub-menu is hidden via sidebar CSS in collapsed mode -->
+            <Collapsible v-model:open="openStates[item.title]" as-child class="group/collapsible">
+              <div>
+                <CollapsibleTrigger as-child>
+                  <SidebarMenuButton :tooltip="item.title">
+                    <component :is="item.icon" v-if="item.icon" />
+                    <span>{{ item.title }}</span>
+                    <ChevronRight
+                      class="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                    />
+                  </SidebarMenuButton>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
+                      <SidebarMenuSubButton as-child size="sm">
+                        <RouterLink
+                          :class="{
+                            'bg-sidebar-accent text-sidebar-accent-foreground': isActiveRoute(
+                              subItem.url,
+                              subItem.name
+                            ),
+                          }"
+                          :to="subItem.name ? { name: subItem.name } : subItem.url || '#'"
+                        >
+                          <span>{{ subItem.title }}</span>
+                        </RouterLink>
+                      </SidebarMenuSubButton>
+                    </SidebarMenuSubItem>
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </div>
+            </Collapsible>
+          </SidebarMenuItem>
 
           <!-- Items without sub-items: Direct link -->
           <SidebarMenuItem v-else>
-            <SidebarMenuButton as-child :tooltip="item.title">
+            <SidebarMenuButton :tooltip="item.title" as-child>
               <RouterLink
-                :to="item.name ? { name: item.name } : item.url || '#'"
                 :class="{
                   'bg-sidebar-accent text-sidebar-accent-foreground': isActiveRoute(
                     item.url,
                     item.name
                   ),
                 }"
+                :to="item.name ? { name: item.name } : item.url || '#'"
               >
                 <component :is="item.icon" v-if="item.icon" />
                 <span>{{ item.title }}</span>

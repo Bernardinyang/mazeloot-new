@@ -32,9 +32,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesDownload'
+              route.name === 'collectionActivitiesDownload'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -45,9 +45,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesFavourite'
+              route.name === 'collectionActivitiesFavourite'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -58,9 +58,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesEmailRegistration'
+              route.name === 'collectionActivitiesEmailRegistration'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesEmailRegistration', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -71,9 +71,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesQuickShare'
+              route.name === 'collectionActivitiesQuickShare'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -84,9 +84,9 @@
           <router-link
             v-if="collection?.id"
             :class="[
-              $route.name === 'collectionActivitiesPrivatePhotos'
+              route.name === 'collectionActivitiesPrivatePhotos'
                 ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
             ]"
             :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -108,9 +108,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionActivitiesDownload'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionActivitiesDownload' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -127,9 +125,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionActivitiesFavourite'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionActivitiesFavourite' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -146,9 +142,9 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionActivitiesEmailRegistration'
+                  route.name === 'collectionActivitiesEmailRegistration'
                     ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                    : '',
                 ]"
                 :to="{
                   name: 'collectionActivitiesEmailRegistration',
@@ -168,9 +164,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionActivitiesQuickShare'
-                    ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  route.name === 'collectionActivitiesQuickShare' ? 'bg-teal-500 text-white' : '',
                 ]"
                 :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -187,9 +181,9 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  $route.name === 'collectionActivitiesPrivatePhotos'
+                  route.name === 'collectionActivitiesPrivatePhotos'
                     ? 'bg-teal-500 text-white'
-                    : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                    : '',
                 ]"
                 :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -206,10 +200,7 @@
     </template>
 
     <template #content>
-      <div
-        :class="isSidebarCollapsed ? 'ml-0' : ''"
-        class="flex-1 overflow-y-auto custom-scrollbar"
-      >
+      <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
@@ -217,11 +208,7 @@
           </div>
         </div>
 
-        <div
-          v-else
-          :class="isSidebarCollapsed ? 'max-w-full' : ''"
-          class="max-w-[50%] p-6 md:p-8 transition-all duration-300"
-        >
+        <div v-else class="p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -242,8 +229,8 @@
               class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
               @click="
                 router.push({
-                  name: 'collectionActivitiesDownload',
-                  params: { uuid: collection?.id },
+                  name,
+                  params,
                 })
               "
             >
@@ -266,8 +253,8 @@
               class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
               @click="
                 router.push({
-                  name: 'collectionActivitiesFavourite',
-                  params: { uuid: collection?.id },
+                  name,
+                  params,
                 })
               "
             >
@@ -290,8 +277,8 @@
               class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
               @click="
                 router.push({
-                  name: 'collectionActivitiesEmailRegistration',
-                  params: { uuid: collection?.id },
+                  name,
+                  params,
                 })
               "
             >
@@ -355,7 +342,7 @@
   </CollectionLayout>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
@@ -365,12 +352,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
-import CollectionLayout from '@/components/organisms/CollectionLayout.vue'
+import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import type { Collection } from '@/api/collections'
 
 const route = useRoute()
 const router = useRouter()
@@ -379,27 +365,27 @@ const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 
 // Collection data
-const collection = ref<Collection | null>(null)
+const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref<'draft' | 'published'>('draft')
-const eventDate = ref<Date | null>(null)
-const selectedPresetId = ref<string>('none')
+const collectionStatus = ref('draft')
+const eventDate = ref(null)
+const selectedPresetId = ref('none')
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find((p: any) => p.id === selectedPresetId.value)
+  const preset = presets.value.find(p => p.id === selectedPresetId.value)
   return preset?.name || null
 })
 const selectedWatermark = ref('none')
 const selectedWatermarkName = computed(() => {
   if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find((w: any) => w.id === selectedWatermark.value)
+  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref<'photos' | 'design' | 'settings' | 'activities'>('activities')
+const activeTab = ref('activities')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Activity counts (placeholder - would come from API)
@@ -409,7 +395,7 @@ const emailCount = ref(0)
 
 // Load collection data
 onMounted(async () => {
-  const collectionId = route.params.uuid as string
+  const collectionId = route.params.uuid
   if (!collectionId) return
 
   isLoading.value = true
@@ -418,13 +404,13 @@ onMounted(async () => {
     collection.value = collectionData
     collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = (collectionData as any).presetId || 'none'
-    selectedWatermark.value = (collectionData as any).watermarkId || 'none'
-    // TODO: Fetch activity counts from API
+    selectedPresetId.value = collectionData.presetId || 'none'
+    selectedWatermark.value = collectionData.watermarkId || 'none'
+    // TODO
     // downloadCount.value = await fetchDownloadCount(collectionId)
     // favouriteCount.value = await fetchFavouriteCount(collectionId)
     // emailCount.value = await fetchEmailCount(collectionId)
-  } catch (error: any) {
+  } catch (error) {
     console.error('Failed to load collection:', error)
   } finally {
     isLoading.value = false
@@ -433,29 +419,29 @@ onMounted(async () => {
 
 // Navigation
 const goBack = () => {
-  router.push({ name: 'manageCollections' })
+  router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
 // Handle status change
-const handleStatusChange = async (newStatus: string) => {
+const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
   // Status change logic
 }
 
 // Handle date change
-const handleDateChange = async (newDate: Date | null) => {
+const handleDateChange = async newDate => {
   if (!collection.value) return
   // Date change logic
 }
 
 // Handle preset change
-const handlePresetChange = async (presetId: string) => {
+const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
 // Handle watermark change
-const handleWatermarkChange = async (watermarkId: string) => {
+const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
 }

@@ -26,7 +26,7 @@
       />
 
       <Button type="submit" class="w-full" :disabled="loading || !meta.valid">
-        {{ loading ? 'Resetting password...' : 'Reset password' }}
+        {{ loading ? 'Resetting password...' : 'Reset Password' }}
       </Button>
     </Form>
 
@@ -34,7 +34,7 @@
   </AuthLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Form } from 'vee-validate'
@@ -46,6 +46,8 @@ import FormField from '@/components/molecules/FormField.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/api/auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+
+const description = ''
 
 const router = useRouter()
 const route = useRoute()
@@ -68,13 +70,13 @@ const schema = yup.object({
     .oneOf([yup.ref('password')], 'Passwords must match'),
 })
 
-const handleResetPassword = async (values: any) => {
-  const token = route.query.token as string
+const handleResetPassword = async values => {
+  const token = route.query.token
   if (!token) {
     toast.error('Invalid token', {
-      description: 'Please request a new password reset link.',
+      description,
     })
-    router.push({ name: 'forgot-password' })
+    router.push({ name: 'login' })
     return
   }
 
@@ -83,13 +85,13 @@ const handleResetPassword = async (values: any) => {
     await authApi.resetPassword(token, values.password)
 
     toast.success('Password reset successfully!', {
-      description: 'You can now sign in with your new password.',
+      description,
     })
     router.push({ name: 'login' })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Reset password error:', error)
     handleError(error, {
-      fallbackMessage: 'Something went wrong. Please try again.',
+      fallbackMessage,
     })
   } finally {
     loading.value = false

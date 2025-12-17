@@ -132,14 +132,21 @@
           </div>
         </div>
       </header>
-      <div :class="['flex flex-1 flex-col gap-4 p-10', theme.bgFooter, theme.transitionColors]">
+      <div
+        :class="[
+          'flex flex-1 flex-col gap-4 p-6 md:p-10',
+          'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
+          theme.bgFooter,
+          theme.transitionColors,
+        ]"
+      >
         <slot />
       </div>
     </SidebarInset>
   </SidebarProvider>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref } from 'vue'
 import { Search, Bell, CheckCircle2, ShoppingCart } from 'lucide-vue-next'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/shadcn/sidebar'
@@ -172,7 +179,6 @@ import ProductIcon from '@/components/atoms/ProductIcon.vue'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useUserStore } from '@/stores/user'
-import type { Team } from '@/types/navigation'
 
 const theme = useThemeClasses()
 const userStore = useUserStore()
@@ -183,7 +189,7 @@ const isAdmin = computed(() => {
 })
 
 // Convert Mazeloot products to teams format for navbar
-const appTeams: Team[] = MAZELOOT_PRODUCTS.map(product => ({
+const appTeams = MAZELOOT_PRODUCTS.map(product => ({
   name: product.displayName,
   logo: () => h(ProductIcon, { customType: product.customType }),
   plan: product.description,

@@ -63,7 +63,7 @@
         <CardContent class="space-y-4">
           <div class="text-center">
             <p class="text-4xl font-bold mb-2">{{ counter.count }}</p>
-            <p class="text-sm text-muted-foreground">Double: {{ counter.doubleCount }}</p>
+            <p class="text-sm text-muted-foreground">Double click to increment</p>
           </div>
           <div class="flex gap-2 justify-center">
             <Button @click="counter.decrement" variant="outline">-</Button>
@@ -76,7 +76,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useCounterStore } from '@/stores/counter'
 import { Button } from '@/components/shadcn/button'
 import Card from '@/components/shadcn/Card.vue'

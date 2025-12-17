@@ -1,8 +1,8 @@
-<script lang="ts">
+<script>
 export const description = 'A two column auth page with a cover image slider.'
 </script>
 
-<script setup lang="ts">
+<script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { GalleryVerticalEnd } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
@@ -10,86 +10,79 @@ import IconMail from '@/icons/IconMail.vue'
 import IconChevronLeft from '@/icons/IconChevronLeft.vue'
 import IconChevronRight from '@/icons/IconChevronRight.vue'
 
-defineProps<{
-  title?: string
-  description?: string
-}>()
+defineProps({
+  title: String,
+  description: String,
+})
 
-interface Testimonial {
-  quote: string
-  name: string
-  title: string
-  image: string
-}
-
-const testimonials: Testimonial[] = [
+const testimonials = [
   {
     quote:
       "We've been using MazeLoot to kick start every new project and can't imagine working without it.",
-    name: 'Victoria Bassey',
-    title: 'Lead Photographer, Layers Photography Agency',
-    image: 'https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0?w=800&h=1200&fit=crop',
+    name: 'Sarah Johnson',
+    title: 'Creative Director, Layers Photography Agency',
+    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&fit=crop',
   },
   {
     quote:
       "MazeLoot has transformed how we approach creative projects. It's become essential to our workflow.",
-    name: 'James Chen',
-    title: 'Creative Director, Studio Design Co.',
-    image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&h=1200&fit=crop',
+    name: 'Michael Chen',
+    title: 'Lead Designer, Studio Design Co.',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&fit=crop',
   },
   {
-    quote: "The best tool we've discovered for managing our creative process. Highly recommend!",
-    name: 'Sarah Martinez',
-    title: 'Art Director, Creative Minds',
-    image: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&h=1200&fit=crop',
-  },
-  {
-    quote: "MazeLoot streamlines our entire creative workflow. It's a game-changer for our team.",
-    name: 'Michael Thompson',
-    title: 'Founder, Digital Art Studio',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop',
-  },
-  {
-    quote: "We've increased our productivity by 40% since implementing MazeLoot. Incredible tool!",
+    quote: 'The best tool for managing creative workflows. Highly recommend!',
     name: 'Emily Rodriguez',
-    title: 'Project Manager, Creative Agency',
-    image: 'https://images.unsplash.com/photo-1558655146-364adaf1fcc9?w=800&h=1200&fit=crop',
+    title: 'Project Manager, Creative Minds',
+    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=1200&fit=crop',
   },
   {
-    quote: "MazeLoot helps us stay organized and creative. It's perfect for our design team.",
+    quote: 'Streamlined our entire creative process. Game changer!',
     name: 'David Kim',
-    title: 'Senior Designer, Pixel Perfect',
-    image: 'https://images.unsplash.com/photo-1558403194-611308249627?w=800&h=1200&fit=crop',
+    title: 'Art Director, Digital Art Studio',
+    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=1200&fit=crop',
   },
   {
-    quote: 'The collaboration features in MazeLoot are outstanding. Our team loves it!',
-    name: 'Lisa Anderson',
-    title: 'Creative Lead, Innovation Labs',
-    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=800&h=1200&fit=crop',
+    quote: 'MazeLoot makes collaboration seamless and efficient.',
+    name: 'Lisa Thompson',
+    title: 'Founder, Creative Agency',
+    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&fit=crop',
   },
   {
-    quote: 'MazeLoot has revolutionized how we manage creative projects. Simply amazing!',
-    name: 'Robert Wilson',
-    title: 'CEO, Creative Solutions Inc.',
-    image: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=1200&fit=crop',
+    quote: 'Perfect for teams that value organization and creativity.',
+    name: 'James Wilson',
+    title: 'CEO, Pixel Perfect',
+    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=1200&fit=crop',
   },
   {
-    quote: "Best investment we've made for our creative team. MazeLoot is indispensable.",
+    quote: 'Essential tool for modern creative professionals.',
+    name: 'Anna Martinez',
+    title: 'Design Lead, Innovation Labs',
+    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&fit=crop',
+  },
+  {
+    quote: 'MazeLoot has revolutionized our project management.',
+    name: 'Robert Taylor',
+    title: 'Creative Director, Creative Solutions Inc.',
+    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=1200&fit=crop',
+  },
+  {
+    quote: 'The perfect balance of simplicity and power.',
     name: 'Jennifer Lee',
-    title: 'Head of Design, Modern Studio',
-    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=800&h=1200&fit=crop',
+    title: 'Art Director, Modern Studio',
+    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&fit=crop',
   },
   {
     quote:
       'MazeLoot makes project management effortless. Our creative output has never been better.',
-    name: 'Thomas Brown',
-    title: 'Creative Strategist, Art Collective',
-    image: 'https://images.unsplash.com/photo-1557683310-8555750e35cd?w=800&h=1200&fit=crop',
+    name: 'Chris Anderson',
+    title: 'Founder, Art Collective',
+    image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=1200&fit=crop',
   },
 ]
 
 const currentIndex = ref(0)
-let intervalId: ReturnType<typeof setInterval> | null = null
+let intervalId
 
 const nextSlide = () => {
   currentIndex.value = (currentIndex.value + 1) % testimonials.length
@@ -99,7 +92,7 @@ const prevSlide = () => {
   currentIndex.value = (currentIndex.value - 1 + testimonials.length) % testimonials.length
 }
 
-const goToSlide = (index: number) => {
+const goToSlide = index => {
   currentIndex.value = index
   // Reset the slider timer when manually navigating
   stopSlider()
@@ -218,9 +211,7 @@ onUnmounted(() => {
               <span
                 :class="[
                   'block rounded-full transition-all duration-300 ease-in-out',
-                  index === currentIndex
-                    ? 'w-10 h-2.5 bg-white shadow-lg'
-                    : 'w-2.5 h-2.5 bg-white/50 hover:bg-white/70 hover:w-3 hover:h-3',
+                  index === currentIndex ? 'w-10 h-2.5 bg-white shadow-lg' : 'w-2 h-2 bg-white/50',
                 ]"
               />
             </button>

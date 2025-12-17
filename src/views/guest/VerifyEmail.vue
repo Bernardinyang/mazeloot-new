@@ -22,7 +22,7 @@
       />
 
       <Button type="submit" class="w-full" :disabled="loading || !isCodeComplete">
-        {{ loading ? 'Verifying...' : 'Verify email' }}
+        {{ loading ? 'Verifying...' : 'Verify Email' }}
       </Button>
     </form>
 
@@ -30,7 +30,7 @@
   </AuthLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -53,7 +53,7 @@ const isCodeComplete = computed(() => {
   return code.value.length === 6
 })
 
-const handleVerify = async (verificationCode?: string) => {
+const handleVerify = async verificationCode => {
   const codeToVerify = verificationCode || code.value
   if (!codeToVerify || codeToVerify.length !== 6) return
 
@@ -62,13 +62,13 @@ const handleVerify = async (verificationCode?: string) => {
     await authApi.verifyEmail(codeToVerify)
 
     toast.success('Email verified successfully!', {
-      description: 'Your email has been verified. You can now sign in.',
+      description: 'Your email has been verified successfully',
     })
     router.push({ name: 'login' })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Verification error:', error)
     handleError(error, {
-      fallbackMessage: 'Invalid verification code. Please try again.',
+      fallbackMessage: 'Failed to verify email',
     })
     code.value = ''
   } finally {
@@ -91,12 +91,12 @@ const resendCode = async () => {
     }, 1000)
 
     toast.success('Verification code sent', {
-      description: 'Please check your email for the new code.',
+      description: 'A new verification code has been sent to your email',
     })
-  } catch (error: any) {
+  } catch (error) {
     console.error('Resend error:', error)
     handleError(error, {
-      fallbackMessage: 'Please try again later.',
+      fallbackMessage: 'Failed to verify email',
     })
   }
 }

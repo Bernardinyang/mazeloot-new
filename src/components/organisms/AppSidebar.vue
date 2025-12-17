@@ -1,17 +1,18 @@
 <template>
-  <Sidebar variant="inset" collapsible="icon">
+  <Sidebar collapsible="icon" variant="inset">
     <SidebarHeader>
       <div
         :class="[
           'px-3 py-4 flex items-center justify-center border-b',
+          'group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3',
           theme.bgCard,
           theme.borderPrimary,
           'bg-sidebar-background',
         ]"
       >
-        <MazelootLogo size="sm" :show-text="false" />
+        <MazelootLogo :show-text="false" class="group-data-[collapsible=icon]:scale-95" size="sm" />
       </div>
-      <AppSwitcher :teams="teams" :is-admin="isAdmin" />
+      <AppSwitcher :is-admin="isAdmin" :teams="teams" />
     </SidebarHeader>
     <SidebarContent>
       <NavMain :items="navigationItems" :label="navigationLabel" />
@@ -19,19 +20,13 @@
     <SidebarFooter>
       <NavUser :user="userData" />
     </SidebarFooter>
-    <SidebarRail />
+    <!--    <SidebarRail />-->
   </Sidebar>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, h } from 'vue'
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarHeader,
-  SidebarRail,
-} from '@/components/shadcn/sidebar'
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/shadcn/sidebar'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
 import AppSwitcher from './AppSwitcher.vue'
@@ -41,7 +36,6 @@ import { useProductNavigation } from '@/composables/useProductNavigation'
 import { useUserStore } from '@/stores/user'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
-import type { Team, User } from '@/types/navigation'
 
 const theme = useThemeClasses()
 
@@ -58,7 +52,7 @@ const isAdmin = computed(() => {
 })
 
 // Convert Mazeloot products to teams format
-const teams: Team[] = MAZELOOT_PRODUCTS.map(product => ({
+const teams = MAZELOOT_PRODUCTS.map(product => ({
   name: product.displayName,
   logo: () => h(ProductIcon, { customType: product.customType }),
   plan: product.description,
@@ -66,7 +60,7 @@ const teams: Team[] = MAZELOOT_PRODUCTS.map(product => ({
 }))
 
 // Use logged-in user from store, fallback to default if not available
-const userData = computed<User>(() => {
+const userData = computed(() => {
   if (userStore.user) {
     return {
       name: userStore.user.name,

@@ -1,7 +1,7 @@
 <template>
   <PresetLayout>
     <div
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-3xl'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
     >
       <div class="mb-10">
@@ -45,18 +45,14 @@
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  :class="
-                    formData.favoritePhotos
-                      ? 'bg-teal-500/10 dark:bg-teal-500/20'
-                      : 'bg-gray-100/50 dark:bg-gray-800/50'
-                  "
+                  :class="formData.favoritePhotos ? 'bg-teal-500/10 dark:bg-teal-500/20' : ''"
                   class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <Heart
                     :class="
                       formData.favoritePhotos
                         ? 'text-teal-600 dark:text-teal-400 fill-teal-600 dark:fill-teal-400'
-                        : theme.textSecondary
+                        : ''
                     "
                     class="h-4 w-4 transition-colors"
                   />
@@ -94,19 +90,11 @@
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  :class="
-                    formData.favoriteNotes
-                      ? 'bg-teal-500/10 dark:bg-teal-500/20'
-                      : 'bg-gray-100/50 dark:bg-gray-800/50'
-                  "
+                  :class="formData.favoriteNotes ? 'bg-teal-500/10 dark:bg-teal-500/20' : ''"
                   class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <StickyNote
-                    :class="
-                      formData.favoriteNotes
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textSecondary
-                    "
+                    :class="formData.favoriteNotes ? 'text-teal-600 dark:text-teal-400' : ''"
                     class="h-4 w-4 transition-colors"
                   />
                 </div>
@@ -197,8 +185,7 @@
   </PresetLayout>
 </template>
 
-<script lang="ts" setup>
-import type { Ref } from 'vue'
+<script setup>
 import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
@@ -209,7 +196,6 @@ import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from 'vue-sonner'
-import type { Preset } from '@/stores/preset'
 import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
@@ -218,18 +204,18 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject<Ref<boolean>>('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject < Ref < boolean >> ('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
-const currentPreset = computed((): Preset | undefined => {
-  const nameParam = route.params.name as string
+const currentPreset = computed(() => {
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
   return undefined
 })
 
-const presetId = computed((): string | null => {
+const presetId = computed(() => {
   return currentPreset.value?.id || null
 })
 
@@ -238,18 +224,13 @@ const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Favorite form data
-interface FavoriteFormData {
-  favoritePhotos: boolean
-  favoriteNotes: boolean
-}
-
-const formData = ref<FavoriteFormData>({
-  favoritePhotos: true,
-  favoriteNotes: true,
+const formData = ref({
+  favoritePhotos,
+  favoriteNotes,
 })
 
 // Store original loaded data for comparison
-const originalData = ref<FavoriteFormData | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
@@ -267,10 +248,10 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const favoriteData = currentPreset.value.favorite || {}
-    const loadedData: FavoriteFormData = {
+    const loadedData = {
       favoritePhotos:
-        favoriteData.favoritePhotos !== undefined ? favoriteData.favoritePhotos : true,
-      favoriteNotes: favoriteData.favoriteNotes !== undefined ? favoriteData.favoriteNotes : true,
+        favoriteData.favoritePhotos !== undefined ? favoriteData.favoritePhotos : false,
+      favoriteNotes: favoriteData.favoriteNotes !== undefined ? favoriteData.favoriteNotes : false,
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -285,18 +266,18 @@ watch(
   () => {
     loadPresetData()
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 // Keyboard shortcut handler
-let keyDownHandler: ((e: KeyboardEvent) => void) | null = null
+let keyDownHandler = null
 
 // Initialize on mount
 onMounted(() => {
   loadPresetData()
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
-  keyDownHandler = (e: KeyboardEvent): void => {
+  keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       if (!isSaving.value && hasUnsavedChanges.value && presetId.value) {
@@ -316,7 +297,7 @@ onUnmounted(() => {
 })
 
 // Helper function to save preset favorite
-const savePresetFavorite = async (): Promise<boolean> => {
+const savePresetFavorite = async () => {
   if (!presetId.value) {
     toast.error('Preset not found')
     return false
@@ -324,17 +305,17 @@ const savePresetFavorite = async (): Promise<boolean> => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      favorite: formData.value,
+      favorite,
     })
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'An error occurred while saving.'
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     toast.error('Failed to save preset', {
-      description: errorMessage,
+      description,
     })
     return false
   }
@@ -344,8 +325,8 @@ const handleSave = async () => {
   const success = await savePresetFavorite()
   if (success) {
     toast.success('Preset saved successfully', {
-      description: 'Favorite settings have been updated.',
-      icon: Check,
+      description,
+      icon,
     })
   }
 }
@@ -356,8 +337,8 @@ const handlePrevious = async () => {
     const success = await savePresetFavorite()
     if (success) {
       router.push({
-        name: 'presetDownload',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -372,7 +353,7 @@ const handleNext = async () => {
     if (success) {
       // Navigate to next section (Store) when it's implemented
       router.push({
-        name: 'presetSettings',
+        name,
       })
     }
   } finally {
@@ -395,8 +376,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction: savePresetFavorite,
-    discardFunction: discardChanges,
+    saveFunction,
+    discardFunction,
     showUnsavedChangesModal,
   })
 </script>

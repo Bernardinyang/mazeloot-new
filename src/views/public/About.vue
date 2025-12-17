@@ -59,7 +59,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import Card from '@/components/shadcn/Card.vue'
 import CardHeader from '@/components/shadcn/CardHeader.vue'
 import CardTitle from '@/components/shadcn/CardTitle.vue'

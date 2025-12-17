@@ -255,7 +255,7 @@
   </DashboardLayout>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Folder } from 'lucide-vue-next'
@@ -280,6 +280,8 @@ import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { toast } from 'vue-sonner'
 
+const description = ''
+
 const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
@@ -291,7 +293,7 @@ const isLoadingCollections = computed(() => galleryStore.isLoading)
 // const collectionsError = computed(() => galleryStore.error) // Unused for now
 
 // View mode and sorting
-const viewMode = ref<'grid' | 'list'>('grid')
+const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
 const sortOptions = COLLECTION_SORT_OPTIONS
@@ -306,14 +308,14 @@ const filterExpiryDate = ref('all')
 const subtitleSeparator = ref('•')
 
 // Selected collections (for list view)
-const selectedCollections = ref<number[]>([])
+const selectedCollections = ref([])
 
 // Delete modal state
 const showDeleteModal = ref(false)
-const collectionToDelete = ref<any>(null)
+const collectionToDelete = ref(null)
 const isDeleting = ref(false)
 
-const getSubtitle = (collection: any, separator: string = '•') => {
+const getSubtitle = collection => {
   const parts = []
   if (collection.itemCount !== undefined) {
     const count = collection.itemCount
@@ -325,9 +327,9 @@ const getSubtitle = (collection: any, separator: string = '•') => {
   if (date) {
     const dateObj = new Date(date)
     const formattedDate = dateObj.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+      month,
+      day,
+      year,
     })
     parts.push(formattedDate)
   }
@@ -421,60 +423,60 @@ const { sortedItems: sortedCollections } = useCollectionSort(
   sortBy
 )
 
-const toggleStar = async (collection: any) => {
+const toggleStar = async collection => {
   try {
     // Store already handles optimistic update, no need to manually update
     await galleryStore.toggleStar(String(collection.id))
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to update star status.',
+      fallbackMessage,
     })
   }
 }
 
-const handleSelectCollection = (id: number, checked: boolean) => {
+const handleSelectCollection = id => {
   if (checked) {
     selectedCollections.value.push(id)
   } else {
-    selectedCollections.value = selectedCollections.value.filter((selId: number) => selId !== id)
+    selectedCollections.value = selectedCollections.value.filter(selId => selId !== id)
   }
 }
 
-const handleCollectionClick = (collection: any) => {
+const handleCollectionClick = collection => {
   router
     .push({
-      name: 'collectionDetail',
-      params: { id: collection.id },
+      name,
+      params,
     })
     .catch(() => {
       toast.info('Folder detail', {
-        description: `Viewing ${collection.name || collection.title}`,
+        description,
       })
     })
 }
 
-const handleCopyLink = async (collection: any) => {
+const handleCopyLink = async collection => {
   const collectionId = collection.id || collection.name || collection.title
   const link = `${window.location.origin}/collections/${collectionId}`
 
   try {
     await navigator.clipboard.writeText(link)
     toast.success('Link copied', {
-      description: 'Folder link has been copied to clipboard.',
+      description,
     })
   } catch (error) {
     console.error('Failed to copy link:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy link to clipboard.',
+      description,
     })
   }
 }
 
-const handleCopyPin = async (collection: any) => {
+const handleCopyPin = async collection => {
   const pin = collection.downloadPin
   if (!pin) {
     toast.error('No PIN available', {
-      description: 'This folder does not have a download PIN.',
+      description,
     })
     return
   }
@@ -482,41 +484,41 @@ const handleCopyPin = async (collection: any) => {
   try {
     await navigator.clipboard.writeText(pin)
     toast.success('PIN copied', {
-      description: 'Download PIN has been copied to clipboard.',
+      description,
     })
   } catch (error) {
     console.error('Failed to copy PIN:', error)
     toast.error('Failed to copy', {
-      description: 'Could not copy PIN to clipboard.',
+      description,
     })
   }
 }
 
-const handleEditCollection = (collection: any) => {
+const handleEditCollection = collection => {
   toast.info('Edit folder', {
-    description: `Editing ${collection.name || collection.title}`,
+    description,
   })
 }
 
-const handleDuplicateCollection = async (collection: any) => {
+const handleDuplicateCollection = async collection => {
   try {
     await galleryStore.duplicateCollection(String(collection.id))
     toast.success('Folder duplicated', {
-      description: `${collection.name || collection.title} has been duplicated.`,
+      description,
     })
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      search,
+      sortBy,
+      parentId, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to duplicate folder.',
+      fallbackMessage,
     })
   }
 }
 
-const handleDeleteCollection = (collection: any) => {
+const handleDeleteCollection = collection => {
   collectionToDelete.value = collection
   showDeleteModal.value = true
 }
@@ -528,18 +530,18 @@ const handleConfirmDelete = async () => {
   try {
     await galleryStore.deleteCollection(String(collectionToDelete.value.id))
     toast.success('Folder deleted', {
-      description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
+      description,
     })
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      search,
+      sortBy,
+      parentId, // Only fetch root-level collections
     })
     showDeleteModal.value = false
     collectionToDelete.value = null
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to delete folder.',
+      fallbackMessage,
     })
   } finally {
     isDeleting.value = false
@@ -551,27 +553,30 @@ const handleCancelDelete = () => {
   collectionToDelete.value = null
 }
 
-const handlePublishCollection = async (collection: any) => {
+const handlePublishCollection = async collection => {
   const newStatus =
     collection.status === 'active' || collection.status === 'PUBLISHED' ? 'draft' : 'active'
   try {
     await galleryStore.updateCollection(String(collection.id), { status: newStatus })
     toast.success(newStatus === 'active' ? 'Folder published' : 'Folder unpublished', {
-      description: `${collection.name || collection.title} status updated.`,
+      description:
+        newStatus === 'active'
+          ? 'Your folder is now live and accessible.'
+          : 'Your folder has been unpublished.',
     })
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
       parentId: null, // Only fetch root-level collections
     })
-  } catch (error: any) {
+  } catch (error) {
     handleError(error, {
-      fallbackMessage: 'Failed to update folder status.',
+      fallbackMessage: 'Failed to update folder status. Please try again.',
     })
   }
 }
 
-const handlePreviewCollection = (collection: any) => {
+const handlePreviewCollection = collection => {
   // Open preview in new tab
   const collectionId = collection.id || collection.name || collection.title
   const previewUrl = `${window.location.origin}/preview/${collectionId}`
@@ -586,13 +591,13 @@ const handleBrowseCollections = () => {
 onMounted(async () => {
   try {
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
+      search,
+      sortBy,
     })
-  } catch (error: any) {
+  } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
       handleError(error, {
-        fallbackMessage: 'Failed to load folders.',
+        fallbackMessage,
       })
     }
   }

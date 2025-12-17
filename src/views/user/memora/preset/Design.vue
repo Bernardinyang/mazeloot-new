@@ -1,7 +1,7 @@
 <template>
   <PresetLayout>
     <div
-      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+      :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-[calc(100vw-16rem)]'"
       class="mx-auto p-8 pb-16 transition-all duration-300"
     >
       <div class="mb-10">
@@ -78,11 +78,9 @@
                   :class="[
                     formData.cover === cover.id
                       ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
-                      : [
-                          theme.borderSecondary,
-                          'hover:border-teal-500/60 hover:shadow-md',
-                          'active:scale-95',
-                        ],
+                      : theme.borderSecondary,
+                    'hover:border-teal-500/60 hover:shadow-md',
+                    'active:scale-95',
                     theme.bgCard,
                   ]"
                   class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
@@ -101,11 +99,7 @@
                 </button>
                 <!-- Cover style label -->
                 <span
-                  :class="
-                    formData.cover === cover.id
-                      ? 'text-teal-600 dark:text-teal-400'
-                      : theme.textSecondary
-                  "
+                  :class="formData.cover === cover.id ? 'text-teal-600 dark:text-teal-400' : ''"
                   class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
                 >
                   {{ cover.label }}
@@ -303,7 +297,8 @@
                     :class="[
                       formData.joyCoverBackgroundPattern === pattern.id
                         ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
-                        : [theme.borderSecondary, 'hover:border-teal-500/60'],
+                        : '',
+                      'hover:border-teal-500/60',
                       theme.bgCard,
                     ]"
                     class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
@@ -313,7 +308,7 @@
                       :class="
                         formData.joyCoverBackgroundPattern === pattern.id
                           ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textPrimary
+                          : ''
                       "
                       class="text-xs font-medium block text-center"
                     >
@@ -340,16 +335,16 @@
                 <div
                   ref="focalPointImageContainer"
                   :style="{
-                    aspectRatio: '16/9',
+                    aspectRatio,
                     backgroundImage:
                       mockPreviewMedia.length > 0 && mockPreviewMedia[0].url
                         ? `url(${mockPreviewMedia[0].url})`
                         : mockPreviewCollection.thumbnail
                           ? `url(${mockPreviewCollection.thumbnail})`
-                          : `url(${fallbackImageUrl})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: `${formData.coverFocalPoint.x}% ${formData.coverFocalPoint.y}%`,
-                    backgroundRepeat: 'no-repeat',
+                          : '',
+                    backgroundSize,
+                    backgroundPosition,
+                    backgroundRepeat,
                   }"
                   class="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-crosshair"
                   @click="handleFocalPointClick"
@@ -357,8 +352,8 @@
                   <!-- Focal Point Indicator -->
                   <div
                     :style="{
-                      left: `${formData.coverFocalPoint.x}%`,
-                      top: `${formData.coverFocalPoint.y}%`,
+                      left,
+                      top,
                       transform: 'translate(-50%, -50%)',
                     }"
                     class="absolute w-8 h-8 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none transition-all duration-100"
@@ -421,7 +416,9 @@
                     :class="[
                       formData.fontStyle === style.id
                         ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                        : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
+                        : '',
+                      'hover:border-teal-500/60',
+                      'active:scale-98',
                       theme.bgCard,
                     ]"
                     class="group flex-1 px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
@@ -429,9 +426,7 @@
                   >
                     <span
                       :class="[
-                        formData.fontStyle === style.id
-                          ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textPrimary,
+                        formData.fontStyle === style.id ? 'text-teal-600 dark:text-teal-400' : '',
                         style.class,
                       ]"
                       class="text-base font-medium block text-center transition-colors duration-200"
@@ -469,11 +464,10 @@
                 :class="[
                   formData.colorPalette === palette.id
                     ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
-                    : [
-                        theme.borderSecondary,
-                        'hover:border-teal-500/60 hover:shadow-md',
-                        'active:scale-95',
-                      ],
+                    : '',
+                  theme.borderSecondary,
+                  'hover:border-teal-500/60 hover:shadow-md',
+                  'active:scale-95',
                   theme.bgCard,
                 ]"
                 class="group flex flex-col gap-3 p-4 rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer"
@@ -498,9 +492,7 @@
                 </div>
                 <span
                   :class="
-                    formData.colorPalette === palette.id
-                      ? 'text-teal-600 dark:text-teal-400'
-                      : theme.textPrimary
+                    formData.colorPalette === palette.id ? 'text-teal-600 dark:text-teal-400' : ''
                   "
                   class="text-xs font-semibold text-center transition-colors duration-200"
                 >
@@ -528,7 +520,9 @@
                 :class="[
                   formData.gridStyle === style.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
+                    : '',
+                  'hover:border-teal-500/60',
+                  'active:scale-98',
                   theme.bgCard,
                 ]"
                 class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
@@ -536,28 +530,20 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="
-                      formData.gridStyle === style.id
-                        ? 'bg-teal-500/20'
-                        : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
-                    "
+                    :class="formData.gridStyle === style.id ? 'bg-teal-500/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <component
                       :is="style.id === 'masonry' ? LayoutGrid : Grid3x3"
                       :class="
-                        formData.gridStyle === style.id
-                          ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textSecondary
+                        formData.gridStyle === style.id ? 'text-teal-600 dark:text-teal-400' : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
                     :class="
-                      formData.gridStyle === style.id
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textPrimary
+                      formData.gridStyle === style.id ? 'text-teal-600 dark:text-teal-400' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -586,7 +572,9 @@
                 :class="[
                   formData.gridColumns === cols.value
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
+                    : '',
+                  'hover:border-teal-500/60',
+                  'active:scale-98',
                   theme.bgCard,
                 ]"
                 class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
@@ -594,27 +582,21 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="
-                      formData.gridColumns === cols.value
-                        ? 'bg-teal-500/20'
-                        : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
-                    "
+                    :class="formData.gridColumns === cols.value ? 'bg-teal-500/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
                       :class="
                         formData.gridColumns === cols.value
                           ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textSecondary
+                          : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
                     :class="
-                      formData.gridColumns === cols.value
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textPrimary
+                      formData.gridColumns === cols.value ? 'text-teal-600 dark:text-teal-400' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -643,7 +625,9 @@
                 :class="[
                   formData.thumbnailSize === size.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
+                    : '',
+                  'hover:border-teal-500/60',
+                  'active:scale-98',
                   theme.bgCard,
                 ]"
                 :disabled="formData.gridStyle === 'masonry' && size.id === 'large'"
@@ -652,27 +636,19 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="
-                      formData.thumbnailSize === size.id
-                        ? 'bg-teal-500/20'
-                        : 'bg-gray-100/50 dark:bg-gray-800/50 group-hover:bg-gray-200/50 dark:group-hover:bg-gray-700/50'
-                    "
+                    :class="formData.thumbnailSize === size.id ? 'bg-teal-500/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
                       :class="
-                        formData.thumbnailSize === size.id
-                          ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textSecondary
+                        formData.thumbnailSize === size.id ? 'text-teal-600 dark:text-teal-400' : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
                     :class="
-                      formData.thumbnailSize === size.id
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textPrimary
+                      formData.thumbnailSize === size.id ? 'text-teal-600 dark:text-teal-400' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -729,7 +705,9 @@
                 :class="[
                   formData.navigationStyle === nav.id
                     ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : [theme.borderSecondary, 'hover:border-teal-500/60', 'active:scale-98'],
+                    : '',
+                  'hover:border-teal-500/60',
+                  'active:scale-98',
                   theme.bgCard,
                 ]"
                 class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
@@ -740,11 +718,10 @@
                     :class="[
                       formData.navigationStyle === nav.id
                         ? 'border-teal-500 bg-teal-500/10 shadow-sm'
-                        : [
-                            theme.borderSecondary,
-                            'group-hover:border-teal-500/50',
-                            'bg-gray-100/50 dark:bg-gray-800/50',
-                          ],
+                        : '',
+                      theme.borderSecondary,
+                      'group-hover:border-teal-500/50',
+                      'bg-gray-100/50 dark:bg-gray-800/50',
                     ]"
                     class="w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
                   >
@@ -753,7 +730,7 @@
                       :class="
                         formData.navigationStyle === nav.id
                           ? 'text-teal-600 dark:text-teal-400'
-                          : theme.textSecondary
+                          : ''
                       "
                       class="text-xs font-bold transition-colors duration-200"
                     >
@@ -762,18 +739,14 @@
                     <div
                       v-else
                       :class="
-                        formData.navigationStyle === nav.id
-                          ? 'border-teal-500 bg-teal-500/20'
-                          : theme.borderSecondary
+                        formData.navigationStyle === nav.id ? 'border-teal-500 bg-teal-500/20' : ''
                       "
                       class="w-3 h-3 rounded border transition-colors duration-200"
                     ></div>
                   </div>
                   <span
                     :class="
-                      formData.navigationStyle === nav.id
-                        ? 'text-teal-600 dark:text-teal-400'
-                        : theme.textPrimary
+                      formData.navigationStyle === nav.id ? 'text-teal-600 dark:text-teal-400' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -893,8 +866,8 @@
   </PresetLayout>
 </template>
 
-<script lang="ts" setup>
-import { computed, inject, onMounted, onUnmounted, ref, type Ref, watch } from 'vue'
+<script setup>
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
@@ -908,10 +881,9 @@ import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import type { Collection } from '@/api/collections'
-import type { MediaItem } from '@/api/media'
 import { toast } from 'vue-sonner'
 import { usePresetStore } from '@/stores/preset'
+import { coverStyleConfigs } from '@/config/coverStyles'
 
 const route = useRoute()
 const router = useRouter()
@@ -919,11 +891,11 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject<Ref<boolean>>('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
 const currentPreset = computed(() => {
-  const nameParam = route.params.name as string
+  const nameParam = route.params.name
   if (nameParam) {
     return presetStore.getPresetByName(nameParam)
   }
@@ -937,34 +909,35 @@ const presetId = computed(() => {
 const isSubmitting = ref(false)
 const isLoadingData = ref(false)
 const showFocalPointModal = ref(false)
-const focalPointImageContainer = ref<HTMLElement | null>(null)
+const focalPointImageContainer = ref(null)
 const showUnsavedChangesModal = ref(false)
-const avatarInputRef = ref<HTMLInputElement | null>(null)
+const avatarInputRef = ref(null)
 
 // Design form data
 const formData = ref({
-  cover: 'modern',
-  coverFocalPoint: { x: 50, y: 50 }, // Percentage coordinates (0-100)
-  fontFamily: 'sans',
-  fontStyle: 'bold',
-  colorPalette: 'light',
-  gridStyle: 'vertical',
-  gridColumns: 3,
-  thumbnailSize: 'regular',
-  gridSpacing: 16, // Numeric value in pixels (1-100)
-  navigationStyle: 'icon-only',
+  cover,
+  coverFocalPoint,
+  y, // Percentage coordinates (0-100)
+  fontFamily,
+  fontStyle,
+  colorPalette,
+  gridStyle,
+  gridColumns,
+  thumbnailSize,
+  gridSpacing, // Numeric value in pixels (1-100)
+  navigationStyle,
   // Joy cover style customization
-  joyCoverTitle: 'JOY',
-  joyCoverAvatar: null as string | null,
-  joyCoverShowDate: true,
-  joyCoverShowName: true,
-  joyCoverButtonText: 'VIEW GALLERY',
-  joyCoverShowButton: true,
-  joyCoverBackgroundPattern: 'crosses' as 'crosses' | 'sparkles' | 'none',
+  joyCoverTitle,
+  joyCoverAvatar,
+  joyCoverShowDate,
+  joyCoverShowName,
+  joyCoverButtonText,
+  joyCoverShowButton,
+  joyCoverBackgroundPattern,
 })
 
 // Store original loaded data for comparison
-const originalData = ref<typeof formData.value | null>(null)
+const originalData = ref(null)
 
 // Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
@@ -995,8 +968,10 @@ const hasUnsavedChanges = computed(() => {
 
 // Computed property to convert gridSpacing number to array for Slider component
 const gridSpacingSlider = computed({
-  get: () => [formData.value.gridSpacing],
-  set: (value: number[]) => {
+  get: () => {
+    return [formData.value.gridSpacing]
+  },
+  set: value => {
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
       formData.value.gridSpacing = Math.max(1, Math.min(100, value[0]))
     }
@@ -1004,33 +979,13 @@ const gridSpacingSlider = computed({
 })
 
 // Cover options - 21 beautiful cover styles + none
-const coverOptions = [
-  { id: 'modern', label: 'Modern' },
-  { id: 'elegant', label: 'Elegant' },
-  { id: 'bold', label: 'Bold' },
-  { id: 'asymmetric', label: 'Asymmetric' },
-  { id: 'geometric', label: 'Geometric' },
-  { id: 'classic', label: 'Classic' },
-  { id: 'split', label: 'Split' },
-  { id: 'spotlight', label: 'Spotlight' },
-  { id: 'minimalist', label: 'Minimalist' },
-  { id: 'celebration', label: 'Celebration' },
-  { id: 'joy', label: 'Joy' },
-  { id: 'horizon', label: 'Horizon' },
-  { id: 'floating', label: 'Floating' },
-  { id: 'corner', label: 'Corner' },
-  { id: 'diagonal', label: 'Diagonal' },
-  { id: 'layered', label: 'Layered' },
-  { id: 'framed', label: 'Framed' },
-  { id: 'minimal', label: 'Minimal' },
-  { id: 'dynamic', label: 'Dynamic' },
-  { id: 'structured', label: 'Structured' },
-  { id: 'artistic', label: 'Artistic' },
-  { id: 'none', label: 'None' },
-]
+const coverOptions = Object.values(coverStyleConfigs).map(config => ({
+  id: config.id,
+  label: config.label,
+}))
 
 // Handle focal point click
-const handleFocalPointClick = (event: MouseEvent) => {
+const handleFocalPointClick = event => {
   if (!focalPointImageContainer.value) return
 
   const rect = focalPointImageContainer.value.getBoundingClientRect()
@@ -1039,13 +994,13 @@ const handleFocalPointClick = (event: MouseEvent) => {
 
   // Clamp values between 0 and 100
   formData.value.coverFocalPoint = {
-    x: Math.max(0, Math.min(100, x)),
-    y: Math.max(0, Math.min(100, y)),
+    x: Math.min(100, Math.max(0, x)),
+    y: Math.min(100, Math.max(0, y)),
   }
 }
 
 // Handle joy pattern change
-const handleJoyPatternChange = (patternId: string) => {
+const handleJoyPatternChange = patternId => {
   if (patternId === 'crosses' || patternId === 'sparkles' || patternId === 'none') {
     formData.value.joyCoverBackgroundPattern = patternId
   }
@@ -1056,15 +1011,15 @@ const handleAvatarUpload = () => {
   avatarInputRef.value?.click()
 }
 
-const handleAvatarFileChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
+const handleAvatarFileChange = event => {
+  const target = event.target
   const file = target.files?.[0]
   if (file) {
     // Create a preview URL
     const reader = new FileReader()
     reader.onload = e => {
       if (e.target?.result) {
-        formData.value.joyCoverAvatar = e.target.result as string
+        formData.value.joyCoverAvatar = e.target.result
       }
     }
     reader.readAsDataURL(file)
@@ -1073,40 +1028,40 @@ const handleAvatarFileChange = (event: Event) => {
 
 // Font styles
 const fontStyles = [
-  { id: 'timeless', label: 'Timeless', class: 'font-light' },
-  { id: 'bold', label: 'BOLD', class: 'font-bold' },
-  { id: 'subtle', label: 'SUBTLE', class: 'font-normal' },
+  { id: 'normal', label: 'Normal', class: 'font-normal' },
+  { id: 'bold', label: 'Bold', class: 'font-bold' },
+  { id: 'italic', label: 'Italic', class: 'italic' },
 ]
 
 // Color palettes with improved contrast - no duplicates
 // Format: [background, accent, text] - ensuring WCAG AA contrast ratios
 const colorPalettes = [
-  { id: 'light', label: 'Light', colors: ['#FFFFFF', '#E5E7EB', '#1F2937'] }, // White bg, gray accent, dark gray text
-  { id: 'gold', label: 'Gold', colors: ['#FEF3C7', '#F59E0B', '#78350F'] }, // Light gold bg, amber accent, dark brown text
-  { id: 'rose', label: 'Rose', colors: ['#FDF2F8', '#EC4899', '#831843'] }, // Light pink bg, pink accent, dark pink text
-  { id: 'terracotta', label: 'Terracotta', colors: ['#FED7AA', '#EA580C', '#7C2D12'] }, // Light orange bg, orange accent, dark brown text
-  { id: 'lavender', label: 'Lavender', colors: ['#F3E8FF', '#A855F7', '#581C87'] }, // Light purple bg, purple accent, dark purple text
-  { id: 'olive', label: 'Olive', colors: ['#F7FEE7', '#84CC16', '#365314'] }, // Light green bg, green accent, dark green text
-  { id: 'agave', label: 'Agave', colors: ['#D1FAE5', '#10B981', '#064E3B'] }, // Light teal bg, emerald accent, dark teal text
-  { id: 'sea', label: 'Sea', colors: ['#E0F2FE', '#0EA5E9', '#0C4A6E'] }, // Light blue bg, sky accent, dark blue text
-  { id: 'coral', label: 'Coral', colors: ['#FFF1F2', '#F43F5E', '#9F1239'] }, // Light coral bg, rose accent, dark red text
-  { id: 'sage', label: 'Sage', colors: ['#F0FDF4', '#22C55E', '#14532D'] }, // Light sage bg, green accent, dark green text
-  { id: 'peach', label: 'Peach', colors: ['#FFF7ED', '#FB923C', '#7C2D12'] }, // Light peach bg, orange accent, dark brown text
-  { id: 'mint', label: 'Mint', colors: ['#F0FDFA', '#14B8A6', '#134E4A'] }, // Light mint bg, teal accent, dark teal text
-  { id: 'slate', label: 'Slate', colors: ['#F8FAFC', '#64748B', '#0F172A'] }, // Light slate bg, slate accent, dark slate text
-  { id: 'amber', label: 'Amber', colors: ['#FFFBEB', '#F59E0B', '#78350F'] }, // Light amber bg, amber accent, dark brown text
-  { id: 'indigo', label: 'Indigo', colors: ['#EEF2FF', '#6366F1', '#312E81'] }, // Light indigo bg, indigo accent, dark indigo text
-  { id: 'emerald', label: 'Emerald', colors: ['#ECFDF5', '#10B981', '#064E3B'] }, // Light emerald bg, emerald accent, dark emerald text
-  { id: 'cyan', label: 'Cyan', colors: ['#ECFEFF', '#06B6D4', '#164E63'] }, // Light cyan bg, cyan accent, dark cyan text
-  { id: 'violet', label: 'Violet', colors: ['#F5F3FF', '#8B5CF6', '#4C1D95'] }, // Light violet bg, violet accent, dark violet text
-  { id: 'dark', label: 'Dark', colors: ['#1F2937', '#374151', '#F9FAFB'] }, // Dark gray bg, medium gray accent, light text
+  { id: 'neutral', label: 'Neutral', colors: ['#E5E7EB', '#1F2937', '#000000'] },
+  { id: 'gold', label: 'Gold', colors: ['#F59E0B', '#78350F', '#000000'] },
+  { id: 'pink', label: 'Pink', colors: ['#EC4899', '#831843', '#000000'] },
+  { id: 'orange', label: 'Orange', colors: ['#EA580C', '#7C2D12', '#000000'] },
+  { id: 'purple', label: 'Purple', colors: ['#A855F7', '#581C87', '#FFFFFF'] },
+  { id: 'green', label: 'Green', colors: ['#84CC16', '#365314', '#000000'] },
+  { id: 'teal', label: 'Teal', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
+  { id: 'blue', label: 'Blue', colors: ['#0EA5E9', '#0C4A6E', '#FFFFFF'] },
+  { id: 'coral', label: 'Coral', colors: ['#F43F5E', '#9F1239', '#FFFFFF'] },
+  { id: 'sage', label: 'Sage', colors: ['#22C55E', '#14532D', '#000000'] },
+  { id: 'peach', label: 'Peach', colors: ['#FB923C', '#7C2D12', '#000000'] },
+  { id: 'mint', label: 'Mint', colors: ['#14B8A6', '#134E4A', '#FFFFFF'] },
+  { id: 'slate', label: 'Slate', colors: ['#64748B', '#0F172A', '#FFFFFF'] },
+  { id: 'amber', label: 'Amber', colors: ['#F59E0B', '#78350F', '#000000'] },
+  { id: 'indigo', label: 'Indigo', colors: ['#6366F1', '#312E81', '#FFFFFF'] },
+  { id: 'emerald', label: 'Emerald', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
+  { id: 'cyan', label: 'Cyan', colors: ['#06B6D4', '#164E63', '#FFFFFF'] },
+  { id: 'violet', label: 'Violet', colors: ['#8B5CF6', '#4C1D95', '#FFFFFF'] },
+  { id: 'dark', label: 'Dark', colors: ['#374151', '#F9FAFB', '#FFFFFF'] },
 ]
 
 // Grid styles
 const gridStyles = [
-  { id: 'vertical', label: 'Vertical' },
-  { id: 'horizontal', label: 'Horizontal' },
   { id: 'masonry', label: 'Masonry' },
+  { id: 'grid', label: 'Grid' },
+  { id: 'rows', label: 'Rows' },
 ]
 
 // Grid columns options
@@ -1119,14 +1074,15 @@ const gridColumnsOptions = [
 
 // Thumbnail sizes
 const thumbnailSizes = [
-  { id: 'regular', label: 'Regular' },
+  { id: 'small', label: 'Small' },
+  { id: 'medium', label: 'Medium' },
   { id: 'large', label: 'Large' },
 ]
 
 // Navigation styles
 const navigationStyles = [
-  { id: 'icon-only', label: 'Icon Only' },
-  { id: 'icon-text', label: 'Icon & Text' },
+  { id: 'icon', label: 'Icon' },
+  { id: 'icon-text', label: 'Icon + Text' },
 ]
 
 // Load preset data
@@ -1135,36 +1091,43 @@ const loadPresetData = () => {
     isLoadingData.value = true
     const designData = currentPreset.value.design || {}
     const loadedData = {
-      cover: designData.cover || 'modern',
+      cover,
       coverFocalPoint:
         designData.coverFocalPoint && typeof designData.coverFocalPoint === 'object'
           ? { ...designData.coverFocalPoint }
           : { x: 50, y: 50 },
-      fontFamily: designData.fontFamily || 'sans',
-      fontStyle: designData.fontStyle || 'bold',
-      colorPalette: designData.colorPalette || 'light',
-      gridStyle: designData.gridStyle || 'vertical',
-      gridColumns: designData.gridColumns || 3,
-      thumbnailSize: designData.thumbnailSize || 'regular',
+      fontFamily,
+      fontStyle,
+      colorPalette,
+      gridStyle,
+      gridColumns,
+      thumbnailSize,
       gridSpacing:
         typeof designData.gridSpacing === 'number'
           ? designData.gridSpacing
-          : designData.gridSpacing === 'large'
-            ? 24
-            : 16,
-      navigationStyle: designData.navigationStyle || 'icon-only',
+          : designData.thumbnailSize == 'small'
+            ? 8
+            : designData.thumbnailSize == 'medium'
+              ? 16
+              : designData.thumbnailSize == 'large'
+                ? 24
+                : 16,
+      navigationStyle,
       // Joy cover settings
-      joyCoverTitle: designData.joyCoverTitle || 'JOY',
-      joyCoverAvatar: designData.joyCoverAvatar || null,
+      joyCoverTitle,
+      joyCoverAvatar,
       joyCoverShowDate:
-        designData.joyCoverShowDate !== undefined ? designData.joyCoverShowDate : true,
+        designData.joyCoverShowDate !== undefined ? designData.joyCoverShowDate : false,
       joyCoverShowName:
-        designData.joyCoverShowName !== undefined ? designData.joyCoverShowName : true,
-      joyCoverButtonText: designData.joyCoverButtonText || 'VIEW GALLERY',
+        designData.joyCoverShowName !== undefined ? designData.joyCoverShowName : false,
+      joyCoverButtonText,
       joyCoverShowButton:
-        designData.joyCoverShowButton !== undefined ? designData.joyCoverShowButton : true,
-      joyCoverBackgroundPattern:
-        (designData.joyCoverBackgroundPattern as 'crosses' | 'sparkles' | 'none') || 'crosses',
+        designData.joyCoverShowButton !== undefined ? designData.joyCoverShowButton : false,
+      joyCoverBackgroundPattern: ['crosses', 'sparkles', 'none'].includes(
+        designData.joyCoverBackgroundPattern
+      )
+        ? designData.joyCoverBackgroundPattern
+        : 'crosses',
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -1179,7 +1142,7 @@ watch(
   () => {
     loadPresetData()
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 // Watch for grid style changes - disable large thumbnail size for masonry
@@ -1193,14 +1156,14 @@ watch(
 )
 
 // Keyboard shortcut handler
-let keyDownHandler: ((e: KeyboardEvent) => void) | null = null
+let keyDownHandler = null
 
 // Initialize on mount
 onMounted(() => {
   loadPresetData()
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
-  keyDownHandler = (e: KeyboardEvent) => {
+  keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
       e.preventDefault()
       if (!isSaving.value && hasUnsavedChanges.value && presetId.value) {
@@ -1220,7 +1183,7 @@ onUnmounted(() => {
 })
 
 // Helper function to save preset design
-const savePresetDesign = async (): Promise<boolean> => {
+const savePresetDesign = async () => {
   if (!presetId.value) {
     toast.error('Preset not found')
     return false
@@ -1228,16 +1191,16 @@ const savePresetDesign = async (): Promise<boolean> => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      design: formData.value,
+      design,
     })
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData.value }
     }
     return true
-  } catch (error: any) {
+  } catch (error) {
     toast.error('Failed to save preset', {
-      description: error.message || 'An error occurred while saving.',
+      description,
     })
     return false
   }
@@ -1247,8 +1210,8 @@ const handleSave = async () => {
   const success = await savePresetDesign()
   if (success) {
     toast.success('Preset saved successfully', {
-      description: 'Design settings have been updated.',
-      icon: Check,
+      description,
+      icon,
     })
   }
 }
@@ -1259,8 +1222,8 @@ const handlePrevious = async () => {
     const success = await savePresetDesign()
     if (success) {
       router.push({
-        name: 'presetGeneral',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -1274,8 +1237,8 @@ const handleNext = async () => {
     const success = await savePresetDesign()
     if (success) {
       router.push({
-        name: 'presetPrivacy',
-        params: { name: route.params.name },
+        name,
+        params,
       })
     }
   } finally {
@@ -1298,14 +1261,14 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction: savePresetDesign,
-    discardFunction: discardChanges,
+    saveFunction,
+    discardFunction,
     showUnsavedChangesModal,
   })
 
 // Open preview in new tab
 const handleOpenPreviewInNewTab = async () => {
-  const presetName = route.params.name as string
+  const presetName = route.params.name
   if (!presetName || !presetId.value) {
     toast.error('Preset not found')
     return
@@ -1315,8 +1278,8 @@ const handleOpenPreviewInNewTab = async () => {
   const success = await savePresetDesign()
   if (success) {
     const previewUrl = router.resolve({
-      name: 'presetPreview',
-      params: { name: presetName },
+      name,
+      params,
     }).href
     window.open(previewUrl, '_blank')
   }
@@ -1327,19 +1290,19 @@ const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
 
 // Mock data for preview
-const mockPreviewCollection = computed<Collection>(() => ({
-  id: 'preview',
-  name: 'JOSEPH X CUPPY',
-  date: '2025-11-29',
-  eventDate: '2025-11-29',
-  thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&h=800&fit=crop',
+const mockPreviewCollection = computed(() => ({
+  id: 'mock-collection-id',
+  name: 'Sample Collection',
+  date: new Date().toISOString(),
+  eventDate: new Date().toISOString(),
+  thumbnail: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&fit=crop',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),
-  status: 'active',
-  category: 'event',
+  status: 'published',
+  category: 'events',
 }))
 
-const mockPreviewMedia = computed<MediaItem[]>(() => {
+const mockPreviewMedia = computed(() => {
   const photoIds = [
     '1519741497674-611481863552',
     '1516589178581-6cd7833ae3b2',
@@ -1355,12 +1318,12 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
     '1522673607200-164d1b6ce486',
   ]
 
-  return photoIds.map((id, index) => ({
-    id: `preview-${index}`,
-    collectionId: 'preview',
-    url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
-    thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-    type: 'image' as const,
+  return photoIds.map((photoId, index) => ({
+    id: photoId,
+    collectionId: 'mock-collection-id',
+    url: `https://images.unsplash.com/photo-${photoId}?w=800&fit=crop`,
+    thumbnail: `https://images.unsplash.com/photo-${photoId}?w=300&fit=crop`,
+    type: 'image',
     title: `Photo ${index + 1}`,
     order: index,
     createdAt: new Date().toISOString(),
@@ -1372,6 +1335,6 @@ const mockPreviewMedia = computed<MediaItem[]>(() => {
 <style scoped>
 /* Hide the default DialogContent close button in focal point modal */
 :deep(.focal-point-dialog > button[class*='absolute'][class*='right-4'][class*='top-4']) {
-  display: none !important;
+  display: none;
 }
 </style>
