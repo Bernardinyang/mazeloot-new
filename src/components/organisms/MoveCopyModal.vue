@@ -1,11 +1,11 @@
 <template>
-  <CenterModal
+  <SidebarModal
     :model-value="props.modelValue"
     :title="props.action === 'move' ? 'MOVE ITEMS' : 'COPY ITEMS'"
-    content-class="sm:max-w-[500px]"
+    content-class="sm:max-w-md"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div class="space-y-4 py-4">
+    <div class="space-y-4">
       <!-- Action Type Selection -->
       <div class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-semibold"> Action </label>
@@ -117,11 +117,11 @@
         @confirm="emit('confirm')"
       />
     </template>
-  </CenterModal>
+  </SidebarModal>
 </template>
 
 <script setup>
-import CenterModal from '@/components/molecules/CenterModal.vue'
+import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import {

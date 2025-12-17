@@ -1,11 +1,11 @@
 <template>
-  <CenterModal
+  <SidebarModal
     :model-value="props.modelValue"
     :title="props.isEditing ? 'EDIT PHOTO SET' : 'CREATE PHOTO SET'"
-    content-class="sm:max-w-[500px]"
+    content-class="sm:max-w-md"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div class="space-y-6 py-4">
+    <div class="space-y-6">
       <div class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-semibold">
           Photo Set Name <span class="text-red-500">*</span>
@@ -53,13 +53,13 @@
         @confirm="emit('confirm')"
       />
     </template>
-  </CenterModal>
+  </SidebarModal>
 </template>
 
 <script setup lang="ts">
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
-import CenterModal from '@/components/molecules/CenterModal.vue'
+import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import Textarea from '@/components/shadcn/Textarea.vue'
 

@@ -176,58 +176,6 @@
           <!-- Separator -->
           <div class="h-3 w-px bg-gray-300 dark:bg-gray-600 transition-opacity duration-200"></div>
 
-          <!-- Preset Dropdown -->
-          <Popover v-model:open="isPresetPopoverOpen">
-            <PopoverTrigger as-child>
-              <button
-                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
-                style="line-height: 1.25rem"
-              >
-                <span class="opacity-70 transition-opacity duration-200">Preset:</span>
-                <span class="font-medium transition-colors duration-200">{{
-                  props.selectedPresetName || 'No preset'
-                }}</span>
-                <ChevronDown
-                  class="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200"
-                />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent :class="[theme.bgCard, theme.borderCard, 'w-64 p-0']" align="start">
-              <div :class="theme.borderSecondary" class="p-3 border-b">
-                <h4 :class="theme.textPrimary" class="text-sm font-semibold">Select Preset</h4>
-              </div>
-              <div class="max-h-64 overflow-y-auto">
-                <button
-                  :class="[
-                    props.selectedPresetId === 'none'
-                      ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
-                      : theme.textPrimary,
-                  ]"
-                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  @click="handlePresetSelect('none')"
-                >
-                  No preset
-                </button>
-                <button
-                  v-for="preset in props.presets"
-                  :key="preset.id"
-                  :class="[
-                    props.selectedPresetId === preset.id
-                      ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
-                      : theme.textPrimary,
-                  ]"
-                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  @click="handlePresetSelect(preset.id)"
-                >
-                  {{ preset.name }}
-                </button>
-              </div>
-            </PopoverContent>
-          </Popover>
-
-          <!-- Separator -->
-          <div class="h-3 w-px bg-gray-300 dark:bg-gray-600 transition-opacity duration-200"></div>
-
           <!-- Watermark Dropdown -->
           <Popover v-model:open="isWatermarkPopoverOpen">
             <PopoverTrigger as-child>

@@ -1,127 +1,127 @@
 <template>
-  <Dialog :open="open" @update:open="$emit('update:open', $event)">
-    <DialogContent :class="[theme.bgCard, theme.borderCard, 'sm:max-w-[500px]']">
-      <!-- Header -->
-      <div class="mb-6">
-        <h2 class="text-lg font-semibold" :class="theme.textPrimary">New Collection</h2>
+  <SidebarModal
+    :model-value="open"
+    title="New Collection"
+    content-class="sm:max-w-md"
+    @update:model-value="$emit('update:open', $event)"
+  >
+    <form id="collection-form" @submit.prevent="handleSubmit" class="space-y-5">
+      <!-- Collection Name -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium" :class="theme.textPrimary"> Collection Name </label>
+        <Input
+          v-model="formData.name"
+          placeholder="e.g. Jessie & Ryan"
+          :class="[
+            theme.bgInput,
+            theme.borderInput,
+            theme.textInput,
+            errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
+          ]"
+          autofocus
+        />
+        <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
 
-      <form @submit.prevent="handleSubmit" class="space-y-5">
-        <!-- Collection Name -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Collection Name </label>
-          <Input
-            v-model="formData.name"
-            placeholder="e.g. Jessie & Ryan"
-            :class="[
-              theme.bgInput,
-              theme.borderInput,
-              theme.textInput,
-              errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
-            ]"
-            autofocus
+      <!-- Event Date -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium" :class="theme.textPrimary"> Event Date </label>
+        <DatePicker v-model="formData.eventDate" placeholder="Event Date" format="MMM dd, yyyy" />
+      </div>
+
+      <!-- Preset -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium" :class="theme.textPrimary"> Preset </label>
+        <Select v-model="formData.presetId">
+          <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Select preset" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem
+              value="none"
+              label="No preset"
+              :class="[theme.textPrimary, theme.bgButtonHover]"
+            >
+              No preset
+            </SelectItem>
+            <SelectItem
+              v-for="preset in presets"
+              :key="preset.id"
+              :value="preset.id"
+              :label="preset.name"
+              :class="[theme.textPrimary, theme.bgButtonHover]"
+            >
+              {{ preset.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <!-- Watermark -->
+      <div class="space-y-2">
+        <label class="text-sm font-medium" :class="theme.textPrimary"> Watermark </label>
+        <Select v-model="formData.watermarkId">
+          <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
+            <SelectValue placeholder="Select watermark" />
+          </SelectTrigger>
+          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+            <SelectItem
+              value="none"
+              label="No watermark"
+              :class="[theme.textPrimary, theme.bgButtonHover]"
+            >
+              No watermark
+            </SelectItem>
+            <SelectItem
+              v-for="watermark in watermarks"
+              :key="watermark.id"
+              :value="watermark.id"
+              :label="watermark.name"
+              :class="[theme.textPrimary, theme.bgButtonHover]"
+            >
+              {{ watermark.name }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </form>
+
+    <template #footer>
+      <div class="flex items-center justify-end gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          :class="[
+            theme.textSecondary,
+            theme.bgButtonHover,
+            'hover:text-teal-600 dark:hover:text-teal-400',
+          ]"
+          @click="handleCancel"
+          :disabled="props.isSubmitting || isLocalSubmitting"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          @click="handleSubmit"
+          :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
+          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <Loader2
+            v-if="props.isSubmitting || isLocalSubmitting"
+            class="mr-2 h-4 w-4 animate-spin"
           />
-          <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
-        </div>
-
-        <!-- Event Date -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Event Date </label>
-          <DatePicker v-model="formData.eventDate" placeholder="Event Date" format="MMM dd, yyyy" />
-        </div>
-
-        <!-- Preset -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Preset </label>
-          <Select v-model="formData.presetId">
-            <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
-              <SelectValue placeholder="Select preset" />
-            </SelectTrigger>
-            <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-              <SelectItem
-                value="none"
-                label="No preset"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
-              >
-                No preset
-              </SelectItem>
-              <SelectItem
-                v-for="preset in presets"
-                :key="preset.id"
-                :value="preset.id"
-                :label="preset.name"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
-              >
-                {{ preset.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <!-- Watermark -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Watermark </label>
-          <Select v-model="formData.watermarkId">
-            <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
-              <SelectValue placeholder="Select watermark" />
-            </SelectTrigger>
-            <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-              <SelectItem
-                value="none"
-                label="No watermark"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
-              >
-                No watermark
-              </SelectItem>
-              <SelectItem
-                v-for="watermark in watermarks"
-                :key="watermark.id"
-                :value="watermark.id"
-                :label="watermark.name"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
-              >
-                {{ watermark.name }}
-              </SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <!-- Actions -->
-        <div class="flex items-center justify-end gap-3 pt-4">
-          <Button
-            type="button"
-            variant="ghost"
-            :class="[
-              theme.textSecondary,
-              theme.bgButtonHover,
-              'hover:text-teal-600 dark:hover:text-teal-400',
-            ]"
-            @click="handleCancel"
-            :disabled="props.isSubmitting || isLocalSubmitting"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
-            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Loader2
-              v-if="props.isSubmitting || isLocalSubmitting"
-              class="mr-2 h-4 w-4 animate-spin"
-            />
-            <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
-            <span v-else>Create Collection</span>
-          </Button>
-        </div>
-      </form>
-    </DialogContent>
-  </Dialog>
+          <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
+          <span v-else>Create Collection</span>
+        </Button>
+      </div>
+    </template>
+  </SidebarModal>
 </template>
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'
-import { Dialog, DialogContent } from '@/components/shadcn/dialog'
+import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import {
   Select,

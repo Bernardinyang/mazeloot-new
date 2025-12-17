@@ -1,11 +1,11 @@
 <template>
-  <CenterModal
+  <SidebarModal
     :model-value="props.modelValue"
     :title="props.isEditing ? 'EDIT WATERMARK' : 'ADD WATERMARK'"
-    content-class="sm:max-w-[500px]"
+    content-class="sm:max-w-md"
     @update:model-value="emit('update:modelValue', $event)"
   >
-    <div class="space-y-4 py-4">
+    <div class="space-y-4">
       <p :class="theme.textSecondary" class="text-sm">
         {{
           props.isEditing
@@ -57,11 +57,11 @@
         @confirm="emit('confirm')"
       />
     </template>
-  </CenterModal>
+  </SidebarModal>
 </template>
 
 <script setup>
-import CenterModal from '@/components/molecules/CenterModal.vue'
+import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import {
