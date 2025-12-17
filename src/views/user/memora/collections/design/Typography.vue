@@ -1,171 +1,5 @@
 <template>
-  <CollectionLayout
-    v-model:active-tab="activeTab"
-    v-model:collection-status="collectionStatus"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
-    :collection="collection"
-    :editing-name="''"
-    :event-date="eventDate"
-    :is-editing-name="false"
-    :is-loading="isLoading"
-    :is-saving-name="false"
-    :is-saving-status="false"
-    :presets="presets"
-    :selected-preset-id="selectedPresetId"
-    :selected-preset-name="selectedPresetName"
-    :selected-watermark="selectedWatermark"
-    :selected-watermark-name="selectedWatermarkName"
-    :watermarks="watermarks"
-    @go-back="goBack"
-    @handle-status-change="handleStatusChange"
-    @handle-date-change="handleDateChange"
-    @handle-preset-change="handlePresetChange"
-    @handle-watermark-change="handleWatermarkChange"
-  >
-    <template #sidebar>
-      <!-- DESIGN Section - Expanded -->
-      <div v-if="activeTab === 'design' && !isSidebarCollapsed" class="space-y-5">
-        <!-- Design Sub-Navigation -->
-        <div class="space-y-1">
-          <router-link
-            :class="
-              route.name === 'collectionCover'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
-          >
-            <ImageIcon class="h-4 w-4 shrink-0" />
-            <span class="text-sm font-medium">Cover</span>
-          </router-link>
-          <router-link
-            :class="
-              route.name === 'collectionTypography'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
-          >
-            <span class="text-lg font-bold">T</span>
-            <span class="text-sm font-medium">Typography</span>
-          </router-link>
-          <router-link
-            :class="
-              route.name === 'collectionColor'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
-          >
-            <div :class="theme.borderSecondary" class="w-4 h-4 rounded border"></div>
-            <span class="text-sm font-medium">Color</span>
-          </router-link>
-          <router-link
-            :class="
-              route.name === 'collectionGrid'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
-                : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-            "
-            :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
-            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
-          >
-            <Grid3x3 class="h-4 w-4 shrink-0" />
-            <span class="text-sm font-medium">Grid</span>
-          </router-link>
-        </div>
-      </div>
-
-      <!-- DESIGN Section - Collapsed (Icon Only) -->
-      <div
-        v-if="activeTab === 'design' && isSidebarCollapsed"
-        class="flex flex-col items-center gap-2 pt-4"
-      >
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :class="
-                  route.name === 'collectionCover'
-                    ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionCover', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
-              >
-                <ImageIcon class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
-              <p :class="theme.textPrimary" class="text-sm font-semibold">Cover</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :class="
-                  route.name === 'collectionTypography'
-                    ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionTypography', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
-              >
-                <span class="text-lg font-bold">T</span>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
-              <p :class="theme.textPrimary" class="text-sm font-semibold">Typography</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :class="
-                  route.name === 'collectionColor'
-                    ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionColor', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
-              >
-                <div :class="theme.borderSecondary" class="w-5 h-5 rounded border"></div>
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
-              <p :class="theme.textPrimary" class="text-sm font-semibold">Color</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                :class="
-                  route.name === 'collectionGrid'
-                    ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
-                    : [theme.textSecondary, 'hover:bg-gray-100 dark:hover:bg-gray-800']
-                "
-                :to="{ name: 'collectionGrid', params: { uuid: route.params.uuid } }"
-                class="p-2.5 rounded-lg transition-all duration-200"
-              >
-                <Grid3x3 class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
-              <p :class="theme.textPrimary" class="text-sm font-semibold">Grid</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </template>
-
+  <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div
         :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
@@ -437,14 +271,8 @@
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Check, ExternalLink, Grid3x3, ImageIcon, Loader2 } from 'lucide-vue-next'
+import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/shadcn/tooltip'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
@@ -452,37 +280,18 @@ import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
-import { usePresetStore } from '@/stores/preset'
 import { toast } from 'vue-sonner'
 
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
-const presetStore = usePresetStore()
 
 // Collection data
 const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref('draft')
-const eventDate = ref(null)
-const selectedPresetId = ref('none')
-const selectedPresetName = computed(() => {
-  if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find(p => p.id === selectedPresetId.value)
-  return preset?.name || null
-})
-const selectedWatermark = ref('none')
-const selectedWatermarkName = computed(() => {
-  if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
-  return watermark?.name || null
-})
-const presets = computed(() => presetStore.presets)
-const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref('design')
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
 const isSaving = ref(false)
@@ -606,17 +415,6 @@ const loadCollectionData = async () => {
     }
 
     collection.value = collectionData
-    collectionStatus.value =
-      collectionData.status === 'active' ? 'published' : collectionData.status || 'draft'
-    eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-
-    // Set preset if available
-    const presetId = collectionData.presetId
-    selectedPresetId.value = presetId != null ? String(presetId) : 'none'
-
-    // Set watermark if available
-    const watermarkId = collectionData.watermarkId
-    selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
     // Load typography design data
     const typographyDesign = collectionData.typographyDesign || {}
@@ -645,25 +443,6 @@ watch(
   { immediate: true }
 )
 
-// Watch for activeTab changes and navigate accordingly
-watch(activeTab, newTab => {
-  if (!collection.value) return
-
-  if (newTab === 'photos') {
-    router.push({
-      name: 'collectionPhotos',
-      params: { uuid: collection.value.id },
-    })
-  }
-
-  if (newTab === 'settings') {
-    router.push({
-      name: 'collectionSettingsGeneral',
-      params: { uuid: collection.value.id },
-    })
-  }
-})
-
 // Save typography design
 const saveTypographyDesign = async () => {
   if (!collection.value) {
@@ -689,46 +468,6 @@ const saveTypographyDesign = async () => {
     return false
   } finally {
     isSaving.value = false
-  }
-}
-
-// Handle status change
-const handleStatusChange = async newStatus => {
-  if (!collection.value || !newStatus) return
-
-  try {
-    // Map 'published' to 'active' for the API
-    const apiStatus = newStatus === 'published' ? 'active' : newStatus
-    await galleryStore.updateCollection(collection.value.id, {
-      status: apiStatus,
-    })
-
-    collectionStatus.value = newStatus
-    toast.success('Collection status updated successfully')
-  } catch (error) {
-    toast.error('Failed to update collection status', {
-      description: error.message || 'An error occurred while updating.',
-    })
-  }
-}
-
-// Handle date change
-const handleDateChange = async newDate => {
-  if (!collection.value) return
-
-  try {
-    // Convert Date to ISO string for storage, or null to clear
-    const dateString = newDate instanceof Date ? newDate.toISOString() : newDate || null
-    await galleryStore.updateCollection(collection.value.id, {
-      eventDate: dateString,
-    })
-
-    eventDate.value = newDate
-    toast.success('Event date updated successfully')
-  } catch (error) {
-    toast.error('Failed to update event date', {
-      description: error.message || 'An error occurred while updating.',
-    })
   }
 }
 
@@ -773,14 +512,6 @@ const goBack = async () => {
   } finally {
     isSubmitting.value = false
   }
-}
-
-const handlePresetChange = async presetId => {
-  selectedPresetId.value = presetId
-}
-
-const handleWatermarkChange = async watermarkId => {
-  selectedWatermark.value = watermarkId
 }
 
 const handleOpenPreviewInNewTab = async () => {

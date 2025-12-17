@@ -3,6 +3,8 @@ import { Primitive } from 'reka-ui'
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '.'
 
+const emit = defineEmits(['click'])
+
 const props = defineProps({
   as: {
     type: String,
@@ -32,6 +34,7 @@ const props = defineProps({
     :as="props.as"
     :as-child="props.asChild"
     :class="cn(buttonVariants({ variant: props.variant, size: props.size }), props.class)"
+    @click="emit('click', $event)"
     v-bind="$attrs"
   >
     <slot />

@@ -52,7 +52,7 @@
   </DropdownMenu>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed, ref, watch } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import {
@@ -65,16 +65,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { Button } from '@/components/shadcn/button'
-import type { Team } from '@/types/navigation'
 import { useNavigation } from '@/composables/useNavigation'
 import { useUserStore } from '@/stores/user'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
-const props = defineProps<{
-  teams: Team[]
-  isAdmin?: boolean
-}>()
+const props = defineProps({
+  teams: { type: Array, required: true },
+  isAdmin: { type: Boolean, default: undefined },
+})
 
 const { navigateTo } = useNavigation()
 const userStore = useUserStore()
@@ -86,7 +85,7 @@ const isAdmin = computed(() => {
   return userStore.user?.email?.includes('admin') || false
 })
 
-const handleTeamClick = (team: Team) => {
+const handleTeamClick = team => {
   activeTeam.value = team
   if (team.route) {
     navigateTo(team.route)

@@ -1,204 +1,5 @@
 <template>
-  <CollectionLayout
-    v-model:active-tab="activeTab"
-    v-model:collection-status="collectionStatus"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
-    :collection="collection"
-    :editing-name="''"
-    :event-date="eventDate"
-    :is-editing-name="false"
-    :is-loading="isLoading"
-    :is-saving-name="false"
-    :is-saving-status="false"
-    :presets="presets"
-    :selected-preset-id="selectedPresetId"
-    :selected-preset-name="selectedPresetName"
-    :selected-watermark="selectedWatermark"
-    :selected-watermark-name="selectedWatermarkName"
-    :watermarks="watermarks"
-    @go-back="goBack"
-    @handle-status-change="handleStatusChange"
-    @handle-date-change="handleDateChange"
-    @handle-preset-change="handlePresetChange"
-    @handle-watermark-change="handleWatermarkChange"
-  >
-    <template #sidebar>
-      <!-- ACTIVITIES Section - Expanded -->
-      <div v-if="activeTab === 'activities' && !isSidebarCollapsed" class="space-y-5">
-        <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
-          ACTIVITIES
-        </h2>
-        <div class="space-y-1">
-          <router-link
-            v-if="collection?.id"
-            :class="[
-              route.name === 'collectionActivitiesDownload'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
-            ]"
-            :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
-          >
-            <Download :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-            <span :class="theme.textPrimary" class="text-sm font-medium">Download Activity</span>
-          </router-link>
-          <router-link
-            v-if="collection?.id"
-            :class="[
-              route.name === 'collectionActivitiesFavourite'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
-            ]"
-            :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
-          >
-            <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-            <span :class="theme.textPrimary" class="text-sm font-medium">Favourite Activity</span>
-          </router-link>
-          <router-link
-            v-if="collection?.id"
-            :class="[
-              route.name === 'collectionActivitiesEmailRegistration'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
-            ]"
-            :to="{ name: 'collectionActivitiesEmailRegistration', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
-          >
-            <Mail :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-            <span :class="theme.textPrimary" class="text-sm font-medium">Email Registration</span>
-          </router-link>
-          <router-link
-            v-if="collection?.id"
-            :class="[
-              route.name === 'collectionActivitiesQuickShare'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
-            ]"
-            :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
-          >
-            <Link :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-            <span :class="theme.textPrimary" class="text-sm font-medium">Quick Share Links</span>
-          </router-link>
-          <router-link
-            v-if="collection?.id"
-            :class="[
-              route.name === 'collectionActivitiesPrivatePhotos'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
-            ]"
-            :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
-          >
-            <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-            <span :class="theme.textPrimary" class="text-sm font-medium">Private Photos</span>
-          </router-link>
-        </div>
-      </div>
-
-      <!-- ACTIVITIES Section - Collapsed -->
-      <div
-        v-if="activeTab === 'activities' && isSidebarCollapsed"
-        class="flex flex-col items-center gap-2 pt-4"
-      >
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                v-if="collection?.id"
-                :class="[
-                  route.name === 'collectionActivitiesDownload' ? 'bg-teal-500 text-white' : '',
-                ]"
-                :to="{ name: 'collectionActivitiesDownload', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
-              >
-                <Download class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Download Activity</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                v-if="collection?.id"
-                :class="[
-                  route.name === 'collectionActivitiesFavourite' ? 'bg-teal-500 text-white' : '',
-                ]"
-                :to="{ name: 'collectionActivitiesFavourite', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
-              >
-                <Heart class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Favourite Activity</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                v-if="collection?.id"
-                :class="[
-                  route.name === 'collectionActivitiesEmailRegistration'
-                    ? 'bg-teal-500 text-white'
-                    : '',
-                ]"
-                :to="{
-                  name: 'collectionActivitiesEmailRegistration',
-                  params: { uuid: collection.id },
-                }"
-                class="p-3 rounded-lg transition-all duration-200"
-              >
-                <Mail class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Email Registration</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                v-if="collection?.id"
-                :class="[
-                  route.name === 'collectionActivitiesQuickShare' ? 'bg-teal-500 text-white' : '',
-                ]"
-                :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
-              >
-                <Link class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Quick Share Links</p>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <router-link
-                v-if="collection?.id"
-                :class="[
-                  route.name === 'collectionActivitiesPrivatePhotos'
-                    ? 'bg-teal-500 text-white'
-                    : '',
-                ]"
-                :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
-                class="p-3 rounded-lg transition-all duration-200"
-              >
-                <Lock class="h-5 w-5" />
-              </router-link>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              <p>Private Photos</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      </div>
-    </template>
-
+  <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
@@ -343,49 +144,24 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Download, Heart, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/shadcn/tooltip'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
-import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
-const presetStore = usePresetStore()
 
 // Collection data
 const collection = ref(null)
 const isLoading = ref(false)
-const collectionStatus = ref('draft')
-const eventDate = ref(null)
-const selectedPresetId = ref('none')
-const selectedPresetName = computed(() => {
-  if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find(p => p.id === selectedPresetId.value)
-  return preset?.name || null
-})
-const selectedWatermark = ref('none')
-const selectedWatermarkName = computed(() => {
-  if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
-  return watermark?.name || null
-})
-const presets = computed(() => presetStore.presets)
-const watermarks = computed(() => galleryStore.watermarks || [])
 
 // UI State
-const activeTab = ref('activities')
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Activity counts (placeholder - would come from API)
@@ -402,10 +178,6 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
-    eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
-    selectedPresetId.value = collectionData.presetId || 'none'
-    selectedWatermark.value = collectionData.watermarkId || 'none'
     // TODO
     // downloadCount.value = await fetchDownloadCount(collectionId)
     // favouriteCount.value = await fetchFavouriteCount(collectionId)
@@ -420,29 +192,5 @@ onMounted(async () => {
 // Navigation
 const goBack = () => {
   router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
-}
-
-// Handle status change
-const handleStatusChange = async newStatus => {
-  if (!collection.value || !newStatus) return
-  // Status change logic
-}
-
-// Handle date change
-const handleDateChange = async newDate => {
-  if (!collection.value) return
-  // Date change logic
-}
-
-// Handle preset change
-const handlePresetChange = async presetId => {
-  if (!collection.value) return
-  selectedPresetId.value = presetId
-}
-
-// Handle watermark change
-const handleWatermarkChange = async watermarkId => {
-  if (!collection.value) return
-  selectedWatermark.value = watermarkId
 }
 </script>

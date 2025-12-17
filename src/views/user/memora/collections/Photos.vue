@@ -1,342 +1,5 @@
 <template>
-  <CollectionLayout
-    v-model:active-tab="activeTab"
-    v-model:collection-status="collectionStatus"
-    v-model:editing-name="editingName"
-    v-model:is-sidebar-collapsed="isSidebarCollapsed"
-    :collection="collection"
-    :event-date="eventDate"
-    :is-editing-name="isEditingName"
-    :is-loading="isLoading"
-    :is-saving-name="isSavingName"
-    :is-saving-status="isSavingStatus"
-    :presets="presets"
-    :selected-preset-id="selectedPresetId"
-    :selected-preset-name="selectedPresetName"
-    :selected-watermark="selectedWatermark"
-    :selected-watermark-name="selectedWatermarkName"
-    :watermarks="watermarks"
-    @go-back="goBack"
-    @start-editing-name="startEditingName"
-    @save-name="saveName"
-    @cancel-editing-name="cancelEditingName"
-    @handle-name-blur="handleNameBlur"
-    @handle-status-change="handleStatusChange"
-    @handle-date-change="handleDateChange"
-    @handle-preset-change="handlePresetChange"
-    @handle-watermark-change="handleWatermarkChange"
-    @handle-preview="handlePreview"
-    @handle-publish="handlePublish"
-    @handle-cover-image-upload="handleCoverImageUpload"
-  >
-    <template #sidebar>
-      <!-- PHOTOS Section -->
-      <div v-if="activeTab === 'photos' && !isSidebarCollapsed">
-        <div class="flex items-center justify-between mb-4">
-          <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
-          <button
-            :class="[
-              'bg-teal-500 hover:bg-teal-600 text-white border-teal-600',
-              'hover:shadow-md hover:scale-105 active:scale-95',
-            ]"
-            :disabled="isSavingSets"
-            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border disabled:opacity-50 disabled:cursor-not-allowed"
-            @click="handleAddSet"
-          >
-            <Loader2 v-if="isSavingSets" class="h-3.5 w-3.5 animate-spin" />
-            <Plus v-else class="h-3.5 w-3.5" />
-            <span v-if="isSavingSets">Saving...</span>
-            <span v-else>Add Set</span>
-          </button>
-        </div>
-
-        <!-- Skeleton Loader for Sets -->
-        <div
-          v-if="isLoading"
-          class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1"
-        >
-          <div
-            v-for="i in 3"
-            :key="`skeleton-${i}`"
-            class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-gray-800/50 border-2 border-transparent animate-pulse"
-          >
-            <div class="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div class="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div class="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-            <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
-          </div>
-        </div>
-
-        <!-- Media Sets List -->
-        <div
-          v-else-if="mediaSets.length > 0"
-          class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1 custom-scrollbar relative"
-        >
-          <!-- Loading overlay -->
-          <Transition name="fade">
-            <div
-              v-if="isSavingSets"
-              class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
-            >
-              <div class="flex flex-col items-center gap-2">
-                <Loader2 class="h-5 w-5 animate-spin text-teal-500" />
-                <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Saving...</span>
-              </div>
-            </div>
-          </Transition>
-          <TransitionGroup class="space-y-2.5" name="set-list" tag="div">
-            <div
-              v-for="(set, index) in sortedMediaSets"
-              :key="set.id"
-              :class="[
-                selectedSetId === set.id
-                  ? 'bg-white dark:bg-gray-800/50 border-2 border-teal-200 dark:border-teal-800 shadow-sm scale-[1.01]'
-                  : '',
-                draggedSetId === set.id ? 'opacity-50 scale-95' : '',
-                dragOverIndex === index ? 'ring-2 ring-teal-500 ring-offset-2 scale-[1.02]' : '',
-                isSavingSets ? 'opacity-60 pointer-events-none' : '',
-              ]"
-              :draggable="!isSavingSets"
-              class="flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out cursor-move group relative overflow-hidden"
-              @click="selectedSetId = set.id"
-              @dragend="handleSetDragEnd"
-              @dragleave="handleSetDragLeave"
-              @dragstart="handleSetDragStart($event, set.id, index)"
-              @drop="handleSetDrop($event, index)"
-              @dragover.prevent="handleSetDragOver($event, index)"
-            >
-              <!-- Active indicator bar -->
-              <Transition name="indicator">
-                <div
-                  v-if="selectedSetId === set.id"
-                  class="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 dark:bg-teal-400 rounded-r-full transition-all duration-300"
-                ></div>
-              </Transition>
-
-              <GripVertical
-                :class="[
-                  selectedSetId === set.id ? 'text-teal-600 dark:text-teal-400' : '',
-                  isSavingSets ? 'opacity-30 cursor-not-allowed' : '',
-                ]"
-                class="h-4 w-4 flex-shrink-0 opacity-50 transition-all duration-200 ml-1 hover:opacity-70 hover:scale-110"
-              />
-              <span
-                v-if="!editingSetId || editingSetId !== set.id"
-                :class="[selectedSetId === set.id ? 'text-teal-700 dark:text-teal-300' : '']"
-                class="flex-1 text-xs font-bold tracking-wide truncate"
-              >
-                {{ set.name }}
-              </span>
-              <input
-                v-else
-                ref="setNameInputRef"
-                v-model="editingSetName"
-                :class="[
-                  theme.bgInput,
-                  theme.borderInput,
-                  theme.textInput,
-                  'focus:border-teal-500',
-                ]"
-                class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all duration-200"
-                @blur="saveSetName(set.id)"
-                @keydown.enter="saveSetName(set.id)"
-                @keydown.esc="cancelSetNameEdit"
-                @click.stop
-              />
-              <span
-                :class="[selectedSetId === set.id ? 'bg-teal-500 text-white shadow-sm' : '']"
-                class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
-              >
-                {{ set.count }}
-              </span>
-              <DropdownMenu>
-                <DropdownMenuTrigger as-child>
-                  <button
-                    :class="[
-                      selectedSetId === set.id ? 'hover:bg-teal-100 dark:hover:bg-teal-900/30' : '',
-                      theme.textSecondary,
-                    ]"
-                    :disabled="isSavingSets"
-                    class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                    @click.stop
-                  >
-                    <MoreVertical class="h-4 w-4 transition-transform duration-200" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
-                  <DropdownMenuItem
-                    :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                    :disabled="isSavingSets"
-                    @click="handleEditSet(set.id)"
-                  >
-                    <Pencil class="h-4 w-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    :class="[
-                      'text-red-600 dark:text-red-400',
-                      'hover:bg-red-50 dark:hover:bg-red-900/20',
-                      'cursor-pointer',
-                    ]"
-                    :disabled="isSavingSets"
-                    @click="handleDeleteSet(set.id)"
-                  >
-                    <Trash2 class="h-4 w-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </TransitionGroup>
-        </div>
-        <div v-else class="text-center py-10">
-          <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 w-fit mx-auto mb-4 shadow-sm">
-            <ImageIcon :class="theme.textTertiary" class="h-8 w-8 opacity-40" />
-          </div>
-          <p :class="theme.textPrimary" class="text-sm font-semibold mb-1.5">No sets yet</p>
-          <p :class="theme.textTertiary" class="text-xs">
-            Create your first media set to get started
-          </p>
-        </div>
-      </div>
-
-      <!-- DESIGN Section -->
-      <div v-if="activeTab === 'design' && !isSidebarCollapsed">
-        <div class="space-y-4">
-          <div
-            class="p-6 rounded-2xl bg-gradient-to-br from-teal-50 to-teal-100/50 dark:from-teal-900/20 dark:to-teal-900/10 border-2 border-teal-200 dark:border-teal-800"
-          >
-            <h3 :class="theme.textPrimary" class="text-sm font-bold mb-2">Design Settings</h3>
-            <p :class="theme.textSecondary" class="text-xs mb-4">
-              Customize the appearance and layout of your collection
-            </p>
-            <Button
-              :class="[theme.borderSecondary, theme.bgButtonHover]"
-              class="w-full"
-              variant="outline"
-              @click="router.push({ name: 'collectionCover', params: { uuid: collection?.id } })"
-            >
-              <Paintbrush class="h-4 w-4 mr-2" />
-              Open Design Editor
-            </Button>
-          </div>
-          <div class="text-center py-8">
-            <Paintbrush :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Design customization</p>
-            <p :class="theme.textTertiary" class="text-xs">
-              Configure cover styles, fonts, and layouts
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- SETTINGS Section -->
-      <div v-if="activeTab === 'settings' && !isSidebarCollapsed">
-        <div class="space-y-5">
-          <!-- Preset Selection -->
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="block text-sm font-bold mb-2.5">
-              Collection Preset
-            </label>
-            <Select v-model="selectedPresetId" @update:model-value="handlePresetChange">
-              <SelectTrigger
-                :class="[
-                  'w-full h-11 rounded-xl shadow-sm border-2 transition-all duration-200',
-                  theme.bgInput,
-                  theme.borderInput,
-                  theme.textInput,
-                  'hover:border-teal-400 dark:hover:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
-                ]"
-              >
-                <SelectValue placeholder="Select preset" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  label="No preset"
-                  value="none"
-                >
-                  No preset
-                </SelectItem>
-                <SelectItem
-                  v-for="preset in presets"
-                  :key="preset.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :label="preset.name"
-                  :value="preset.id"
-                >
-                  {{ preset.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p :class="theme.textTertiary" class="text-xs mt-2 leading-relaxed">
-              Apply a preset to automatically configure collection settings
-            </p>
-          </div>
-
-          <!-- Watermark Selection -->
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="block text-sm font-bold mb-2.5">
-              Watermark
-            </label>
-            <Select v-model="selectedWatermark" @update:model-value="handleWatermarkChange">
-              <SelectTrigger
-                :class="[
-                  'w-full h-11 rounded-xl shadow-sm border-2 transition-all duration-200',
-                  theme.bgInput,
-                  theme.borderInput,
-                  theme.textInput,
-                  'hover:border-teal-400 dark:hover:border-teal-600 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
-                ]"
-              >
-                <SelectValue placeholder="Select watermark" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  label="No watermark"
-                  value="none"
-                >
-                  No watermark
-                </SelectItem>
-                <SelectItem
-                  v-for="watermark in watermarks"
-                  :key="watermark.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :label="watermark.name"
-                  :value="watermark.id"
-                >
-                  {{ watermark.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p :class="theme.textTertiary" class="text-xs mt-2 leading-relaxed">
-              Add a watermark to protect your images
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <!-- ACTIVITIES Section -->
-      <div v-if="activeTab === 'activities' && !isSidebarCollapsed">
-        <div class="space-y-4">
-          <div
-            class="p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-900/20 dark:to-purple-900/10 border-2 border-purple-200 dark:border-purple-800"
-          >
-            <h3 :class="theme.textPrimary" class="text-sm font-bold mb-2">Collection Activities</h3>
-            <p :class="theme.textSecondary" class="text-xs mb-4">
-              View and manage activities related to this collection
-            </p>
-          </div>
-          <div class="text-center py-8">
-            <Radio :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-3 opacity-30" />
-            <p :class="theme.textPrimary" class="text-sm font-medium mb-1">No activities yet</p>
-            <p :class="theme.textTertiary" class="text-xs">Activities will appear here</p>
-          </div>
-        </div>
-      </div>
-    </template>
-
+  <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <!-- Hidden File Input -->
       <input
@@ -360,201 +23,29 @@
         <div v-else class="p-8">
           <!-- Content -->
           <!-- Section Header -->
-          <div class="flex items-center justify-between mb-8">
-            <h2 :class="theme.textPrimary" class="text-3xl font-bold tracking-tight">
-              {{ selectedSet?.name || 'Highlights' }}
-            </h2>
-            <div class="flex items-center gap-3">
-              <!-- Sort Menu -->
-              <Popover v-model:open="isSortMenuOpen">
-                <PopoverTrigger as-child>
-                  <button
-                    :class="[
-                      theme.borderSecondary,
-                      theme.bgCard,
-                      isSortMenuOpen ? 'ring-2 ring-teal-500/20' : '',
-                    ]"
-                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <ArrowUpDown :class="theme.textSecondary" class="h-4 w-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  :class="[theme.bgCard, theme.borderSecondary]"
-                  align="end"
-                  class="w-56 p-0"
-                >
-                  <div class="p-2">
-                    <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
-                      Sort by
-                    </p>
-                    <div class="mt-1 space-y-0.5">
-                      <button
-                        v-for="option in sortOptions"
-                        :key="option.value"
-                        :class="[
-                          sortOrder === option.value
-                            ? theme.bgButtonHover + ' ' + theme.textPrimary
-                            : '',
-                        ]"
-                        class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors"
-                        @click="handleSortChange(option.value)"
-                      >
-                        {{ option.label }}
-                      </button>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              <!-- View Options Menu (only show in grid view) -->
-              <Popover v-if="viewMode === 'grid'" v-model:open="isViewMenuOpen">
-                <PopoverTrigger as-child>
-                  <button
-                    :class="[
-                      theme.borderSecondary,
-                      theme.bgCard,
-                      isViewMenuOpen ? 'ring-2 ring-teal-500/20' : '',
-                    ]"
-                    class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-                  >
-                    <Grid3x3 :class="theme.textSecondary" class="h-4 w-4" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  :class="[theme.bgCard, theme.borderSecondary]"
-                  align="end"
-                  class="w-56 p-0"
-                >
-                  <div class="p-2 space-y-4">
-                    <!-- Grid Size -->
-                    <div>
-                      <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
-                        Grid Size
-                      </p>
-                      <div class="mt-1 space-y-0.5">
-                        <button
-                          v-for="size in gridSizeOptions"
-                          :key="size.value"
-                          :class="[
-                            gridSize === size.value
-                              ? theme.bgButtonHover + ' ' + theme.textPrimary
-                              : '',
-                          ]"
-                          class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between"
-                          @click="handleGridSizeChange(size.value)"
-                        >
-                          <span>{{ size.label }}</span>
-                          <Check v-if="gridSize === size.value" class="h-4 w-4 text-teal-500" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <!-- Divider -->
-                    <div :class="theme.borderSecondary" class="h-px"></div>
-
-                    <!-- Show Filename -->
-                    <div>
-                      <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
-                        Show
-                      </p>
-                      <div class="mt-1 px-2 py-1.5">
-                        <div class="flex items-center justify-between">
-                          <label :class="theme.textPrimary" class="text-sm">Filename</label>
-                          <label class="relative inline-flex items-center cursor-pointer">
-                            <input
-                              :checked="showFilename"
-                              class="sr-only peer"
-                              type="checkbox"
-                              @change="handleFilenameToggle"
-                            />
-                            <div
-                              class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600"
-                            ></div>
-                            <span
-                              :class="showFilename ? theme.textPrimary : theme.textSecondary"
-                              class="ml-3 text-sm font-medium"
-                            >
-                              {{ showFilename ? 'On' : 'Off' }}
-                            </span>
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </PopoverContent>
-              </Popover>
-
-              <div
-                :class="theme.borderSecondary"
-                class="flex items-center gap-0.5 p-0.5 rounded-lg bg-white dark:bg-gray-900 border shadow-sm"
-              >
-                <button
-                  :class="[viewMode === 'list' ? 'bg-teal-500 text-white shadow-sm' : '']"
-                  class="p-2 rounded-md transition-all duration-200"
-                  @click="viewMode = 'list'"
-                >
-                  <List class="h-4 w-4" />
-                </button>
-                <button
-                  :class="[viewMode === 'grid' ? 'bg-teal-500 text-white shadow-sm' : '']"
-                  class="p-2 rounded-md transition-all duration-200"
-                  @click="viewMode = 'grid'"
-                >
-                  <Grid3x3 class="h-4 w-4" />
-                </button>
-              </div>
-              <!-- Select All Button - Always visible when there are items -->
-              <Button
-                v-if="sortedMediaItems.length > 0"
-                :aria-pressed="
-                  selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
-                "
-                :class="[
-                  'border-2 shadow-sm transition-all duration-200 font-medium',
-                  theme.bgCard,
-                  theme.borderSecondary,
-                  theme.textPrimary,
-                  selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
-                    ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300'
-                    : '',
-                  theme.bgButtonHover,
-                ]"
-                title="Select or deselect all items"
-                @click="handleToggleSelectAll"
-              >
-                <CheckSquare2
-                  v-if="
-                    selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
-                  "
-                  class="h-4 w-4 mr-2 text-teal-500"
-                />
-                <Square v-else :class="theme.textSecondary" class="h-4 w-4 mr-2" />
-                <span class="font-semibold">
-                  {{ selectedMediaIds.size > 0 ? 'Clear selection' : 'Select all' }}
-                </span>
-                <span
-                  v-if="selectedMediaIds.size > 0"
-                  :class="[
-                    'bg-teal-500/10 text-teal-700 dark:text-teal-300 dark:bg-teal-500/20',
-                    theme.transitionColors,
-                  ]"
-                  class="ml-2 inline-flex min-w-7 items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                >
-                  {{ selectedMediaIds.size }}
-                </span>
-              </Button>
-              <Button
-                :disabled="isUploading"
-                class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
-                @click="handleAddMedia"
-              >
-                <Loader2 v-if="isUploading" class="h-4 w-4 mr-2 animate-spin" />
-                <ImagePlus v-else class="h-4 w-4 mr-2" />
-                {{ isUploading ? 'Uploading...' : 'Upload Photos' }}
-              </Button>
-            </div>
-          </div>
+          <MediaItemsHeaderBar
+            v-model:is-sort-menu-open="isSortMenuOpen"
+            v-model:is-view-menu-open="isViewMenuOpen"
+            :grid-size="gridSize"
+            :grid-size-options="gridSizeOptions"
+            :is-all-selected="
+              selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
+            "
+            :is-uploading="isUploading"
+            :selected-count="selectedMediaIds.size"
+            :show-filename="showFilename"
+            :sort-options="sortOptions"
+            :sort-order="sortOrder"
+            :title="selectedSet?.name || 'Highlights'"
+            :total-items="sortedMediaItems.length"
+            :view-mode="viewMode"
+            @sort-change="handleSortChange"
+            @grid-size-change="handleGridSizeChange"
+            @filename-toggle="handleFilenameToggle"
+            @set-view-mode="viewMode = $event"
+            @toggle-select-all="handleToggleSelectAll"
+            @add-media="handleAddMedia"
+          />
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -585,414 +76,76 @@
                     : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
               ]"
             >
-              <div v-for="item in sortedMediaItems" :key="item.id" class="group">
-                <div
-                  :class="selectedMediaIds.has(item.id) ? 'ring-2 ring-teal-500 ring-offset-2' : ''"
-                  class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-gray-200 dark:border-gray-700"
-                >
-                  <!-- Selection Checkbox -->
-                  <div
-                    :class="selectedMediaIds.has(item.id) ? 'opacity-100' : ''"
-                    class="absolute top-2 left-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                    @click.stop="handleToggleMediaSelection(item.id)"
-                  >
-                    <button
-                      class="p-1.5 rounded-md bg-black/50 hover:bg-black/70 backdrop-blur-sm transition-colors"
-                      @click.stop="handleToggleMediaSelection(item.id)"
-                    >
-                      <CheckSquare2
-                        v-if="selectedMediaIds.has(item.id)"
-                        class="h-5 w-5 text-teal-400"
-                      />
-                      <Square v-else class="h-5 w-5 text-white" />
-                    </button>
-                  </div>
-                  <div class="w-full h-full cursor-pointer" @click="openMediaViewer(item)">
-                    <img
-                      :alt="item.title || 'Media'"
-                      :src="item.thumbnail || item.url || placeholderImage"
-                      class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      @error="handleImageError"
-                    />
-                  </div>
-                  <!-- Context Menu Button -->
-                  <div
-                    class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
-                    @click.stop
-                  >
-                    <DropdownMenu>
-                      <DropdownMenuTrigger as-child>
-                        <button
-                          class="p-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110"
-                          @click.stop
-                        >
-                          <MoreVertical class="h-4 w-4 text-white" />
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        :class="[theme.bgDropdown, theme.borderSecondary]"
-                        align="end"
-                        class="w-48"
-                        @click.stop
-                      >
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleOpenMedia(item)"
-                        >
-                          <ExternalLink class="h-4 w-4 mr-2" />
-                          Open
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleQuickShare(item)"
-                        >
-                          <Share2 class="h-4 w-4 mr-2" />
-                          Quick share link
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleDownloadMedia(item)"
-                        >
-                          <Download class="h-4 w-4 mr-2" />
-                          Download
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleMoveCopy(item)"
-                        >
-                          <Move class="h-4 w-4 mr-2" />
-                          Move/Copy
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleCopyFilenames(item)"
-                        >
-                          <Copy class="h-4 w-4 mr-2" />
-                          Copy filenames
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleSetAsCover(item)"
-                        >
-                          <FileImage class="h-4 w-4 mr-2" />
-                          Set as cover photo
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleRenameMedia(item)"
-                        >
-                          <Pencil class="h-4 w-4 mr-2" />
-                          Rename
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleReplacePhoto(item)"
-                        >
-                          <FileImage class="h-4 w-4 mr-2" />
-                          Replace photo
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          v-if="item.originalUrl"
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleRemoveWatermark(item)"
-                        >
-                          <X class="h-4 w-4 mr-2" />
-                          Remove Watermark
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                          @click.stop="handleWatermarkMedia(item)"
-                        >
-                          <Eye class="h-4 w-4 mr-2" />
-                          {{ item.originalUrl ? 'Change Watermark' : 'Add Watermark' }}
-                        </DropdownMenuItem>
-                        <div :class="theme.borderSecondary" class="h-px my-1"></div>
-                        <DropdownMenuItem
-                          :class="[
-                            'text-red-600 dark:text-red-400',
-                            'hover:bg-red-50 dark:hover:bg-red-900/20',
-                            'cursor-pointer',
-                          ]"
-                          @click.stop="handleDeleteMedia(item)"
-                        >
-                          <Trash2 class="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-                <!-- Filename below image -->
-                <p
-                  v-if="showFilename && item.title"
-                  :class="theme.textPrimary"
-                  class="text-xs font-medium truncate mt-2 text-center"
-                >
-                  {{ item.title }}
-                </p>
-              </div>
-            </div>
-            <div v-else class="space-y-2">
-              <div
+              <MediaGridItemCard
                 v-for="item in sortedMediaItems"
                 :key="item.id"
-                :class="[
-                  theme.borderSecondary,
-                  selectedMediaIds.has(item.id)
-                    ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20'
-                    : '',
-                ]"
-                class="group flex items-center gap-4 p-4 rounded-xl border bg-white dark:bg-gray-900 hover:shadow-lg transition-all duration-200"
-              >
-                <!-- Selection Checkbox -->
-                <button
-                  class="flex-shrink-0 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                  @click.stop="handleToggleMediaSelection(item.id)"
-                >
-                  <CheckSquare2
-                    v-if="selectedMediaIds.has(item.id)"
-                    class="h-5 w-5 text-teal-500"
-                  />
-                  <Square v-else :class="theme.textSecondary" class="h-5 w-5" />
-                </button>
-                <div
-                  class="flex items-center gap-4 flex-1 cursor-pointer"
-                  @click="openMediaViewer(item)"
-                >
-                  <img
-                    :alt="item.title || 'Media'"
-                    :src="item.thumbnail || item.url || placeholderImage"
-                    class="w-20 h-20 object-cover rounded-lg shadow-sm"
-                    @error="handleImageError"
-                  />
-                  <div class="flex-1 min-w-0">
-                    <p
-                      v-if="showFilename && item.title"
-                      :class="theme.textPrimary"
-                      class="text-sm font-medium truncate"
-                    >
-                      {{ item.title }}
-                    </p>
-                    <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">
-                      Media Item
-                    </p>
-                    <p :class="theme.textTertiary" class="text-xs mt-1">
-                      {{ formatMediaDate(item.createdAt) }}
-                    </p>
-                  </div>
-                </div>
-                <!-- Context Menu Button -->
-                <div
-                  class="opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                  @click.stop
-                >
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <button
-                        :class="theme.textSecondary"
-                        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 hover:scale-110"
-                        @click.stop
-                      >
-                        <MoreVertical class="h-4 w-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent
-                      :class="[theme.bgDropdown, theme.borderSecondary]"
-                      align="end"
-                      class="w-48"
-                      @click.stop
-                    >
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleOpenMedia(item)"
-                      >
-                        <ExternalLink class="h-4 w-4 mr-2" />
-                        Open
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleQuickShare(item)"
-                      >
-                        <Share2 class="h-4 w-4 mr-2" />
-                        Quick share link
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleDownloadMedia(item)"
-                      >
-                        <Download class="h-4 w-4 mr-2" />
-                        Download
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleMoveCopy(item)"
-                      >
-                        <Move class="h-4 w-4 mr-2" />
-                        Move/Copy
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleCopyFilenames(item)"
-                      >
-                        <Copy class="h-4 w-4 mr-2" />
-                        Copy filenames
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleSetAsCover(item)"
-                      >
-                        <FileImage class="h-4 w-4 mr-2" />
-                        Set as cover
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleRenameMedia(item)"
-                      >
-                        <Pencil class="h-4 w-4 mr-2" />
-                        Rename
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleReplacePhoto(item)"
-                      >
-                        <FileImage class="h-4 w-4 mr-2" />
-                        Replace photo
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        v-if="item.originalUrl"
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleRemoveWatermark(item)"
-                      >
-                        <X class="h-4 w-4 mr-2" />
-                        Remove Watermark
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                        @click.stop="handleWatermarkMedia(item)"
-                      >
-                        <Eye class="h-4 w-4 mr-2" />
-                        {{ item.originalUrl ? 'Change Watermark' : 'Add Watermark' }}
-                      </DropdownMenuItem>
-                      <div :class="theme.borderSecondary" class="h-px my-1"></div>
-                      <DropdownMenuItem
-                        :class="[
-                          'text-red-600 dark:text-red-400',
-                          'hover:bg-red-50 dark:hover:bg-red-900/20',
-                          'cursor-pointer',
-                        ]"
-                        @click.stop="handleDeleteMedia(item)"
-                      >
-                        <Trash2 class="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </div>
+                :is-selected="selectedMediaIds.has(item.id)"
+                :item="item"
+                :placeholder-image="placeholderImage"
+                :show-filename="showFilename"
+                @delete="handleDeleteMedia(item)"
+                @download="handleDownloadMedia(item)"
+                @open="handleOpenMedia(item)"
+                @rename="handleRenameMedia(item)"
+                @replace="handleReplacePhoto(item)"
+                @watermark="handleWatermarkMedia(item)"
+                @toggle-selection="handleToggleMediaSelection(item.id)"
+                @open-viewer="openMediaViewer(item)"
+                @image-error="handleImageError"
+                @quick-share="handleQuickShare(item)"
+                @move-copy="handleMoveCopy(item)"
+                @copy-filenames="handleCopyFilenames(item)"
+                @set-as-cover="handleSetAsCover(item)"
+                @remove-watermark="handleRemoveWatermark(item)"
+              />
+            </div>
+            <div v-else class="space-y-2">
+              <MediaListItemRow
+                v-for="item in sortedMediaItems"
+                :key="item.id"
+                :is-selected="selectedMediaIds.has(item.id)"
+                :item="item"
+                :placeholder-image="placeholderImage"
+                :show-filename="showFilename"
+                :subtitle="formatMediaDate(item.createdAt)"
+                @delete="handleDeleteMedia(item)"
+                @download="handleDownloadMedia(item)"
+                @open="handleOpenMedia(item)"
+                @rename="handleRenameMedia(item)"
+                @replace="handleReplacePhoto(item)"
+                @watermark="handleWatermarkMedia(item)"
+                @toggle-selection="handleToggleMediaSelection(item.id)"
+                @open-viewer="openMediaViewer(item)"
+                @image-error="handleImageError"
+                @quick-share="handleQuickShare(item)"
+                @move-copy="handleMoveCopy(item)"
+                @copy-filenames="handleCopyFilenames(item)"
+                @set-as-cover="handleSetAsCover(item)"
+                @remove-watermark="handleRemoveWatermark(item)"
+              />
             </div>
           </div>
 
           <!-- Empty State / Upload Zone -->
-          <div
-            v-if="sortedMediaItems.length === 0"
-            :class="[
-              theme.borderSecondary,
-              isDragging
-                ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 scale-[1.01] shadow-xl ring-4 ring-teal-500/20'
-                : '',
-              ,
-            ]"
-            class="border-2 border-dashed rounded-2xl p-20 text-center transition-all duration-300 bg-white dark:bg-gray-900"
-            @dragleave="isDragging = false"
+          <MediaUploadDropzone
+            v-model:is-dragging="isDragging"
+            :is-empty="sortedMediaItems.length === 0"
+            @browse="handleBrowseFiles"
             @drop="handleDrop"
-            @dragover.prevent="isDragging = true"
-          >
-            <div class="flex flex-col items-center justify-center space-y-6 max-w-lg mx-auto">
-              <div
-                :class="[
-                  isDragging
-                    ? 'bg-teal-100 dark:bg-teal-900/40 scale-110 ring-4 ring-teal-500/30'
-                    : '',
-                ]"
-                class="p-6 rounded-full transition-all duration-300"
-              >
-                <ImagePlus
-                  :class="[isDragging ? 'text-teal-600 dark:text-teal-400 scale-110 rotate-6' : '']"
-                  class="h-12 w-12 transition-all duration-300"
-                />
-              </div>
-              <div class="space-y-3">
-                <p :class="theme.textPrimary" class="text-xl font-bold">
-                  Drag photos and videos here to upload
-                </p>
-                <p :class="theme.textSecondary" class="text-sm">
-                  or
-                  <button
-                    class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold underline underline-offset-4 transition-colors"
-                    @click="handleBrowseFiles"
-                  >
-                    browse files
-                  </button>
-                </p>
-              </div>
-            </div>
-          </div>
+          />
         </div>
       </main>
 
       <!-- Create/Edit Set Modal -->
-      <CenterModal
+      <CreateEditMediaSetModal
         v-model="showCreateSetModal"
-        :title="editingSetIdInModal ? 'EDIT PHOTO SET' : 'CREATE PHOTO SET'"
-        content-class="sm:max-w-[500px]"
-      >
-        <div class="space-y-6 py-4">
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold">
-              Photo Set Name <span class="text-red-500">*</span>
-            </label>
-            <Input
-              v-model="newSetName"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              class="w-full"
-              placeholder="e.g. Ceremony, Reception, Getting ready"
-              @keydown.enter="handleCreateSet"
-              @keydown.esc="handleCancelCreateSet"
-            />
-          </div>
-
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Description </label>
-            <Textarea
-              v-model="newSetDescription"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              :maxlength="500"
-              class="w-full min-h-[100px] resize-none"
-              placeholder="Optional"
-            />
-            <div class="flex items-center justify-between">
-              <p :class="theme.textTertiary" class="text-xs">
-                Description is shown to clients viewing this photo set for additional storytelling.
-              </p>
-              <span :class="theme.textTertiary" class="text-xs">
-                {{ newSetDescription.length }}/500
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <template #footer>
-          <ActionButtonGroup
-            :confirm-label="editingSetIdInModal ? 'Update' : 'Create'"
-            :disabled="isCreatingSet"
-            :loading="isCreatingSet"
-            :loading-label="editingSetIdInModal ? 'Updating...' : 'Creating...'"
-            cancel-label="Cancel"
-            @cancel="handleCancelCreateSet"
-            @confirm="handleCreateSet"
-          />
-        </template>
-      </CenterModal>
+        v-model:description="newSetDescription"
+        v-model:name="newSetName"
+        :is-creating="isCreatingSet"
+        :is-editing="!!editingSetIdInModal"
+        @cancel="handleCancelCreateSet"
+        @confirm="handleCreateSet"
+      />
 
       <!-- Delete Confirmation Modal -->
       <DeleteConfirmationModal
@@ -1018,661 +171,185 @@
         @confirm="handleConfirmBulkDelete"
       />
 
-      <!-- Edit Filename Modal -->
-      <CenterModal v-model="showEditModal" content-class="sm:max-w-[500px]" title="EDIT FILENAMES">
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            Append text to {{ selectedMediaIds.size }} item{{
-              selectedMediaIds.size > 1 ? 's' : ''
-            }}
-            filename{{ selectedMediaIds.size > 1 ? 's' : '' }}
-          </p>
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Text to Append </label>
-            <Input
-              v-model="editAppendText"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              class="w-full"
-              placeholder="e.g., _edited, _final"
-              @keydown.enter="handleConfirmEdit"
-            />
-            <p :class="theme.textTertiary" class="text-xs">
-              This text will be appended to all selected filenames.
-            </p>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :disabled="!editAppendText.trim() || isBulkEditLoading"
-            :loading="isBulkEditLoading"
-            cancel-label="Cancel"
-            confirm-label="Apply"
-            @cancel="handleCancelEdit"
-            @confirm="handleConfirmEdit"
-          />
-        </template>
-      </CenterModal>
+      <EditFilenamesModal
+        v-model="showEditModal"
+        v-model:append-text="editAppendText"
+        :is-loading="isBulkEditLoading"
+        :selected-count="selectedMediaIds.size"
+        @cancel="handleCancelEdit"
+        @confirm="handleConfirmEdit"
+      />
 
-      <!-- Bulk Watermark Modal -->
-      <CenterModal
+      <BulkWatermarkModal
         v-model="showBulkWatermarkModal"
-        content-class="sm:max-w-[500px]"
-        title="APPLY WATERMARK"
-      >
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            Select a watermark to apply to {{ selectedMediaIds.size }} item{{
-              selectedMediaIds.size > 1 ? 's' : ''
-            }}:
-          </p>
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Watermark </label>
-            <Select v-model="selectedBulkWatermark">
-              <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
-                <SelectValue placeholder="Select a watermark" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="none">
-                  None
-                </SelectItem>
-                <SelectItem
-                  v-for="watermark in watermarks"
-                  :key="watermark.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :value="watermark.id"
-                >
-                  {{ watermark.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div
-            v-if="selectedBulkWatermark === 'none'"
-            class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-          >
-            <p class="text-xs text-blue-700 dark:text-blue-300">
-              <strong>Note:</strong> Selecting "None" will remove any existing watermarks from the
-              selected images.
-            </p>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :disabled="isBulkWatermarkLoading"
-            :loading="isBulkWatermarkLoading"
-            cancel-label="Cancel"
-            confirm-label="Apply"
-            loading-label="Applying watermark..."
-            @cancel="handleCancelBulkWatermark"
-            @confirm="handleConfirmBulkWatermark"
-          />
-        </template>
-      </CenterModal>
+        v-model:selected-watermark="selectedBulkWatermark"
+        :is-loading="isBulkWatermarkLoading"
+        :selected-count="selectedMediaIds.size"
+        :watermarks="watermarks"
+        @cancel="handleCancelBulkWatermark"
+        @confirm="handleConfirmBulkWatermark"
+      />
 
-      <!-- Tag Modal -->
-      <CenterModal v-model="showTagModal" content-class="sm:max-w-[500px]" title="ADD TAGS">
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            Add tags to {{ selectedMediaIds.size }} item{{ selectedMediaIds.size > 1 ? 's' : '' }}
-          </p>
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Tags </label>
-            <Input
-              v-model="tagInput"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              class="w-full"
-              placeholder="Enter tags separated by commas"
-              @keydown.enter.prevent="handleAddTag"
-            />
-            <p :class="theme.textTertiary" class="text-xs">
-              Separate multiple tags with commas (e.g., wedding, ceremony, outdoor)
-            </p>
-            <div v-if="existingTags.length > 0" class="flex flex-wrap gap-2 mt-2">
-              <span
-                v-for="tag in existingTags"
-                :key="tag"
-                class="px-2 py-1 rounded-full text-xs bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
-              >
-                {{ tag }}
-                <button
-                  class="ml-1 hover:text-teal-900 dark:hover:text-teal-100"
-                  @click="existingTags = existingTags.filter(t => t !== tag)"
-                >
-                  ×
-                </button>
-              </span>
-            </div>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :disabled="(!tagInput.trim() && existingTags.length === 0) || isBulkTagLoading"
-            :loading="isBulkTagLoading"
-            cancel-label="Cancel"
-            confirm-label="Add Tags"
-            loading-label="Adding tags..."
-            @cancel="handleCancelTag"
-            @confirm="handleConfirmTag"
-          />
-        </template>
-      </CenterModal>
+      <TagModal
+        v-model="showTagModal"
+        v-model:tag-input="tagInput"
+        :existing-tags="existingTags"
+        :is-loading="isBulkTagLoading"
+        :selected-count="selectedMediaIds.size"
+        @cancel="handleCancelTag"
+        @confirm="handleConfirmTag"
+        @add-tag="handleAddTag"
+        @remove-tag="existingTags = existingTags.filter(t => t !== $event)"
+      />
 
-      <!-- Duplicate Files Modal -->
-      <CenterModal
+      <DuplicateFilesModal
         v-model="showDuplicateFilesModal"
-        content-class="sm:max-w-[600px]"
-        title="DUPLICATE FILES DETECTED"
-      >
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            The following file{{
-              duplicateFiles.length > 1 ? 's' : duplicateFiles.length === 1 ? 's' : ''
-            }}
-            in this set. Choose an action for each:
-          </p>
-          <div class="space-y-3 max-h-[400px] overflow-y-auto">
-            <div
-              v-for="item in duplicateFiles"
-              :key="item.file.name"
-              :class="[theme.bgInput, theme.borderSecondary]"
-              class="flex items-center justify-between p-3 rounded-lg border"
-            >
-              <div class="flex-1 min-w-0">
-                <p :class="theme.textPrimary" class="text-sm font-medium truncate">
-                  {{ item.file.name }}
-                </p>
-                <p :class="theme.textTertiary" class="text-xs mt-1">Existing</p>
-              </div>
-              <div class="flex items-center gap-2 ml-4">
-                <button
-                  :class="[
-                    duplicateFileActions.get(item.file.name) === 'replace'
-                      ? 'bg-teal-500 text-white border-teal-500'
-                      : '',
-                    theme.bgInput,
-                    theme.borderSecondary,
-                    theme.textPrimary,
-                    'hover:' + theme.bgButtonHover,
-                  ]"
-                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
-                  @click="duplicateFileActions.set(item.file.name, 'replace')"
-                >
-                  Replace
-                </button>
-                <button
-                  :class="[
-                    duplicateFileActions.get(item.file.name) === 'skip'
-                      ? 'bg-gray-500 text-white border-gray-500'
-                      : '',
-                    theme.bgInput,
-                    theme.borderSecondary,
-                    theme.textPrimary,
-                    'hover:' + theme.bgButtonHover,
-                  ]"
-                  class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
-                  @click="duplicateFileActions.set(item.file.name, 'skip')"
-                >
-                  Skip
-                </button>
-              </div>
-            </div>
-          </div>
-          <div :class="theme.borderSecondary" class="flex items-center gap-2 pt-2 border-t">
-            <button
-              :class="[
-                theme.bgInput,
-                theme.borderSecondary,
-                theme.textPrimary,
-                'hover:' + theme.bgButtonHover,
-              ]"
-              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
-              @click="
-                duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
-              "
-            >
-              Replace All
-            </button>
-            <button
-              :class="[
-                theme.bgInput,
-                theme.borderSecondary,
-                theme.textPrimary,
-                'hover:' + theme.bgButtonHover,
-              ]"
-              class="text-xs px-3 py-1.5 rounded-lg border transition-colors"
-              @click="
-                duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))
-              "
-            >
-              Skip All
-            </button>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :disabled="isUploading"
-            :loading="isUploading"
-            cancel-label="Cancel"
-            confirm-label="Continue"
-            loading-label="Uploading..."
-            @cancel="handleCancelDuplicateFiles"
-            @confirm="handleConfirmDuplicateFiles"
-          />
-        </template>
-      </CenterModal>
+        :duplicate-file-actions="duplicateFileActions"
+        :duplicate-files="duplicateFiles"
+        :is-uploading="isUploading"
+        @cancel="handleCancelDuplicateFiles"
+        @confirm="handleConfirmDuplicateFiles"
+        @set-action="duplicateFileActions.set($event[0], $event[1])"
+        @replace-all="
+          duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
+        "
+        @skip-all="duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))"
+      />
 
-      <!-- Rename Media Modal -->
-      <CenterModal
+      <RenameMediaModal
         v-model="showRenameMediaModal"
-        content-class="sm:max-w-[500px]"
-        title="RENAME MEDIA"
-      >
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">Enter a new name for this media item:</p>
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Name </label>
-            <Input
-              v-model="newMediaName"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              class="w-full"
-              placeholder="Enter media name"
-              @keydown.enter="handleConfirmRenameMedia"
-            />
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :disabled="!newMediaName.trim()"
-            cancel-label="Cancel"
-            confirm-label="Rename"
-            @cancel="handleCancelRenameMedia"
-            @confirm="handleConfirmRenameMedia"
-          />
-        </template>
-      </CenterModal>
+        v-model:new-media-name="newMediaName"
+        @cancel="handleCancelRenameMedia"
+        @confirm="handleConfirmRenameMedia"
+      />
 
-      <!-- Replace Photo Modal -->
-      <CenterModal
+      <ReplacePhotoModal
         v-model="showReplacePhotoModal"
-        content-class="sm:max-w-[500px]"
-        title="REPLACE PHOTO"
-      >
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            Select a new image file to replace the current photo:
-          </p>
-          <div class="space-y-2">
-            <input
-              ref="replaceFileInputRef"
-              accept="image/*"
-              class="hidden"
-              type="file"
-              @change="handleReplacePhotoFileSelect"
-            />
-            <Button
-              :disabled="isReplacingPhoto"
-              class="w-full"
-              variant="outline"
-              @click="replaceFileInputRef?.click()"
-            >
-              <Loader2 v-if="isReplacingPhoto" class="h-4 w-4 mr-2 animate-spin" />
-              <ImagePlus v-else class="h-4 w-4 mr-2" />
-              {{ isReplacingPhoto ? 'Replacing...' : 'Replace Photo' }}
-            </Button>
-          </div>
-        </div>
-        <template #footer>
-          <div class="flex items-center justify-end gap-3">
-            <Button
-              :disabled="isReplacingPhoto"
-              variant="outline"
-              @click="handleCancelReplacePhoto"
-            >
-              Cancel
-            </Button>
-          </div>
-        </template>
-      </CenterModal>
+        :is-replacing="isReplacingPhoto"
+        @cancel="handleCancelReplacePhoto"
+        @file-change="handleReplacePhotoFileSelect"
+      />
 
-      <!-- Watermark Media Modal -->
-      <CenterModal
+      <WatermarkMediaModal
         v-model="showWatermarkMediaModal"
-        :title="mediaToWatermark?.originalUrl ? 'EDIT WATERMARK' : 'ADD WATERMARK'"
-        content-class="sm:max-w-[500px]"
-      >
-        <div class="space-y-4 py-4">
-          <p :class="theme.textSecondary" class="text-sm">
-            {{
-              mediaToWatermark?.originalUrl
-                ? 'This image has a watermark. Select a new watermark or remove it:'
-                : 'Select a watermark to apply to this image:'
-            }}
-          </p>
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Watermark </label>
-            <Select v-model="selectedWatermarkForMedia">
-              <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
-                <SelectValue placeholder="Select a watermark" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="none">
-                  {{ mediaToWatermark?.originalUrl ? 'Remove Watermark' : 'Add Watermark' }}
-                </SelectItem>
-                <SelectItem
-                  v-for="watermark in watermarks"
-                  :key="watermark.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :value="watermark.id"
-                >
-                  {{ watermark.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div
-            v-if="mediaToWatermark?.originalUrl"
-            class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800"
-          >
-            <p class="text-xs text-blue-700 dark:text-blue-300">
-              <strong>Note:</strong> Removing the watermark will restore the original image.
-            </p>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :confirm-label="
-              selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl
-                ? 'Remove'
-                : 'Add'
-            "
-            :disabled="isApplyingWatermark"
-            :loading="isApplyingWatermark"
-            cancel-label="Cancel"
-            loading-label="Processing..."
-            @cancel="handleCancelWatermarkMedia"
-            @confirm="handleConfirmWatermarkMedia"
-          />
-        </template>
-      </CenterModal>
+        v-model:selected-watermark="selectedWatermarkForMedia"
+        :confirm-label="
+          selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl ? 'Remove' : 'Add'
+        "
+        :is-editing="!!mediaToWatermark?.originalUrl"
+        :is-loading="isApplyingWatermark"
+        :watermarks="watermarks"
+        @cancel="handleCancelWatermarkMedia"
+        @confirm="handleConfirmWatermarkMedia"
+      />
 
-      <!-- Move/Copy Modal -->
-      <CenterModal
+      <MoveCopyModal
         v-model="showMoveCopyModal"
-        :title="moveCopyAction === 'move' ? 'MOVE ITEMS' : 'COPY ITEMS'"
-        content-class="sm:max-w-[500px]"
-      >
-        <div class="space-y-4 py-4">
-          <!-- Action Type Selection -->
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Action </label>
-            <div class="flex gap-2">
-              <button
-                :class="[moveCopyAction === 'move' ? 'bg-teal-500 text-white border-teal-500' : '']"
-                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
-                @click="moveCopyAction = 'move'"
-              >
-                Move
-              </button>
-              <button
-                :class="[moveCopyAction === 'copy' ? 'bg-teal-500 text-white border-teal-500' : '']"
-                class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
-                @click="moveCopyAction = 'copy'"
-              >
-                Copy
-              </button>
-            </div>
-          </div>
-
-          <p :class="theme.textSecondary" class="text-sm">
-            {{ moveCopyAction === 'move' ? 'Move' : 'Copy'
-            }}{{ selectedMediaIds.size > 1 ? 's' : '' }}
-            }} to:
-          </p>
-
-          <!-- Collection Selection -->
-          <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold">
-              Select Collection
-            </label>
-            <Select
-              v-model="targetCollectionIdForMove"
-              @update:model-value="handleTargetCollectionChange"
-            >
-              <SelectTrigger
-                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="w-full"
-              >
-                <SelectValue placeholder="Choose a collection" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :label="collection?.name || 'Current Collection'"
-                  :value="collection?.id || ''"
-                >
-                  {{ collection?.name || 'Current Collection' }}
-                </SelectItem>
-                <SelectItem
-                  v-for="col in availableCollections"
-                  :key="col.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :label="col.name"
-                  :value="col.id"
-                >
-                  {{ col.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <!-- Set Selection (only show if collection is selected) -->
-          <div v-if="targetCollectionIdForMove" class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Select Set </label>
-            <Select v-model="targetSetIdInCollection" :disabled="isLoadingTargetCollectionSets">
-              <SelectTrigger
-                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="w-full"
-              >
-                <SelectValue placeholder="Choose a set" />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem
-                  v-if="targetCollectionSets.length === 0 && !isLoadingTargetCollectionSets"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  disabled
-                  label="No sets available"
-                  value="none"
-                >
-                  No sets available
-                </SelectItem>
-                <SelectItem
-                  v-for="set in targetCollectionSets"
-                  :key="set.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  :label="set.name"
-                  :value="set.id"
-                >
-                  {{ set.name }}
-                </SelectItem>
-              </SelectContent>
-            </Select>
-            <p v-if="isLoadingTargetCollectionSets" :class="theme.textTertiary" class="text-xs">
-              Loading sets...
-            </p>
-          </div>
-        </div>
-        <template #footer>
-          <ActionButtonGroup
-            :confirm-label="moveCopyAction === 'move' ? 'Move' : 'Copy'"
-            :disabled="isMovingMedia || !targetCollectionIdForMove"
-            :loading="isMovingMedia"
-            :loading-label="moveCopyAction === 'move' ? 'Moving...' : 'Copying...'"
-            cancel-label="Cancel"
-            @cancel="handleCancelMoveCopy"
-            @confirm="handleConfirmMoveCopy"
-          />
-        </template>
-      </CenterModal>
+        v-model:action="moveCopyAction"
+        :available-collections="availableCollections"
+        :current-collection-id="collection?.id || ''"
+        :current-collection-name="collection?.name || ''"
+        :is-loading-sets="isLoadingTargetCollectionSets"
+        :is-moving="isMovingMedia"
+        :selected-count="selectedMediaIds.size"
+        :target-collection-id="targetCollectionIdForMove"
+        :target-collection-sets="targetCollectionSets"
+        :target-set-id="targetSetIdInCollection"
+        @cancel="handleCancelMoveCopy"
+        @confirm="handleConfirmMoveCopy"
+        @collection-change="handleTargetCollectionChange"
+        @update:target-set-id="targetSetIdInCollection = $event"
+      />
 
       <!-- Media Viewer Modal (Single) -->
-      <div
+      <MediaViewerSingle
         v-if="selectedMedia && !showMediaViewer"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-        @click="closeMediaViewer"
-      >
-        <div class="relative max-w-7xl max-h-full">
-          <img
-            :alt="selectedMedia.title || 'Media'"
-            :src="selectedMedia.url || selectedMedia.thumbnail || placeholderImage"
-            class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-            @error="handleImageError"
-          />
-          <button
-            class="absolute top-4 right-4 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
-            @click.stop="closeMediaViewer"
-          >
-            <X class="w-6 h-6" />
-          </button>
-          <!-- Media Info -->
-          <div
-            v-if="selectedMedia.title"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg bg-black/70 backdrop-blur-md text-white max-w-md text-center"
-          >
-            <p class="font-semibold">{{ selectedMedia.title }}</p>
-            <p v-if="selectedMedia.description" class="text-sm opacity-90 mt-1">
-              {{ selectedMedia.description }}
-            </p>
-          </div>
-        </div>
-      </div>
+        :media="selectedMedia"
+        :placeholder-image="placeholderImage"
+        @close="closeMediaViewer"
+        @image-error="handleImageError"
+      />
 
       <!-- Media Viewer Slideshow (Multiple) -->
-      <div
+      <MediaViewerSlideshow
         v-if="showMediaViewer && selectedMediaForView.length > 0"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-        @click="closeMediaViewer"
-      >
-        <div class="relative max-w-7xl max-h-full w-full">
-          <Transition mode="out-in" name="fade">
-            <div :key="currentViewIndex" class="relative">
-              <img
-                :alt="selectedMediaForView[currentViewIndex].title || 'Media'"
-                :src="
-                  selectedMediaForView[currentViewIndex].url ||
-                  selectedMediaForView[currentViewIndex].thumbnail ||
-                  placeholderImage
-                "
-                class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl mx-auto"
-                @error="handleImageError"
-              />
-            </div>
-          </Transition>
-
-          <!-- Close Button -->
-          <button
-            class="absolute top-4 right-4 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
-            @click.stop="closeMediaViewer"
-          >
-            <X class="w-6 h-6" />
-          </button>
-
-          <!-- Navigation Buttons (if more than one image) -->
-          <template v-if="selectedMediaForView.length > 1">
-            <button
-              v-if="currentViewIndex > 0"
-              class="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
-              @click.stop="navigateSlideshow(-1)"
-            >
-              <ChevronLeft class="w-6 h-6" />
-            </button>
-            <button
-              v-if="currentViewIndex < selectedMediaForView.length - 1"
-              class="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
-              @click.stop="navigateSlideshow(1)"
-            >
-              <ChevronsRight class="w-6 h-6" />
-            </button>
-          </template>
-
-          <!-- Media Info -->
-          <div
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg bg-black/70 backdrop-blur-md text-white max-w-md text-center"
-          >
-            <p class="font-semibold">
-              {{ selectedMediaForView[currentViewIndex].title || 'Media' }}
-            </p>
-            <p v-if="selectedMediaForView.length > 1" class="text-sm opacity-90 mt-1">
-              {{ currentViewIndex + 1 }} of {{ selectedMediaForView.length }}
-            </p>
-          </div>
-        </div>
-      </div>
+        :current-index="currentViewIndex"
+        :items="selectedMediaForView"
+        :placeholder-image="placeholderImage"
+        @close="closeMediaViewer"
+        @navigate="navigateSlideshow"
+        @image-error="handleImageError"
+      />
     </template>
   </CollectionLayout>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { debounce } from '@/utils/debounce'
-import {
-  ArrowUpDown,
-  Check,
-  CheckSquare2,
-  ChevronLeft,
-  ChevronsRight,
-  Copy,
-  Download,
-  ExternalLink,
-  Eye,
-  FileImage,
-  Grid3x3,
-  GripVertical,
-  ImageIcon,
-  ImagePlus,
-  List,
-  Loader2,
-  MoreVertical,
-  Move,
-  Paintbrush,
-  Pencil,
-  Plus,
-  Radio,
-  Share2,
-  Square,
-  Trash2,
-  X,
-} from 'lucide-vue-next'
-import { Button } from '@/components/shadcn/button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/shadcn/dropdown-menu'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
+import { Loader2 } from 'lucide-vue-next'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
-import CenterModal from '@/components/molecules/CenterModal.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
-import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
-import { Input } from '@/components/shadcn/input'
-import Textarea from '@/components/shadcn/Textarea.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
 import { useWatermarkStore } from '@/stores/watermark'
-import { usePresetStore } from '@/stores/preset'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useMediaApi } from '@/api/media'
 import { toast } from 'vue-sonner'
+import MediaItemsHeaderBar from '@/components/organisms/MediaItemsHeaderBar.vue'
+import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
+import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
+import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
+import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
+import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
+import RenameMediaModal from '@/components/organisms/RenameMediaModal.vue'
+import TagModal from '@/components/organisms/TagModal.vue'
+import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
+import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
+import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
+import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
+import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
+import MediaViewerSingle from '@/components/organisms/MediaViewerSingle.vue'
+import MediaViewerSlideshow from '@/components/organisms/MediaViewerSlideshow.vue'
+import { fileToDataURL } from '@/utils/fileToDataURL'
+import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
+import { createThumbnail } from '@/utils/media/createThumbnail'
+import { formatMediaDate } from '@/utils/media/formatMediaDate'
+import { getFileBaseName } from '@/utils/media/getFileBaseName'
+import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
+import { getCollectionShareLink } from '@/utils/media/getCollectionShareLink'
+import { getMediaShareUrl } from '@/utils/media/getMediaShareUrl'
+import { getMediaDownloadUrl } from '@/utils/media/getMediaDownloadUrl'
+import { getDownloadFilename } from '@/utils/media/getDownloadFilename'
+import { fetchDownloadBlob } from '@/utils/media/fetchDownloadBlob'
+import { triggerBrowserDownload } from '@/utils/media/triggerBrowserDownload'
+import { triggerFallbackDownloadLink } from '@/utils/media/triggerFallbackDownloadLink'
+import { copyTextToClipboard } from '@/utils/clipboard/copyTextToClipboard'
+import { useMediaUploadFlow } from '@/composables/useMediaUploadFlow'
+// Media Sets sidebar is store-driven (Option B)
+import { useBulkDeleteFlow } from '@/composables/useBulkDeleteFlow'
+import { useBulkMoveToSetFlow } from '@/composables/useBulkMoveToSetFlow'
+import { useMoveCopyFlow } from '@/composables/useMoveCopyFlow'
+import { useBulkWatermarkFlow } from '@/composables/useBulkWatermarkFlow'
+import { useBulkTagFlow } from '@/composables/useBulkTagFlow'
+import { useBulkEditFilenamesFlow } from '@/composables/useBulkEditFilenamesFlow'
+import { useBulkFavoriteFlow } from '@/composables/useBulkFavoriteFlow'
+import { useMediaShareDownloadActions } from '@/composables/useMediaShareDownloadActions'
+import { useMediaRenameDeleteActions } from '@/composables/useMediaRenameDeleteActions'
+import { useReplacePhotoFlow } from '@/composables/useReplacePhotoFlow'
+import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
+import { useCollectionCoverActions } from '@/composables/useCollectionCoverActions'
+import { useMediaViewerFlow } from '@/composables/useMediaViewerFlow'
+import { useMediaSelectionFlow } from '@/composables/useMediaSelectionFlow'
+import { useCollectionLoadFlow } from '@/composables/useCollectionLoadFlow'
+import { useCollectionMediaItemsFlow } from '@/composables/useCollectionMediaItemsFlow'
+import { useMediaListUiPrefs } from '@/composables/useMediaListUiPrefs'
+import { getMediaFilename } from '@/utils/media/getMediaFilename'
+import { createThumbnailFromDataURL } from '@/utils/media/createThumbnailFromDataURL'
+import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
+import { storeToRefs } from 'pinia'
 
 // Toast helper fallback (used in many places)
 const description = ''
@@ -1682,45 +359,32 @@ const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 const watermarkStore = useWatermarkStore()
-const presetStore = usePresetStore()
 const mediaApi = useMediaApi()
+const mediaSetsSidebar = useCollectionMediaSetsSidebarStore()
+const {
+  selectedSetId,
+  mediaSets,
+  sortedMediaSets,
+  draggedSetId,
+  dragOverIndex,
+  editingSetId,
+  editingSetName,
+  showCreateSetModal,
+  newSetName,
+  newSetDescription,
+  isCreatingSet,
+  isSavingSets,
+  editingSetIdInModal,
+} = storeToRefs(mediaSetsSidebar)
+
+// Store actions (must be pulled from the store itself, not `storeToRefs`)
+const { handleCreateSet, handleCancelCreateSet } = mediaSetsSidebar
 
 const collection = ref(null)
 const collectionStatus = ref('draft')
 const eventDate = ref(null)
-const activeTab = ref('photos')
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
-
-// Handle navigation when switching tabs
-watch(activeTab, newTab => {
-  if (!collection.value) return
-
-  // Navigate to Cover view when design tab is clicked
-  if (newTab === 'design') {
-    router.push({
-      name: 'collectionCover',
-      params: { uuid: collection.value.id },
-    })
-  }
-
-  // Navigate to General Settings when settings tab is clicked
-  if (newTab === 'settings') {
-    router.push({
-      name: 'collectionSettingsGeneral',
-      params: { uuid: collection.value.id },
-    })
-  }
-
-  // Navigate to Download Activity when activities tab is clicked
-  if (newTab === 'activities') {
-    router.push({
-      name: 'collectionActivities',
-      params: { uuid: collection.value.id },
-    })
-  }
-})
-const selectedSetId = ref(null)
 const selectedWatermark = ref('none')
 const selectedPresetId = ref('none')
 const isDragging = ref(false)
@@ -1728,10 +392,8 @@ const viewMode = ref('grid')
 const gridSize = ref('small')
 const showFilename = ref(true)
 const selectedMediaIds = ref(new Set())
-const isBulkActionMenuOpen = ref(false)
 const showMoveCopyModal = ref(false)
 const moveCopyAction = ref('move')
-const targetSetIdForMove = ref('')
 const targetCollectionIdForMove = ref('')
 const targetSetIdInCollection = ref('')
 const isMovingMedia = ref(false)
@@ -1763,16 +425,11 @@ const isBulkWatermarkLoading = ref(false)
 const editAppendText = ref('')
 const tagInput = ref('')
 const existingTags = ref([])
-const showDuplicateFilesModal = ref(false)
-const duplicateFiles = ref([])
-const filesToUpload = ref([])
-const duplicateFileActions = ref(new Map())
 const showRenameMediaModal = ref(false)
 const mediaToRename = ref(null)
 const newMediaName = ref('')
 const showReplacePhotoModal = ref(false)
 const mediaToReplace = ref(null)
-const replaceFileInputRef = ref(null)
 const isReplacingPhoto = ref(false)
 const showWatermarkMediaModal = ref(false)
 const mediaToWatermark = ref(null)
@@ -1790,30 +447,11 @@ const handleImageError = event => {
     img.src = placeholderImage
   }
 }
-const isEditingName = ref(false)
-const editingName = ref('')
-const nameInputRef = ref(null)
-const isSavingName = ref(false)
-const isBlurringName = ref(false)
-const isDatePickerOpen = ref(false)
-const isPresetPopoverOpen = ref(false)
-const isWatermarkPopoverOpen = ref(false)
 const isLoading = ref(false)
-const isSavingStatus = ref(false)
-const isSavingDate = ref(false)
 const isSavingPreset = ref(false)
 const isSavingWatermark = ref(false)
-const editingSetId = ref(null)
-const editingSetName = ref('')
 const setNameInputRef = ref(null)
 const fileInputRef = ref(null)
-const isUploading = ref(false)
-const showCreateSetModal = ref(false)
-const newSetName = ref('')
-const newSetDescription = ref('')
-const isCreatingSet = ref(false)
-const isSavingSets = ref(false)
-const editingSetIdInModal = ref(null)
 const {
   showDeleteModal,
   itemToDelete,
@@ -1825,22 +463,11 @@ const {
 
 // MediaSet type definition removed (TypeScript syntax not allowed in JS)
 
-const mediaSets = ref([])
-
-// Sort media sets by order
-const sortedMediaSets = computed(() => {
-  return [...mediaSets.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
-})
-
-// Drag and drop state for sets
-const draggedSetId = ref(null)
-const draggedSetIndex = ref(null)
-const dragOverIndex = ref(null)
+// `mediaSets`, `sortedMediaSets`, and drag state are store refs (via `storeToRefs`)
 
 const selectedSet = computed(() => {
-  return (
-    sortedMediaSets.value.find(set => set.id === selectedSetId.value) || sortedMediaSets.value[0]
-  )
+  const sets = sortedMediaSets.value || []
+  return sets.find(set => set.id === selectedSetId.value) || sets[0]
 })
 
 // Sort options
@@ -1901,145 +528,33 @@ const sortedMediaItems = computed(() => {
   }
 })
 
-// Handle sort change
-const handleSortChange = value => {
-  sortOrder.value = value
-  isSortMenuOpen.value = false
-}
-
-// Handle grid size change
-const handleGridSizeChange = value => {
-  gridSize.value = value
-  isViewMenuOpen.value = false
-}
-
-// Handle filename toggle
-const handleFilenameToggle = event => {
-  const target = event.target
-  showFilename.value = target.checked
-}
-
-// Open media viewer
-const openMediaViewer = item => {
-  selectedMedia.value = item
-}
-
-// Close media viewer
-const closeMediaViewer = () => {
-  selectedMedia.value = null
-  selectedMediaForView.value = []
-  currentViewIndex.value = 0
-  showMediaViewer.value = false
-}
-
-// Navigate slideshow
-const navigateSlideshow = direction => {
-  const newIndex = currentViewIndex.value + direction
-  if (newIndex >= 0 && newIndex < selectedMediaForView.value.length) {
-    currentViewIndex.value = newIndex
-  }
-}
-
-// Handle keyboard navigation in slideshow
-const handleSlideshowKeydown = event => {
-  if (!showMediaViewer.value) return
-
-  if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-    event.preventDefault()
-    navigateSlideshow(-1)
-  } else if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-    event.preventDefault()
-    navigateSlideshow(1)
-  } else if (event.key === 'Escape') {
-    event.preventDefault()
-    closeMediaViewer()
-  }
-}
-
-// Watch for slideshow visibility to add/remove keyboard listeners
-watch(showMediaViewer, isOpen => {
-  if (isOpen) {
-    document.addEventListener('keydown', handleSlideshowKeydown)
-  } else {
-    document.removeEventListener('keydown', handleSlideshowKeydown)
-  }
+const { handleSortChange, handleGridSizeChange, handleFilenameToggle } = useMediaListUiPrefs({
+  sortOrder,
+  isSortMenuOpen,
+  gridSize,
+  isViewMenuOpen,
+  showFilename,
 })
 
-// Cleanup on unmount
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleSlideshowKeydown)
+const { openMediaViewer, closeMediaViewer, navigateSlideshow } = useMediaViewerFlow({
+  selectedMedia,
+  selectedMediaForView,
+  currentViewIndex,
+  showMediaViewer,
 })
 
-// Format date helper for media items (using existing formatDate for event dates)
-const formatMediaDate = dateString => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-// Update set counts based on actual media items
-const updateSetCounts = async targetCollectionId => {
-  const collectionId = targetCollectionId || collection.value?.id
-  if (!collectionId) return
-
-  isUpdatingSetCounts.value = true
-  try {
-    // Fetch all media for the collection
-    const allMedia = await mediaApi.fetchCollectionMedia(collectionId)
-
-    // If updating for current collection, update local sets
-    if (collectionId === collection.value?.id) {
-      mediaSets.value.forEach(set => {
-        const count = allMedia.filter(m => m.setId === set.id).length
-        set.count = count
-      })
-      // Save updated counts
-      await saveMediaSets()
-    } else {
-      // If updating for another collection, update that collection's sets in the store
-      const targetCollection = galleryStore.collections.find(c => c.id === collectionId)
-      if (targetCollection && targetCollection.mediaSets) {
-        const updatedSets = targetCollection.mediaSets.map(set => {
-          const count = allMedia.filter(m => m.setId === set.id).length
-          return { ...set, count }
-        })
-
-        // Update the collection in the store
-        await galleryStore.updateCollection(collectionId, {
-          mediaSets: updatedSets,
-        })
-      }
-    }
-  } catch (error) {
-    console.error('Failed to update set counts:', error)
-  } finally {
-    isUpdatingSetCounts.value = false
-  }
-}
-
-// Load media items for selected set
-const loadMediaItems = async () => {
-  if (!collection.value) {
-    mediaItems.value = []
-    return
-  }
-
-  isLoadingMedia.value = true
-  try {
-    // Fetch media for the selected set
-    const items = await mediaApi.fetchCollectionMedia(
-      collection.value.id,
-      selectedSetId.value || undefined
-    )
-    mediaItems.value = items
-  } catch (error) {
-    console.error('Failed to load media items:', error)
-    toast.error('Failed to load media', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  } finally {
-    isLoadingMedia.value = false
-  }
-}
+const { updateSetCounts, loadMediaItems } = useCollectionMediaItemsFlow({
+  collection,
+  selectedSetId,
+  mediaItems,
+  isLoadingMedia,
+  isUpdatingSetCounts,
+  mediaApi,
+  galleryStore,
+  mediaSetsSidebar,
+  mediaSets,
+  description,
+})
 
 // Media item context menu handlers
 const handleOpenMedia = item => {
@@ -2047,86 +562,20 @@ const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
-const handleQuickShare = async item => {
-  try {
-    const shareUrl = `${window.location.origin}/share/${item.id}`
-    await navigator.clipboard.writeText(shareUrl)
-    toast.success('Share link copied', {
-      description: 'The share link has been copied to your clipboard.',
-    })
-  } catch (error) {
-    console.error('Failed to copy share link:', error)
-    toast.error('Failed to copy link', {
-      description: 'Please try again.',
-    })
-  }
-}
-
-const handleDownloadMedia = async item => {
-  try {
-    // Download the image currently is (with or without watermark)
-    const downloadUrl = item.url || item.thumbnail || ''
-
-    if (!downloadUrl) {
-      toast.error('Download failed', {
-        description,
-      })
-      return
-    }
-
-    // Fetch the image to handle data URLs and CORS
-    let blob
-    if (downloadUrl.startsWith('data:')) {
-      // Data URL - convert to blob
-      const response = await fetch(downloadUrl)
-      blob = await response.blob()
-    } else {
-      // Regular URL - fetch with CORS handling
-      try {
-        const response = await fetch(downloadUrl, { mode: 'cors' })
-        if (!response.ok) throw new Error('Failed to fetch')
-        blob = await response.blob()
-      } catch (error) {
-        // Fallback
-        const link = document.createElement('a')
-        link.href = downloadUrl
-        link.download = item.title || `media-${item.id}`
-        link.target = '_blank'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-        toast.success('Download started', {
-          description,
-        })
-        return
-      }
-    }
-
-    // Create download link with proper filename
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    // Get file extension from original filename or default to jpg
-    const filename = item.title || `media-${item.id}`
-    const extension = filename.includes('.')
-      ? filename.substring(filename.lastIndexOf('.'))
-      : '.jpg'
-    link.download = filename.endsWith(extension) ? filename : `${filename}${extension}`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-
-    toast.success('Download started', {
-      description,
-    })
-  } catch (error) {
-    console.error('Download error:', error)
-    toast.error('Download failed', {
-      description,
-    })
-  }
-}
+const { handleQuickShare, handleDownloadMedia, handleCopyFilenames, handleCopyLink } =
+  useMediaShareDownloadActions({
+    getMediaShareUrl,
+    getMediaDownloadUrl,
+    getDownloadFilename,
+    fetchDownloadBlob,
+    triggerBrowserDownload,
+    triggerFallbackDownloadLink,
+    copyTextToClipboard,
+    getMediaFilename,
+    getCollectionShareLink,
+    route,
+    description,
+  })
 
 const handleMoveCopy = item => {
   // Select the single item and open the move/copy modal
@@ -2140,460 +589,50 @@ const handleMoveCopy = item => {
   }
 }
 
-const handleCopyFilenames = async item => {
-  try {
-    const filename = item.title || `media-${item.id}`
-    await navigator.clipboard.writeText(filename)
-    toast.success('Filename copied', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to copy filename:', error)
-    toast.error('Failed to copy filename', {
-      description,
-    })
-  }
-}
+// (moved to useMediaShareDownloadActions)
 
-const handleSetAsCover = async item => {
-  if (!collection.value) return
+const { handleSetAsCover, handleCoverImageUpload } = useCollectionCoverActions({
+  collection,
+  galleryStore,
+  createThumbnailFromDataURL,
+  description,
+})
 
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      thumbnail: item.thumbnail || item.url,
-      image: item.url,
-    })
-    toast.success('Cover updated', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to set cover:', error)
-    toast.error('Failed to set cover', {
-      description,
-    })
-  }
-}
-
-const handleCoverImageUpload = async imageUrl => {
-  if (!collection.value) return
-
-  try {
-    // Create a thumbnail from the uploaded image
-    const thumbnail = await createThumbnailFromDataURL(imageUrl)
-
-    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-      thumbnail,
-      image,
-    })
-
-    // Update local collection reference
-    if (updatedCollection) {
-      collection.value = updatedCollection
-    } else {
-      // Fallback
-      collection.value.thumbnail = thumbnail || imageUrl
-      collection.value.image = imageUrl
-    }
-
-    toast.success('Cover updated', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to upload cover image:', error)
-    toast.error('Failed to upload cover image', {
-      description,
-    })
-  }
-}
-
-// Create thumbnail from data URL
-const createThumbnailFromDataURL = dataUrl => {
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      const maxSize = 400
-      let width = img.width
-      let height = img.height
-
-      if (width > height) {
-        if (width > maxSize) {
-          height *= maxSize / width
-          width = maxSize
-        }
-      } else {
-        if (height > maxSize) {
-          width *= maxSize / height
-          height = maxSize
-        }
-      }
-
-      canvas.width = width
-      canvas.height = height
-      const ctx = canvas.getContext('2d')
-      if (ctx) {
-        ctx.drawImage(img, 0, 0, width, height)
-        resolve(canvas.toDataURL('image/jpeg', 0.8))
-      } else {
-        resolve(dataUrl)
-      }
-    }
-    img.onerror = reject
-    img.src = dataUrl
+const { handleReplacePhoto, handleCancelReplacePhoto, handleReplacePhotoFileSelect } =
+  useReplacePhotoFlow({
+    mediaToReplace,
+    showReplacePhotoModal,
+    isReplacingPhoto,
+    selectedWatermark,
+    watermarkStore,
+    mediaApi,
+    mediaItems,
+    createThumbnail,
+    getFileBaseName,
+    fileToDataURL,
+    applyWatermarkToImage,
+    description,
   })
-}
 
-const handleRenameMedia = item => {
-  mediaToRename.value = item
-  newMediaName.value = item.title || item.id
-  showRenameMediaModal.value = true
-}
+const {
+  handleWatermarkMedia,
+  handleCancelWatermarkMedia,
+  handleRemoveWatermark,
+  handleConfirmWatermarkMedia,
+} = useMediaWatermarkActions({
+  showWatermarkMediaModal,
+  mediaToWatermark,
+  selectedWatermarkForMedia,
+  selectedWatermark,
+  isApplyingWatermark,
+  watermarkStore,
+  mediaApi,
+  mediaItems,
+  applyWatermarkToImage,
+  description,
+})
 
-const handleCancelRenameMedia = () => {
-  showRenameMediaModal.value = false
-  mediaToRename.value = null
-  newMediaName.value = ''
-}
-
-const handleConfirmRenameMedia = async () => {
-  if (!mediaToRename.value || !newMediaName.value.trim()) return
-
-  try {
-    await mediaApi.updateMedia(mediaToRename.value.id, {
-      title: newMediaName.value.trim(),
-    })
-
-    // Update local item
-    const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
-    if (index !== -1) {
-      mediaItems.value[index].title = newMediaName.value.trim()
-    }
-
-    showRenameMediaModal.value = false
-    mediaToRename.value = null
-    newMediaName.value = ''
-
-    toast.success('Media renamed', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to rename media:', error)
-    toast.error('Failed to rename media', {
-      description,
-    })
-  }
-}
-
-const handleReplacePhoto = item => {
-  if (item.type !== 'image') {
-    toast.error('Invalid media type', {
-      description,
-    })
-    return
-  }
-  mediaToReplace.value = item
-  showReplacePhotoModal.value = true
-}
-
-const handleCancelReplacePhoto = () => {
-  showReplacePhotoModal.value = false
-  mediaToReplace.value = null
-  if (replaceFileInputRef.value) {
-    replaceFileInputRef.value.value = ''
-  }
-}
-
-const handleReplacePhotoFileSelect = async event => {
-  const input = event.target
-  const files = input.files
-  if (!files || files.length === 0 || !mediaToReplace.value) return
-
-  const file = files[0]
-  if (!file.type.startsWith('image/')) {
-    toast.error('Invalid file type', {
-      description,
-    })
-    return
-  }
-
-  isReplacingPhoto.value = true
-  try {
-    // Get watermark if selected
-    let watermark
-    if (selectedWatermark.value && selectedWatermark.value !== 'none') {
-      try {
-        watermark = await watermarkStore.fetchWatermark(selectedWatermark.value)
-      } catch (error) {
-        console.error('Failed to fetch watermark:', error)
-      }
-    }
-
-    // Create thumbnail
-    const thumbnail = await createThumbnail(file, watermark || undefined)
-    const initialUrl = thumbnail
-
-    // Update media item
-    await mediaApi.updateMedia(mediaToReplace.value.id, {
-      url: initialUrl,
-      thumbnail: thumbnail,
-      title: mediaToReplace.value.title,
-    })
-
-    // Update local item
-    const index = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
-    if (index !== -1) {
-      mediaItems.value[index].url = initialUrl
-      mediaItems.value[index].thumbnail = thumbnail
-      mediaItems.value[index].title =
-        file.name.replace(/\.[^/.]+$/, '') || mediaToReplace.value.title
-    }
-
-    // Process full image with watermark in background
-    ;(async () => {
-      try {
-        let fullUrl = await fileToDataURL(file)
-        if (watermark) {
-          fullUrl = await applyWatermarkToImage(fullUrl, watermark)
-        }
-
-        // Update the media item with the full image URL
-        const updateIndex = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
-        if (updateIndex !== -1) {
-          mediaItems.value[updateIndex].url = fullUrl
-          await mediaApi.updateMedia(mediaToReplace.value.id, {
-            url,
-          })
-        }
-      } catch (error) {
-        console.error('Error processing full image:', error)
-      }
-    })()
-
-    showReplacePhotoModal.value = false
-    mediaToReplace.value = null
-    if (replaceFileInputRef.value) {
-      replaceFileInputRef.value.value = ''
-    }
-
-    toast.success('Photo replaced', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to replace photo:', error)
-    toast.error('Failed to replace photo', {
-      description,
-    })
-  } finally {
-    isReplacingPhoto.value = false
-  }
-}
-
-const handleWatermarkMedia = item => {
-  if (item.type !== 'image') {
-    toast.error('Invalid media type', {
-      description,
-    })
-    return
-  }
-  mediaToWatermark.value = item
-  // Check if image already has a watermark (has originalUrl stored)
-  // If it does, we're editing/removing, otherwise we're adding
-  selectedWatermarkForMedia.value = item.originalUrl ? 'none' : selectedWatermark.value || 'none'
-  showWatermarkMediaModal.value = true
-}
-
-const handleCancelWatermarkMedia = () => {
-  showWatermarkMediaModal.value = false
-  mediaToWatermark.value = null
-  selectedWatermarkForMedia.value = 'none'
-}
-
-const handleRemoveWatermark = async item => {
-  if (item.type !== 'image') {
-    toast.error('Invalid media type', {
-      description,
-    })
-    return
-  }
-
-  if (!item.originalUrl) {
-    toast.info('No watermark', {
-      description,
-    })
-    return
-  }
-
-  isApplyingWatermark.value = true
-  try {
-    // Restore original image
-    await mediaApi.updateMedia(item.id, {
-      url: item.originalUrl,
-      originalUrl: undefined, // Clear originalUrl since we're removing watermark
-      thumbnail: undefined, // Remove watermarked thumbnail
-    })
-
-    // Update local item
-    const index = mediaItems.value.findIndex(m => m.id === item.id)
-    if (index !== -1) {
-      mediaItems.value[index].url = item.originalUrl
-      mediaItems.value[index].originalUrl = undefined
-      mediaItems.value[index].thumbnail = undefined
-    }
-
-    toast.success('Watermark removed', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to remove watermark:', error)
-    toast.error('Failed to remove watermark', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  } finally {
-    isApplyingWatermark.value = false
-  }
-}
-
-const handleConfirmWatermarkMedia = async () => {
-  if (!mediaToWatermark.value) return
-
-  isApplyingWatermark.value = true
-  try {
-    let watermark
-    if (selectedWatermarkForMedia.value && selectedWatermarkForMedia.value !== 'none') {
-      try {
-        watermark = await watermarkStore.fetchWatermark(selectedWatermarkForMedia.value)
-        if (!watermark) {
-          throw new Error('Watermark not found')
-        }
-      } catch (error) {
-        console.error('Failed to fetch watermark:', error)
-        toast.error('Failed to fetch watermark', {
-          description,
-        })
-        return
-      }
-    }
-
-    // If removing watermark and we have originalUrl, restore it
-    if (!watermark && mediaToWatermark.value.originalUrl) {
-      // Restore original image
-      await mediaApi.updateMedia(mediaToWatermark.value.id, {
-        url: mediaToWatermark.value.originalUrl,
-        originalUrl: undefined, // Clear originalUrl since we're removing watermark
-        thumbnail: undefined, // Remove watermarked thumbnail
-      })
-
-      // Update local item
-      const index = mediaItems.value.findIndex(m => m.id === mediaToWatermark.value?.id)
-      if (index !== -1) {
-        mediaItems.value[index].url = mediaToWatermark.value.originalUrl
-        mediaItems.value[index].originalUrl = undefined
-        mediaItems.value[index].thumbnail = undefined
-      }
-
-      showWatermarkMediaModal.value = false
-      mediaToWatermark.value = null
-      selectedWatermarkForMedia.value = 'none'
-
-      toast.success('Watermark removed', {
-        description,
-      })
-      return
-    }
-
-    // Applying watermark - need to get the original image
-    // Use originalUrl if available, otherwise current URL is the original
-    let originalImageUrl = mediaToWatermark.value.originalUrl || mediaToWatermark.value.url
-    let imageUrl = originalImageUrl
-
-    // If the URL is not a data URL, we need to fetch it first
-    if (!imageUrl || !imageUrl.startsWith('data:')) {
-      try {
-        // Try to fetch the image and convert to data URL
-        const urlToFetch = imageUrl || mediaToWatermark.value.thumbnail || ''
-        if (urlToFetch) {
-          const response = await fetch(urlToFetch, { mode: 'cors' })
-          if (response.ok) {
-            const blob = await response.blob()
-            imageUrl =
-              (await new Promise()) <
-              string >
-              ((resolve, reject) => {
-                const reader = new FileReader()
-                reader.onload = () => resolve(reader.result)
-                reader.onerror = reject
-                reader.readAsDataURL(blob)
-              })
-          }
-        }
-      } catch (error) {
-        console.warn('Could not fetch image for watermarking, using existing URL:', error)
-        // If fetch fails, try to use the URL directly
-        if (!imageUrl) {
-          imageUrl = mediaToWatermark.value.thumbnail || mediaToWatermark.value.url || ''
-        }
-      }
-    }
-
-    if (!imageUrl) {
-      throw new Error('No image URL available for watermarking')
-    }
-
-    // Apply watermark to the original image
-    if (!watermark) {
-      throw new Error('Watermark is required when applying')
-    }
-
-    const watermarkedUrl = await applyWatermarkToImage(imageUrl, watermark)
-
-    // Store original URL if not already stored
-    const originalUrlToStore = mediaToWatermark.value.originalUrl || originalImageUrl
-
-    // Update media item with watermarked URL and preserve original
-    await mediaApi.updateMedia(mediaToWatermark.value.id, {
-      url: watermarkedUrl,
-      originalUrl: originalUrlToStore, // Store original for future removal
-    })
-
-    // Update local item
-    const index = mediaItems.value.findIndex(m => m.id === mediaToWatermark.value?.id)
-    if (index !== -1) {
-      mediaItems.value[index].url = watermarkedUrl
-      mediaItems.value[index].originalUrl = originalUrlToStore
-
-      // Update thumbnail with watermark
-      try {
-        const watermarkedThumbnail = await applyWatermarkToImage(imageUrl, watermark)
-        mediaItems.value[index].thumbnail = watermarkedThumbnail
-        await mediaApi.updateMedia(mediaToWatermark.value.id, {
-          thumbnail,
-        })
-      } catch (error) {
-        console.warn('Could not create watermarked thumbnail:', error)
-      }
-    }
-
-    showWatermarkMediaModal.value = false
-    mediaToWatermark.value = null
-    selectedWatermarkForMedia.value = 'none'
-
-    toast.success('Watermark applied', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to apply watermark:', error)
-    toast.error('Failed to apply watermark', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  } finally {
-    isApplyingWatermark.value = false
-  }
-}
-
-const handleDeleteMedia = item => {
-  if (!item) return
-  openDeleteModal({ id: item.id })
-}
+// (moved to useMediaRenameDeleteActions)
 
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
@@ -2609,394 +648,65 @@ const getDeleteModalWarning = () => {
     : 'This set will be permanently deleted.'
 }
 
-const handleConfirmDeleteItem = async () => {
-  console.log(itemToDelete.value)
-  if (!itemToDelete.value) return
+// (moved to useMediaRenameDeleteActions)
 
-  const item = itemToDelete.value
-
-  console.log(item.collectionId)
-
-  // Check if it's a MediaSet or MediaItem
-  if (item.collectionId) {
-    // It's a MediaItem
-    try {
-      await mediaApi.deleteMedia(item.id)
-      // Remove from local array
-      const index = mediaItems.value.findIndex(m => m.id === item.id)
-      if (index !== -1) {
-        mediaItems.value.splice(index, 1)
-        // Update set counts based on actual media
-        await updateSetCounts()
-      }
-      // Remove from selection if selected
-      selectedMediaIds.value.delete(item.id)
-      closeDeleteModal()
-      toast.success('Media deleted', {
-        description,
-      })
-    } catch (error) {
-      console.error('Failed to delete media:', error)
-      toast.error('Failed to delete media', {
-        description,
-      })
-    }
-  } else {
-    // It's a MediaSet - call the existing handler
-    await handleConfirmDeleteSet()
-  }
-}
-
-// Selection handlers
-const handleToggleMediaSelection = mediaId => {
-  // Create a new Set to ensure reactivity
-  const newSet = new Set(selectedMediaIds.value)
-  if (newSet.has(mediaId)) {
-    newSet.delete(mediaId)
-  } else {
-    newSet.add(mediaId)
-  }
-  selectedMediaIds.value = newSet
-}
-
-const handleToggleSelectAll = () => {
-  const allItemIds = sortedMediaItems.value.map(item => item.id)
-
-  if (allItemIds.length === 0) {
-    toast.info('No items', {
-      description: 'There are no items to select.',
-    })
-    return
-  }
-
-  // Check if all items are selected by comparing sizes and verifying all IDs are in the set
-  const allSelected =
-    selectedMediaIds.value.size === allItemIds.length &&
-    allItemIds.every(id => selectedMediaIds.value.has(id))
-
-  if (allSelected) {
-    // Deselect all - create new Set to trigger reactivity
-    selectedMediaIds.value = new Set()
-    toast.success('Deselected all', {
-      description: 'All items have been deselected.',
-    })
-  } else {
-    // Select all - create new Set with all IDs to trigger reactivity
-    selectedMediaIds.value = new Set(allItemIds)
-    toast.success('Selected all', {
-      description: 'All items have been selected.',
-    })
-  }
-}
-
-// Bulk action handlers
-const handleBulkDelete = () => {
-  if (selectedMediaIds.value.size === 0) return
-  showBulkDeleteModal.value = true
-}
-
-const handleConfirmBulkDelete = async () => {
-  if (selectedMediaIds.value.size === 0) return
-
-  const count = selectedMediaIds.value.size
-  const idsToDelete = Array.from(selectedMediaIds.value)
-
-  isBulkDeleteLoading.value = true
-  try {
-    for (const id of idsToDelete) {
-      await mediaApi.deleteMedia(id)
-      const index = mediaItems.value.findIndex(m => m.id === id)
-      if (index !== -1) {
-        mediaItems.value.splice(index, 1)
-      }
-    }
-    await updateSetCounts()
-    selectedMediaIds.value.clear()
-    showBulkDeleteModal.value = false
-    toast.success('Media deleted', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to delete media:', error)
-    toast.error('Failed to delete media', {
-      description,
-    })
-  } finally {
-    isBulkDeleteLoading.value = false
-  }
-}
-
-const handleBulkMoveToSet = async targetSetId => {
-  if (selectedMediaIds.value.size === 0 || !collection.value || !targetSetId) return
-
-  const idsToMove = Array.from(selectedMediaIds.value)
-  const count = idsToMove.length
-
-  isMovingMedia.value = true
-  try {
-    // Update media items' setId via API
-    for (const id of idsToMove) {
-      await mediaApi.updateMedia(id, { setId: targetSetId })
-    }
-
-    // Reload media items to reflect changes
-    await loadMediaItems()
-
-    // Update set counts
-    await updateSetCounts()
-
-    selectedMediaIds.value.clear()
-    targetSetIdForMove.value = ''
-
-    toast.success('Media moved', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to move media:', error)
-    toast.error('Failed to move media', {
-      description,
-    })
-  } finally {
-    isMovingMedia.value = false
-  }
-}
-
-// Initialize target collection to current collection when modal opens
-watch(showMoveCopyModal, isOpen => {
-  if (isOpen && collection.value) {
-    targetCollectionIdForMove.value = collection.value.id
-    handleTargetCollectionChange(collection.value.id)
-  } else if (!isOpen) {
-    // Reset on close
-    targetCollectionIdForMove.value = ''
-    targetSetIdInCollection.value = ''
-    targetCollectionSets.value = []
-    moveCopyAction.value = 'move'
-  }
+const { handleToggleMediaSelection, handleToggleSelectAll } = useMediaSelectionFlow({
+  selectedMediaIds,
+  sortedMediaItems,
+  description,
 })
 
-const handleTargetCollectionChange = async collectionId => {
-  if (!collectionId) {
-    targetCollectionSets.value = []
-    targetSetIdInCollection.value = ''
-    return
-  }
+// Bulk action handlers
+const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
+  selectedMediaIds,
+  showBulkDeleteModal,
+  isBulkDeleteLoading,
+  mediaApi,
+  mediaItems,
+  updateSetCounts,
+  description,
+})
 
-  isLoadingTargetCollectionSets.value = true
-  try {
-    // If it's the current collection, use local mediaSets
-    if (collectionId === collection.value?.id) {
-      targetCollectionSets.value = mediaSets.value.map(set => ({
-        id: set.id,
-        name: set.name,
-        description: set.description,
-        count: set.count,
-        order: set.order,
-      }))
-    } else {
-      // Fetch the target collection to get its sets
-      const targetCollection = galleryStore.collections.find(c => c.id === collectionId)
-      if (targetCollection && targetCollection.mediaSets) {
-        targetCollectionSets.value = targetCollection.mediaSets.map(set => ({
-          id: set.id,
-          name: set.name,
-          description: set.description,
-          count: set.count,
-          order: set.order,
-        }))
-      } else {
-        targetCollectionSets.value = []
-      }
-    }
-    // Reset set selection when collection changes
-    targetSetIdInCollection.value = ''
-  } catch (error) {
-    console.error('Failed to load collection sets:', error)
-    targetCollectionSets.value = []
-  } finally {
-    isLoadingTargetCollectionSets.value = false
-  }
-}
+const { handleBulkMoveToSet } = useBulkMoveToSetFlow({
+  selectedMediaIds,
+  collection,
+  isMovingMedia,
+  mediaApi,
+  loadMediaItems,
+  updateSetCounts,
+  description,
+})
 
-const handleCancelMoveCopy = () => {
-  showMoveCopyModal.value = false
-  targetCollectionIdForMove.value = collection.value?.id || ''
-  targetSetIdInCollection.value = ''
-  targetCollectionSets.value = []
-  moveCopyAction.value = 'move'
-}
-
-const handleConfirmMoveCopy = () => {
-  if (targetCollectionIdForMove.value) {
-    if (moveCopyAction.value === 'move') {
-      handleBulkMoveToCollection(
-        targetCollectionIdForMove.value,
-        targetSetIdInCollection.value || undefined
-      )
-    } else {
-      handleBulkCopyToCollection(
-        targetCollectionIdForMove.value,
-        targetSetIdInCollection.value || undefined
-      )
-    }
-  }
-}
-
-const handleBulkMoveToCollection = async targetCollectionId => {
-  if (selectedMediaIds.value.size === 0 || !collection.value || !targetCollectionId) return
-
-  const idsToMove = Array.from(selectedMediaIds.value)
-  const count = idsToMove.length
-
-  isMovingMedia.value = true
-  try {
-    // Update media items' collectionId and setId via API
-    for (const id of idsToMove) {
-      await mediaApi.updateMedia(String(id), {
-        collectionId: targetCollectionId,
-        setId: targetSetIdInCollection.value || undefined,
-      })
-    }
-
-    // If moving within same collection, just update the set
-    if (targetCollectionId === collection.value.id) {
-      await loadMediaItems()
-    } else {
-      // Remove moved items from current view if moving to different collection
-      mediaItems.value = mediaItems.value.filter(m => !idsToMove.includes(m.id))
-    }
-
-    // Update set counts
-    await updateSetCounts()
-
-    selectedMediaIds.value.clear()
-    handleCancelMoveCopy()
-
-    toast.success('Media moved', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to move media:', error)
-    toast.error('Failed to move media', {
-      description,
-    })
-  } finally {
-    isMovingMedia.value = false
-  }
-}
-
-const handleBulkCopyToCollection = async targetCollectionId => {
-  if (selectedMediaIds.value.size === 0 || !collection.value || !targetCollectionId) return
-
-  const idsToCopy = Array.from(selectedMediaIds.value)
-  const count = idsToCopy.length
-
-  isMovingMedia.value = true
-  try {
-    const copiedItems = []
-
-    // Copy media items by creating new ones in the target collection
-    for (const id of idsToCopy) {
-      const originalItem = mediaItems.value.find(m => m.id === id)
-      if (originalItem) {
-        try {
-          const copiedItem = await mediaApi.addMedia(targetCollectionId, {
-            url: originalItem.url,
-            thumbnail: originalItem.thumbnail,
-            type: originalItem.type,
-            title: originalItem.title,
-            description: originalItem.description,
-            order: originalItem.order,
-            setId: targetSetIdInCollection.value || undefined,
-          })
-          copiedItems.push(copiedItem)
-        } catch (itemError) {
-          // If quota exceeded, stop copying and show error
-          if (
-            itemError?.message?.includes('quota exceeded') ||
-            itemError?.message?.includes('QuotaExceededError')
-          ) {
-            throw new Error(
-              'Storage quota exceeded. Please delete some old media or reduce file sizes before copying.'
-            )
-          }
-          throw itemError
-        }
-      }
-    }
-
-    // Update set counts for both source and target collections
-    await updateSetCounts() // Update current collection
-    if (targetCollectionId !== collection.value.id) {
-      await updateSetCounts(targetCollectionId) // Update target collection
-    }
-
-    // If copying within the same collection and to the same set, add to local view
-    if (targetCollectionId === collection.value.id && targetSetId === selectedSetId.value) {
-      // Add copied items to the current view
-      copiedItems.forEach(item => {
-        if (!mediaItems.value.find(m => m.id === item.id)) {
-          mediaItems.value.push(item)
-        }
-      })
-    } else if (targetCollectionId === collection.value.id) {
-      // If copying to different set in same collection, reload to refresh counts
-      await loadMediaItems()
-    }
-
-    selectedMediaIds.value.clear()
-    handleCancelMoveCopy()
-
-    toast.success('Media copied', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to copy media:', error)
-    const errorMessage = error?.message || 'An error occurred while copying the media items.'
-    toast.error('Failed to copy media', {
-      description: errorMessage,
-    })
-  } finally {
-    isMovingMedia.value = false
-  }
-}
+const { handleTargetCollectionChange, handleCancelMoveCopy, handleConfirmMoveCopy } =
+  useMoveCopyFlow({
+    showMoveCopyModal,
+    moveCopyAction,
+    targetCollectionIdForMove,
+    targetSetIdInCollection,
+    targetCollectionSets,
+    isLoadingTargetCollectionSets,
+    isMovingMedia,
+    selectedMediaIds,
+    collection,
+    mediaSets,
+    mediaItems,
+    selectedSetId,
+    galleryStore,
+    mediaApi,
+    loadMediaItems,
+    updateSetCounts,
+    description,
+  })
 
 // Bulk action handlers
-const handleBulkFavorite = async () => {
-  if (selectedMediaIds.value.size === 0) return
-
-  const ids = Array.from(selectedMediaIds.value)
-  const count = ids.length
-
-  isBulkFavoriteLoading.value = true
-  try {
-    // Toggle favorite status for selected items
-    for (const id of ids) {
-      const item = mediaItems.value.find(m => m.id === id)
-      if (item) {
-        // For now, we'll use a custom property to track favorite status
-        // In a real app, this would be stored in the backend
-        const isFavorite = item.isFavorite || false
-        await mediaApi.updateMedia(String(id), {
-          ...item,
-          isFavorite,
-        })
-      }
-    }
-
-    await loadMediaItems()
-    toast.success('Favorite updated', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to update favorite:', error)
-    toast.error('Failed to update favorite', {
-      description,
-    })
-  } finally {
-    isBulkFavoriteLoading.value = false
-  }
-}
+const { handleBulkFavorite } = useBulkFavoriteFlow({
+  selectedMediaIds,
+  isBulkFavoriteLoading,
+  mediaItems,
+  mediaApi,
+  loadMediaItems,
+  description,
+})
 
 const handleBulkView = () => {
   if (selectedMediaIds.value.size === 0) return
@@ -3019,1652 +729,128 @@ const handleBulkView = () => {
   showMediaViewer.value = true
 }
 
-const handleBulkTag = () => {
-  if (selectedMediaIds.value.size === 0) return
-  // Collect existing tags from selected items
-  const ids = Array.from(selectedMediaIds.value)
-  const items = mediaItems.value.filter(m => ids.includes(m.id))
-  const allTags = new Set()
-  items.forEach(item => {
-    const tags = item.tags || []
-    if (Array.isArray(tags)) {
-      tags.forEach(tag => allTags.add(tag))
-    }
+const { handleBulkTag, handleCancelTag, handleAddTag, handleConfirmTag } = useBulkTagFlow({
+  selectedMediaIds,
+  mediaItems,
+  showTagModal,
+  tagInput,
+  existingTags,
+  isBulkTagLoading,
+  mediaApi,
+  loadMediaItems,
+  description,
+})
+
+const { handleBulkEdit, handleCancelEdit, handleConfirmEdit } = useBulkEditFilenamesFlow({
+  selectedMediaIds,
+  showEditModal,
+  editAppendText,
+  isBulkEditLoading,
+  mediaItems,
+  mediaApi,
+  loadMediaItems,
+  description,
+})
+
+const { handleBulkWatermark, handleCancelBulkWatermark, handleConfirmBulkWatermark } =
+  useBulkWatermarkFlow({
+    selectedMediaIds,
+    showBulkWatermarkModal,
+    selectedBulkWatermark,
+    isBulkWatermarkLoading,
+    watermarkStore,
+    mediaApi,
+    mediaItems,
+    applyWatermarkToImage,
+    description,
   })
-  existingTags.value = Array.from(allTags)
-  tagInput.value = ''
-  showTagModal.value = true
-}
 
-const handleCancelTag = () => {
-  showTagModal.value = false
-  tagInput.value = ''
-  existingTags.value = []
-}
-
-const handleAddTag = () => {
-  if (!tagInput.value.trim()) return
-  const tags = tagInput.value
-    .split(',')
-    .map(t => t.trim())
-    .filter(t => t)
-  tags.forEach(tag => {
-    if (!existingTags.value.includes(tag)) {
-      existingTags.value.push(tag)
-    }
-  })
-  tagInput.value = ''
-}
-
-const handleConfirmTag = async () => {
-  if (selectedMediaIds.value.size === 0) return
-
-  const ids = Array.from(selectedMediaIds.value)
-  const tagsToAdd = existingTags.value
-
-  isBulkTagLoading.value = true
-  try {
-    for (const id of ids) {
-      const item = mediaItems.value.find(m => m.id === id)
-      if (item) {
-        const currentTags = item.tags || []
-        const updatedTags = [...new Set([...currentTags, ...tagsToAdd])]
-        await mediaApi.updateMedia(String(id), {
-          ...item,
-          tags,
-        })
-      }
-    }
-
-    await loadMediaItems()
-    showTagModal.value = false
-    tagInput.value = ''
-    existingTags.value = []
-    toast.success('Tags added', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to add tags:', error)
-    toast.error('Failed to add tags', {
-      description,
-    })
-  } finally {
-    isBulkTagLoading.value = false
-  }
-}
-
-const handleBulkEdit = () => {
-  if (selectedMediaIds.value.size === 0) return
-  editAppendText.value = ''
-  showEditModal.value = true
-}
-
-const handleBulkWatermark = () => {
-  if (selectedMediaIds.value.size === 0) return
-  selectedBulkWatermark.value = 'none'
-  showBulkWatermarkModal.value = true
-}
-
-const handleCancelBulkWatermark = () => {
-  showBulkWatermarkModal.value = false
-  selectedBulkWatermark.value = 'none'
-}
-
-const handleConfirmBulkWatermark = async () => {
-  if (selectedMediaIds.value.size === 0) return
-
-  isBulkWatermarkLoading.value = true
-  try {
-    const ids = Array.from(selectedMediaIds.value)
-    const items = mediaItems.value.filter(m => ids.includes(m.id))
-    const imageItems = items.filter(item => item.type === 'image')
-
-    if (imageItems.length === 0) {
-      toast.error('No images selected', {
-        description,
-      })
-      return
-    }
-
-    let watermark
-    if (selectedBulkWatermark.value && selectedBulkWatermark.value !== 'none') {
-      try {
-        watermark = await watermarkStore.fetchWatermark(selectedBulkWatermark.value)
-        if (!watermark) {
-          throw new Error('Watermark not found')
-        }
-      } catch (error) {
-        console.error('Failed to fetch watermark:', error)
-        toast.error('Failed to fetch watermark', {
-          description,
-        })
-        return
-      }
-    }
-
-    let successCount = 0
-    let errorCount = 0
-
-    for (const item of imageItems) {
-      try {
-        // Get original image URL (before watermark)
-        let originalImageUrl = item.originalUrl || item.url
-        let imageUrl = originalImageUrl
-
-        // If the URL is not a data URL, we need to fetch it first
-        if (!imageUrl || !imageUrl.startsWith('data:')) {
-          try {
-            const urlToFetch = imageUrl || item.thumbnail || ''
-            if (urlToFetch) {
-              const response = await fetch(urlToFetch, { mode: 'cors' })
-              if (response.ok) {
-                const blob = await response.blob()
-                imageUrl = await new Promise((resolve, reject) => {
-                  const reader = new FileReader()
-                  reader.onload = () => resolve(reader.result)
-                  reader.onerror = reject
-                  reader.readAsDataURL(blob)
-                })
-              }
-            }
-          } catch (error) {
-            console.warn('Could not fetch image for watermarking:', item.id, error)
-            if (!imageUrl) {
-              imageUrl = item.thumbnail || item.url || ''
-            }
-          }
-        }
-
-        if (!imageUrl) {
-          errorCount++
-          continue
-        }
-
-        if (!watermark && item.originalUrl) {
-          // Removing watermark - restore original
-          await mediaApi.updateMedia(item.id, {
-            url: item.originalUrl,
-            originalUrl: undefined,
-            thumbnail: undefined,
-          })
-
-          const index = mediaItems.value.findIndex(m => m.id === item.id)
-          if (index !== -1) {
-            mediaItems.value[index].url = item.originalUrl
-            mediaItems.value[index].originalUrl = undefined
-            mediaItems.value[index].thumbnail = undefined
-          }
-          successCount++
-        } else if (watermark) {
-          // Applying watermark
-          const watermarkedUrl = await applyWatermarkToImage(imageUrl, watermark)
-          const originalUrlToStore = item.originalUrl || originalImageUrl
-
-          await mediaApi.updateMedia(item.id, {
-            url,
-            originalUrl,
-          })
-
-          const index = mediaItems.value.findIndex(m => m.id === item.id)
-          if (index !== -1) {
-            mediaItems.value[index].url = watermarkedUrl
-            mediaItems.value[index].originalUrl = originalUrlToStore
-
-            // Update thumbnail with watermark
-            try {
-              const watermarkedThumbnail = await applyWatermarkToImage(imageUrl, watermark)
-              mediaItems.value[index].thumbnail = watermarkedThumbnail
-              await mediaApi.updateMedia(item.id, {
-                thumbnail,
-              })
-            } catch (error) {
-              console.warn('Could not create watermarked thumbnail:', item.id, error)
-            }
-          }
-          successCount++
-        } else {
-          // No watermark selected and no existing watermark - skip
-          successCount++
-        }
-      } catch (error) {
-        console.error('Failed to apply watermark to item:', item.id, error)
-        errorCount++
-      }
-    }
-
-    showBulkWatermarkModal.value = false
-    selectedBulkWatermark.value = 'none'
-
-    if (errorCount > 0) {
-      toast.warning('Watermark applied with errors', {
-        description: `${errorCount} failed.`,
-      })
-    } else {
-      toast.success('Watermark applied', {
-        description,
-      })
-    }
-  } catch (error) {
-    console.error('Failed to apply bulk watermark:', error)
-    toast.error('Failed to apply watermark', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  } finally {
-    isBulkWatermarkLoading.value = false
-  }
-}
-
-const handleCancelEdit = () => {
-  showEditModal.value = false
-  editAppendText.value = ''
-}
-
-const handleConfirmEdit = async () => {
-  if (selectedMediaIds.value.size === 0 || !editAppendText.value.trim()) return
-
-  const ids = Array.from(selectedMediaIds.value)
-  const appendText = editAppendText.value.trim()
-
-  isBulkEditLoading.value = true
-  try {
-    for (const id of ids) {
-      const item = mediaItems.value.find(m => m.id === id)
-      if (item) {
-        // Get filename without extension for title
-        const currentTitle = item.title || `media-${item.id}`
-        const parts = currentTitle.split('.')
-        const extension = parts.length > 1 ? '.' + parts.pop() : ''
-        const nameWithoutExt = parts.join('.')
-        const newTitle = nameWithoutExt + appendText + extension
-
-        await mediaApi.updateMedia(String(id), {
-          ...item,
-          title: newTitle,
-        })
-      }
-    }
-
-    await loadMediaItems()
-    showEditModal.value = false
-    editAppendText.value = ''
-    toast.success('Filenames updated', {
-      description,
-    })
-  } catch (error) {
-    console.error('Failed to update filenames:', error)
-    toast.error('Failed to update filenames', {
-      description,
-    })
-  } finally {
-    isBulkEditLoading.value = false
-  }
-}
+// (edit handlers moved to useBulkEditFilenamesFlow)
 
 const watermarks = computed(() => watermarkStore.watermarks)
-const presets = computed(() => presetStore.presets)
 
-const selectedPresetName = computed(() => {
-  if (selectedPresetId.value === 'none') return null
-  const preset = presets.value.find(p => p.id === selectedPresetId.value)
-  return preset?.name || null
-})
-
-const selectedWatermarkName = computed(() => {
-  if (selectedWatermark.value === 'none') return null
-  const watermark = watermarks.value.find(w => w.id === selectedWatermark.value)
-  return watermark?.name || null
-})
-
-// Load collection data
-const loadCollection = async () => {
-  const uuid = route.params.uuid
-  if (!uuid) {
-    toast.error('Collection ID is required')
-    await router.push({ name: 'manageCollections' })
-    return
-  }
-
-  isLoading.value = true
-  try {
-    // First ensure collections are loaded
-    await galleryStore.fetchCollections()
-
-    const collectionData = await galleryStore.fetchCollection(uuid)
-    if (!collectionData) {
-      console.error('Collection not found:', uuid)
-      toast.error('Collection not found', {
-        description: 'The collection you are looking for does not exist.',
-      })
-      await router.push({ name: 'collections' })
-      return
-    }
-
-    // Update local collection reference
-    collection.value = collectionData
-    // Map 'active' status to 'published' for display
-    collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
-
-    // Set event date if available (as Date object for datepicker, but stored)
-    // API stores'date' field
-    const dateString = collectionData.date
-    if (dateString) {
-      try {
-        const dateValue = typeof dateString === 'string' ? new Date(dateString) : dateString
-        // Check if date is valid
-        if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
-          eventDate.value = dateValue
-        } else if (typeof dateString === 'string') {
-          // Try parsing string
-          const parsed = new Date(dateString)
-          if (!isNaN(parsed.getTime())) {
-            eventDate.value = parsed
-          } else {
-            console.warn('Invalid date value:', dateString)
-            eventDate.value = null
-          }
-        } else {
-          eventDate.value = null
-        }
-      } catch (error) {
-        console.error('Error parsing date:', error, dateString)
-        eventDate.value = null
-      }
-    } else {
-      eventDate.value = null
-    }
-
-    // Set preset if available (assuming collection has presetId field)
-    // Handle null, undefined, or missing presetId
-    const presetId = collectionData.presetId
-    selectedPresetId.value = presetId != null ? String(presetId) : 'none'
-
-    // Set watermark if available (assuming collection has watermarkId field)
-    // Handle null, undefined, or missing watermarkId
-    const watermarkId = collectionData.watermarkId
-    selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
-
-    // Load media sets from collection data
-    if (collectionData.mediaSets && collectionData.mediaSets.length > 0) {
-      mediaSets.value = collectionData.mediaSets.map(set => ({
-        id: set.id,
-        name: set.name,
-        description: set.description,
-        count: set.count,
-        order: set.order,
-      }))
-    } else {
-      // Initialize with default "Highlights" set if no sets exist
-      mediaSets.value = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
-    }
-
-    // Set default selected set
-    if (mediaSets.value.length > 0) {
-      selectedSetId.value = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
-    }
-
-    // Update set counts based on actual media
-    await updateSetCounts()
-  } catch (error) {
-    toast.error('Failed to load collection', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-    router.push({ name: 'manageCollections' })
-  } finally {
-    isLoading.value = false
-  }
-}
-
-// Watch store's collections array for real-time updates (preset/watermark/mediaSets changes from other components)
-watch(
-  () => galleryStore.collections,
-  collections => {
-    if (collection.value) {
-      const updatedCollection = collections.find(c => c.id === collection.value?.id)
-      if (updatedCollection && updatedCollection.id === collection.value.id) {
-        // Update local collection ref with latest data from store
-        collection.value = { ...collection.value, ...updatedCollection }
-        // Update local state to reflect changes (only if not currently saving to avoid race conditions)
-        if (!isSavingPreset.value) {
-          const newPresetId = updatedCollection.presetId
-          selectedPresetId.value = newPresetId != null ? String(newPresetId) : 'none'
-        }
-        if (!isSavingWatermark.value) {
-          const newWatermarkId = updatedCollection.watermarkId
-          selectedWatermark.value = newWatermarkId != null ? String(newWatermarkId) : 'none'
-        }
-        // Update status if changed
-        collectionStatus.value = updatedCollection.status === 'active' ? 'published' : 'draft'
-
-        // Update media sets if they changed
-        if (updatedCollection.mediaSets) {
-          mediaSets.value = updatedCollection.mediaSets.map(set => ({
-            id: set.id,
-            name: set.name,
-            description: set.description,
-            count: set.count,
-            order: set.order,
-          }))
-        }
-      }
-    }
-  },
-  { deep: true }
-)
-
-// Watch for selected set changes to reload media
-watch(
+const { loadCollection } = useCollectionLoadFlow({
+  collection,
+  collectionStatus,
+  eventDate,
+  selectedPresetId,
+  selectedWatermark,
+  mediaSets,
   selectedSetId,
-  newSetId => {
-    if (newSetId && collection.value) {
-      loadMediaItems()
-    }
-  },
-  { immediate: true }
-)
-
-// Load watermarks and presets
-onMounted(async () => {
-  await loadCollection()
-  // loadCollection sets selectedSetId, which will trigger loadMediaItems via watch
-  // But we also call it explicitly here to ensure media loads even if watch doesn't fire
-  if (selectedSetId.value) {
-    await loadMediaItems()
-  }
-  try {
-    await watermarkStore.fetchWatermarks()
-  } catch (error) {
-    console.error('Failed to fetch watermarks:', error)
-  }
-  // Presets are already loaded from localStorage in the store
+  sortedMediaSets,
+  isLoading,
+  isSavingPreset,
+  isSavingWatermark,
+  route,
+  router,
+  galleryStore,
+  watermarkStore,
+  updateSetCounts,
+  loadMediaItems,
 })
 
 const goBack = () => {
   router.push({ name: 'manageCollections' })
 }
 
-const handleAddSet = () => {
-  editingSetIdInModal.value = null
-  newSetName.value = ''
-  newSetDescription.value = ''
-  showCreateSetModal.value = true
-}
+// Media Sets CRUD/drag/drop is handled by `useCollectionMediaSetsSidebarStore`.
 
-const handleEditSet = setId => {
-  const set = mediaSets.value.find(s => s.id === setId)
-  if (!set) return
-
-  editingSetIdInModal.value = setId
-  newSetName.value = set.name
-  newSetDescription.value = set.description || ''
-  showCreateSetModal.value = true
-}
-
-const handleCreateSet = async () => {
-  const trimmedName = newSetName.value.trim()
-  if (!trimmedName) {
-    toast.error('Name required', {
-      description,
-    })
-    return
-  }
-
-  isCreatingSet.value = true
-  try {
-    if (editingSetIdInModal.value) {
-      // Update existing set
-      const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
-      if (set) {
-        set.name = trimmedName
-        set.description = newSetDescription.value.trim() || undefined
-        await saveMediaSets()
-
-        showCreateSetModal.value = false
-        editingSetIdInModal.value = null
-        newSetName.value = ''
-        newSetDescription.value = ''
-
-        toast.success('Set updated', {
-          description,
-        })
-      }
-    } else {
-      // Create new set
-      const maxOrder = Math.max(...mediaSets.value.map(s => s.order ?? 0), -1)
-      const newSet = {
-        id: `set-${Date.now()}`,
-        name: newSetName.value.trim(),
-        description: newSetDescription.value?.trim() || undefined,
-        count: 0,
-        order: maxOrder + 1,
-      }
-      mediaSets.value.push(newSet)
-      selectedSetId.value = newSet.id
-      await saveMediaSets()
-
-      showCreateSetModal.value = false
-      newSetName.value = ''
-      newSetDescription.value = ''
-
-      toast.success('Set created', {
-        description,
-      })
-    }
-  } catch (error) {
-    toast.error(editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  } finally {
-    isCreatingSet.value = false
-  }
-}
-
-const handleCancelCreateSet = () => {
-  showCreateSetModal.value = false
-  editingSetIdInModal.value = null
-  newSetName.value = ''
-  newSetDescription.value = ''
-}
-
-const startSetNameEdit = setId => {
-  const set = mediaSets.value.find(s => s.id === setId)
-  if (!set) return
-  editingSetId.value = setId
-  editingSetName.value = set.name
-  nextTick(() => {
-    setNameInputRef.value?.focus()
-    setNameInputRef.value?.select()
-  })
-}
-
-// Auto-save set name with debounce
-const autoSaveSetName = debounce(setId => {
-  const set = mediaSets.value.find(s => s.id === setId)
-  if (!set || set.name === newName) return
-
-  set.name = newName
-  saveMediaSets()
-}, 500)
-
-const saveSetName = setId => {
-  const set = mediaSets.value.find(s => s.id === setId)
-  if (!set) return
-
-  const trimmedName = editingSetName.value.trim()
-  if (!trimmedName) {
-    editingSetName.value = set.name
-    editingSetId.value = null
-    return
-  }
-
-  if (trimmedName !== set.name) {
-    set.name = trimmedName
-    saveMediaSets()
-  }
-  editingSetId.value = null
-}
-
-// Watch for set name changes while editing (auto-save)
-watch(editingSetName, newName => {
-  if (editingSetId.value && newName.trim()) {
-    autoSaveSetName(editingSetId.value, newName.trim())
-  }
+const {
+  handleRenameMedia,
+  handleCancelRenameMedia,
+  handleConfirmRenameMedia,
+  handleDeleteMedia,
+  handleConfirmDeleteItem,
+} = useMediaRenameDeleteActions({
+  showRenameMediaModal,
+  mediaToRename,
+  newMediaName,
+  itemToDelete,
+  openDeleteModal,
+  closeDeleteModal,
+  mediaItems,
+  selectedMediaIds,
+  mediaApi,
+  updateSetCounts,
+  handleConfirmDeleteSet: mediaSetsSidebar.confirmDeleteSet,
+  description,
 })
 
-const cancelSetNameEdit = () => {
-  editingSetId.value = null
-  editingSetName.value = ''
-}
-
-const handleDeleteSet = setId => {
-  const set = mediaSets.value.find(s => s.id === setId)
-  if (!set) return
-
-  if (mediaSets.value.length === 1) {
-    toast.error('Cannot delete', {
-      description,
-    })
-    return
-  }
-
-  openDeleteModal(set)
-}
-
-const handleConfirmDeleteSet = async () => {
-  if (!itemToDelete.value) return
-
-  const set = itemToDelete.value
-  const index = mediaSets.value.findIndex(s => s.id === set.id)
-
-  console.log(mediaSets.value)
-
-  if (index !== -1) {
-    isDeleting.value = true
-    try {
-      mediaSets.value.splice(index, 1)
-      if (selectedSetId.value === set.id) {
-        selectedSetId.value = mediaSets.value[0]?.id || null
-      }
-      await saveMediaSets()
-      closeDeleteModal()
-      toast.success('Set deleted', {
-        description,
-      })
-    } catch (error) {
-      toast.error('Failed to delete set', {
-        description,
-      })
-    } finally {
-      isDeleting.value = false
-    }
-  }
-}
-
 const handleAddMedia = () => {
-  fileInputRef.value?.click()
+  triggerFileInputClick(fileInputRef.value)
 }
 
 const handleBrowseFiles = () => {
-  fileInputRef.value?.click()
+  triggerFileInputClick(fileInputRef.value)
 }
 
-const handleFileSelect = async event => {
-  const input = event.target
-  const files = input.files
-  if (!files || files.length === 0) return
-
-  await processFiles(Array.from(files))
-  // Reset input
-  input.value = ''
-}
-
-const handleDrop = async e => {
-  e.preventDefault()
-  isDragging.value = false
-
-  const files = e.dataTransfer?.files
-  if (!files || files.length === 0) return
-
-  await processFiles(Array.from(files))
-}
-
-// Convert file to data URL
-const fileToDataURL = file => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-// Get watermark position coordinates
-const getWatermarkPosition = (
-  position,
-  canvasWidth,
-  canvasHeight,
-  watermarkWidth,
-  watermarkHeight
-) => {
-  const positions = {
-    'top-left': { x: watermarkWidth / 2, y: watermarkHeight / 2 },
-    top: { x: canvasWidth / 2, y: watermarkHeight / 2 },
-    'top-right': { x: canvasWidth - watermarkWidth / 2, y: watermarkHeight / 2 },
-    left: { x: watermarkWidth / 2, y: canvasHeight / 2 },
-    center: { x: canvasWidth / 2, y: canvasHeight / 2 },
-    right: { x: canvasWidth - watermarkWidth / 2, y: canvasHeight / 2 },
-    'bottom-left': { x: watermarkWidth / 2, y: canvasHeight - watermarkHeight / 2 },
-    bottom: { x: canvasWidth / 2, y: canvasHeight - watermarkHeight / 2 },
-    'bottom-right': { x: canvasWidth - watermarkWidth / 2, y: canvasHeight - watermarkHeight / 2 },
-  }
-  const pos = positions[position] || positions.center
-  // Center the watermark at the position
-  return {
-    x: pos.x,
-    y: pos.y,
-  }
-}
-
-// Apply font style to canvas context
-const applyFontStyle = (ctx, style, fontSize, fontFamily) => {
-  const styles = style.split('-')
-  const weight = styles.includes('bold') ? 'bold' : 'normal'
-  const italic = styles.includes('italic') ? 'italic' : ''
-  ctx.font = `${weight} ${italic} ${fontSize}px ${fontFamily}`
-}
-
-// Apply watermark to image
-const applyWatermarkToImage = async (imageDataUrl, watermark) => {
-  // Guard against null watermark
-  if (!watermark) {
-    throw new Error('Watermark is required')
-  }
-
-  return new Promise((resolve, reject) => {
-    const img = new Image()
-    img.onload = () => {
-      const canvas = document.createElement('canvas')
-      canvas.width = img.width
-      canvas.height = img.height
-      const ctx = canvas.getContext('2d')
-      if (!ctx) {
-        reject(new Error('Could not get canvas context'))
-        return
-      }
-
-      // Draw the original image
-      ctx.drawImage(img, 0, 0)
-
-      // Apply watermark
-      ctx.save()
-      ctx.globalAlpha = (watermark.opacity || 50) / 100
-
-      if (watermark.type === 'text' && watermark.text) {
-        // Text watermark - scale based on smaller dimension to ensure it fits
-        const minDimension = Math.min(img.width, img.height)
-        // Scale is a percentage (0-100), so we use it to determine size relative to image
-        // Max font size should be around 5-10% of the smaller dimension
-        const maxFontSize = minDimension * 0.1 // 10% of smaller dimension
-        const fontSize = Math.min(Math.max((minDimension * watermark.scale) / 100, 12), maxFontSize)
-        const fontFamily = watermark.fontFamily || 'Arial'
-
-        // Apply font style
-        if (watermark.fontStyle) {
-          applyFontStyle(ctx, watermark.fontStyle, fontSize, fontFamily)
-        } else {
-          ctx.font = `${fontSize}px ${fontFamily}`
-        }
-
-        ctx.fillStyle = watermark.fontColor || '#FFFFFF'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-
-        // Apply text transform
-        let text = watermark.text
-        if (watermark.textTransform === 'uppercase') {
-          text = text.toUpperCase()
-        } else if (watermark.textTransform === 'lowercase') {
-          text = text.toLowerCase()
-        } else if (watermark.textTransform === 'capitalize') {
-          text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
-        }
-
-        // Measure text for positioning
-        let metrics = ctx.measureText(text)
-        let textWidth = metrics.width
-        let actualFontSize = fontSize
-        const textHeight = fontSize * (watermark.lineHeight || 1.2)
-        const padding = watermark.padding || 0
-
-        // Ensure text doesn't exceed 80% of canvas width
-        const maxTextWidth = canvas.width * 0.8
-        if (textWidth > maxTextWidth) {
-          // Scale down font size proportionally if text is too wide
-          const scaleFactor = maxTextWidth / textWidth
-          actualFontSize = fontSize * scaleFactor
-          // Reapply font with adjusted size
-          if (watermark.fontStyle) {
-            applyFontStyle(ctx, watermark.fontStyle, actualFontSize, fontFamily)
-          } else {
-            ctx.font = `${actualFontSize}px ${fontFamily}`
-          }
-          // Remeasure with new font size
-          metrics = ctx.measureText(text)
-          textWidth = metrics.width
-        }
-
-        const totalWidth = textWidth + padding * 2
-        const totalHeight = actualFontSize * (watermark.lineHeight || 1.2) + padding * 2
-
-        // Draw background if specified
-        if (watermark.backgroundColor) {
-          const borderRadius = watermark.borderRadius || 0
-          const pos = getWatermarkPosition(
-            watermark.position,
-            canvas.width,
-            canvas.height,
-            totalWidth,
-            totalHeight
-          )
-
-          ctx.fillStyle = watermark.backgroundColor
-          if (borderRadius > 0) {
-            ctx.beginPath()
-            // Use roundRect if available, otherwise use arc
-            if (typeof ctx.roundRect === 'function') {
-              ctx.roundRect(pos.x, pos.y, totalWidth, totalHeight, borderRadius)
-            } else {
-              // Fallback
-              const x = pos.x
-              const y = pos.y
-              const w = totalWidth
-              const h = totalHeight
-              const r = borderRadius
-              ctx.moveTo(x + r, y)
-              ctx.lineTo(x + w - r, y)
-              ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-              ctx.lineTo(x + w, y + h - r)
-              ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-              ctx.lineTo(x + r, y + h)
-              ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-              ctx.lineTo(x, y + r)
-              ctx.quadraticCurveTo(x, y, x + r, y)
-              ctx.closePath()
-            }
-            ctx.fill()
-          } else {
-            ctx.fillRect(pos.x, pos.y, totalWidth, totalHeight)
-          }
-        }
-
-        // Draw border if specified
-        if (watermark.borderWidth && watermark.borderWidth > 0) {
-          const pos = getWatermarkPosition(
-            watermark.position,
-            canvas.width,
-            canvas.height,
-            totalWidth,
-            totalHeight
-          )
-          ctx.strokeStyle = watermark.borderColor || '#000000'
-          ctx.lineWidth = watermark.borderWidth
-          ctx.setLineDash(
-            watermark.borderStyle === 'dashed'
-              ? [5, 5]
-              : watermark.borderStyle === 'dotted'
-                ? [2, 2]
-                : []
-          )
-          const borderRadius = watermark.borderRadius || 0
-          if (borderRadius > 0) {
-            ctx.beginPath()
-            // Use roundRect if available, otherwise use arc
-            if (typeof ctx.roundRect === 'function') {
-              ctx.roundRect(pos.x, pos.y, totalWidth, totalHeight, borderRadius)
-            } else {
-              // Fallback
-              const x = pos.x
-              const y = pos.y
-              const w = totalWidth
-              const h = totalHeight
-              const r = borderRadius
-              ctx.moveTo(x + r, y)
-              ctx.lineTo(x + w - r, y)
-              ctx.quadraticCurveTo(x + w, y, x + w, y + r)
-              ctx.lineTo(x + w, y + h - r)
-              ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h)
-              ctx.lineTo(x + r, y + h)
-              ctx.quadraticCurveTo(x, y + h, x, y + h - r)
-              ctx.lineTo(x, y + r)
-              ctx.quadraticCurveTo(x, y, x + r, y)
-              ctx.closePath()
-            }
-            ctx.stroke()
-          } else {
-            ctx.strokeRect(pos.x, pos.y, totalWidth, totalHeight)
-          }
-        }
-
-        // Draw text
-        ctx.fillStyle = watermark.fontColor || '#FFFFFF'
-        const pos = getWatermarkPosition(
-          watermark.position,
-          canvas.width,
-          canvas.height,
-          totalWidth,
-          totalHeight
-        )
-        ctx.fillText(text, pos.x + totalWidth / 2, pos.y + totalHeight / 2)
-      } else if (watermark.type === 'image' && watermark.imageUrl) {
-        // Image watermark - scale based on target image size
-        const watermarkImg = new Image()
-        watermarkImg.crossOrigin = 'anonymous'
-        watermarkImg.onload = () => {
-          // Calculate scale based on target image size, not watermark's original size
-          const minDimension = Math.min(img.width, img.height)
-          // Scale is a percentage (0-100), use it to determine max size relative to image
-          // Max watermark size should be around 20-30% of the smaller dimension
-          const maxWatermarkSize = minDimension * 0.25 // 25% of smaller dimension
-          const scale = watermark.scale / 100
-
-          // Calculate desired size based on scale percentage
-          const desiredWidth = watermarkImg.width * scale
-          const desiredHeight = watermarkImg.height * scale
-
-          // Ensure watermark doesn't exceed max size while maintaining aspect ratio
-          let watermarkWidth = desiredWidth
-          let watermarkHeight = desiredHeight
-
-          if (watermarkWidth > maxWatermarkSize || watermarkHeight > maxWatermarkSize) {
-            const aspectRatio = watermarkImg.width / watermarkImg.height
-            if (watermarkWidth > watermarkHeight) {
-              watermarkWidth = maxWatermarkSize
-              watermarkHeight = maxWatermarkSize / aspectRatio
-            } else {
-              watermarkHeight = maxWatermarkSize
-              watermarkWidth = maxWatermarkSize * aspectRatio
-            }
-          }
-
-          const pos = getWatermarkPosition(
-            watermark.position,
-            canvas.width,
-            canvas.height,
-            watermarkWidth,
-            watermarkHeight
-          )
-
-          ctx.drawImage(watermarkImg, pos.x, pos.y, watermarkWidth, watermarkHeight)
-          ctx.restore()
-          resolve(canvas.toDataURL('image/jpeg', 0.9))
-        }
-        watermarkImg.onerror = reject
-        watermarkImg.src = watermark.imageUrl
-        return
-      }
-
-      ctx.restore()
-      resolve(canvas.toDataURL('image/jpeg', 0.9))
-    }
-    img.onerror = reject
-    img.src = imageDataUrl
-  })
-}
-
-// Create thumbnail for image
-const createThumbnail = (file, watermark) => {
-  return new Promise((resolve, reject) => {
-    if (!file.type.startsWith('image/')) {
-      resolve('')
-      return
-    }
-
-    const reader = new FileReader()
-    reader.onload = async e => {
-      try {
-        const img = new Image()
-        img.onload = async () => {
-          const canvas = document.createElement('canvas')
-          const maxSize = 400
-          let width = img.width
-          let height = img.height
-
-          if (width > height) {
-            if (width > maxSize) {
-              height *= maxSize / width
-              width = maxSize
-            }
-          } else {
-            if (height > maxSize) {
-              width *= maxSize / height
-              height = maxSize
-            }
-          }
-
-          canvas.width = width
-          canvas.height = height
-          const ctx = canvas.getContext('2d')
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height)
-            let thumbnailDataUrl = canvas.toDataURL('image/jpeg', 0.8)
-
-            // Apply watermark to thumbnail if provided
-            if (watermark) {
-              thumbnailDataUrl = await applyWatermarkToImage(thumbnailDataUrl, watermark)
-            }
-
-            resolve(thumbnailDataUrl)
-          } else {
-            resolve(e.target?.result || '')
-          }
-        }
-        img.onerror = reject
-        img.src = e.target?.result
-      } catch (error) {
-        reject(error)
-      }
-    }
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
-}
-
-const processFiles = async files => {
-  if (!selectedSetId.value || !collection.value) {
-    toast.error('No set selected', {
-      description,
-    })
-    return
-  }
-
-  // Filter valid image/video files
-  const validFiles = files.filter(file => {
-    const validTypes = [
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'image/webp',
-      'image/svg+xml',
-      'video/mp4',
-      'video/webm',
-    ]
-    return validTypes.includes(file.type)
-  })
-
-  if (validFiles.length === 0) {
-    toast.error('Invalid files', {
-      description,
-    })
-    return
-  }
-
-  // Check for duplicate file names in the current set
-  const duplicates = []
-  const newFiles = []
-
-  for (const file of validFiles) {
-    const fileName = file.name.toLowerCase()
-    const existingMedia = mediaItems.value.find(m => {
-      const mediaTitle = (m.title || '').toLowerCase()
-      // Check if the title matches the filename (with or without extension)
-      return (
-        mediaTitle === fileName ||
-        mediaTitle === fileName.replace(/\.[^/.]+$/, '') ||
-        mediaTitle + file.name.substring(file.name.lastIndexOf('.')) === fileName
-      )
-    })
-
-    if (existingMedia) {
-      duplicates.push({ file, existingMedia })
-    } else {
-      newFiles.push(file)
-    }
-  }
-
-  // If there are duplicates, show modal to ask user what to do
-  if (duplicates.length > 0) {
-    duplicateFiles.value = duplicates
-    filesToUpload.value = newFiles
-    duplicateFileActions.value = new Map()
-    // Default action
-    duplicates.forEach(({ file }) => {
-      duplicateFileActions.value.set(file.name, 'skip')
-    })
-    showDuplicateFilesModal.value = true
-    return
-  }
-
-  // No duplicates, proceed with upload
-  await uploadFiles(validFiles)
-}
-
-const handleConfirmDuplicateFiles = async () => {
-  showDuplicateFilesModal.value = false
-
-  // Collect files to upload
-  const filesToProcess = []
-
-  for (const { file, existingMedia } of duplicateFiles.value) {
-    const action = duplicateFileActions.value.get(file.name) || 'skip'
-    if (action === 'replace') {
-      filesToProcess.push(file)
-      try {
-        await mediaApi.deleteMedia(existingMedia.id)
-        const index = mediaItems.value.findIndex(m => m.id === existingMedia.id)
-        if (index !== -1) {
-          mediaItems.value.splice(index, 1)
-        }
-      } catch (error) {
-        console.error('Failed to delete existing media:', error)
-      }
-    }
-  }
-
-  if (filesToProcess.length > 0) {
-    await uploadFiles(filesToProcess)
-  } else {
-    toast.info('No files to upload', {
-      description,
-    })
-  }
-}
-
-const handleCancelDuplicateFiles = () => {
-  showDuplicateFilesModal.value = false
-  duplicateFiles.value = []
-  filesToUpload.value = []
-  duplicateFileActions.value.clear()
-}
-
-const uploadFiles = async files => {
-  if (!selectedSetId.value || !collection.value) {
-    return
-  }
-
-  isUploading.value = true
-
-  try {
-    // Get watermark if selected
-    let watermark
-    if (selectedWatermark.value && selectedWatermark.value !== 'none') {
-      try {
-        watermark = await watermarkStore.fetchWatermark(selectedWatermark.value)
-      } catch (error) {
-        console.error('Failed to fetch watermark:', error)
-      }
-    }
-
-    // Process each file and save to mock data
-    const uploadedItems = []
-
-    for (const file of files) {
-      try {
-        // Determine media type
-        const type = file.type.startsWith('image/') ? 'image' : 'video'
-
-        // Get filename without extension for title
-        const fileName = file.name.replace(/\.[^/.]+$/, '')
-
-        if (file.type.startsWith('image/')) {
-          // For images
-          const thumbnail = await createThumbnail(file, watermark || undefined)
-
-          // Use thumbnail URL for instant display
-          // Process full image in background
-          const initialUrl = thumbnail
-
-          const newMedia = await mediaApi.addMedia(collection.value.id, {
-            url: initialUrl,
-            thumbnail: thumbnail,
-            type: type,
-            title: fileName,
-            order: mediaItems.value.length,
-            setId: selectedSetId.value,
-          })
-
-          // Add to local array immediately for instant display
-          mediaItems.value.push(newMedia)
-          uploadedItems.push(newMedia)
-
-          // Process full image with watermark in background and update
-          ;(async () => {
-            try {
-              // Get original image first (before watermark)
-              const originalImageUrl = await fileToDataURL(file)
-
-              let fullUrl = originalImageUrl
-              if (watermark) {
-                // Apply watermark to original
-                fullUrl = await applyWatermarkToImage(originalImageUrl, watermark)
-
-                // Store original URL for future removal
-                await mediaApi.updateMedia(newMedia.id, {
-                  originalUrl,
-                })
-              }
-
-              // Update the media item with the full image URL
-              const index = mediaItems.value.findIndex(m => m.id === newMedia.id)
-              if (index !== -1) {
-                mediaItems.value[index].url = fullUrl
-                if (watermark) {
-                  mediaItems.value[index].originalUrl = originalImageUrl
-                }
-              }
-            } catch (error) {
-              console.error('Error processing full image:', error)
-            }
-          })()
-        } else {
-          // For videos
-          const url = await fileToDataURL(file)
-
-          const newMedia = await mediaApi.addMedia(collection.value.id, {
-            url: url,
-            thumbnail: undefined, // Videos don't have thumbnails
-            originalUrl: undefined, // Videos don't get watermarks
-            type: type,
-            title: fileName,
-            order: mediaItems.value.length,
-            setId: selectedSetId.value,
-          })
-
-          uploadedItems.push(newMedia)
-          mediaItems.value.push(newMedia)
-        }
-      } catch (error) {
-        console.error('Error processing file:', file.name, error)
-      }
-    }
-
-    if (uploadedItems.length === 0) {
-      toast.error('Upload failed', {
-        description,
-      })
-      isUploading.value = false
-      return
-    }
-
-    // Update set counts based on actual media (more accurate than incrementing)
-    await updateSetCounts()
-
-    toast.success('Files uploaded', {
-      description: `${uploadedItems.length} file${uploadedItems.length > 1 ? 's' : ''} uploaded successfully.`,
-    })
-  } catch (error) {
-    console.error('Upload error:', error)
-    toast.error('Upload failed', {
-      description,
-    })
-  } finally {
-    isUploading.value = false
-  }
-}
-
-const handleCopyLink = () => {
-  const uuid = route.params.uuid
-  const link = `${window.location.origin}/collections/${uuid}`
-
-  navigator.clipboard
-    .writeText(link)
-    .then(() => {
-      toast.success('Link copied', {
-        description: 'The link has been copied to your clipboard.',
-      })
-    })
-    .catch(() => {
-      toast.error('Failed to copy', {
-        description: 'Please try again.',
-      })
-    })
-}
-
-// Save media sets to collection via API
-const saveMediaSets = async () => {
-  if (!collection.value || isSavingSets.value) return
-
-  isSavingSets.value = true
-  try {
-    const setsToSave = mediaSets.value.map(set => ({
-      id: set.id,
-      name: set.name,
-      description: set.description,
-      count: set.count,
-      order: set.order,
-    }))
-
-    await galleryStore.updateCollection(collection.value.id, {
-      mediaSets: setsToSave,
-    })
-
-    // Update local collection ref
-    if (collection.value) {
-      collection.value.mediaSets = setsToSave
-    }
-  } catch (error) {
-    console.error('Failed to save media sets:', error)
-    toast.error('Failed to save media sets', {
-      description: error instanceof Error ? error.message : 'Please try again.',
-    })
-  } finally {
-    isSavingSets.value = false
-  }
-}
-
-// Drag and drop handlers for sets
-const handleSetDragStart = (e, setId, index) => {
-  draggedSetId.value = setId
-  draggedSetIndex.value = index
-  if (e.dataTransfer) {
-    e.dataTransfer.effectAllowed = 'move'
-    e.dataTransfer.setData('text/plain', setId)
-  }
-}
-
-const handleSetDragEnd = () => {
-  draggedSetId.value = null
-  draggedSetIndex.value = null
-  dragOverIndex.value = null
-}
-
-const handleSetDragOver = e => {
-  e.preventDefault()
-  if (e.dataTransfer) {
-    e.dataTransfer.dropEffect = 'move'
-  }
-  dragOverIndex.value = index
-}
-
-const handleSetDragLeave = () => {
-  dragOverIndex.value = null
-}
-
-const handleSetDrop = async (e, dropIndex) => {
-  e.preventDefault()
-  dragOverIndex.value = null
-
-  if (draggedSetIndex.value === null || draggedSetId.value === null) return
-
-  const draggedIndex = draggedSetIndex.value
-
-  if (draggedIndex === dropIndex) return
-
-  // Reorder the sets using sortedMediaSets order
-  const sorted = [...sortedMediaSets.value]
-  const [draggedSet] = sorted.splice(draggedIndex, 1)
-  sorted.splice(dropIndex, 0, draggedSet)
-
-  // Update order values
-  sorted.forEach((set, index) => {
-    set.order = index
-  })
-
-  // Update the original array
-  mediaSets.value.forEach(set => {
-    const updated = sorted.find(s => s.id === set.id)
-    if (updated) {
-      set.order = updated.order ?? 0
-    }
-  })
-
-  await saveMediaSets()
-
-  draggedSetId.value = null
-  draggedSetIndex.value = null
-}
-
-const handlePreview = () => {
-  // TODO
-  const uuid = route.params.uuid
-  router.push({
-    name: 'collectionPreview',
-    params: { uuid: uuid },
-  })
-}
-
-const handlePublish = async () => {
-  if (!collection.value) return
-
-  isSavingStatus.value = true
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      status: 'active',
-    })
-    collectionStatus.value = 'published'
-    collection.value.status = 'active'
-    toast.success('Collection published', {
-      description,
-    })
-  } catch (error) {
-    toast.error('Failed to publish collection', {
-      description,
-    })
-  } finally {
-    isSavingStatus.value = false
-  }
-}
-
-const handleStatusChange = async newStatus => {
-  if (!collection.value || !newStatus) return
-
-  isSavingStatus.value = true
-  try {
-    // Map 'published' to 'active' for the API
-    const apiStatus = newStatus === 'published' ? 'active' : 'draft'
-    await galleryStore.updateCollection(collection.value.id, {
-      status: apiStatus,
-    })
-    collection.value.status = apiStatus
-    collectionStatus.value = newStatus
-    // Auto-save
-  } catch (error) {
-    toast.error('Failed to update status', {
-      description,
-    })
-    // Revert status on error
-    collectionStatus.value = collection.value.status === 'active' ? 'published' : 'draft'
-  } finally {
-    isSavingStatus.value = false
-  }
-}
-
-const handleDateChange = async newDate => {
-  if (!collection.value) return
-
-  // Close the popover
-  isDatePickerOpen.value = false
-
-  isSavingDate.value = true
-  try {
-    // Convert Date to ISO string for storage, or null to clear
-    const dateString = newDate instanceof Date ? newDate.toISOString() : null
-
-    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-      eventDate: dateString,
-    })
-
-    if (updatedCollection) {
-      collection.value = updatedCollection
-      // Update eventDate from the returned collection data - API stores'date'
-      const dateFromCollection = updatedCollection.date
-      if (dateFromCollection) {
-        const parsedDate =
-          typeof dateFromCollection === 'string' ? new Date(dateFromCollection) : dateFromCollection
-        if (parsedDate instanceof Date && !isNaN(parsedDate.getTime())) {
-          eventDate.value = parsedDate
-        } else {
-          eventDate.value = newDate
-        }
-      } else {
-        eventDate.value = newDate
-      }
-    } else {
-      eventDate.value = newDate
-    }
-
-    // Auto-save
-  } catch (error) {
-    console.error('Date save error:', error)
-    toast.error('Failed to save event date', {
-      description,
-    })
-    // Revert to original date on error
-    const originalDate = collection.value.date
-    if (originalDate) {
-      eventDate.value = typeof originalDate === 'string' ? new Date(originalDate) : originalDate
-    } else {
-      eventDate.value = null
-    }
-  } finally {
-    isSavingDate.value = false
-  }
-}
-
-const handlePresetChange = async presetId => {
-  if (!collection.value) return
-
-  const presetIdStr = String(presetId)
-  // Normalize current value for comparison (handle undefined/null)
-  const currentPresetId = selectedPresetId.value || 'none'
-
-  // Only skip if the value is truly the same (but still allow setting to 'none' explicitly)
-  if (presetIdStr === currentPresetId && presetIdStr !== 'none') {
-    isPresetPopoverOpen.value = false
-    return
-  }
-
-  // Set the value immediately for responsive UI
-  selectedPresetId.value = presetIdStr
-
-  isSavingPreset.value = true
-  isPresetPopoverOpen.value = false
-  try {
-    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-      presetId: presetIdStr === 'none' ? undefined : presetIdStr,
-    })
-
-    if (updatedCollection) {
-      collection.value = updatedCollection
-      // Ensure the value is set correctly (handle null/undefined'none')
-      const newPresetId = updatedCollection.presetId
-      selectedPresetId.value = newPresetId != null ? String(newPresetId) : 'none'
-    } else {
-      // Update local collection
-      collection.value.presetId = presetIdStr === 'none' ? undefined : presetIdStr
-      // Value already set above
-    }
-
-    // Auto-save
-  } catch (error) {
-    toast.error('Failed to update preset', {
-      description,
-    })
-    // Revert on error
-    const errorPresetId = collection.value?.presetId
-    selectedPresetId.value = errorPresetId != null ? String(errorPresetId) : 'none'
-  } finally {
-    isSavingPreset.value = false
-  }
-}
-
-const handleWatermarkChange = async watermarkId => {
-  if (!collection.value) return
-
-  const watermarkIdStr = String(watermarkId)
-  // Normalize current value for comparison (handle undefined/null)
-  const currentWatermarkId = selectedWatermark.value || 'none'
-
-  // Only skip if the value is truly the same (but still allow setting to 'none' explicitly)
-  if (watermarkIdStr === currentWatermarkId && watermarkIdStr !== 'none') {
-    isWatermarkPopoverOpen.value = false
-    return
-  }
-
-  // Set the value immediately for responsive UI
-  selectedWatermark.value = watermarkIdStr
-
-  isSavingWatermark.value = true
-  isWatermarkPopoverOpen.value = false
-  try {
-    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-      watermarkId: watermarkIdStr === 'none' ? undefined : watermarkIdStr,
-    })
-
-    if (updatedCollection) {
-      collection.value = updatedCollection
-      // Ensure the value is set correctly (handle null/undefined'none')
-      const newWatermarkId = updatedCollection.watermarkId
-      selectedWatermark.value = newWatermarkId != null ? String(newWatermarkId) : 'none'
-    } else {
-      // Update local collection
-      collection.value.watermarkId = watermarkIdStr === 'none' ? undefined : watermarkIdStr
-      // Value already set above
-    }
-
-    // Auto-save
-  } catch (error) {
-    toast.error('Failed to update watermark', {
-      description,
-    })
-    // Revert on error
-    const errorWatermarkId = collection.value?.watermarkId
-    selectedWatermark.value = errorWatermarkId != null ? String(errorWatermarkId) : 'none'
-  } finally {
-    isSavingWatermark.value = false
-  }
-}
-
-const formatDate = date => {
-  if (!date) return ''
-  const dateObj = date instanceof Date ? date : new Date(date)
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(dateObj)
-}
-
-const startEditingName = () => {
-  if (!collection.value) return
-  isEditingName.value = true
-  editingName.value = collection.value.name
-  nextTick(() => {
-    nameInputRef.value?.focus()
-    nameInputRef.value?.select()
-  })
-}
-
-const cancelEditingName = () => {
-  isEditingName.value = false
-  editingName.value = ''
-}
-
-const handleNameBlur = () => {
-  if (isBlurringName.value || isSavingName.value) return
-  isBlurringName.value = true
-  setTimeout(() => {
-    if (isBlurringName.value && !isSavingName.value) {
-      // Only save if name has actually changed
-      const trimmedName = editingName.value.trim()
-      if (trimmedName && trimmedName !== collection.value?.name) {
-        saveName()
-      } else if (!trimmedName) {
-        // If empty, just cancel without showing error
-        cancelEditingName()
-      } else {
-        // If unchanged, just cancel
-        cancelEditingName()
-      }
-      isBlurringName.value = false
-    }
-  }, 200)
-}
-
-const saveName = async () => {
-  if (!collection.value) return
-
-  const trimmedName = editingName.value.trim()
-
-  if (!trimmedName) {
-    toast.error('Name required', {
-      description,
-    })
-    editingName.value = collection.value.name
-    cancelEditingName()
-    return
-  }
-
-  if (trimmedName === collection.value.name) {
-    cancelEditingName()
-    return
-  }
-
-  isSavingName.value = true
-  isBlurringName.value = false
-
-  try {
-    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-      name: trimmedName,
-    })
-    // Update local collection reference with the returned data
-    if (updatedCollection) {
-      collection.value = updatedCollection
-    } else {
-      // Fallback
-      collection.value.name = trimmedName
-    }
-    cancelEditingName()
-    // Auto-save
-  } catch (error) {
-    toast.error('Failed to update name', {
-      description,
-    })
-    // Revert editing name to original
-    editingName.value = collection.value.name
-    cancelEditingName()
-  } finally {
-    isSavingName.value = false
-  }
-}
+const {
+  isUploading,
+  showDuplicateFilesModal,
+  duplicateFiles,
+  filesToUpload,
+  duplicateFileActions,
+  processFiles,
+  handleConfirmDuplicateFiles,
+  handleCancelDuplicateFiles,
+  uploadFiles,
+  handleFileSelect,
+  handleDrop,
+} = useMediaUploadFlow({
+  collection,
+  selectedSetId,
+  mediaItems,
+  selectedWatermark,
+  watermarkStore,
+  mediaApi,
+  updateSetCounts,
+  isDragging,
+  description,
+})
+
+// (moved to useMediaShareDownloadActions)
+
+// (store handles media set drag/drop)
 
 // Watch for route changes
 watch(

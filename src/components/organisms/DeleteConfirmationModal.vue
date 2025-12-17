@@ -34,35 +34,26 @@
   </CenterModal>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { computed } from 'vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 
-interface Props {
-  modelValue: boolean
-  itemName?: string
-  fallbackName?: string
-  title?: string
-  description?: string
-  warningMessage?: string
-  isDeleting?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  title: 'Delete Item',
-  description: 'This action cannot be undone.',
-  fallbackName: 'this item',
-  warningMessage: 'This item will be permanently removed from your account.',
-  isDeleting: false,
+const props = defineProps({
+  modelValue: { type: Boolean, required: true },
+  itemName: { type: String, default: undefined },
+  fallbackName: { type: String, default: 'this item' },
+  title: { type: String, default: 'Delete Item' },
+  description: { type: String, default: 'This action cannot be undone.' },
+  warningMessage: {
+    type: String,
+    default: 'This item will be permanently removed from your account.',
+  },
+  isDeleting: { type: Boolean, default: false },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  confirm: []
-  cancel: []
-}>()
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 
 const theme = useThemeClasses()
 
