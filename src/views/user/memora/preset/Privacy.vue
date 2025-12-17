@@ -166,7 +166,7 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject < Ref < boolean >> ('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
 const currentPreset = computed(() => {
@@ -185,10 +185,14 @@ const isSubmitting = ref(false)
 const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
 
+// Default privacy values - declare these first
+const defaultCollectionPassword = ''
+const defaultShowOnHomepage = false
+
 // Privacy form data
 const formData = ref({
-  collectionPassword,
-  showOnHomepage,
+  collectionPassword: defaultCollectionPassword,
+  showOnHomepage: defaultShowOnHomepage,
 })
 
 // Store original loaded data for comparison
@@ -267,7 +271,7 @@ const savePresetPrivacy = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      privacy,
+      privacy: formData.value,
     })
     // Update original data after successful save
     if (originalData.value) {
@@ -286,10 +290,7 @@ const savePresetPrivacy = async () => {
 const handleSave = async () => {
   const success = await savePresetPrivacy()
   if (success) {
-    toast.success('Preset saved successfully', {
-      description,
-      icon,
-    })
+    toast.success('Preset saved successfully')
   }
 }
 
@@ -298,10 +299,14 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetPrivacy()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetDesign',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -313,10 +318,14 @@ const handleNext = async () => {
   try {
     const success = await savePresetPrivacy()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetDownload',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -338,8 +347,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction,
-    discardFunction,
+    saveFunction: savePresetPrivacy,
+    discardFunction: discardChanges,
     showUnsavedChangesModal,
   })
 </script>

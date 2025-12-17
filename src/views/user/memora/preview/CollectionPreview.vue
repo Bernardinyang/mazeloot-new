@@ -1089,6 +1089,43 @@ const tabs = computed(() => {
   return preset?.photoSets && preset.photoSets.length > 0 ? preset.photoSets : []
 })
 
+// Generate placeholder media items for empty sets
+const generatePlaceholderMedia = (count = 10) => {
+  const placeholderPhotoIds = [
+    '1519741497674-611481863552',
+    '1516589178581-6cd7833ae3b2',
+    '1511285560929-80b456fea0bc',
+    '1521119989659-a83eee488004',
+    '1475721027785-f74eccf877e2',
+    '1511578314322-379afb476865',
+    '1494790008762-728dbb2e86b0',
+    '1500648767791-00dcc994a43e',
+    '1505373877841-8d25f7d46678',
+    '1478147427282-58a87a120781',
+    '1515934751635-c81c6bc9a2d8',
+    '1522673607200-164d1b6ce486',
+    '1511285560929-80b456fea0bc',
+    '1521119989659-a83eee488004',
+    '1475721027785-f74eccf877e2',
+  ]
+
+  return Array.from({ length: count }, (_, index) => {
+    const photoId = placeholderPhotoIds[index % placeholderPhotoIds.length]
+    return {
+      id: `placeholder-${activeTab.value}-${index}`,
+      collectionId: collection.value?.id || 'placeholder-collection',
+      url: `https://images.unsplash.com/photo-${photoId}?w=800&h=800&fit=crop`,
+      thumbnail: `https://images.unsplash.com/photo-${photoId}?w=300&h=300&fit=crop`,
+      type: 'image',
+      title: `Placeholder ${index + 1}`,
+      order: index,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isPlaceholder: true, // Mark as placeholder
+    }
+  })
+}
+
 const filteredMedia = computed(() => {
   const mediaToUse = props.previewMode && props.previewMedia ? props.previewMedia : media.value
   const coverImageUrl = coverImageWithFallback.value
@@ -1100,9 +1137,42 @@ const filteredMedia = computed(() => {
     return item.url !== coverImageUrl && item.thumbnail !== coverImageUrl
   })
 
-  if (activeTab.value === 'Highlights') {
-    return filtered.slice(0, Math.min(filtered.length, 12))
+  // Filter by set if activeTab is not 'Highlights'
+  if (activeTab.value !== 'Highlights') {
+    // Find the set ID for the active tab name
+    // Check if collection has mediaSets with matching names
+    const collectionSets = collection.value?.mediaSets || []
+    const matchingSet = collectionSets.find(set => set.name === activeTab.value)
+
+    if (matchingSet) {
+      // Filter by set ID - only show items that belong to this set
+      filtered = filtered.filter(item => item.setId === matchingSet.id)
+    } else {
+      // If no matching set found in collection, try to match by setName if available
+      // In preview mode with mock data, items might not have setId
+      // So we check if any items have a setName matching the active tab
+      const itemsWithMatchingSetName = filtered.filter(item => item.setName === activeTab.value)
+
+      if (itemsWithMatchingSetName.length > 0) {
+        // Use items that match the set name
+        filtered = itemsWithMatchingSetName
+      } else {
+        // No items match this set - will generate placeholders below
+        filtered = []
+      }
+    }
+  } else {
+    // For Highlights, limit to 12 items
+    filtered = filtered.slice(0, Math.min(filtered.length, 12))
   }
+
+  // If no media found for the current set, generate placeholder items
+  // Generate at least 10 items per set (12 for Highlights)
+  const minItems = activeTab.value === 'Highlights' ? 12 : 10
+  if (filtered.length === 0) {
+    return generatePlaceholderMedia(minItems)
+  }
+
   return filtered
 })
 

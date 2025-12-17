@@ -501,16 +501,26 @@ const showUnsavedChangesModal = ref(false)
 const showPhotoOptions = ref(true) // Auto-expand by default
 const showUpgradePopover = ref(false)
 
+// Default download values - declare these first
+const defaultPhotoDownload = false
+const defaultHighResolutionEnabled = false
+const defaultHighResolutionSize = '3600px'
+const defaultWebSizeEnabled = false
+const defaultWebSize = '1024px'
+const defaultVideoDownload = false
+const defaultDownloadPin = false
+const defaultRestrictToContacts = false
+
 // Download form data
 const formData = ref({
-  photoDownload,
-  highResolutionEnabled,
-  highResolutionSize,
-  webSizeEnabled,
-  webSize,
-  videoDownload,
-  downloadPin,
-  restrictToContacts,
+  photoDownload: defaultPhotoDownload,
+  highResolutionEnabled: defaultHighResolutionEnabled,
+  highResolutionSize: defaultHighResolutionSize,
+  webSizeEnabled: defaultWebSizeEnabled,
+  webSize: defaultWebSize,
+  videoDownload: defaultVideoDownload,
+  downloadPin: defaultDownloadPin,
+  restrictToContacts: defaultRestrictToContacts,
 })
 
 // Store original loaded data for comparison
@@ -539,19 +549,30 @@ const loadPresetData = () => {
     isLoadingData.value = true
     const downloadData = currentPreset.value.download || {}
     const loadedData = {
-      photoDownload: downloadData.photoDownload !== undefined ? downloadData.photoDownload : false,
+      photoDownload:
+        downloadData.photoDownload !== undefined
+          ? downloadData.photoDownload
+          : defaultPhotoDownload,
       highResolutionEnabled:
         downloadData.highResolutionEnabled !== undefined
           ? downloadData.highResolutionEnabled
-          : false,
-      highResolutionSize,
+          : defaultHighResolutionEnabled,
+      highResolutionSize: downloadData.highResolutionSize || defaultHighResolutionSize,
       webSizeEnabled:
-        downloadData.webSizeEnabled !== undefined ? downloadData.webSizeEnabled : false,
-      webSize,
-      videoDownload: downloadData.videoDownload !== undefined ? downloadData.videoDownload : false,
-      downloadPin: downloadData.downloadPin !== undefined ? downloadData.downloadPin : false,
+        downloadData.webSizeEnabled !== undefined
+          ? downloadData.webSizeEnabled
+          : defaultWebSizeEnabled,
+      webSize: downloadData.webSize || defaultWebSize,
+      videoDownload:
+        downloadData.videoDownload !== undefined
+          ? downloadData.videoDownload
+          : defaultVideoDownload,
+      downloadPin:
+        downloadData.downloadPin !== undefined ? downloadData.downloadPin : defaultDownloadPin,
       restrictToContacts:
-        downloadData.restrictToContacts !== undefined ? downloadData.restrictToContacts : false,
+        downloadData.restrictToContacts !== undefined
+          ? downloadData.restrictToContacts
+          : defaultRestrictToContacts,
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -617,7 +638,7 @@ const savePresetDownload = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      download,
+      download: formData.value,
     })
     // Update original data after successful save
     if (originalData.value) {
@@ -627,7 +648,7 @@ const savePresetDownload = async () => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     toast.error('Failed to save preset', {
-      description,
+      description: errorMessage,
     })
     return false
   }
@@ -636,10 +657,7 @@ const savePresetDownload = async () => {
 const handleSave = async () => {
   const success = await savePresetDownload()
   if (success) {
-    toast.success('Preset saved successfully', {
-      description,
-      icon,
-    })
+    toast.success('Preset saved successfully')
   }
 }
 
@@ -648,10 +666,14 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetDownload()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetPrivacy',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -663,10 +685,14 @@ const handleNext = async () => {
   try {
     const success = await savePresetDownload()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetFavorite',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -688,8 +714,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction,
-    discardFunction,
+    saveFunction: savePresetDownload,
+    discardFunction: discardChanges,
     showUnsavedChangesModal,
   })
 </script>

@@ -204,7 +204,7 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
 // Inject sidebar collapse state from PresetLayout
-const isSidebarCollapsed = inject < Ref < boolean >> ('isSidebarCollapsed', ref(false))
+const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 // Get preset from store based on route params
 const currentPreset = computed(() => {
@@ -223,10 +223,14 @@ const isSubmitting = ref(false)
 const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
 
+// Default favorite values - declare these first
+const defaultFavoritePhotos = false
+const defaultFavoriteNotes = false
+
 // Favorite form data
 const formData = ref({
-  favoritePhotos,
-  favoriteNotes,
+  favoritePhotos: defaultFavoritePhotos,
+  favoriteNotes: defaultFavoriteNotes,
 })
 
 // Store original loaded data for comparison
@@ -305,7 +309,7 @@ const savePresetFavorite = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      favorite,
+      favorite: formData.value,
     })
     // Update original data after successful save
     if (originalData.value) {
@@ -315,7 +319,7 @@ const savePresetFavorite = async () => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
     toast.error('Failed to save preset', {
-      description,
+      description: errorMessage,
     })
     return false
   }
@@ -324,10 +328,7 @@ const savePresetFavorite = async () => {
 const handleSave = async () => {
   const success = await savePresetFavorite()
   if (success) {
-    toast.success('Preset saved successfully', {
-      description,
-      icon,
-    })
+    toast.success('Preset saved successfully')
   }
 }
 
@@ -336,10 +337,14 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetFavorite()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetDownload',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -351,9 +356,9 @@ const handleNext = async () => {
   try {
     const success = await savePresetFavorite()
     if (success) {
-      // Navigate to next section (Store) when it's implemented
+      // Navigate back to preset settings list (no next section after Favorite)
       router.push({
-        name,
+        name: 'presetSettings',
       })
     }
   } finally {
@@ -376,8 +381,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction,
-    discardFunction,
+    saveFunction: savePresetFavorite,
+    discardFunction: discardChanges,
     showUnsavedChangesModal,
   })
 </script>

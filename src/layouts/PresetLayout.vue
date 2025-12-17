@@ -275,13 +275,15 @@ const saveTitle = async () => {
   isSavingTitle.value = true
   isBlurring.value = true
   try {
-    await presetStore.updatePreset(currentPreset.value.id, { name: editingName.value })
+    await presetStore.updatePreset(currentPreset.value.id, { name: editingTitle.value })
 
     // Update route if name changed
     if (oldName !== newName) {
+      // Convert name to URL-friendly format
+      const urlFriendlyName = newName.toLowerCase().replace(/\s+/g, '-')
       router.replace({
-        name,
-        params,
+        name: route.name,
+        params: { name: urlFriendlyName },
       })
     }
 
@@ -321,12 +323,17 @@ const handleClose = () => {
   router.push({ name: 'presetSettings' })
 }
 
-const handleNavClick = _tabId => {
-  if (routeName && routeName !== route.name) {
-    router.push({
-      name,
-      params,
-    })
+const handleNavClick = tabId => {
+  const targetRoute = navigationItems.find(item => item.id === tabId)?.route
+  if (targetRoute && targetRoute !== route.name) {
+    const presetName = currentPreset.value?.name
+    if (presetName) {
+      const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+      router.push({
+        name: targetRoute,
+        params: { name: urlFriendlyName },
+      })
+    }
   }
 }
 </script>

@@ -597,7 +597,69 @@ export function useCollectionsApi() {
     await delay(1000)
 
     const collections = getAllCollections()
-    const newCollection = {
+
+    // Get preset if presetId is provided
+    let preset = null
+    if (data.presetId) {
+      const PRESETS_STORAGE_KEY = 'mazeloot_presets'
+      const presets = storage.get(PRESETS_STORAGE_KEY) || []
+      preset = presets.find(p => p.id === data.presetId)
+
+      // Debug: Log preset structure to verify it has all sections
+      if (preset) {
+        console.log('Applying preset to collection:', {
+          presetId: preset.id,
+          presetName: preset.name,
+          hasDesign: !!preset.design,
+          hasPrivacy: !!preset.privacy,
+          hasDownload: !!preset.download,
+          hasFavorite: !!preset.favorite,
+          design: preset.design,
+          privacy: preset.privacy,
+          download: preset.download,
+          favorite: preset.favorite,
+        })
+      }
+    }
+
+    // Convert preset photoSets to mediaSets if preset exists and not a folder
+    let mediaSets = data.mediaSets
+    if (preset && !data.isFolder) {
+      if (preset.photoSets && preset.photoSets.length > 0) {
+        mediaSets = preset.photoSets.map((setName, index) => ({
+          id: `set-${generateUUID()}`,
+          name: setName,
+          description: '',
+          count: 0,
+          order: index,
+        }))
+      } else {
+        // Default to Highlights if preset has no photoSets
+        mediaSets = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
+      }
+    }
+
+    // Determine watermarkId: use provided one, or preset's defaultWatermark, or undefined
+    let watermarkId = data.watermarkId
+    if (!watermarkId && preset && preset.defaultWatermark && preset.defaultWatermark !== 'none') {
+      watermarkId = preset.defaultWatermark
+    }
+
+    // Parse collection tags from preset
+    let tags = []
+    if (preset && preset.collectionTags) {
+      if (typeof preset.collectionTags === 'string') {
+        tags = preset.collectionTags
+          .split(',')
+          .map(tag => tag.trim())
+          .filter(tag => tag.length > 0)
+      } else if (Array.isArray(preset.collectionTags)) {
+        tags = [...preset.collectionTags]
+      }
+    }
+
+    // Build base collection object
+    const baseCollection = {
       id: generateUUID(),
       name: data.name,
       description: data.description,
@@ -616,6 +678,153 @@ export function useCollectionsApi() {
           ? data.eventDate
           : data.eventDate.toISOString()
         : undefined,
+      // Store presetId and watermarkId
+      presetId: data.presetId || undefined,
+      watermarkId: watermarkId || undefined,
+      // Set mediaSets if not a folder
+      ...(!data.isFolder && mediaSets && { mediaSets }),
+    }
+
+    // Apply default settings first (for fields that don't have preset values)
+    const collectionWithDefaults = addDefaultSettings(baseCollection)
+
+    // Now apply preset values, which will override defaults
+    const newCollection = {
+      ...collectionWithDefaults,
+      // Apply preset General settings if preset exists
+      ...(preset && {
+        emailRegistration: preset.emailRegistration ?? collectionWithDefaults.emailRegistration,
+        galleryAssist: preset.galleryAssist ?? collectionWithDefaults.galleryAssist,
+        slideshow: preset.slideshow ?? collectionWithDefaults.slideshow,
+        socialSharing: preset.socialSharing ?? collectionWithDefaults.socialSharing,
+        language: preset.language || collectionWithDefaults.language,
+        tags: tags.length > 0 ? tags : collectionWithDefaults.tags,
+      }),
+      // Apply preset Design settings if preset exists and has design data
+      // Split design into separate properties for design views (coverDesign, colorDesign, typographyDesign, gridDesign)
+      // Also keep the unified design object for backward compatibility
+      ...(preset &&
+        preset.design && {
+          design: { ...preset.design },
+          // Split design into separate properties
+          coverDesign: {
+            cover: preset.design.cover,
+            coverFocalPoint: preset.design.coverFocalPoint,
+            joyCoverTitle: preset.design.joyCoverTitle,
+            joyCoverAvatar: preset.design.joyCoverAvatar,
+            joyCoverShowDate: preset.design.joyCoverShowDate,
+            joyCoverShowName: preset.design.joyCoverShowName,
+            joyCoverButtonText: preset.design.joyCoverButtonText,
+            joyCoverShowButton: preset.design.joyCoverShowButton,
+            joyCoverBackgroundPattern: preset.design.joyCoverBackgroundPattern,
+          },
+          colorDesign: {
+            colorPalette: preset.design.colorPalette,
+          },
+          typographyDesign: {
+            fontFamily: preset.design.fontFamily,
+            fontStyle: preset.design.fontStyle,
+          },
+          gridDesign: {
+            gridStyle: preset.design.gridStyle,
+            gridColumns: preset.design.gridColumns,
+            thumbnailSize: preset.design.thumbnailSize,
+            gridSpacing: preset.design.gridSpacing,
+            navigationStyle: preset.design.navigationStyle,
+          },
+        }),
+      // Apply preset Privacy settings if preset exists and has privacy data
+      ...(preset &&
+        preset.privacy && {
+          privacy: { ...preset.privacy },
+          // Also apply privacy fields directly to collection for backward compatibility
+          showOnHomepage:
+            preset.privacy.showOnHomepage !== undefined
+              ? preset.privacy.showOnHomepage
+              : collectionWithDefaults.showOnHomepage,
+          clientExclusiveAccess:
+            preset.privacy.clientExclusiveAccess ?? collectionWithDefaults.clientExclusiveAccess,
+          clientPrivatePassword:
+            preset.privacy.clientPrivatePassword || collectionWithDefaults.clientPrivatePassword,
+          allowClientsMarkPrivate:
+            preset.privacy.allowClientsMarkPrivate ??
+            collectionWithDefaults.allowClientsMarkPrivate,
+          clientOnlySets: preset.privacy.clientOnlySets || collectionWithDefaults.clientOnlySets,
+        }),
+      // Apply preset Download settings if preset exists and has download data
+      ...(preset &&
+        preset.download && {
+          download: { ...preset.download },
+          // Also apply download fields directly to collection for backward compatibility
+          photoDownload:
+            preset.download.photoDownload !== undefined
+              ? preset.download.photoDownload
+              : collectionWithDefaults.photoDownload,
+          highResolutionEnabled:
+            preset.download.highResolutionEnabled !== undefined
+              ? preset.download.highResolutionEnabled
+              : collectionWithDefaults.highResolutionEnabled,
+          highResolutionSize:
+            preset.download.highResolutionSize || collectionWithDefaults.highResolutionSize,
+          webSizeEnabled:
+            preset.download.webSizeEnabled !== undefined
+              ? preset.download.webSizeEnabled
+              : collectionWithDefaults.webSizeEnabled,
+          webSize: preset.download.webSize || collectionWithDefaults.webSize,
+          videoDownload:
+            preset.download.videoDownload !== undefined
+              ? preset.download.videoDownload
+              : collectionWithDefaults.videoDownload,
+          downloadPin: preset.download.downloadPin || collectionWithDefaults.downloadPin,
+          downloadPinEnabled:
+            preset.download.downloadPinEnabled ?? collectionWithDefaults.downloadPinEnabled,
+          limitDownloads: preset.download.limitDownloads ?? collectionWithDefaults.limitDownloads,
+          downloadLimit: preset.download.downloadLimit || collectionWithDefaults.downloadLimit,
+          restrictToContacts:
+            preset.download.restrictToContacts ?? collectionWithDefaults.restrictToContacts,
+          downloadableSets:
+            preset.download.downloadableSets || collectionWithDefaults.downloadableSets,
+        }),
+      // Apply preset Favorite settings if preset exists and has favorite data
+      ...(preset &&
+        preset.favorite && {
+          favorite: { ...preset.favorite },
+          // Also apply favorite fields directly to collection for backward compatibility
+          favoriteEnabled:
+            preset.favorite.favoriteEnabled !== undefined
+              ? preset.favorite.favoriteEnabled
+              : collectionWithDefaults.favoriteEnabled,
+          favoritePhotos:
+            preset.favorite.favoritePhotos !== undefined
+              ? preset.favorite.favoritePhotos
+              : collectionWithDefaults.favoritePhotos,
+          favoriteNotes:
+            preset.favorite.favoriteNotes !== undefined
+              ? preset.favorite.favoriteNotes
+              : collectionWithDefaults.favoriteNotes,
+        }),
+    }
+
+    // Debug: Log final collection to verify preset values were applied
+    if (preset) {
+      console.log('Collection created with preset values:', {
+        collectionId: newCollection.id,
+        collectionName: newCollection.name,
+        presetId: newCollection.presetId,
+        hasDesign: !!newCollection.design,
+        hasPrivacy: !!newCollection.privacy,
+        hasDownload: !!newCollection.download,
+        hasFavorite: !!newCollection.favorite,
+        emailRegistration: newCollection.emailRegistration,
+        slideshow: newCollection.slideshow,
+        socialSharing: newCollection.socialSharing,
+        tags: newCollection.tags,
+        mediaSets: newCollection.mediaSets,
+        design: newCollection.design,
+        privacy: newCollection.privacy,
+        download: newCollection.download,
+        favorite: newCollection.favorite,
+      })
     }
 
     collections.push(newCollection)

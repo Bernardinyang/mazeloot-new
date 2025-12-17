@@ -536,7 +536,7 @@ const showUnsavedChangesModal = ref(false)
 // Grid defaults (used for form initialization and preview)
 const gridStyle = 'vertical'
 const gridColumns = 3
-const thumbnailSize = 'regular'
+const thumbnailSize = 'medium'
 const gridSpacing = 16
 const navigationStyle = 'icon-text'
 
@@ -602,10 +602,41 @@ const previewDesignConfig = computed(() => {
   }
 
   // Get all design configs from the collection in store (which is updated by the watcher)
-  const coverDesign = collectionInStore.coverDesign || {}
-  const typographyDesign = collectionInStore.typographyDesign || {}
-  const colorDesign = collectionInStore.colorDesign || {}
-  const gridDesign = collectionInStore.gridDesign || {}
+  // Check for separate design properties first, then fallback to unified design object
+  const coverDesign =
+    collectionInStore.coverDesign ||
+    (collectionInStore.design
+      ? {
+          cover: collectionInStore.design.cover,
+          coverFocalPoint: collectionInStore.design.coverFocalPoint,
+        }
+      : {})
+  const typographyDesign =
+    collectionInStore.typographyDesign ||
+    (collectionInStore.design
+      ? {
+          fontFamily: collectionInStore.design.fontFamily,
+          fontStyle: collectionInStore.design.fontStyle,
+        }
+      : {})
+  const colorDesign =
+    collectionInStore.colorDesign ||
+    (collectionInStore.design
+      ? {
+          colorPalette: collectionInStore.design.colorPalette,
+        }
+      : {})
+  const gridDesign =
+    collectionInStore.gridDesign ||
+    (collectionInStore.design
+      ? {
+          gridStyle: collectionInStore.design.gridStyle,
+          gridColumns: collectionInStore.design.gridColumns,
+          thumbnailSize: collectionInStore.design.thumbnailSize,
+          gridSpacing: collectionInStore.design.gridSpacing,
+          navigationStyle: collectionInStore.design.navigationStyle,
+        }
+      : {})
 
   // Return merged config from store
   return {
@@ -658,6 +689,7 @@ const gridColumnsOptions = [
 // Thumbnail sizes
 const thumbnailSizes = [
   { id: 'small', label: 'Small' },
+  { id: 'medium', label: 'Medium' },
   { id: 'large', label: 'Large' },
 ]
 
@@ -697,18 +729,44 @@ const loadCollectionData = async () => {
     collection.value = collectionData
 
     // Load grid design data
-    const gridDesign = collectionData.gridDesign || {}
+    // Check for gridDesign first, then fallback to design object (for backward compatibility)
+    const gridDesign =
+      collectionData.gridDesign ||
+      (collectionData.design
+        ? {
+            gridStyle: collectionData.design.gridStyle,
+            gridColumns: collectionData.design.gridColumns,
+            thumbnailSize: collectionData.design.thumbnailSize,
+            gridSpacing: collectionData.design.gridSpacing,
+            navigationStyle: collectionData.design.navigationStyle,
+          }
+        : {})
+    // Calculate gridSpacing based on thumbnailSize if not provided (matching preset behavior)
+    let calculatedGridSpacing = gridSpacing
+    const finalThumbnailSize = gridDesign.thumbnailSize || thumbnailSize
+    if (typeof gridDesign.gridSpacing === 'number') {
+      calculatedGridSpacing = gridDesign.gridSpacing
+    } else if (gridDesign.gridSpacing === 'large') {
+      calculatedGridSpacing = 24
+    } else if (gridDesign.gridSpacing === 'normal' || gridDesign.gridSpacing === 'medium') {
+      calculatedGridSpacing = 16
+    } else if (finalThumbnailSize && !gridDesign.gridSpacing) {
+      // Calculate from thumbnailSize if gridSpacing not provided
+      if (finalThumbnailSize === 'small') {
+        calculatedGridSpacing = 8
+      } else if (finalThumbnailSize === 'medium') {
+        calculatedGridSpacing = 16
+      } else if (finalThumbnailSize === 'large') {
+        calculatedGridSpacing = 24
+      }
+    }
+
     const loadedData = {
-      gridStyle,
-      gridColumns,
-      thumbnailSize,
-      gridSpacing:
-        typeof gridDesign.gridSpacing === 'number'
-          ? gridDesign.gridSpacing
-          : gridDesign.gridSpacing === 'large'
-            ? 24
-            : 16,
-      navigationStyle,
+      gridStyle: gridDesign.gridStyle || gridStyle,
+      gridColumns: gridDesign.gridColumns || gridColumns,
+      thumbnailSize: finalThumbnailSize,
+      gridSpacing: calculatedGridSpacing,
+      navigationStyle: gridDesign.navigationStyle || navigationStyle,
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -736,7 +794,7 @@ watch(
   () => formData.value.gridStyle,
   newStyle => {
     if (newStyle === 'masonry' && formData.value.thumbnailSize === 'large') {
-      formData.value.thumbnailSize = 'regular'
+      formData.value.thumbnailSize = 'medium'
     }
   }
 )

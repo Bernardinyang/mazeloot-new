@@ -51,7 +51,7 @@
 
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Content -->
-        <div class="lg:col-span-2 space-y-12">
+        <div class="lg:col-span-1 space-y-12">
           <!-- Cover Section -->
           <div
             :class="[theme.borderSecondary, theme.bgCard]"
@@ -71,7 +71,7 @@
               </div>
             </div>
             <div
-              class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-7 gap-4 md:gap-5"
+              class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-5"
             >
               <div v-for="cover in coverOptions" :key="cover.id" class="flex flex-col gap-3">
                 <button
@@ -457,7 +457,7 @@
                 </span>
               </div>
             </div>
-            <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
               <button
                 v-for="palette in colorPalettes"
                 :key="palette.id"
@@ -513,7 +513,7 @@
                 Choose how photos are arranged in your gallery
               </p>
             </div>
-            <div class="flex gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <button
                 v-for="style in gridStyles"
                 :key="style.id"
@@ -565,7 +565,7 @@
                 Select how many images appear in each row
               </p>
             </div>
-            <div class="flex gap-3">
+            <div class="grid grid-cols-2 gap-3">
               <button
                 v-for="cols in gridColumnsOptions"
                 :key="cols.value"
@@ -618,7 +618,7 @@
                 Control the size of gallery thumbnails
               </p>
             </div>
-            <div class="flex gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <button
                 v-for="size in thumbnailSizes"
                 :key="size.id"
@@ -759,7 +759,7 @@
         </div>
 
         <!-- Preview Panel -->
-        <div class="lg:col-span-1">
+        <div class="lg:col-span-2">
           <div class="sticky top-24">
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -913,27 +913,45 @@ const focalPointImageContainer = ref(null)
 const showUnsavedChangesModal = ref(false)
 const avatarInputRef = ref(null)
 
+// Default design values - declare these first
+const defaultCover = 'none'
+const defaultCoverFocalPoint = { x: 50, y: 50 }
+const defaultFontFamily = 'sans'
+const defaultFontStyle = 'normal'
+const defaultColorPalette = 'light'
+const defaultGridStyle = 'vertical'
+const defaultGridColumns = 3
+const defaultThumbnailSize = 'medium'
+const defaultGridSpacing = 16
+const defaultNavigationStyle = 'icon-text'
+const defaultJoyCoverTitle = ''
+const defaultJoyCoverAvatar = null
+const defaultJoyCoverShowDate = false
+const defaultJoyCoverShowName = false
+const defaultJoyCoverButtonText = 'View Gallery'
+const defaultJoyCoverShowButton = false
+const defaultJoyCoverBackgroundPattern = 'crosses'
+
 // Design form data
 const formData = ref({
-  cover,
-  coverFocalPoint,
-  y, // Percentage coordinates (0-100)
-  fontFamily,
-  fontStyle,
-  colorPalette,
-  gridStyle,
-  gridColumns,
-  thumbnailSize,
-  gridSpacing, // Numeric value in pixels (1-100)
-  navigationStyle,
+  cover: defaultCover,
+  coverFocalPoint: defaultCoverFocalPoint,
+  fontFamily: defaultFontFamily,
+  fontStyle: defaultFontStyle,
+  colorPalette: defaultColorPalette,
+  gridStyle: defaultGridStyle,
+  gridColumns: defaultGridColumns,
+  thumbnailSize: defaultThumbnailSize,
+  gridSpacing: defaultGridSpacing,
+  navigationStyle: defaultNavigationStyle,
   // Joy cover style customization
-  joyCoverTitle,
-  joyCoverAvatar,
-  joyCoverShowDate,
-  joyCoverShowName,
-  joyCoverButtonText,
-  joyCoverShowButton,
-  joyCoverBackgroundPattern,
+  joyCoverTitle: defaultJoyCoverTitle,
+  joyCoverAvatar: defaultJoyCoverAvatar,
+  joyCoverShowDate: defaultJoyCoverShowDate,
+  joyCoverShowName: defaultJoyCoverShowName,
+  joyCoverButtonText: defaultJoyCoverButtonText,
+  joyCoverShowButton: defaultJoyCoverShowButton,
+  joyCoverBackgroundPattern: defaultJoyCoverBackgroundPattern,
 })
 
 // Store original loaded data for comparison
@@ -1090,44 +1108,56 @@ const loadPresetData = () => {
   if (currentPreset.value) {
     isLoadingData.value = true
     const designData = currentPreset.value.design || {}
+
+    // Calculate gridSpacing based on thumbnailSize if not provided
+    let calculatedGridSpacing = defaultGridSpacing
+    if (typeof designData.gridSpacing === 'number') {
+      calculatedGridSpacing = designData.gridSpacing
+    } else if (designData.thumbnailSize) {
+      if (designData.thumbnailSize === 'small') {
+        calculatedGridSpacing = 8
+      } else if (designData.thumbnailSize === 'medium') {
+        calculatedGridSpacing = 16
+      } else if (designData.thumbnailSize === 'large') {
+        calculatedGridSpacing = 24
+      }
+    }
+
     const loadedData = {
-      cover,
+      cover: designData.cover || defaultCover,
       coverFocalPoint:
         designData.coverFocalPoint && typeof designData.coverFocalPoint === 'object'
           ? { ...designData.coverFocalPoint }
-          : { x: 50, y: 50 },
-      fontFamily,
-      fontStyle,
-      colorPalette,
-      gridStyle,
-      gridColumns,
-      thumbnailSize,
-      gridSpacing:
-        typeof designData.gridSpacing === 'number'
-          ? designData.gridSpacing
-          : designData.thumbnailSize == 'small'
-            ? 8
-            : designData.thumbnailSize == 'medium'
-              ? 16
-              : designData.thumbnailSize == 'large'
-                ? 24
-                : 16,
-      navigationStyle,
+          : defaultCoverFocalPoint,
+      fontFamily: designData.fontFamily || defaultFontFamily,
+      fontStyle: designData.fontStyle || defaultFontStyle,
+      colorPalette: designData.colorPalette || defaultColorPalette,
+      gridStyle: designData.gridStyle || defaultGridStyle,
+      gridColumns: designData.gridColumns || defaultGridColumns,
+      thumbnailSize: designData.thumbnailSize || defaultThumbnailSize,
+      gridSpacing: calculatedGridSpacing,
+      navigationStyle: designData.navigationStyle || defaultNavigationStyle,
       // Joy cover settings
-      joyCoverTitle,
-      joyCoverAvatar,
+      joyCoverTitle: designData.joyCoverTitle || defaultJoyCoverTitle,
+      joyCoverAvatar: designData.joyCoverAvatar || defaultJoyCoverAvatar,
       joyCoverShowDate:
-        designData.joyCoverShowDate !== undefined ? designData.joyCoverShowDate : false,
+        designData.joyCoverShowDate !== undefined
+          ? designData.joyCoverShowDate
+          : defaultJoyCoverShowDate,
       joyCoverShowName:
-        designData.joyCoverShowName !== undefined ? designData.joyCoverShowName : false,
-      joyCoverButtonText,
+        designData.joyCoverShowName !== undefined
+          ? designData.joyCoverShowName
+          : defaultJoyCoverShowName,
+      joyCoverButtonText: designData.joyCoverButtonText || defaultJoyCoverButtonText,
       joyCoverShowButton:
-        designData.joyCoverShowButton !== undefined ? designData.joyCoverShowButton : false,
+        designData.joyCoverShowButton !== undefined
+          ? designData.joyCoverShowButton
+          : defaultJoyCoverShowButton,
       joyCoverBackgroundPattern: ['crosses', 'sparkles', 'none'].includes(
         designData.joyCoverBackgroundPattern
       )
         ? designData.joyCoverBackgroundPattern
-        : 'crosses',
+        : defaultJoyCoverBackgroundPattern,
     }
     formData.value = { ...loadedData }
     originalData.value = { ...loadedData }
@@ -1191,7 +1221,7 @@ const savePresetDesign = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      design,
+      design: formData.value,
     })
     // Update original data after successful save
     if (originalData.value) {
@@ -1200,7 +1230,7 @@ const savePresetDesign = async () => {
     return true
   } catch (error) {
     toast.error('Failed to save preset', {
-      description,
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
     return false
   }
@@ -1209,10 +1239,7 @@ const savePresetDesign = async () => {
 const handleSave = async () => {
   const success = await savePresetDesign()
   if (success) {
-    toast.success('Preset saved successfully', {
-      description,
-      icon,
-    })
+    toast.success('Preset saved successfully')
   }
 }
 
@@ -1221,10 +1248,14 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetDesign()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetGeneral',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -1236,10 +1267,14 @@ const handleNext = async () => {
   try {
     const success = await savePresetDesign()
     if (success) {
-      router.push({
-        name,
-        params,
-      })
+      const presetName = currentPreset.value?.name
+      if (presetName) {
+        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+        router.push({
+          name: 'presetPrivacy',
+          params: { name: urlFriendlyName },
+        })
+      }
     }
   } finally {
     isSubmitting.value = false
@@ -1261,8 +1296,8 @@ const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
     hasUnsavedChanges,
     isSubmitting,
     isSaving,
-    saveFunction,
-    discardFunction,
+    saveFunction: savePresetDesign,
+    discardFunction: discardChanges,
     showUnsavedChangesModal,
   })
 
@@ -1277,9 +1312,10 @@ const handleOpenPreviewInNewTab = async () => {
   // Save current design changes before opening preview
   const success = await savePresetDesign()
   if (success) {
+    const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
     const previewUrl = router.resolve({
-      name,
-      params,
+      name: 'presetPreview',
+      params: { name: urlFriendlyName },
     }).href
     window.open(previewUrl, '_blank')
   }

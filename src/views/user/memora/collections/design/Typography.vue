@@ -354,10 +354,41 @@ const previewDesignConfig = computed(() => {
   }
 
   // Get all design configs from the collection in store (which is updated by the watcher)
-  const coverDesign = collectionInStore.coverDesign || {}
-  const typographyDesign = collectionInStore.typographyDesign || {}
-  const colorDesign = collectionInStore.colorDesign || {}
-  const gridDesign = collectionInStore.gridDesign || {}
+  // Check for separate design properties first, then fallback to unified design object
+  const coverDesign =
+    collectionInStore.coverDesign ||
+    (collectionInStore.design
+      ? {
+          cover: collectionInStore.design.cover,
+          coverFocalPoint: collectionInStore.design.coverFocalPoint,
+        }
+      : {})
+  const typographyDesign =
+    collectionInStore.typographyDesign ||
+    (collectionInStore.design
+      ? {
+          fontFamily: collectionInStore.design.fontFamily,
+          fontStyle: collectionInStore.design.fontStyle,
+        }
+      : {})
+  const colorDesign =
+    collectionInStore.colorDesign ||
+    (collectionInStore.design
+      ? {
+          colorPalette: collectionInStore.design.colorPalette,
+        }
+      : {})
+  const gridDesign =
+    collectionInStore.gridDesign ||
+    (collectionInStore.design
+      ? {
+          gridStyle: collectionInStore.design.gridStyle,
+          gridColumns: collectionInStore.design.gridColumns,
+          thumbnailSize: collectionInStore.design.thumbnailSize,
+          gridSpacing: collectionInStore.design.gridSpacing,
+          navigationStyle: collectionInStore.design.navigationStyle,
+        }
+      : {})
 
   // Return merged config from store
   return {
@@ -417,7 +448,15 @@ const loadCollectionData = async () => {
     collection.value = collectionData
 
     // Load typography design data
-    const typographyDesign = collectionData.typographyDesign || {}
+    // Check for typographyDesign first, then fallback to design object (for backward compatibility)
+    const typographyDesign =
+      collectionData.typographyDesign ||
+      (collectionData.design
+        ? {
+            fontFamily: collectionData.design.fontFamily,
+            fontStyle: collectionData.design.fontStyle,
+          }
+        : {})
     const loadedData = {
       fontFamily: typographyDesign.fontFamily || 'sans',
       fontStyle: typographyDesign.fontStyle || 'bold',

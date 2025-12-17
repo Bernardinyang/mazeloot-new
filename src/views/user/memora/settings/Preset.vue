@@ -152,9 +152,11 @@ const presets = computed(() => presetStore.presets)
 const handleEditPreset = id => {
   const preset = presets.value.find(p => p.id === id)
   if (preset) {
+    // Convert preset name to URL-friendly format
+    const urlFriendlyName = preset.name.toLowerCase().replace(/\s+/g, '-')
     router.push({
-      name: 'presetSettings',
-      params: { uuid: preset.id },
+      name: 'presetGeneral',
+      params: { name: urlFriendlyName },
     })
   }
 }
@@ -165,7 +167,7 @@ const handleDuplicatePreset = async id => {
     toast.success('Preset duplicated successfully')
   } catch (error) {
     toast.error('Failed to duplicate preset', {
-      description,
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
@@ -176,7 +178,7 @@ const handleDeletePreset = async id => {
     toast.success('Preset deleted successfully')
   } catch (error) {
     toast.error('Failed to delete preset', {
-      description,
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
@@ -187,20 +189,23 @@ const handleAddPreset = () => {
 
 const handleCreatePresetSubmit = async data => {
   try {
-    await presetStore.createPreset({ name: data.name })
+    const newPreset = await presetStore.createPreset({ name: data.name })
 
     toast.success('Preset created successfully', {
-      description,
+      description: 'Your new preset has been created.',
     })
 
     // Route to preset general page
-    router.push({
-      name: 'presetSettings',
-      params: { uuid: preset.id },
-    })
+    if (newPreset) {
+      const urlFriendlyName = newPreset.name.toLowerCase().replace(/\s+/g, '-')
+      router.push({
+        name: 'presetGeneral',
+        params: { name: urlFriendlyName },
+      })
+    }
   } catch (error) {
     toast.error('Failed to create preset', {
-      description,
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
     throw error // Re-throw to let dialog handle it
   }

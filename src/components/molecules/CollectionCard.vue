@@ -96,7 +96,8 @@
           @error="handleImageError($event)"
         />
         <div
-          class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300"
+          :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-0'"
         />
         <!-- Lock Icon Overlay on Collection Image - Bottom Left to avoid conflict with dropdown -->
         <div
@@ -205,11 +206,13 @@
         </div>
       </div>
 
-      <!-- Action Buttons Container - Top Right (visible on hover, higher z-index to be above lock badges) -->
+      <!-- Action Buttons Container - Top Right (visible on hover or when dropdown is open, higher z-index to be above lock badges) -->
       <div
         v-if="showMenu || showStar"
         class="absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300"
-        :class="isHovering ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'"
+        :class="
+          isHovering || isDropdownOpen ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+        "
       >
         <!-- Star Icon -->
         <Button
@@ -232,7 +235,7 @@
         </Button>
 
         <!-- Three-dot Menu -->
-        <DropdownMenu v-if="showMenu">
+        <DropdownMenu v-if="showMenu" v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <Button
               variant="ghost"
@@ -240,6 +243,7 @@
               class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-lg border transition-all duration-200 hover:scale-110"
               :class="theme.borderSecondary"
               aria-label="More options"
+              @click.stop
             >
               <MoreVertical class="h-4 w-4" :class="theme.textSecondary" />
             </Button>
@@ -283,7 +287,7 @@
       <div
         v-if="displayOverlayContent && overlayContent"
         class="absolute inset-0 flex items-center justify-center p-4 transition-opacity duration-300"
-        :class="isHovering ? 'opacity-100' : 'opacity-0'"
+        :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-0'"
       >
         <div :class="['text-white text-center', overlayContentClass]">
           <slot name="overlay-content">
@@ -333,7 +337,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, type Component } from 'vue'
+import { ref, computed, watch, type Component } from 'vue'
 import { Folder, Star, MoreVertical, Lock } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -449,6 +453,7 @@ const cardRef = ref<HTMLElement | null>(null)
 const rotateX = ref(0)
 const rotateY = ref(0)
 const isHovering = ref(false)
+const isDropdownOpen = ref(false)
 
 // Drag and drop
 const isDragging = ref(false)
@@ -477,15 +482,29 @@ const handleMouseEnter = () => {
 }
 
 const handleMouseLeave = () => {
-  isHovering.value = false
-  rotateX.value = 0
-  rotateY.value = 0
+  // Keep hover state if dropdown is open
+  if (!isDropdownOpen.value) {
+    isHovering.value = false
+    rotateX.value = 0
+    rotateY.value = 0
+  }
 }
+
+// Watch dropdown state - when it closes, reset hover if mouse is not over card
+watch(isDropdownOpen, isOpen => {
+  if (!isOpen && !isHovering.value) {
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+})
 
 const tiltStyle = computed(() => ({
   transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) translateZ(0)`,
-  transition: isHovering.value ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
-  willChange: isHovering.value ? 'transform' : 'auto',
+  transition:
+    isHovering.value || isDropdownOpen.value
+      ? 'none'
+      : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+  willChange: isHovering.value || isDropdownOpen.value ? 'transform' : 'auto',
 }))
 
 // Drag and drop handlers
