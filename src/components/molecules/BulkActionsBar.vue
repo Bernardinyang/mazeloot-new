@@ -6,46 +6,29 @@
     >
       <!-- Left: Selection info with dropdown -->
       <div class="flex items-center gap-3">
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <button
-                class="p-1.5 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleClearSelection"
-              >
-                <X class="h-5 w-5 text-white" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Clear selection</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
         <DropdownMenu>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger as-child>
-                <DropdownMenuTrigger as-child>
-                  <button
-                    class="flex items-center gap-2 text-white hover:opacity-80 transition-opacity"
-                  >
-                    <span class="text-sm font-medium"> {{ selectedCount }} selected </span>
-                    <ArrowDown class="h-4 w-4" />
-                  </button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Selection options</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-          <DropdownMenuContent align="start" :class="[theme.bgDropdown, theme.borderSecondary]">
+          <DropdownMenuTrigger as-child>
+            <button class="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
+              <span class="text-sm font-medium"> {{ selectedCount }} selected </span>
+              <ArrowDown class="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="start">
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click="handleSelectAll"
             >
               {{ isAllSelected ? 'Deselect All' : 'Select All' }}
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              :class="[
+                'text-red-600 dark:text-red-400',
+                'hover:bg-red-50 dark:hover:bg-red-900/20',
+                'cursor-pointer',
+              ]"
+              @click="handleClearSelection"
+            >
+              Clear selection
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -58,10 +41,10 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="handleFavorite"
                 :disabled="props.isFavoriteLoading"
+                class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title="Favorite"
+                @click="handleFavorite"
               >
                 <Loader2 v-if="props.isFavoriteLoading" class="h-5 w-5 text-white animate-spin" />
                 <Star v-else class="h-5 w-5 text-white" />
@@ -79,8 +62,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleView"
                 title="View"
+                @click="handleView"
               >
                 <Eye class="h-5 w-5 text-white" />
               </button>
@@ -97,8 +80,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleTag"
                 title="Tag"
+                @click="handleTag"
               >
                 <Tag class="h-5 w-5 text-white" />
               </button>
@@ -115,8 +98,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleWatermark"
                 title="Apply Watermark"
+                @click="handleWatermark"
               >
                 <ImageIcon class="h-5 w-5 text-white" />
               </button>
@@ -133,8 +116,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleMove"
                 title="Move"
+                @click="handleMove"
               >
                 <Move class="h-5 w-5 text-white" />
               </button>
@@ -151,8 +134,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleDelete"
                 title="Delete"
+                @click="handleDelete"
               >
                 <Trash2 class="h-5 w-5 text-white" />
               </button>
@@ -169,8 +152,8 @@
             <TooltipTrigger as-child>
               <button
                 class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                @click="handleEdit"
                 title="Edit"
+                @click="handleEdit"
               >
                 <PencilIcon class="h-5 w-5 text-white" />
               </button>
@@ -185,19 +168,17 @@
   </Transition>
 </template>
 
-<script setup lang="ts">
-import { computed } from 'vue'
+<script lang="ts" setup>
 import {
-  X,
-  Star,
-  Eye,
-  Tag,
-  Move,
-  Trash2,
-  Pencil as PencilIcon,
   ArrowDown,
-  Loader2,
+  Eye,
   ImageIcon,
+  Loader2,
+  Move,
+  Pencil as PencilIcon,
+  Star,
+  Tag,
+  Trash2,
 } from 'lucide-vue-next'
 import {
   Tooltip,
@@ -223,13 +204,21 @@ interface Props {
 
 interface Emits {
   (e: 'clear-selection'): void
+
   (e: 'select-all'): void
+
   (e: 'favorite'): void
+
   (e: 'view'): void
+
   (e: 'tag'): void
+
   (e: 'watermark'): void
+
   (e: 'move'): void
+
   (e: 'delete'): void
+
   (e: 'edit'): void
 }
 

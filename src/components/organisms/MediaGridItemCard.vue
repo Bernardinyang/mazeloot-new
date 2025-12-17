@@ -22,8 +22,14 @@
       <div class="w-full h-full cursor-pointer" @click="emit('open-viewer')">
         <img
           :alt="props.item?.title || 'Media'"
-          :src="props.item?.thumbnail || props.item?.url || props.placeholderImage"
-          class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+          :src="imageSrc"
+          :class="[
+            'w-full h-full object-cover transition-all duration-300 will-change-transform',
+            isImageLoaded
+              ? 'opacity-100 scale-100 group-hover:scale-110'
+              : 'opacity-0 scale-[0.98]',
+          ]"
+          @load="isImageLoaded = true"
           @error="emit('image-error', $event)"
         />
       </div>
@@ -148,6 +154,7 @@
 </template>
 
 <script setup lang="ts">
+import { computed, ref, watch } from 'vue'
 import {
   CheckSquare2,
   Copy,
@@ -181,6 +188,12 @@ const props = defineProps<{
   showFilename: boolean
   placeholderImage: string
 }>()
+
+const imageSrc = computed(() => props.item?.thumbnail || props.item?.url || props.placeholderImage)
+const isImageLoaded = ref(false)
+watch(imageSrc, () => {
+  isImageLoaded.value = false
+})
 
 const emit = defineEmits<{
   'toggle-selection': []

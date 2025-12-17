@@ -99,8 +99,10 @@
             </div>
           </div>
           <div v-else-if="sortedMediaItems.length > 0" class="mb-8">
-            <div
+            <TransitionGroup
               v-if="viewMode === 'grid'"
+              name="media-grid"
+              tag="div"
               :class="[
                 'grid gap-4',
                 gridSize === 'small'
@@ -132,8 +134,8 @@
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
               />
-            </div>
-            <div v-else class="space-y-2">
+            </TransitionGroup>
+            <TransitionGroup v-else name="media-list" tag="div" class="space-y-2">
               <MediaListItemRow
                 v-for="item in sortedMediaItems"
                 :key="item.id"
@@ -157,7 +159,7 @@
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
               />
-            </div>
+            </TransitionGroup>
           </div>
 
           <!-- Empty State / Upload Zone -->
@@ -995,6 +997,36 @@ watch(
 .indicator-enter-from {
   opacity: 0;
   transform: translateY(-10px);
+}
+
+.media-list-enter-active,
+.media-list-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+.media-list-enter-from,
+.media-list-leave-to {
+  opacity: 0;
+  transform: translateY(6px);
+}
+.media-list-move {
+  transition: transform 180ms ease;
+}
+
+.media-grid-enter-active,
+.media-grid-leave-active {
+  transition:
+    opacity 160ms ease,
+    transform 160ms ease;
+}
+.media-grid-enter-from,
+.media-grid-leave-to {
+  opacity: 0;
+  transform: scale(0.98);
+}
+.media-grid-move {
+  transition: transform 200ms ease;
 }
 
 .indicator-leave-to {

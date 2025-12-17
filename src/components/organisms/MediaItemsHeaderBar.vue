@@ -134,43 +134,6 @@
         </button>
       </div>
 
-      <!-- Select All Button - Always visible when there are items -->
-      <Button
-        v-if="props.totalItems > 0"
-        :aria-pressed="props.isAllSelected && props.totalItems > 0"
-        :class="[
-          'border-2 shadow-sm transition-all duration-200 font-medium',
-          theme.bgCard,
-          theme.borderSecondary,
-          theme.textPrimary,
-          props.isAllSelected && props.totalItems > 0
-            ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300'
-            : '',
-          theme.bgButtonHover,
-        ]"
-        title="Select or deselect all items"
-        @click="emit('toggle-select-all')"
-      >
-        <CheckSquare2
-          v-if="props.isAllSelected && props.totalItems > 0"
-          class="h-4 w-4 mr-2 text-teal-500"
-        />
-        <Square v-else :class="theme.textSecondary" class="h-4 w-4 mr-2" />
-        <span class="font-semibold">
-          {{ props.selectedCount > 0 ? 'Clear selection' : 'Select all' }}
-        </span>
-        <span
-          v-if="props.selectedCount > 0"
-          :class="[
-            'bg-teal-500/10 text-teal-700 dark:text-teal-300 dark:bg-teal-500/20',
-            theme.transitionColors,
-          ]"
-          class="ml-2 inline-flex min-w-7 items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold"
-        >
-          {{ props.selectedCount }}
-        </span>
-      </Button>
-
       <Button
         :disabled="props.isUploading"
         class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
@@ -184,17 +147,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import {
-  ArrowUpDown,
-  Check,
-  CheckSquare2,
-  Grid3x3,
-  ImagePlus,
-  List,
-  Loader2,
-  Square,
-} from 'lucide-vue-next'
+<script lang="ts" setup>
+import { ArrowUpDown, Check, Grid3x3, ImagePlus, List, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
 import { useThemeClasses } from '@/composables/useThemeClasses'
