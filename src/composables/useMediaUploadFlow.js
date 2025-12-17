@@ -27,10 +27,14 @@ export function useMediaUploadFlow({
   const duplicateFileActions = ref(new Map())
 
   const processFiles = async files => {
-    if (!selectedSetId.value || !collection.value) {
+    if (!collection.value) {
       toast.error('No set selected', {
         description,
       })
+      return
+    }
+    if (!selectedSetId?.value) {
+      toast.error('No set selected', { description })
       return
     }
 
@@ -103,9 +107,10 @@ export function useMediaUploadFlow({
   }
 
   const uploadFiles = async files => {
-    if (!selectedSetId.value || !collection.value) {
+    if (!collection.value) {
       return
     }
+    if (!selectedSetId?.value) return
 
     isUploading.value = true
 
@@ -148,28 +153,21 @@ export function useMediaUploadFlow({
               setId: selectedSetId.value,
             })
 
-            // Add to local array immediately for instant display
             mediaItems.value.push(newMedia)
             uploadedItems.push(newMedia)
 
             // Process full image with watermark in background and update
             ;(async () => {
               try {
-                // Get original image first (before watermark)
                 const originalImageUrl = await fileToDataURL(file)
-
                 let fullUrl = originalImageUrl
                 if (watermark) {
-                  // Apply watermark to original
                   fullUrl = await applyWatermarkToImage(originalImageUrl, watermark)
-
-                  // Store original URL for future removal
                   await mediaApi.updateMedia(newMedia.id, {
-                    originalUrl,
+                    originalUrl: originalImageUrl,
                   })
                 }
 
-                // Update the media item with the full image URL
                 const index = mediaItems.value.findIndex(m => m.id === newMedia.id)
                 if (index !== -1) {
                   mediaItems.value[index].url = fullUrl
@@ -184,7 +182,6 @@ export function useMediaUploadFlow({
           } else {
             // For videos
             const url = await fileToDataURL(file)
-
             const newMedia = await mediaApi.addMedia(collection.value.id, {
               url: url,
               thumbnail: undefined, // Videos don't have thumbnails

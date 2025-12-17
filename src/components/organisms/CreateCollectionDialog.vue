@@ -97,17 +97,20 @@
               'hover:text-teal-600 dark:hover:text-teal-400',
             ]"
             @click="handleCancel"
-            :disabled="isSubmitting"
+            :disabled="props.isSubmitting || isLocalSubmitting"
           >
             Cancel
           </Button>
           <Button
             type="submit"
-            :disabled="!formData.name.trim() || isSubmitting"
+            :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
             class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-if="isSubmitting">Creating...</span>
+            <Loader2
+              v-if="props.isSubmitting || isLocalSubmitting"
+              class="mr-2 h-4 w-4 animate-spin"
+            />
+            <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
             <span v-else>Create Collection</span>
           </Button>
         </div>
@@ -136,6 +139,7 @@ import { useWatermarkStore } from '@/stores/watermark'
 
 const props = defineProps<{
   open: boolean
+  isSubmitting?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -155,7 +159,7 @@ const formData = ref({
 })
 
 const errors = ref<{ name?: string }>({})
-const isSubmitting = ref(false)
+const isLocalSubmitting = ref(false)
 
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => watermarkStore.watermarks)
@@ -205,8 +209,11 @@ const handleSubmit = async () => {
     return
   }
 
-  isSubmitting.value = true
   try {
+    // keep a local guard to prevent double-submits even if parent is slow to flip prop
+    if (isLocalSubmitting.value || props.isSubmitting) return
+    isLocalSubmitting.value = true
+
     // Convert date to ISO string if it's a Date object
     const eventDateString =
       formData.value.eventDate instanceof Date
@@ -219,19 +226,10 @@ const handleSubmit = async () => {
       presetId: formData.value.presetId === 'none' ? undefined : formData.value.presetId,
       watermarkId: formData.value.watermarkId === 'none' ? undefined : formData.value.watermarkId,
     })
-    // Reset form
-    formData.value = {
-      name: '',
-      eventDate: null,
-      presetId: 'none',
-      watermarkId: 'none',
-    }
-    errors.value = {}
-    emit('update:open', false)
   } catch (error) {
     console.error('Failed to create collection:', error)
   } finally {
-    isSubmitting.value = false
+    isLocalSubmitting.value = false
   }
 }
 </script>

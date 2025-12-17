@@ -51,6 +51,15 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
     }
+    // Keep selected set sane too
+    if (!selectedSetId.value && mediaSets.value.length > 0) {
+      selectedSetId.value = mediaSets.value[0].id
+    }
+  }
+
+  // Click behavior: switch viewed set (media differs per set).
+  const handleSelectSet = setId => {
+    selectedSetId.value = setId
   }
 
   const ensureCollectionId = () => {
@@ -269,6 +278,7 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     handleEditSet,
     handleCancelCreateSet,
     handleCreateSet,
+    handleSelectSet,
 
     // delete modal
     showDeleteSetModal,

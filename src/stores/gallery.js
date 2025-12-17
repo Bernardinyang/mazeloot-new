@@ -123,6 +123,13 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
     }
 
+    // Ensure every new (non-folder) collection starts with a default "Highlights" set.
+    // We include it in the create payload, and also enforce it post-create if the API ignores mediaSets.
+    const defaultHighlightsSet = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
+    if (!data.isFolder && !('mediaSets' in data)) {
+      data.mediaSets = defaultHighlightsSet
+    }
+
     // Create temporary collection for optimistic update
     const tempId = `temp-${Date.now()}`
     const tempCollection = {
@@ -144,6 +151,7 @@ export const useGalleryStore = defineStore('gallery', () => {
           ? data.eventDate
           : data.eventDate.toISOString()
         : undefined,
+      mediaSets: data.isFolder ? undefined : data.mediaSets,
     }
 
     // Optimistic update - add to UI immediately
@@ -160,6 +168,18 @@ export const useGalleryStore = defineStore('gallery', () => {
       } else {
         // If not found, just add it
         collections.value.push(newCollection)
+      }
+
+      // If backend doesn't persist mediaSets on create, enforce the default set via update.
+      if (!newCollection?.isFolder) {
+        const sets = Array.isArray(newCollection.mediaSets) ? newCollection.mediaSets : []
+        if (sets.length === 0) {
+          const updated = await updateCollection(newCollection.id, {
+            mediaSets: defaultHighlightsSet,
+          })
+          // ensure we return the updated collection (and store already updated via updateCollection)
+          return updated || newCollection
+        }
       }
 
       return newCollection

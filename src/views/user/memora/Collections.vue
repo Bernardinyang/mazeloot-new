@@ -298,6 +298,7 @@
     <!-- Create Collection Dialog -->
     <CreateCollectionDialog
       v-model:open="showCreateDialog"
+      :is-submitting="isCreatingCollection"
       @create="handleCreateCollectionSubmit"
     />
 
@@ -517,6 +518,7 @@ const { sortedItems: sortedCollections } = useCollectionSort(
 
 const showCreateDialog = ref(false)
 const showCreateFolderDialog = ref(false)
+const isCreatingCollection = ref(false)
 const showMoveModal = ref(false)
 const pendingMove = ref(null)
 const movingCollectionId = ref(null)
@@ -563,11 +565,14 @@ const handleCreateFolderSubmit = async data => {
 }
 
 const handleCreateCollectionSubmit = async data => {
+  if (isCreatingCollection.value) return
+  isCreatingCollection.value = true
   try {
     const newCollection = await galleryStore.createCollection(data)
     toast.success('Collection created', {
       description: 'Your new collection has been created.',
     })
+    showCreateDialog.value = false
     // Route to the new collection's photos page
     router.push({
       name: 'collectionPhotos',
@@ -577,6 +582,8 @@ const handleCreateCollectionSubmit = async data => {
     handleError(error, {
       fallbackMessage: 'Failed to create collection.',
     })
+  } finally {
+    isCreatingCollection.value = false
   }
 }
 

@@ -14,7 +14,7 @@
       :selected-set-id="mediaSetsSidebar.selectedSetId"
       :sorted-media-sets="mediaSetsSidebar.sortedMediaSets"
       @add-set="mediaSetsSidebar.handleAddSet"
-      @select-set="mediaSetsSidebar.selectedSetId = $event"
+      @select-set="mediaSetsSidebar.handleSelectSet($event)"
       @edit-set="mediaSetsSidebar.handleEditSet($event)"
       @delete-set="mediaSetsSidebar.requestDeleteSet($event)"
       @save-set-name="mediaSetsSidebar.saveSetName($event)"

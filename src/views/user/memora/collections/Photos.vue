@@ -23,7 +23,14 @@
         <div v-else class="p-8">
           <!-- Content -->
           <!-- Section Header -->
+          <div v-if="isLoadingMedia" class="mb-6">
+            <div class="h-7 w-56 rounded bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"></div>
+            <div
+              class="mt-3 h-4 w-32 rounded bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"
+            ></div>
+          </div>
           <MediaItemsHeaderBar
+            v-else
             v-model:is-sort-menu-open="isSortMenuOpen"
             v-model:is-view-menu-open="isViewMenuOpen"
             :grid-size="gridSize"
@@ -64,7 +71,34 @@
           />
 
           <!-- Media Grid/List View -->
-          <div v-if="sortedMediaItems.length > 0" class="mb-8">
+          <div v-if="isLoadingMedia" class="mb-8">
+            <!-- Skeletons while switching sets -->
+            <div
+              v-if="viewMode === 'grid'"
+              :class="[
+                'grid gap-4',
+                gridSize === 'small'
+                  ? 'grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                  : gridSize === 'medium'
+                    ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+              ]"
+            >
+              <div
+                v-for="i in 16"
+                :key="`skeleton-media-${i}`"
+                class="aspect-square rounded-xl bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"
+              ></div>
+            </div>
+            <div v-else class="space-y-2">
+              <div
+                v-for="i in 8"
+                :key="`skeleton-row-${i}`"
+                class="h-20 rounded-xl bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"
+              ></div>
+            </div>
+          </div>
+          <div v-else-if="sortedMediaItems.length > 0" class="mb-8">
             <div
               v-if="viewMode === 'grid'"
               :class="[
@@ -128,6 +162,7 @@
 
           <!-- Empty State / Upload Zone -->
           <MediaUploadDropzone
+            v-if="!isLoadingMedia"
             v-model:is-dragging="isDragging"
             :is-empty="sortedMediaItems.length === 0"
             @browse="handleBrowseFiles"
@@ -555,6 +590,16 @@ const { updateSetCounts, loadMediaItems } = useCollectionMediaItemsFlow({
   mediaSets,
   description,
 })
+
+// When user selects a different set, reload the media list to reflect that set.
+watch(
+  () => selectedSetId.value,
+  async () => {
+    // Clear the previous set’s media immediately to avoid showing stale items.
+    mediaItems.value = []
+    await loadMediaItems()
+  }
+)
 
 // Media item context menu handlers
 const handleOpenMedia = item => {
