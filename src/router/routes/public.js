@@ -1,5 +1,7 @@
 import Home from '@/views/public/Home.vue'
 import About from '@/views/public/About.vue'
+import ClientSelectionView from '@/views/public/projects/_projectId/selections.vue'
+import ClientProofingView from '@/views/public/projects/_projectId/proofing.vue'
 
 export const publicRoutes = [
   {
@@ -11,6 +13,22 @@ export const publicRoutes = [
     path: '/about',
     name: 'about',
     component: About,
+  },
+  // Client project routes
+  {
+    path: '/p/:projectId/selections',
+    name: 'clientSelections',
+    component: ClientSelectionView,
+  },
+  {
+    path: '/p/:projectId/proofing',
+    name: 'clientProofing',
+    component: ClientProofingView,
+  },
+  {
+    path: '/p/:projectId/collection',
+    name: 'clientCollection',
+    component: () => import('@/views/user/memora/preview/CollectionPreview.vue'),
   },
   {
     path: '/:pathMatch(.*)*',

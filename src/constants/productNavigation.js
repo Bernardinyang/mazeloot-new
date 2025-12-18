@@ -17,6 +17,9 @@ import {
   Image as ImageIcon,
   Mail,
   Sliders,
+  FolderKanban,
+  CheckSquare,
+  Eye,
 } from 'lucide-vue-next'
 
 /**
@@ -24,12 +27,35 @@ import {
  */
 export const MEMORA_NAVIGATION = [
   {
+    title: 'Summary',
+  },
+  {
+    title: 'Overview',
+    name: 'overview',
+    icon: FolderKanban,
+  },
+  {
     title: 'Main',
+  },
+  {
+    title: 'Projects',
+    name: 'projects',
+    icon: FolderKanban,
   },
   {
     title: 'Collections',
     name: 'manageCollections',
     icon: FolderOpen,
+  },
+  {
+    title: 'Selections',
+    name: 'selections',
+    icon: CheckSquare,
+  },
+  {
+    title: 'Proofing',
+    name: 'proofing',
+    icon: Eye,
   },
   {
     title: 'Starred',
@@ -44,18 +70,30 @@ export const MEMORA_NAVIGATION = [
         name: 'starredFolders',
       },
       {
-        title: 'Photos',
-        name: 'starredPhotos',
+        title: 'Media',
+        name: 'starredMedias',
+      },
+      {
+        title: 'Projects',
+        name: 'starredProjects',
+      },
+      {
+        title: 'Selections',
+        name: 'starredSelections',
+      },
+      {
+        title: 'Proofing',
+        name: 'starredProofing',
       },
     ],
+  },
+  {
+    title: 'Settings',
   },
   {
     title: 'Homepage',
     name: 'homepageConfig',
     icon: Globe,
-  },
-  {
-    title: 'Settings',
   },
   {
     title: 'Settings',

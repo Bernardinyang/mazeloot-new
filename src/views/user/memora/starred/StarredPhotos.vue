@@ -1,6 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Starred Photos</template>
+    <template #breadcrumb> Starred Media</template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -15,7 +15,7 @@
         :sort-options="sortOptions"
         :view-mode="viewMode"
         sort-label="Sort photos by"
-        title="Starred Photos"
+        title="Starred Media"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
@@ -291,16 +291,16 @@ const searchQuery = ref('')
 const sortOptions = PHOTO_SORT_OPTIONS
 
 // Filter photos to only show starred ones, then sort
-const starredPhotos = computed(() => {
+const starredMedias = computed(() => {
   return photos.value.filter(photo => photo.starred === true)
 })
 
 const filteredPhotos = computed(() => {
   if (!searchQuery.value.trim()) {
-    return starredPhotos.value
+    return starredMedias.value
   }
   const query = searchQuery.value.toLowerCase()
-  return starredPhotos.value.filter(
+  return starredMedias.value.filter(
     photo =>
       (photo.title || '').toLowerCase().includes(query) ||
       (photo.collection || '').toLowerCase().includes(query)

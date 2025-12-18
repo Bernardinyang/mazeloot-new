@@ -33,6 +33,12 @@ import CollectionActivitiesFavouriteView from '@/views/user/memora/collections/a
 import CollectionActivitiesEmailRegistrationView from '@/views/user/memora/collections/activities/EmailRegistration.vue'
 import CollectionActivitiesQuickShareView from '@/views/user/memora/collections/activities/QuickShareLinks.vue'
 import CollectionActivitiesPrivatePhotosView from '@/views/user/memora/collections/activities/PrivatePhotos.vue'
+import ProjectDashboardView from '@/views/user/memora/projects/ProjectDashboard.vue'
+import SelectionPhaseView from '@/views/user/memora/projects/selections/SelectionPhase.vue'
+import ProofingPhaseView from '@/views/user/memora/projects/proofing/ProofingPhase.vue'
+import CollectionPhaseView from '@/views/user/memora/projects/collections/CollectionPhase.vue'
+import SelectionsListView from '@/views/user/memora/selections/Selections.vue'
+import ProofingListView from '@/views/user/memora/proofing/Proofing.vue'
 
 export const memoraRoutes = [
   {
@@ -77,8 +83,32 @@ export const memoraRoutes = [
   },
   {
     path: '/memora/photos/starred',
-    name: 'starredPhotos',
+    name: 'starredMedias',
     component: StarredPhotosView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/projects/starred',
+    name: 'starredProjects',
+    component: () => import('@/views/user/memora/starred/StarredProjects.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/selections/starred',
+    name: 'starredSelections',
+    component: () => import('@/views/user/memora/starred/StarredSelections.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/proofing/starred',
+    name: 'starredProofing',
+    component: () => import('@/views/user/memora/starred/StarredProofing.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -349,6 +379,64 @@ export const memoraRoutes = [
     path: '/memora/collections/:uuid/activities/private-photos',
     name: 'collectionActivitiesPrivatePhotos',
     component: CollectionActivitiesPrivatePhotosView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  // Standalone Selections and Proofing Routes
+  {
+    path: '/memora/selections',
+    name: 'selections',
+    component: SelectionsListView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/proofing',
+    name: 'proofing',
+    component: ProofingListView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  // Project Routes
+  {
+    path: '/memora/projects',
+    name: 'projects',
+    component: () => import('@/views/user/memora/projects/Projects.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/projects/:id',
+    name: 'projectDashboard',
+    component: ProjectDashboardView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/projects/:id/selections',
+    name: 'projectSelections',
+    component: SelectionPhaseView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/projects/:id/proofing',
+    name: 'projectProofing',
+    component: ProofingPhaseView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/projects/:id/collections',
+    name: 'projectCollections',
+    component: CollectionPhaseView,
     meta: {
       requiresAuth: true,
     },

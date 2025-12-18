@@ -210,22 +210,44 @@ export function useMediaApi() {
   }
 
   /**
+   * Helper to extract plain value from Vue ref/computed
+   */
+  const unwrapValue = value => {
+    if (value === null || value === undefined) return value
+    if (typeof value === 'object' && 'value' in value) return value.value
+    if (typeof value === 'function') return value()
+    return value
+  }
+
+  /**
    * Add media to collection
    */
   const addMedia = async (collectionId, mediaData) => {
     await delay(300)
 
+    // Ensure mediaData is a plain object (not a Vue ref/computed)
+    // Extract all values to avoid circular references
     const allMedia = await getAllMedia()
     const newMedia = {
       id: generateUUID(),
-      collectionId,
-      setId: mediaData.setId,
-      url: mediaData.url || '',
-      thumbnail: mediaData.thumbnail,
-      type: mediaData.type || 'image',
-      title: mediaData.title,
-      description: mediaData.description,
-      order: mediaData.order,
+      collectionId: collectionId || null,
+      phase: unwrapValue(mediaData?.phase) || 'collection',
+      phaseId: unwrapValue(mediaData?.phaseId) || collectionId,
+      projectId: unwrapValue(mediaData?.projectId) || null,
+      setId: unwrapValue(mediaData?.setId) || null,
+      url: unwrapValue(mediaData?.url) || '',
+      thumbnail: unwrapValue(mediaData?.thumbnail) || null,
+      type: unwrapValue(mediaData?.type) || 'image',
+      title: unwrapValue(mediaData?.title) || '',
+      description: unwrapValue(mediaData?.description) || '',
+      order: unwrapValue(mediaData?.order) || 0,
+      // Phase-specific fields
+      isSelected: unwrapValue(mediaData?.isSelected) || false,
+      selectedAt: unwrapValue(mediaData?.selectedAt) || null,
+      revisionNumber: unwrapValue(mediaData?.revisionNumber) || null,
+      isCompleted: unwrapValue(mediaData?.isCompleted) || false,
+      originalMediaId: unwrapValue(mediaData?.originalMediaId) || null,
+      lowResCopyUrl: unwrapValue(mediaData?.lowResCopyUrl) || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -247,9 +269,15 @@ export function useMediaApi() {
       throw new Error('Media not found')
     }
 
+    // Unwrap any Vue refs/computed from updates to avoid circular references
+    const plainUpdates = {}
+    for (const key in updates) {
+      plainUpdates[key] = unwrapValue(updates[key])
+    }
+
     allMedia[index] = {
       ...allMedia[index],
-      ...updates,
+      ...plainUpdates,
       updatedAt: new Date().toISOString(),
     }
     await saveMedia(allMedia)
@@ -267,10 +295,153 @@ export function useMediaApi() {
     await saveMedia(filtered)
   }
 
+  /**
+   * Fetch media for a specific phase
+   */
+  const fetchPhaseMedia = async (phaseType, phaseId, setId) => {
+    await delay(300)
+
+    const allMedia = await getAllMedia()
+    let phaseMedia = allMedia.filter(m => m.phase === phaseType && m.phaseId === phaseId)
+
+    // Filter by set if provided
+    if (setId) {
+      phaseMedia = phaseMedia.filter(m => m.setId === setId)
+    }
+
+    phaseMedia.sort((a, b) => (a.order || 0) - (b.order || 0))
+
+    return phaseMedia
+  }
+
+  /**
+   * Move media between phases
+   */
+  const moveMediaBetweenPhases = async (mediaIds, fromPhase, toPhase, toPhaseId) => {
+    await delay(500)
+
+    const allMedia = await getAllMedia()
+
+    mediaIds.forEach(mediaId => {
+      const index = allMedia.findIndex(m => m.id === mediaId)
+      if (index !== -1 && allMedia[index].phase === fromPhase) {
+        allMedia[index] = {
+          ...allMedia[index],
+          phase: toPhase,
+          phaseId: toPhaseId,
+          updatedAt: new Date().toISOString(),
+        }
+        // Update collectionId for backward compatibility if moving to collection
+        if (toPhase === 'collection') {
+          allMedia[index].collectionId = toPhaseId
+        }
+      }
+    })
+
+    await saveMedia(allMedia)
+    return allMedia.filter(m => mediaIds.includes(m.id))
+  }
+
+  /**
+   * Create low-res copy of media (for proofing reference)
+   */
+  const createLowResCopy = async mediaId => {
+    await delay(500)
+
+    const allMedia = await getAllMedia()
+    const media = allMedia.find(m => m.id === mediaId)
+
+    if (!media) {
+      throw new Error('Media not found')
+    }
+
+    // Create low-res copy using thumbnail
+    const lowResCopy = {
+      ...media,
+      id: generateUUID(),
+      lowResCopyUrl: media.thumbnail || media.url,
+      isLowResCopy: true,
+      url: media.thumbnail || media.url, // Use thumbnail as main URL for low-res
+    }
+
+    allMedia.push(lowResCopy)
+    await saveMedia(allMedia)
+
+    return lowResCopy
+  }
+
+  /**
+   * Mark media as selected (for selection phase)
+   */
+  const markMediaSelected = async mediaId => {
+    await delay(300)
+
+    const allMedia = await getAllMedia()
+    const index = allMedia.findIndex(m => m.id === mediaId)
+
+    if (index === -1) {
+      throw new Error('Media not found')
+    }
+
+    allMedia[index] = {
+      ...allMedia[index],
+      isSelected: true,
+      selectedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+
+    await saveMedia(allMedia)
+    return allMedia[index]
+  }
+
+  /**
+   * Get all revisions for a media item
+   */
+  const getMediaRevisions = async mediaId => {
+    await delay(300)
+
+    const allMedia = await getAllMedia()
+    const media = allMedia.find(m => m.id === mediaId)
+
+    if (!media) {
+      throw new Error('Media not found')
+    }
+
+    // Find all revisions of this media (by originalMediaId or same originalMediaId)
+    const originalId = media.originalMediaId || media.id
+    const revisions = allMedia.filter(
+      m => (m.originalMediaId === originalId || m.id === originalId) && m.phase === 'proofing'
+    )
+
+    return revisions.sort((a, b) => (a.revisionNumber || 0) - (b.revisionNumber || 0))
+  }
+
+  /**
+   * Toggle star status
+   */
+  const toggleStar = async (id, isStarred) => {
+    await delay(300)
+
+    const allMedia = await getAllMedia()
+    const index = allMedia.findIndex(m => m.id === id)
+
+    if (index !== -1) {
+      allMedia[index].isStarred = isStarred
+      allMedia[index].starred = isStarred
+      await saveMedia(allMedia)
+    }
+  }
+
   return {
     fetchCollectionMedia,
     addMedia,
     updateMedia,
     deleteMedia,
+    fetchPhaseMedia,
+    moveMediaBetweenPhases,
+    createLowResCopy,
+    markMediaSelected,
+    getMediaRevisions,
+    toggleStar,
   }
 }

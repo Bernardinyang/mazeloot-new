@@ -66,6 +66,18 @@
                     'cursor-pointer',
                     'flex items-center gap-2',
                   ]"
+                  @click="handleCreateProject"
+                >
+                  <FolderPlus class="h-4 w-4" />
+                  Create Project
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  :class="[
+                    theme.textPrimary,
+                    theme.bgButtonHover,
+                    'cursor-pointer',
+                    'flex items-center gap-2',
+                  ]"
                   @click="handleCreateFolder"
                 >
                   <Folder class="h-4 w-4" />
@@ -266,6 +278,33 @@
             <template #subtitle>
               {{ getSubtitle(collection, subtitleSeparator) }}
             </template>
+            <template #menu-items>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="handleViewDetails(collection)"
+              >
+                <span>View Details</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="handleEditCollection(collection)"
+              >
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="handleDuplicateCollection(collection)"
+              >
+                <span>Duplicate</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+                @click.stop="handleDeleteCollection(collection)"
+              >
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </template>
           </CollectionCard>
         </TransitionGroup>
       </div>
@@ -292,14 +331,36 @@
         @publish="handlePublishCollection"
         @preview="handlePreviewCollection"
         @move-to="item => handleMoveToFolder(item, null)"
+        @view-details="handleViewDetails"
       />
     </div>
+
+    <!-- Collection Detail Sidebar -->
+    <CollectionDetailSidebar
+      v-model="showCollectionDetailSidebar"
+      :collection-id="selectedCollectionId"
+      @edit="handleEditCollection"
+    />
+
+    <!-- Folder Detail Sidebar -->
+    <FolderDetailSidebar
+      v-model="showFolderDetailSidebar"
+      :folder-id="selectedFolderId"
+      @edit="handleEditCollection"
+    />
 
     <!-- Create Collection Dialog -->
     <CreateCollectionDialog
       v-model:open="showCreateDialog"
       :is-submitting="isCreatingCollection"
       @create="handleCreateCollectionSubmit"
+    />
+
+    <!-- Create Project Dialog -->
+    <CreateProjectDialog
+      v-model:open="showCreateProjectDialog"
+      :is-submitting="isCreatingProject"
+      @create="handleCreateProjectSubmit"
     />
 
     <!-- Create Folder Dialog -->
@@ -333,9 +394,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { ChevronDown, Folder } from 'lucide-vue-next'
+import { ChevronDown, Folder, FolderPlus, Plus } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
+import LoadingState from '@/components/molecules/LoadingState.vue'
 import {
   Select,
   SelectContent,
@@ -347,6 +409,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -357,11 +420,15 @@ import CollectionCard from '@/components/molecules/CollectionCard.vue'
 import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import CreateCollectionDialog from '@/components/organisms/CreateCollectionDialog.vue'
+import CreateProjectDialog from '@/components/organisms/CreateProjectDialog.vue'
 import CreateFolderDialog from '@/components/organisms/CreateFolderDialog.vue'
 import MoveCollectionModal from '@/components/organisms/MoveCollectionModal.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
+import CollectionDetailSidebar from '@/components/organisms/CollectionDetailSidebar.vue'
+import FolderDetailSidebar from '@/components/organisms/FolderDetailSidebar.vue'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useGalleryStore } from '@/stores/gallery'
+import { useProjectStore } from '@/stores/project'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
@@ -369,6 +436,7 @@ import { toast } from 'vue-sonner'
 const theme = useThemeClasses()
 const router = useRouter()
 const galleryStore = useGalleryStore()
+const projectStore = useProjectStore()
 const { handleError } = useErrorHandler()
 
 // View mode and sorting
@@ -389,17 +457,25 @@ const filterStarred = ref('all')
 
 // Selected collections (for list view)
 const selectedCollections = ref([])
+const showCollectionDetailSidebar = ref(false)
+const showFolderDetailSidebar = ref(false)
+const selectedCollectionId = ref(null)
+const selectedFolderId = ref(null)
 
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
 // const collectionsError = computed(() => galleryStore.error) // Unused for now
 
+// Projects
+const projects = computed(() => projectStore.projects)
+const isLoadingProjects = computed(() => projectStore.isLoading)
+
 const getSubtitle = (collection, separator = '•') => {
   const parts = []
+  // Only show essential info on card - rest in detail sidebar
   if (collection.itemCount !== undefined) {
     const count = collection.itemCount
-    // Folders count collections, regular collections count items
     if (collection.isFolder) {
       const labelText = count === 1 ? 'collection' : 'collections'
       parts.push(`${count} ${labelText}`)
@@ -407,16 +483,6 @@ const getSubtitle = (collection, separator = '•') => {
       const labelText = count === 1 ? 'item' : 'items'
       parts.push(`${count} ${labelText}`)
     }
-  }
-  const date = collection.date || collection.dateCreated || collection.createdAt
-  if (date) {
-    const dateObj = new Date(date)
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
-    parts.push(formattedDate)
   }
   return parts.join(`  ${separator}  `)
 }
@@ -517,8 +583,10 @@ const { sortedItems: sortedCollections } = useCollectionSort(
 )
 
 const showCreateDialog = ref(false)
+const showCreateProjectDialog = ref(false)
 const showCreateFolderDialog = ref(false)
 const isCreatingCollection = ref(false)
+const isCreatingProject = ref(false)
 const showMoveModal = ref(false)
 const pendingMove = ref(null)
 const movingCollectionId = ref(null)
@@ -535,6 +603,10 @@ const {
 
 const handleCreateCollection = async () => {
   showCreateDialog.value = true
+}
+
+const handleCreateProject = () => {
+  showCreateProjectDialog.value = true
 }
 
 const handleCreateFolder = () => {
@@ -587,6 +659,29 @@ const handleCreateCollectionSubmit = async data => {
   }
 }
 
+const handleCreateProjectSubmit = async data => {
+  if (isCreatingProject.value) return
+  isCreatingProject.value = true
+  try {
+    const newProject = await projectStore.createProject(data)
+    toast.success('Project created', {
+      description: 'Your new project has been created with selected phases.',
+    })
+    showCreateProjectDialog.value = false
+    // Route to the project dashboard
+    router.push({
+      name: 'projectDashboard',
+      params: { id: newProject.id },
+    })
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to create project.',
+    })
+  } finally {
+    isCreatingProject.value = false
+  }
+}
+
 const handleViewPresets = () => {
   router.push({ name: 'presetSettings' })
 }
@@ -611,6 +706,14 @@ const handleSelectCollection = (id, checked) => {
 }
 
 const handleCollectionClick = collection => {
+  // If collection is part of a project, navigate to project dashboard
+  if (collection.projectId) {
+    router.push({
+      name: 'projectDashboard',
+      params: { id: collection.projectId },
+    })
+    return
+  }
   // Navigate to collection photos page
   const collectionId = collection.id || collection.name || collection.title
   router.push({
@@ -622,6 +725,14 @@ const handleCollectionClick = collection => {
 const handleCollectionCardClick = collection => {
   // Only navigate if it's not a folder
   if (collection.isFolder) {
+    return
+  }
+  // If collection is part of a project, navigate to project dashboard
+  if (collection.projectId) {
+    router.push({
+      name: 'projectDashboard',
+      params: { id: collection.projectId },
+    })
     return
   }
   // Navigate to collection photos page
@@ -699,6 +810,16 @@ const handleDuplicateCollection = async collection => {
 
 const handleDeleteCollection = collection => {
   openDeleteModal(collection)
+}
+
+const handleViewDetails = collection => {
+  if (collection.isFolder) {
+    selectedFolderId.value = collection.id
+    showFolderDetailSidebar.value = true
+  } else {
+    selectedCollectionId.value = collection.id
+    showCollectionDetailSidebar.value = true
+  }
 }
 
 const handleConfirmDelete = async () => {
@@ -831,6 +952,8 @@ onMounted(async () => {
       sortBy: sortBy.value,
       parentId: null, // Only fetch root-level collections
     })
+    // Also load projects
+    await projectStore.fetchProjects({ parentId: null })
   } catch (error) {
     // Only show error if not aborted
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {

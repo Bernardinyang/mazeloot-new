@@ -622,9 +622,20 @@ export function useCollectionsApi() {
       }
     }
 
-    // Convert preset photoSets to mediaSets if preset exists and not a folder
+    // If projectId is provided, inherit mediaSets from project
     let mediaSets = data.mediaSets
-    if (preset && !data.isFolder) {
+    if (data.projectId && !data.isFolder) {
+      const PROJECTS_STORAGE_KEY = 'mazeloot_projects'
+      const projects = storage.get(PROJECTS_STORAGE_KEY) || []
+      const project = projects.find(p => p.id === data.projectId)
+      if (project && project.mediaSets) {
+        mediaSets = project.mediaSets
+      }
+    }
+
+    // Convert preset photoSets to mediaSets if preset exists and not a folder
+    // (only if not already set from project)
+    if (!mediaSets && preset && !data.isFolder) {
       if (preset.photoSets && preset.photoSets.length > 0) {
         mediaSets = preset.photoSets.map((setName, index) => ({
           id: `set-${generateUUID()}`,
@@ -666,6 +677,7 @@ export function useCollectionsApi() {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       parentId: data.parentId || null,
+      projectId: data.projectId || null, // Support project-linked collections
       status: 'draft',
       itemCount: 0,
       isStarred: false,
@@ -682,15 +694,45 @@ export function useCollectionsApi() {
       presetId: data.presetId || undefined,
       watermarkId: watermarkId || undefined,
       // Set mediaSets if not a folder
+      // If projectId exists, inherit mediaSets from project
       ...(!data.isFolder && mediaSets && { mediaSets }),
+    }
+
+    // If projectId is provided, inherit settings from project
+    let projectSettings = null
+    if (data.projectId) {
+      const PROJECTS_STORAGE_KEY = 'mazeloot_projects'
+      const projects = storage.get(PROJECTS_STORAGE_KEY) || []
+      const project = projects.find(p => p.id === data.projectId)
+      if (project && project.settings) {
+        projectSettings = project.settings
+        // Inherit presetId and watermarkId from project if not provided
+        if (!data.presetId && projectSettings.presetId) {
+          preset = null // Will be fetched below
+          const PRESETS_STORAGE_KEY = 'mazeloot_presets'
+          const presets = storage.get(PRESETS_STORAGE_KEY) || []
+          preset = presets.find(p => p.id === projectSettings.presetId)
+        }
+        if (!watermarkId && projectSettings.watermarkId) {
+          watermarkId = projectSettings.watermarkId
+        }
+      }
     }
 
     // Apply default settings first (for fields that don't have preset values)
     const collectionWithDefaults = addDefaultSettings(baseCollection)
 
     // Now apply preset values, which will override defaults
+    // Also apply project settings if available
     const newCollection = {
       ...collectionWithDefaults,
+      // Apply project settings first (lower priority than preset)
+      ...(projectSettings && {
+        presetId: data.presetId || projectSettings.presetId || collectionWithDefaults.presetId,
+        watermarkId:
+          watermarkId || projectSettings.watermarkId || collectionWithDefaults.watermarkId,
+        tags: projectSettings.tags || collectionWithDefaults.tags,
+      }),
       // Apply preset General settings if preset exists
       ...(preset && {
         emailRegistration: preset.emailRegistration ?? collectionWithDefaults.emailRegistration,

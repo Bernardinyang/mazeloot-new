@@ -1,0 +1,203 @@
+<template>
+  <DashboardLayout>
+    <template #breadcrumb>
+      <div class="flex items-center gap-2">
+        <router-link :to="{ name: 'projects' }" class="hover:underline">Projects</router-link>
+        <span>/</span>
+        <router-link
+          :to="{ name: 'projectDashboard', params: { id: projectId } }"
+          class="hover:underline"
+        >
+          {{ project?.name }}
+        </router-link>
+        <span>/</span>
+        <span>Collections</span>
+      </div>
+    </template>
+
+    <div v-if="isLoading" class="flex items-center justify-center py-12">
+      <Loader2 class="h-8 w-8 animate-spin" :class="theme.textSecondary" />
+    </div>
+
+    <div v-else-if="project" class="space-y-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 :class="theme.textPrimary" class="text-2xl font-bold">Collections</h1>
+          <p :class="theme.textSecondary" class="mt-1">Final approved media for sharing</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <Button
+            variant="default"
+            size="sm"
+            class="bg-teal-500 hover:bg-teal-600 text-white"
+            @click="handleCreateCollection"
+          >
+            Create Collection
+          </Button>
+        </div>
+      </div>
+
+      <!-- Project Context Info -->
+      <div :class="[theme.bgCard, theme.borderCard, 'border rounded-xl p-4']">
+        <div class="flex items-center justify-between">
+          <div>
+            <p :class="theme.textPrimary" class="font-medium">Project: {{ project.name }}</p>
+            <p :class="theme.textSecondary" class="text-sm mt-1">
+              Collections inherit project settings (media sets, presets, watermarks)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Collections List -->
+      <div v-if="projectCollections.length > 0" class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            v-for="collection in projectCollections"
+            :key="collection.id"
+            :class="[
+              theme.bgCard,
+              theme.borderCard,
+              'border rounded-xl p-6 cursor-pointer hover:shadow-lg transition-shadow',
+            ]"
+            @click="handleCollectionClick(collection)"
+          >
+            <div class="flex items-center justify-between mb-4">
+              <h3 :class="theme.textPrimary" class="text-lg font-semibold">
+                {{ collection.name }}
+              </h3>
+              <div
+                :class="[
+                  collection.status === 'active' ? 'bg-green-500' : 'bg-gray-500',
+                  'text-white text-xs px-2 py-1 rounded-full',
+                ]"
+              >
+                {{ collection.status }}
+              </div>
+            </div>
+            <p :class="theme.textSecondary" class="text-sm mb-4">
+              {{ collection.description || 'No description' }}
+            </p>
+            <div class="flex items-center justify-between text-sm">
+              <span :class="theme.textSecondary">{{ collection.itemCount || 0 }} items</span>
+              <ChevronRight class="h-4 w-4" :class="theme.textSecondary" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="text-center py-12">
+        <p :class="theme.textSecondary" class="mb-4">No collections created yet</p>
+        <Button
+          variant="default"
+          class="bg-teal-500 hover:bg-teal-600 text-white"
+          @click="handleCreateCollection"
+        >
+          Create First Collection
+        </Button>
+      </div>
+    </div>
+
+    <!-- Create Collection Dialog -->
+    <CreateCollectionDialog
+      v-model:open="showCreateDialog"
+      :is-submitting="isCreatingCollection"
+      @create="handleCreateCollectionSubmit"
+    />
+  </DashboardLayout>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Loader2, ChevronRight } from 'lucide-vue-next'
+import DashboardLayout from '@/layouts/DashboardLayout.vue'
+import { Button } from '@/components/shadcn/button'
+import CreateCollectionDialog from '@/components/organisms/CreateCollectionDialog.vue'
+import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useProjectStore } from '@/stores/project'
+import { useGalleryStore } from '@/stores/gallery'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { toast } from 'vue-sonner'
+
+const route = useRoute()
+const router = useRouter()
+const theme = useThemeClasses()
+
+const projectStore = useProjectStore()
+const galleryStore = useGalleryStore()
+const { handleError } = useErrorHandler()
+
+const projectId = computed(() => route.params.id)
+const project = ref(null)
+const projectCollections = ref([])
+const showCreateDialog = ref(false)
+const isCreatingCollection = ref(false)
+const isLoading = ref(true)
+
+const loadProject = async () => {
+  isLoading.value = true
+  try {
+    const projectData = await projectStore.fetchProject(projectId.value)
+    project.value = projectData
+
+    if (projectData.collections) {
+      projectCollections.value = projectData.collections
+    }
+  } catch (error) {
+    console.error('Failed to load project:', error)
+    handleError(error, {
+      fallbackMessage: 'Failed to load project.',
+    })
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const handleCreateCollection = () => {
+  showCreateDialog.value = true
+}
+
+const handleCreateCollectionSubmit = async data => {
+  if (isCreatingCollection.value) return
+  isCreatingCollection.value = true
+  try {
+    // Create collection linked to project
+    const newCollection = await galleryStore.createCollection({
+      ...data,
+      projectId: projectId.value,
+    })
+
+    toast.success('Collection created', {
+      description: 'Your new collection has been created and linked to this project.',
+    })
+
+    showCreateDialog.value = false
+    await loadProject()
+
+    // Route to the new collection's photos page
+    router.push({
+      name: 'collectionPhotos',
+      params: { uuid: newCollection.id },
+    })
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to create collection.',
+    })
+  } finally {
+    isCreatingCollection.value = false
+  }
+}
+
+const handleCollectionClick = collection => {
+  router.push({
+    name: 'collectionPhotos',
+    params: { uuid: collection.id },
+  })
+}
+
+onMounted(() => {
+  loadProject()
+})
+</script>

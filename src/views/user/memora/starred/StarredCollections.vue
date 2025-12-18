@@ -181,7 +181,7 @@
             @share="handleCopyLink(collection)"
           >
             <template #subtitle>
-              {{ getSubtitle(collection, subtitleSeparator) }}
+              {{ getSubtitle(collection) }}
             </template>
           </CollectionCard>
         </div>
@@ -290,11 +290,11 @@ const {
   getItemName,
 } = useDeleteConfirmation()
 
-const getSubtitle = collection => {
+const getSubtitle = (collection, separator = '•') => {
   const parts = []
+  // Only show essential info on card - rest in detail sidebar
   if (collection.itemCount !== undefined) {
     const count = collection.itemCount
-    // Folders count collections, regular collections count items
     if (collection.isFolder) {
       const labelText = count === 1 ? 'collection' : 'collections'
       parts.push(`${count} ${labelText}`)
@@ -302,16 +302,6 @@ const getSubtitle = collection => {
       const labelText = count === 1 ? 'item' : 'items'
       parts.push(`${count} ${labelText}`)
     }
-  }
-  const date = collection.date || collection.dateCreated || collection.createdAt
-  if (date) {
-    const dateObj = new Date(date)
-    const formattedDate = dateObj.toLocaleDateString('en-US', {
-      month,
-      day,
-      year,
-    })
-    parts.push(formattedDate)
   }
   return parts.join(` ${separator} `)
 }
@@ -409,7 +399,7 @@ const toggleStar = async collection => {
     await galleryStore.toggleStar(String(collection.id))
   } catch (error) {
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to update star status.',
     })
   }
 }
@@ -487,13 +477,13 @@ const handleDuplicateCollection = async collection => {
       description,
     })
     await galleryStore.fetchCollections({
-      search,
-      sortBy,
+      search: searchQuery.value,
+      sortBy: sortBy.value,
       parentId, // Only fetch root-level collections
     })
   } catch (error) {
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to duplicate collection.',
     })
   }
 }
@@ -512,14 +502,14 @@ const handleConfirmDelete = async () => {
       description,
     })
     await galleryStore.fetchCollections({
-      search,
-      sortBy,
+      search: searchQuery.value,
+      sortBy: sortBy.value,
       parentId, // Only fetch root-level collections
     })
     closeDeleteModal()
   } catch (error) {
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to delete collection.',
     })
   } finally {
     isDeleting.value = false
@@ -599,13 +589,13 @@ const handleBrowseCollections = () => {
 onMounted(async () => {
   try {
     await galleryStore.fetchCollections({
-      search,
-      sortBy,
+      search: searchQuery.value,
+      sortBy: sortBy.value,
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
       handleError(error, {
-        fallbackMessage,
+        fallbackMessage: 'Failed to load starred collections.',
       })
     }
   }

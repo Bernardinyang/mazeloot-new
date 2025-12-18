@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils'
 
 const props = defineProps<{
   class?: HTMLAttributes['class']
+  separator?: 'chevron-right' | 'chevron-left' | 'slash' | 'dot' | 'custom'
+  customSeparator?: any
 }>()
 </script>
 

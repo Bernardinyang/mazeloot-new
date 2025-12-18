@@ -99,6 +99,13 @@
           class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300"
           :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-0'"
         />
+        <!-- Project Indicator (if collection is part of a project) -->
+        <div
+          v-if="collectionData?.projectId"
+          class="absolute top-3 left-3 z-20 flex items-center gap-1 px-2 py-0.5 rounded-md backdrop-blur-sm shadow-lg border text-xs font-medium bg-purple-500/95 text-white border-purple-600/50"
+        >
+          Project
+        </div>
         <!-- Lock Icon Overlay on Collection Image - Bottom Left to avoid conflict with dropdown -->
         <div
           v-if="isLocked"

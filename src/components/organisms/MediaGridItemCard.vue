@@ -56,6 +56,14 @@
           >
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click.stop="emit('view-details')"
+            >
+              <Eye class="h-4 w-4 mr-2" />
+              View Details
+            </DropdownMenuItem>
+            <div :class="theme.borderSecondary" class="h-px my-1"></div>
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('open')"
             >
               <ExternalLink class="h-4 w-4 mr-2" />
@@ -199,6 +207,7 @@ const emit = defineEmits<{
   'toggle-selection': []
   'open-viewer': []
   'image-error': [event: Event]
+  'view-details': []
   open: []
   'quick-share': []
   download: []

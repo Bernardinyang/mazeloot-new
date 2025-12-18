@@ -180,6 +180,15 @@
         <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
           <slot name="menu-items">
             <DropdownMenuItem
+              v-if="showViewDetails"
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click.stop="$emit('view-details')"
+            >
+              <Info class="mr-2 h-4 w-4" />
+              View Details
+            </DropdownMenuItem>
+            <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
+            <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="$emit('publish')"
             >
@@ -244,6 +253,7 @@ import {
   Trash2,
   Eye,
   EyeOff,
+  Info,
 } from 'lucide-vue-next'
 import {
   DropdownMenu,
@@ -275,6 +285,7 @@ const props = withDefaults(
     showStar?: boolean
     isFolder?: boolean
     showMoveTo?: boolean
+    showViewDetails?: boolean
   }>(),
   {
     isSelected: false,
@@ -283,6 +294,7 @@ const props = withDefaults(
     showStar: true,
     isFolder: false,
     showMoveTo: true,
+    showViewDetails: false,
   }
 )
 
@@ -297,6 +309,7 @@ const emit = defineEmits<{
   delete: []
   publish: []
   preview: []
+  'view-details': []
   'move-to': []
 }>()
 

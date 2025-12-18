@@ -27,7 +27,11 @@
                   </RouterLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparator :class="['hidden md:block', theme.textTertiary]" />
+              <BreadcrumbSeparatorSelector
+                :separator="breadcrumbSeparator"
+                :separator-class="['hidden md:block', theme.textTertiary]"
+                :custom-separator="customBreadcrumbSeparator"
+              />
               <BreadcrumbItem>
                 <BreadcrumbPage :class="theme.textPrimary">
                   <slot name="breadcrumb" />
@@ -157,8 +161,8 @@ import {
   BreadcrumbLink,
   BreadcrumbList,
   BreadcrumbPage,
-  BreadcrumbSeparator,
 } from '@/components/shadcn/breadcrumb'
+import BreadcrumbSeparatorSelector from '@/components/organisms/BreadcrumbSeparatorSelector.vue'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
 import {
@@ -179,6 +183,30 @@ import ProductIcon from '@/components/atoms/ProductIcon.vue'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useUserStore } from '@/stores/user'
+import { useBreadcrumbSeparator } from '@/composables/useBreadcrumbSeparator'
+
+const props = defineProps({
+  breadcrumbSeparator: {
+    type: String,
+    default: null, // null means use stored preference
+    validator: value =>
+      !value || ['chevron-right', 'chevron-left', 'slash', 'dot', 'custom'].includes(value),
+  },
+  customBreadcrumbSeparator: {
+    type: [String, Object, Function],
+    default: null,
+  },
+})
+
+// Breadcrumb separator management (optional - can be overridden by props)
+const { separator: defaultSeparator, customSeparator: defaultCustomSeparator } =
+  useBreadcrumbSeparator()
+
+// Use props separator if provided, otherwise use stored preference
+const breadcrumbSeparator = computed(() => props.breadcrumbSeparator || defaultSeparator.value)
+const customBreadcrumbSeparator = computed(
+  () => props.customBreadcrumbSeparator || defaultCustomSeparator.value
+)
 
 const theme = useThemeClasses()
 const userStore = useUserStore()

@@ -87,6 +87,7 @@
           :show-star="getItemShowStar(item)"
           :is-folder="getItemIsFolder(item)"
           :show-move-to="showMoveTo"
+          :show-view-details="showViewDetails"
           @select="handleSelectItem(getItemId(item), $event)"
           @star-click="$emit('star-click', item)"
           @link-click="$emit('link-click', item)"
@@ -97,6 +98,7 @@
           @delete="$emit('delete', item)"
           @publish="$emit('publish', item)"
           @preview="$emit('preview', item)"
+          @view-details="$emit('view-details', item)"
           @move-to="$emit('move-to', item)"
         />
       </slot>
@@ -135,6 +137,7 @@ interface Props {
   getShowStar?: (item: any) => boolean
   getIsFolder?: (item: any) => boolean
   showMoveTo?: boolean
+  showViewDetails?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -187,6 +190,7 @@ const props = withDefaults(defineProps<Props>(), {
   getShowStar: (item: any) => !item.icon,
   getIsFolder: (item: any) => item.isFolder || false,
   showMoveTo: true,
+  showViewDetails: false,
 })
 
 const emit = defineEmits<{
@@ -201,6 +205,7 @@ const emit = defineEmits<{
   delete: [item: any]
   publish: [item: any]
   preview: [item: any]
+  'view-details': [item: any]
   'move-to': [item: any]
 }>()
 
