@@ -150,7 +150,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, ref, watch } from 'vue'
 import {
   CheckSquare2,
@@ -177,15 +177,28 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-type MediaItemLike = any
-
-const props = defineProps<{
-  item: MediaItemLike
-  isSelected: boolean
-  showFilename: boolean
-  placeholderImage: string
-  subtitle: string
-}>()
+const props = defineProps({
+  item: {
+    type: Object,
+    required: true,
+  },
+  isSelected: {
+    type: Boolean,
+    required: true,
+  },
+  showFilename: {
+    type: Boolean,
+    required: true,
+  },
+  placeholderImage: {
+    type: String,
+    required: true,
+  },
+  subtitle: {
+    type: String,
+    required: true,
+  },
+})
 
 const imageSrc = computed(() => props.item?.thumbnail || props.item?.url || props.placeholderImage)
 const isImageLoaded = ref(false)
@@ -193,20 +206,20 @@ watch(imageSrc, () => {
   isImageLoaded.value = false
 })
 
-const emit = defineEmits<{
-  'toggle-selection': []
-  'open-viewer': []
-  'image-error': [event: Event]
-  open: []
-  'quick-share': []
-  download: []
-  'move-copy': []
-  'copy-filenames': []
-  'set-as-cover': []
-  rename: []
-  replace: []
-  'remove-watermark': []
-  watermark: []
-  delete: []
-}>()
+const emit = defineEmits([
+  'toggle-selection',
+  'open-viewer',
+  'image-error',
+  'open',
+  'quick-share',
+  'download',
+  'move-copy',
+  'copy-filenames',
+  'set-as-cover',
+  'rename',
+  'replace',
+  'remove-watermark',
+  'watermark',
+  'delete',
+])
 </script>

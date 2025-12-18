@@ -33,7 +33,7 @@
   </CenterModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -41,22 +41,26 @@ import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 
 const theme = useThemeClasses()
 
-interface Props {
-  modelValue: boolean
-  itemName: string
-  targetFolderName: string
-  warningMessage?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  warningMessage: '',
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  itemName: {
+    type: String,
+    required: true,
+  },
+  targetFolderName: {
+    type: String,
+    required: true,
+  },
+  warningMessage: {
+    type: String,
+    default: undefined,
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  confirm: []
-  cancel: []
-}>()
+const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
 
 const isOpen = computed({
   get: () => props.modelValue,

@@ -14,9 +14,7 @@
         type="checkbox"
         :checked="isSelected"
         :disabled="isFolder"
-        @change="
-          isFolder ? null : $emit('select', ($event.target as HTMLInputElement)?.checked ?? false)
-        "
+        @change="isFolder ? null : $emit('select', $event.target?.checked ?? false)"
         @click.stop
         :class="[
           'h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500',
@@ -239,8 +237,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, type Component } from 'vue'
+<script setup>
+import { ref, computed } from 'vue'
 import {
   Folder,
   Star,
@@ -268,50 +266,87 @@ import { toast } from 'vue-sonner'
 
 const theme = useThemeClasses()
 
-const props = withDefaults(
-  defineProps<{
-    captionText: string
-    subtitle?: string
-    imageSrc?: string | null
-    previewImages?: string[]
-    folderIcon?: Component
-    status?: string
-    password?: string | null
-    downloadPin?: string | null
-    dateCreated?: string
-    isSelected?: boolean
-    isStarred?: boolean
-    showLink?: boolean
-    showStar?: boolean
-    isFolder?: boolean
-    showMoveTo?: boolean
-    showViewDetails?: boolean
-  }>(),
-  {
-    isSelected: false,
-    isStarred: false,
-    showLink: true,
-    showStar: true,
-    isFolder: false,
-    showMoveTo: true,
-    showViewDetails: false,
-  }
-)
+const props = defineProps({
+  captionText: {
+    type: String,
+    required: true,
+  },
+  subtitle: {
+    type: String,
+    default: undefined,
+  },
+  imageSrc: {
+    type: [String, null],
+    default: null,
+  },
+  previewImages: {
+    type: Array,
+    default: () => [],
+  },
+  folderIcon: {
+    type: Object,
+    default: undefined,
+  },
+  status: {
+    type: String,
+    default: undefined,
+  },
+  password: {
+    type: [String, null],
+    default: null,
+  },
+  downloadPin: {
+    type: [String, null],
+    default: null,
+  },
+  dateCreated: {
+    type: String,
+    default: undefined,
+  },
+  isSelected: {
+    type: Boolean,
+    default: false,
+  },
+  isStarred: {
+    type: Boolean,
+    default: false,
+  },
+  showLink: {
+    type: Boolean,
+    default: true,
+  },
+  showStar: {
+    type: Boolean,
+    default: true,
+  },
+  isFolder: {
+    type: Boolean,
+    default: false,
+  },
+  showMoveTo: {
+    type: Boolean,
+    default: true,
+  },
+  showViewDetails: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-const emit = defineEmits<{
-  click: []
-  select: [checked: boolean]
-  'star-click': []
-  'link-click': []
-  'copy-pin': []
-  edit: []
-  duplicate: []
-  delete: []
-  publish: []
-  preview: []
-  'view-details': []
-  'move-to': []
-}>()
+const emit = defineEmits([
+  'click',
+  'select',
+  'star-click',
+  'link-click',
+  'copy-pin',
+  'edit',
+  'duplicate',
+  'delete',
+  'publish',
+  'preview',
+  'view-details',
+  'move-to',
+])
 
 // View/hide state for password and PIN
 const showPassword = ref(false)
@@ -459,11 +494,11 @@ const handleCopyLink = async () => {
 // })
 
 // Generate preview grid (always 4 cells)
-const previewGrid = computed<(string | null)[]>(() => {
+const previewGrid = computed(() => {
   if (!props.previewImages || props.previewImages.length === 0) {
     return [null, null, null, null]
   }
-  const grid: (string | null)[] = [...props.previewImages]
+  const grid = [...props.previewImages]
   while (grid.length < 4) {
     grid.push(null)
   }
@@ -475,8 +510,8 @@ const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
 // Handle image load errors
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement
+const handleImageError = event => {
+  const img = event.target
   if (img.src !== placeholderImage) {
     img.src = placeholderImage
   }

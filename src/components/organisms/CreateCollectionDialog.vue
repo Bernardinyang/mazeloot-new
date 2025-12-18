@@ -84,6 +84,9 @@
           </SelectContent>
         </Select>
       </div>
+
+      <!-- Color -->
+      <ColorSelector v-model="formData.color" />
     </form>
 
     <template #footer>
@@ -119,7 +122,7 @@
   </SidebarModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, watch, onMounted, computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
@@ -136,16 +139,21 @@ import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
+import ColorSelector from '@/components/molecules/ColorSelector.vue'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
-const props = defineProps<{
-  open: boolean
-  isSubmitting?: boolean
-}>()
+const props = defineProps({
+  open: {
+    type: Boolean,
+    required: true,
+  },
+  isSubmitting: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-const emit = defineEmits<{
-  'update:open': [value: boolean]
-  create: [data: { name: string; eventDate?: string; presetId?: string; watermarkId?: string }]
-}>()
+const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
 const presetStore = usePresetStore()
@@ -153,12 +161,13 @@ const watermarkStore = useWatermarkStore()
 
 const formData = ref({
   name: '',
-  eventDate: null as Date | string | null,
+  eventDate: null,
   presetId: 'none',
   watermarkId: 'none',
+  color: generateRandomColorFromPalette(), // Random color from palette
 })
 
-const errors = ref<{ name?: string }>({})
+const errors = ref({})
 const isLocalSubmitting = ref(false)
 
 const presets = computed(() => presetStore.presets)
@@ -176,7 +185,7 @@ onMounted(async () => {
 // Reset form when dialog opens/closes
 watch(
   () => props.open,
-  (newValue: boolean) => {
+  newValue => {
     if (!newValue) {
       // Reset form when dialog closes
       formData.value = {
@@ -184,6 +193,7 @@ watch(
         eventDate: null,
         presetId: 'none',
         watermarkId: 'none',
+        color: generateRandomColorFromPalette(),
       }
       errors.value = {}
     }
@@ -196,6 +206,7 @@ const handleCancel = () => {
     eventDate: null,
     presetId: 'none',
     watermarkId: 'none',
+    color: generateRandomColorFromPalette(),
   }
   errors.value = {}
   emit('update:open', false)
@@ -225,6 +236,7 @@ const handleSubmit = async () => {
       eventDate: eventDateString,
       presetId: formData.value.presetId === 'none' ? undefined : formData.value.presetId,
       watermarkId: formData.value.watermarkId === 'none' ? undefined : formData.value.watermarkId,
+      color: formData.value.color,
     })
   } catch (error) {
     console.error('Failed to create collection:', error)

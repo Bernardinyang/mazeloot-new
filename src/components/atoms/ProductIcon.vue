@@ -2,11 +2,13 @@
   <AppIcon :custom-type="customType" class="size-4" />
 </template>
 
-<script setup lang="ts">
+<script setup>
 import AppIcon from './AppIcon.vue'
-import type { MazelootProduct } from '@/constants/products'
 
-defineProps<{
-  customType: MazelootProduct['customType']
-}>()
+defineProps({
+  customType: {
+    type: String,
+    required: true,
+  },
+})
 </script>

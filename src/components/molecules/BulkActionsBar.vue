@@ -168,7 +168,7 @@
   </Transition>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import {
   ArrowDown,
   Eye,
@@ -196,37 +196,32 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-interface Props {
-  selectedCount: number
-  isAllSelected: boolean
-  isFavoriteLoading?: boolean
-}
-
-interface Emits {
-  (e: 'clear-selection'): void
-
-  (e: 'select-all'): void
-
-  (e: 'favorite'): void
-
-  (e: 'view'): void
-
-  (e: 'tag'): void
-
-  (e: 'watermark'): void
-
-  (e: 'move'): void
-
-  (e: 'delete'): void
-
-  (e: 'edit'): void
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isFavoriteLoading: false,
+const props = defineProps({
+  selectedCount: {
+    type: Number,
+    required: true,
+  },
+  isAllSelected: {
+    type: Boolean,
+    required: true,
+  },
+  isFavoriteLoading: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits([
+  'clear-selection',
+  'select-all',
+  'favorite',
+  'view',
+  'tag',
+  'watermark',
+  'move',
+  'delete',
+  'edit',
+])
 
 const handleClearSelection = () => {
   emit('clear-selection')

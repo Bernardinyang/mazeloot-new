@@ -9,13 +9,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-withDefaults(
-  defineProps<{
-    text?: string
-  }>(),
-  {
-    text: 'Or continue with',
-  }
-)
+<script setup>
+defineProps({
+  text: {
+    type: String,
+    default: 'Or continue with',
+  },
+})
 </script>

@@ -167,29 +167,6 @@
         ]"
       />
 
-      <!-- Badge Icon - Top Left (always visible if present, but below lock/folder badge if present) -->
-      <div
-        v-if="
-          badge &&
-          !(isLocked && previewImages && previewImages.length > 0) &&
-          !(isFolder && previewImages && previewImages.length > 0)
-        "
-        class="absolute top-3 left-3 z-20 transition-all duration-300"
-        :class="isHovering ? 'scale-110' : 'scale-100'"
-      >
-        <div
-          class="w-7 h-7 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg flex items-center justify-center border"
-          :class="theme.borderSecondary"
-        >
-          <component
-            v-if="badgeIcon"
-            :is="badgeIcon"
-            class="h-3.5 w-3.5"
-            :class="theme.textSecondary"
-          />
-        </div>
-      </div>
-
       <!-- Badge Icon - Top Right (if locked folder or folder with preview has badge) -->
       <div
         v-if="
@@ -343,8 +320,8 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, computed, watch, type Component } from 'vue'
+<script setup>
+import { ref, computed, watch } from 'vue'
 import { Folder, Star, MoreVertical, Lock } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -355,87 +332,168 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
 
 const theme = useThemeClasses()
 
-const props = withDefaults(
-  defineProps<{
-    imageSrc?: string | null
-    altText?: string
-    captionText?: string
-    subtitle?: string
-    containerHeight?: string
-    containerWidth?: string
-    imageHeight?: string
-    imageWidth?: string
-    rotateAmplitude?: number
-    scaleOnHover?: number
-    showMobileWarning?: boolean
-    showTooltip?: boolean
-    displayOverlayContent?: boolean
-    overlayContent?: string
-    showContent?: boolean
-    showMenu?: boolean
-    showStar?: boolean
-    isStarred?: boolean
-    badge?: boolean
-    badgeIcon?: Component
-    icon?: Component
-    folderIcon?: Component
-    containerClass?: string
-    imageContainerClass?: string
-    contentClass?: string
-    overlayContentClass?: string
-    previewImages?: string[]
-    isLocked?: boolean
-    isFolder?: boolean
-    collectionData?: any
-    isMoving?: boolean
-  }>(),
-  {
-    altText: 'Card image',
-    containerHeight: 'auto',
-    containerWidth: '100%',
-    imageHeight: '100%',
-    imageWidth: '100%',
-    rotateAmplitude: 12,
-    scaleOnHover: 1.05,
-    showMobileWarning: false,
-    showTooltip: true,
-    displayOverlayContent: false,
-    showContent: true,
-    showMenu: true,
-    showStar: true,
-    isStarred: false,
-    badge: false,
-    containerClass: '',
-    imageContainerClass: '',
-    contentClass: '',
-    overlayContentClass: '',
-    previewImages: () => [],
-    isLocked: false,
-    isFolder: false,
-  }
-)
+const props = defineProps({
+  imageSrc: {
+    type: [String, null],
+    default: null,
+  },
+  altText: {
+    type: String,
+    default: 'Card image',
+  },
+  captionText: {
+    type: String,
+    default: undefined,
+  },
+  subtitle: {
+    type: String,
+    default: undefined,
+  },
+  containerHeight: {
+    type: String,
+    default: 'auto',
+  },
+  containerWidth: {
+    type: String,
+    default: '100%',
+  },
+  imageHeight: {
+    type: String,
+    default: '100%',
+  },
+  imageWidth: {
+    type: String,
+    default: '100%',
+  },
+  rotateAmplitude: {
+    type: Number,
+    default: 12,
+  },
+  scaleOnHover: {
+    type: Number,
+    default: 1.05,
+  },
+  showMobileWarning: {
+    type: Boolean,
+    default: false,
+  },
+  showTooltip: {
+    type: Boolean,
+    default: true,
+  },
+  displayOverlayContent: {
+    type: Boolean,
+    default: false,
+  },
+  overlayContent: {
+    type: String,
+    default: undefined,
+  },
+  showContent: {
+    type: Boolean,
+    default: true,
+  },
+  showMenu: {
+    type: Boolean,
+    default: true,
+  },
+  showStar: {
+    type: Boolean,
+    default: true,
+  },
+  isStarred: {
+    type: Boolean,
+    default: false,
+  },
+  badge: {
+    type: Boolean,
+    default: false,
+  },
+  badgeIcon: {
+    type: Object,
+    default: undefined,
+  },
+  icon: {
+    type: Object,
+    default: undefined,
+  },
+  folderIcon: {
+    type: Object,
+    default: undefined,
+  },
+  containerClass: {
+    type: String,
+    default: '',
+  },
+  imageContainerClass: {
+    type: String,
+    default: '',
+  },
+  contentClass: {
+    type: String,
+    default: '',
+  },
+  overlayContentClass: {
+    type: String,
+    default: '',
+  },
+  previewImages: {
+    type: Array,
+    default: () => [],
+  },
+  isLocked: {
+    type: Boolean,
+    default: false,
+  },
+  isFolder: {
+    type: Boolean,
+    default: false,
+  },
+  collectionData: {
+    type: Object,
+    default: undefined,
+  },
+  isMoving: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-const emit = defineEmits<{
-  'star-click': []
-  click: []
-  'drag-start': [item: any]
-  'drag-end': []
-  drop: [item: any, targetFolder: any]
-  edit: [item: any]
-  duplicate: [item: any]
-  delete: [item: any]
-  share: [item: any]
-}>()
+const emit = defineEmits([
+  'star-click',
+  'click',
+  'drag-start',
+  'drag-end',
+  'drop',
+  'edit',
+  'duplicate',
+  'delete',
+  'share',
+])
+
+// Color support
+const cardColor = computed(() => {
+  return props.collectionData?.color || generateRandomColorFromPalette()
+})
+
+const cardColorLight = computed(() => {
+  return lightenColor(cardColor.value, 80)
+})
+
+const cardColorDark = computed(() => {
+  return darkenColor(cardColor.value, 30)
+})
 
 // Generate preview grid (always 4 cells, fill with null if less than 4 images)
-const previewGrid = computed<(string | null)[]>(() => {
+const previewGrid = computed(() => {
   if (!props.previewImages || props.previewImages.length === 0) {
     return [null, null, null, null]
   }
-  const grid: (string | null)[] = [...props.previewImages]
+  const grid = [...props.previewImages]
   // Fill remaining slots with null to show empty placeholders
   while (grid.length < 4) {
     grid.push(null)
@@ -448,15 +506,15 @@ const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
 // Handle image load errors
-const handleImageError = (event: Event) => {
-  const img = event.target as HTMLImageElement
+const handleImageError = event => {
+  const img = event.target
   if (img.src !== placeholderImage) {
     img.src = placeholderImage
   }
 }
 
 // Tilt effect
-const cardRef = ref<HTMLElement | null>(null)
+const cardRef = ref(null)
 const rotateX = ref(0)
 const rotateY = ref(0)
 const isHovering = ref(false)
@@ -465,9 +523,9 @@ const isDropdownOpen = ref(false)
 // Drag and drop
 const isDragging = ref(false)
 const isDragOver = ref(false)
-const draggedItem = ref<any>(null)
+const draggedItem = ref(null)
 
-const handleMouseMove = (e: MouseEvent) => {
+const handleMouseMove = e => {
   if (!cardRef.value) return
 
   const rect = cardRef.value.getBoundingClientRect()
@@ -515,7 +573,7 @@ const tiltStyle = computed(() => ({
 }))
 
 // Drag and drop handlers
-const handleDragStart = (e: DragEvent) => {
+const handleDragStart = e => {
   // Prevent dragging folders
   if (props.isFolder || props.collectionData?.isFolder) {
     e.preventDefault()
@@ -540,7 +598,7 @@ const handleDragEnd = () => {
   emit('drag-end')
 }
 
-const handleDragOver = (e: DragEvent) => {
+const handleDragOver = e => {
   // Only allow drop on folders
   if (props.isFolder && !isDragging.value) {
     e.preventDefault()
@@ -555,7 +613,7 @@ const handleDragLeave = () => {
   isDragOver.value = false
 }
 
-const handleDrop = (e: DragEvent) => {
+const handleDrop = e => {
   e.preventDefault()
   isDragOver.value = false
 

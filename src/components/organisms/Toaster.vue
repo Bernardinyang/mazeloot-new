@@ -2,7 +2,7 @@
   <Toaster position="top-right" richColors :theme="toastTheme" closeButton />
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Toaster } from 'vue-sonner'
 import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'

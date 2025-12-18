@@ -21,35 +21,45 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Button } from '@/components/shadcn/button'
 import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-interface Props {
-  isSubmitting?: boolean
-  disabled?: boolean
-  cancelLabel?: string
-  submitLabel?: string
-  submittingLabel?: string
-  submitType?: 'button' | 'submit'
-  submitButtonClass?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isSubmitting: false,
-  disabled: false,
-  cancelLabel: 'Cancel',
-  submitLabel: 'Submit',
-  submittingLabel: 'Submitting...',
-  submitType: 'submit',
-  submitButtonClass:
-    'bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed',
+const props = defineProps({
+  isSubmitting: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  cancelLabel: {
+    type: String,
+    default: 'Cancel',
+  },
+  submitLabel: {
+    type: String,
+    default: 'Submit',
+  },
+  submittingLabel: {
+    type: String,
+    default: 'Submitting...',
+  },
+  submitType: {
+    type: String,
+    default: 'submit',
+    validator: value => ['button', 'submit'].includes(value),
+  },
+  submitButtonClass: {
+    type: String,
+    default:
+      'bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed',
+  },
 })
 
-const emit = defineEmits<{
-  cancel: []
-}>()
+const emit = defineEmits(['cancel'])
 
 const theme = useThemeClasses()
 </script>

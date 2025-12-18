@@ -69,7 +69,7 @@
   </Card>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { LogOut } from 'lucide-vue-next'
 import Card from '@/components/shadcn/Card.vue'
 import CardContent from '@/components/shadcn/CardContent.vue'
@@ -78,15 +78,24 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-defineProps<{
-  name: string
-  email: string
-  avatar?: string
-  loading?: boolean
-}>()
+defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  avatar: {
+    type: String,
+    default: undefined,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+})
 
-defineEmits<{
-  viewProfile: []
-  logout: []
-}>()
+defineEmits(['viewProfile', 'logout'])
 </script>

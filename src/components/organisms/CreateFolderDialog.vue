@@ -51,6 +51,9 @@
           />
         </FormFieldWithError>
 
+        <!-- Color -->
+        <ColorSelector v-model="formData.color" />
+
         <!-- Actions -->
         <FormDialogFooter
           :is-submitting="isSubmitting"
@@ -73,6 +76,8 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import FormFieldWithError from '@/components/molecules/FormFieldWithError.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import FormDialogFooter from '@/components/molecules/FormDialogFooter.vue'
+import ColorSelector from '@/components/molecules/ColorSelector.vue'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
 const props = defineProps({
   open: Boolean,
@@ -88,6 +93,7 @@ const formData = ref({
   showOnHomepage: true,
   globalPassword: false,
   password: '',
+  color: generateRandomColorFromPalette(), // Random color from palette
 })
 
 const errors = ref({})
@@ -113,6 +119,7 @@ const handleSubmit = async () => {
         formData.value.globalPassword && formData.value.password
           ? formData.value.password.trim()
           : null,
+      color: formData.value.color,
     })
     // Reset form
     formData.value = {
@@ -121,6 +128,7 @@ const handleSubmit = async () => {
       showOnHomepage: true,
       globalPassword: false,
       password: '',
+      color: generateRandomColorFromPalette(),
     }
     emit('update:open', false)
   } catch (error) {
@@ -141,6 +149,7 @@ watch(
         showOnHomepage: true,
         globalPassword: false,
         password: '',
+        color: generateRandomColorFromPalette(),
       }
       errors.value = {}
     }

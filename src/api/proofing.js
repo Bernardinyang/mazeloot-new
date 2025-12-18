@@ -7,6 +7,7 @@
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
 const PROOFING_STORAGE_KEY = 'mazeloot_proofing'
 const MEDIA_STORAGE_KEY = 'mazeloot_media'
@@ -103,6 +104,7 @@ export function useProofingApi() {
       updatedAt: new Date().toISOString(),
       maxRevisions: data.maxRevisions || 5,
       currentRevision: 0,
+      color: data.color || generateRandomColorFromPalette(),
     }
 
     proofing.push(newProofing)

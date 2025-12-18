@@ -56,7 +56,7 @@
   </DropdownMenu>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Sun, Moon, Monitor, Check } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {

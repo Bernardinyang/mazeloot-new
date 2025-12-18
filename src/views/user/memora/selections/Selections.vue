@@ -93,6 +93,13 @@
 
     <!-- Selection Detail Sidebar -->
     <SelectionDetailSidebar v-model="showDetailSidebar" :selection-id="selectedSelectionId" />
+
+    <!-- Create Selection Dialog -->
+    <CreateSelectionDialog
+      v-model:open="showCreateDialog"
+      :is-submitting="isCreatingSelection"
+      @create="handleCreateSelectionSubmit"
+    />
   </DashboardLayout>
 </template>
 
@@ -108,6 +115,7 @@ import SelectionCard from '@/components/molecules/SelectionCard.vue'
 import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import SelectionDetailSidebar from '@/components/organisms/SelectionDetailSidebar.vue'
+import CreateSelectionDialog from '@/components/organisms/CreateSelectionDialog.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useErrorHandler } from '@/composables/useErrorHandler'
@@ -135,6 +143,8 @@ const isLoading = computed(() => selectionStore.isLoading)
 const selectedSelections = ref([])
 const showDetailSidebar = ref(false)
 const selectedSelectionId = ref(null)
+const showCreateDialog = ref(false)
+const isCreatingSelection = ref(false)
 
 const handleSelectSelection = (id, checked) => {
   if (checked) {
@@ -192,31 +202,32 @@ const sortedSelections = computed(() => {
   }
 })
 
-const handleCreateSelection = async () => {
+const handleCreateSelection = () => {
+  showCreateDialog.value = true
+}
+
+const handleCreateSelectionSubmit = async data => {
+  if (isCreatingSelection.value) return
+  isCreatingSelection.value = true
   try {
-    // Create standalone selection (no projectId)
     const newSelection = await selectionStore.createSelection(null, {
-      name: 'New Selection',
+      name: data.name,
     })
     toast.success('Selection created', {
       description: 'Your new selection has been created.',
     })
-    // Navigate to the selection phase view
-    if (newSelection.projectId) {
-      router.push({
-        name: 'projectSelections',
-        params: { id: newSelection.projectId },
-        query: { selectionId: newSelection.id },
-      })
-    } else {
-      // For standalone selections, we'll navigate to a detail view
-      // For now, just refresh the list
-      await selectionStore.fetchAllSelections()
-    }
+    showCreateDialog.value = false
+    // Navigate to the selection detail view
+    router.push({
+      name: 'selectionDetail',
+      params: { id: newSelection.id },
+    })
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to create selection.',
     })
+  } finally {
+    isCreatingSelection.value = false
   }
 }
 
@@ -228,12 +239,10 @@ const handleSelectionClick = selection => {
       query: { selectionId: selection.id },
     })
   } else {
-    // For standalone selections, navigate to a detail view
-    // For now, we'll use the project route structure but with a standalone flag
+    // Navigate to selection detail view
     router.push({
-      name: 'projectSelections',
-      params: { id: 'standalone' },
-      query: { selectionId: selection.id },
+      name: 'selectionDetail',
+      params: { id: selection.id },
     })
   }
 }

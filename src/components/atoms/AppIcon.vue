@@ -566,32 +566,51 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import type { Component } from 'vue'
+<script setup>
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-defineProps<{
-  icon?: Component
-  iconClass?: string
-  containerClass?: string
-  size?: 'sm' | 'md' | 'lg'
-  customType?:
-    | 'calendar'
-    | 'notes'
-    | 'reminders'
-    | 'invites'
-    | 'photos'
-    | 'mail'
-    | 'contacts'
-    | 'drive'
-    | 'memora'
-    | 'connect-stream'
-    | 'creator-iq'
-    | 'gear-hub'
-    | 'vendor-iq'
-    | 'gig-finder'
-    | 'profolio'
-}>()
+defineProps({
+  icon: {
+    type: Object,
+    default: undefined,
+  },
+  iconClass: {
+    type: String,
+    default: undefined,
+  },
+  containerClass: {
+    type: String,
+    default: undefined,
+  },
+  size: {
+    type: String,
+    default: 'md',
+    validator: value => ['sm', 'md', 'lg'].includes(value),
+  },
+  customType: {
+    type: String,
+    default: undefined,
+    validator: value =>
+      !value ||
+      [
+        'calendar',
+        'notes',
+        'reminders',
+        'invites',
+        'photos',
+        'mail',
+        'contacts',
+        'drive',
+        'memora',
+        'connect-stream',
+        'creator-iq',
+        'gear-hub',
+        'vendor-iq',
+        'gig-finder',
+        'profolio',
+      ].includes(value),
+  },
+})
 </script>

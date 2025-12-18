@@ -5,20 +5,16 @@
   </Button>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Button } from '@/components/shadcn/button'
 import IconGoogle from '@/icons/IconGoogle.vue'
 
-withDefaults(
-  defineProps<{
-    text?: string
-  }>(),
-  {
-    text: 'Sign in with Google',
-  }
-)
+const props = defineProps({
+  text: {
+    type: String,
+    default: 'Sign in with Google',
+  },
+})
 
-defineEmits<{
-  click: []
-}>()
+defineEmits(['click'])
 </script>

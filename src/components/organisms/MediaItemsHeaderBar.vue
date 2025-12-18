@@ -147,7 +147,7 @@
   </div>
 </template>
 
-<script lang="ts" setup>
+<script setup>
 import { ArrowUpDown, Check, Grid3x3, ImagePlus, List, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
@@ -155,32 +155,70 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-type OptionLike = { label: string; value: string }
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  sortOptions: {
+    type: Array,
+    required: true,
+  },
+  sortOrder: {
+    type: String,
+    required: true,
+  },
+  gridSizeOptions: {
+    type: Array,
+    required: true,
+  },
+  gridSize: {
+    type: String,
+    required: true,
+  },
+  showFilename: {
+    type: Boolean,
+    required: true,
+  },
+  viewMode: {
+    type: String,
+    required: true,
+    validator: value => ['grid', 'list'].includes(value),
+  },
+  isSortMenuOpen: {
+    type: Boolean,
+    required: true,
+  },
+  isViewMenuOpen: {
+    type: Boolean,
+    required: true,
+  },
+  totalItems: {
+    type: Number,
+    required: true,
+  },
+  selectedCount: {
+    type: Number,
+    required: true,
+  },
+  isAllSelected: {
+    type: Boolean,
+    required: true,
+  },
+  isUploading: {
+    type: Boolean,
+    required: true,
+  },
+})
 
-const props = defineProps<{
-  title: string
-  sortOptions: OptionLike[]
-  sortOrder: string
-  gridSizeOptions: OptionLike[]
-  gridSize: string
-  showFilename: boolean
-  viewMode: 'grid' | 'list'
-  isSortMenuOpen: boolean
-  isViewMenuOpen: boolean
-  totalItems: number
-  selectedCount: number
-  isAllSelected: boolean
-  isUploading: boolean
-}>()
-
-const emit = defineEmits<{
-  'update:isSortMenuOpen': [value: boolean]
-  'update:isViewMenuOpen': [value: boolean]
-  'sort-change': [value: string]
-  'grid-size-change': [value: string]
-  'filename-toggle': [event: Event]
-  'set-view-mode': [value: 'grid' | 'list']
-  'toggle-select-all': []
-  'add-media': []
-}>()
+const emit = defineEmits([
+  'update:isSortMenuOpen',
+  'update:isViewMenuOpen',
+  'sort-change',
+  'grid-size-change',
+  'filename-toggle',
+  'set-view-mode',
+  'toggle-select-all',
+  'add-media',
+])
 </script>

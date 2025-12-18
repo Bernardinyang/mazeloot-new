@@ -56,7 +56,7 @@
   </SidebarModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
@@ -65,19 +65,34 @@ import Textarea from '@/components/shadcn/Textarea.vue'
 
 const theme = useThemeClasses()
 
-const props = defineProps<{
-  modelValue: boolean
-  isEditing: boolean
-  isCreating: boolean
-  name: string
-  description: string
-}>()
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  isEditing: {
+    type: Boolean,
+    required: true,
+  },
+  isCreating: {
+    type: Boolean,
+    required: true,
+  },
+  name: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+})
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'update:name': [value: string]
-  'update:description': [value: string]
-  cancel: []
-  confirm: []
-}>()
+const emit = defineEmits([
+  'update:modelValue',
+  'update:name',
+  'update:description',
+  'cancel',
+  'confirm',
+])
 </script>

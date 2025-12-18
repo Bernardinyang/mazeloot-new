@@ -29,27 +29,43 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, useAttrs } from 'vue'
 import { Eye, EyeOff } from 'lucide-vue-next'
 import { cn } from '@/lib/utils'
 
-interface Props {
-  modelValue?: string
-  value?: string
-  id?: string
-  placeholder?: string
-  autocomplete?: string
-  disabled?: boolean
-  inputClass?: string
-}
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: undefined,
+  },
+  value: {
+    type: String,
+    default: undefined,
+  },
+  id: {
+    type: String,
+    default: undefined,
+  },
+  placeholder: {
+    type: String,
+    default: undefined,
+  },
+  autocomplete: {
+    type: String,
+    default: undefined,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  inputClass: {
+    type: String,
+    default: undefined,
+  },
+})
 
-const props = defineProps<Props>()
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  input: [event: Event]
-  blur: [event: FocusEvent]
-}>()
+const emit = defineEmits(['update:modelValue', 'input', 'blur'])
 
 const attrs = useAttrs()
 const showPassword = ref(false)
@@ -58,7 +74,7 @@ const showPassword = ref(false)
 const inputValue = computed(() => {
   // Check if we have a value from VeeValidate's field binding
   if (attrs.value !== undefined) {
-    return attrs.value as string
+    return attrs.value
   }
   return props.modelValue || props.value || ''
 })
@@ -73,8 +89,8 @@ const togglePassword = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleInput = (event: Event) => {
-  const target = event.target as HTMLInputElement
+const handleInput = event => {
+  const target = event.target
   const value = target.value
 
   // Emit for v-model
@@ -89,7 +105,7 @@ const handleInput = (event: Event) => {
   }
 }
 
-const handleBlur = (event: FocusEvent) => {
+const handleBlur = event => {
   emit('blur', event)
 
   // If there's an onBlur handler from VeeValidate, call it

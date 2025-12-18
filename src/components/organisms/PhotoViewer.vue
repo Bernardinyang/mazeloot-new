@@ -87,7 +87,7 @@
   </Dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Dialog, DialogContent, DialogClose } from '@/components/shadcn/dialog'
 import { Button } from '@/components/shadcn/button'
@@ -97,29 +97,22 @@ import { toast } from 'vue-sonner'
 
 const theme = useThemeClasses()
 
-interface Photo {
-  id: string | number
-  url?: string
-  thumbnail?: string
-  title?: string
-  collection?: string
-  [key: string]: any
-}
-
-interface Props {
-  modelValue: boolean
-  photos: Photo[]
-  initialIndex?: number
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  initialIndex: 0,
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  photos: {
+    type: Array,
+    required: true,
+  },
+  initialIndex: {
+    type: Number,
+    default: 0,
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  download: [photo: Photo]
-}>()
+const emit = defineEmits(['update:modelValue', 'download'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -193,7 +186,7 @@ const handleDownload = () => {
 }
 
 // Keyboard navigation
-const handleKeyDown = (e: KeyboardEvent) => {
+const handleKeyDown = e => {
   if (!isOpen.value) return
 
   if (e.key === 'ArrowLeft' && hasPrevious.value) {

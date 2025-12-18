@@ -25,7 +25,7 @@
   </Select>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   Select,
   SelectContent,
@@ -37,15 +37,22 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-defineProps<{
-  modelValue: string
-  placeholder?: string
-  triggerClass?: string
-}>()
+defineProps({
+  modelValue: {
+    type: String,
+    required: true,
+  },
+  placeholder: {
+    type: String,
+    default: undefined,
+  },
+  triggerClass: {
+    type: String,
+    default: undefined,
+  },
+})
 
-defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+defineEmits(['update:modelValue'])
 
 // Frequently used fonts by creatives
 const fontOptions = [
@@ -71,12 +78,12 @@ const fontOptions = [
   { id: 'caveat', label: 'Caveat', class: 'font-caveat' },
 ]
 
-const getFontLabel = (fontId: string) => {
+const getFontLabel = fontId => {
   const font = fontOptions.find(f => f.id === fontId)
   return font?.label || 'Select font'
 }
 
-const getFontClass = (fontId: string) => {
+const getFontClass = fontId => {
   const font = fontOptions.find(f => f.id === fontId)
   return font?.class || 'font-sans'
 }

@@ -6,7 +6,7 @@
         v-for="(_digit, index) in code"
         :key="index"
         :id="index === 0 ? id : undefined"
-        :ref="el => (inputRefs[index] = el as HTMLInputElement)"
+        :ref="el => (inputRefs[index] = el)"
         v-model="code[index]"
         type="text"
         maxlength="1"
@@ -30,40 +30,48 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, computed, watch, onMounted } from 'vue'
 import Label from '@/components/shadcn/Label.vue'
 
-interface Props {
-  modelValue?: string
-  label?: string
-  id?: string
-  length?: number
-  showResend?: boolean
-  resendCooldown?: number
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  length: 6,
-  showResend: true,
-  resendCooldown: 0,
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: undefined,
+  },
+  label: {
+    type: String,
+    default: undefined,
+  },
+  id: {
+    type: String,
+    default: undefined,
+  },
+  length: {
+    type: Number,
+    default: 6,
+  },
+  showResend: {
+    type: Boolean,
+    default: true,
+  },
+  resendCooldown: {
+    type: Number,
+    default: 0,
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  resend: []
-  complete: [value: string]
-}>()
+const emit = defineEmits(['update:modelValue', 'resend', 'complete'])
 
-const code = ref<string[]>(Array(props.length).fill(''))
-const inputRefs = ref<(HTMLInputElement | null)[]>([])
+const code = ref(Array(props.length).fill(''))
+const inputRefs = ref([])
 
 const isComplete = computed(() => {
   return code.value.every(digit => digit !== '')
 })
 
-const handleInput = (index: number, event: Event) => {
-  const target = event.target as HTMLInputElement
+const handleInput = (index, event) => {
+  const target = event.target
   const value = target.value.replace(/[^0-9]/g, '')
 
   if (value && index < code.value.length - 1) {
@@ -82,13 +90,13 @@ const handleInput = (index: number, event: Event) => {
   }
 }
 
-const handleKeyDown = (index: number, event: KeyboardEvent) => {
+const handleKeyDown = (index, event) => {
   if (event.key === 'Backspace' && !code.value[index] && index > 0) {
     inputRefs.value[index - 1]?.focus()
   }
 }
 
-const handlePaste = (event: ClipboardEvent) => {
+const handlePaste = event => {
   event.preventDefault()
   const pastedData = event.clipboardData?.getData('text').replace(/[^0-9]/g, '')
   if (pastedData) {

@@ -14,30 +14,43 @@
   </Button>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Button } from '@/components/shadcn/button'
 import { Loader2 } from 'lucide-vue-next'
 
-interface Props {
-  loading?: boolean
-  disabled?: boolean
-  label?: string
-  loadingLabel?: string
-  type?: 'button' | 'submit' | 'reset'
-  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
-  buttonClass?: string
-}
-
-withDefaults(defineProps<Props>(), {
-  loading: false,
-  disabled: false,
-  loadingLabel: 'Loading...',
-  type: 'button',
-  variant: 'default',
-  buttonClass: '',
+const props = defineProps({
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  disabled: {
+    type: Boolean,
+    default: false,
+  },
+  label: {
+    type: String,
+    default: undefined,
+  },
+  loadingLabel: {
+    type: String,
+    default: 'Loading...',
+  },
+  type: {
+    type: String,
+    default: 'button',
+    validator: value => ['button', 'submit', 'reset'].includes(value),
+  },
+  variant: {
+    type: String,
+    default: 'default',
+    validator: value =>
+      ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'].includes(value),
+  },
+  buttonClass: {
+    type: String,
+    default: '',
+  },
 })
 
-defineEmits<{
-  click: []
-}>()
+defineEmits(['click'])
 </script>

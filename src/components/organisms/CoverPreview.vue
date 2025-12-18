@@ -452,8 +452,11 @@
   </div>
 </template>
 
-<script setup lang="ts">
-defineProps<{
-  type: string
-}>()
+<script setup>
+defineProps({
+  type: {
+    type: String,
+    required: true,
+  },
+})
 </script>

@@ -36,33 +36,43 @@
   </DashboardCard>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import DashboardCard from '@/components/organisms/DashboardCard.vue'
 import { Button } from '@/components/shadcn/button'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-withDefaults(
-  defineProps<{
-    title: string
-    description: string
-    loading?: boolean
-    colSpan?: string
-    animationClass?: string
-    showFooter?: boolean
-    footerLabel?: string
-  }>(),
-  {
-    loading: false,
-    colSpan: 'lg:col-span-1',
-    animationClass: 'animate-in fade-in slide-in-from-bottom-4',
-    showFooter: false,
-    footerLabel: 'View All',
-  }
-)
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  colSpan: {
+    type: String,
+    default: 'lg:col-span-1',
+  },
+  animationClass: {
+    type: String,
+    default: 'animate-in fade-in slide-in-from-bottom-4',
+  },
+  showFooter: {
+    type: Boolean,
+    default: false,
+  },
+  footerLabel: {
+    type: String,
+    default: 'View All',
+  },
+})
 
-defineEmits<{
-  'footer-click': []
-}>()
+defineEmits(['footer-click'])
 </script>

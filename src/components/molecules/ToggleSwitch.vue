@@ -29,31 +29,37 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Info } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-interface Props {
-  modelValue: boolean
-  label: string
-  onLabel?: string
-  offLabel?: string
-  showInfo?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  onLabel: 'On',
-  offLabel: 'Off',
-  showInfo: false,
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  label: {
+    type: String,
+    required: true,
+  },
+  onLabel: {
+    type: String,
+    default: 'On',
+  },
+  offLabel: {
+    type: String,
+    default: 'Off',
+  },
+  showInfo: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  'info-click': []
-}>()
+const emit = defineEmits(['update:modelValue', 'info-click'])
 
-const handleChange = (event: Event) => {
-  const target = event.target as HTMLInputElement
+const handleChange = event => {
+  const target = event.target
   emit('update:modelValue', target.checked)
 }
 

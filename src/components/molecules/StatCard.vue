@@ -1,16 +1,27 @@
-<script setup lang="ts">
-import type { Component } from 'vue'
+<script setup>
 import Card from '@/components/shadcn/Card.vue'
 import CardContent from '@/components/shadcn/CardContent.vue'
 import CardHeader from '@/components/shadcn/CardHeader.vue'
 import CardTitle from '@/components/shadcn/CardTitle.vue'
 
-defineProps<{
-  title: string
-  value: string | number
-  description: string
-  icon: Component
-}>()
+defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  value: {
+    type: [String, Number],
+    required: true,
+  },
+  description: {
+    type: String,
+    required: true,
+  },
+  icon: {
+    type: Object,
+    required: true,
+  },
+})
 </script>
 
 <template>

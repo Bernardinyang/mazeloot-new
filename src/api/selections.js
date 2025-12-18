@@ -7,6 +7,7 @@
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
 const SELECTIONS_STORAGE_KEY = 'mazeloot_selections'
 const MEDIA_STORAGE_KEY = 'mazeloot_media'
@@ -84,6 +85,7 @@ export function useSelectionsApi() {
       updatedAt: new Date().toISOString(),
       selectionCompletedAt: null,
       autoDeleteDate: null,
+      color: data.color || generateRandomColorFromPalette(),
     }
 
     selections.push(newSelection)

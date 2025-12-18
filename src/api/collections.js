@@ -7,6 +7,7 @@
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
 const COLLECTIONS_STORAGE_KEY = 'mazeloot_collections'
 
@@ -693,6 +694,7 @@ export function useCollectionsApi() {
       // Store presetId and watermarkId
       presetId: data.presetId || undefined,
       watermarkId: watermarkId || undefined,
+      color: data.color || generateRandomColorFromPalette(),
       // Set mediaSets if not a folder
       // If projectId exists, inherit mediaSets from project
       ...(!data.isFolder && mediaSets && { mediaSets }),

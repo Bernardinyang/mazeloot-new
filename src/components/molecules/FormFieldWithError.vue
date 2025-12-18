@@ -10,18 +10,26 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-interface Props {
-  label?: string
-  error?: string
-  hint?: string
-  required?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  required: false,
+const props = defineProps({
+  label: {
+    type: String,
+    default: undefined,
+  },
+  error: {
+    type: String,
+    default: undefined,
+  },
+  hint: {
+    type: String,
+    default: undefined,
+  },
+  required: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const theme = useThemeClasses()

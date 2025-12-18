@@ -106,7 +106,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import CollectionListItem from '@/components/molecules/CollectionListItem.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
@@ -114,108 +114,149 @@ import { Folder, Info } from 'lucide-vue-next'
 
 const theme = useThemeClasses()
 
-interface Props {
-  items: any[]
-  loading?: boolean
-  selectedItems?: number[]
-  emptyMessage?: string
-  emptyActionLabel?: string
-  emptyIcon?: any
-  subtitleSeparator?: string
-  // Item accessor functions - can be overridden via props or use defaults
-  getId?: (item: any) => number
-  getTitle?: (item: any) => string
-  getSubtitle?: (item: any) => string
-  getImage?: (item: any) => string | null
-  getPreviewImages?: (item: any) => string[]
-  getIcon?: (item: any) => any
-  getStatus?: (item: any) => string | undefined
-  getPassword?: (item: any) => string | null
-  getDownloadPin?: (item: any) => string | null
-  getDateCreated?: (item: any) => string
-  getStarred?: (item: any) => boolean
-  getShowStar?: (item: any) => boolean
-  getIsFolder?: (item: any) => boolean
-  showMoveTo?: boolean
-  showViewDetails?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  loading: false,
-  selectedItems: () => [],
-  emptyMessage: 'No items found',
-  emptyActionLabel: '',
-  emptyIcon: Folder,
-  subtitleSeparator: '•',
-  getId: (item: any) => item.id,
-  getTitle: (item: any) => item.title || item.name,
-  getSubtitle: (item: any) => {
-    const parts = []
-    if (item.itemCount !== undefined) {
-      const count = item.itemCount
-      // Folders count collections, regular collections count items
-      if (item.isFolder) {
-        const labelText = count === 1 ? 'collection' : 'collections'
-        parts.push(`${count} ${labelText}`)
-      } else {
-        const labelText = count === 1 ? 'item' : 'items'
-        parts.push(`${count} ${labelText}`)
+const props = defineProps({
+  items: {
+    type: Array,
+    required: true,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  selectedItems: {
+    type: Array,
+    default: () => [],
+  },
+  emptyMessage: {
+    type: String,
+    default: 'No items found',
+  },
+  emptyActionLabel: {
+    type: String,
+    default: '',
+  },
+  emptyIcon: {
+    type: Object,
+    default: () => Folder,
+  },
+  subtitleSeparator: {
+    type: String,
+    default: '•',
+  },
+  getId: {
+    type: Function,
+    default: item => item.id,
+  },
+  getTitle: {
+    type: Function,
+    default: item => item.title || item.name,
+  },
+  getSubtitle: {
+    type: Function,
+    default: item => {
+      const parts = []
+      if (item.itemCount !== undefined) {
+        const count = item.itemCount
+        // Folders count collections, regular collections count items
+        if (item.isFolder) {
+          const labelText = count === 1 ? 'collection' : 'collections'
+          parts.push(`${count} ${labelText}`)
+        } else {
+          const labelText = count === 1 ? 'item' : 'items'
+          parts.push(`${count} ${labelText}`)
+        }
       }
-    }
-    const dateStr = item.date || item.dateCreated || item.createdAt
-    if (dateStr) {
+      const dateStr = item.date || item.dateCreated || item.createdAt
+      if (dateStr) {
+        const date = new Date(dateStr)
+        const formattedDate = date.toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })
+        parts.push(formattedDate)
+      }
+      return parts.join(' • ')
+    },
+  },
+  getImage: {
+    type: Function,
+    default: item => item.image || item.thumbnail || null,
+  },
+  getPreviewImages: {
+    type: Function,
+    default: item => item.previewImages || [],
+  },
+  getIcon: {
+    type: Function,
+    default: item => (item.isFolder ? Folder : item.icon),
+  },
+  getStatus: {
+    type: Function,
+    default: item => item.status,
+  },
+  getPassword: {
+    type: Function,
+    default: item => item.password ?? null,
+  },
+  getDownloadPin: {
+    type: Function,
+    default: item => item.downloadPin ?? null,
+  },
+  getDateCreated: {
+    type: Function,
+    default: item => {
+      const dateStr = item.dateCreated || item.createdAt || item.date || ''
+      if (!dateStr) return ''
       const date = new Date(dateStr)
-      const formattedDate = date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      })
-      parts.push(formattedDate)
-    }
-    return parts.join(' • ')
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    },
   },
-  getImage: (item: any) => item.image || item.thumbnail || null,
-  getPreviewImages: (item: any) => item.previewImages || [],
-  getIcon: (item: any) => (item.isFolder ? Folder : item.icon),
-  getStatus: (item: any) => item.status,
-  getPassword: (item: any) => item.password ?? null,
-  getDownloadPin: (item: any) => item.downloadPin ?? null,
-  getDateCreated: (item: any) => {
-    const dateStr = item.dateCreated || item.createdAt || item.date || ''
-    if (!dateStr) return ''
-    const date = new Date(dateStr)
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  getStarred: {
+    type: Function,
+    default: item => item.starred || item.isStarred || false,
   },
-  getStarred: (item: any) => item.starred || item.isStarred || false,
-  getShowStar: (item: any) => !item.icon,
-  getIsFolder: (item: any) => item.isFolder || false,
-  showMoveTo: true,
-  showViewDetails: false,
+  getShowStar: {
+    type: Function,
+    default: item => !item.icon,
+  },
+  getIsFolder: {
+    type: Function,
+    default: item => item.isFolder || false,
+  },
+  showMoveTo: {
+    type: Boolean,
+    default: true,
+  },
+  showViewDetails: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits<{
-  'item-click': [item: any]
-  select: [id: number, checked: boolean]
-  'star-click': [item: any]
-  'link-click': [item: any]
-  'copy-pin': [item: any]
-  'empty-action': []
-  edit: [item: any]
-  duplicate: [item: any]
-  delete: [item: any]
-  publish: [item: any]
-  preview: [item: any]
-  'view-details': [item: any]
-  'move-to': [item: any]
-}>()
+const emit = defineEmits([
+  'item-click',
+  'select',
+  'star-click',
+  'link-click',
+  'copy-pin',
+  'empty-action',
+  'edit',
+  'duplicate',
+  'delete',
+  'publish',
+  'preview',
+  'view-details',
+  'move-to',
+])
 
 // Handle select event - CollectionsTable expects (id, checked) but parent might pass (id, checked) or (id, checked)
-const handleSelectItem = (id: number, checked: boolean) => {
+const handleSelectItem = (id, checked) => {
   emit('select', id, checked)
 }
 
 // Helper function to get subtitle with separator
-const getItemSubtitle = (item: any) => {
+const getItemSubtitle = item => {
   const subtitle = props.getSubtitle(item)
   // Replace the default separator with the prop separator if different
   const defaultSeparator = ' • '
@@ -227,16 +268,16 @@ const getItemSubtitle = (item: any) => {
 }
 
 // Helper functions using props or defaults
-const getItemId = (item: any) => props.getId(item)
-const getItemTitle = (item: any) => props.getTitle(item)
-const getItemImage = (item: any) => props.getImage(item)
-const getItemPreviewImages = (item: any) => props.getPreviewImages(item)
-const getItemIcon = (item: any) => props.getIcon(item)
-const getItemStatus = (item: any) => props.getStatus(item)
-const getItemPassword = (item: any) => props.getPassword(item)
-const getItemDownloadPin = (item: any) => props.getDownloadPin(item)
-const getItemDateCreated = (item: any) => props.getDateCreated(item)
-const getItemStarred = (item: any) => props.getStarred(item)
-const getItemShowStar = (item: any) => props.getShowStar(item)
-const getItemIsFolder = (item: any) => props.getIsFolder(item)
+const getItemId = item => props.getId(item)
+const getItemTitle = item => props.getTitle(item)
+const getItemImage = item => props.getImage(item)
+const getItemPreviewImages = item => props.getPreviewImages(item)
+const getItemIcon = item => props.getIcon(item)
+const getItemStatus = item => props.getStatus(item)
+const getItemPassword = item => props.getPassword(item)
+const getItemDownloadPin = item => props.getDownloadPin(item)
+const getItemDateCreated = item => props.getDateCreated(item)
+const getItemStarred = item => props.getStarred(item)
+const getItemShowStar = item => props.getShowStar(item)
+const getItemIsFolder = item => props.getIsFolder(item)
 </script>

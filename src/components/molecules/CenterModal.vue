@@ -21,7 +21,7 @@
   </Dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import {
   Dialog,
@@ -32,22 +32,30 @@ import {
   DialogTitle,
 } from '@/components/shadcn/dialog'
 
-interface Props {
-  modelValue: boolean
-  title?: string
-  description?: string
-  contentClass?: string
-  bodyClass?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  contentClass: '',
-  bodyClass: '',
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  title: {
+    type: String,
+    default: undefined,
+  },
+  description: {
+    type: String,
+    default: undefined,
+  },
+  contentClass: {
+    type: String,
+    default: '',
+  },
+  bodyClass: {
+    type: String,
+    default: '',
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+const emit = defineEmits(['update:modelValue'])
 
 const isOpen = computed({
   get: () => props.modelValue,

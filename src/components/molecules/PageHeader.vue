@@ -10,7 +10,7 @@
         />
         <Input
           :model-value="searchQuery"
-          @update:model-value="(value: string | number) => updateSearchQuery(String(value))"
+          @update:model-value="value => updateSearchQuery(String(value))"
           type="text"
           placeholder="Search"
           :class="[
@@ -110,7 +110,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Search, ArrowDownUp, Grid3x3, List, Check } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
@@ -123,37 +123,52 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import type { SortOption } from '@/composables/usePageHeader'
 
-interface Props {
-  title: string
-  searchQuery: string
-  sortBy: string
-  viewMode: 'grid' | 'list'
-  sortOptions?: SortOption[]
-  sortLabel?: string
-  showSearch?: boolean
-  showSort?: boolean
-  showViewToggle?: boolean
-}
-
-withDefaults(defineProps<Props>(), {
-  showSearch: true,
-  showSort: true,
-  showViewToggle: true,
-  sortLabel: 'Sort by',
-  sortOptions: () => [],
+const props = defineProps({
+  title: {
+    type: String,
+    required: true,
+  },
+  searchQuery: {
+    type: String,
+    required: true,
+  },
+  sortBy: {
+    type: String,
+    required: true,
+  },
+  viewMode: {
+    type: String,
+    required: true,
+    validator: value => ['grid', 'list'].includes(value),
+  },
+  sortOptions: {
+    type: Array,
+    default: () => [],
+  },
+  sortLabel: {
+    type: String,
+    default: 'Sort by',
+  },
+  showSearch: {
+    type: Boolean,
+    default: true,
+  },
+  showSort: {
+    type: Boolean,
+    default: true,
+  },
+  showViewToggle: {
+    type: Boolean,
+    default: true,
+  },
 })
 
-const emit = defineEmits<{
-  'update:searchQuery': [value: string]
-  'update:sortBy': [value: string]
-  'update:viewMode': [value: 'grid' | 'list']
-}>()
+const emit = defineEmits(['update:searchQuery', 'update:sortBy', 'update:viewMode'])
 
 const theme = useThemeClasses()
 
-const updateSearchQuery = (value: string) => {
+const updateSearchQuery = value => {
   emit('update:searchQuery', value)
 }
 </script>

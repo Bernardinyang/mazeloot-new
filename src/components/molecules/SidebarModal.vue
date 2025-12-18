@@ -40,7 +40,7 @@
   </Sheet>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import {
   Sheet,
@@ -52,24 +52,35 @@ import {
 } from '@/components/shadcn/sheet'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-interface Props {
-  modelValue: boolean
-  title?: string
-  description?: string
-  side?: 'top' | 'right' | 'bottom' | 'left'
-  contentClass?: string
-  bodyClass?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  side: 'right',
-  contentClass: '',
-  bodyClass: '',
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  title: {
+    type: String,
+    default: undefined,
+  },
+  description: {
+    type: String,
+    default: undefined,
+  },
+  side: {
+    type: String,
+    default: 'right',
+    validator: value => ['top', 'right', 'bottom', 'left'].includes(value),
+  },
+  contentClass: {
+    type: String,
+    default: '',
+  },
+  bodyClass: {
+    type: String,
+    default: '',
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-}>()
+const emit = defineEmits(['update:modelValue'])
 
 const theme = useThemeClasses()
 

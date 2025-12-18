@@ -48,7 +48,7 @@
   </Dialog>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ref, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import { Input } from '@/components/shadcn/input'
@@ -56,14 +56,14 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import FormDialogFooter from '@/components/molecules/FormDialogFooter.vue'
 import { delay } from '@/utils/delay'
 
-const props = defineProps<{
-  open: boolean
-}>()
+const props = defineProps({
+  open: {
+    type: Boolean,
+    required: true,
+  },
+})
 
-const emit = defineEmits<{
-  'update:open': [value: boolean]
-  create: [data: { name: string }]
-}>()
+const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
 
@@ -71,7 +71,7 @@ const formData = ref({
   name: '',
 })
 
-const errors = ref<{ name?: string }>({})
+const errors = ref({})
 const isSubmitting = ref(false)
 
 const handleCancel = () => {
@@ -112,7 +112,7 @@ const handleSubmit = async () => {
 // Reset form when dialog closes
 watch(
   () => props.open,
-  (newValue: boolean) => {
+  newValue => {
     if (!newValue) {
       formData.value = {
         name: '',

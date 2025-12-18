@@ -4,15 +4,22 @@
   </span>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 
-const props = defineProps<{
-  status: string
-  variant?: 'default' | 'success' | 'warning' | 'info' | 'error'
-}>()
+const props = defineProps({
+  status: {
+    type: String,
+    required: true,
+  },
+  variant: {
+    type: String,
+    default: 'default',
+    validator: value => ['default', 'success', 'warning', 'info', 'error'].includes(value),
+  },
+})
 
-const statusConfig: Record<string, { variant: string; classes: string }> = {
+const statusConfig = {
   // Collection statuses (uppercase)
   PUBLISHED: {
     variant: 'success',

@@ -7,6 +7,7 @@
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
+import { generateRandomColorFromPalette } from '@/utils/colors'
 
 const PROJECTS_STORAGE_KEY = 'mazeloot_projects'
 const SELECTIONS_STORAGE_KEY = 'mazeloot_selections'
@@ -192,6 +193,7 @@ export function useProjectsApi() {
           : data.eventDate.toISOString()
         : undefined,
       mediaSets: mediaSets,
+      color: data.color || generateRandomColorFromPalette(),
       settings: {
         // Shared settings that all phases inherit
         presetId: data.presetId || undefined,

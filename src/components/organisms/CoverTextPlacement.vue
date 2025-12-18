@@ -154,10 +154,13 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { Heart, Share2, Download } from 'lucide-vue-next'
 
-defineProps<{
-  type: string
-}>()
+defineProps({
+  type: {
+    type: String,
+    required: true,
+  },
+})
 </script>

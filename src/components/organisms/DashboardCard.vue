@@ -43,7 +43,7 @@
   </Card>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, useSlots } from 'vue'
 import Card from '@/components/shadcn/Card.vue'
 import CardContent from '@/components/shadcn/CardContent.vue'
@@ -54,20 +54,28 @@ import CardFooter from '@/components/shadcn/CardFooter.vue'
 import { Separator } from '@/components/shadcn/separator/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-const props = withDefaults(
-  defineProps<{
-    title?: string
-    description?: string
-    loading?: boolean
-    colSpan?: string
-    animationClass?: string
-  }>(),
-  {
-    loading: false,
-    colSpan: '',
-    animationClass: '',
-  }
-)
+const props = defineProps({
+  title: {
+    type: String,
+    default: undefined,
+  },
+  description: {
+    type: String,
+    default: undefined,
+  },
+  loading: {
+    type: Boolean,
+    default: false,
+  },
+  colSpan: {
+    type: String,
+    default: '',
+  },
+  animationClass: {
+    type: String,
+    default: '',
+  },
+})
 
 const slots = useSlots()
 const hasFooter = computed(() => !!slots.footer)

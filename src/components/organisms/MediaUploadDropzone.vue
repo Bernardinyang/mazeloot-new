@@ -45,20 +45,22 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { ImagePlus } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-const props = defineProps<{
-  isEmpty: boolean
-  isDragging: boolean
-}>()
+const props = defineProps({
+  isEmpty: {
+    type: Boolean,
+    required: true,
+  },
+  isDragging: {
+    type: Boolean,
+    required: true,
+  },
+})
 
-const emit = defineEmits<{
-  browse: []
-  drop: [event: DragEvent]
-  'update:isDragging': [value: boolean]
-}>()
+const emit = defineEmits(['browse', 'drop', 'update:isDragging'])
 </script>

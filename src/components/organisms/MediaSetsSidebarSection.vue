@@ -100,7 +100,7 @@
             :value="props.editingSetName"
             :class="[theme.bgInput, theme.borderInput, theme.textInput, 'focus:border-teal-500']"
             class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all duration-200"
-            @input="emit('update:editingSetName', ($event.target as any).value)"
+            @input="emit('update:editingSetName', $event.target.value)"
             @blur="emit('save-set-name', set.id)"
             @keydown.enter="emit('save-set-name', set.id)"
             @keydown.esc="emit('cancel-set-name-edit')"
@@ -164,7 +164,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import {
   Loader2,
   MoreVertical,
@@ -184,34 +184,66 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
 
-type MediaSetLike = any
+const props = defineProps({
+  activeTab: {
+    type: String,
+    required: true,
+    validator: value => ['photos', 'design', 'settings', 'activities'].includes(value),
+  },
+  isSidebarCollapsed: {
+    type: Boolean,
+    required: true,
+  },
+  isLoading: {
+    type: Boolean,
+    required: true,
+  },
+  isSavingSets: {
+    type: Boolean,
+    required: true,
+  },
+  mediaSets: {
+    type: Array,
+    required: true,
+  },
+  sortedMediaSets: {
+    type: Array,
+    required: true,
+  },
+  selectedSetId: {
+    type: [String, null],
+    required: true,
+  },
+  draggedSetId: {
+    type: [String, null],
+    required: true,
+  },
+  dragOverIndex: {
+    type: [Number, null],
+    required: true,
+  },
+  editingSetId: {
+    type: [String, null],
+    required: true,
+  },
+  editingSetName: {
+    type: String,
+    required: true,
+  },
+})
 
-const props = defineProps<{
-  activeTab: 'photos' | 'design' | 'settings' | 'activities'
-  isSidebarCollapsed: boolean
-  isLoading: boolean
-  isSavingSets: boolean
-  mediaSets: MediaSetLike[]
-  sortedMediaSets: MediaSetLike[]
-  selectedSetId: string | null
-  draggedSetId: string | null
-  dragOverIndex: number | null
-  editingSetId: string | null
-  editingSetName: string
-}>()
-
-const emit = defineEmits<{
-  'add-set': []
-  'select-set': [setId: string]
-  'edit-set': [setId: string]
-  'delete-set': [setId: string]
-  'save-set-name': [setId: string]
-  'cancel-set-name-edit': []
-  'update:editingSetName': [value: string]
-  'set-drag-start': [e: DragEvent, setId: string, index: number]
-  'set-drag-over': [e: DragEvent, index: number]
-  'set-drag-leave': []
-  'set-drop': [e: DragEvent, dropIndex: number]
-  'set-drag-end': []
-}>()
+const emit = defineEmits([
+  'add-set',
+  'select-set',
+  'edit-set',
+  'delete-set',
+  'save-set-name',
+  'cancel-set-name-edit',
+  'update:editingSetName',
+  'set-drag-start',
+  'set-drag-over',
+  'set-drag-leave',
+  'set-drop',
+  'set-drag-end',
+])
 </script>

@@ -1,16 +1,16 @@
 <template>
-  <p
-    v-if="message"
-    :class="cn('text-sm font-medium text-destructive mt-1', ($attrs.class as string) || '')"
-  >
+  <p v-if="message" :class="cn('text-sm font-medium text-destructive mt-1', $attrs.class || '')">
     {{ message }}
   </p>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { cn } from '@/lib/utils'
 
-defineProps<{
-  message?: string
-}>()
+defineProps({
+  message: {
+    type: String,
+    default: undefined,
+  },
+})
 </script>

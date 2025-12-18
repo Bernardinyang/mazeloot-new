@@ -12,21 +12,29 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-const props = withDefaults(
-  defineProps<{
-    src?: string | null
-    alt: string
-    size?: 'sm' | 'md' | 'lg'
-    fallbackText?: string
-  }>(),
-  {
-    size: 'md',
-  }
-)
+const props = defineProps({
+  src: {
+    type: [String, null],
+    default: null,
+  },
+  alt: {
+    type: String,
+    required: true,
+  },
+  size: {
+    type: String,
+    default: 'md',
+    validator: value => ['sm', 'md', 'lg'].includes(value),
+  },
+  fallbackText: {
+    type: String,
+    default: undefined,
+  },
+})
 
 const sizeClasses = {
   sm: 'h-12 w-12',

@@ -19,7 +19,7 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import { Field } from 'vee-validate'
 import Label from '@/components/shadcn/Label.vue'
@@ -28,18 +28,36 @@ import PasswordInput from './PasswordInput.vue'
 import ErrorMessage from '@/components/atoms/ErrorMessage.vue'
 import { cn } from '@/lib/utils'
 
-interface Props {
-  name: string
-  label?: string
-  type?: 'text' | 'email' | 'password' | 'tel' | 'number'
-  placeholder?: string
-  autocomplete?: string
-  hint?: string
-  inputClass?: string
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  type: 'text',
+const props = defineProps({
+  name: {
+    type: String,
+    required: true,
+  },
+  label: {
+    type: String,
+    default: undefined,
+  },
+  type: {
+    type: String,
+    default: 'text',
+    validator: value => ['text', 'email', 'password', 'tel', 'number'].includes(value),
+  },
+  placeholder: {
+    type: String,
+    default: undefined,
+  },
+  autocomplete: {
+    type: String,
+    default: undefined,
+  },
+  hint: {
+    type: String,
+    default: undefined,
+  },
+  inputClass: {
+    type: String,
+    default: undefined,
+  },
 })
 
 const inputComponent = computed(() => {

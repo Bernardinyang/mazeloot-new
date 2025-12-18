@@ -37,23 +37,27 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 
 const themeStore = useThemeStore()
 
-const props = withDefaults(
-  defineProps<{
-    size?: 'sm' | 'md' | 'lg'
-    showText?: boolean
-    colorClass?: string
-  }>(),
-  {
-    size: 'md',
-    showText: true,
-  }
-)
+const props = defineProps({
+  size: {
+    type: String,
+    default: 'md',
+    validator: value => ['sm', 'md', 'lg'].includes(value),
+  },
+  showText: {
+    type: Boolean,
+    default: true,
+  },
+  colorClass: {
+    type: String,
+    default: undefined,
+  },
+})
 
 // Determine if dark mode based on effective theme
 const isDark = computed(() => themeStore.effectiveTheme === 'dark')

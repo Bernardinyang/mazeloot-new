@@ -54,34 +54,31 @@
   </CenterModal>
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed } from 'vue'
 import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
-interface Props {
-  modelValue: boolean
-  isSaving?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  isSaving: false,
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    required: true,
+  },
+  isSaving: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
-  save: []
-  discard: []
-  cancel: []
-}>()
+const emit = defineEmits(['update:modelValue', 'save', 'discard', 'cancel'])
 
 const theme = useThemeClasses()
 
 const isOpen = computed({
   get: () => props.modelValue,
-  set: (value: boolean) => emit('update:modelValue', value),
+  set: value => emit('update:modelValue', value),
 })
 
 const handleSave = () => {

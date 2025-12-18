@@ -86,22 +86,20 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import type {
-  CoverStyleConfig,
-  BackgroundSection,
-  HorizontalLine,
-  VerticalLine,
-  Decoration,
-} from '@/config/coverStyles'
-
-const props = defineProps<{
-  config: CoverStyleConfig
-  paletteColors: string[] // [background, accent, text]
-}>()
+<script setup>
+const props = defineProps({
+  config: {
+    type: Object,
+    required: true,
+  },
+  paletteColors: {
+    type: Array,
+    required: true,
+  },
+})
 
 // Color helper
-const getColor = (colorSource: string, customColor?: string): string => {
+const getColor = (colorSource, customColor) => {
   if (customColor) return customColor
   if (colorSource === 'accent') return props.paletteColors[1]
   if (colorSource === 'primary') return props.paletteColors[0]
@@ -110,8 +108,8 @@ const getColor = (colorSource: string, customColor?: string): string => {
 }
 
 // Background Sections
-const getSectionClasses = (section: BackgroundSection) => {
-  const classes: string[] = []
+const getSectionClasses = section => {
+  const classes = []
   if (section.position === 'left') {
     classes.push('left-0 top-0 bottom-0')
   } else if (section.position === 'right') {
@@ -124,9 +122,9 @@ const getSectionClasses = (section: BackgroundSection) => {
   return classes.join(' ')
 }
 
-const getSectionStyle = (section: BackgroundSection) => {
+const getSectionStyle = section => {
   const color = getColor(section.color, section.customColor)
-  const style: Record<string, string> = {}
+  const style = {}
 
   if (section.position === 'left' || section.position === 'right') {
     style.width = `${section.width}%`
@@ -159,7 +157,7 @@ const getDividerClasses = () => {
 
 const getDividerStyle = () => {
   const color = getColor(props.config.dividers.color, props.config.dividers.customColor)
-  const style: Record<string, string> = {
+  const style = {
     backgroundColor: color,
     borderStyle: props.config.dividers.style,
   }
@@ -178,9 +176,9 @@ const getDividerStyle = () => {
 }
 
 // Horizontal Lines
-const getHorizontalLineStyle = (line: HorizontalLine) => {
+const getHorizontalLineStyle = line => {
   const color = getColor(line.color, line.customColor)
-  const style: Record<string, string> = {
+  const style = {
     left: '0',
     right: '0',
     height: `${line.width}px`,
@@ -210,9 +208,9 @@ const getHorizontalLineStyle = (line: HorizontalLine) => {
 }
 
 // Vertical Lines
-const getVerticalLineStyle = (line: VerticalLine) => {
+const getVerticalLineStyle = line => {
   const color = getColor(line.color, line.customColor)
-  const style: Record<string, string> = {
+  const style = {
     top: '0',
     bottom: '0',
     width: `${line.width}px`,
@@ -245,7 +243,7 @@ const getFrameClasses = () => {
 
 const getFrameStyle = () => {
   const color = getColor(props.config.frame.color, props.config.frame.customColor)
-  const style: Record<string, string> = {
+  const style = {
     borderWidth: `${props.config.frame.width}px`,
     borderStyle: 'solid',
     borderColor: color,
@@ -271,8 +269,7 @@ const getFrameStyle = () => {
     style.borderBottomWidth = '0'
     style.borderLeftWidth = '0'
     props.config.frame.sides.forEach(side => {
-      const sideKey =
-        `border${side.charAt(0).toUpperCase() + side.slice(1)}Width` as keyof typeof style
+      const sideKey = `border${side.charAt(0).toUpperCase() + side.slice(1)}Width`
       style[sideKey] = `${props.config.frame.width}px`
     })
   }
@@ -283,7 +280,7 @@ const getFrameStyle = () => {
 // Borders
 const getBorderStyle = () => {
   const color = getColor(props.config.borders.color, props.config.borders.customColor)
-  const style: Record<string, string> = {
+  const style = {
     borderStyle: props.config.borders.style,
     borderColor: color,
     borderRadius: `${props.config.borders.radius}px`,
@@ -299,7 +296,7 @@ const getBorderStyle = () => {
 }
 
 // Decorations
-const getDecorationStyle = (decoration: Decoration) => {
+const getDecorationStyle = decoration => {
   return {
     left: `${decoration.position.x}%`,
     top: `${decoration.position.y}%`,

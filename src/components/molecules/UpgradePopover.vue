@@ -54,7 +54,8 @@
   </Popover>
 </template>
 
-<script setup lang="ts">
+<script setup>
+import { computed } from 'vue'
 import { Rocket } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
@@ -63,7 +64,19 @@ import { toast } from 'vue-sonner'
 
 const theme = useThemeClasses()
 
-const isOpen = defineModel<boolean>({ default: false })
+const props = defineProps({
+  modelValue: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['update:modelValue'])
+
+const isOpen = computed({
+  get: () => props.modelValue,
+  set: value => emit('update:modelValue', value),
+})
 
 const handleUpgrade = () => {
   // TODO: Implement upgrade logic
