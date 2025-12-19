@@ -601,7 +601,7 @@ const loadPresetData = () => {
       slideshow: slideshow.value,
       socialSharing: socialSharing.value,
       language: language.value,
-    }
+    })
 
     originalData.value = {
       formData: { ...formData },

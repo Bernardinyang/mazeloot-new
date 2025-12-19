@@ -1,7 +1,6 @@
 <template>
-  <SelectionLayout :selection="selection" :is-loading="isLoading" @go-back="goBack">
+  <SelectionLayout :is-loading="isLoading" :selection="selection" @go-back="goBack">
     <template #content>
-      <!-- Hidden File Input -->
       <input
         ref="fileInputRef"
         accept="image/*,video/*"
@@ -10,6 +9,8 @@
         type="file"
         @change="handleFileSelect"
       />
+
+      {{ mediaSets }}
 
       <!-- Main Content Area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
@@ -101,8 +102,6 @@
           <div v-else-if="selectedSetId && sortedMediaItems.length > 0" class="mb-8">
             <TransitionGroup
               v-if="viewMode === 'grid'"
-              name="media-grid"
-              tag="div"
               :class="[
                 'grid gap-4',
                 gridSize === 'small'
@@ -111,6 +110,8 @@
                     ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
                     : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
               ]"
+              name="media-grid"
+              tag="div"
             >
               <MediaGridItemCard
                 v-for="item in sortedMediaItems"
@@ -135,7 +136,7 @@
                 @remove-watermark="handleRemoveWatermark(item)"
               />
             </TransitionGroup>
-            <TransitionGroup v-else name="media-list" tag="div" class="space-y-2">
+            <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
               <MediaListItemRow
                 v-for="item in sortedMediaItems"
                 :key="item.id"
@@ -174,11 +175,11 @@
             class="flex items-center justify-center py-16"
           >
             <EmptyState
-              :icon="FolderPlus"
-              message="No sets in this selection"
-              description="Create a set to organize and upload your media files."
-              action-label="Create Set"
               :action-icon="Plus"
+              :icon="FolderPlus"
+              action-label="Create Set"
+              description="Create a set to organize and upload your media files."
+              message="No sets in this selection"
               @action="mediaSetsSidebar.handleAddSet"
             />
           </div>
@@ -293,10 +294,10 @@
 
       <UploadProgressBar
         v-model="showUploadProgress"
-        :upload-progress="uploadProgress"
+        :is-uploading="isUploading"
         :overall-progress="overallProgress"
         :upload-errors="uploadErrors"
-        :is-uploading="isUploading"
+        :upload-progress="uploadProgress"
         @cancel="cancelUpload"
         @close="showUploadProgress = false"
         @retry="handleRetryUpload"
@@ -353,10 +354,10 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
+import { FolderPlus, Loader2, Plus } from 'lucide-vue-next'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
@@ -414,15 +415,10 @@ const {
   selectedSetId,
   mediaSets,
   sortedMediaSets,
-  draggedSetId,
-  dragOverIndex,
-  editingSetId,
-  editingSetName,
   showCreateSetModal,
   newSetName,
   newSetDescription,
   isCreatingSet,
-  isSavingSets,
   editingSetIdInModal,
 } = storeToRefs(mediaSetsSidebar)
 
@@ -519,15 +515,14 @@ const gridSizeOptions = [
 
 // Filter media items by selected set
 const filteredMediaItems = computed(() => {
-  // If no set is selected, show all media (or empty if no sets exist)
   if (!selectedSetId.value) {
-    // If there are sets but none selected, return empty
     if (mediaSets.value.length > 0) {
       return []
     }
-    // If no sets exist, show all media
+
     return mediaItems.value
   }
+
   // Filter by selected set
   return mediaItems.value.filter(item => item.setId === selectedSetId.value)
 })

@@ -1,7 +1,7 @@
 <template>
   <SidebarModal
     :model-value="props.modelValue"
-    :title="props.isEditing ? 'EDIT PHOTO SET' : 'CREATE PHOTO SET'"
+    :title="editing ? 'EDIT PHOTO SET' : 'CREATE PHOTO SET'"
     content-class="sm:max-w-md"
     @update:model-value="emit('update:modelValue', $event)"
   >
@@ -11,8 +11,8 @@
           Photo Set Name <span class="text-red-500">*</span>
         </label>
         <Input
-          :model-value="props.name"
           :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+          :model-value="props.name"
           class="w-full"
           placeholder="e.g. Ceremony, Reception, Getting ready"
           @update:model-value="emit('update:name', $event)"
@@ -24,9 +24,9 @@
       <div class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-semibold"> Description </label>
         <Textarea
-          :model-value="props.description"
           :class="[theme.bgInput, theme.borderInput, theme.textInput]"
           :maxlength="500"
+          :model-value="props.description"
           class="w-full min-h-[100px] resize-none"
           placeholder="Optional"
           @update:model-value="emit('update:description', $event)"
@@ -44,10 +44,10 @@
 
     <template #footer>
       <ActionButtonGroup
-        :confirm-label="props.isEditing ? 'Update' : 'Create'"
-        :disabled="props.isCreating"
-        :loading="props.isCreating"
-        :loading-label="props.isEditing ? 'Updating...' : 'Creating...'"
+        :confirm-label="editing ? 'Update' : 'Create'"
+        :disabled="creating"
+        :loading="creating"
+        :loading-label="editing ? 'Updating...' : 'Creating...'"
         cancel-label="Cancel"
         @cancel="emit('cancel')"
         @confirm="emit('confirm')"
@@ -62,6 +62,7 @@ import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import Textarea from '@/components/shadcn/Textarea.vue'
+import { ref } from 'vue'
 
 const theme = useThemeClasses()
 
@@ -88,6 +89,9 @@ const props = defineProps({
   },
 })
 
+const creating = ref(props.isCreating)
+const editing = ref(props.isEditing)
+
 const emit = defineEmits([
   'update:modelValue',
   'update:name',
@@ -95,4 +99,9 @@ const emit = defineEmits([
   'cancel',
   'confirm',
 ])
+
+const createSet = () => {
+  creating.value = true
+  emit('confirm')
+}
 </script>
