@@ -179,6 +179,38 @@ export function useAuthApi() {
   /**
    * Logout user
    */
+  /**
+   * Send magic link to email
+   */
+  const sendMagicLink = async email => {
+    try {
+      const response = await apiClient.post(
+        '/v1/auth/magic-link/send',
+        { email },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Verify magic link token
+   */
+  const verifyMagicLink = async (token, email) => {
+    try {
+      const response = await apiClient.post(
+        '/v1/auth/magic-link/verify',
+        { token, email },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const getUser = async () => {
     try {
       const response = await apiClient.get('/v1/auth/user')
@@ -206,6 +238,8 @@ export function useAuthApi() {
     resetPassword,
     googleSignIn,
     googleSignInCallback,
+    sendMagicLink,
+    verifyMagicLink,
     getUser,
     logout,
   }

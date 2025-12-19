@@ -53,4 +53,12 @@ export const guestRoutes = [
       isGuestRoute: true,
     },
   },
+  {
+    path: '/auth/magic-link/verify',
+    name: 'magicLinkVerify',
+    component: () => import('@/views/guest/MagicLinkVerify.vue'),
+    meta: {
+      isGuestRoute: true,
+    },
+  },
 ]

@@ -3,9 +3,11 @@ import { ref, watch } from 'vue'
 import { storage } from '@/utils/storage'
 
 const THEME_STORAGE_KEY = 'mazeloot_theme'
+const TOAST_DESIGN_STORAGE_KEY = 'mazeloot_toast_design'
 
 export const useThemeStore = defineStore('theme', () => {
   const theme = ref(storage.get(THEME_STORAGE_KEY) || 'dark')
+  const toastDesign = ref(storage.get(TOAST_DESIGN_STORAGE_KEY) || '1')
   const systemTheme = ref(
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   )
@@ -46,6 +48,21 @@ export const useThemeStore = defineStore('theme', () => {
   watch(theme, () => {
     persistTheme()
   })
+
+  // Watch toast design and persist to localStorage
+  watch(toastDesign, () => {
+    storage.set(TOAST_DESIGN_STORAGE_KEY, toastDesign.value)
+  })
+
+  // Set toast design
+  const setToastDesign = design => {
+    if (['1', '2', '3', '4', '5', 'default'].includes(design)) {
+      toastDesign.value = design
+    } else {
+      console.warn(`Invalid toast design: ${design}. Using default.`)
+      toastDesign.value = '1'
+    }
+  }
 
   // Set theme
   const setTheme = newTheme => {
@@ -88,8 +105,11 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     theme,
+    toastDesign,
+    systemTheme,
     effectiveTheme,
     setTheme,
     toggleTheme,
+    setToastDesign,
   }
 })

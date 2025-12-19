@@ -169,24 +169,9 @@
   }
 }
 
-/* Toast styling to match theme */
+/* Toast styling - base styles handled in Toaster.vue component */
 @layer components {
-  [data-sonner-toast] {
-    background: hsl(var(--card)) !important;
-    color: hsl(var(--card-foreground)) !important;
-    border: 1px solid hsl(var(--border)) !important;
-    box-shadow:
-      0 4px 6px -1px rgb(0 0 0 / 0.1),
-      0 2px 4px -2px rgb(0 0 0 / 0.1) !important;
-  }
-
-  [data-sonner-toast][data-type='success'] {
-    border-color: hsl(142.1 76.2% 36.3%) !important;
-  }
-
-  [data-sonner-toast][data-type='error'] {
-    border-color: hsl(var(--destructive)) !important;
-  }
+  /* Legacy toast styles removed - now handled by toast design types in Toaster.vue */
 }
 
 /* Slider fade transition */
