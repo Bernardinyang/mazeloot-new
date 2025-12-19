@@ -9,11 +9,15 @@ import { RouterLink } from 'vue-router'
 import IconMail from '@/icons/IconMail.vue'
 import IconChevronLeft from '@/icons/IconChevronLeft.vue'
 import IconChevronRight from '@/icons/IconChevronRight.vue'
+import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import { useThemeClasses } from '@/composables/useThemeClasses'
 
 defineProps({
   title: String,
   description: String,
 })
+
+const theme = useThemeClasses()
 
 const testimonials = [
   {
@@ -120,26 +124,40 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div class="grid min-h-svh lg:grid-cols-2">
-    <div class="flex flex-col p-6 md:p-10">
-      <!-- Logo -->
-      <div class="flex justify-center gap-2 md:justify-start mb-8">
-        <RouterLink to="/" class="flex items-center gap-2 font-medium">
-          <div
-            class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md"
+  <div :class="[theme.bgPage, 'grid min-h-svh lg:grid-cols-2']">
+    <div :class="[theme.bgPage, 'flex flex-col p-6 md:p-10']">
+      <!-- Header with Logo and Theme Toggle -->
+      <div class="flex justify-between items-center mb-8">
+        <div class="flex justify-center gap-2 md:justify-start">
+          <RouterLink
+            to="/"
+            :class="[
+              theme.textPrimary,
+              theme.transitionColors,
+              'flex items-center gap-2 font-medium hover:opacity-80',
+            ]"
           >
-            <GalleryVerticalEnd class="size-4" />
-          </div>
-          Mazeloot
-        </RouterLink>
+            <div
+              class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md"
+            >
+              <GalleryVerticalEnd class="size-4" />
+            </div>
+            Mazeloot
+          </RouterLink>
+        </div>
+        <ThemeToggle />
       </div>
 
       <!-- Form Content -->
       <div class="flex flex-1 items-center justify-center">
         <div class="w-full max-w-md space-y-6">
           <div v-if="title || description" class="text-center space-y-2">
-            <h1 v-if="title" class="text-3xl font-bold tracking-tight">{{ title }}</h1>
-            <p v-if="description" class="text-muted-foreground">{{ description }}</p>
+            <h1 v-if="title" :class="[theme.textPrimary, 'text-3xl font-bold tracking-tight']">
+              {{ title }}
+            </h1>
+            <p v-if="description" :class="[theme.textSecondary, 'text-sm']">
+              {{ description }}
+            </p>
           </div>
           <slot />
         </div>
@@ -147,19 +165,27 @@ onUnmounted(() => {
 
       <!-- Footer -->
       <div
-        class="mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm text-muted-foreground"
+        :class="[
+          theme.textMuted,
+          'mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm',
+        ]"
       >
         <div>© MazeLoot 2025</div>
         <div class="flex items-center gap-2 mt-2 md:mt-0">
           <IconMail class="w-4 h-4" :size="16" />
-          <a href="mailto:help@mazeloot.com" class="hover:text-foreground transition-colors"
+          <a
+            href="mailto:help@mazeloot.com"
+            :class="[theme.textMuted, theme.transitionColors, 'hover:text-foreground']"
             >help@mazeloot.com</a
           >
         </div>
       </div>
     </div>
     <div
-      class="bg-muted relative hidden lg:block overflow-hidden"
+      :class="[
+        'bg-muted dark:bg-gray-900/50 light:bg-gray-100/50',
+        'relative hidden lg:block overflow-hidden',
+      ]"
       @mouseenter="stopSlider"
       @mouseleave="startSlider"
     >
