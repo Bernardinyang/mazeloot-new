@@ -465,7 +465,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
 

@@ -249,7 +249,7 @@ import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationMo
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const description = ''
 

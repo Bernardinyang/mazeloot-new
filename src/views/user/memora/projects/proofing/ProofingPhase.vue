@@ -82,7 +82,7 @@
               'text-white text-xs px-2 py-1 rounded-full',
             ]"
           >
-            {{ proofing.status }}
+            {{ capitalize(proofing.status) }}
           </div>
         </div>
       </div>
@@ -212,6 +212,7 @@ import { useProjectStore } from '@/stores/project'
 import { useProofingStore } from '@/stores/proofing'
 import { useMediaApi } from '@/api/media'
 import { useProofingWorkflow } from '@/composables/useProofingWorkflow'
+import { capitalize } from '@/lib/utils'
 
 const route = useRoute()
 const router = useRouter()

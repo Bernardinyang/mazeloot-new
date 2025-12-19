@@ -3,7 +3,7 @@
  * Handles proofing phase operations
  */
 
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { useMediaApi } from '@/api/media'
 import { useProofingStore } from '@/stores/proofing'
 

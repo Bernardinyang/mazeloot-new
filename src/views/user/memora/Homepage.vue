@@ -442,7 +442,7 @@ import { Select } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useCollectionSort } from '@/composables/useCollectionSort'
 import { HOMEPAGE_SORT_OPTIONS } from '@/constants/sortOptions'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const description = ''
 

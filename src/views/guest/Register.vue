@@ -77,7 +77,7 @@ import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Field, Form } from 'vee-validate'
 import * as yup from 'yup'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import FormField from '@/components/molecules/FormField.vue'
@@ -85,10 +85,12 @@ import Divider from '@/components/atoms/Divider.vue'
 import GoogleButton from '@/components/molecules/GoogleButton.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useUserStore } from '@/stores/user'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
+const { handleError } = useErrorHandler()
 const loading = computed(() => userStore.isLoading)
 
 const schema = yup.object({
@@ -114,21 +116,32 @@ const schema = yup.object({
 
 const handleRegister = async values => {
   try {
-    // Register user - this automatically saves to store and localStorage
-    await userStore.register(values.name, values.email, values.password)
+    // Register user
+    const response = await userStore.register(values.name, values.email, values.password)
 
-    toast.success('Account created successfully!', {
-      description: 'Welcome! Redirecting...',
-    })
+    if (response.requires_verification) {
+      toast.success('Account created successfully!', {
+        description: 'Please verify your email to continue',
+      })
 
-    // Redirect to overview or original destination
-    // User is already logged in after registration
-    const redirect = route.query.redirect
-    await router.push(redirect || { name: 'overview' })
+      // Redirect to email verification page
+      await router.push({
+        name: 'verifyEmail',
+        query: { email: values.email, redirect: route.query.redirect },
+      })
+    } else {
+      toast.success('Account created successfully!', {
+        description: 'Welcome! Redirecting...',
+      })
+
+      // Redirect to overview or original destination
+      const redirect = route.query.redirect
+      await router.push(redirect || { name: 'overview' })
+    }
   } catch (error) {
     console.error('Registration error:', error)
-    toast.error('Registration failed', {
-      description: error.message || 'An error occurred during registration',
+    await handleError(error, {
+      fallbackMessage: 'An error occurred during registration',
     })
   }
 }
@@ -137,23 +150,14 @@ const handleGoogleSignUp = async () => {
   try {
     const { useAuthApi } = await import('@/api/auth')
     const authApi = useAuthApi()
-    const response = await authApi.googleSignIn()
+    const redirectUrl = await authApi.googleSignIn()
 
-    userStore.user = response.user
-    userStore.token = response.token
-    // Persistence is handled by store watchers
-
-    toast.success('Account created successfully!', {
-      description: 'Welcome! Redirecting...',
-    })
-
-    // Redirect to the original destination or overview
-    const redirect = route.query.redirect
-    await router.push(redirect || { name: 'overview' })
+    // Redirect to Google OAuth
+    window.location.href = redirectUrl
   } catch (error) {
     console.error('Google sign up error:', error)
-    toast.error('Google sign up failed', {
-      description: error.message || 'An error occurred during Google sign up',
+    handleError(error, {
+      fallbackMessage: 'Google sign up failed. Please try again.',
     })
   }
 }

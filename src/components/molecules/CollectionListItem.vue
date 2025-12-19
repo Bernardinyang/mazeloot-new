@@ -262,7 +262,7 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 

@@ -137,7 +137,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import CreatePresetDialog from '@/components/organisms/CreatePresetDialog.vue'
 import { usePresetStore } from '@/stores/preset'
 

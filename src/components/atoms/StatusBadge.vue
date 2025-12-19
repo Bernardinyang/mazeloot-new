@@ -1,11 +1,12 @@
 <template>
   <span :class="badgeClasses">
-    {{ status }}
+    {{ capitalize(status) }}
   </span>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { capitalize } from '@/lib/utils'
 
 const props = defineProps({
   status: {

@@ -176,7 +176,7 @@ import {
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { usePresetStore } from '@/stores/preset'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const route = useRoute()
 const router = useRouter()

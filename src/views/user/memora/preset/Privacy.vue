@@ -157,7 +157,7 @@ import PresetLayout from '@/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
 
 const route = useRoute()

@@ -3,7 +3,7 @@
  * Handles selection phase operations
  */
 
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { useMediaApi } from '@/api/media'
 import { useSelectionStore } from '@/stores/selection'
 

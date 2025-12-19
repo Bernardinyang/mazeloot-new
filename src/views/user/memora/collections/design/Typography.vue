@@ -280,7 +280,7 @@ import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const route = useRoute()
 const router = useRouter()

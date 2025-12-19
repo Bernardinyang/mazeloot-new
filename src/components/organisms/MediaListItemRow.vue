@@ -151,7 +151,12 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import {
+  getMediaDisplayUrl,
+  getMediaDisplayUrlSync,
+  revokeMediaBlobUrl,
+} from '@/utils/media/getMediaDisplayUrl'
 import {
   CheckSquare2,
   Copy,
@@ -200,10 +205,53 @@ const props = defineProps({
   },
 })
 
-const imageSrc = computed(() => props.item?.thumbnail || props.item?.url || props.placeholderImage)
+const imageSrc = ref(props.placeholderImage)
 const isImageLoaded = ref(false)
-watch(imageSrc, () => {
-  isImageLoaded.value = false
+
+// Initialize image source
+const updateImageSrc = async () => {
+  const url = props.item?.thumbnail || props.item?.url
+  if (!url) {
+    imageSrc.value = props.placeholderImage
+    return
+  }
+
+  try {
+    const displayUrl = await getMediaDisplayUrl(url, props.placeholderImage)
+    // Always update with the result, even if it's the fallback
+    // This ensures blob URLs are set when available
+    imageSrc.value = displayUrl || props.placeholderImage
+  } catch (error) {
+    console.error('Error updating image source:', error, 'URL:', url)
+    imageSrc.value = props.placeholderImage
+  }
+}
+
+onMounted(() => {
+  // Set initial sync URL for immediate display
+  const url = props.item?.thumbnail || props.item?.url
+  if (url) {
+    imageSrc.value = getMediaDisplayUrlSync(url, props.placeholderImage)
+    // Then update with async blob URL if needed
+    updateImageSrc()
+  } else {
+    imageSrc.value = props.placeholderImage
+  }
+})
+
+watch(
+  () => [props.item?.thumbnail, props.item?.url],
+  () => {
+    isImageLoaded.value = false
+    updateImageSrc()
+  }
+)
+
+onUnmounted(() => {
+  // Cleanup blob URLs
+  if (imageSrc.value && imageSrc.value.startsWith('blob:')) {
+    revokeMediaBlobUrl(imageSrc.value)
+  }
 })
 
 const emit = defineEmits([

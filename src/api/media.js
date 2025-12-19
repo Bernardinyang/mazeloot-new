@@ -185,7 +185,12 @@ const saveMedia = async media => {
 
   // If using IndexedDB, save there
   if (useIndexedDB && isIndexedDBAvailable()) {
-    await saveMediaToIndexedDB(media)
+    try {
+      await saveMediaToIndexedDB(media)
+    } catch (error) {
+      console.error('Failed to save media to IndexedDB:', error)
+      throw error
+    }
   }
 }
 
@@ -253,7 +258,16 @@ export function useMediaApi() {
     }
 
     allMedia.push(newMedia)
-    await saveMedia(allMedia)
+
+    try {
+      await saveMedia(allMedia)
+    } catch (error) {
+      console.error('Failed to save media:', error)
+      // Remove from array if save failed
+      allMedia.pop()
+      throw new Error(`Failed to save media: ${error.message}`)
+    }
+
     return newMedia
   }
 

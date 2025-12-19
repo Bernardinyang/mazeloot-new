@@ -1,7 +1,15 @@
 <template>
   <div
     ref="cardRef"
-    :style="{ ...tiltStyle, width: containerWidth, height: containerHeight }"
+    :style="{
+      ...tiltStyle,
+      width: containerWidth,
+      height: containerHeight,
+      '--card-color': cardColor,
+      '--card-color-light': cardColorLight,
+      '--card-color-dark': cardColorDark,
+      borderColor: `${cardColor}33`,
+    }"
     :class="[
       'group relative rounded-xl overflow-hidden cursor-pointer',
       'transform-gpu',
@@ -11,9 +19,8 @@
       'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
       containerClass,
       theme.bgCard,
-      theme.borderCard,
       theme.shadowCard,
-      'border',
+      'border-2',
       isDragging ? 'opacity-50 scale-95' : '',
       isDragOver ? 'ring-2 ring-primary ring-offset-2' : '',
       props.isMoving ? 'animate-move-out' : '',
@@ -34,6 +41,16 @@
     role="button"
     :aria-label="captionText || altText"
   >
+    <!-- Collection-specific gradient background (only shown when no image) -->
+    <div
+      v-if="!imageSrc && !previewImages?.length && !isFolder"
+      :style="{
+        background: `linear-gradient(to bottom right, ${cardColorLight}, ${cardColorDark})`,
+        opacity: '0.6',
+      }"
+      class="absolute inset-0 dark:opacity-40"
+    ></div>
+
     <!-- Image Container -->
     <div
       :class="['relative overflow-hidden', imageContainerClass]"
@@ -44,6 +61,13 @@
         v-if="previewImages && previewImages.length > 0"
         class="w-full h-full grid grid-cols-2 grid-rows-2 gap-0.5 bg-gray-200/50 dark:bg-gray-800/50 p-0.5 relative"
       >
+        <!-- Subtle color overlay for brand consistency -->
+        <div
+          :style="{
+            background: `linear-gradient(to bottom right, ${cardColor}15, transparent)`,
+          }"
+          class="absolute inset-0 pointer-events-none z-10"
+        ></div>
         <!-- Folder Badge Indicator (Top Left) -->
         <div
           v-if="isFolder"
@@ -96,9 +120,16 @@
           @error="handleImageError($event)"
         />
         <div
-          class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent transition-opacity duration-300"
-          :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-0'"
+          class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
+          :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-70'"
         />
+        <!-- Subtle color overlay for brand consistency -->
+        <div
+          :style="{
+            background: `linear-gradient(to bottom right, ${cardColor}15, transparent)`,
+          }"
+          class="absolute inset-0 pointer-events-none"
+        ></div>
         <!-- Project Indicator (if collection is part of a project) -->
         <div
           v-if="collectionData?.projectId"
@@ -122,20 +153,41 @@
         class="w-full h-full flex items-center justify-center relative"
         :class="theme.bgCardSolid"
       >
+        <!-- Gradient background for collections without images -->
+        <div
+          :style="{
+            background: `linear-gradient(to bottom right, ${cardColorLight}, ${cardColorDark})`,
+            opacity: '0.6',
+          }"
+          class="absolute inset-0 dark:opacity-40"
+        ></div>
         <div class="relative z-10 flex flex-col items-center gap-3">
           <!-- Folder Icon with Lock Overlay -->
           <div class="relative">
-            <component
-              v-if="folderIcon"
-              :is="folderIcon"
-              class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
-              :class="theme.textTertiary"
-            />
-            <Folder
-              v-else
-              class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
-              :class="theme.textTertiary"
-            />
+            <div
+              v-if="isFolder"
+              :style="{
+                background: `linear-gradient(to bottom right, ${cardColor}, ${cardColorDark})`,
+                borderColor: `${cardColor}80`,
+              }"
+              class="w-20 h-20 rounded-xl flex items-center justify-center border-2 transition-transform duration-300 group-hover:scale-110"
+            >
+              <component v-if="folderIcon" :is="folderIcon" class="h-10 w-10 text-white" />
+              <Folder v-else class="h-10 w-10 text-white" />
+            </div>
+            <template v-else>
+              <component
+                v-if="folderIcon"
+                :is="folderIcon"
+                class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
+                :class="theme.textTertiary"
+              />
+              <Folder
+                v-else
+                class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
+                :class="theme.textTertiary"
+              />
+            </template>
             <!-- Lock Icon Overlay on Folder -->
             <div
               v-if="isLocked"
@@ -289,18 +341,19 @@
           <component
             v-if="isFolder && !icon"
             :is="Folder"
+            :style="{ color: cardColor }"
             class="h-4 w-4 mt-0.5 shrink-0"
-            :class="theme.textSecondary"
           />
           <component
             v-else-if="icon"
             :is="icon"
+            :style="{ color: cardColor }"
             class="h-4 w-4 mt-0.5 shrink-0"
-            :class="theme.textSecondary"
           />
           <h3
-            class="font-semibold text-base leading-tight line-clamp-2 group-hover:text-primary transition-colors duration-200"
-            :class="theme.textPrimary"
+            :style="{ color: isHovering ? cardColor : undefined }"
+            class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
+            :class="[!isHovering && theme.textPrimary]"
             :title="captionText"
           >
             {{ captionText }}

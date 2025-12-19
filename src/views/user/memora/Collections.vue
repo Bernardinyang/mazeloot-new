@@ -431,7 +431,7 @@ import { useGalleryStore } from '@/stores/gallery'
 import { useProjectStore } from '@/stores/project'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

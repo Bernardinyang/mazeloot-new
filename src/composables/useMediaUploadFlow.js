@@ -1,9 +1,10 @@
 import { ref } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 import { fileToDataURL } from '@/utils/fileToDataURL'
 import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
 import { createThumbnail } from '@/utils/media/createThumbnail'
+import { storeFile, storeBlob, getFile, getFileBlobURL } from '@/utils/fileStorage'
 import { splitDuplicateUploadFiles } from '@/utils/media/splitDuplicateUploadFiles'
 import { filterValidUploadFiles } from '@/utils/media/filterValidUploadFiles'
 import { getFileBaseName } from '@/utils/media/getFileBaseName'
@@ -28,13 +29,16 @@ export function useMediaUploadFlow({
 
   const processFiles = async files => {
     if (!collection.value) {
-      toast.error('No set selected', {
+      toast.error('No collection/selection loaded', {
         description,
       })
       return
     }
+    // Require a set to be selected for uploads
     if (!selectedSetId?.value) {
-      toast.error('No set selected', { description })
+      toast.error('No set selected', {
+        description: 'Please select a set from the sidebar before uploading.',
+      })
       return
     }
 
@@ -49,7 +53,11 @@ export function useMediaUploadFlow({
     }
 
     // Check for duplicate file names in the current set
-    const { duplicates, newFiles } = splitDuplicateUploadFiles(validFiles, mediaItems.value)
+    // Filter mediaItems to only check against items in the selected set
+    const mediaInSelectedSet = selectedSetId?.value
+      ? mediaItems.value.filter(item => item.setId === selectedSetId.value)
+      : mediaItems.value
+    const { duplicates, newFiles } = splitDuplicateUploadFiles(validFiles, mediaInSelectedSet)
 
     // If there are duplicates, show modal to ask user what to do
     if (duplicates.length > 0) {
@@ -125,6 +133,21 @@ export function useMediaUploadFlow({
         }
       }
 
+      // Determine if this is a selection or collection
+      // Selections don't have a 'uuid' property, collections do
+      const isSelection = !collection.value?.uuid
+      const collectionId = isSelection ? null : collection.value.id
+      const phase = isSelection ? 'selection' : 'collection'
+      const phaseId = collection.value.id
+
+      if (!phaseId) {
+        toast.error('Invalid selection/collection', {
+          description: 'Unable to determine selection/collection ID.',
+        })
+        isUploading.value = false
+        return
+      }
+
       // Process each file and save to mock data
       const uploadedItems = []
 
@@ -137,53 +160,136 @@ export function useMediaUploadFlow({
           const fileName = getFileBaseName(file.name)
 
           if (file.type.startsWith('image/')) {
-            // For images
-            const thumbnail = await createThumbnail(file, watermark || undefined)
+            // Store the original file in IndexedDB
+            let filePath
+            try {
+              filePath = await storeFile(file)
+            } catch (error) {
+              console.error('Error storing file in IndexedDB:', error)
+              toast.error('Failed to store file', {
+                description: `Error storing ${file.name}: ${error.message}`,
+              })
+              continue
+            }
 
-            // Use thumbnail URL for instant display
-            // Process full image in background
-            const initialUrl = thumbnail
+            // Create thumbnail and store it in IndexedDB
+            let thumbnailPath
+            try {
+              const thumbnailDataURL = await createThumbnail(file, watermark || undefined)
+              const thumbnailBlob = await (await fetch(thumbnailDataURL)).blob()
+              thumbnailPath = await storeBlob(thumbnailBlob, `thumb_${fileName}.jpg`)
+            } catch (error) {
+              console.error('Error creating/storing thumbnail:', error)
+              // Continue with upload even if thumbnail fails
+              thumbnailPath = filePath
+            }
 
-            const newMedia = await mediaApi.addMedia(collection.value.id, {
-              url: initialUrl,
-              thumbnail: thumbnail,
-              type: type,
-              title: fileName,
-              order: mediaItems.value.length,
-              setId: selectedSetId.value,
-            })
+            // Store file path (file://...) instead of base64
+            let newMedia
+            try {
+              newMedia = await mediaApi.addMedia(collectionId, {
+                phase: phase,
+                phaseId: phaseId,
+                url: filePath,
+                thumbnail: thumbnailPath,
+                type: type,
+                title: fileName,
+                order: mediaItems.value.length,
+                setId: selectedSetId.value,
+              })
 
-            mediaItems.value.push(newMedia)
-            uploadedItems.push(newMedia)
+              // Verify the media was actually saved by checking if it has an ID
+              if (!newMedia || !newMedia.id) {
+                throw new Error('Media was not created properly')
+              }
+
+              mediaItems.value.push(newMedia)
+              uploadedItems.push(newMedia)
+
+              // Small delay to ensure media is persisted before background processing
+              await new Promise(resolve => setTimeout(resolve, 100))
+            } catch (error) {
+              console.error('Error adding media to API:', error)
+              toast.error('Failed to add media', {
+                description: `Error adding ${file.name}: ${error.message}`,
+              })
+              continue
+            }
 
             // Process full image with watermark in background and update
             ;(async () => {
               try {
-                const originalImageUrl = await fileToDataURL(file)
-                let fullUrl = originalImageUrl
+                // Wait a bit longer to ensure media is fully saved to storage
+                await new Promise(resolve => setTimeout(resolve, 1000))
+
+                // Get the file from IndexedDB
+                const storedFile = await getFile(filePath)
+                const originalImageUrl = await fileToDataURL(storedFile)
+                let watermarkedPath = filePath
+
                 if (watermark) {
-                  fullUrl = await applyWatermarkToImage(originalImageUrl, watermark)
-                  await mediaApi.updateMedia(newMedia.id, {
-                    originalUrl: originalImageUrl,
+                  const fullUrl = await applyWatermarkToImage(originalImageUrl, watermark)
+                  // Store watermarked version in IndexedDB
+                  const watermarkedBlob = await (await fetch(fullUrl)).blob()
+                  watermarkedPath = await storeBlob(watermarkedBlob, `watermarked_${fileName}.jpg`)
+
+                  // Store original separately in IndexedDB
+                  const originalBlob = await storedFile.arrayBuffer()
+                  const originalFile = new File([originalBlob], file.name, { type: file.type })
+                  const originalPath = await storeFile(originalFile, {
+                    id: `${newMedia.id}_original`,
                   })
+
+                  // Retry logic for updateMedia in case of race condition
+                  let retries = 3
+                  while (retries > 0) {
+                    try {
+                      await mediaApi.updateMedia(newMedia.id, {
+                        originalUrl: originalPath,
+                      })
+                      break
+                    } catch (error) {
+                      retries--
+                      if (retries === 0) {
+                        console.error('Error updating media after retries:', error)
+                        // Don't throw, just log - the media is already added
+                      } else {
+                        // Wait before retry
+                        await new Promise(resolve => setTimeout(resolve, 300))
+                      }
+                    }
+                  }
                 }
 
                 const index = mediaItems.value.findIndex(m => m.id === newMedia.id)
                 if (index !== -1) {
-                  mediaItems.value[index].url = fullUrl
+                  mediaItems.value[index].url = watermarkedPath || filePath
                   if (watermark) {
-                    mediaItems.value[index].originalUrl = originalImageUrl
+                    try {
+                      const storedFile = await getFile(filePath)
+                      const originalBlob = await storedFile.arrayBuffer()
+                      const originalFile = new File([originalBlob], file.name, { type: file.type })
+                      const originalPath = await storeFile(originalFile, {
+                        id: `${newMedia.id}_original`,
+                      })
+                      mediaItems.value[index].originalUrl = originalPath
+                    } catch (error) {
+                      console.error('Error storing original file:', error)
+                    }
                   }
                 }
               } catch (error) {
                 console.error('Error processing full image:', error)
+                // Don't show error toast for background processing failures
               }
             })()
           } else {
-            // For videos
-            const url = await fileToDataURL(file)
-            const newMedia = await mediaApi.addMedia(collection.value.id, {
-              url: url,
+            // For videos - store the file in IndexedDB
+            const filePath = await storeFile(file)
+            const newMedia = await mediaApi.addMedia(collectionId, {
+              phase: phase,
+              phaseId: phaseId,
+              url: filePath,
               thumbnail: undefined, // Videos don't have thumbnails
               originalUrl: undefined, // Videos don't get watermarks
               type: type,

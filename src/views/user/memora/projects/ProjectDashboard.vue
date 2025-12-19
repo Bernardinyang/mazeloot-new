@@ -48,7 +48,7 @@
                 'text-white text-xs px-2 py-1 rounded-full',
               ]"
             >
-              {{ selection?.status || 'draft' }}
+              {{ capitalize(selection?.status || 'draft') }}
             </div>
           </div>
           <p :class="theme.textSecondary" class="text-sm mb-4">
@@ -78,7 +78,7 @@
                 'text-white text-xs px-2 py-1 rounded-full',
               ]"
             >
-              {{ proofing?.status || 'draft' }}
+              {{ capitalize(proofing?.status || 'draft') }}
             </div>
           </div>
           <p :class="theme.textSecondary" class="text-sm mb-4">
@@ -145,8 +145,8 @@
           </div>
           <div>
             <p :class="theme.textSecondary" class="text-xs mb-1">Status</p>
-            <p :class="theme.textPrimary" class="text-sm font-medium capitalize">
-              {{ project.status }}
+            <p :class="theme.textPrimary" class="text-sm font-medium">
+              {{ capitalize(project.status) }}
             </p>
           </div>
         </div>
@@ -170,6 +170,7 @@ import { useProjectStore } from '@/stores/project'
 import { useSelectionStore } from '@/stores/selection'
 import { useProofingStore } from '@/stores/proofing'
 import { useMediaApi } from '@/api/media'
+import { capitalize } from '@/lib/utils'
 
 const route = useRoute()
 const router = useRouter()

@@ -7,21 +7,24 @@ const router = createRouter({
   routes,
 })
 
-// Navigation guard for protected routes
-router.beforeEach((to, _from, next) => {
+/**
+ * Navigation guard middleware
+ * Prevents guests from accessing authenticated routes and vice versa
+ */
+router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
+
+  // Check route meta properties
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isGuestRoute = to.matched.some(record => record.meta.isGuestRoute)
 
-  // Check authentication status
-  const hasUser = !!userStore.user
-  const hasToken = !!userStore.token
-  const isAuthenticated = hasUser && hasToken
+  // Use the store's isAuthenticated computed property for consistency
+  const isAuthenticated = userStore.isAuthenticated
 
   // Handle protected routes (requires authentication)
   if (requiresAuth) {
     if (!isAuthenticated) {
-      // User doesn't have user and token, redirect to login
+      // Guest trying to access authenticated route - redirect to login
       next({
         name: 'login',
         query: { redirect: to.fullPath },
@@ -36,11 +39,11 @@ router.beforeEach((to, _from, next) => {
   // Handle guest routes (login, register, etc.)
   if (isGuestRoute) {
     if (isAuthenticated) {
-      // User is authenticated but trying to access guest route, redirect to overview
+      // Authenticated user trying to access guest route - redirect to overview
       next({ name: 'overview' })
       return
     }
-    // User is not authenticated, allow access to guest routes
+    // Guest user accessing guest route - allow access
     next()
     return
   }

@@ -77,12 +77,12 @@
           v-if="proofing.status"
           :style="{
             backgroundColor: `${cardColor}20`,
-            color: cardColorDark,
+            color: 'white',
             borderColor: `${cardColor}40`,
           }"
           class="px-3 py-1 rounded-full text-xs font-semibold border"
         >
-          {{ proofing.status }}
+          {{ capitalize(proofing.status) }}
         </div>
       </div>
 
@@ -181,6 +181,7 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
+import { capitalize } from '@/lib/utils'
 
 const props = defineProps({
   proofing: {

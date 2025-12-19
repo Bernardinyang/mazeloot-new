@@ -1,4 +1,4 @@
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 /**
  * Bulk "move selected media to set" flow extracted from Photos.vue.

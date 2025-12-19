@@ -86,6 +86,7 @@ export function useSelectionsApi() {
       selectionCompletedAt: null,
       autoDeleteDate: null,
       color: data.color || generateRandomColorFromPalette(),
+      mediaSets: data.mediaSets || [],
     }
 
     selections.push(newSelection)

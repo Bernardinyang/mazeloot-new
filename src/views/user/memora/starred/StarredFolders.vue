@@ -278,7 +278,7 @@ import CenterModal from '@/components/molecules/CenterModal.vue'
 import { Button } from '@/components/shadcn/button'
 import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const description = ''
 

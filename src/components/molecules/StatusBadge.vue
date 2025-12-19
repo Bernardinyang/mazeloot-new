@@ -6,13 +6,14 @@
     ]"
   >
     <component v-if="icon" :is="icon" class="h-3 w-3" />
-    <span>{{ label || status }}</span>
+    <span>{{ label || capitalize(status) }}</span>
   </span>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import { CheckCircle2, XCircle, Clock, AlertCircle, Circle } from 'lucide-vue-next'
+import { capitalize } from '@/lib/utils'
 
 const props = defineProps({
   status: {

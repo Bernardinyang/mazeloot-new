@@ -1,4 +1,4 @@
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 /**
  * Media list + set-count logic extracted from Photos.vue.

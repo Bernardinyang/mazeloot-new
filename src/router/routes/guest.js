@@ -45,4 +45,12 @@ export const guestRoutes = [
       isGuestRoute: true,
     },
   },
+  {
+    path: '/auth/oauth/callback',
+    name: 'oauthCallback',
+    component: () => import('@/views/guest/OAuthCallback.vue'),
+    meta: {
+      isGuestRoute: true,
+    },
+  },
 ]

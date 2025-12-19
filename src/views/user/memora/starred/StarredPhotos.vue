@@ -269,7 +269,7 @@ import { PHOTO_SORT_OPTIONS } from '@/constants/sortOptions'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import PhotoViewer from '@/components/organisms/PhotoViewer.vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const router = useRouter()
 const theme = useThemeClasses()

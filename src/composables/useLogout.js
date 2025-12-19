@@ -7,37 +7,106 @@ import { useRouter } from 'vue-router'
 import { useUserStore } from '@/stores/user'
 import { useGalleryStore } from '@/stores/gallery'
 import { useWatermarkStore } from '@/stores/watermark'
-import { storage } from '@/utils/storage'
-import { toast } from 'vue-sonner'
+import { useProjectStore } from '@/stores/project'
+import { usePresetStore } from '@/stores/preset'
+import { useSelectionStore } from '@/stores/selection'
+import { useProofingStore } from '@/stores/proofing'
+import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
+import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
+import { toast } from '@/utils/toast'
 
 export function useLogout() {
   const router = useRouter()
   const userStore = useUserStore()
   const galleryStore = useGalleryStore()
   const watermarkStore = useWatermarkStore()
+  const projectStore = useProjectStore()
+  const presetStore = usePresetStore()
+  const selectionStore = useSelectionStore()
+  const proofingStore = useProofingStore()
+  const collectionMediaSetsSidebarStore = useCollectionMediaSetsSidebarStore()
+  const selectionMediaSetsSidebarStore = useSelectionMediaSetsSidebarStore()
 
   /**
-   * Clear all user-related data from stores and localStorage
+   * Clear all user-related data from stores
    */
   const clearAllStores = () => {
-    // Clear user store (handles its own localStorage via watchers)
-    userStore.clearAuth()
+    try {
+      // Clear user store (handles its own localStorage via watchers)
+      userStore.clearAuth()
+    } catch (e) {
+      console.warn('Error clearing user store:', e)
+    }
 
-    // Clear gallery store
-    galleryStore.collections = []
-    galleryStore.starredCollectionIds = new Set()
-    galleryStore.error = null
+    try {
+      // Clear gallery store
+      galleryStore.collections = []
+      galleryStore.starredCollectionIds = new Set()
+      galleryStore.error = null
+    } catch (e) {
+      console.warn('Error clearing gallery store:', e)
+    }
 
-    // Clear watermark store
-    watermarkStore.watermarks = []
-    watermarkStore.currentWatermark = null
-    watermarkStore.error = null
+    try {
+      // Clear watermark store
+      watermarkStore.watermarks = []
+      watermarkStore.currentWatermark = null
+      watermarkStore.error = null
+    } catch (e) {
+      console.warn('Error clearing watermark store:', e)
+    }
 
-    // Explicitly clear localStorage keys (in case watchers don't fire)
-    storage.remove('mazeloot_user')
-    storage.remove('mazeloot_token')
-    storage.remove('mazeloot_starred_collections')
-    storage.remove('mazeloot_watermarks')
+    try {
+      // Clear project store
+      projectStore.projects = []
+      projectStore.currentProject = null
+      projectStore.error = null
+      projectStore.isLoading = false
+    } catch (e) {
+      console.warn('Error clearing project store:', e)
+    }
+
+    try {
+      // Clear preset store
+      presetStore.presets = []
+      presetStore.currentPreset = null
+    } catch (e) {
+      console.warn('Error clearing preset store:', e)
+    }
+
+    try {
+      // Clear selection store
+      selectionStore.selections = []
+      selectionStore.currentSelection = null
+      selectionStore.selectedMedia = []
+      selectionStore.error = null
+      selectionStore.isLoading = false
+    } catch (e) {
+      console.warn('Error clearing selection store:', e)
+    }
+
+    try {
+      // Clear proofing store
+      proofingStore.proofings = []
+      proofingStore.currentProofing = null
+      proofingStore.feedback = []
+      proofingStore.revisions = []
+      proofingStore.error = null
+      proofingStore.isLoading = false
+    } catch (e) {
+      console.warn('Error clearing proofing store:', e)
+    }
+
+    try {
+      // Clear sidebar stores
+      collectionMediaSetsSidebarStore.items = []
+      selectionMediaSetsSidebarStore.items = []
+    } catch (e) {
+      console.warn('Error clearing sidebar stores:', e)
+    }
+
+    // Note: User store watchers handle localStorage cleanup automatically
+    // when clearAuth() sets user.value and token.value to null
     // Note: We keep theme preference (mazeloot_theme) as it's a UI preference
   }
 

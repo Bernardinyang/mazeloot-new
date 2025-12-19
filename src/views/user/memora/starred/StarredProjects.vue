@@ -93,7 +93,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import ProjectDetailSidebar from '@/components/organisms/ProjectDetailSidebar.vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

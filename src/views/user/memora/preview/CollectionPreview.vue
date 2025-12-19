@@ -2,7 +2,9 @@
   <div :style="{ backgroundColor: backgroundColor }">
     <!-- Navbar Style (when cover is 'none') -->
     <div
-      v-if="coverConfig.specialLayout === 'none'"
+      v-if="
+        coverLayoutConfig && (coverLayoutConfig.layout === 'none' || designConfig.cover === 'none')
+      "
       :style="{
         backgroundColor: backgroundColor,
         borderColor: borderColor,
@@ -62,319 +64,318 @@
     </div>
 
     <!-- Cover Section (when cover is not 'none') -->
-    <div
-      v-else
-      :style="{
-        backgroundImage: coverImageWithFallback ? `url(${coverImageWithFallback})` : 'none',
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundRepeat: 'no-repeat',
-        backgroundColor: backgroundColor,
-      }"
-      class="relative w-full min-h-screen"
-    >
-      <!-- Cover Overlay with better contrast -->
-      <div
-        :style="{
-          backgroundColor: 'transparent',
-          background: coverImageWithFallback
-            ? `linear-gradient(to bottom, ${overlayColor} 0%, ${overlayColor} 40%, rgba(0,0,0,0.5) 100%)`
-            : overlayColor,
+    <div v-else :style="{ backgroundColor: backgroundColor }" class="relative w-full min-h-screen">
+      <!-- Use Dynamic Cover Renderer -->
+      <DynamicCoverRenderer
+        v-if="coverLayoutConfig && coverLayoutConfig.layout !== 'none'"
+        :config="coverLayoutConfig"
+        :content="{
+          title: collectionName,
+          date: formattedDate,
         }"
-        class="absolute inset-0"
-      ></div>
-
-      <!-- Cover Decorations (borders, lines, frames, dividers, etc.) -->
-      <CoverDecorations :config="coverConfig" :palette-colors="paletteColors" />
-
-      <!-- Cover Content based on cover type -->
-      <div :class="coverContentClasses" class="relative z-10 container mx-auto px-4 h-full flex">
-        <!-- Top Branding -->
-        <div
-          v-if="showBranding"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-            textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-            opacity: 0.8,
-          }"
-          class="text-xs uppercase tracking-wider mb-4 font-semibold"
-        >
-          {{ brandingText }}
-        </div>
-
-        <!-- Cover Type, avatar in O, date, name, button -->
-        <div
-          v-if="coverConfig.specialLayout === 'joy'"
-          :style="{ backgroundColor: backgroundColor }"
-          class="flex flex-col items-center justify-center h-full relative"
-        >
-          <!-- Background pattern (subtle stars/plus signs) -->
-          <div
-            v-if="joyCoverBackgroundPattern === 'crosses' || !joyCoverBackgroundPattern"
-            class="absolute inset-0 opacity-20"
-          >
-            <!-- Scattered star/plus patterns -->
-            <div
-              v-for="i in 25"
-              :key="i"
-              :style="{
-                top: `${Math.random() * 80}%`,
-                left: `${Math.random() * 80}%`,
-                width: `${Math.random() * 4 + 2}px`,
-                height: `${Math.random() * 4 + 2}px`,
-                transform: `rotate(${Math.random() * 360}deg)`,
-                backgroundColor:
-                  Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'rgba(220, 38, 38, 0.1)',
-                border: Math.random() > 0.5 ? '1px solid rgba(220, 38, 38, 0.2)' : 'none',
-                filter: 'blur(0.5px)',
-              }"
-              class="absolute"
-            ></div>
-          </div>
-
-          <!-- Top Branding -->
+        :media="{
+          url: coverImageWithFallback,
+          src: coverImageWithFallback,
+          alt: collectionName,
+        }"
+      >
+        <template #content="{ content: slotContent }">
           <div
             :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              letterSpacing: '0.2em',
-            }"
-            class="text-xs uppercase tracking-[0.2em] mb-8 z-10"
-          >
-            BERNODE
-          </div>
-
-          <!-- Title with avatar in O -->
-          <div class="flex items-center gap-4 md:gap-6 mb-6 md:mb-8 z-10">
-            <template v-for="(char, index) in joyCoverTitle.split('')" :key="`char-${index}`">
-              <span
-                v-if="char.toUpperCase() !== 'O'"
-                :class="[fontFamilyClass, fontStyleClass]"
-                :style="{
-                  color: textColor,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.3)',
-                }"
-                class="text-7xl md:text-8xl lg:text-9xl leading-none"
-              >
-                {{ char }}
-              </span>
-              <div v-else class="relative">
-                <div
-                  v-if="joyCoverAvatar || coverImageWithFallback"
-                  :style="{
-                    border,
-                  }"
-                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
-                >
-                  <img
-                    :src="joyCoverAvatar || coverImageWithFallback"
-                    alt="Avatar"
-                    class="w-full h-full object-cover"
-                    @error="handleCoverImageError"
-                  />
-                </div>
-                <div
-                  v-else
-                  class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-amber-50 to-amber-100"
-                ></div>
-              </div>
-            </template>
-          </div>
-
-          <!-- Date -->
-          <div
-            v-if="joyCoverShowDate !== false && eventDate"
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              letterSpacing: '0.2em',
-            }"
-            class="text-sm md:text-base uppercase tracking-[0.15em] mb-4 z-10"
-          >
-            {{ formattedDate }}
-          </div>
-
-          <!-- Collection Title (Name) -->
-          <div
-            v-if="joyCoverShowName !== false"
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-            }"
-            class="text-xl md:text-2xl lg:text-3xl italic mb-6 md:mb-8 z-10"
-          >
-            {{ collectionName }}
-          </div>
-
-          <!-- Button -->
-          <button
-            v-if="joyCoverShowButton !== false"
-            :style="{
-              backgroundColor: accentColor,
-              borderRadius: '8px',
-            }"
-            class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
-            @click="scrollToGallery"
-          >
-            {{ joyCoverButtonText || 'VIEW GALLERY' }}
-          </button>
-        </div>
-
-        <!-- Cover Type) -->
-        <div
-          v-else-if="
-            coverConfig.textPosition === 'center' &&
-            coverConfig.textAlignment === 'center' &&
-            !coverConfig.specialLayout
-          "
-          class="text-center"
-        >
-          <!-- Decorative elements -->
-          <div
-            :style="{ backgroundColor: backgroundColor }"
-            class="absolute top-1/4 left-1/4 w-2 h-2 rounded-full opacity-20"
-          ></div>
-          <div
-            :style="{ backgroundColor: backgroundColor }"
-            class="absolute top-1/3 right-1/4 w-1.5 h-1.5 rounded-full opacity-30"
-          ></div>
-          <div
-            :style="{ backgroundColor: backgroundColor }"
-            class="absolute bottom-1/4 left-1/3 w-1 h-1 rounded-full opacity-25"
-          ></div>
-
-          <div
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              textShadow: `0 2px 4px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15)`,
-            }"
-            class="text-5xl md:text-7xl font-black mb-6 leading-tight"
-          >
-            {{ collectionName }}
-          </div>
-          <div
-            v-if="eventDate"
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              opacity: 0.9,
-              letterSpacing: '0.05em',
-            }"
-            class="text-base md:text-xl uppercase tracking-widest font-medium"
-          >
-            {{ formattedDate }}
-          </div>
-        </div>
-
-        <!-- Cover Type) -->
-        <div
-          v-else-if="
-            coverConfig.textPosition === 'bottom' &&
-            coverConfig.textAlignment === 'left' &&
-            !coverConfig.specialLayout
-          "
-          class="absolute bottom-12 left-8 md:left-12 text-left max-w-2xl"
-        >
-          <!-- Decorative line -->
-          <div
-            :style="{ backgroundColor: backgroundColor, opacity: 0.8 }"
-            class="w-16 h-0.5 mb-4"
-          ></div>
-
-          <div
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color,
-              textShadow: `0 2px 4px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)`,
-            }"
-            class="text-4xl md:text-6xl font-black mb-3 leading-tight"
-          >
-            {{ collectionName }}
-          </div>
-          <div
-            v-if="eventDate"
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              opacity: 0.9,
-              letterSpacing: '0.05em',
-            }"
-            class="text-sm md:text-lg uppercase tracking-widest font-medium"
-          >
-            {{ formattedDate }}
-          </div>
-        </div>
-
-        <!-- Dynamic Cover - Based on config -->
-        <div v-else class="w-full">
-          <div
-            :class="[
-              fontFamilyClass,
-              fontStyleClass,
-              coverConfig.textAlignment === 'center'
-                ? 'text-center'
-                : coverConfig.textAlignment === 'right'
-                  ? 'text-right'
-                  : 'text-left',
-            ]"
             :style="{
               color: textColor,
               textShadow: coverImageWithFallback
                 ? '0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)'
                 : 'none',
             }"
-            class="text-3xl md:text-5xl font-bold mb-4"
           >
-            {{ collectionName }}
+            <div v-if="slotContent.title" class="text-3xl md:text-5xl font-bold mb-4">
+              {{ slotContent.title }}
+            </div>
+            <div
+              v-if="slotContent.date"
+              :style="{ opacity: 0.9 }"
+              class="text-base md:text-lg uppercase tracking-wide"
+            >
+              {{ slotContent.date }}
+            </div>
+            <!-- View Gallery Button -->
+            <button
+              :style="{
+                backgroundColor: accentColor,
+                boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
+                marginTop: '2rem',
+              }"
+              class="px-8 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-110 hover:-translate-y-0.5"
+              @click="scrollToGallery"
+            >
+              View Gallery
+            </button>
           </div>
+        </template>
+      </DynamicCoverRenderer>
+
+      <!-- Cover Decorations (kept for backward compatibility, can be removed later) -->
+      <CoverDecorations :config="coverConfig" :palette-colors="paletteColors" />
+      <!-- Top Branding -->
+      <div
+        v-if="showBranding"
+        :class="[fontFamilyClass, fontStyleClass]"
+        :style="{
+          color: textColor,
+          textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+          opacity: 0.8,
+        }"
+        class="text-xs uppercase tracking-wider mb-4 font-semibold"
+      >
+        {{ brandingText }}
+      </div>
+
+      <!-- Cover Type, avatar in O, date, name, button -->
+      <div
+        v-if="coverConfig.specialLayout === 'joy'"
+        :style="{ backgroundColor: backgroundColor }"
+        class="flex flex-col items-center justify-center h-full relative"
+      >
+        <!-- Background pattern (subtle stars/plus signs) -->
+        <div
+          v-if="joyCoverBackgroundPattern === 'crosses' || !joyCoverBackgroundPattern"
+          class="absolute inset-0 opacity-20"
+        >
+          <!-- Scattered star/plus patterns -->
           <div
-            v-if="eventDate"
-            :class="[
-              fontFamilyClass,
-              fontStyleClass,
-              coverConfig.textAlignment === 'center'
-                ? 'text-center'
-                : coverConfig.textAlignment === 'right'
-                  ? 'text-right'
-                  : 'text-left',
-            ]"
+            v-for="i in 25"
+            :key="i"
             :style="{
-              color: textColor,
-              opacity: 0.9,
-              textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+              top: `${Math.random() * 80}%`,
+              left: `${Math.random() * 80}%`,
+              width: `${Math.random() * 4 + 2}px`,
+              height: `${Math.random() * 4 + 2}px`,
+              transform: `rotate(${Math.random() * 360}deg)`,
+              backgroundColor:
+                Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'rgba(220, 38, 38, 0.1)',
+              border: Math.random() > 0.5 ? '1px solid rgba(220, 38, 38, 0.2)' : 'none',
+              filter: 'blur(0.5px)',
             }"
-            class="text-base md:text-lg uppercase tracking-wide"
-          >
-            {{ formattedDate }}
-          </div>
+            class="absolute"
+          ></div>
         </div>
 
-        <!-- View Gallery Button -->
+        <!-- Top Branding -->
         <div
-          :class="{
-            'justify-center':
-              coverConfig.textAlignment === 'center' || coverConfig.textPosition === 'center',
-            'justify-start': coverConfig.textAlignment === 'left',
-            'justify-end': coverConfig.textAlignment === 'right',
-            'absolute bottom-12 left-1/2 -translate-x-1/2':
-              (coverConfig.textPosition === 'bottom' && coverConfig.textAlignment === 'left') ||
-              coverConfig.specialLayout === 'split' ||
-              coverConfig.specialLayout === 'story',
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+            letterSpacing: '0.2em',
           }"
-          class="mt-8 flex"
+          class="text-xs uppercase tracking-[0.2em] mb-8 z-10"
         >
-          <button
-            :style="{
-              backgroundColor: accentColor,
-              boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
-            }"
-            class="px-8 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-110 hover:-translate-y-0.5"
-            @click="scrollToGallery"
-          >
-            View Gallery
-          </button>
+          BERNODE
+        </div>
+
+        <!-- Title with avatar in O -->
+        <div class="flex items-center gap-4 md:gap-6 mb-6 md:mb-8 z-10">
+          <template v-for="(char, index) in joyCoverTitle.split('')" :key="`char-${index}`">
+            <span
+              v-if="char.toUpperCase() !== 'O'"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{
+                color: textColor,
+                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              }"
+              class="text-7xl md:text-8xl lg:text-9xl leading-none"
+            >
+              {{ char }}
+            </span>
+            <div v-else class="relative">
+              <div
+                v-if="joyCoverAvatar || coverImageWithFallback"
+                :style="{
+                  border,
+                }"
+                class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
+              >
+                <img
+                  :src="joyCoverAvatar || coverImageWithFallback"
+                  alt="Avatar"
+                  class="w-full h-full object-cover"
+                  @error="handleCoverImageError"
+                />
+              </div>
+              <div
+                v-else
+                class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-amber-50 to-amber-100"
+              ></div>
+            </div>
+          </template>
+        </div>
+
+        <!-- Date -->
+        <div
+          v-if="joyCoverShowDate !== false && eventDate"
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+            letterSpacing: '0.2em',
+          }"
+          class="text-sm md:text-base uppercase tracking-[0.15em] mb-4 z-10"
+        >
+          {{ formattedDate }}
+        </div>
+
+        <!-- Collection Title (Name) -->
+        <div
+          v-if="joyCoverShowName !== false"
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+          }"
+          class="text-xl md:text-2xl lg:text-3xl italic mb-6 md:mb-8 z-10"
+        >
+          {{ collectionName }}
+        </div>
+
+        <!-- Button -->
+        <button
+          v-if="joyCoverShowButton !== false"
+          :style="{
+            backgroundColor: accentColor,
+            borderRadius: '8px',
+          }"
+          class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
+          @click="scrollToGallery"
+        >
+          {{ joyCoverButtonText || 'VIEW GALLERY' }}
+        </button>
+      </div>
+
+      <!-- Cover Type) -->
+      <div
+        v-else-if="
+          coverConfig.textPosition === 'center' &&
+          coverConfig.textAlignment === 'center' &&
+          !coverConfig.specialLayout
+        "
+        class="text-center"
+      >
+        <!-- Decorative elements -->
+        <div
+          :style="{ backgroundColor: backgroundColor }"
+          class="absolute top-1/4 left-1/4 w-2 h-2 rounded-full opacity-20"
+        ></div>
+        <div
+          :style="{ backgroundColor: backgroundColor }"
+          class="absolute top-1/3 right-1/4 w-1.5 h-1.5 rounded-full opacity-30"
+        ></div>
+        <div
+          :style="{ backgroundColor: backgroundColor }"
+          class="absolute bottom-1/4 left-1/3 w-1 h-1 rounded-full opacity-25"
+        ></div>
+
+        <div
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+            textShadow: `0 2px 4px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15)`,
+          }"
+          class="text-5xl md:text-7xl font-black mb-6 leading-tight"
+        >
+          {{ collectionName }}
+        </div>
+        <div
+          v-if="eventDate"
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+            opacity: 0.9,
+            letterSpacing: '0.05em',
+          }"
+          class="text-base md:text-xl uppercase tracking-widest font-medium"
+        >
+          {{ formattedDate }}
+        </div>
+      </div>
+
+      <!-- Cover Type) -->
+      <div
+        v-else-if="
+          coverConfig.textPosition === 'bottom' &&
+          coverConfig.textAlignment === 'left' &&
+          !coverConfig.specialLayout
+        "
+        class="absolute bottom-12 left-8 md:left-12 text-left max-w-2xl"
+      >
+        <!-- Decorative line -->
+        <div
+          :style="{ backgroundColor: backgroundColor, opacity: 0.8 }"
+          class="w-16 h-0.5 mb-4"
+        ></div>
+
+        <div
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color,
+            textShadow: `0 2px 4px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)`,
+          }"
+          class="text-4xl md:text-6xl font-black mb-3 leading-tight"
+        >
+          {{ collectionName }}
+        </div>
+        <div
+          v-if="eventDate"
+          :class="[fontFamilyClass, fontStyleClass]"
+          :style="{
+            color: textColor,
+            opacity: 0.9,
+            letterSpacing: '0.05em',
+          }"
+          class="text-sm md:text-lg uppercase tracking-widest font-medium"
+        >
+          {{ formattedDate }}
+        </div>
+      </div>
+
+      <!-- Dynamic Cover - Based on config -->
+      <div v-else class="w-full">
+        <div
+          :class="[
+            fontFamilyClass,
+            fontStyleClass,
+            coverConfig.textAlignment === 'center'
+              ? 'text-center'
+              : coverConfig.textAlignment === 'right'
+                ? 'text-right'
+                : 'text-left',
+          ]"
+          :style="{
+            color: textColor,
+            textShadow: coverImageWithFallback
+              ? '0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)'
+              : 'none',
+          }"
+          class="text-3xl md:text-5xl font-bold mb-4"
+        >
+          {{ collectionName }}
+        </div>
+        <div
+          v-if="eventDate"
+          :class="[
+            fontFamilyClass,
+            fontStyleClass,
+            coverConfig.textAlignment === 'center'
+              ? 'text-center'
+              : coverConfig.textAlignment === 'right'
+                ? 'text-right'
+                : 'text-left',
+          ]"
+          :style="{
+            color: textColor,
+            opacity: 0.9,
+            textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+          }"
+          class="text-base md:text-lg uppercase tracking-wide"
+        >
+          {{ formattedDate }}
         </div>
       </div>
     </div>
@@ -387,7 +388,7 @@
     >
       <!-- Navigation Tabs (only show if cover is not 'none', handles it) -->
       <div
-        v-if="coverConfig.specialLayout !== 'none'"
+        v-if="coverLayoutConfig.layout !== 'none' && designConfig.cover !== 'none'"
         :style="{ borderColor: borderColor }"
         class="mb-8 flex items-center justify-between pb-4"
       >
@@ -651,14 +652,13 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ChevronLeft,
   ChevronRight,
   Grid3x3,
   Heart,
-  Image,
   Monitor,
   MoreVertical,
   Share2,
@@ -671,8 +671,10 @@ import { useMediaApi } from '@/api/media'
 import { usePresetStore } from '@/stores/preset'
 import { useGalleryStore } from '@/stores/gallery'
 import { format } from 'date-fns'
-import { getCoverStyleConfig } from '@/config/coverStyles'
+import { getCoverStyleConfig } from '@/composables/useCoverStyles'
+import { getDefaultLayoutConfig } from '@/composables/useCoverLayouts'
 import CoverDecorations from '@/components/organisms/CoverDecorations.vue'
+import DynamicCoverRenderer from '@/components/covers/DynamicCoverRenderer.vue'
 import { usePagination } from '@/composables/usePagination'
 
 // Props for preview mode
@@ -696,6 +698,9 @@ const isLoading = ref(true)
 const selectedMedia = ref(null)
 const activeTab = ref('Highlights')
 
+// Track if we're in initial load to prevent store updates from overwriting API data
+let isInitialLoad = true
+
 // Get collection ID from route (only if not in preview mode)
 const collectionId = computed(() => {
   if (props.previewMode) return ''
@@ -703,10 +708,24 @@ const collectionId = computed(() => {
 })
 
 // Get preset design config (use preview config, collection's preset, or default)
+// Force reactivity by tracking the prop explicitly
 const designConfig = computed(() => {
+  // Access props.previewDesignConfig to ensure this computed tracks it
+  const previewConfig = props.previewMode ? props.previewDesignConfig : null
+
   // If in preview mode with provided config, use it
-  if (props.previewMode && props.previewDesignConfig) {
-    return props.previewDesignConfig
+  if (previewConfig) {
+    // Access coverLayoutConfig to ensure it's tracked as a dependency
+    const previewCoverLayoutConfig = previewConfig.coverLayoutConfig
+
+    // Create a new object reference to ensure reactivity
+    const coverLayoutConfig = previewCoverLayoutConfig ? { ...previewCoverLayoutConfig } : undefined
+
+    return {
+      ...previewConfig,
+      // Explicitly include coverLayoutConfig to ensure it's reactive
+      coverLayoutConfig,
+    }
   }
 
   // Check if this is a preset preview route
@@ -733,21 +752,79 @@ const designConfig = computed(() => {
     preset = presetStore.currentPreset
   }
 
-  // Use preset design or defaults
-  return (
-    preset?.design || {
-      cover,
-      coverFocalPoint: { x: 50, y: 50 },
-      fontFamily,
-      fontStyle,
-      colorPalette,
-      gridStyle,
-      gridColumns,
-      thumbnailSize,
-      gridSpacing,
-      navigationStyle,
+  // First, check if collection has coverDesign - this takes priority over everything
+  const collectionCoverDesign = collection.value?.coverDesign
+
+  // If collection has coverDesign with layout config, use it directly
+  if (
+    collectionCoverDesign &&
+    (collectionCoverDesign.coverLayoutConfig || collectionCoverDesign.coverLayoutUuid)
+  ) {
+    // Get base design from preset (for other design properties like colors, fonts, etc.)
+    const presetDesign = preset?.design || {}
+    const baseDesign = {
+      coverFocalPoint: presetDesign.coverFocalPoint || { x: 50, y: 50 },
+      fontFamily: presetDesign.fontFamily || 'sans',
+      fontStyle: presetDesign.fontStyle || 'normal',
+      colorPalette: presetDesign.colorPalette || 'light',
+      gridStyle: presetDesign.gridStyle || 'vertical',
+      gridColumns: presetDesign.gridColumns || 3,
+      thumbnailSize: presetDesign.thumbnailSize || 'medium',
+      gridSpacing: presetDesign.gridSpacing || 16,
+      navigationStyle: presetDesign.navigationStyle || 'icon-text',
     }
-  )
+
+    // Merge base design with collection's coverDesign
+    // coverDesign contains: { coverLayoutUuid, coverLayoutConfig, coverFocalPoint }
+    return {
+      ...baseDesign,
+      ...collectionCoverDesign,
+      // Explicitly preserve layout config properties
+      coverLayoutConfig: collectionCoverDesign.coverLayoutConfig,
+      coverLayoutUuid: collectionCoverDesign.coverLayoutUuid || null,
+      // Don't include old 'cover' field - use layout config instead
+      cover: undefined,
+    }
+  }
+
+  // If no collection coverDesign, build base design from preset or defaults
+  const baseDesign = preset?.design || {
+    cover: 'center',
+    coverFocalPoint: { x: 50, y: 50 },
+    fontFamily: 'sans',
+    fontStyle: 'normal',
+    colorPalette: 'light',
+    gridStyle: 'vertical',
+    gridColumns: 3,
+    thumbnailSize: 'medium',
+    gridSpacing: 16,
+    navigationStyle: 'icon-text',
+  }
+
+  // Also check collection.design.coverDesign for backward compatibility
+  if (collection.value?.design?.coverDesign) {
+    const designCoverDesign = collection.value.design.coverDesign
+    if (designCoverDesign.coverLayoutConfig || designCoverDesign.coverLayoutUuid) {
+      return {
+        ...baseDesign,
+        ...designCoverDesign,
+        coverLayoutConfig: designCoverDesign.coverLayoutConfig || baseDesign.coverLayoutConfig,
+        coverLayoutUuid: designCoverDesign.coverLayoutUuid || baseDesign.coverLayoutUuid,
+      }
+    }
+  }
+
+  // Check collection.design directly for coverLayoutConfig (another fallback)
+  if (collection.value?.design?.coverLayoutConfig || collection.value?.design?.coverLayoutUuid) {
+    return {
+      ...baseDesign,
+      ...collection.value.design,
+      coverLayoutConfig: collection.value.design.coverLayoutConfig || baseDesign.coverLayoutConfig,
+      coverLayoutUuid: collection.value.design.coverLayoutUuid || baseDesign.coverLayoutUuid,
+    }
+  }
+
+  return baseDesign
 })
 
 // Color palette mapping with improved contrast - no duplicates
@@ -813,6 +890,97 @@ const borderColor = computed(() => {
 
 const coverType = computed(() => designConfig.value.cover || 'center')
 const coverConfig = computed(() => getCoverStyleConfig(coverType.value))
+
+/**
+ * Transform old cover config to new layout config format
+ * Supports backward compatibility by converting old style configs to layout configs
+ */
+const coverLayoutConfig = computed(() => {
+  // Access designConfig.value to ensure this computed tracks it
+  const config = designConfig.value
+
+  // Access config.coverLayoutConfig to ensure it's tracked
+  const configCoverLayoutConfig = config.coverLayoutConfig
+
+  // Check if cover is 'none' first (backward compatibility)
+  if (config.cover === 'none' && !configCoverLayoutConfig && !config.coverLayoutUuid) {
+    return {
+      layout: 'none',
+      media: { type: 'image', aspect_ratio: '16:9', fit: 'cover', bleed: 'none', max_width: null },
+      content: { placement: 'below', alignment: 'center' },
+      overlay: { enabled: false, gradient: 'none', opacity: 0 },
+      spacing: { padding_x: 0, padding_y: 0 },
+    }
+  }
+
+  // If new layout config exists, use it (this is the primary path)
+  if (configCoverLayoutConfig && typeof configCoverLayoutConfig === 'object') {
+    // Ensure it has a layout property, if not add default
+    // Always create a new object reference to ensure reactivity
+    const layoutConfig = configCoverLayoutConfig.layout
+      ? { ...configCoverLayoutConfig } // Create new reference
+      : { ...getDefaultLayoutConfig(), ...configCoverLayoutConfig }
+
+    return layoutConfig
+  }
+
+  // If we have a coverLayoutUuid but no config, use default
+  // The config should be included when saving, but as a fallback use default
+  if (config.coverLayoutUuid && !configCoverLayoutConfig) {
+    return getDefaultLayoutConfig()
+  }
+
+  // Otherwise, transform old cover config to new format
+  const oldConfig = coverConfig.value
+  const defaultLayout = getDefaultLayoutConfig()
+
+  // Map old textPosition/textAlignment to new content placement/alignment
+  let placement = 'overlay'
+  let alignment = 'bottom-left'
+
+  if (oldConfig.textPosition === 'bottom' && oldConfig.textAlignment === 'left') {
+    placement = 'overlay'
+    alignment = 'bottom-left'
+  } else if (oldConfig.textPosition === 'center' && oldConfig.textAlignment === 'center') {
+    placement = 'overlay'
+    alignment = 'middle-center'
+  } else if (oldConfig.textPosition === 'top') {
+    placement = 'overlay'
+    alignment = 'top-center'
+  }
+
+  // Handle special layouts
+  if (oldConfig.specialLayout === 'none') {
+    // For 'none', we still use the layout engine but with minimal styling
+    return {
+      ...defaultLayout,
+      layout: 'none',
+      media: {
+        ...defaultLayout.media,
+        bleed: 'none',
+      },
+      overlay: {
+        ...defaultLayout.overlay,
+        enabled: false,
+      },
+    }
+  }
+
+  // Default transformation
+  return {
+    ...defaultLayout,
+    layout: 'stack', // Most old covers were stack-based
+    content: {
+      placement,
+      alignment,
+    },
+    overlay: {
+      enabled: true,
+      gradient: 'bottom',
+      opacity: 0.55,
+    },
+  }
+})
 // Fallback image URL for broken images
 const fallbackImageUrl =
   'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
@@ -836,18 +1004,14 @@ const coverImage = computed(() => {
   return fallbackImageUrl
 })
 
-const coverImageWithFallback = ref(coverImage.value)
-
-// Watch for cover image changes and reset fallback
-watch(coverImage, newUrl => {
-  coverImageWithFallback.value = newUrl || fallbackImageUrl
+const coverImageWithFallback = computed(() => {
+  return coverImage.value || fallbackImageUrl
 })
 
-// Handle image load errors
+// Handle image load errors - no longer needed since we use computed, but kept for compatibility
 const handleCoverImageError = () => {
-  if (coverImageWithFallback.value !== fallbackImageUrl) {
-    coverImageWithFallback.value = fallbackImageUrl
-  }
+  // Error handling is now done at the component level
+  console.warn('[CollectionPreview] Cover image failed to load')
 }
 
 // Get focal point for cover image positioning
@@ -1262,22 +1426,42 @@ const getTabIcon = tab => {
   return iconMap[tab] || Grid3x3
 }
 
-// Watch for preview props changes
-watch(
-  () => [props.previewCollection, props.previewMedia, props.previewDesignConfig],
-  () => {
-    if (props.previewMode) {
-      if (props.previewCollection) {
-        collection.value = props.previewCollection
+// Watch for preview props changes - watch each prop separately for better reactivity
+if (props.previewMode) {
+  // Watch previewCollection
+  watch(
+    () => props.previewCollection,
+    newCollection => {
+      if (newCollection) {
+        collection.value = newCollection
       }
-      if (props.previewMedia) {
-        media.value = props.previewMedia
+    },
+    { immediate: true, deep: true }
+  )
+
+  // Watch previewMedia
+  watch(
+    () => props.previewMedia,
+    newMedia => {
+      if (newMedia) {
+        media.value = newMedia
         isLoading.value = false
       }
-    }
-  },
-  { immediate: true }
-)
+    },
+    { immediate: true, deep: true }
+  )
+
+  // Watch previewDesignConfig - computed properties will automatically update when props change
+  // This deep watch ensures we detect nested property changes
+  watch(
+    () => props.previewDesignConfig,
+    () => {
+      // The computed properties (designConfig, coverLayoutConfig) will automatically update
+      // This watcher ensures Vue tracks the prop deeply for reactivity
+    },
+    { immediate: false, deep: true }
+  )
+}
 
 // Load data (only if not in preview mode)
 onMounted(async () => {
@@ -1353,27 +1537,79 @@ onMounted(async () => {
   // Normal mode
   try {
     isLoading.value = true
+    isInitialLoad = true
+
     const [collectionData, mediaData] = await Promise.all([
       collectionsApi.fetchCollection(collectionId.value),
       mediaApi.fetchCollectionMedia(collectionId.value),
     ])
+
+    // Use API data as source of truth for initial load
+    // The API should have the saved coverDesign from the backend
+    const apiHasCoverDesign =
+      collectionData?.coverDesign &&
+      (collectionData.coverDesign.coverLayoutConfig || collectionData.coverDesign.coverLayoutUuid)
+
     collection.value = collectionData
     media.value = mediaData
+
+    // Allow store updates after initial load completes
+    // Use a delay to ensure API data is fully processed and reactive updates settle
+    setTimeout(() => {
+      isInitialLoad = false
+    }, 1000)
   } catch (error) {
     console.error('Failed to load collection:', error)
+    isInitialLoad = false
   } finally {
     isLoading.value = false
   }
 })
 
-// Watch store's collections array for real-time updates (preset/watermark changes)
+// Watch store's collections array for real-time updates (preset/watermark/coverDesign changes)
+// BUT: Skip during initial load to prevent overwriting API data
 watch(
   () => galleryStore.collections,
   collections => {
+    // Skip during initial load
+    if (isInitialLoad) {
+      return
+    }
+
     if (!props.previewMode && collectionId.value && collection.value) {
       const updatedCollection = collections.find(c => c.id === collectionId.value)
-      if (updatedCollection && updatedCollection.id === collection.value.id) {
-        // Update local collection ref with latest data from store
+      if (!updatedCollection || updatedCollection.id !== collection.value.id) {
+        return
+      }
+
+      // Get coverDesign from both sources
+      const existingCoverDesign = collection.value.coverDesign
+      const storeCoverDesign = updatedCollection.coverDesign
+
+      // Check if store has valid coverDesign with layout config
+      const storeHasValidCoverDesign =
+        storeCoverDesign && (storeCoverDesign.coverLayoutConfig || storeCoverDesign.coverLayoutUuid)
+
+      // Check if existing (API) has valid coverDesign
+      const existingHasValidCoverDesign =
+        existingCoverDesign &&
+        (existingCoverDesign.coverLayoutConfig || existingCoverDesign.coverLayoutUuid)
+
+      // Only update if store has valid coverDesign (meaning it was just updated from Design view)
+      // OR if neither has coverDesign (normal update for other properties)
+      // BUT: Never overwrite existing valid coverDesign with empty store data
+      if (storeHasValidCoverDesign) {
+        // Store has valid coverDesign, use it (this is a real update from Design view)
+        collection.value = { ...collection.value, ...updatedCollection }
+      } else if (existingHasValidCoverDesign) {
+        // Existing has valid coverDesign but store doesn't - preserve it and only update other fields
+        collection.value = {
+          ...collection.value,
+          ...updatedCollection,
+          coverDesign: existingCoverDesign, // Preserve API coverDesign
+        }
+      } else {
+        // Neither has valid coverDesign, update normally
         collection.value = { ...collection.value, ...updatedCollection }
       }
     }

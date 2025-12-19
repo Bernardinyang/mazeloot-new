@@ -99,7 +99,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import SelectionDetailSidebar from '@/components/organisms/SelectionDetailSidebar.vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

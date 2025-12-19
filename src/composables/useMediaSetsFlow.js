@@ -1,5 +1,5 @@
 import { nextTick, watch } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { debounce } from '@/utils/debounce'
 
 export function useMediaSetsFlow({

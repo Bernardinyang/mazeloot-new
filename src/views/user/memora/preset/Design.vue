@@ -793,6 +793,7 @@
               </div>
               <div class="h-[800px] overflow-y-auto">
                 <!-- Full Collection Preview -->
+
                 <CollectionPreview
                   :preview-collection="mockPreviewCollection"
                   :preview-design-config="formData"
@@ -881,9 +882,9 @@ import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
-import { coverStyleConfigs } from '@/config/coverStyles'
+import { getCoverStyleOptions, useCoverStyles } from '@/composables/useCoverStyles'
 
 const route = useRoute()
 const router = useRouter()
@@ -996,11 +997,17 @@ const gridSpacingSlider = computed({
   },
 })
 
-// Cover options - 21 beautiful cover styles + none
-const coverOptions = Object.values(coverStyleConfigs).map(config => ({
-  id: config.id,
-  label: config.label,
-}))
+// Initialize cover styles from API (will load automatically)
+// The getCoverStyleOptions() function will use cached styles or fallback
+// Cover options - from API or fallback to hardcoded config
+const coverOptions = computed(() => getCoverStyleOptions())
+
+// Preload cover styles on component mount
+onMounted(() => {
+  useCoverStyles().catch(err => {
+    console.warn('Failed to load cover styles:', err)
+  })
+})
 
 // Handle focal point click
 const handleFocalPointClick = event => {

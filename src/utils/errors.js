@@ -58,13 +58,18 @@ export function parseError(error) {
 
 /**
  * Get user-friendly error message
+ * Prioritizes backend error message, only uses fallback if no message exists
  */
 export function getErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
   if (error === null || error === undefined) {
     return fallback
   }
   const parsed = parseError(error)
-  return parsed.message || fallback
+  // Prioritize backend message - only use fallback if message is missing/empty
+  if (parsed.message && parsed.message.trim() !== '') {
+    return parsed.message
+  }
+  return fallback
 }
 
 /**

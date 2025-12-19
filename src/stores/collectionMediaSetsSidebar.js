@@ -1,6 +1,6 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { useGalleryStore } from '@/stores/gallery'
 import { debounce } from '@/utils/debounce'
 
@@ -64,7 +64,7 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
 
   const ensureCollectionId = () => {
     if (!collectionId.value) {
-      toast.error('Collection not loaded', { description: 'Please try again.' })
+      toast.error('Please try again.')
       return false
     }
     return true

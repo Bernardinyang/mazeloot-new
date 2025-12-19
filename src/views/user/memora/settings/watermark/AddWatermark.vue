@@ -990,7 +990,7 @@ import ColorPicker from '@/components/shadcn/ColorPicker.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { useWatermarkStore } from '@/stores/watermark'
 
 const description = ''

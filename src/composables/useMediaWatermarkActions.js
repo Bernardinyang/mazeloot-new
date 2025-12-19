@@ -1,4 +1,4 @@
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 function blobToDataURL(blob) {
   return new Promise((resolve, reject) => {

@@ -41,9 +41,9 @@
                 :class="[theme.borderSecondary, theme.bgCard]"
                 class="px-4 py-2 rounded-lg border"
               >
-                <div :class="theme.textTertiary" class="text-xs">Cover Style</div>
+                <div :class="theme.textTertiary" class="text-xs">Cover Layout</div>
                 <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
-                  {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Left' }}
+                  {{ selectedLayout?.name || 'None' }}
                 </div>
               </div>
             </div>
@@ -65,26 +65,55 @@
                       Cover Layout
                     </h3>
                     <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                      Choose how your collection title appears on the cover
+                      Choose a layout style for your collection cover
                     </p>
                   </div>
                   <div
+                    v-if="selectedLayout"
                     class="px-3 py-1.5 rounded-lg bg-teal-500/10 dark:bg-teal-500/20 border border-teal-500/20 dark:border-teal-500/30"
                   >
                     <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
-                      {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Left' }}
+                      {{ selectedLayout.name }}
                     </span>
                   </div>
                 </div>
 
+                <!-- Loading state -->
+                <div v-if="coverLayoutsLoading" class="flex items-center justify-center py-12">
+                  <Loader2 :class="theme.textSecondary" class="h-6 w-6 animate-spin" />
+                </div>
+
+                <!-- Empty state -->
+                <div
+                  v-else-if="coverLayoutOptions.length === 0"
+                  class="flex flex-col items-center justify-center py-12"
+                >
+                  <p :class="theme.textSecondary" class="text-sm mb-2">
+                    No cover layouts available
+                  </p>
+                  <Button
+                    :class="theme.textSecondary"
+                    size="sm"
+                    variant="ghost"
+                    @click="loadCoverLayouts"
+                  >
+                    Retry
+                  </Button>
+                </div>
+
                 <!-- Cover Layout Presets Grid -->
                 <div
+                  v-else
                   class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar"
                 >
-                  <div v-for="cover in coverOptions" :key="cover.id" class="flex flex-col gap-3">
+                  <div
+                    v-for="layout in coverLayoutOptions"
+                    :key="layout.uuid"
+                    class="flex flex-col gap-3"
+                  >
                     <button
                       :class="[
-                        formData.cover === cover.id
+                        formData.coverLayoutUuid === layout.uuid
                           ? 'border-teal-500 ring-2 ring-teal-500/30 scale-[1.02]'
                           : [
                               theme.borderSecondary,
@@ -94,7 +123,7 @@
                         theme.bgCard,
                       ]"
                       class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-[1.05] overflow-hidden cursor-pointer"
-                      @click="formData.cover = cover.id"
+                      @click="selectCoverLayout(layout)"
                     >
                       <!-- Selected indicator -->
                       <Transition
@@ -106,28 +135,37 @@
                         leave-to-class="opacity-0 scale-75"
                       >
                         <div
-                          v-if="formData.cover === cover.id"
+                          v-if="formData.coverLayoutUuid === layout.uuid"
                           class="absolute top-2 right-2 z-20 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center ring-2 ring-white dark:ring-gray-900"
                         >
                           <Check class="h-3.5 w-3.5 text-white" />
                         </div>
                       </Transition>
 
-                      <!-- Cover previews based on type -->
+                      <!-- Cover layout preview -->
                       <div class="w-full h-full">
-                        <CoverPreview :type="cover.id" />
+                        <CoverLayoutPreview
+                          v-if="layout.layoutConfig"
+                          :layout-config="layout.layoutConfig"
+                        />
+                        <div
+                          v-else
+                          class="w-full h-full flex items-center justify-center bg-gray-200 dark:bg-gray-700"
+                        >
+                          <span class="text-xs text-gray-500">Loading...</span>
+                        </div>
                       </div>
                     </button>
-                    <!-- Cover style label -->
+                    <!-- Cover layout label -->
                     <span
                       :class="
-                        formData.cover === cover.id
+                        formData.coverLayoutUuid === layout.uuid
                           ? 'text-teal-600 dark:text-teal-400 font-bold'
                           : theme.textSecondary
                       "
                       class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
                     >
-                      {{ cover.label }}
+                      {{ layout.name }}
                     </span>
                   </div>
                 </div>
@@ -369,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Eye, Loader2 } from 'lucide-vue-next'
@@ -377,14 +415,19 @@ import { Button } from '@/components/shadcn/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
-import CoverPreview from '@/components/organisms/CoverPreview.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
-import { toast } from 'vue-sonner'
-// Cover options - matching the image description
-import { coverStyleConfigs } from '@/config/coverStyles'
+import { toast } from '@/utils/toast'
+// Cover layouts - new dynamic layout system
+import {
+  getCoverLayoutConfig,
+  getCoverLayoutOptions,
+  getDefaultLayoutConfig,
+  useCoverLayouts,
+} from '@/composables/useCoverLayouts'
+import CoverLayoutPreview from '@/components/organisms/CoverLayoutPreview.vue'
 
 const description = ''
 
@@ -406,9 +449,10 @@ const isSaving = ref(false)
 const isSubmitting = ref(false)
 const showUnsavedChangesModal = ref(false)
 
-// Cover form data
+// Cover form data - now stores layout UUID
 const formData = ref({
-  cover: 'none',
+  coverLayoutUuid: null,
+  coverLayoutConfig: null, // Store full config for backward compatibility
   coverFocalPoint: { x: 50, y: 50 },
 })
 
@@ -421,16 +465,20 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.cover !== originalData.value.cover ||
+    formData.value.coverLayoutUuid !== originalData.value.coverLayoutUuid ||
+    JSON.stringify(formData.value.coverLayoutConfig) !==
+      JSON.stringify(originalData.value.coverLayoutConfig) ||
     formData.value.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
     formData.value.coverFocalPoint.y !== originalData.value.coverFocalPoint.y
   )
 })
 
-// Get merged design config for preview (from collection store)
+// Get merged design config for preview
+// IMPORTANT: formData values always take priority to ensure live preview reflects current form state
+// This computed property passes formData.coverLayoutConfig directly to CollectionPreview
 const previewDesignConfig = computed(() => {
+  const defaultLayoutConfig = getDefaultLayoutConfig()
   const defaults = {
-    cover: 'none',
     coverFocalPoint: { x: 50, y: 50 },
     fontFamily: 'sans',
     fontStyle: 'normal',
@@ -442,22 +490,35 @@ const previewDesignConfig = computed(() => {
     navigationStyle: 'icon-text',
   }
 
+  // Early returns for cases where collection is not loaded or not in store
   if (!collection.value) {
     // Fallback to formData if collection not loaded
+    // Create new object reference for reactivity
+    const coverLayoutConfigValue = formData.value.coverLayoutConfig
+      ? { ...formData.value.coverLayoutConfig }
+      : { ...defaultLayoutConfig }
     return {
       ...defaults,
-      cover: formData.value.cover,
+      coverLayoutConfig: coverLayoutConfigValue,
       coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
+      // Only set cover: 'none' if layout is actually 'none'
+      cover: coverLayoutConfigValue?.layout === 'none' ? 'none' : undefined,
     }
   }
 
   const collectionInStore = galleryStore.collections.find(c => c.id === collection.value?.id)
   if (!collectionInStore) {
     // Fallback to formData if not in store
+    // Create new object reference for reactivity
+    const coverLayoutConfigValue = formData.value.coverLayoutConfig
+      ? { ...formData.value.coverLayoutConfig }
+      : { ...defaultLayoutConfig }
     return {
       ...defaults,
-      cover: formData.value.cover,
+      coverLayoutConfig: coverLayoutConfigValue,
       coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
+      // Only set cover: 'none' if layout is actually 'none'
+      cover: coverLayoutConfigValue?.layout === 'none' ? 'none' : undefined,
     }
   }
 
@@ -468,6 +529,8 @@ const previewDesignConfig = computed(() => {
     (collectionInStore.design
       ? {
           cover: collectionInStore.design.cover,
+          coverLayoutUuid: collectionInStore.design.coverLayoutUuid,
+          coverLayoutConfig: collectionInStore.design.coverLayoutConfig,
           coverFocalPoint: collectionInStore.design.coverFocalPoint,
         }
       : {})
@@ -498,16 +561,40 @@ const previewDesignConfig = computed(() => {
         }
       : {})
 
-  // Return merged config from store
+  // PRIORITY: Always use formData for cover layout config (for live preview)
+  // This ensures the preview reflects the current form state, not the saved state
+  // Create a new object reference to ensure reactivity when formData changes
+  const coverLayoutConfigValue = formData.value.coverLayoutConfig
+    ? { ...formData.value.coverLayoutConfig } // Create new reference from formData (always prefer this)
+    : coverDesign.coverLayoutConfig
+      ? { ...coverDesign.coverLayoutConfig } // Fallback to store if formData is empty
+      : { ...defaultLayoutConfig } // Fallback to default
+
+  // Determine cover value - only set to 'none' if layout is actually 'none'
+  // Otherwise, don't set cover (let CollectionPreview use coverLayoutConfig)
+  const coverValue =
+    coverLayoutConfigValue?.layout === 'none'
+      ? 'none'
+      : coverDesign.cover && coverDesign.cover !== 'none'
+        ? coverDesign.cover
+        : undefined
+
+  // Return merged config - formData values take priority for preview
+  // This should match the structure that CollectionPreview expects
+  // Always create a new object to ensure reactivity when formData changes
   return {
     ...defaults,
     ...typographyDesign,
     ...colorDesign,
     ...gridDesign,
-    ...coverDesign,
-    cover: coverDesign.cover ?? formData.value.cover,
+    // PRIORITY: Use formData values for cover layout (for live preview)
+    // Access formData.value properties directly to ensure computed tracks them
+    coverLayoutUuid: formData.value.coverLayoutUuid ?? coverDesign.coverLayoutUuid ?? null,
+    coverLayoutConfig: coverLayoutConfigValue, // From formData (if exists), otherwise store/default
     coverFocalPoint:
-      coverDesign.coverFocalPoint ?? formData.value.coverFocalPoint ?? defaults.coverFocalPoint,
+      formData.value.coverFocalPoint ?? coverDesign.coverFocalPoint ?? defaults.coverFocalPoint, // formData takes priority
+    // Only set cover if layout is 'none' or if there's an old cover value (backward compatibility)
+    cover: coverValue,
   }
 })
 
@@ -521,7 +608,11 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      collectionInStore.coverDesign = { ...newData }
+      collectionInStore.coverDesign = {
+        coverLayoutUuid: newData.coverLayoutUuid,
+        coverLayoutConfig: newData.coverLayoutConfig,
+        coverFocalPoint: newData.coverFocalPoint,
+      }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -529,10 +620,75 @@ watch(
   { deep: true }
 )
 
-const coverOptions = Object.values(coverStyleConfigs).map(config => ({
-  id: config.id,
-  label: config.label,
-}))
+// Initialize cover layouts from API (will load automatically)
+// Cover layout options - from API
+const coverLayoutOptions = ref([])
+const coverLayoutsLoading = ref(false)
+
+// Load cover layouts
+const loadCoverLayouts = async () => {
+  coverLayoutsLoading.value = true
+  try {
+    await useCoverLayouts()
+    // Wait a tick to ensure reactive updates propagate
+    await new Promise(resolve => setTimeout(resolve, 0))
+    // Get options after layouts are loaded
+    const options = getCoverLayoutOptions()
+    coverLayoutOptions.value = options
+  } catch (err) {
+    console.warn('Failed to load cover layouts:', err)
+    coverLayoutOptions.value = []
+  } finally {
+    coverLayoutsLoading.value = false
+  }
+}
+
+// Preload cover layouts on component mount
+onMounted(() => {
+  loadCoverLayouts()
+})
+
+// Get selected layout object
+const selectedLayout = computed(() => {
+  if (!formData.value.coverLayoutUuid) {
+    return null
+  }
+  return coverLayoutOptions.value.find(l => l.uuid === formData.value.coverLayoutUuid) || null
+})
+
+// Get layout config for selected layout
+const selectedLayoutConfig = computed(() => {
+  if (selectedLayout.value && selectedLayout.value.layoutConfig) {
+    return selectedLayout.value.layoutConfig
+  }
+  return formData.value.coverLayoutConfig || getDefaultLayoutConfig()
+})
+
+// Handle layout selection
+const selectCoverLayout = async layout => {
+  // Always store the full layout config when selecting
+  // This ensures preview and save both have the config
+  let layoutConfig = null
+  if (layout.layoutConfig) {
+    layoutConfig = { ...layout.layoutConfig } // Create a new object reference for reactivity
+  } else {
+    // Fetch full layout config if we don't have it
+    try {
+      layoutConfig = await getCoverLayoutConfig(layout.uuid)
+    } catch (err) {
+      console.warn('[Cover.vue] Failed to fetch layout config:', err)
+      layoutConfig = getDefaultLayoutConfig()
+    }
+  }
+
+  // Update formData - create completely new object reference for reactivity
+  // This ensures previewDesignConfig computed detects the change immediately
+  formData.value = {
+    coverLayoutUuid: layout.uuid,
+    coverLayoutConfig: layoutConfig, // Already a new object reference from above
+    coverFocalPoint: { ...formData.value.coverFocalPoint }, // Preserve focal point
+  }
+}
 
 // Handle focal point click
 const handleFocalPointClick = event => {
@@ -569,7 +725,12 @@ const loadCollectionData = async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     if (!collectionData) {
-      throw new Error('Collection not found')
+      toast.error('Collection not found', {
+        description:
+          'The collection you are trying to edit no longer exists. Redirecting to collections...',
+      })
+      router.push({ name: 'manageCollections' })
+      return
     }
 
     collection.value = collectionData
@@ -581,11 +742,28 @@ const loadCollectionData = async () => {
       (collectionData.design
         ? {
             cover: collectionData.design.cover,
+            coverLayoutUuid: collectionData.design.coverLayoutUuid,
+            coverLayoutConfig: collectionData.design.coverLayoutConfig,
             coverFocalPoint: collectionData.design.coverFocalPoint,
           }
         : {})
+
+    // If coverLayoutUuid exists but we don't have the config, fetch it
+    let layoutConfig = coverDesign.coverLayoutConfig
+    if (coverDesign.coverLayoutUuid && !layoutConfig) {
+      try {
+        layoutConfig = await getCoverLayoutConfig(coverDesign.coverLayoutUuid)
+      } catch (err) {
+        console.warn('Failed to fetch layout config:', err)
+        layoutConfig = getDefaultLayoutConfig()
+      }
+    } else if (!layoutConfig) {
+      layoutConfig = getDefaultLayoutConfig()
+    }
+
     const loadedData = {
-      cover: coverDesign.cover || 'none',
+      coverLayoutUuid: coverDesign.coverLayoutUuid || null,
+      coverLayoutConfig: layoutConfig,
       coverFocalPoint:
         coverDesign.coverFocalPoint && typeof coverDesign.coverFocalPoint === 'object'
           ? { ...coverDesign.coverFocalPoint }
@@ -597,10 +775,19 @@ const loadCollectionData = async () => {
     // Set cover image
     collectionCoverImage.value = collectionData.thumbnail || null
   } catch (error) {
-    toast.error('Failed to load collection', {
-      description,
-    })
-    router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('Collection not found') || errorMessage === 'Collection not found') {
+      toast.error('Collection not found', {
+        description:
+          'The collection you are trying to edit no longer exists. Redirecting to collections...',
+      })
+      router.push({ name: 'manageCollections' })
+    } else {
+      toast.error('Failed to load collection', {
+        description: errorMessage,
+      })
+      router.push({ name: 'manageCollections' })
+    }
   } finally {
     isLoading.value = false
   }
@@ -624,8 +811,16 @@ const saveCoverDesign = async () => {
 
   try {
     isSaving.value = true
+
+    // Ensure we're saving the complete coverDesign object
+    const coverDesignData = {
+      coverLayoutUuid: formData.value.coverLayoutUuid,
+      coverLayoutConfig: formData.value.coverLayoutConfig,
+      coverFocalPoint: formData.value.coverFocalPoint,
+    }
+
     await galleryStore.updateCollection(collection.value.id, {
-      coverDesign: formData.value,
+      coverDesign: coverDesignData,
     })
 
     // Update original data after successful save
@@ -634,8 +829,22 @@ const saveCoverDesign = async () => {
     }
     return true
   } catch (error) {
+    console.error('[Cover.vue] Save error:', error)
+
+    // Check if collection was not found
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes('Collection not found') || errorMessage === 'Collection not found') {
+      toast.error('Collection not found', {
+        description:
+          'The collection you are trying to edit no longer exists. Redirecting to collections...',
+      })
+      // Navigate back to collections list
+      router.push({ name: 'manageCollections' })
+      return false
+    }
+
     toast.error('Failed to save cover design', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: errorMessage,
     })
     return false
   } finally {
@@ -697,7 +906,7 @@ const handleOpenPreviewInNewTab = async () => {
   if (success) {
     const previewUrl = router.resolve({
       name: 'collectionPreview',
-      params: { uuid: collectionId },
+      params: { id: collectionId },
     }).href
     window.open(previewUrl, '_blank')
   }

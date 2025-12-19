@@ -1,5 +1,5 @@
 import { watch } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 export function useMoveCopyFlow({
   showMoveCopyModal,

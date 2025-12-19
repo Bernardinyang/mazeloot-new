@@ -326,7 +326,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const description = ''
 

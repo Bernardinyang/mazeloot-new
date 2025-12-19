@@ -99,7 +99,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProofingStore } from '@/stores/proofing'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import ProofingDetailSidebar from '@/components/organisms/ProofingDetailSidebar.vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

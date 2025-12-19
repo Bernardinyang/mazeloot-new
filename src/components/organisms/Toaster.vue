@@ -24,4 +24,9 @@ const toastTheme = computed(() => {
   right: 0.5rem !important;
   left: auto !important;
 }
+
+/* Hide toast titles - show only description */
+[data-sonner-toast] [data-title] {
+  display: none !important;
+}
 </style>

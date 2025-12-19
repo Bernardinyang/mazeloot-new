@@ -68,6 +68,7 @@ export const getMediaFromIndexedDB = async () => {
 
 /**
  * Save media items to IndexedDB
+ * Uses put operations to update/add items without clearing the store
  */
 export const saveMediaToIndexedDB = async media => {
   try {
@@ -76,7 +77,6 @@ export const saveMediaToIndexedDB = async media => {
       const transaction = db.transaction([MEDIA_STORE], 'readwrite')
       const store = transaction.objectStore(MEDIA_STORE)
 
-      // Use put instead of clear + add to handle duplicates better
       let completed = 0
       let hasError = false
       const total = media.length
@@ -86,29 +86,24 @@ export const saveMediaToIndexedDB = async media => {
         return
       }
 
-      // Clear first, then add all items
-      const clearRequest = store.clear()
-      clearRequest.onsuccess = () => {
-        media.forEach(item => {
-          if (hasError) return
+      // Use put to add/update items without clearing
+      // This prevents data loss if there's an error
+      media.forEach(item => {
+        if (hasError) return
 
-          const request = store.put(item) // Use put to handle duplicates
-          request.onsuccess = () => {
-            completed++
-            if (completed === total && !hasError) {
-              resolve()
-            }
+        const request = store.put(item) // put will update if exists, add if new
+        request.onsuccess = () => {
+          completed++
+          if (completed === total && !hasError) {
+            resolve()
           }
-          request.onerror = event => {
-            hasError = true
-            console.error('Failed to save media item:', item.id, event)
-            reject(new Error(`Failed to save media item ${item.id}`))
-          }
-        })
-      }
-      clearRequest.onerror = () => {
-        reject(new Error('Failed to clear IndexedDB store'))
-      }
+        }
+        request.onerror = event => {
+          hasError = true
+          console.error('Failed to save media item:', item.id, event)
+          reject(new Error(`Failed to save media item ${item.id}`))
+        }
+      })
     })
   } catch (error) {
     console.error('IndexedDB not available:', error)

@@ -59,7 +59,7 @@ import { computed } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Field, Form } from 'vee-validate'
 import * as yup from 'yup'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import FormField from '@/components/molecules/FormField.vue'
@@ -90,9 +90,7 @@ const handleLogin = async values => {
   try {
     await userStore.login(values.email, values.password, values.remember)
 
-    toast.success('Login successful!', {
-      description: 'Welcome back! Redirecting...',
-    })
+    toast.success('Welcome back! Redirecting...')
 
     // Redirect to the original destination or overview
     const redirect = route.query.redirect
@@ -109,19 +107,10 @@ const handleGoogleSignIn = async () => {
   try {
     const { useAuthApi } = await import('@/api/auth')
     const authApi = useAuthApi()
-    const response = await authApi.googleSignIn()
+    const redirectUrl = await authApi.googleSignIn()
 
-    userStore.user = response.user
-    userStore.token = response.token
-    // Persistence is handled by store watchers
-
-    toast.success('Login successful!', {
-      description: 'Welcome back! Redirecting...',
-    })
-
-    // Redirect to the original destination or overview
-    const redirect = route.query.redirect
-    await router.push(redirect || { name: 'overview' })
+    // Redirect to Google OAuth
+    window.location.href = redirectUrl
   } catch (error) {
     console.error('Google sign in error:', error)
     await handleError(error, {

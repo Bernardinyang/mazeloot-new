@@ -68,7 +68,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import FormField from '@/components/molecules/FormField.vue'
@@ -76,8 +76,6 @@ import OtpInput from '@/components/molecules/OtpInput.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/api/auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-
-const description = ''
 
 const emailSchema = yup.object({
   email: yup.string().required('Email is required').email('Please enter a valid email address'),
@@ -104,7 +102,7 @@ const handleForgotPassword = async values => {
     await authApi.forgotPassword(values.email)
 
     toast.success('Verification code sent', {
-      description,
+      description: `A verification code has been sent to ${values.email}`,
     })
     showOtp.value = true
   } catch (error) {
@@ -123,19 +121,18 @@ const handleVerifyOtp = async verificationCode => {
 
   otpLoading.value = true
   try {
-    const result = await authApi.verifyPasswordResetOtp(codeToVerify)
-
-    toast.success('Code verified', {
-      description,
-    })
+    // Redirect to reset password page with email and code
     router.push({
-      name,
-      query,
+      name: 'resetPassword',
+      query: {
+        email: email.value,
+        code: codeToVerify,
+      },
     })
   } catch (error) {
     console.error('OTP verification error:', error)
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to verify code',
     })
     otpCode.value = ''
   } finally {
@@ -158,12 +155,12 @@ const resendOtp = async () => {
     }, 1000)
 
     toast.success('Code resent', {
-      description,
+      description: `A new verification code has been sent to ${email.value}`,
     })
   } catch (error) {
     console.error('Resend error:', error)
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to resend code',
     })
   }
 }

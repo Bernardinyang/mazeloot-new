@@ -131,7 +131,7 @@ import ProjectDetailSidebar from '@/components/organisms/ProjectDetailSidebar.vu
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

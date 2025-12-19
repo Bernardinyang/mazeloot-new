@@ -1,4 +1,4 @@
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 export function useMediaShareDownloadActions({
   getMediaShareUrl,
@@ -17,14 +17,10 @@ export function useMediaShareDownloadActions({
     try {
       const shareUrl = getMediaShareUrl(window.location.origin, item.id)
       await copyTextToClipboard(shareUrl)
-      toast.success('Share link copied', {
-        description: 'The share link has been copied to your clipboard.',
-      })
+      toast.success('The share link has been copied to your clipboard.')
     } catch (error) {
       console.error('Failed to copy share link:', error)
-      toast.error('Failed to copy link', {
-        description: 'Please try again.',
-      })
+      toast.error('Please try again.')
     }
   }
 
@@ -34,9 +30,7 @@ export function useMediaShareDownloadActions({
       const downloadUrl = getMediaDownloadUrl(item)
 
       if (!downloadUrl) {
-        toast.error('Download failed', {
-          description,
-        })
+        toast.error(description || 'Download failed')
         return
       }
 
@@ -45,22 +39,16 @@ export function useMediaShareDownloadActions({
       if (!blob) {
         // Fallback
         triggerFallbackDownloadLink(downloadUrl, item.title || `media-${item.id}`)
-        toast.success('Download started', {
-          description,
-        })
+        toast.success(description || 'Download started')
         return
       }
 
       triggerBrowserDownload(blob, getDownloadFilename(item.title, item.id))
 
-      toast.success('Download started', {
-        description,
-      })
+      toast.success(description || 'Download started')
     } catch (error) {
       console.error('Download error:', error)
-      toast.error('Download failed', {
-        description,
-      })
+      toast.error(description || 'Download failed')
     }
   }
 
@@ -68,14 +56,10 @@ export function useMediaShareDownloadActions({
     try {
       const filename = getMediaFilename(item.title, item.id)
       await copyTextToClipboard(filename)
-      toast.success('Filename copied', {
-        description,
-      })
+      toast.success(description || 'Filename copied')
     } catch (error) {
       console.error('Failed to copy filename:', error)
-      toast.error('Failed to copy filename', {
-        description,
-      })
+      toast.error(description || 'Failed to copy filename')
     }
   }
 
@@ -85,14 +69,10 @@ export function useMediaShareDownloadActions({
 
     copyTextToClipboard(link)
       .then(() => {
-        toast.success('Link copied', {
-          description: 'The link has been copied to your clipboard.',
-        })
+        toast.success('The link has been copied to your clipboard.')
       })
       .catch(() => {
-        toast.error('Failed to copy', {
-          description: 'Please try again.',
-        })
+        toast.error('Please try again.')
       })
   }
 

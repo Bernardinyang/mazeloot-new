@@ -1,4 +1,4 @@
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 export function useCollectionCoverActions({
   collection,

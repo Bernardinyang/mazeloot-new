@@ -69,8 +69,27 @@
         </div>
       </DetailSection>
 
+      <!-- Sets Section -->
+      <DetailSection v-if="hasSets" title="Sets" container-class="pt-4 border-t">
+        <div class="flex flex-wrap gap-2">
+          <span
+            v-for="set in selection.mediaSets"
+            :key="set.id || set"
+            :class="[
+              'px-2.5 py-1 rounded-md text-xs font-medium',
+              theme.bgCardSolid,
+              theme.textPrimary,
+              'border',
+              theme.borderSecondary,
+            ]"
+          >
+            {{ typeof set === 'string' ? set : set.name }}
+          </span>
+        </div>
+      </DetailSection>
+
       <!-- Timeline Section -->
-      <DetailSection title="Timeline">
+      <DetailSection title="Timeline" container-class="pt-4 border-t">
         <DetailField label="Created At" :value="selection.createdAt" format="date" />
         <DetailField
           v-if="selection.updatedAt"
@@ -206,7 +225,17 @@ const excludedKeys = [
   'autoDeleteDate',
   'media',
   'projectName',
+  'mediaSets',
 ]
+
+const hasSets = computed(() => {
+  if (!selection.value) return false
+  return (
+    selection.value.mediaSets &&
+    Array.isArray(selection.value.mediaSets) &&
+    selection.value.mediaSets.length > 0
+  )
+})
 
 const hasAdditionalFields = computed(() => {
   if (!selection.value) return false

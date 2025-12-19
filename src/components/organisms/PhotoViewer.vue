@@ -93,7 +93,7 @@ import { Dialog, DialogContent, DialogClose } from '@/components/shadcn/dialog'
 import { Button } from '@/components/shadcn/button'
 import { X, ChevronLeft, ChevronRight, Download } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 

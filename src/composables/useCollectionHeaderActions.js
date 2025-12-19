@@ -1,5 +1,5 @@
 import { nextTick } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 export function useCollectionHeaderActions({
   collection,

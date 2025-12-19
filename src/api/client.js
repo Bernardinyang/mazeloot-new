@@ -40,10 +40,16 @@ class ApiClient {
       userStore.clearAuth()
 
       // Only redirect if not already on auth pages
-      if (
-        !window.location.pathname.includes('/login') &&
-        !window.location.pathname.includes('/register')
-      ) {
+      // Use window.location for hard redirect to reset app state properly
+      const currentPath = window.location.pathname
+      const isOnAuthPage =
+        currentPath.includes('/login') ||
+        currentPath.includes('/register') ||
+        currentPath.includes('/verify-email') ||
+        currentPath.includes('/forgot-password') ||
+        currentPath.includes('/reset-password')
+
+      if (!isOnAuthPage) {
         window.location.href = '/login'
       }
     }
@@ -75,6 +81,7 @@ class ApiClient {
 
     const headers = {
       'Content-Type': 'application/json',
+      Accept: 'application/json',
       ...(fetchOptions.headers || {}),
     }
 

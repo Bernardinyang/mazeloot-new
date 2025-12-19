@@ -39,15 +39,13 @@ import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { Form } from 'vee-validate'
 import * as yup from 'yup'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import FormField from '@/components/molecules/FormField.vue'
 import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/api/auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-
-const description = ''
 
 const router = useRouter()
 const route = useRoute()
@@ -71,27 +69,29 @@ const schema = yup.object({
 })
 
 const handleResetPassword = async values => {
-  const token = route.query.token
-  if (!token) {
-    toast.error('Invalid token', {
-      description,
+  const email = route.query.email
+  const code = route.query.code
+
+  if (!email || !code) {
+    toast.error('Invalid reset link', {
+      description: 'Please request a new password reset',
     })
-    router.push({ name: 'login' })
+    router.push({ name: 'forgotPassword' })
     return
   }
 
   loading.value = true
   try {
-    await authApi.resetPassword(token, values.password)
+    await authApi.resetPassword(email, code, values.password, values.confirmPassword)
 
     toast.success('Password reset successfully!', {
-      description,
+      description: 'You can now login with your new password',
     })
     router.push({ name: 'login' })
   } catch (error) {
     console.error('Reset password error:', error)
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to reset password',
     })
   } finally {
     loading.value = false

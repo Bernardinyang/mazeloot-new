@@ -73,7 +73,7 @@
                   'text-white text-xs px-2 py-1 rounded-full',
                 ]"
               >
-                {{ collection.status }}
+                {{ capitalize(collection.status) }}
               </div>
             </div>
             <p :class="theme.textSecondary" class="text-sm mb-4">
@@ -119,7 +119,8 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
+import { capitalize } from '@/lib/utils'
 
 const route = useRoute()
 const router = useRouter()

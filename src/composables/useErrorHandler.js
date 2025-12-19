@@ -4,7 +4,7 @@
  */
 
 import { ref } from 'vue'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { getErrorMessage, isAuthError, isNetworkError, isValidationError } from '@/utils/errors'
 import { useLogout } from './useLogout'
 
@@ -30,9 +30,7 @@ export function useErrorHandler() {
         await logout()
       }
       if (showToast) {
-        toast.error('Authentication required', {
-          description: 'Please sign in again.',
-        })
+        toast.error('Please sign in again.')
       }
       return
     }
@@ -43,9 +41,7 @@ export function useErrorHandler() {
         onNetworkError()
       }
       if (showToast) {
-        toast.error('Connection error', {
-          description: 'Please check your internet connection and try again.',
-        })
+        toast.error('Please check your internet connection and try again.')
       }
       return
     }
@@ -53,18 +49,14 @@ export function useErrorHandler() {
     // Handle validation errors
     if (isValidationError(err)) {
       if (showToast) {
-        toast.error('Validation error', {
-          description: errorMessage,
-        })
+        toast.error(errorMessage)
       }
       return
     }
 
     // Generic error
     if (showToast) {
-      toast.error('Error', {
-        description: errorMessage,
-      })
+      toast.error(errorMessage)
     }
   }
 

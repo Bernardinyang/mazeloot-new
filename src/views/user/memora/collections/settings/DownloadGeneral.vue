@@ -182,7 +182,7 @@ import { Button } from '@/components/shadcn/button'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { RefreshCw } from 'lucide-vue-next'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 import { useGalleryStore } from '@/stores/gallery'
 
 const route = useRoute()

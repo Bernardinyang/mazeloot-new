@@ -119,7 +119,7 @@ import CreateSelectionDialog from '@/components/organisms/CreateSelectionDialog.
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useErrorHandler } from '@/composables/useErrorHandler'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()

@@ -31,9 +31,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { toast } from 'vue-sonner'
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import OtpInput from '@/components/molecules/OtpInput.vue'
@@ -43,28 +43,47 @@ import { useAuthApi } from '@/api/auth'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const router = useRouter()
+const route = useRoute()
 const authApi = useAuthApi()
 const { handleError } = useErrorHandler()
 const loading = ref(false)
 const code = ref('')
 const resendCooldown = ref(0)
+const email = ref('')
 
 const isCodeComplete = computed(() => {
   return code.value.length === 6
 })
 
+onMounted(() => {
+  email.value = route.query.email || ''
+  if (!email.value) {
+    router.push({ name: 'register' })
+  }
+})
+
 const handleVerify = async verificationCode => {
   const codeToVerify = verificationCode || code.value
   if (!codeToVerify || codeToVerify.length !== 6) return
+  if (!email.value) return
 
   loading.value = true
   try {
-    await authApi.verifyEmail(codeToVerify)
+    const response = await authApi.verifyEmail(email.value, codeToVerify)
+
+    // Save user and token to store
+    const { useUserStore } = await import('@/stores/user')
+    const userStore = useUserStore()
+    userStore.user = response.user
+    userStore.token = response.token
 
     toast.success('Email verified successfully!', {
       description: 'Your email has been verified successfully',
     })
-    router.push({ name: 'login' })
+
+    // Redirect to overview
+    const redirect = route.query.redirect
+    router.push(redirect || { name: 'overview' })
   } catch (error) {
     console.error('Verification error:', error)
     handleError(error, {
@@ -77,10 +96,10 @@ const handleVerify = async verificationCode => {
 }
 
 const resendCode = async () => {
-  if (resendCooldown.value > 0) return
+  if (resendCooldown.value > 0 || !email.value) return
 
   try {
-    await authApi.resendVerificationCode()
+    await authApi.resendVerificationCode(email.value)
 
     resendCooldown.value = 60
     const interval = setInterval(() => {

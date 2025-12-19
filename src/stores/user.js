@@ -20,9 +20,31 @@ export const useUserStore = defineStore('user', () => {
    * Initialize user from localStorage
    */
   const init = () => {
-    // Support legacy keys used in tests: 'user' and 'token'
-    const storedUser = storage.get('mazeloot_user') || storage.get('user')
-    const storedToken = storage.get('mazeloot_token') || storage.get('token')
+    // Use mazeloot_ prefixed keys, migrate from legacy keys if needed
+    let storedUser = storage.get('mazeloot_user')
+    let storedToken = storage.get('mazeloot_token')
+
+    // If not found, check legacy keys and migrate
+    if (!storedUser || !storedToken) {
+      const legacyUser = storage.get('user')
+      const legacyToken = storage.get('token')
+
+      if (legacyUser && legacyToken) {
+        // Migrate to new keys
+        storage.set('mazeloot_user', legacyUser)
+        storage.set('mazeloot_token', legacyToken)
+        storedUser = legacyUser
+        storedToken = legacyToken
+      }
+    }
+
+    // Clean up legacy keys if they exist
+    if (storage.has('user')) {
+      storage.remove('user')
+    }
+    if (storage.has('token')) {
+      storage.remove('token')
+    }
 
     if (storedUser && storedToken) {
       user.value = storedUser
@@ -35,11 +57,10 @@ export const useUserStore = defineStore('user', () => {
     user,
     newUser => {
       if (newUser) {
-        // Persist to both names for backward compatibility with tests
         storage.set('mazeloot_user', newUser)
-        storage.set('user', newUser)
       } else {
         storage.remove('mazeloot_user')
+        // Also clean up legacy key if it exists
         storage.remove('user')
       }
     },
@@ -49,9 +70,9 @@ export const useUserStore = defineStore('user', () => {
   watch(token, newToken => {
     if (newToken) {
       storage.set('mazeloot_token', newToken)
-      storage.set('token', newToken)
     } else {
       storage.remove('mazeloot_token')
+      // Also clean up legacy key if it exists
       storage.remove('token')
     }
   })
@@ -90,10 +111,21 @@ export const useUserStore = defineStore('user', () => {
         acceptTerms: true,
       })
 
-      user.value = response.user
-      token.value = response.token
+      // Only set user and token if email is verified
+      if (response.token) {
+        user.value = response.user
+        token.value = response.token
+      } else {
+        // Store user temporarily for verification flow
+        user.value = response.user
+        token.value = null
+      }
 
-      return response
+      return {
+        user: response.user,
+        token: response.token,
+        requires_verification: response.requires_verification || false,
+      }
     } finally {
       isLoading.value = false
     }

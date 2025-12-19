@@ -186,7 +186,7 @@ import Input from '@/components/shadcn/input/Input.vue'
 import { Separator } from '@/components/shadcn/separator'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 

@@ -97,7 +97,7 @@ import { Input } from '@/components/shadcn/input'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
-import { toast } from 'vue-sonner'
+import { toast } from '@/utils/toast'
 
 const route = useRoute()
 const theme = useThemeClasses()
