@@ -1,120 +1,59 @@
 /**
  * Selections API composable
- * Handles all selection phase-related API calls
- * Uses localStorage for persistence until backend is ready
+ * Handles all selection-related API calls
+ * Integrates with backend API
  */
 
-import { storage } from '@/utils/storage'
-import { generateUUID } from '@/utils/uuid'
-import { delay } from '@/utils/delay'
-import { generateRandomColorFromPalette } from '@/utils/colors'
-
-const SELECTIONS_STORAGE_KEY = 'mazeloot_selections'
-const MEDIA_STORAGE_KEY = 'mazeloot_media'
-const DELETED_MEDIA_STORAGE_KEY = 'mazeloot_deleted_media'
-
-/**
- * Get all selections from localStorage
- */
-const getAllSelections = () => {
-  const selections = storage.get(SELECTIONS_STORAGE_KEY)
-  if (!selections || selections.length === 0) {
-    return []
-  }
-  return selections
-}
-
-/**
- * Save selections to localStorage
- */
-const saveSelections = selections => {
-  storage.set(SELECTIONS_STORAGE_KEY, selections)
-}
-
-/**
- * Get all media from localStorage
- */
-const getAllMedia = () => {
-  const media = storage.get(MEDIA_STORAGE_KEY)
-  if (!media || media.length === 0) {
-    return []
-  }
-  return media
-}
-
-/**
- * Save media to localStorage
- */
-const saveMedia = media => {
-  storage.set(MEDIA_STORAGE_KEY, media)
-}
-
-/**
- * Get deleted media (for recovery)
- */
-const getDeletedMedia = () => {
-  const deleted = storage.get(DELETED_MEDIA_STORAGE_KEY)
-  if (!deleted || deleted.length === 0) {
-    return []
-  }
-  return deleted
-}
-
-/**
- * Save deleted media (for recovery)
- */
-const saveDeletedMedia = deleted => {
-  storage.set(DELETED_MEDIA_STORAGE_KEY, deleted)
-}
+import { apiClient } from '@/api/client'
+import { parseError } from '@/utils/errors'
 
 export function useSelectionsApi() {
   /**
-   * Create selection phase
+   * Fetch all selections (optionally filtered by project_uuid)
    */
-  const createSelection = async (projectId, data) => {
-    await delay(500)
+  const fetchAllSelections = async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.projectUuid) {
+        queryParams.append('project_uuid', params.projectUuid)
+      }
 
-    const selections = getAllSelections()
+      const endpoint = `/v1/selections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
 
-    const newSelection = {
-      id: generateUUID(),
-      projectId,
-      name: data.name || 'Selections',
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      selectionCompletedAt: null,
-      autoDeleteDate: null,
-      color: data.color || generateRandomColorFromPalette(),
-      mediaSets: data.mediaSets || [],
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    selections.push(newSelection)
-    saveSelections(selections)
-
-    return newSelection
   }
 
   /**
    * Fetch selection by ID
    */
   const fetchSelection = async id => {
-    await delay(300)
-
-    const selections = getAllSelections()
-    const selection = selections.find(s => s.id === id)
-
-    if (!selection) {
-      throw new Error(`Selection not found: ${id}`)
+    try {
+      const response = await apiClient.get(`/v1/selections/${id}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
+  }
 
-    // Get media for this selection
-    const allMedia = getAllMedia()
-    const selectionMedia = allMedia.filter(m => m.phase === 'selection' && m.phaseId === id)
-
-    return {
-      ...selection,
-      media: selectionMedia,
+  /**
+   * Create selection (standalone or project-based)
+   */
+  const createSelection = async data => {
+    try {
+      const response = await apiClient.post('/v1/selections', {
+        name: data.name,
+        project_uuid: data.projectUuid || data.project_uuid || null,
+        status: data.status || 'active',
+        color: data.color || '#10B981',
+        cover_photo_url: data.coverPhotoUrl || data.cover_photo_url || null,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
   }
 
@@ -122,199 +61,405 @@ export function useSelectionsApi() {
    * Update selection
    */
   const updateSelection = async (id, data) => {
-    await delay(300)
-
-    const selections = getAllSelections()
-    const index = selections.findIndex(s => s.id === id)
-
-    if (index === -1) {
-      throw new Error('Selection not found')
-    }
-
-    selections[index] = {
-      ...selections[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-
-    saveSelections(selections)
-
-    return selections[index]
-  }
-
-  /**
-   * Complete selection - mark as completed and set auto-delete date
-   */
-  const completeSelection = async id => {
-    await delay(500)
-
-    const selections = getAllSelections()
-    const index = selections.findIndex(s => s.id === id)
-
-    if (index === -1) {
-      throw new Error('Selection not found')
-    }
-
-    const now = new Date()
-    const autoDeleteDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000) // 30 days
-
-    selections[index] = {
-      ...selections[index],
-      status: 'completed',
-      selectionCompletedAt: now.toISOString(),
-      autoDeleteDate: autoDeleteDate.toISOString(),
-      updatedAt: now.toISOString(),
-    }
-
-    saveSelections(selections)
-
-    // Get unselected media and mark for deletion
-    const allMedia = getAllMedia()
-    const selectionMedia = allMedia.filter(
-      m => m.phase === 'selection' && m.phaseId === id && !m.isSelected
-    )
-
-    // Move unselected media to deleted media (for recovery)
-    const deletedMedia = getDeletedMedia()
-    selectionMedia.forEach(media => {
-      deletedMedia.push({
-        ...media,
-        deletedAt: now.toISOString(),
-        selectionId: id,
-        canRecoverUntil: autoDeleteDate.toISOString(),
-      })
-    })
-
-    saveDeletedMedia(deletedMedia)
-
-    // Remove unselected media from active media
-    const selectedMedia = allMedia.filter(
-      m => !(m.phase === 'selection' && m.phaseId === id && !m.isSelected)
-    )
-    saveMedia(selectedMedia)
-
-    return selections[index]
-  }
-
-  /**
-   * Recover deleted media (within 30 days)
-   */
-  const recoverDeletedMedia = async selectionId => {
-    await delay(500)
-
-    const deletedMedia = getDeletedMedia()
-    const now = new Date()
-
-    // Find media that can still be recovered
-    const recoverable = deletedMedia.filter(
-      m => m.selectionId === selectionId && new Date(m.canRecoverUntil) > now
-    )
-
-    if (recoverable.length === 0) {
-      throw new Error('No recoverable media found or recovery period expired')
-    }
-
-    // Restore media to active media
-    const allMedia = getAllMedia()
-    recoverable.forEach(media => {
-      const { deletedAt, selectionId, canRecoverUntil, ...restoredMedia } = media
-      allMedia.push(restoredMedia)
-    })
-
-    saveMedia(allMedia)
-
-    // Remove from deleted media
-    const remainingDeleted = deletedMedia.filter(
-      m => !(m.selectionId === selectionId && new Date(m.canRecoverUntil) > now)
-    )
-    saveDeletedMedia(remainingDeleted)
-
-    return recoverable
-  }
-
-  /**
-   * Get only selected media
-   */
-  const getSelectedMedia = async selectionId => {
-    await delay(300)
-
-    const allMedia = getAllMedia()
-    return allMedia.filter(
-      m => m.phase === 'selection' && m.phaseId === selectionId && m.isSelected === true
-    )
-  }
-
-  /**
-   * Copy selected filenames for editing
-   */
-  const copyFilenames = async selectionId => {
-    await delay(300)
-
-    const selectedMedia = await getSelectedMedia(selectionId)
-    const filenames = selectedMedia.map(m => m.title || m.filename || '').filter(Boolean)
-
-    return filenames
-  }
-
-  /**
-   * Fetch all selections (both standalone and project-linked)
-   */
-  const fetchAllSelections = async () => {
-    await delay(300)
-
-    const selections = getAllSelections()
-    const allMedia = getAllMedia()
-
-    // Get projects for project name lookup
-    const { useProjectsApi } = await import('@/api/projects')
-    const projectsApi = useProjectsApi()
-    let projects = []
     try {
-      projects = await projectsApi.fetchProjects({ parentId: null })
-    } catch (err) {
-      console.warn('Failed to load projects for selection enrichment:', err)
+      const response = await apiClient.patch(`/v1/selections/${id}`, {
+        name: data.name,
+        status: data.status,
+        color: data.color,
+        cover_photo_url: data.coverPhotoUrl || data.cover_photo_url,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    // Enrich each selection with media count and project name
-    return selections.map(selection => {
-      const selectionMedia = allMedia.filter(
-        m => m.phase === 'selection' && m.phaseId === selection.id
-      )
-      const project = selection.projectId ? projects.find(p => p.id === selection.projectId) : null
-      return {
-        ...selection,
-        mediaCount: selectionMedia.length,
-        selectedMediaCount: selectionMedia.filter(m => m.isSelected).length,
-        projectName: project?.name || null,
-      }
-    })
   }
 
   /**
-   * Toggle star status
+   * Delete selection
    */
-  const toggleStar = async (id, isStarred) => {
-    await delay(300)
+  const deleteSelection = async id => {
+    try {
+      await apiClient.delete(`/v1/selections/${id}`)
+      return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
 
-    const selections = getAllSelections()
-    const index = selections.findIndex(s => s.id === id)
+  /**
+   * Publish selection (creative can only publish to active)
+   */
+  const publishSelection = async id => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${id}/publish`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
 
-    if (index !== -1) {
-      selections[index].isStarred = isStarred
-      selections[index].starred = isStarred
-      saveSelections(selections)
+  /**
+   * Complete selection (guest access - marks media as selected and completes)
+   */
+  const completeSelection = async (id, mediaIds) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/guest/selections/${id}/complete`,
+        {
+          mediaIds: mediaIds || [],
+        },
+        {
+          skipAuth: true, // Guest token is handled via middleware
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Recover deleted media
+   */
+  const recoverDeletedMedia = async (id, mediaIds) => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${id}/recover`, {
+        mediaIds: mediaIds || [],
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get selected media
+   */
+  const getSelectedMedia = async (id, setId = null) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (setId) {
+        queryParams.append('setId', setId)
+      }
+
+      const endpoint = `/v1/selections/${id}/selected${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get selected filenames
+   */
+  const getSelectedFilenames = async id => {
+    try {
+      const response = await apiClient.get(`/v1/selections/${id}/filenames`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Copy selected filenames (helper that gets and formats filenames)
+   */
+  const copyFilenames = async id => {
+    try {
+      const result = await getSelectedFilenames(id)
+      return result.filenames || []
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  // ==================== Media Sets ====================
+
+  /**
+   * Get all media sets for a selection
+   */
+  const fetchMediaSets = async selectionId => {
+    try {
+      const response = await apiClient.get(`/v1/selections/${selectionId}/sets`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get single media set
+   */
+  const fetchMediaSet = async (selectionId, setId) => {
+    try {
+      const response = await apiClient.get(`/v1/selections/${selectionId}/sets/${setId}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Create media set
+   */
+  const createMediaSet = async (selectionId, data) => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${selectionId}/sets`, {
+        name: data.name,
+        description: data.description || null,
+        order: data.order || 0,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Update media set
+   */
+  const updateMediaSet = async (selectionId, setId, data) => {
+    try {
+      const response = await apiClient.patch(`/v1/selections/${selectionId}/sets/${setId}`, {
+        name: data.name,
+        description: data.description,
+        order: data.order,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete media set
+   */
+  const deleteMediaSet = async (selectionId, setId) => {
+    try {
+      await apiClient.delete(`/v1/selections/${selectionId}/sets/${setId}`)
+      return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Reorder media sets
+   */
+  const reorderMediaSets = async (selectionId, setIds) => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${selectionId}/sets/reorder`, {
+        setIds: setIds,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  // ==================== Media ====================
+
+  /**
+   * Get media in a set
+   */
+  const fetchSetMedia = async (selectionId, setId) => {
+    try {
+      const response = await apiClient.get(`/v1/selections/${selectionId}/sets/${setId}/media`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Upload media to a set
+   */
+  const uploadMediaToSet = async (selectionId, setId, data) => {
+    try {
+      const payload = {
+        filename: data.filename,
+        mimeType: data.mimeType,
+        size: data.size,
+        type: data.type || 'image',
+        width: data.width || null,
+        height: data.height || null,
+        thumbnail: data.thumbnail || null,
+      }
+
+      // Prefer userFileUuid if available, otherwise use uploadUrl
+      if (data.userFileUuid) {
+        payload.userFileUuid = data.userFileUuid
+      } else {
+        payload.uploadUrl = data.uploadUrl
+      }
+
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media`,
+        payload
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete media from a set
+   */
+  const deleteMedia = async (selectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.delete(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Add feedback to media
+   */
+  const addMediaFeedback = async (selectionId, setId, mediaId, data) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/feedback`,
+        {
+          type: data.type,
+          content: data.content,
+          createdBy: data.createdBy || null,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  // ==================== Guest Access ====================
+
+  /**
+   * Generate guest token for a selection
+   */
+  const generateGuestToken = async (selectionId, email) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/guest-token`,
+        {
+          email: email,
+        },
+        {
+          skipAuth: true, // Public endpoint
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get selection (guest access)
+   */
+  const fetchSelectionGuest = async (id, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/guest/selections/${id}`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true, // Using guest token instead
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media sets (guest access)
+   */
+  const fetchMediaSetsGuest = async (id, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/guest/selections/${id}/sets`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media set (guest access)
+   */
+  const fetchMediaSetGuest = async (id, setId, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/guest/selections/${id}/sets/${setId}`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media in set (guest access)
+   */
+  const fetchSetMediaGuest = async (id, setId, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/guest/selections/${id}/sets/${setId}/media`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
   }
 
   return {
-    createSelection,
-    fetchSelection,
+    // Selection CRUD
     fetchAllSelections,
+    fetchSelection,
+    createSelection,
     updateSelection,
+    deleteSelection,
+    publishSelection,
     completeSelection,
     recoverDeletedMedia,
     getSelectedMedia,
+    getSelectedFilenames,
     copyFilenames,
-    toggleStar,
+
+    // Media Sets
+    fetchMediaSets,
+    fetchMediaSet,
+    createMediaSet,
+    updateMediaSet,
+    deleteMediaSet,
+    reorderMediaSets,
+
+    // Media
+    fetchSetMedia,
+    uploadMediaToSet,
+    deleteMedia,
+    addMediaFeedback,
+
+    // Guest Access
+    generateGuestToken,
+    fetchSelectionGuest,
+    fetchMediaSetsGuest,
+    fetchMediaSetGuest,
+    fetchSetMediaGuest,
   }
 }

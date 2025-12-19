@@ -26,7 +26,18 @@ export const useSelectionStore = defineStore('selection', () => {
     try {
       const selection = await selectionsApi.fetchSelection(id)
       currentSelection.value = selection
-      selectedMedia.value = selection.media || []
+      // Extract selected media if available
+      if (selection.mediaSets) {
+        const allMedia = []
+        for (const set of selection.mediaSets) {
+          if (set.media) {
+            allMedia.push(...set.media)
+          }
+        }
+        selectedMedia.value = allMedia.filter(m => m.isSelected)
+      } else {
+        selectedMedia.value = []
+      }
       return selection
     } catch (err) {
       error.value = err.message || 'Failed to fetch selection'
@@ -37,14 +48,34 @@ export const useSelectionStore = defineStore('selection', () => {
   }
 
   /**
-   * Create selection phase
+   * Fetch all selections (both standalone and project-linked)
    */
-  const createSelection = async (projectId, data) => {
+  const fetchAllSelections = async (params = {}) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const newSelection = await selectionsApi.createSelection(projectId, data)
+      const allSelections = await selectionsApi.fetchAllSelections(params)
+      // Ensure we have an array and filter out any null/undefined values
+      selections.value = Array.isArray(allSelections) ? allSelections.filter(s => s != null) : []
+      return selections.value
+    } catch (err) {
+      error.value = err.message || 'Failed to fetch selections'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Create selection phase
+   */
+  const createSelection = async data => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const newSelection = await selectionsApi.createSelection(data)
       selections.value.push(newSelection)
       return newSelection
     } catch (err) {
@@ -66,13 +97,16 @@ export const useSelectionStore = defineStore('selection', () => {
       const updated = await selectionsApi.updateSelection(id, data)
 
       // Update in selections array
-      const index = selections.value.findIndex(s => s.id === id)
+      const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
       if (index !== -1) {
         selections.value[index] = updated
       }
 
       // Update current selection if it's the one being updated
-      if (currentSelection.value && currentSelection.value.id === id) {
+      if (
+        currentSelection.value &&
+        (currentSelection.value.id === id || currentSelection.value.uuid === id)
+      ) {
         currentSelection.value = updated
       }
 
@@ -86,23 +120,59 @@ export const useSelectionStore = defineStore('selection', () => {
   }
 
   /**
-   * Complete selection
+   * Publish selection (creative can only publish to active)
    */
-  const completeSelection = async id => {
+  const publishSelection = async id => {
     isLoading.value = true
     error.value = null
 
     try {
-      const completed = await selectionsApi.completeSelection(id)
+      const published = await selectionsApi.publishSelection(id)
 
       // Update in selections array
-      const index = selections.value.findIndex(s => s.id === id)
+      const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
+      if (index !== -1) {
+        selections.value[index] = published
+      }
+
+      // Update current selection
+      if (
+        currentSelection.value &&
+        (currentSelection.value.id === id || currentSelection.value.uuid === id)
+      ) {
+        currentSelection.value = published
+      }
+
+      return published
+    } catch (err) {
+      error.value = err.message || 'Failed to publish selection'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Complete selection (guest access - marks media as selected and completes)
+   */
+  const completeSelection = async (id, mediaIds = []) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const completed = await selectionsApi.completeSelection(id, mediaIds)
+
+      // Update in selections array
+      const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
       if (index !== -1) {
         selections.value[index] = completed
       }
 
       // Update current selection
-      if (currentSelection.value && currentSelection.value.id === id) {
+      if (
+        currentSelection.value &&
+        (currentSelection.value.id === id || currentSelection.value.uuid === id)
+      ) {
         currentSelection.value = completed
       }
 
@@ -118,13 +188,13 @@ export const useSelectionStore = defineStore('selection', () => {
   /**
    * Recover deleted media
    */
-  const recoverMedia = async selectionId => {
+  const recoverMedia = async (selectionId, mediaIds) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const recovered = await selectionsApi.recoverDeletedMedia(selectionId)
-      return recovered
+      const result = await selectionsApi.recoverDeletedMedia(selectionId, mediaIds)
+      return result
     } catch (err) {
       error.value = err.message || 'Failed to recover media'
       throw err
@@ -154,12 +224,12 @@ export const useSelectionStore = defineStore('selection', () => {
   /**
    * Get selected media
    */
-  const getSelectedMedia = async selectionId => {
+  const getSelectedMedia = async (selectionId, setId = null) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const media = await selectionsApi.getSelectedMedia(selectionId)
+      const media = await selectionsApi.getSelectedMedia(selectionId, setId)
       selectedMedia.value = media
       return media
     } catch (err) {
@@ -171,56 +241,20 @@ export const useSelectionStore = defineStore('selection', () => {
   }
 
   /**
-   * Fetch all selections (both standalone and project-linked)
+   * Delete selection
    */
-  const fetchAllSelections = async () => {
+  const deleteSelection = async id => {
     isLoading.value = true
     error.value = null
 
     try {
-      const allSelections = await selectionsApi.fetchAllSelections()
-      selections.value = allSelections
-      return allSelections
+      await selectionsApi.deleteSelection(id)
+      return true
     } catch (err) {
-      error.value = err.message || 'Failed to fetch selections'
+      error.value = err.message || 'Failed to delete selection'
       throw err
     } finally {
       isLoading.value = false
-    }
-  }
-
-  /**
-   * Toggle star status with optimistic update
-   */
-  const toggleStar = async selectionId => {
-    const selection = selections.value.find(s => s.id === selectionId)
-    if (!selection) return
-
-    const wasStarred = selection.isStarred || selection.starred || false
-    const newStarredState = !wasStarred
-
-    // Optimistic update - update UI immediately
-    selection.isStarred = newStarredState
-    selection.starred = newStarredState
-
-    // Update current selection if it's the one being starred
-    if (currentSelection.value && currentSelection.value.id === selectionId) {
-      currentSelection.value.isStarred = newStarredState
-      currentSelection.value.starred = newStarredState
-    }
-
-    try {
-      // Sync with server in background
-      await selectionsApi.toggleStar(selectionId, newStarredState)
-    } catch (err) {
-      // Revert optimistic update on error
-      selection.isStarred = wasStarred
-      selection.starred = wasStarred
-      if (currentSelection.value && currentSelection.value.id === selectionId) {
-        currentSelection.value.isStarred = wasStarred
-        currentSelection.value.starred = wasStarred
-      }
-      throw err
     }
   }
 
@@ -234,10 +268,11 @@ export const useSelectionStore = defineStore('selection', () => {
     fetchAllSelections,
     createSelection,
     updateSelection,
+    deleteSelection,
+    publishSelection,
     completeSelection,
     recoverMedia,
     copyFilenames,
     getSelectedMedia,
-    toggleStar,
   }
 })

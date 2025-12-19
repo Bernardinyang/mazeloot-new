@@ -449,7 +449,7 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Info, Plus, ChevronDown, Loader2, Check, X } from 'lucide-vue-next'
@@ -515,7 +515,7 @@ const photoSets = ref(['Highlights'])
 const photoSetInput = ref('')
 
 // Form data - now we can reference the refs above
-const formData = ref({
+const formData = reactive({
   collectionTags: collectionTags.value,
   defaultWatermark: defaultWatermark.value,
   emailRegistration: emailRegistration.value,
@@ -535,12 +535,12 @@ const hasUnsavedChanges = computed(() => {
   }
   // Compare form data
   const formChanged =
-    formData.value.defaultWatermark !== originalData.value.formData.defaultWatermark ||
-    formData.value.emailRegistration !== originalData.value.formData.emailRegistration ||
-    formData.value.galleryAssist !== originalData.value.formData.galleryAssist ||
-    formData.value.slideshow !== originalData.value.formData.slideshow ||
-    formData.value.socialSharing !== originalData.value.formData.socialSharing ||
-    formData.value.language !== originalData.value.formData.language
+    formData.defaultWatermark !== originalData.value.formData.defaultWatermark ||
+    formData.emailRegistration !== originalData.value.formData.emailRegistration ||
+    formData.galleryAssist !== originalData.value.formData.galleryAssist ||
+    formData.slideshow !== originalData.value.formData.slideshow ||
+    formData.socialSharing !== originalData.value.formData.socialSharing ||
+    formData.language !== originalData.value.formData.language
 
   // Compare collection tags (deep comparison)
   const collectionTagsChanged =
@@ -593,7 +593,7 @@ const loadPresetData = () => {
     photoSets.value = loadedPhotoSets
 
     // Update formData
-    formData.value = {
+    Object.assign(formData, {
       collectionTags: loadedCollectionTags,
       defaultWatermark: defaultWatermark.value,
       emailRegistration: emailRegistration.value,
@@ -604,7 +604,7 @@ const loadPresetData = () => {
     }
 
     originalData.value = {
-      formData: { ...formData.value },
+      formData: { ...formData },
       collectionTags: [...loadedCollectionTags],
       photoSets: [...loadedPhotoSets],
     }
@@ -700,18 +700,18 @@ const handleSave = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      defaultWatermark: formData.defaultWatermark,
+      emailRegistration: formData.emailRegistration,
+      galleryAssist: formData.galleryAssist,
+      slideshow: formData.slideshow,
+      socialSharing: formData.socialSharing,
+      language: formData.language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
+        formData: { ...formData },
         collectionTags: [...collectionTags.value],
         photoSets: [...photoSets.value],
       }
@@ -737,18 +737,18 @@ const handleNext = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      defaultWatermark: formData.defaultWatermark,
+      emailRegistration: formData.emailRegistration,
+      galleryAssist: formData.galleryAssist,
+      slideshow: formData.slideshow,
+      socialSharing: formData.socialSharing,
+      language: formData.language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
+        formData: { ...formData },
         collectionTags: [...collectionTags.value],
         photoSets: [...photoSets.value],
       }
@@ -782,18 +782,18 @@ const savePresetGeneral = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.value.defaultWatermark,
-      emailRegistration: formData.value.emailRegistration,
-      galleryAssist: formData.value.galleryAssist,
-      slideshow: formData.value.slideshow,
-      socialSharing: formData.value.socialSharing,
-      language: formData.value.language,
+      defaultWatermark: formData.defaultWatermark,
+      emailRegistration: formData.emailRegistration,
+      galleryAssist: formData.galleryAssist,
+      slideshow: formData.slideshow,
+      socialSharing: formData.socialSharing,
+      language: formData.language,
     })
 
     // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
-        formData: { ...formData.value },
+        formData: { ...formData },
         collectionTags: [...collectionTags.value],
         photoSets: [...photoSets.value],
       }
@@ -813,7 +813,7 @@ const isSaving = computed(() => presetStore.isLoading)
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value.formData }
+    Object.assign(formData, originalData.value.formData)
     collectionTags.value = [...originalData.value.collectionTags]
     photoSets.value = [...originalData.value.photoSets]
   }

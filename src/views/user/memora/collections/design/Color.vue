@@ -271,7 +271,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
@@ -303,7 +303,7 @@ const isSubmitting = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Color form data
-const formData = ref({
+const formData = reactive({
   colorPalette: 'light',
 })
 
@@ -315,7 +315,7 @@ const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoading.value) {
     return false
   }
-  return formData.value.colorPalette !== originalData.value.colorPalette
+  return formData.colorPalette !== originalData.value.colorPalette
 })
 
 // Get merged design config for preview (from collection store)
@@ -337,7 +337,7 @@ const previewDesignConfig = computed(() => {
     // Fallback to formData if collection not loaded
     return {
       ...defaults,
-      colorPalette: formData.value.colorPalette || defaults.colorPalette,
+      colorPalette: formData.colorPalette || defaults.colorPalette,
     }
   }
 
@@ -346,7 +346,7 @@ const previewDesignConfig = computed(() => {
     // Fallback to formData if not in store
     return {
       ...defaults,
-      colorPalette: formData.value.colorPalette || defaults.colorPalette,
+      colorPalette: formData.colorPalette || defaults.colorPalette,
     }
   }
 
@@ -394,13 +394,13 @@ const previewDesignConfig = computed(() => {
     ...typographyDesign,
     ...coverDesign,
     ...colorDesign,
-    colorPalette: colorDesign.colorPalette || formData.value.colorPalette || defaults.colorPalette,
+    colorPalette: colorDesign.colorPalette || formData.colorPalette || defaults.colorPalette,
   }
 })
 
 // Watch formData and immediately update the collection in store (optimistic update)
 watch(
-  () => formData.value,
+  () => formData,
   newData => {
     if (!collection.value || isLoading.value || !originalData.value) return
 
@@ -467,7 +467,7 @@ const loadCollectionData = async () => {
     const loadedData = {
       colorPalette: colorDesign.colorPalette || 'light',
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
   } catch (error) {
     toast.error('Failed to load collection', {
@@ -498,12 +498,12 @@ const saveColorDesign = async () => {
   try {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
-      colorDesign: formData.value,
+      colorDesign: formData,
     })
 
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -526,7 +526,7 @@ const handleSave = async () => {
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

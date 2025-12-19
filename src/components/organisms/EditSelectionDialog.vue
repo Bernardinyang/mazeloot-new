@@ -1,16 +1,17 @@
 <template>
   <SidebarModal
     :model-value="open"
+    title="Edit Selection"
     content-class="sm:max-w-md"
-    title="New Selection"
     @update:model-value="$emit('update:open', $event)"
   >
-    <form id="selection-form" class="space-y-5" @submit.prevent="handleSubmit">
+    <form id="edit-selection-form" @submit.prevent="handleSubmit" class="space-y-5">
       <!-- Selection Name -->
       <div class="space-y-2">
-        <label :class="theme.textPrimary" class="text-sm font-medium"> Selection Name </label>
+        <label class="text-sm font-medium" :class="theme.textPrimary"> Selection Name </label>
         <Input
           v-model="formData.name"
+          placeholder="e.g. Wedding Selections"
           :class="[
             theme.bgInput,
             theme.borderInput,
@@ -18,7 +19,6 @@
             errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
           ]"
           autofocus
-          placeholder="e.g. Wedding Selections"
         />
         <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
@@ -30,27 +30,27 @@
     <template #footer>
       <div class="flex items-center justify-end gap-3">
         <Button
+          type="button"
+          variant="ghost"
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
             'hover:text-teal-600 dark:hover:text-teal-400',
           ]"
-          :disabled="isSubmitting"
-          type="button"
-          variant="ghost"
           @click="handleCancel"
+          :disabled="isSubmitting"
         >
           Cancel
         </Button>
         <Button
-          :disabled="!formData.name.trim() || isSubmitting"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           @click="handleSubmit"
+          :disabled="!formData.name.trim() || isSubmitting"
+          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting">Creating...</span>
-          <span v-else>Create Selection</span>
+          <span v-if="isSubmitting">Updating...</span>
+          <span v-else>Update Selection</span>
         </Button>
       </div>
     </template>
@@ -75,6 +75,10 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  selection: {
+    type: Object,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:open', 'success'])
@@ -85,16 +89,22 @@ const { handleError } = useErrorHandler()
 
 const formData = reactive({
   name: '',
-  color: generateRandomColorFromPalette(), // Random color from palette
+  color: generateRandomColorFromPalette(),
 })
 
 const errors = ref({})
 const isSubmitting = ref(false)
 
+// Populate form when dialog opens or selection changes
 watch(
   () => props.open,
   newValue => {
-    if (!newValue) {
+    if (newValue && props.selection) {
+      // Populate form with selection data
+      formData.name = props.selection.name || ''
+      formData.color = props.selection.color || generateRandomColorFromPalette()
+      errors.value = {}
+    } else if (!newValue) {
       // Reset form when dialog closes
       formData.name = ''
       formData.color = generateRandomColorFromPalette()
@@ -103,8 +113,22 @@ watch(
   }
 )
 
+// Also watch selection prop in case it changes while dialog is open
+watch(
+  () => props.selection,
+  newSelection => {
+    if (props.open && newSelection) {
+      formData.name = newSelection.name || ''
+      formData.color = newSelection.color || generateRandomColorFromPalette()
+      errors.value = {}
+    }
+  },
+  { immediate: true }
+)
+
 const handleCancel = () => {
   formData.name = ''
+  formData.color = generateRandomColorFromPalette()
   errors.value = {}
   emit('update:open', false)
 }
@@ -117,24 +141,39 @@ const handleSubmit = async () => {
     return
   }
 
+  // Check if anything actually changed
+  if (
+    props.selection &&
+    formData.name.trim() === props.selection.name &&
+    formData.color === props.selection.color
+  ) {
+    // No changes, just close the dialog
+    emit('update:open', false)
+    return
+  }
+
+  if (!props.selection) return
+
   isSubmitting.value = true
   try {
-    const newSelection = await selectionStore.createSelection({
+    // Perform the update action inside the modal
+    const updated = await selectionStore.updateSelection(props.selection.id, {
       name: formData.name.trim(),
       color: formData.color,
-      projectUuid: null,
     })
 
-    toast.success('Selection created', {
-      description: 'Your new selection has been created.',
+    toast.success('Selection updated', {
+      description: 'The selection has been successfully updated.',
     })
 
+    // Close the modal
     emit('update:open', false)
 
-    emit('success', newSelection)
+    // Emit success event with updated data for parent to handle side effects
+    emit('success', updated)
   } catch (error) {
     await handleError(error, {
-      fallbackMessage: 'Failed to create selection.',
+      fallbackMessage: 'Failed to update selection.',
     })
   } finally {
     isSubmitting.value = false

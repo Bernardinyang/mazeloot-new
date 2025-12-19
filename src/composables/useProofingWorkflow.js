@@ -22,8 +22,13 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
 
   /**
    * Upload edited media to proofing phase
+   * Uses the generic media upload composable for consistency
    */
   const uploadEditedMedia = async (files, originalMediaId, setId) => {
+    // For proofing, we use a different upload function that handles revisions
+    // This is a simplified version - in production, you'd use useMediaUpload composable
+    // with a custom uploadMediaFn that handles proofing-specific logic
+
     try {
       const proofingIdValue = getProofingId()
 

@@ -201,7 +201,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -237,7 +237,7 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
-const formData = ref({
+const formData = reactive({
   name: '',
   description: '',
   eventDate: null,
@@ -271,36 +271,32 @@ watch(
   newValue => {
     if (!newValue) {
       // Reset form when dialog closes
-      formData.value = {
-        name: '',
-        description: '',
-        eventDate: null,
-        hasSelections: false,
-        hasProofing: false,
-        hasCollections: false,
-        maxRevisions: 5,
-        presetId: 'none',
-        watermarkId: 'none',
-        color: generateRandomColorFromPalette(),
-      }
+      formData.name = ''
+      formData.description = ''
+      formData.eventDate = null
+      formData.hasSelections = false
+      formData.hasProofing = false
+      formData.hasCollections = false
+      formData.maxRevisions = 5
+      formData.presetId = 'none'
+      formData.watermarkId = 'none'
+      formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
   }
 )
 
 const handleCancel = () => {
-  formData.value = {
-    name: '',
-    description: '',
-    eventDate: null,
-    hasSelections: false,
-    hasProofing: false,
-    hasCollections: false,
-    maxRevisions: 5,
-    presetId: 'none',
-    watermarkId: 'none',
-    color: generateRandomColorFromPalette(),
-  }
+  formData.name = ''
+  formData.description = ''
+  formData.eventDate = null
+  formData.hasSelections = false
+  formData.hasProofing = false
+  formData.hasCollections = false
+  formData.maxRevisions = 5
+  formData.presetId = 'none'
+  formData.watermarkId = 'none'
+  formData.color = generateRandomColorFromPalette()
   errors.value = {}
   emit('update:open', false)
 }
@@ -308,16 +304,12 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   errors.value = {}
 
-  if (!formData.value.name.trim()) {
+  if (!formData.name.trim()) {
     errors.value.name = 'Project name is required'
     return
   }
 
-  if (
-    !formData.value.hasSelections &&
-    !formData.value.hasProofing &&
-    !formData.value.hasCollections
-  ) {
+  if (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections) {
     errors.value.name = 'Please select at least one phase'
     return
   }
@@ -329,21 +321,21 @@ const handleSubmit = async () => {
 
     // Convert date to ISO string if it's a Date object
     const eventDateString =
-      formData.value.eventDate instanceof Date
-        ? formData.value.eventDate.toISOString()
-        : formData.value.eventDate || undefined
+      formData.eventDate instanceof Date
+        ? formData.eventDate.toISOString()
+        : formData.eventDate || undefined
 
     emit('create', {
-      name: formData.value.name.trim(),
-      description: formData.value.description.trim() || undefined,
+      name: formData.name.trim(),
+      description: formData.description.trim() || undefined,
       eventDate: eventDateString,
-      hasSelections: formData.value.hasSelections,
-      hasProofing: formData.value.hasProofing,
-      hasCollections: formData.value.hasCollections,
-      maxRevisions: formData.value.hasProofing ? formData.value.maxRevisions : undefined,
-      presetId: formData.value.presetId === 'none' ? undefined : formData.value.presetId,
-      watermarkId: formData.value.watermarkId === 'none' ? undefined : formData.value.watermarkId,
-      color: formData.value.color,
+      hasSelections: formData.hasSelections,
+      hasProofing: formData.hasProofing,
+      hasCollections: formData.hasCollections,
+      maxRevisions: formData.hasProofing ? formData.maxRevisions : undefined,
+      presetId: formData.presetId === 'none' ? undefined : formData.presetId,
+      watermarkId: formData.watermarkId === 'none' ? undefined : formData.watermarkId,
+      color: formData.color,
     })
   } catch (error) {
     console.error('Failed to create project:', error)

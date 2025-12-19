@@ -503,7 +503,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
@@ -541,7 +541,7 @@ const gridSpacing = 16
 const navigationStyle = 'icon-text'
 
 // Grid form data
-const formData = ref({
+const formData = reactive({
   gridStyle,
   gridColumns,
   thumbnailSize,
@@ -558,11 +558,11 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.gridStyle !== originalData.value.gridStyle ||
-    formData.value.gridColumns !== originalData.value.gridColumns ||
-    formData.value.thumbnailSize !== originalData.value.thumbnailSize ||
-    formData.value.gridSpacing !== originalData.value.gridSpacing ||
-    formData.value.navigationStyle !== originalData.value.navigationStyle
+    formData.gridStyle !== originalData.value.gridStyle ||
+    formData.gridColumns !== originalData.value.gridColumns ||
+    formData.thumbnailSize !== originalData.value.thumbnailSize ||
+    formData.gridSpacing !== originalData.value.gridSpacing ||
+    formData.navigationStyle !== originalData.value.navigationStyle
   )
 })
 
@@ -576,11 +576,11 @@ const previewDesignConfig = computed(() => {
       fontFamily: 'sans',
       fontStyle: 'bold',
       colorPalette: 'light',
-      gridStyle: formData.value.gridStyle,
-      gridColumns: formData.value.gridColumns,
-      thumbnailSize: formData.value.thumbnailSize,
-      gridSpacing: formData.value.gridSpacing,
-      navigationStyle: formData.value.navigationStyle,
+      gridStyle: formData.gridStyle,
+      gridColumns: formData.gridColumns,
+      thumbnailSize: formData.thumbnailSize,
+      gridSpacing: formData.gridSpacing,
+      navigationStyle: formData.navigationStyle,
     }
   }
 
@@ -593,11 +593,11 @@ const previewDesignConfig = computed(() => {
       fontFamily: 'sans',
       fontStyle: 'bold',
       colorPalette: 'light',
-      gridStyle: formData.value.gridStyle,
-      gridColumns: formData.value.gridColumns,
-      thumbnailSize: formData.value.thumbnailSize,
-      gridSpacing: formData.value.gridSpacing,
-      navigationStyle: formData.value.navigationStyle,
+      gridStyle: formData.gridStyle,
+      gridColumns: formData.gridColumns,
+      thumbnailSize: formData.thumbnailSize,
+      gridSpacing: formData.gridSpacing,
+      navigationStyle: formData.navigationStyle,
     }
   }
 
@@ -645,17 +645,17 @@ const previewDesignConfig = computed(() => {
     fontFamily: typographyDesign.fontFamily || 'sans',
     fontStyle: typographyDesign.fontStyle || 'bold',
     colorPalette: colorDesign.colorPalette || 'light',
-    gridStyle: gridDesign.gridStyle || formData.value.gridStyle,
-    gridColumns: gridDesign.gridColumns || formData.value.gridColumns,
-    thumbnailSize: gridDesign.thumbnailSize || formData.value.thumbnailSize,
-    gridSpacing: gridDesign.gridSpacing || formData.value.gridSpacing,
-    navigationStyle: gridDesign.navigationStyle || formData.value.navigationStyle,
+    gridStyle: gridDesign.gridStyle || formData.gridStyle,
+    gridColumns: gridDesign.gridColumns || formData.gridColumns,
+    thumbnailSize: gridDesign.thumbnailSize || formData.thumbnailSize,
+    gridSpacing: gridDesign.gridSpacing || formData.gridSpacing,
+    navigationStyle: gridDesign.navigationStyle || formData.navigationStyle,
   }
 })
 
 // Watch formData and immediately update the collection in store (optimistic update)
 watch(
-  () => formData.value,
+  () => formData,
   newData => {
     if (!collection.value || isLoading.value || !originalData.value) return
 
@@ -702,11 +702,11 @@ const navigationStyles = [
 // Computed property to convert gridSpacing number to array for Slider component
 const gridSpacingSlider = computed({
   get() {
-    return [formData.value.gridSpacing]
+    return [formData.gridSpacing]
   },
   set(value) {
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
-      formData.value.gridSpacing = Math.max(1, Math.min(100, value[0]))
+      formData.gridSpacing = Math.max(1, Math.min(100, value[0]))
     }
   },
 })
@@ -768,7 +768,7 @@ const loadCollectionData = async () => {
       gridSpacing: calculatedGridSpacing,
       navigationStyle: gridDesign.navigationStyle || navigationStyle,
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
   } catch (error) {
     toast.error('Failed to load collection', {
@@ -791,10 +791,10 @@ watch(
 
 // Watch for grid style changes - disable large thumbnail size for masonry
 watch(
-  () => formData.value.gridStyle,
+  () => formData.gridStyle,
   newStyle => {
-    if (newStyle === 'masonry' && formData.value.thumbnailSize === 'large') {
-      formData.value.thumbnailSize = 'medium'
+    if (newStyle === 'masonry' && formData.thumbnailSize === 'large') {
+      formData.thumbnailSize = 'medium'
     }
   }
 )
@@ -809,12 +809,12 @@ const saveGridDesign = async () => {
   try {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
-      gridDesign: formData.value,
+      gridDesign: formData,
     })
 
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -837,7 +837,7 @@ const handleSave = async () => {
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

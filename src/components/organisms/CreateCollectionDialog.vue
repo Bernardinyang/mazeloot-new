@@ -123,7 +123,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, computed } from 'vue'
+import { ref, reactive, watch, onMounted, computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -159,7 +159,7 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
-const formData = ref({
+const formData = reactive({
   name: '',
   eventDate: null,
   presetId: 'none',
@@ -188,26 +188,22 @@ watch(
   newValue => {
     if (!newValue) {
       // Reset form when dialog closes
-      formData.value = {
-        name: '',
-        eventDate: null,
-        presetId: 'none',
-        watermarkId: 'none',
-        color: generateRandomColorFromPalette(),
-      }
+      formData.name = ''
+      formData.eventDate = null
+      formData.presetId = 'none'
+      formData.watermarkId = 'none'
+      formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
   }
 )
 
 const handleCancel = () => {
-  formData.value = {
-    name: '',
-    eventDate: null,
-    presetId: 'none',
-    watermarkId: 'none',
-    color: generateRandomColorFromPalette(),
-  }
+  formData.name = ''
+  formData.eventDate = null
+  formData.presetId = 'none'
+  formData.watermarkId = 'none'
+  formData.color = generateRandomColorFromPalette()
   errors.value = {}
   emit('update:open', false)
 }
@@ -215,7 +211,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   errors.value = {}
 
-  if (!formData.value.name.trim()) {
+  if (!formData.name.trim()) {
     errors.value.name = 'Collection name is required'
     return
   }
@@ -227,16 +223,16 @@ const handleSubmit = async () => {
 
     // Convert date to ISO string if it's a Date object
     const eventDateString =
-      formData.value.eventDate instanceof Date
-        ? formData.value.eventDate.toISOString()
-        : formData.value.eventDate || undefined
+      formData.eventDate instanceof Date
+        ? formData.eventDate.toISOString()
+        : formData.eventDate || undefined
 
     emit('create', {
-      name: formData.value.name.trim(),
+      name: formData.name.trim(),
       eventDate: eventDateString,
-      presetId: formData.value.presetId === 'none' ? undefined : formData.value.presetId,
-      watermarkId: formData.value.watermarkId === 'none' ? undefined : formData.value.watermarkId,
-      color: formData.value.color,
+      presetId: formData.presetId === 'none' ? undefined : formData.presetId,
+      watermarkId: formData.watermarkId === 'none' ? undefined : formData.watermarkId,
+      color: formData.color,
     })
   } catch (error) {
     console.error('Failed to create collection:', error)

@@ -82,6 +82,25 @@
 
     <!-- Selection Detail Sidebar -->
     <SelectionDetailSidebar v-model="showDetailSidebar" :selection-id="selectedSelectionId" />
+
+    <!-- Edit Selection Dialog -->
+    <EditSelectionDialog
+      v-model:open="showEditDialog"
+      :selection="selectionToEdit"
+      @success="handleEditSuccess"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDeleteModal"
+      :is-deleting="isDeleting"
+      :item-name="getItemName(itemToDelete)"
+      title="Delete Selection"
+      description="This action cannot be undone."
+      warning-message="This selection and all its media will be permanently removed."
+      @cancel="closeDeleteModal"
+      @confirm="handleConfirmDelete"
+    />
   </DashboardLayout>
 </template>
 
@@ -98,6 +117,9 @@ import LoadingState from '@/components/molecules/LoadingState.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
+import EditSelectionDialog from '@/components/organisms/EditSelectionDialog.vue'
 import SelectionDetailSidebar from '@/components/organisms/SelectionDetailSidebar.vue'
 import { toast } from '@/utils/toast'
 
@@ -105,6 +127,16 @@ const theme = useThemeClasses()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const { handleError } = useErrorHandler()
+
+// Delete confirmation
+const {
+  showDeleteModal,
+  itemToDelete,
+  isDeleting,
+  openDeleteModal,
+  closeDeleteModal,
+  getItemName,
+} = useDeleteConfirmation()
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -159,6 +191,7 @@ const filteredSelections = computed(() => {
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(selection => {
+      if (!selection) return false
       const name = (selection.name || '').toLowerCase()
       return name.includes(query)
     })
@@ -172,15 +205,30 @@ const sortedSelections = computed(() => {
 
   switch (sortBy.value) {
     case 'created-new-old':
-      return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      })
     case 'created-old-new':
-      return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+      })
     case 'name-a-z':
-      return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (a.name || '').localeCompare(b.name || '')
+      })
     case 'name-z-a':
-      return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (b.name || '').localeCompare(a.name || '')
+      })
     case 'status':
-      return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (a.status || '').localeCompare(b.status || '')
+      })
     default:
       return sorted
   }
@@ -213,13 +261,44 @@ const toggleStar = async selection => {
 }
 
 const handleEditSelection = selection => {
-  // TODO: Implement selection editing
-  toast.info('Edit feature coming soon')
+  selectionToEdit.value = selection
+  showEditDialog.value = true
 }
 
-const handleDeleteSelection = async selection => {
-  // TODO: Implement selection deletion with confirmation
-  toast.info('Delete feature coming soon')
+const handleEditSuccess = async () => {
+  // Modal has already performed the update and shown success message
+  // Just refresh the list and reset state
+  selectionToEdit.value = null
+  await selectionStore.fetchAllSelections()
+}
+
+const handleDeleteSelection = selection => {
+  openDeleteModal(selection)
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+
+  isDeleting.value = true
+  try {
+    // Perform delete action in the handler
+    const deleted = await selectionStore.deleteSelection(itemToDelete.value.id)
+
+    if (deleted) {
+      toast.success('Selection deleted', {
+        description: 'The selection has been permanently removed.',
+      })
+      closeDeleteModal()
+      // Refresh list after successful delete
+      await selectionStore.fetchAllSelections()
+    }
+  } catch (error) {
+    await handleError(error, {
+      fallbackMessage: 'Failed to delete selection.',
+    })
+  } finally {
+    isDeleting.value = false
+  }
 }
 
 const handleSelectSelection = (id, checked) => {
@@ -234,6 +313,8 @@ const handleSelectSelection = (id, checked) => {
 
 const showDetailSidebar = ref(false)
 const selectedSelectionId = ref(null)
+const showEditDialog = ref(false)
+const selectionToEdit = ref(null)
 
 const handleViewDetails = selection => {
   selectedSelectionId.value = selection.id

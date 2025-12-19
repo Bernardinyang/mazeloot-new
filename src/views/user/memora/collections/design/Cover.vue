@@ -407,7 +407,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Eye, Loader2 } from 'lucide-vue-next'
@@ -450,7 +450,7 @@ const isSubmitting = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Cover form data - now stores layout UUID
-const formData = ref({
+const formData = reactive({
   coverLayoutUuid: null,
   coverLayoutConfig: null, // Store full config for backward compatibility
   coverFocalPoint: { x: 50, y: 50 },
@@ -465,11 +465,11 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.coverLayoutUuid !== originalData.value.coverLayoutUuid ||
-    JSON.stringify(formData.value.coverLayoutConfig) !==
+    formData.coverLayoutUuid !== originalData.value.coverLayoutUuid ||
+    JSON.stringify(formData.coverLayoutConfig) !==
       JSON.stringify(originalData.value.coverLayoutConfig) ||
-    formData.value.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
-    formData.value.coverFocalPoint.y !== originalData.value.coverFocalPoint.y
+    formData.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
+    formData.coverFocalPoint.y !== originalData.value.coverFocalPoint.y
   )
 })
 
@@ -494,13 +494,13 @@ const previewDesignConfig = computed(() => {
   if (!collection.value) {
     // Fallback to formData if collection not loaded
     // Create new object reference for reactivity
-    const coverLayoutConfigValue = formData.value.coverLayoutConfig
-      ? { ...formData.value.coverLayoutConfig }
+    const coverLayoutConfigValue = formData.coverLayoutConfig
+      ? { ...formData.coverLayoutConfig }
       : { ...defaultLayoutConfig }
     return {
       ...defaults,
       coverLayoutConfig: coverLayoutConfigValue,
-      coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
+      coverFocalPoint: formData.coverFocalPoint || defaults.coverFocalPoint,
       // Only set cover: 'none' if layout is actually 'none'
       cover: coverLayoutConfigValue?.layout === 'none' ? 'none' : undefined,
     }
@@ -510,13 +510,13 @@ const previewDesignConfig = computed(() => {
   if (!collectionInStore) {
     // Fallback to formData if not in store
     // Create new object reference for reactivity
-    const coverLayoutConfigValue = formData.value.coverLayoutConfig
-      ? { ...formData.value.coverLayoutConfig }
+    const coverLayoutConfigValue = formData.coverLayoutConfig
+      ? { ...formData.coverLayoutConfig }
       : { ...defaultLayoutConfig }
     return {
       ...defaults,
       coverLayoutConfig: coverLayoutConfigValue,
-      coverFocalPoint: formData.value.coverFocalPoint || defaults.coverFocalPoint,
+      coverFocalPoint: formData.coverFocalPoint || defaults.coverFocalPoint,
       // Only set cover: 'none' if layout is actually 'none'
       cover: coverLayoutConfigValue?.layout === 'none' ? 'none' : undefined,
     }
@@ -564,8 +564,8 @@ const previewDesignConfig = computed(() => {
   // PRIORITY: Always use formData for cover layout config (for live preview)
   // This ensures the preview reflects the current form state, not the saved state
   // Create a new object reference to ensure reactivity when formData changes
-  const coverLayoutConfigValue = formData.value.coverLayoutConfig
-    ? { ...formData.value.coverLayoutConfig } // Create new reference from formData (always prefer this)
+  const coverLayoutConfigValue = formData.coverLayoutConfig
+    ? { ...formData.coverLayoutConfig } // Create new reference from formData (always prefer this)
     : coverDesign.coverLayoutConfig
       ? { ...coverDesign.coverLayoutConfig } // Fallback to store if formData is empty
       : { ...defaultLayoutConfig } // Fallback to default
@@ -589,10 +589,10 @@ const previewDesignConfig = computed(() => {
     ...gridDesign,
     // PRIORITY: Use formData values for cover layout (for live preview)
     // Access formData.value properties directly to ensure computed tracks them
-    coverLayoutUuid: formData.value.coverLayoutUuid ?? coverDesign.coverLayoutUuid ?? null,
+    coverLayoutUuid: formData.coverLayoutUuid ?? coverDesign.coverLayoutUuid ?? null,
     coverLayoutConfig: coverLayoutConfigValue, // From formData (if exists), otherwise store/default
     coverFocalPoint:
-      formData.value.coverFocalPoint ?? coverDesign.coverFocalPoint ?? defaults.coverFocalPoint, // formData takes priority
+      formData.coverFocalPoint ?? coverDesign.coverFocalPoint ?? defaults.coverFocalPoint, // formData takes priority
     // Only set cover if layout is 'none' or if there's an old cover value (backward compatibility)
     cover: coverValue,
   }
@@ -600,7 +600,7 @@ const previewDesignConfig = computed(() => {
 
 // Watch formData and immediately update the collection in store (optimistic update)
 watch(
-  () => formData.value,
+  () => formData,
   newData => {
     if (!collection.value || isLoading.value || !originalData.value) return
 
@@ -650,10 +650,10 @@ onMounted(() => {
 
 // Get selected layout object
 const selectedLayout = computed(() => {
-  if (!formData.value.coverLayoutUuid) {
+  if (!formData.coverLayoutUuid) {
     return null
   }
-  return coverLayoutOptions.value.find(l => l.uuid === formData.value.coverLayoutUuid) || null
+  return coverLayoutOptions.value.find(l => l.uuid === formData.coverLayoutUuid) || null
 })
 
 // Get layout config for selected layout
@@ -661,7 +661,7 @@ const selectedLayoutConfig = computed(() => {
   if (selectedLayout.value && selectedLayout.value.layoutConfig) {
     return selectedLayout.value.layoutConfig
   }
-  return formData.value.coverLayoutConfig || getDefaultLayoutConfig()
+  return formData.coverLayoutConfig || getDefaultLayoutConfig()
 })
 
 // Handle layout selection
@@ -683,11 +683,11 @@ const selectCoverLayout = async layout => {
 
   // Update formData - create completely new object reference for reactivity
   // This ensures previewDesignConfig computed detects the change immediately
-  formData.value = {
+  Object.assign(formData, {
     coverLayoutUuid: layout.uuid,
     coverLayoutConfig: layoutConfig, // Already a new object reference from above
-    coverFocalPoint: { ...formData.value.coverFocalPoint }, // Preserve focal point
-  }
+    coverFocalPoint: { ...formData.coverFocalPoint }, // Preserve focal point
+  })
 }
 
 // Handle focal point click
@@ -699,7 +699,7 @@ const handleFocalPointClick = event => {
   const y = ((event.clientY - rect.top) / rect.height) * 100
 
   // Clamp values between 0 and 100
-  formData.value.coverFocalPoint = {
+  formData.coverFocalPoint = {
     x: Math.min(100, Math.max(0, x)),
     y: Math.min(100, Math.max(0, y)),
   }
@@ -769,7 +769,7 @@ const loadCollectionData = async () => {
           ? { ...coverDesign.coverFocalPoint }
           : { x: 50, y: 50 },
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
 
     // Set cover image
@@ -814,9 +814,9 @@ const saveCoverDesign = async () => {
 
     // Ensure we're saving the complete coverDesign object
     const coverDesignData = {
-      coverLayoutUuid: formData.value.coverLayoutUuid,
-      coverLayoutConfig: formData.value.coverLayoutConfig,
-      coverFocalPoint: formData.value.coverFocalPoint,
+      coverLayoutUuid: formData.coverLayoutUuid,
+      coverLayoutConfig: formData.coverLayoutConfig,
+      coverFocalPoint: formData.coverFocalPoint,
     }
 
     await galleryStore.updateCollection(collection.value.id, {
@@ -825,7 +825,7 @@ const saveCoverDesign = async () => {
 
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -864,7 +864,7 @@ const handleSave = async () => {
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

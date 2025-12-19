@@ -4,12 +4,26 @@
  */
 
 import { toast } from '@/utils/toast'
-import { useMediaApi } from '@/api/media'
+import { useSelectionsApi } from '@/api/selections'
 import { useSelectionStore } from '@/stores/selection'
+import { useMediaUpload } from './useMediaUpload'
 
-export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
-  const mediaApi = useMediaApi()
+export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedia = [] } = {}) {
+  const selectionsApi = useSelectionsApi()
   const selectionStore = useSelectionStore()
+
+  // Create upload function for selections
+  const uploadMediaFn = async (uploadResult, file, { contextId, setId, mediaData }) => {
+    return await selectionsApi.uploadMediaToSet(contextId, setId, mediaData)
+  }
+
+  // Use generic media upload composable
+  const mediaUpload = useMediaUpload({
+    uploadMediaFn,
+    contextId: selectionId,
+    existingMedia,
+    loadMediaItems,
+  })
 
   // Helper to get selectionId value (handles refs, computed, functions, and plain values)
   const getSelectionId = () => {
@@ -21,9 +35,9 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
   }
 
   /**
-   * Upload raw media to selection phase
+   * Complete selection phase (for guests - sends mediaIds to mark as selected)
    */
-  const uploadRawMedia = async (files, setId) => {
+  const completeSelection = async (mediaIds = []) => {
     try {
       const selectionIdValue = getSelectionId()
 
@@ -31,84 +45,10 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
         throw new Error('Selection ID is required')
       }
 
-      const uploaded = []
-
-      for (const file of files) {
-        // Determine media type
-        const type = file.type.startsWith('image/') ? 'image' : 'video'
-
-        // Create media item (ensure plain object, no refs)
-        const mediaData = {
-          phase: 'selection',
-          phaseId: selectionIdValue,
-          setId: setId,
-          type: type,
-          title: file.name,
-          url: URL.createObjectURL(file), // In production, upload to server first
-          thumbnail: type === 'image' ? URL.createObjectURL(file) : null,
-          isSelected: false,
-          order: 0,
-        }
-
-        const media = await mediaApi.addMedia(null, mediaData)
-        uploaded.push(media)
-      }
-
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-
-      toast.success('Media uploaded', {
-        description: `${uploaded.length} file(s) uploaded successfully.`,
-      })
-
-      return uploaded
-    } catch (error) {
-      console.error('Failed to upload media:', error)
-      toast.error('Upload failed', {
-        description: error instanceof Error ? error.message : 'Failed to upload media.',
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Mark media as selected (client action)
-   */
-  const markMediaSelected = async mediaId => {
-    try {
-      await mediaApi.markMediaSelected(mediaId)
-
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-
-      toast.success('Media selected')
-    } catch (error) {
-      console.error('Failed to mark media as selected:', error)
-      toast.error('Failed to select media', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Complete selection phase
-   */
-  const completeSelection = async () => {
-    try {
-      const selectionIdValue = getSelectionId()
-
-      if (!selectionIdValue) {
-        throw new Error('Selection ID is required')
-      }
-
-      await selectionStore.completeSelection(selectionIdValue)
+      await selectionStore.completeSelection(selectionIdValue, mediaIds)
 
       toast.success('Selection completed', {
-        description:
-          'Unselected media will be deleted after 30 days. You can recover them before then.',
+        description: 'Selected media has been marked and the selection is now completed.',
       })
     } catch (error) {
       console.error('Failed to complete selection:', error)
@@ -120,9 +60,9 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
   }
 
   /**
-   * Recover deleted media (within 30 days)
+   * Publish selection (for creatives - publishes to active status)
    */
-  const recoverDeletedMedia = async () => {
+  const publishSelection = async () => {
     try {
       const selectionIdValue = getSelectionId()
 
@@ -130,14 +70,39 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
         throw new Error('Selection ID is required')
       }
 
-      const recovered = await selectionStore.recoverMedia(selectionIdValue)
+      await selectionStore.publishSelection(selectionIdValue)
+
+      toast.success('Selection published', {
+        description: 'Selection has been published to active status.',
+      })
+    } catch (error) {
+      console.error('Failed to publish selection:', error)
+      toast.error('Failed to publish selection', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Recover deleted media (within 30 days)
+   */
+  const recoverDeletedMedia = async mediaIds => {
+    try {
+      const selectionIdValue = getSelectionId()
+
+      if (!selectionIdValue) {
+        throw new Error('Selection ID is required')
+      }
+
+      const recovered = await selectionStore.recoverMedia(selectionIdValue, mediaIds)
 
       if (loadMediaItems) {
         await loadMediaItems()
       }
 
       toast.success('Media recovered', {
-        description: `${recovered.length} file(s) recovered successfully.`,
+        description: `${recovered.recoveredCount || mediaIds.length} file(s) recovered successfully.`,
       })
 
       return recovered
@@ -189,9 +154,25 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems } = {}) {
   }
 
   return {
-    uploadRawMedia,
-    markMediaSelected,
+    // Upload functions (from generic composable)
+    uploadMediaToSet: mediaUpload.uploadMediaToSet,
+    processFiles: mediaUpload.processFiles,
+    handleConfirmDuplicateFiles: mediaUpload.handleConfirmDuplicateFiles,
+    handleCancelDuplicateFiles: mediaUpload.handleCancelDuplicateFiles,
+    cancelUpload: mediaUpload.cancelUpload,
+
+    // State (from generic composable)
+    uploadProgress: mediaUpload.uploadProgress,
+    overallProgress: mediaUpload.overallProgress,
+    uploadErrors: mediaUpload.uploadErrors,
+    isUploading: mediaUpload.isUploading,
+    showDuplicateFilesModal: mediaUpload.showDuplicateFilesModal,
+    duplicateFiles: mediaUpload.duplicateFiles,
+    duplicateFileActions: mediaUpload.duplicateFileActions,
+
+    // Selection-specific functions
     completeSelection,
+    publishSelection,
     recoverDeletedMedia,
     copySelectedFilenames,
   }

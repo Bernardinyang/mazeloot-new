@@ -148,7 +148,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-vue-next'
@@ -190,7 +190,7 @@ const defaultCollectionPassword = ''
 const defaultShowOnHomepage = false
 
 // Privacy form data
-const formData = ref({
+const formData = reactive({
   collectionPassword: defaultCollectionPassword,
   showOnHomepage: defaultShowOnHomepage,
 })
@@ -204,8 +204,8 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.collectionPassword !== originalData.value.collectionPassword ||
-    formData.value.showOnHomepage !== originalData.value.showOnHomepage
+    formData.collectionPassword !== originalData.value.collectionPassword ||
+    formData.showOnHomepage !== originalData.value.showOnHomepage
   )
 })
 
@@ -219,7 +219,7 @@ const loadPresetData = () => {
         privacyData.collectionPassword !== undefined ? privacyData.collectionPassword : '',
       showOnHomepage: privacyData.showOnHomepage !== undefined ? privacyData.showOnHomepage : false,
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
     presetStore.setCurrentPreset(currentPreset.value.id)
     isLoadingData.value = false
@@ -271,11 +271,11 @@ const savePresetPrivacy = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      privacy: formData.value,
+      privacy: formData,
     })
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -338,7 +338,7 @@ const isSaving = computed(() => presetStore.isLoading)
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

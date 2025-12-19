@@ -29,7 +29,7 @@
             ></div>
           </div>
           <MediaItemsHeaderBar
-            v-else
+            v-else-if="selectedSetId"
             v-model:is-sort-menu-open="isSortMenuOpen"
             v-model:is-view-menu-open="isViewMenuOpen"
             :grid-size="gridSize"
@@ -55,6 +55,7 @@
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
+            v-if="selectedSetId"
             :is-all-selected="selectedMediaIds.size === sortedMediaItems.length"
             :is-favorite-loading="isBulkFavoriteLoading"
             :selected-count="selectedMediaIds.size"
@@ -70,7 +71,7 @@
           />
 
           <!-- Media Grid/List View -->
-          <div v-if="isLoadingMedia" class="mb-8">
+          <div v-if="selectedSetId && isLoadingMedia" class="mb-8">
             <!-- Skeletons while switching sets -->
             <div
               v-if="viewMode === 'grid'"
@@ -97,7 +98,7 @@
               ></div>
             </div>
           </div>
-          <div v-else-if="sortedMediaItems.length > 0" class="mb-8">
+          <div v-else-if="selectedSetId && sortedMediaItems.length > 0" class="mb-8">
             <TransitionGroup
               v-if="viewMode === 'grid'"
               name="media-grid"
@@ -162,13 +163,39 @@
           </div>
 
           <!-- Empty State / Upload Zone -->
+          <!-- Show empty state when no sets exist -->
+          <div
+            v-if="
+              !isLoadingMedia &&
+              selection &&
+              selection.status !== 'completed' &&
+              mediaSets.length === 0
+            "
+            class="flex items-center justify-center py-16"
+          >
+            <EmptyState
+              :icon="FolderPlus"
+              message="No sets in this selection"
+              description="Create a set to organize and upload your media files."
+              action-label="Create Set"
+              :action-icon="Plus"
+              @action="mediaSetsSidebar.handleAddSet"
+            />
+          </div>
+          <!-- Show upload zone when sets exist but no media -->
           <MediaUploadDropzone
-            v-if="!isLoadingMedia && selection && selection.status !== 'completed'"
+            v-else-if="
+              !isLoadingMedia &&
+              selection &&
+              selection.status !== 'completed' &&
+              mediaSets.length > 0
+            "
             v-model:is-dragging="isDragging"
             :is-empty="sortedMediaItems.length === 0"
             @browse="handleBrowseFiles"
             @drop="handleDrop"
           />
+          <!-- Show empty state for completed selections or when no media -->
           <div
             v-else-if="sortedMediaItems.length === 0 && !isLoadingMedia"
             class="text-center py-16"
@@ -256,12 +283,23 @@
         :duplicate-files="duplicateFiles"
         :is-uploading="isUploading"
         @cancel="handleCancelDuplicateFiles"
-        @confirm="handleConfirmDuplicateFiles"
+        @confirm="handleConfirmDuplicateFiles(selectedSetId)"
         @set-action="duplicateFileActions.set($event[0], $event[1])"
         @replace-all="
           duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
         "
         @skip-all="duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))"
+      />
+
+      <UploadProgressBar
+        v-model="showUploadProgress"
+        :upload-progress="uploadProgress"
+        :overall-progress="overallProgress"
+        :upload-errors="uploadErrors"
+        :is-uploading="isUploading"
+        @cancel="cancelUpload"
+        @close="showUploadProgress = false"
+        @retry="handleRetryUpload"
       />
 
       <RenameMediaModal
@@ -318,13 +356,14 @@
 import { computed, ref, watch, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useMediaApi } from '@/api/media'
+import { useSelectionsApi } from '@/api/selections'
 import { toast } from '@/utils/toast'
 import MediaItemsHeaderBar from '@/components/organisms/MediaItemsHeaderBar.vue'
 import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
@@ -332,6 +371,8 @@ import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
 import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
+import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
+import EmptyState from '@/components/molecules/EmptyState.vue'
 import RenameMediaModal from '@/components/organisms/RenameMediaModal.vue'
 import TagModal from '@/components/organisms/TagModal.vue'
 import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
@@ -358,13 +399,14 @@ import { useBulkDeleteFlow } from '@/composables/useBulkDeleteFlow'
 import { useBulkTagFlow } from '@/composables/useBulkTagFlow'
 import { useBulkEditFilenamesFlow } from '@/composables/useBulkEditFilenamesFlow'
 import { useBulkWatermarkFlow } from '@/composables/useBulkWatermarkFlow'
-import { useMediaUploadFlow } from '@/composables/useMediaUploadFlow'
+import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const selectionStore = useSelectionStore()
 const mediaApi = useMediaApi()
+const selectionsApi = useSelectionsApi()
 const watermarkStore = useWatermarkStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
@@ -415,6 +457,7 @@ const showEditModal = ref(false)
 const showTagModal = ref(false)
 const showBulkWatermarkModal = ref(false)
 const selectedBulkWatermark = ref('none')
+const showUploadProgress = ref(false)
 const isBulkWatermarkLoading = ref(false)
 const editAppendText = ref('')
 const tagInput = ref('')
@@ -564,16 +607,23 @@ const updateSetCounts = async () => {
 
 const loadMediaItems = async () => {
   if (!selection.value) return
-  isLoadingMedia.value = true
-  try {
-    const media = await mediaApi.fetchPhaseMedia('selection', selection.value.id)
-    mediaItems.value = media || []
-    await updateSetCounts()
-  } catch (error) {
-    console.error('Failed to load media:', error)
+
+  // If a set is selected, load media for that set
+  if (selectedSetId.value) {
+    isLoadingMedia.value = true
+    try {
+      const media = await selectionsApi.fetchSetMedia(selection.value.id, selectedSetId.value)
+      mediaItems.value = media || []
+      await updateSetCounts()
+    } catch (error) {
+      console.error('Failed to load media:', error)
+      mediaItems.value = []
+    } finally {
+      isLoadingMedia.value = false
+    }
+  } else {
+    // No set selected, clear media items
     mediaItems.value = []
-  } finally {
-    isLoadingMedia.value = false
   }
 }
 
@@ -634,6 +684,14 @@ const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
   showBulkDeleteModal,
   isBulkDeleteLoading,
   mediaApi,
+  deleteMediaFn: async mediaId => {
+    // Use selections API for deleting media in selections
+    if (selection.value?.id && selectedSetId.value) {
+      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
+    } else {
+      throw new Error('Selection ID or Set ID is missing')
+    }
+  },
   mediaItems,
   updateSetCounts,
   description: '',
@@ -740,6 +798,14 @@ const {
   mediaItems,
   selectedMediaIds,
   mediaApi,
+  deleteMediaFn: async mediaId => {
+    // Use selections API for deleting media in selections
+    if (selection.value?.id && selectedSetId.value) {
+      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
+    } else {
+      throw new Error('Selection ID or Set ID is missing')
+    }
+  },
   updateSetCounts,
   handleConfirmDeleteSet: mediaSetsSidebar.confirmDeleteSet,
   description: '',
@@ -802,27 +868,29 @@ const handleBrowseFiles = () => {
 }
 
 const {
+  uploadMediaToSet,
+  processFiles: processFilesForUpload,
+  handleConfirmDuplicateFiles,
+  handleCancelDuplicateFiles,
+  cancelUpload,
+  uploadProgress,
+  overallProgress,
+  uploadErrors,
   isUploading,
   showDuplicateFilesModal,
   duplicateFiles,
-  filesToUpload,
   duplicateFileActions,
-  processFiles,
-  handleConfirmDuplicateFiles,
-  handleCancelDuplicateFiles,
-  uploadFiles,
-  handleFileSelect: handleFileSelectFromFlow,
-  handleDrop: handleDropFromFlow,
-} = useMediaUploadFlow({
-  collection: selection,
-  selectedSetId,
-  mediaItems,
-  selectedWatermark: ref('none'),
-  watermarkStore,
-  mediaApi,
-  updateSetCounts,
-  isDragging,
-  description: '',
+} = useSelectionWorkflow({
+  selectionId: () => selection.value?.id,
+  loadMediaItems,
+  existingMedia: () => mediaItems.value,
+})
+
+// Watch isUploading to show/hide progress modal
+watch(isUploading, uploading => {
+  if (uploading) {
+    showUploadProgress.value = true
+  }
 })
 
 const handleFileSelect = async event => {
@@ -835,19 +903,75 @@ const handleFileSelect = async event => {
     mediaSetsSidebar.handleSelectSet(mediaSets.value[0].id)
   }
 
-  // Upload flow already adds items to mediaItems.value, no need to reload
-  await handleFileSelectFromFlow(event)
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar before uploading.',
+    })
+    event.target.value = ''
+    return
+  }
+
+  // Process files (checks for duplicates)
+  const result = await processFilesForUpload(files)
+
+  if (result?.hasDuplicates) {
+    // Duplicate modal will be shown, wait for user confirmation
+    return
+  }
+
+  // No duplicates, proceed with upload
+  if (result?.filesToUpload && result.filesToUpload.length > 0) {
+    await uploadMediaToSet(result.filesToUpload, selectedSetId.value)
+  }
+
+  event.target.value = '' // Reset input
 }
 
 const handleDrop = async event => {
+  event.preventDefault()
+  if (isDragging) isDragging.value = false
+
+  const files = event.dataTransfer?.files
+  if (!files || files.length === 0) return
+
   // Ensure a set is selected before uploading
   if (!selectedSetId.value && mediaSets.value.length > 0) {
     // Auto-select the first set if none is selected
     mediaSetsSidebar.handleSelectSet(mediaSets.value[0].id)
   }
 
-  // Upload flow already adds items to mediaItems.value, no need to reload
-  await handleDropFromFlow(event)
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar before uploading.',
+    })
+    return
+  }
+
+  // Process files (checks for duplicates)
+  const result = await processFilesForUpload(Array.from(files))
+
+  if (result?.hasDuplicates) {
+    // Duplicate modal will be shown, wait for user confirmation
+    return
+  }
+
+  // No duplicates, proceed with upload
+  if (result?.filesToUpload && result.filesToUpload.length > 0) {
+    await uploadMediaToSet(result.filesToUpload, selectedSetId.value)
+  }
+}
+
+const handleRetryUpload = async (fileId, retryFn) => {
+  if (retryFn && typeof retryFn === 'function') {
+    try {
+      await retryFn()
+      if (loadMediaItems) {
+        await loadMediaItems()
+      }
+    } catch (error) {
+      console.error('Retry failed:', error)
+    }
+  }
 }
 
 const loadSelection = async () => {
@@ -946,6 +1070,58 @@ watch(
     loadSelection()
   }
 )
+
+// Watch for media sets changes (when a new set is created/updated/deleted)
+watch(
+  () => mediaSets.value,
+  async (newSets, oldSets) => {
+    if (!selection.value) return
+
+    const oldLength = oldSets?.length || 0
+    const newLength = newSets.length
+
+    // If a new set was created, reload the selection to get updated data
+    if (newLength > oldLength) {
+      // Reload selection to get updated media sets with counts
+      try {
+        const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
+        selection.value = updatedSelection
+        // Update media sets in sidebar with fresh data from API
+        await mediaSetsSidebar.loadMediaSets()
+      } catch (error) {
+        console.error('Failed to reload selection:', error)
+      }
+
+      // Auto-select the newly created set if none is selected
+      if (!selectedSetId.value) {
+        const newSet = newSets[newSets.length - 1]
+        if (newSet) {
+          mediaSetsSidebar.handleSelectSet(newSet.id)
+        }
+      } else if (selectedSetId.value) {
+        // If a set is already selected, reload its media (which will be empty for new sets)
+        loadMediaItems()
+      }
+    } else if (newLength < oldLength) {
+      // A set was deleted, reload media items if a set is still selected
+      if (selectedSetId.value) {
+        loadMediaItems()
+      }
+    }
+  },
+  { deep: true }
+)
+
+// Watch for selectedSetId changes to reload media when switching sets
+watch(selectedSetId, (newSetId, oldSetId) => {
+  if (newSetId && newSetId !== oldSetId && selection.value) {
+    // Load media for the newly selected set (will be empty if it's a new set)
+    loadMediaItems()
+  } else if (!newSetId && oldSetId) {
+    // Set was deselected, clear media items
+    mediaItems.value = []
+  }
+})
 </script>
 
 <style scoped>

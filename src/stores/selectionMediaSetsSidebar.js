@@ -2,6 +2,7 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { toast } from '@/utils/toast'
 import { useSelectionStore } from '@/stores/selection'
+import { useSelectionsApi } from '@/api/selections'
 import { debounce } from '@/utils/debounce'
 
 /**
@@ -13,6 +14,7 @@ import { debounce } from '@/utils/debounce'
  */
 export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSetsSidebar', () => {
   const selectionStore = useSelectionStore()
+  const selectionsApi = useSelectionsApi()
 
   // Context
   const selectionId = ref('')
@@ -44,9 +46,25 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   // Persistence state
   const isSavingSets = ref(false)
 
-  const setContext = (id, sets = []) => {
+  const setContext = async (id, sets = null) => {
     selectionId.value = id || ''
-    mediaSets.value = Array.isArray(sets) ? sets : []
+
+    // If sets are provided, use them; otherwise fetch from API
+    if (sets !== null) {
+      mediaSets.value = Array.isArray(sets) ? sets : []
+    } else if (id) {
+      // Fetch media sets from API
+      try {
+        const fetchedSets = await selectionsApi.fetchMediaSets(id)
+        mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
+      } catch (error) {
+        console.error('Failed to fetch media sets:', error)
+        mediaSets.value = []
+      }
+    } else {
+      mediaSets.value = []
+    }
+
     // Keep selection stable if possible
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
@@ -54,6 +72,23 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     // Keep selected set sane too
     if (!selectedSetId.value && mediaSets.value.length > 0) {
       selectedSetId.value = mediaSets.value[0].id
+    }
+  }
+
+  const loadMediaSets = async () => {
+    if (!selectionId.value) return
+    try {
+      const fetchedSets = await selectionsApi.fetchMediaSets(selectionId.value)
+      mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
+      // Auto-select first set if none selected
+      if (!selectedSetId.value && mediaSets.value.length > 0) {
+        selectedSetId.value = mediaSets.value[0].id
+      }
+    } catch (error) {
+      console.error('Failed to load media sets:', error)
+      toast.error('Failed to load media sets', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
     }
   }
 
@@ -71,34 +106,10 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   }
 
   const saveMediaSets = async () => {
-    if (!ensureSelectionId()) return
-    isSavingSets.value = true
-    try {
-      // Save the current mediaSets to the selection
-      const updated = await selectionStore.updateSelection(selectionId.value, {
-        mediaSets: mediaSets.value,
-      })
-
-      // Ensure the updated selection has mediaSets
-      if (updated) {
-        // Update mediaSets from the returned data to ensure sync
-        if (Array.isArray(updated.mediaSets)) {
-          mediaSets.value = updated.mediaSets
-        } else if (!updated.mediaSets && mediaSets.value.length > 0) {
-          // If API doesn't return mediaSets but we have them, ensure they're saved
-          // This handles cases where the API might not return the full object
-          // The selection should now have mediaSets in the store
-        }
-      }
-    } catch (error) {
-      console.error('Failed to save media sets:', error)
-      toast.error('Failed to save media sets', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
-      throw error // Re-throw so caller knows it failed
-    } finally {
-      isSavingSets.value = false
-    }
+    // This method is kept for backward compatibility but is no longer used
+    // Media sets are now created/updated/deleted via API directly
+    // This is a no-op to avoid breaking existing code
+    return Promise.resolve()
   }
 
   const startSetNameEdit = setId => {
@@ -115,21 +126,48 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
   const saveSetName = async setId => {
     const set = mediaSets.value.find(s => s.id === setId)
-    if (!set) return
+    if (!set || !ensureSelectionId()) return
 
-    set.name = editingSetName.value
-    await saveMediaSets()
-    cancelSetNameEdit()
+    try {
+      const updatedSet = await selectionsApi.updateMediaSet(selectionId.value, setId, {
+        name: editingSetName.value,
+        description: set.description,
+        order: set.order,
+      })
+      // Update local state
+      const index = mediaSets.value.findIndex(s => s.id === setId)
+      if (index !== -1) {
+        mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
+      }
+      cancelSetNameEdit()
+    } catch (error) {
+      console.error('Failed to update set name:', error)
+      toast.error('Failed to update set name', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
   }
 
   const autoSaveSetName = debounce(async setId => {
     // Only autosave while editing the same set
     if (editingSetId.value !== setId) return
     const set = mediaSets.value.find(s => s.id === setId)
-    if (!set) return
+    if (!set || !ensureSelectionId()) return
 
-    set.name = editingSetName.value
-    await saveMediaSets()
+    try {
+      const updatedSet = await selectionsApi.updateMediaSet(selectionId.value, setId, {
+        name: editingSetName.value,
+        description: set.description,
+        order: set.order,
+      })
+      // Update local state
+      const index = mediaSets.value.findIndex(s => s.id === setId)
+      if (index !== -1) {
+        mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
+      }
+    } catch (error) {
+      console.error('Failed to auto-save set name:', error)
+    }
   }, 600)
 
   const handleAddSet = () => {
@@ -168,27 +206,38 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     isCreatingSet.value = true
     try {
       if (editingSetIdInModal.value) {
+        // Update existing set
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
-          set.name = newSetName.value.trim()
-          set.description = newSetDescription.value || ''
+          const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
+          const updatedSet = await selectionsApi.updateMediaSet(
+            selectionId.value,
+            editingSetIdInModal.value,
+            {
+              name: newSetName.value.trim(),
+              description: newSetDescription.value || '',
+              order: set.order ?? maxOrder,
+            }
+          )
+          // Update local state
+          const index = mediaSets.value.findIndex(s => s.id === editingSetIdInModal.value)
+          if (index !== -1) {
+            mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
+          }
         }
       } else {
+        // Create new set
         const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
-        const id = `set_${Date.now()}_${Math.random().toString(16).slice(2)}`
-        const newSet = {
-          id,
+        const newSet = await selectionsApi.createMediaSet(selectionId.value, {
           name: newSetName.value.trim(),
           description: newSetDescription.value || '',
           order: maxOrder + 1,
-          count: 0,
-        }
-        mediaSets.value.push(newSet)
+        })
+        // Reload all media sets to ensure sync
+        await loadMediaSets()
         // Auto-select the newly created set
         selectedSetId.value = newSet.id
       }
-
-      await saveMediaSets()
 
       // Show success message
       toast.success(editingSetIdInModal.value ? 'Set updated' : 'Set created', {
@@ -199,8 +248,10 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
       handleCancelCreateSet()
     } catch (error) {
-      // Error is already handled in saveMediaSets
       console.error('Failed to create/update set:', error)
+      toast.error(editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
     } finally {
       isCreatingSet.value = false
     }
@@ -231,10 +282,18 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     isDeletingSet.value = true
     try {
       const deletingId = setToDelete.value.id
+      await selectionsApi.deleteMediaSet(selectionId.value, deletingId)
       mediaSets.value = mediaSets.value.filter(s => s.id !== deletingId)
       if (selectedSetId.value === deletingId) selectedSetId.value = null
-      await saveMediaSets()
+      toast.success('Set deleted', {
+        description: 'Photo set has been deleted.',
+      })
       cancelDeleteSet()
+    } catch (error) {
+      console.error('Failed to delete set:', error)
+      toast.error('Failed to delete set', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
     } finally {
       isDeletingSet.value = false
     }
@@ -272,7 +331,20 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     })
     mediaSets.value = sets
 
-    await saveMediaSets()
+    // Reorder via API
+    if (!ensureSelectionId()) {
+      handleSetDragEnd()
+      return
+    }
+    try {
+      const setIds = sets.map(s => s.id)
+      await selectionsApi.reorderMediaSets(selectionId.value, setIds)
+    } catch (error) {
+      console.error('Failed to reorder sets:', error)
+      toast.error('Failed to reorder sets', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
     handleSetDragEnd()
   }
 
@@ -286,6 +358,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     // context
     selectionId,
     setContext,
+    loadMediaSets,
 
     // sets
     mediaSets,

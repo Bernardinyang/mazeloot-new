@@ -14,6 +14,7 @@ export function useMediaRenameDeleteActions({
   selectedMediaIds,
   // apis
   mediaApi,
+  deleteMediaFn, // Optional: custom delete function (e.g., for selections)
   updateSetCounts,
   // set delete handler fallback
   handleConfirmDeleteSet,
@@ -74,10 +75,16 @@ export function useMediaRenameDeleteActions({
     console.log(item.collectionId)
 
     // Check if it's a MediaSet or MediaItem
-    if (item.collectionId) {
+    if (item.collectionId || item.setId) {
       // It's a MediaItem
       try {
-        await mediaApi.deleteMedia(item.id)
+        // Use custom delete function if provided (for selections), otherwise use mediaApi
+        if (deleteMediaFn) {
+          await deleteMediaFn(item.id)
+        } else {
+          await mediaApi.deleteMedia(item.id)
+        }
+
         // Remove from local array
         const index = mediaItems.value.findIndex(m => m.id === item.id)
         if (index !== -1) {

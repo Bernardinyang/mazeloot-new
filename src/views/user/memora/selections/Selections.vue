@@ -1,6 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Selections </template>
+    <template #breadcrumb> Selections</template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -10,12 +10,12 @@
     <div class="space-y-6">
       <!-- Top Header Bar -->
       <PageHeader
-        title="Selections"
         :search-query="searchQuery"
         :sort-by="sortBy"
-        :view-mode="viewMode"
         :sort-options="sortOptions"
+        :view-mode="viewMode"
         sort-label="Sort selections by"
+        title="Selections"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
@@ -38,30 +38,30 @@
         <!-- Empty State -->
         <EmptyState
           v-else-if="sortedSelections.length === 0"
-          message="No selections found"
-          description="Get started by creating your first selection to organize and manage your media."
-          action-label="Create New Selection"
           :icon="CheckSquare"
           action-icon="Plus"
+          action-label="Create New Selection"
+          description="Get started by creating your first selection to organize and manage your media."
+          message="No selections found"
           @action="handleCreateSelection"
         />
 
         <!-- Selections Grid -->
         <TransitionGroup
           v-else
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
           name="list"
           tag="div"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
         >
           <SelectionCard
             v-for="(selection, index) in sortedSelections"
             :key="selection.id"
-            :selection="selection"
             :index="index"
+            :selection="selection"
             @click="handleSelectionClick"
-            @star-click="toggleStar"
-            @edit="handleEditSelection"
             @delete="handleDeleteSelection"
+            @edit="handleEditSelection"
+            @star-click="toggleStar"
             @view-details="handleViewDetails"
           />
         </TransitionGroup>
@@ -70,23 +70,23 @@
       <!-- Selections List View -->
       <CollectionsTable
         v-else
+        :empty-icon="CheckSquare"
+        :get-icon="() => CheckSquare"
+        :get-status="item => item.status"
+        :get-subtitle="getSubtitle"
         :items="sortedSelections"
         :loading="isLoading"
         :selected-items="selectedSelections"
-        empty-message="No selections found"
-        empty-action-label="Create New Selection"
-        :empty-icon="CheckSquare"
-        :get-subtitle="getSubtitle"
-        :get-icon="() => CheckSquare"
-        :get-status="item => item.status"
         :show-move-to="false"
         :show-view-details="true"
+        empty-action-label="Create New Selection"
+        empty-message="No selections found"
+        @delete="handleDeleteSelection"
+        @edit="handleEditSelection"
         @select="handleSelectSelection"
         @star-click="toggleStar"
         @item-click="handleSelectionClick"
         @empty-action="handleCreateSelection"
-        @edit="handleEditSelection"
-        @delete="handleDeleteSelection"
         @view-details="handleViewDetails"
       />
     </div>
@@ -95,18 +95,33 @@
     <SelectionDetailSidebar v-model="showDetailSidebar" :selection-id="selectedSelectionId" />
 
     <!-- Create Selection Dialog -->
-    <CreateSelectionDialog
-      v-model:open="showCreateDialog"
-      :is-submitting="isCreatingSelection"
-      @create="handleCreateSelectionSubmit"
+    <CreateSelectionDialog v-model:open="showCreateDialog" @success="handleCreateSuccess" />
+
+    <!-- Edit Selection Dialog -->
+    <EditSelectionDialog
+      v-model:open="showEditDialog"
+      :selection="selectionToEdit"
+      @success="handleEditSuccess"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDeleteModal"
+      :is-deleting="isDeleting"
+      :item-name="getItemName(itemToDelete)"
+      title="Delete Selection"
+      description="This action cannot be undone."
+      warning-message="This selection and all its media will be permanently removed."
+      @cancel="closeDeleteModal"
+      @confirm="handleConfirmDelete"
     />
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { CheckSquare, Plus } from 'lucide-vue-next'
+import { CheckSquare } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
@@ -116,15 +131,28 @@ import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import SelectionDetailSidebar from '@/components/organisms/SelectionDetailSidebar.vue'
 import CreateSelectionDialog from '@/components/organisms/CreateSelectionDialog.vue'
+import EditSelectionDialog from '@/components/organisms/EditSelectionDialog.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
+import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const { handleError } = useErrorHandler()
+
+// Delete confirmation
+const {
+  showDeleteModal,
+  itemToDelete,
+  isDeleting,
+  openDeleteModal,
+  closeDeleteModal,
+  getItemName,
+} = useDeleteConfirmation()
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -144,7 +172,8 @@ const selectedSelections = ref([])
 const showDetailSidebar = ref(false)
 const selectedSelectionId = ref(null)
 const showCreateDialog = ref(false)
-const isCreatingSelection = ref(false)
+const showEditDialog = ref(false)
+const selectionToEdit = ref(null)
 
 const handleSelectSelection = (id, checked) => {
   if (checked) {
@@ -175,6 +204,7 @@ const filteredSelections = computed(() => {
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(selection => {
+      if (!selection) return false
       const name = (selection.name || '').toLowerCase()
       return name.includes(query)
     })
@@ -188,15 +218,30 @@ const sortedSelections = computed(() => {
 
   switch (sortBy.value) {
     case 'created-new-old':
-      return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      })
     case 'created-old-new':
-      return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
+      })
     case 'name-a-z':
-      return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (a.name || '').localeCompare(b.name || '')
+      })
     case 'name-z-a':
-      return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (b.name || '').localeCompare(a.name || '')
+      })
     case 'status':
-      return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''))
+      return sorted.sort((a, b) => {
+        if (!a || !b) return 0
+        return (a.status || '').localeCompare(b.status || '')
+      })
     default:
       return sorted
   }
@@ -206,29 +251,14 @@ const handleCreateSelection = () => {
   showCreateDialog.value = true
 }
 
-const handleCreateSelectionSubmit = async data => {
-  if (isCreatingSelection.value) return
-  isCreatingSelection.value = true
-  try {
-    const newSelection = await selectionStore.createSelection(null, {
-      name: data.name,
-    })
-    toast.success('Selection created', {
-      description: 'Your new selection has been created.',
-    })
-    showCreateDialog.value = false
-    // Navigate to the selection detail view
-    router.push({
-      name: 'selectionDetail',
-      params: { id: newSelection.id },
-    })
-  } catch (error) {
-    handleError(error, {
-      fallbackMessage: 'Failed to create selection.',
-    })
-  } finally {
-    isCreatingSelection.value = false
-  }
+const handleCreateSuccess = async newSelection => {
+  // Modal has already performed the create and shown success message
+  // Navigate to the selection detail view
+  showCreateDialog.value = false
+  await router.push({
+    name: 'selectionDetail',
+    params: { id: newSelection.id || newSelection.uuid },
+  })
 }
 
 const handleSelectionClick = selection => {
@@ -239,7 +269,6 @@ const handleSelectionClick = selection => {
       query: { selectionId: selection.id },
     })
   } else {
-    // Navigate to selection detail view
     router.push({
       name: 'selectionDetail',
       params: { id: selection.id },
@@ -251,20 +280,51 @@ const toggleStar = async selection => {
   try {
     await selectionStore.toggleStar(selection.id)
   } catch (error) {
-    handleError(error, {
+    await handleError(error, {
       fallbackMessage: 'Failed to update star status.',
     })
   }
 }
 
 const handleEditSelection = selection => {
-  // TODO: Implement selection editing
-  toast.info('Edit feature coming soon')
+  selectionToEdit.value = selection
+  showEditDialog.value = true
 }
 
-const handleDeleteSelection = async selection => {
-  // TODO: Implement selection deletion with confirmation
-  toast.info('Delete feature coming soon')
+const handleEditSuccess = async () => {
+  // Modal has already performed the update and shown success message
+  // Just refresh the list and reset state
+  selectionToEdit.value = null
+  await loadSelections()
+}
+
+const handleDeleteSelection = selection => {
+  openDeleteModal(selection)
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+
+  isDeleting.value = true
+  try {
+    // Perform delete action in the handler
+    const deleted = await selectionStore.deleteSelection(itemToDelete.value.id)
+
+    if (deleted) {
+      toast.success('Selection deleted', {
+        description: 'The selection has been permanently removed.',
+      })
+      closeDeleteModal()
+      // Refresh list after successful delete
+      await loadSelections()
+    }
+  } catch (error) {
+    await handleError(error, {
+      fallbackMessage: 'Failed to delete selection.',
+    })
+  } finally {
+    isDeleting.value = false
+  }
 }
 
 const handleViewDetails = selection => {
@@ -272,13 +332,17 @@ const handleViewDetails = selection => {
   showDetailSidebar.value = true
 }
 
-onMounted(async () => {
+const loadSelections = async () => {
   try {
     await selectionStore.fetchAllSelections()
   } catch (error) {
-    handleError(error, {
+    await handleError(error, {
       fallbackMessage: 'Failed to load selections.',
     })
   }
+}
+
+onMounted(async () => {
+  await loadSelections()
 })
 </script>

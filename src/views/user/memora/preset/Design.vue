@@ -868,7 +868,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
@@ -934,7 +934,7 @@ const defaultJoyCoverShowButton = false
 const defaultJoyCoverBackgroundPattern = 'crosses'
 
 // Design form data
-const formData = ref({
+const formData = reactive({
   cover: defaultCover,
   coverFocalPoint: defaultCoverFocalPoint,
   fontFamily: defaultFontFamily,
@@ -964,35 +964,35 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.cover !== originalData.value.cover ||
-    formData.value.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
-    formData.value.coverFocalPoint.y !== originalData.value.coverFocalPoint.y ||
-    formData.value.fontFamily !== originalData.value.fontFamily ||
-    formData.value.fontStyle !== originalData.value.fontStyle ||
-    formData.value.colorPalette !== originalData.value.colorPalette ||
-    formData.value.gridStyle !== originalData.value.gridStyle ||
-    formData.value.gridColumns !== originalData.value.gridColumns ||
-    formData.value.thumbnailSize !== originalData.value.thumbnailSize ||
-    formData.value.gridSpacing !== originalData.value.gridSpacing ||
-    formData.value.navigationStyle !== originalData.value.navigationStyle ||
-    formData.value.joyCoverTitle !== originalData.value.joyCoverTitle ||
-    formData.value.joyCoverAvatar !== originalData.value.joyCoverAvatar ||
-    formData.value.joyCoverShowDate !== originalData.value.joyCoverShowDate ||
-    formData.value.joyCoverShowName !== originalData.value.joyCoverShowName ||
-    formData.value.joyCoverButtonText !== originalData.value.joyCoverButtonText ||
-    formData.value.joyCoverShowButton !== originalData.value.joyCoverShowButton ||
-    formData.value.joyCoverBackgroundPattern !== originalData.value.joyCoverBackgroundPattern
+    formData.cover !== originalData.value.cover ||
+    formData.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
+    formData.coverFocalPoint.y !== originalData.value.coverFocalPoint.y ||
+    formData.fontFamily !== originalData.value.fontFamily ||
+    formData.fontStyle !== originalData.value.fontStyle ||
+    formData.colorPalette !== originalData.value.colorPalette ||
+    formData.gridStyle !== originalData.value.gridStyle ||
+    formData.gridColumns !== originalData.value.gridColumns ||
+    formData.thumbnailSize !== originalData.value.thumbnailSize ||
+    formData.gridSpacing !== originalData.value.gridSpacing ||
+    formData.navigationStyle !== originalData.value.navigationStyle ||
+    formData.joyCoverTitle !== originalData.value.joyCoverTitle ||
+    formData.joyCoverAvatar !== originalData.value.joyCoverAvatar ||
+    formData.joyCoverShowDate !== originalData.value.joyCoverShowDate ||
+    formData.joyCoverShowName !== originalData.value.joyCoverShowName ||
+    formData.joyCoverButtonText !== originalData.value.joyCoverButtonText ||
+    formData.joyCoverShowButton !== originalData.value.joyCoverShowButton ||
+    formData.joyCoverBackgroundPattern !== originalData.value.joyCoverBackgroundPattern
   )
 })
 
 // Computed property to convert gridSpacing number to array for Slider component
 const gridSpacingSlider = computed({
   get: () => {
-    return [formData.value.gridSpacing]
+    return [formData.gridSpacing]
   },
   set: value => {
     if (Array.isArray(value) && value.length > 0 && typeof value[0] === 'number') {
-      formData.value.gridSpacing = Math.max(1, Math.min(100, value[0]))
+      formData.gridSpacing = Math.max(1, Math.min(100, value[0]))
     }
   },
 })
@@ -1018,7 +1018,7 @@ const handleFocalPointClick = event => {
   const y = ((event.clientY - rect.top) / rect.height) * 100
 
   // Clamp values between 0 and 100
-  formData.value.coverFocalPoint = {
+  formData.coverFocalPoint = {
     x: Math.min(100, Math.max(0, x)),
     y: Math.min(100, Math.max(0, y)),
   }
@@ -1027,7 +1027,7 @@ const handleFocalPointClick = event => {
 // Handle joy pattern change
 const handleJoyPatternChange = patternId => {
   if (patternId === 'crosses' || patternId === 'sparkles' || patternId === 'none') {
-    formData.value.joyCoverBackgroundPattern = patternId
+    formData.joyCoverBackgroundPattern = patternId
   }
 }
 
@@ -1044,7 +1044,7 @@ const handleAvatarFileChange = event => {
     const reader = new FileReader()
     reader.onload = e => {
       if (e.target?.result) {
-        formData.value.joyCoverAvatar = e.target.result
+        formData.joyCoverAvatar = e.target.result
       }
     }
     reader.readAsDataURL(file)
@@ -1166,7 +1166,7 @@ const loadPresetData = () => {
         ? designData.joyCoverBackgroundPattern
         : defaultJoyCoverBackgroundPattern,
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
     presetStore.setCurrentPreset(currentPreset.value.id)
     isLoadingData.value = false
@@ -1184,10 +1184,10 @@ watch(
 
 // Watch for grid style changes - disable large thumbnail size for masonry
 watch(
-  () => formData.value.gridStyle,
+  () => formData.gridStyle,
   newStyle => {
-    if (newStyle === 'masonry' && formData.value.thumbnailSize === 'large') {
-      formData.value.thumbnailSize = 'regular'
+    if (newStyle === 'masonry' && formData.thumbnailSize === 'large') {
+      formData.thumbnailSize = 'regular'
     }
   }
 )
@@ -1228,11 +1228,11 @@ const savePresetDesign = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      design: formData.value,
+      design: formData,
     })
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -1294,7 +1294,7 @@ const isSaving = computed(() => presetStore.isLoading)
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

@@ -5,6 +5,7 @@ export function useBulkDeleteFlow({
   showBulkDeleteModal,
   isBulkDeleteLoading,
   mediaApi,
+  deleteMediaFn, // Optional: custom delete function (e.g., for selections)
   mediaItems,
   updateSetCounts,
   description,
@@ -23,7 +24,12 @@ export function useBulkDeleteFlow({
     isBulkDeleteLoading.value = true
     try {
       for (const id of idsToDelete) {
-        await mediaApi.deleteMedia(id)
+        // Use custom delete function if provided (for selections), otherwise use mediaApi
+        if (deleteMediaFn) {
+          await deleteMediaFn(id)
+        } else {
+          await mediaApi.deleteMedia(id)
+        }
         const index = mediaItems.value.findIndex(m => m.id === id)
         if (index !== -1) {
           mediaItems.value.splice(index, 1)

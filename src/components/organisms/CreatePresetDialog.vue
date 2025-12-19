@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import { Input } from '@/components/shadcn/input'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -67,7 +67,7 @@ const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
 
-const formData = ref({
+const formData = reactive({
   name: '',
 })
 
@@ -75,7 +75,7 @@ const errors = ref({})
 const isSubmitting = ref(false)
 
 const handleCancel = () => {
-  formData.value = { name: '' }
+  formData.name = ''
   errors.value = {}
   emit('update:open', false)
 }
@@ -83,7 +83,7 @@ const handleCancel = () => {
 const handleSubmit = async () => {
   errors.value = {}
 
-  if (!formData.value.name.trim()) {
+  if (!formData.name.trim()) {
     errors.value.name = 'Please enter a preset name'
     return
   }
@@ -91,14 +91,12 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   try {
     emit('create', {
-      name: formData.value.name.trim(),
+      name: formData.name.trim(),
     })
     // Wait to show loading state (matches parent handler delay)
     await delay(1000)
     // Reset form
-    formData.value = {
-      name: '',
-    }
+    formData.name = ''
     errors.value = {}
     emit('update:open', false)
   } catch (error) {
@@ -114,9 +112,7 @@ watch(
   () => props.open,
   newValue => {
     if (!newValue) {
-      formData.value = {
-        name: '',
-      }
+      formData.name = ''
       errors.value = {}
     }
   }

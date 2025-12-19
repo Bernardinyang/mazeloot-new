@@ -4,10 +4,12 @@
  */
 
 import { useUserStore } from '@/stores/user'
+import { API_CONFIG } from './config'
 
 class ApiClient {
   constructor(baseURL) {
-    this.baseURL = baseURL || import.meta.env.VITE_API_BASE_URL || '/api'
+    // Use provided baseURL, or fall back to API_CONFIG (which auto-detects env)
+    this.baseURL = baseURL || API_CONFIG.API_BASE_URL
   }
 
   /**
@@ -231,6 +233,266 @@ class ApiClient {
 
       throw error
     }
+  }
+
+  /**
+   * Upload multiple files with progress tracking
+   * @param {string} endpoint - API endpoint
+   * @param {File[]} files - Array of files to upload
+   * @param {object} options - Upload options
+   * @param {function} options.onProgress - Progress callback: (fileIndex, loaded, total) => void
+   * @param {AbortSignal} options.signal - Abort signal for cancellation
+   * @returns {Promise} Response with array of upload results
+   */
+  async uploadMultiple(endpoint, files, options = {}) {
+    const { skipAuth = false, onProgress, signal, ...fetchOptions } = options
+
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
+
+    // If progress tracking is needed, use XMLHttpRequest
+    if (onProgress || signal) {
+      return new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest()
+        const formData = new FormData()
+
+        // Append all files
+        files.forEach(file => {
+          formData.append('files[]', file)
+        })
+
+        // Handle abort
+        if (signal) {
+          signal.addEventListener('abort', () => {
+            xhr.abort()
+            reject(new DOMException('Upload cancelled', 'AbortError'))
+          })
+        }
+
+        // Track progress
+        if (onProgress) {
+          xhr.upload.addEventListener('progress', e => {
+            if (e.lengthComputable) {
+              // Calculate total progress across all files
+              const totalSize = files.reduce((sum, file) => sum + file.size, 0)
+              const loaded = e.loaded
+              const total = e.total || totalSize
+
+              // Call progress callback for overall progress
+              // For per-file progress, we'd need to upload files individually
+              onProgress(-1, loaded, total)
+            }
+          })
+        }
+
+        xhr.addEventListener('load', async () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try {
+              const contentType = xhr.getResponseHeader('content-type')
+              const isJson = contentType?.includes('application/json')
+              const data = isJson ? JSON.parse(xhr.responseText) : xhr.responseText
+
+              // Handle response similar to handleResponse
+              if (data?.data !== undefined) {
+                resolve({ data: data.data, status: xhr.status, statusText: xhr.statusText })
+              } else {
+                resolve({ data, status: xhr.status, statusText: xhr.statusText })
+              }
+            } catch (error) {
+              reject({
+                message: 'Failed to parse response',
+                code: 'PARSE_ERROR',
+                status: xhr.status,
+              })
+            }
+          } else {
+            // Handle error response
+            try {
+              const contentType = xhr.getResponseHeader('content-type')
+              const isJson = contentType?.includes('application/json')
+              const data = isJson ? JSON.parse(xhr.responseText) : xhr.responseText
+
+              const error = {
+                message: data?.message || data?.error || `Request failed with status ${xhr.status}`,
+                code: data?.code,
+                status: xhr.status,
+                errors: data?.errors,
+              }
+              reject(error)
+            } catch (parseError) {
+              reject({
+                message: `Request failed with status ${xhr.status}`,
+                code: 'HTTP_ERROR',
+                status: xhr.status,
+              })
+            }
+          }
+        })
+
+        xhr.addEventListener('error', () => {
+          reject({
+            message: 'Network error. Please check your connection.',
+            code: 'NETWORK_ERROR',
+            status: 0,
+          })
+        })
+
+        xhr.addEventListener('abort', () => {
+          reject(new DOMException('Upload cancelled', 'AbortError'))
+        })
+
+        xhr.open('POST', url)
+
+        // Set headers
+        const authHeader = !skipAuth ? this.getAuthHeader() : null
+        if (authHeader) {
+          xhr.setRequestHeader('Authorization', authHeader)
+        }
+
+        // Don't set Content-Type header - let browser set it with boundary for FormData
+        xhr.send(formData)
+      })
+    }
+
+    // Fallback to fetch if no progress tracking needed
+    const formData = new FormData()
+    files.forEach(file => {
+      formData.append('files[]', file)
+    })
+
+    const headers = {
+      ...(fetchOptions.headers || {}),
+    }
+
+    // Add auth header if not skipped
+    if (!skipAuth) {
+      const authHeader = this.getAuthHeader()
+      if (authHeader) {
+        headers['Authorization'] = authHeader
+      }
+    }
+
+    try {
+      const response = await fetch(url, {
+        ...fetchOptions,
+        method: 'POST',
+        headers,
+        body: formData,
+        signal,
+      })
+
+      return await this.handleResponse(response)
+    } catch (error) {
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        throw {
+          message: 'Network error. Please check your connection.',
+          code: 'NETWORK_ERROR',
+          status: 0,
+        }
+      }
+
+      throw error
+    }
+  }
+
+  /**
+   * Upload a single file with progress tracking
+   * @param {string} endpoint - API endpoint
+   * @param {File} file - File to upload
+   * @param {object} options - Upload options
+   * @param {function} options.onProgress - Progress callback: (loaded, total) => void
+   * @param {AbortSignal} options.signal - Abort signal for cancellation
+   * @returns {Promise} Response with upload result
+   */
+  async uploadWithProgress(endpoint, file, options = {}) {
+    const { skipAuth = false, onProgress, signal } = options
+
+    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest()
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Handle abort
+      if (signal) {
+        signal.addEventListener('abort', () => {
+          xhr.abort()
+          reject(new DOMException('Upload cancelled', 'AbortError'))
+        })
+      }
+
+      // Track progress
+      if (onProgress) {
+        xhr.upload.addEventListener('progress', e => {
+          if (e.lengthComputable) {
+            onProgress(e.loaded, e.total)
+          }
+        })
+      }
+
+      xhr.addEventListener('load', async () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const contentType = xhr.getResponseHeader('content-type')
+            const isJson = contentType?.includes('application/json')
+            const data = isJson ? JSON.parse(xhr.responseText) : xhr.responseText
+
+            if (data?.data !== undefined) {
+              resolve({ data: data.data, status: xhr.status, statusText: xhr.statusText })
+            } else {
+              resolve({ data, status: xhr.status, statusText: xhr.statusText })
+            }
+          } catch (error) {
+            reject({
+              message: 'Failed to parse response',
+              code: 'PARSE_ERROR',
+              status: xhr.status,
+            })
+          }
+        } else {
+          try {
+            const contentType = xhr.getResponseHeader('content-type')
+            const isJson = contentType?.includes('application/json')
+            const data = isJson ? JSON.parse(xhr.responseText) : xhr.responseText
+
+            const error = {
+              message: data?.message || data?.error || `Request failed with status ${xhr.status}`,
+              code: data?.code,
+              status: xhr.status,
+              errors: data?.errors,
+            }
+            reject(error)
+          } catch (parseError) {
+            reject({
+              message: `Request failed with status ${xhr.status}`,
+              code: 'HTTP_ERROR',
+              status: xhr.status,
+            })
+          }
+        }
+      })
+
+      xhr.addEventListener('error', () => {
+        reject({
+          message: 'Network error. Please check your connection.',
+          code: 'NETWORK_ERROR',
+          status: 0,
+        })
+      })
+
+      xhr.addEventListener('abort', () => {
+        reject(new DOMException('Upload cancelled', 'AbortError'))
+      })
+
+      xhr.open('POST', url)
+
+      const authHeader = !skipAuth ? this.getAuthHeader() : null
+      if (authHeader) {
+        xhr.setRequestHeader('Authorization', authHeader)
+      }
+
+      xhr.send(formData)
+    })
   }
 }
 

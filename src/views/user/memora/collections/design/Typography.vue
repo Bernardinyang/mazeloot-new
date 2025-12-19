@@ -268,7 +268,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
@@ -299,7 +299,7 @@ const isSubmitting = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Typography form data
-const formData = ref({
+const formData = reactive({
   fontFamily: 'sans',
   fontStyle: 'bold',
 })
@@ -313,8 +313,8 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.fontFamily !== originalData.value.fontFamily ||
-    formData.value.fontStyle !== originalData.value.fontStyle
+    formData.fontFamily !== originalData.value.fontFamily ||
+    formData.fontStyle !== originalData.value.fontStyle
   )
 })
 
@@ -325,8 +325,8 @@ const previewDesignConfig = computed(() => {
     return {
       cover: 'left',
       coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: formData.value.fontFamily,
-      fontStyle: formData.value.fontStyle,
+      fontFamily: formData.fontFamily,
+      fontStyle: formData.fontStyle,
       colorPalette: 'light',
       gridStyle: 'vertical',
       gridColumns: 3,
@@ -342,8 +342,8 @@ const previewDesignConfig = computed(() => {
     return {
       cover: 'left',
       coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: formData.value.fontFamily,
-      fontStyle: formData.value.fontStyle,
+      fontFamily: formData.fontFamily,
+      fontStyle: formData.fontStyle,
       colorPalette: 'light',
       gridStyle: 'vertical',
       gridColumns: 3,
@@ -394,8 +394,8 @@ const previewDesignConfig = computed(() => {
   return {
     cover: coverDesign.cover || 'left',
     coverFocalPoint: coverDesign.coverFocalPoint || { x: 50, y: 50 },
-    fontFamily: typographyDesign.fontFamily || formData.value.fontFamily || 'sans',
-    fontStyle: typographyDesign.fontStyle || formData.value.fontStyle || 'bold',
+    fontFamily: typographyDesign.fontFamily || formData.fontFamily || 'sans',
+    fontStyle: typographyDesign.fontStyle || formData.fontStyle || 'bold',
     colorPalette: colorDesign.colorPalette || 'light',
     gridStyle: gridDesign.gridStyle || 'vertical',
     gridColumns: gridDesign.gridColumns || 3,
@@ -407,7 +407,7 @@ const previewDesignConfig = computed(() => {
 
 // Watch formData and immediately update the collection in store (optimistic update)
 watch(
-  () => formData.value,
+  () => formData,
   newData => {
     if (!collection.value || isLoading.value || !originalData.value) return
 
@@ -461,7 +461,7 @@ const loadCollectionData = async () => {
       fontFamily: typographyDesign.fontFamily || 'sans',
       fontStyle: typographyDesign.fontStyle || 'bold',
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
   } catch (error) {
     toast.error('Failed to load collection', {
@@ -492,12 +492,12 @@ const saveTypographyDesign = async () => {
   try {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
-      typographyDesign: formData.value,
+      typographyDesign: formData,
     })
 
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -523,7 +523,7 @@ const handleSave = async () => {
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 

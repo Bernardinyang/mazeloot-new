@@ -68,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import { Input } from '@/components/shadcn/input'
 import DatePicker from '@/components/shadcn/DatePicker.vue'
@@ -87,7 +87,7 @@ const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
 
-const formData = ref({
+const formData = reactive({
   name: '',
   eventDate: null,
   showOnHomepage: true,
@@ -104,7 +104,7 @@ const showPasswordInfo = ref(false)
 const handleSubmit = async () => {
   errors.value = {}
 
-  if (!formData.value.name.trim()) {
+  if (!formData.name.trim()) {
     errors.value.name = 'Folder name is required'
     return
   }
@@ -112,24 +112,19 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   try {
     emit('create', {
-      name: formData.value.name.trim(),
-      eventDate: formData.value.eventDate,
-      showOnHomepage: formData.value.showOnHomepage,
-      password:
-        formData.value.globalPassword && formData.value.password
-          ? formData.value.password.trim()
-          : null,
-      color: formData.value.color,
+      name: formData.name.trim(),
+      eventDate: formData.eventDate,
+      showOnHomepage: formData.showOnHomepage,
+      password: formData.globalPassword && formData.password ? formData.password.trim() : null,
+      color: formData.color,
     })
     // Reset form
-    formData.value = {
-      name: '',
-      eventDate: null,
-      showOnHomepage: true,
-      globalPassword: false,
-      password: '',
-      color: generateRandomColorFromPalette(),
-    }
+    formData.name = ''
+    formData.eventDate = null
+    formData.showOnHomepage = true
+    formData.globalPassword = false
+    formData.password = ''
+    formData.color = generateRandomColorFromPalette()
     emit('update:open', false)
   } catch (error) {
     console.error('Failed to create folder:', error)
@@ -143,14 +138,12 @@ watch(
   () => props.open,
   newValue => {
     if (!newValue) {
-      formData.value = {
-        name: '',
-        eventDate: null,
-        showOnHomepage: true,
-        globalPassword: false,
-        password: '',
-        color: generateRandomColorFromPalette(),
-      }
+      formData.name = ''
+      formData.eventDate = null
+      formData.showOnHomepage = true
+      formData.globalPassword = false
+      formData.password = ''
+      formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
   }

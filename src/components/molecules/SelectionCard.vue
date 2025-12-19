@@ -38,7 +38,7 @@
       <img
         v-if="coverImage"
         :src="coverImage"
-        :alt="selection.name"
+        :alt="selection?.name || 'Selection'"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
         @error="handleImageError"
@@ -75,7 +75,7 @@
           <CheckSquare class="h-10 w-10 text-white" />
         </div>
         <div
-          v-if="selection.status"
+          v-if="selection?.status"
           :style="{
             backgroundColor: `${cardColor}20`,
             color: 'white',
@@ -109,7 +109,7 @@
           <Star
             :class="[
               'h-4 w-4',
-              selection.isStarred || selection.starred
+              selection?.isStarred || selection?.starred
                 ? 'fill-yellow-400 text-yellow-400'
                 : 'text-gray-600 dark:text-gray-400',
             ]"
@@ -163,9 +163,9 @@
           :style="{ color: isHovering ? cardColor : undefined }"
           class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
           :class="[!isHovering && theme.textPrimary]"
-          :title="selection.name"
+          :title="selection?.name || 'Untitled Selection'"
         >
-          {{ selection.name }}
+          {{ selection?.name || 'Untitled Selection' }}
         </h3>
       </div>
       <div class="flex items-center gap-3 text-sm mt-1" :class="theme.textSecondary">
@@ -238,6 +238,7 @@ const handleImageError = event => {
 }
 
 const getSubtitle = selection => {
+  if (!selection) return ''
   const parts = []
   // Only show essential info on card - rest in detail sidebar
   if (selection.mediaCount !== undefined) {

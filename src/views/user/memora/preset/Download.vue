@@ -461,7 +461,7 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { ArrowLeft, ArrowRight, Check, ChevronDown, Info, Loader2 } from 'lucide-vue-next'
@@ -512,7 +512,7 @@ const defaultDownloadPin = false
 const defaultRestrictToContacts = false
 
 // Download form data
-const formData = ref({
+const formData = reactive({
   photoDownload: defaultPhotoDownload,
   highResolutionEnabled: defaultHighResolutionEnabled,
   highResolutionSize: defaultHighResolutionSize,
@@ -532,14 +532,14 @@ const hasUnsavedChanges = computed(() => {
     return false
   }
   return (
-    formData.value.photoDownload !== originalData.value.photoDownload ||
-    formData.value.highResolutionEnabled !== originalData.value.highResolutionEnabled ||
-    formData.value.highResolutionSize !== originalData.value.highResolutionSize ||
-    formData.value.webSizeEnabled !== originalData.value.webSizeEnabled ||
-    formData.value.webSize !== originalData.value.webSize ||
-    formData.value.videoDownload !== originalData.value.videoDownload ||
-    formData.value.downloadPin !== originalData.value.downloadPin ||
-    formData.value.restrictToContacts !== originalData.value.restrictToContacts
+    formData.photoDownload !== originalData.value.photoDownload ||
+    formData.highResolutionEnabled !== originalData.value.highResolutionEnabled ||
+    formData.highResolutionSize !== originalData.value.highResolutionSize ||
+    formData.webSizeEnabled !== originalData.value.webSizeEnabled ||
+    formData.webSize !== originalData.value.webSize ||
+    formData.videoDownload !== originalData.value.videoDownload ||
+    formData.downloadPin !== originalData.value.downloadPin ||
+    formData.restrictToContacts !== originalData.value.restrictToContacts
   )
 })
 
@@ -574,7 +574,7 @@ const loadPresetData = () => {
           ? downloadData.restrictToContacts
           : defaultRestrictToContacts,
     }
-    formData.value = { ...loadedData }
+    Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
     // Auto-expand photo options if photo download is enabled
     showPhotoOptions.value = loadedData.photoDownload
@@ -594,7 +594,7 @@ watch(
 
 // Auto-expand photo options when photo download is enabled
 watch(
-  () => formData.value.photoDownload,
+  () => formData.photoDownload,
   enabled => {
     if (enabled && !showPhotoOptions.value) {
       showPhotoOptions.value = true
@@ -638,11 +638,11 @@ const savePresetDownload = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      download: formData.value,
+      download: formData,
     })
     // Update original data after successful save
     if (originalData.value) {
-      originalData.value = { ...formData.value }
+      originalData.value = { ...formData }
     }
     return true
   } catch (error) {
@@ -705,7 +705,7 @@ const isSaving = computed(() => presetStore.isLoading)
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {
-    formData.value = { ...originalData.value }
+    Object.assign(formData, originalData.value)
   }
 }
 
