@@ -318,6 +318,7 @@ export function useMediaUpload(options = {}) {
    * Upload media to a set with advanced features
    */
   const uploadMediaToSet = async (files, setId, uploadOptions = {}) => {
+    console.log(files)
     const { skipValidation = false } = uploadOptions
 
     try {

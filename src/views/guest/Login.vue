@@ -10,10 +10,7 @@
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
           ]"
-          @click="
-            loginMethod = 'password'
-            magicLinkSent = false
-          "
+          @click="handlePasswordMethodClick"
         >
           <div class="flex items-center justify-center gap-2">
             <Lock :size="16" />
@@ -27,10 +24,7 @@
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
           ]"
-          @click="
-            loginMethod = 'magic-link'
-            magicLinkSent = false
-          "
+          @click="handleMagicLinkMethodClick"
         >
           <div class="flex items-center justify-center gap-2">
             <Mail :size="16" />
@@ -244,6 +238,16 @@ const handleMagicLinkLogin = async values => {
       fallbackMessage: 'Failed to send magic link. Please try again.',
     })
   }
+}
+
+const handlePasswordMethodClick = () => {
+  loginMethod.value = 'password'
+  magicLinkSent.value = false
+}
+
+const handleMagicLinkMethodClick = () => {
+  loginMethod.value = 'magic-link'
+  magicLinkSent.value = false
 }
 
 const handleGoogleSignIn = async () => {

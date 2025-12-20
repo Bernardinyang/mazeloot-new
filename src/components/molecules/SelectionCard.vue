@@ -1,12 +1,5 @@
 <template>
   <div
-    :style="{
-      '--index': index,
-      '--card-color': cardColor,
-      '--card-color-light': cardColorLight,
-      '--card-color-dark': cardColorDark,
-      borderColor: `${cardColor}33`,
-    }"
     :class="[
       'group relative rounded-xl overflow-hidden cursor-pointer',
       'transform-gpu transition-all duration-300',
@@ -16,11 +9,18 @@
       theme.bgCard,
       theme.shadowCard,
     ]"
+    :style="{
+      '--index': index,
+      '--card-color': cardColor,
+      '--card-color-light': cardColorLight,
+      '--card-color-dark': cardColorDark,
+      borderColor: `${cardColor}33`,
+    }"
+    role="button"
+    tabindex="0"
     @click="$emit('click', selection)"
     @mouseenter="isHovering = true"
     @mouseleave="isHovering = false"
-    tabindex="0"
-    role="button"
   >
     <!-- Selection-specific gradient background (only shown when no cover image) -->
     <div
@@ -34,11 +34,28 @@
 
     <!-- Image/Icon Container -->
     <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
+      <!-- Starred Badge and Lock Icon -->
+      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+        <div
+          v-if="selection?.isStarred || selection?.starred"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+        <div
+          v-if="selection?.hasPassword || selection?.password"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          title="Password protected"
+        >
+          <Lock class="h-4 w-4 text-white" />
+        </div>
+      </div>
       <!-- Cover Image -->
       <img
         v-if="coverImage"
-        :src="coverImage"
         :alt="selection?.name || 'Selection'"
+        :src="coverImage"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
         @error="handleImageError"
@@ -47,8 +64,8 @@
       <!-- Gradient overlay when image is present for better contrast -->
       <div
         v-if="coverImage"
-        class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
         :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-70'"
+        class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
       ></div>
 
       <!-- Subtle color overlay for brand consistency -->
@@ -101,9 +118,9 @@
       >
         <Button
           v-if="showStar"
-          variant="ghost"
-          size="icon"
           class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+          size="icon"
+          variant="ghost"
           @click.stop="$emit('star-click', selection)"
         >
           <Star
@@ -118,17 +135,17 @@
         <DropdownMenu v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <Button
-              variant="ghost"
-              size="icon"
               class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+              size="icon"
+              variant="ghost"
               @click.stop
             >
               <MoreVertical class="h-4 w-4 text-gray-600 dark:text-gray-400" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            align="end"
             :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[180px]']"
+            align="end"
           >
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -160,17 +177,16 @@
       <div class="flex items-start gap-2.5 min-h-[24px]">
         <CheckSquare :style="{ color: cardColor }" class="h-4 w-4 mt-0.5 shrink-0" />
         <h3
-          :style="{ color: isHovering ? cardColor : undefined }"
-          class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
-          :class="[!isHovering && theme.textPrimary]"
+          :class="theme.textPrimary"
           :title="selection?.name || 'Untitled Selection'"
+          class="font-semibold text-base leading-tight line-clamp-2"
         >
           {{ selection?.name || 'Untitled Selection' }}
         </h3>
       </div>
-      <div class="flex items-center gap-3 text-sm mt-1" :class="theme.textSecondary">
+      <div :class="theme.textSecondary" class="flex items-center gap-3 text-sm mt-1">
         <slot name="subtitle">
-          <span class="line-clamp-1">{{ subtitle || getSubtitle(selection) }}</span>
+          <span class="line-clamp-1">{{ getMediaAndListCount(selection) }}</span>
         </slot>
       </div>
     </div>
@@ -178,8 +194,8 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { CheckSquare, Star, MoreVertical } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { CheckSquare, Lock, MoreVertical, Star } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
@@ -189,7 +205,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
+import { darkenColor, generateRandomColorFromPalette, lightenColor } from '@/utils/colors'
 import { capitalize } from '@/lib/utils'
 
 const props = defineProps({
@@ -246,6 +262,41 @@ const getSubtitle = selection => {
     const labelText = count === 1 ? 'item' : 'items'
     parts.push(`${count} ${labelText}`)
   }
+  return parts.join(' • ')
+}
+
+const getMediaAndListCount = selection => {
+  if (!selection) return ''
+  const parts = []
+
+  // Media count
+  if (selection.mediaCount !== undefined) {
+    const mediaCount = selection.mediaCount
+    const mediaLabel = mediaCount === 1 ? 'media' : 'media'
+    parts.push(`${mediaCount} ${mediaLabel}`)
+  }
+
+  // List count
+  const listCount = selection.listCount || selection.listsCount || (selection.lists?.length ?? 0)
+  if (listCount > 0) {
+    const listLabel = listCount === 1 ? 'list' : 'lists'
+    parts.push(`${listCount} ${listLabel}`)
+  }
+
+  // Set count - check multiple possible property names
+  const setCount =
+    selection.setCount ||
+    selection.setsCount ||
+    selection.mediaSetsCount ||
+    selection.mediaSetCount ||
+    (Array.isArray(selection.mediaSets) ? selection.mediaSets.length : 0) ||
+    (Array.isArray(selection.sets) ? selection.sets.length : 0) ||
+    0
+  if (setCount > 0 || selection.mediaSets !== undefined || selection.sets !== undefined) {
+    const setLabel = setCount === 1 ? 'set' : 'sets'
+    parts.push(`${setCount} ${setLabel}`)
+  }
+
   return parts.join(' • ')
 }
 </script>

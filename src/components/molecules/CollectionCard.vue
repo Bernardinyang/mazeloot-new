@@ -56,6 +56,23 @@
       :class="['relative overflow-hidden', imageContainerClass]"
       :style="{ height: imageHeight, width: imageWidth }"
     >
+      <!-- Starred Badge and Lock Icon -->
+      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+        <div
+          v-if="isStarred"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+        <div
+          v-if="collectionData?.password || collectionData?.hasPassword"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          title="Password protected"
+        >
+          <Lock class="h-4 w-4 fill-white text-white" />
+        </div>
+      </div>
       <!-- Folder Preview Grid (2x2) -->
       <div
         v-if="previewImages && previewImages.length > 0"
@@ -351,9 +368,8 @@
             class="h-4 w-4 mt-0.5 shrink-0"
           />
           <h3
-            :style="{ color: isHovering ? cardColor : undefined }"
-            class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
-            :class="[!isHovering && theme.textPrimary]"
+            :class="theme.textPrimary"
+            class="font-semibold text-base leading-tight line-clamp-2"
             :title="captionText"
           >
             {{ captionText }}

@@ -9,13 +9,47 @@ import { parseError } from '@/utils/errors'
 
 export function useSelectionsApi() {
   /**
-   * Fetch all selections (optionally filtered by project_uuid)
+   * Fetch all selections with optional search, sort, filter, and pagination parameters
+   * @param {Object} params - Query parameters
+   * @param {string} params.projectUuid - Filter by project UUID
+   * @param {string} params.search - Search query (searches in name)
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'created-desc', 'name-asc', 'status-asc')
+   * @param {string} params.status - Filter by status (e.g., 'draft', 'completed')
+   * @param {boolean} params.starred - Filter by starred status
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 50)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}>}
    */
   const fetchAllSelections = async (params = {}) => {
     try {
       const queryParams = new URLSearchParams()
+
       if (params.projectUuid) {
         queryParams.append('project_uuid', params.projectUuid)
+      }
+
+      if (params.search && params.search.trim()) {
+        queryParams.append('search', params.search.trim())
+      }
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      if (params.status) {
+        queryParams.append('status', params.status)
+      }
+
+      if (params.starred !== undefined && params.starred !== null) {
+        queryParams.append('starred', params.starred.toString())
+      }
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
       }
 
       const endpoint = `/v1/selections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
@@ -80,6 +114,18 @@ export function useSelectionsApi() {
   const deleteSelection = async id => {
     try {
       await apiClient.delete(`/v1/selections/${id}`)
+      return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Star selection
+   */
+  const toggleStarSelection = async id => {
+    try {
+      await apiClient.post(`/v1/selections/${id}/star`)
       return true
     } catch (error) {
       throw parseError(error)
@@ -261,11 +307,22 @@ export function useSelectionsApi() {
   // ==================== Media ====================
 
   /**
-   * Get media in a set
+   * Get media in a set with optional sorting
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Set ID
+   * @param {Object} params - Query parameters
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'uploaded-desc', 'name-asc', 'date-taken-desc')
    */
-  const fetchSetMedia = async (selectionId, setId) => {
+  const fetchSetMedia = async (selectionId, setId, params = {}) => {
     try {
-      const response = await apiClient.get(`/v1/selections/${selectionId}/sets/${setId}/media`)
+      const queryParams = new URLSearchParams()
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      const endpoint = `/v1/selections/${selectionId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -434,6 +491,7 @@ export function useSelectionsApi() {
     createSelection,
     updateSelection,
     deleteSelection,
+    toggleStarSelection,
     publishSelection,
     completeSelection,
     recoverDeletedMedia,

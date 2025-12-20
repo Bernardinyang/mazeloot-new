@@ -33,6 +33,23 @@
 
     <!-- Image/Icon Container -->
     <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
+      <!-- Starred Badge and Lock Icon -->
+      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+        <div
+          v-if="project.isStarred || project.starred"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+        <div
+          v-if="project.hasPassword || project.password"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          title="Password protected"
+        >
+          <Lock class="h-4 w-4 fill-white text-white" />
+        </div>
+      </div>
       <!-- Cover Image -->
       <img
         v-if="coverImage"
@@ -166,9 +183,8 @@
       <div class="flex items-start gap-2.5 min-h-[24px]">
         <Folder :style="{ color: cardColor }" class="h-4 w-4 mt-0.5 shrink-0" />
         <h3
-          :style="{ color: isHovering ? cardColor : undefined }"
-          class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
-          :class="[!isHovering && theme.textPrimary]"
+          :class="theme.textPrimary"
+          class="font-semibold text-base leading-tight line-clamp-2"
           :title="project.name"
         >
           {{ project.name }}
@@ -185,7 +201,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Folder, Star, MoreVertical } from 'lucide-vue-next'
+import { Folder, Star, MoreVertical, Lock } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,

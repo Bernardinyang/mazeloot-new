@@ -1,17 +1,16 @@
 <template>
   <SidebarModal
     :model-value="open"
-    title="Edit Selection"
     content-class="sm:max-w-md"
+    title="Edit Selection"
     @update:model-value="$emit('update:open', $event)"
   >
-    <form id="edit-selection-form" @submit.prevent="handleSubmit" class="space-y-5">
+    <form id="edit-selection-form" class="space-y-5" @submit.prevent="handleSubmit">
       <!-- Selection Name -->
       <div class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Selection Name </label>
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Selection Name </label>
         <Input
           v-model="formData.name"
-          placeholder="e.g. Wedding Selections"
           :class="[
             theme.bgInput,
             theme.borderInput,
@@ -19,6 +18,7 @@
             errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
           ]"
           autofocus
+          placeholder="e.g. Wedding Selections"
         />
         <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
@@ -30,23 +30,23 @@
     <template #footer>
       <div class="flex items-center justify-end gap-3">
         <Button
-          type="button"
-          variant="ghost"
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
             'hover:text-teal-600 dark:hover:text-teal-400',
           ]"
-          @click="handleCancel"
           :disabled="isSubmitting"
+          type="button"
+          variant="ghost"
+          @click="handleCancel"
         >
           Cancel
         </Button>
         <Button
-          type="button"
-          @click="handleSubmit"
           :disabled="!formData.name.trim() || isSubmitting"
           class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          type="button"
+          @click="handleSubmit"
         >
           <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
           <span v-if="isSubmitting">Updating...</span>
@@ -58,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { reactive, ref, watch } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import { Button } from '@/components/shadcn/button'
@@ -100,12 +100,10 @@ watch(
   () => props.open,
   newValue => {
     if (newValue && props.selection) {
-      // Populate form with selection data
       formData.name = props.selection.name || ''
       formData.color = props.selection.color || generateRandomColorFromPalette()
       errors.value = {}
     } else if (!newValue) {
-      // Reset form when dialog closes
       formData.name = ''
       formData.color = generateRandomColorFromPalette()
       errors.value = {}
@@ -113,7 +111,6 @@ watch(
   }
 )
 
-// Also watch selection prop in case it changes while dialog is open
 watch(
   () => props.selection,
   newSelection => {
@@ -141,13 +138,11 @@ const handleSubmit = async () => {
     return
   }
 
-  // Check if anything actually changed
   if (
     props.selection &&
     formData.name.trim() === props.selection.name &&
     formData.color === props.selection.color
   ) {
-    // No changes, just close the dialog
     emit('update:open', false)
     return
   }
@@ -166,7 +161,6 @@ const handleSubmit = async () => {
       description: 'The selection has been successfully updated.',
     })
 
-    // Close the modal
     emit('update:open', false)
 
     // Emit success event with updated data for parent to handle side effects

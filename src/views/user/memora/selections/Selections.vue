@@ -10,12 +10,15 @@
     <div class="space-y-6">
       <!-- Top Header Bar -->
       <PageHeader
+        :is-searching="isSearching"
         :search-query="searchQuery"
         :sort-by="sortBy"
         :sort-options="sortOptions"
         :view-mode="viewMode"
         sort-label="Sort selections by"
         title="Selections"
+        @clear="handleClearSearch"
+        @search="handleSearch"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
@@ -37,7 +40,7 @@
 
         <!-- Empty State -->
         <EmptyState
-          v-else-if="sortedSelections.length === 0"
+          v-else-if="selections.length === 0"
           :icon="CheckSquare"
           action-icon="Plus"
           action-label="Create New Selection"
@@ -54,7 +57,7 @@
           tag="div"
         >
           <SelectionCard
-            v-for="(selection, index) in sortedSelections"
+            v-for="(selection, index) in selections"
             :key="selection.id"
             :index="index"
             :selection="selection"
@@ -68,16 +71,15 @@
       </div>
 
       <!-- Selections List View -->
-      <CollectionsTable
+      <SelectionsTable
         v-else
         :empty-icon="CheckSquare"
         :get-icon="() => CheckSquare"
         :get-status="item => item.status"
         :get-subtitle="getSubtitle"
-        :items="sortedSelections"
+        :items="selections"
         :loading="isLoading"
         :selected-items="selectedSelections"
-        :show-move-to="false"
         :show-view-details="true"
         empty-action-label="Create New Selection"
         empty-message="No selections found"
@@ -88,6 +90,20 @@
         @item-click="handleSelectionClick"
         @empty-action="handleCreateSelection"
         @view-details="handleViewDetails"
+      />
+
+      <!-- Pagination -->
+      <Pagination
+        v-if="pagination.totalPages > 1 || pagination.total > 0"
+        :current-page="pagination.page"
+        :limit="pagination.limit"
+        :show-first-last="true"
+        :show-go-to-page="true"
+        :show-page-size="true"
+        :total="pagination.total"
+        :total-pages="pagination.totalPages"
+        @page-change="handlePageChange"
+        @page-size-change="handlePageSizeChange"
       />
     </div>
 
@@ -100,7 +116,7 @@
     <!-- Edit Selection Dialog -->
     <EditSelectionDialog
       v-model:open="showEditDialog"
-      :selection="selectionToEdit"
+      :selection="activeSelection"
       @success="handleEditSuccess"
     />
 
@@ -108,11 +124,11 @@
     <DeleteConfirmationModal
       v-model="showDeleteModal"
       :is-deleting="isDeleting"
-      :item-name="getItemName(itemToDelete)"
-      title="Delete Selection"
+      :item-name="getItemName()"
       description="This action cannot be undone."
+      title="Delete Selection"
       warning-message="This selection and all its media will be permanently removed."
-      @cancel="closeDeleteModal"
+      @cancel="showDeleteModal = false"
       @confirm="handleConfirmDelete"
     />
   </DashboardLayout>
@@ -120,44 +136,41 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { CheckSquare } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import SelectionCard from '@/components/molecules/SelectionCard.vue'
-import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import SelectionsTable from '@/components/organisms/SelectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import SelectionDetailSidebar from '@/components/organisms/SelectionDetailSidebar.vue'
 import CreateSelectionDialog from '@/components/organisms/CreateSelectionDialog.vue'
 import EditSelectionDialog from '@/components/organisms/EditSelectionDialog.vue'
-import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useSelectionStore } from '@/stores/selection'
-import { useErrorHandler } from '@/composables/useErrorHandler'
-import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
-import { toast } from '@/utils/toast'
+import Pagination from '@/components/molecules/Pagination.vue'
+import { useSelectionStore } from '@/stores/selection.js'
+import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 
-const theme = useThemeClasses()
-const router = useRouter()
 const selectionStore = useSelectionStore()
-const { handleError } = useErrorHandler()
-
-// Delete confirmation
-const {
-  showDeleteModal,
-  itemToDelete,
-  isDeleting,
-  openDeleteModal,
-  closeDeleteModal,
-  getItemName,
-} = useDeleteConfirmation()
-
-// View mode and sorting
-const viewMode = ref('grid')
+const viewMode = computed({
+  get: () => selectionStore.viewMode,
+  set: value => selectionStore.setViewMode(value),
+})
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
+const selectedSelections = ref([])
+const showDetailSidebar = ref(false)
+const selectedSelectionId = ref(null)
+const showCreateDialog = ref(false)
+const showEditDialog = ref(false)
+const showDeleteModal = ref(false)
+const selectionToEdit = ref(null)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+const activeSelection = ref(null)
+
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
   { label: 'Created (Old → New)', value: 'created-old-new' },
@@ -166,28 +179,57 @@ const sortOptions = [
   { label: 'Status', value: 'status' },
 ]
 
-const selections = computed(() => selectionStore.selections)
-const isLoading = computed(() => selectionStore.isLoading)
-const selectedSelections = ref([])
-const showDetailSidebar = ref(false)
-const selectedSelectionId = ref(null)
-const showCreateDialog = ref(false)
-const showEditDialog = ref(false)
-const selectionToEdit = ref(null)
-
-const handleSelectSelection = (id, checked) => {
-  if (checked) {
-    if (!selectedSelections.value.includes(id)) {
-      selectedSelections.value.push(id)
-    }
-  } else {
-    selectedSelections.value = selectedSelections.value.filter(selId => selId !== id)
+/**
+ * Map frontend sort values to backend sort values
+ */
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+    status: 'status-asc',
   }
+  return mapping[frontendSort] || 'created-desc'
 }
+
+/**
+ * Fetch function for pagination
+ */
+const fetchSelections = async params => {
+  const fetchParams = { ...params }
+
+  // Add search parameter
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  // Add sort parameter
+  if (sortBy.value) {
+    fetchParams.sortBy = mapSortToBackend(sortBy.value)
+  }
+
+  return await selectionStore.fetchAllSelections(fetchParams)
+}
+
+// Use async pagination composable
+const {
+  data: selections,
+  pagination,
+  isLoading,
+  fetch,
+  goToPage,
+  resetToFirstPage,
+  setPerPage,
+} = useAsyncPagination(fetchSelections, {
+  initialPage: 1,
+  initialPerPage: 5,
+  autoFetch: false, // We'll call fetch manually in onMounted
+  watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
+})
 
 const getSubtitle = selection => {
   const parts = []
-  // Only show essential info on card - rest in detail sidebar
   if (selection.mediaCount !== undefined) {
     parts.push(`${selection.mediaCount} media`)
   }
@@ -196,153 +238,102 @@ const getSubtitle = selection => {
   return parts.join(' • ')
 }
 
-// Filter and sort selections
-const filteredSelections = computed(() => {
-  let filtered = [...selections.value]
-
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(selection => {
-      if (!selection) return false
-      const name = (selection.name || '').toLowerCase()
-      return name.includes(query)
-    })
-  }
-
-  return filtered
-})
-
-const sortedSelections = computed(() => {
-  const sorted = [...filteredSelections.value]
-
-  switch (sortBy.value) {
-    case 'created-new-old':
-      return sorted.sort((a, b) => {
-        if (!a || !b) return 0
-        return new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
-      })
-    case 'created-old-new':
-      return sorted.sort((a, b) => {
-        if (!a || !b) return 0
-        return new Date(a.createdAt || 0) - new Date(b.createdAt || 0)
-      })
-    case 'name-a-z':
-      return sorted.sort((a, b) => {
-        if (!a || !b) return 0
-        return (a.name || '').localeCompare(b.name || '')
-      })
-    case 'name-z-a':
-      return sorted.sort((a, b) => {
-        if (!a || !b) return 0
-        return (b.name || '').localeCompare(a.name || '')
-      })
-    case 'status':
-      return sorted.sort((a, b) => {
-        if (!a || !b) return 0
-        return (a.status || '').localeCompare(b.status || '')
-      })
-    default:
-      return sorted
-  }
-})
-
 const handleCreateSelection = () => {
   showCreateDialog.value = true
 }
 
-const handleCreateSuccess = async newSelection => {
-  // Modal has already performed the create and shown success message
-  // Navigate to the selection detail view
+const handleCreateSuccess = async () => {
   showCreateDialog.value = false
-  await router.push({
-    name: 'selectionDetail',
-    params: { id: newSelection.id || newSelection.uuid },
-  })
+  await resetToFirstPage()
 }
 
-const handleSelectionClick = selection => {
-  if (selection.projectId) {
-    router.push({
-      name: 'projectSelections',
-      params: { id: selection.projectId },
-      query: { selectionId: selection.id },
-    })
-  } else {
-    router.push({
-      name: 'selectionDetail',
-      params: { id: selection.id },
-    })
-  }
+const handleSelectionClick = () => {
+  // UI only - no navigation
 }
 
 const toggleStar = async selection => {
-  try {
-    await selectionStore.toggleStar(selection.id)
-  } catch (error) {
-    await handleError(error, {
-      fallbackMessage: 'Failed to update star status.',
-    })
+  if (selection && selection.id) {
+    await selectionStore.toggleStarSelection(selection.id)
+    await fetch()
   }
 }
 
 const handleEditSelection = selection => {
-  selectionToEdit.value = selection
-  showEditDialog.value = true
+  if (selection && selection.id) {
+    activeSelection.value = selection
+    showEditDialog.value = true
+  }
 }
 
 const handleEditSuccess = async () => {
-  // Modal has already performed the update and shown success message
-  // Just refresh the list and reset state
-  selectionToEdit.value = null
-  await loadSelections()
+  activeSelection.value = null
+  showEditDialog.value = false
+  await fetch()
 }
 
 const handleDeleteSelection = selection => {
-  openDeleteModal(selection)
+  if (selection && selection.id) {
+    activeSelection.value = selection
+    showDeleteModal.value = true
+  }
 }
 
 const handleConfirmDelete = async () => {
-  if (!itemToDelete.value) return
-
   isDeleting.value = true
   try {
-    // Perform delete action in the handler
-    const deleted = await selectionStore.deleteSelection(itemToDelete.value.id)
-
+    const deleted = await selectionStore.deleteSelection(activeSelection.value.id)
     if (deleted) {
-      toast.success('Selection deleted', {
-        description: 'The selection has been permanently removed.',
-      })
-      closeDeleteModal()
-      // Refresh list after successful delete
-      await loadSelections()
+      activeSelection.value = null
+      showDeleteModal.value = false
+      await fetch()
     }
   } catch (error) {
-    await handleError(error, {
-      fallbackMessage: 'Failed to delete selection.',
-    })
+    console.error('Failed to delete selection:', error)
   } finally {
     isDeleting.value = false
   }
 }
 
 const handleViewDetails = selection => {
-  selectedSelectionId.value = selection.id
+  selectedSelectionId.value = selection?.id || selection?.uuid || null
   showDetailSidebar.value = true
 }
 
-const loadSelections = async () => {
-  try {
-    await selectionStore.fetchAllSelections()
-  } catch (error) {
-    await handleError(error, {
-      fallbackMessage: 'Failed to load selections.',
-    })
-  }
+const handleSelectSelection = () => {
+  // UI only - no functionality
 }
 
+const getItemName = () => {
+  return activeSelection.value?.name || 'Selection'
+}
+
+const handlePageChange = page => {
+  goToPage(page)
+}
+
+const handlePageSizeChange = async newSize => {
+  await setPerPage(newSize)
+}
+
+// Note: watchForReset in useAsyncPagination handles resetting to page 1 when sortBy or searchQuery changes
+
+const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
+  }
+  isSearching.value = true
+  await resetToFirstPage()
+  isSearching.value = false
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  await resetToFirstPage()
+}
+
+// Initial load
 onMounted(async () => {
-  await loadSelections()
+  await fetch()
 })
 </script>

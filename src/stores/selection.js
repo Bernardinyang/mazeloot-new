@@ -4,8 +4,11 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useSelectionsApi } from '@/api/selections'
+import { storage } from '@/utils/storage'
+
+const VIEW_MODE_STORAGE_KEY = 'mazeloot_selection_view_mode'
 
 export const useSelectionStore = defineStore('selection', () => {
   const selections = ref([])
@@ -13,8 +16,26 @@ export const useSelectionStore = defineStore('selection', () => {
   const selectedMedia = ref([])
   const isLoading = ref(false)
   const error = ref(null)
+  const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
 
   const selectionsApi = useSelectionsApi()
+
+  // Persist view mode to localStorage
+  watch(viewMode, () => {
+    storage.set(VIEW_MODE_STORAGE_KEY, viewMode.value)
+  })
+
+  /**
+   * Set view mode (grid or list)
+   */
+  const setViewMode = mode => {
+    if (mode === 'grid' || mode === 'list') {
+      viewMode.value = mode
+    } else {
+      console.warn(`Invalid view mode: ${mode}. Using 'grid'.`)
+      viewMode.value = 'grid'
+    }
+  }
 
   /**
    * Fetch selection by ID
@@ -55,10 +76,7 @@ export const useSelectionStore = defineStore('selection', () => {
     error.value = null
 
     try {
-      const allSelections = await selectionsApi.fetchAllSelections(params)
-      // Ensure we have an array and filter out any null/undefined values
-      selections.value = Array.isArray(allSelections) ? allSelections.filter(s => s != null) : []
-      return selections.value
+      return await selectionsApi.fetchAllSelections(params)
     } catch (err) {
       error.value = err.message || 'Failed to fetch selections'
       throw err
@@ -258,17 +276,38 @@ export const useSelectionStore = defineStore('selection', () => {
     }
   }
 
+  /**
+   * Toggle Star selection
+   */
+  const toggleStarSelection = async id => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await selectionsApi.toggleStarSelection(id)
+      return true
+    } catch (err) {
+      error.value = err.message || 'Failed to add selection to favourite'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     selections,
     currentSelection,
     selectedMedia,
     isLoading,
     error,
+    viewMode,
+    setViewMode,
     fetchSelection,
     fetchAllSelections,
     createSelection,
     updateSelection,
     deleteSelection,
+    toggleStarSelection,
     publishSelection,
     completeSelection,
     recoverMedia,

@@ -1,40 +1,23 @@
 <template>
   <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
-    <SelectionTopNav
-      :selection="selection"
-      :selection-status="effectiveSelectionStatus"
-      :editing-name="editingName"
-      :is-editing-name="isEditingName"
-      :is-loading="isLoading"
-      :is-saving-name="isSavingName"
-      @go-back="$emit('goBack')"
-      @start-editing-name="startEditingName"
-      @update:editing-name="editingName = $event"
-      @save-name="saveName"
-      @cancel-editing-name="cancelEditingName"
-      @handle-name-blur="handleNameBlur"
-      @update:selection-status="selectionStatus = $event"
-      @handle-status-change="handleStatusChange"
-      @handle-complete="handleComplete"
-      @handle-share="showShareModal = true"
-    />
+    <SelectionTopNav :go-back="() => $emit('goBack')" />
 
     <!-- Main Content Area (Sidebar + Content) -->
     <div class="flex flex-1 overflow-hidden">
       <!-- Left Sidebar -->
       <SelectionSidebar
         :active-tab="activeTab"
-        :selection="selection"
         :is-loading="isLoading"
         :is-sidebar-collapsed="isSidebarCollapsed"
+        :selection="selection"
         @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
         @handle-cover-image-upload="handleCoverImageUpload"
       >
         <SelectionSidebarPanels
           :active-tab="activeTab"
-          :selection-id="selection?.id || ''"
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
+          :selection-id="selection?.id || ''"
         />
       </SelectionSidebar>
 
@@ -47,7 +30,7 @@
 
   <!-- Share Modal -->
   <SelectionShareModal
-    v-model="showShareModal"
+    v-model="headerStore.showShareModal"
     :selection-id="selection?.id || ''"
     :selection-name="selection?.name || 'Selection'"
   />
@@ -67,8 +50,8 @@
   <!-- Create/Edit Set Modal -->
   <CreateEditMediaSetModal
     v-model="showCreateSetModal"
-    v-model:name="newSetName"
     v-model:description="newSetDescription"
+    v-model:name="newSetName"
     :is-creating="isCreatingSet"
     :is-editing="!!editingSetIdInModal"
     @cancel="mediaSetsSidebar.handleCancelCreateSet"
@@ -87,7 +70,7 @@ import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationMo
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
 import { useSelectionStore } from '@/stores/selection'
-import { useSelectionHeaderActions } from '@/composables/useSelectionHeaderActions'
+import { useSelectionHeaderStore } from '@/stores/selectionHeader'
 import { useRoute, useRouter } from 'vue-router'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useSelectionCoverActions } from '@/composables/useSelectionCoverActions'
@@ -103,6 +86,7 @@ defineEmits(['goBack'])
 const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
+const headerStore = useSelectionHeaderStore()
 
 // Local, mutable selection ref:
 const selection = ref(props.selection)
@@ -110,11 +94,11 @@ watch(
   () => props.selection,
   s => {
     selection.value = s
+    headerStore.setSelection(s)
   },
   { immediate: true }
 )
 
-// Sidebar collapse state (persisted, owned by the layout for consistency across all selection pages)
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 const tabFromRouteName = routeName => {
@@ -130,20 +114,7 @@ const tabFromRouteName = routeName => {
 
 const activeTab = computed(() => tabFromRouteName(route.name))
 
-// Header state is now owned by the layout (reduces prop drilling)
-const isEditingName = ref(false)
-const editingName = ref('')
-const isSavingName = ref(false)
-const isBlurringName = ref(false)
-const nameInputRef = ref(null)
-
-const selectionStatus = ref('draft') // 'draft' | 'completed'
-const isSavingStatus = ref(false)
-
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
-
-// Share modal state
-const showShareModal = ref(false)
 
 // Use storeToRefs for reactive properties
 const {
@@ -156,19 +127,6 @@ const {
   isCreatingSet,
   editingSetIdInModal,
 } = storeToRefs(mediaSetsSidebar)
-
-const effectiveSelectionStatus = computed(() => {
-  return selectionStatus.value
-})
-
-watch(
-  () => selection.value,
-  s => {
-    if (!s) return
-    selectionStatus.value = s.status === 'completed' ? 'completed' : 'draft'
-  },
-  { immediate: true }
-)
 
 watch(
   () => [selection.value?.id, selection.value?.mediaSets],
@@ -195,28 +153,6 @@ watch(
   },
   { immediate: true }
 )
-
-const {
-  handleComplete,
-  handleStatusChange,
-  startEditingName,
-  cancelEditingName,
-  handleNameBlur,
-  saveName,
-} = useSelectionHeaderActions({
-  selection,
-  selectionStatus,
-  isSavingStatus,
-  isEditingName,
-  editingName,
-  isSavingName,
-  isBlurringName,
-  nameInputRef,
-  selectionStore,
-  route,
-  router,
-  description: 'An unknown error occurred',
-})
 
 const { handleCoverImageUpload } = useSelectionCoverActions({
   selection,

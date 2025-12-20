@@ -10,10 +10,10 @@
         @change="handleFileSelect"
       />
 
-      {{ mediaSets }}
-
       <!-- Main Content Area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
+        {{ selectedMediaIds }}
+
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textTertiary" class="h-8 w-8 animate-spin mx-auto" />
@@ -354,18 +354,12 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import { useRoute, useRouter } from 'vue-router'
-import { FolderPlus, Loader2, Plus } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { Loader2 } from 'lucide-vue-next'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
-import { useMediaApi } from '@/api/media'
-import { useSelectionsApi } from '@/api/selections'
-import { toast } from '@/utils/toast'
 import MediaItemsHeaderBar from '@/components/organisms/MediaItemsHeaderBar.vue'
 import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
 import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
@@ -382,49 +376,39 @@ import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MediaViewerSingle from '@/components/organisms/MediaViewerSingle.vue'
 import MediaViewerSlideshow from '@/components/organisms/MediaViewerSlideshow.vue'
-import { useSelectionStore } from '@/stores/selection'
-import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
-import { useWatermarkStore } from '@/stores/watermark'
-import { useSelectionCoverActions } from '@/composables/useSelectionCoverActions'
-import { createThumbnailFromDataURL } from '@/utils/media/createThumbnailFromDataURL'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
-import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
-import { useMediaListUiPrefs } from '@/composables/useMediaListUiPrefs'
-import { useMediaViewerFlow } from '@/composables/useMediaViewerFlow'
-import { useMediaSelectionFlow } from '@/composables/useMediaSelectionFlow'
-import { useMediaShareDownloadActions } from '@/composables/useMediaShareDownloadActions'
-import { useMediaRenameDeleteActions } from '@/composables/useMediaRenameDeleteActions'
-import { useReplacePhotoFlow } from '@/composables/useReplacePhotoFlow'
-import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
-import { useBulkDeleteFlow } from '@/composables/useBulkDeleteFlow'
-import { useBulkTagFlow } from '@/composables/useBulkTagFlow'
-import { useBulkEditFilenamesFlow } from '@/composables/useBulkEditFilenamesFlow'
-import { useBulkWatermarkFlow } from '@/composables/useBulkWatermarkFlow'
-import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 
-const route = useRoute()
-const router = useRouter()
 const theme = useThemeClasses()
-const selectionStore = useSelectionStore()
-const mediaApi = useMediaApi()
-const selectionsApi = useSelectionsApi()
-const watermarkStore = useWatermarkStore()
-const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
-const {
-  selectedSetId,
-  mediaSets,
-  sortedMediaSets,
-  showCreateSetModal,
-  newSetName,
-  newSetDescription,
-  isCreatingSet,
-  editingSetIdInModal,
-} = storeToRefs(mediaSetsSidebar)
+// UI State only - no functionality
+const selectedSetId = ref('set-1')
+const mediaSets = ref([
+  { id: 'set-1', name: 'Set 1', description: '', count: 8, order: 0 },
+  { id: 'set-2', name: 'Set 2', description: '', count: 5, order: 1 },
+])
+const sortedMediaSets = computed(() => mediaSets.value)
+const showCreateSetModal = ref(false)
+const newSetName = ref('')
+const newSetDescription = ref('')
+const isCreatingSet = ref(false)
+const editingSetIdInModal = ref(null)
 
-const { handleCreateSet, handleCancelCreateSet } = mediaSetsSidebar
+const handleCreateSet = () => {
+  showCreateSetModal.value = false
+}
 
-const selection = ref(null)
+const handleCancelCreateSet = () => {
+  showCreateSetModal.value = false
+}
+
+// Mock static data
+const selection = ref({
+  id: 'selection-1',
+  name: 'Wedding Photos',
+  status: 'draft',
+  color: '#10B981',
+  createdAt: '2024-01-15T10:00:00Z',
+})
 const selectionStatus = ref('draft')
 const isDragging = ref(false)
 const viewMode = ref('grid')
@@ -442,7 +426,6 @@ const isUpdatingSetCounts = ref(false)
 const sortOrder = ref('uploaded-new-old')
 const isSortMenuOpen = ref(false)
 const isViewMenuOpen = ref(false)
-const mediaItems = ref([])
 const isLoadingMedia = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
@@ -482,18 +465,26 @@ const handleImageError = event => {
 }
 const isLoading = ref(false)
 const fileInputRef = ref(null)
-const {
-  showDeleteModal,
-  itemToDelete,
-  isDeleting,
-  openDeleteModal,
-  closeDeleteModal,
-  getItemName,
-} = useDeleteConfirmation()
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+
+const openDeleteModal = item => {
+  itemToDelete.value = item
+  showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  itemToDelete.value = null
+}
+
+const getItemName = () => {
+  return itemToDelete.value?.name || 'Item'
+}
 
 const selectedSet = computed(() => {
-  const sets = sortedMediaSets.value || []
-  return sets.find(set => set.id === selectedSetId.value) || sets[0]
+  return mediaSets.value.find(set => set.id === selectedSetId.value) || mediaSets.value[0]
 })
 
 // Sort options
@@ -513,332 +504,289 @@ const gridSizeOptions = [
   { label: 'Large', value: 'large' },
 ]
 
+// Mock static media data
+const mediaItems = ref([
+  {
+    id: 'media-1',
+    title: 'Photo 1',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T10:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-2',
+    title: 'Photo 2',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T11:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-3',
+    title: 'Photo 3',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T12:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-4',
+    title: 'Photo 4',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T13:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-5',
+    title: 'Photo 5',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T14:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-6',
+    title: 'Photo 6',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T15:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-7',
+    title: 'Photo 7',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T16:00:00Z',
+    setId: 'set-1',
+  },
+  {
+    id: 'media-8',
+    title: 'Photo 8',
+    url: 'https://via.placeholder.com/400',
+    type: 'image',
+    createdAt: '2024-01-15T17:00:00Z',
+    setId: 'set-1',
+  },
+])
+
 // Filter media items by selected set
 const filteredMediaItems = computed(() => {
   if (!selectedSetId.value) {
-    if (mediaSets.value.length > 0) {
-      return []
-    }
-
-    return mediaItems.value
+    return []
   }
-
-  // Filter by selected set
   return mediaItems.value.filter(item => item.setId === selectedSetId.value)
 })
 
-// Sorted media items based on sort order
-const sortedMediaItems = computed(() => {
-  const items = [...filteredMediaItems.value]
+// Media items are now sorted/filtered by the backend
+const sortedMediaItems = computed(() => filteredMediaItems.value)
 
-  switch (sortOrder.value) {
-    case 'uploaded-new-old':
-      return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    case 'uploaded-old-new':
-      return items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    case 'date-taken-new-old':
-      return items.sort((a, b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0
-        const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0
-        return dateB - dateA
-      })
-    case 'date-taken-old-new':
-      return items.sort((a, b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0
-        const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0
-        return dateA - dateB
-      })
-    case 'name-a-z':
-      return items.sort((a, b) => {
-        const nameA = (a.title || a.name || '').toLowerCase()
-        const nameB = (b.title || b.name || '').toLowerCase()
-        return nameA.localeCompare(nameB)
-      })
-    case 'name-z-a':
-      return items.sort((a, b) => {
-        const nameA = (a.title || a.name || '').toLowerCase()
-        const nameB = (b.title || b.name || '').toLowerCase()
-        return nameB.localeCompare(nameA)
-      })
-    case 'random':
-      return items.sort(() => Math.random() - 0.5)
-    default:
-      return items
-  }
-})
-
-const { handleSortChange, handleGridSizeChange, handleFilenameToggle } = useMediaListUiPrefs({
-  sortOrder,
-  isSortMenuOpen,
-  gridSize,
-  isViewMenuOpen,
-  showFilename,
-})
-
-const { openMediaViewer, closeMediaViewer, navigateSlideshow } = useMediaViewerFlow({
-  selectedMedia,
-  selectedMediaForView,
-  currentViewIndex,
-  showMediaViewer,
-})
-
-const updateSetCounts = async () => {
-  if (!selection.value || isUpdatingSetCounts.value) return
-  isUpdatingSetCounts.value = true
-  try {
-    // Update set counts based on actual media
-    for (const set of mediaSets.value) {
-      const count = mediaItems.value.filter(item => item.setId === set.id).length
-      set.count = count
-    }
-    // Save updated sets
-    await mediaSetsSidebar.saveMediaSets()
-  } catch (error) {
-    console.error('Failed to update set counts:', error)
-  } finally {
-    isUpdatingSetCounts.value = false
-  }
+// UI-only handlers
+const handleSortChange = value => {
+  sortOrder.value = value
+  isSortMenuOpen.value = false
 }
 
-const loadMediaItems = async () => {
-  if (!selection.value) return
-
-  // If a set is selected, load media for that set
-  if (selectedSetId.value) {
-    isLoadingMedia.value = true
-    try {
-      const media = await selectionsApi.fetchSetMedia(selection.value.id, selectedSetId.value)
-      mediaItems.value = media || []
-      await updateSetCounts()
-    } catch (error) {
-      console.error('Failed to load media:', error)
-      mediaItems.value = []
-    } finally {
-      isLoadingMedia.value = false
-    }
-  } else {
-    // No set selected, clear media items
-    mediaItems.value = []
-  }
+const handleGridSizeChange = value => {
+  gridSize.value = value
+  isViewMenuOpen.value = false
 }
 
-// When user selects a different set, show loading state briefly
-watch(
-  () => selectedSetId.value,
-  () => {
-    // Show loading state when set changes
-    isLoadingMedia.value = true
-    // Brief delay to show loading state, then filter (which is instant)
-    setTimeout(() => {
-      isLoadingMedia.value = false
-    }, 200)
-  }
-)
+const handleFilenameToggle = event => {
+  showFilename.value = event.target.checked
+}
 
-// Media item context menu handlers
+const openMediaViewer = item => {
+  selectedMedia.value = item
+  selectedMediaForView.value = [item]
+  currentViewIndex.value = 0
+  showMediaViewer.value = true
+}
+
+const closeMediaViewer = () => {
+  showMediaViewer.value = false
+}
+
+const navigateSlideshow = direction => {
+  // UI only - no functionality
+}
+
+// UI-only handlers - no functionality
 const handleOpenMedia = item => {
-  // Show in media viewer instead of opening in new tab
   openMediaViewer(item)
 }
 
-const { handleQuickShare, handleDownloadMedia, handleCopyFilenames } = useMediaShareDownloadActions(
-  {
-    getMediaShareUrl: () => '',
-    getMediaDownloadUrl: () => '',
-    getDownloadFilename: () => '',
-    fetchDownloadBlob: () => Promise.resolve(new Blob()),
-    triggerBrowserDownload: () => {},
-    triggerFallbackDownloadLink: () => {},
-    copyTextToClipboard: async text => {
-      await navigator.clipboard.writeText(text)
-    },
-    getMediaFilename: item => item.title || item.name || 'media',
-    getCollectionShareLink: () => '',
-    route,
-    description: '',
-  }
-)
+const handleQuickShare = () => {
+  // UI only
+}
+
+const handleDownloadMedia = () => {
+  // UI only
+}
+
+const handleCopyFilenames = () => {
+  // UI only
+}
 
 const handleMoveCopy = item => {
-  // Select the single item and open the move/copy modal
   selectedMediaIds.value.clear()
   selectedMediaIds.value.add(item.id)
   moveCopyAction.value = 'move'
   showMoveCopyModal.value = true
 }
 
-const { handleToggleMediaSelection, handleToggleSelectAll } = useMediaSelectionFlow({
-  selectedMediaIds,
-  sortedMediaItems,
-  description: '',
-})
-
-// Bulk action handlers
-const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
-  selectedMediaIds,
-  showBulkDeleteModal,
-  isBulkDeleteLoading,
-  mediaApi,
-  deleteMediaFn: async mediaId => {
-    // Use selections API for deleting media in selections
-    if (selection.value?.id && selectedSetId.value) {
-      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
-    } else {
-      throw new Error('Selection ID or Set ID is missing')
-    }
-  },
-  mediaItems,
-  updateSetCounts,
-  description: '',
-})
-
-const handleBulkFavorite = async () => {
-  if (selectedMediaIds.value.size === 0) return
-  isBulkFavoriteLoading.value = true
-  try {
-    // Selection media doesn't have favorite functionality, so this is a no-op
-    toast.info('Favorite functionality not available for selections')
-    selectedMediaIds.value.clear()
-  } catch (error) {
-    console.error('Failed to favorite media:', error)
-    toast.error('Failed to favorite media')
-  } finally {
-    isBulkFavoriteLoading.value = false
+const handleToggleMediaSelection = id => {
+  if (selectedMediaIds.value.has(id)) {
+    selectedMediaIds.value.delete(id)
+  } else {
+    selectedMediaIds.value.add(id)
   }
 }
 
-// Track if we're updating cover to prevent watch from overwriting
-const isUpdatingCover = ref(false)
+const handleToggleSelectAll = () => {
+  if (selectedMediaIds.value.size === sortedMediaItems.value.length) {
+    selectedMediaIds.value.clear()
+  } else {
+    sortedMediaItems.value.forEach(item => {
+      selectedMediaIds.value.add(item.id)
+    })
+  }
+}
 
-const { handleSetAsCover, handleCoverImageUpload } = useSelectionCoverActions({
-  selection,
-  selectionStore,
-  createThumbnailFromDataURL,
-  isUpdatingCover,
-  description: 'The cover photo has been updated.',
-})
+const handleBulkDelete = () => {
+  showBulkDeleteModal.value = true
+}
+
+const handleConfirmBulkDelete = () => {
+  showBulkDeleteModal.value = false
+  selectedMediaIds.value.clear()
+}
+
+const handleBulkFavorite = () => {
+  // UI only
+}
+
+const handleSetAsCover = () => {
+  // UI only
+}
+
+const handleCoverImageUpload = () => {
+  // UI only
+}
 
 const handleBulkView = () => {
   if (selectedMediaIds.value.size === 0) return
-
   const ids = Array.from(selectedMediaIds.value)
   const items = mediaItems.value.filter(m => ids.includes(m.id))
-
-  // Filter to only images for preview
   const imageItems = items.filter(item => item.type === 'image')
-
-  if (imageItems.length === 0) {
-    toast.info('No images to view', {
-      description: '',
-    })
-    return
+  if (imageItems.length > 0) {
+    selectedMediaForView.value = imageItems
+    currentViewIndex.value = 0
+    showMediaViewer.value = true
   }
-
-  selectedMediaForView.value = imageItems
-  currentViewIndex.value = 0
-  showMediaViewer.value = true
 }
 
-const { handleBulkTag, handleCancelTag, handleAddTag, handleConfirmTag } = useBulkTagFlow({
-  selectedMediaIds,
-  mediaItems,
-  showTagModal,
-  tagInput,
-  existingTags,
-  isBulkTagLoading,
-  mediaApi,
-  loadMediaItems,
-  description: '',
-})
+const handleBulkTag = () => {
+  showTagModal.value = true
+}
 
-const { handleBulkEdit, handleCancelEdit, handleConfirmEdit } = useBulkEditFilenamesFlow({
-  selectedMediaIds,
-  showEditModal,
-  editAppendText,
-  isBulkEditLoading,
-  mediaItems,
-  mediaApi,
-  loadMediaItems,
-  description: '',
-})
+const handleCancelTag = () => {
+  showTagModal.value = false
+}
 
-const { handleBulkWatermark, handleCancelBulkWatermark, handleConfirmBulkWatermark } =
-  useBulkWatermarkFlow({
-    selectedMediaIds,
-    showBulkWatermarkModal,
-    selectedBulkWatermark,
-    isBulkWatermarkLoading,
-    watermarkStore,
-    mediaApi,
-    mediaItems,
-    applyWatermarkToImage: async () => '',
-    description: '',
-  })
+const handleAddTag = () => {
+  // UI only
+}
 
-const watermarks = computed(() => watermarkStore.watermarks)
+const handleConfirmTag = () => {
+  showTagModal.value = false
+}
 
-const {
-  handleRenameMedia,
-  handleCancelRenameMedia,
-  handleConfirmRenameMedia,
-  handleDeleteMedia,
-  handleConfirmDeleteItem,
-} = useMediaRenameDeleteActions({
-  showRenameMediaModal,
-  mediaToRename,
-  newMediaName,
-  itemToDelete,
-  openDeleteModal,
-  closeDeleteModal,
-  mediaItems,
-  selectedMediaIds,
-  mediaApi,
-  deleteMediaFn: async mediaId => {
-    // Use selections API for deleting media in selections
-    if (selection.value?.id && selectedSetId.value) {
-      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
-    } else {
-      throw new Error('Selection ID or Set ID is missing')
-    }
-  },
-  updateSetCounts,
-  handleConfirmDeleteSet: mediaSetsSidebar.confirmDeleteSet,
-  description: '',
-})
+const handleBulkEdit = () => {
+  showEditModal.value = true
+}
 
-const { handleReplacePhoto, handleCancelReplacePhoto, handleReplacePhotoFileSelect } =
-  useReplacePhotoFlow({
-    mediaToReplace,
-    showReplacePhotoModal,
-    isReplacingPhoto,
-    selectedWatermark: ref('none'),
-    watermarkStore,
-    mediaApi,
-    mediaItems,
-    createThumbnail: async () => '',
-    getFileBaseName: name => name.replace(/\.[^/.]+$/, ''),
-    fileToDataURL: async () => '',
-    applyWatermarkToImage: async () => '',
-    description: '',
-  })
+const handleCancelEdit = () => {
+  showEditModal.value = false
+}
 
-const {
-  handleWatermarkMedia,
-  handleCancelWatermarkMedia,
-  handleRemoveWatermark,
-  handleConfirmWatermarkMedia,
-} = useMediaWatermarkActions({
-  showWatermarkMediaModal,
-  mediaToWatermark,
-  selectedWatermarkForMedia,
-  selectedWatermark: ref('none'),
-  isApplyingWatermark,
-  watermarkStore,
-  mediaApi,
-  mediaItems,
-  applyWatermarkToImage: async () => '',
-  description: '',
-})
+const handleConfirmEdit = () => {
+  showEditModal.value = false
+}
+
+const handleBulkWatermark = () => {
+  showBulkWatermarkModal.value = true
+}
+
+const handleCancelBulkWatermark = () => {
+  showBulkWatermarkModal.value = false
+}
+
+const handleConfirmBulkWatermark = () => {
+  showBulkWatermarkModal.value = false
+}
+
+const watermarks = ref([])
+
+const handleRenameMedia = item => {
+  mediaToRename.value = item
+  newMediaName.value = item.title || item.name || ''
+  showRenameMediaModal.value = true
+}
+
+const handleCancelRenameMedia = () => {
+  showRenameMediaModal.value = false
+  mediaToRename.value = null
+}
+
+const handleConfirmRenameMedia = () => {
+  showRenameMediaModal.value = false
+  mediaToRename.value = null
+}
+
+const handleDeleteMedia = item => {
+  openDeleteModal(item)
+}
+
+const handleConfirmDeleteItem = () => {
+  showDeleteModal.value = false
+  itemToDelete.value = null
+}
+
+const handleReplacePhoto = item => {
+  mediaToReplace.value = item
+  showReplacePhotoModal.value = true
+}
+
+const handleCancelReplacePhoto = () => {
+  showReplacePhotoModal.value = false
+  mediaToReplace.value = null
+}
+
+const handleReplacePhotoFileSelect = () => {
+  // UI only
+}
+
+const handleWatermarkMedia = item => {
+  mediaToWatermark.value = item
+  showWatermarkMediaModal.value = true
+}
+
+const handleCancelWatermarkMedia = () => {
+  showWatermarkMediaModal.value = false
+  mediaToWatermark.value = null
+}
+
+const handleRemoveWatermark = () => {
+  // UI only
+}
+
+const handleConfirmWatermarkMedia = () => {
+  showWatermarkMediaModal.value = false
+  mediaToWatermark.value = null
+}
 
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
@@ -855,268 +803,48 @@ const getDeleteModalWarning = () => {
 }
 
 const handleAddMedia = () => {
-  triggerFileInputClick(fileInputRef.value)
+  // UI only
 }
 
 const handleBrowseFiles = () => {
-  triggerFileInputClick(fileInputRef.value)
+  // UI only
 }
 
-const {
-  uploadMediaToSet,
-  processFiles: processFilesForUpload,
-  handleConfirmDuplicateFiles,
-  handleCancelDuplicateFiles,
-  cancelUpload,
-  uploadProgress,
-  overallProgress,
-  uploadErrors,
-  isUploading,
-  showDuplicateFilesModal,
-  duplicateFiles,
-  duplicateFileActions,
-} = useSelectionWorkflow({
-  selectionId: () => selection.value?.id,
-  loadMediaItems,
-  existingMedia: () => mediaItems.value,
-})
-
-// Watch isUploading to show/hide progress modal
-watch(isUploading, uploading => {
-  if (uploading) {
-    showUploadProgress.value = true
-  }
-})
-
-const handleFileSelect = async event => {
-  const files = Array.from(event.target.files || [])
-  if (files.length === 0) return
-
-  // Ensure a set is selected before uploading
-  if (!selectedSetId.value && mediaSets.value.length > 0) {
-    // Auto-select the first set if none is selected
-    mediaSetsSidebar.handleSelectSet(mediaSets.value[0].id)
-  }
-
-  if (!selectedSetId.value) {
-    toast.error('No set selected', {
-      description: 'Please select a set from the sidebar before uploading.',
-    })
-    event.target.value = ''
-    return
-  }
-
-  // Process files (checks for duplicates)
-  const result = await processFilesForUpload(files)
-
-  if (result?.hasDuplicates) {
-    // Duplicate modal will be shown, wait for user confirmation
-    return
-  }
-
-  // No duplicates, proceed with upload
-  if (result?.filesToUpload && result.filesToUpload.length > 0) {
-    await uploadMediaToSet(result.filesToUpload, selectedSetId.value)
-  }
-
-  event.target.value = '' // Reset input
+const handleConfirmDuplicateFiles = () => {
+  showDuplicateFilesModal.value = false
 }
 
-const handleDrop = async event => {
-  event.preventDefault()
-  if (isDragging) isDragging.value = false
-
-  const files = event.dataTransfer?.files
-  if (!files || files.length === 0) return
-
-  // Ensure a set is selected before uploading
-  if (!selectedSetId.value && mediaSets.value.length > 0) {
-    // Auto-select the first set if none is selected
-    mediaSetsSidebar.handleSelectSet(mediaSets.value[0].id)
-  }
-
-  if (!selectedSetId.value) {
-    toast.error('No set selected', {
-      description: 'Please select a set from the sidebar before uploading.',
-    })
-    return
-  }
-
-  // Process files (checks for duplicates)
-  const result = await processFilesForUpload(Array.from(files))
-
-  if (result?.hasDuplicates) {
-    // Duplicate modal will be shown, wait for user confirmation
-    return
-  }
-
-  // No duplicates, proceed with upload
-  if (result?.filesToUpload && result.filesToUpload.length > 0) {
-    await uploadMediaToSet(result.filesToUpload, selectedSetId.value)
-  }
+const handleCancelDuplicateFiles = () => {
+  showDuplicateFilesModal.value = false
 }
 
-const handleRetryUpload = async (fileId, retryFn) => {
-  if (retryFn && typeof retryFn === 'function') {
-    try {
-      await retryFn()
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-    } catch (error) {
-      console.error('Retry failed:', error)
-    }
-  }
+const cancelUpload = () => {
+  showUploadProgress.value = false
 }
 
-const loadSelection = async () => {
-  const selectionId = route.params.id
-  if (!selectionId) return
+const uploadProgress = ref([])
+const overallProgress = ref(0)
+const uploadErrors = ref([])
+const isUploading = ref(false)
+const showDuplicateFilesModal = ref(false)
+const duplicateFiles = ref([])
+const duplicateFileActions = ref({})
 
-  isLoading.value = true
-  try {
-    const selectionData = await selectionStore.fetchSelection(selectionId)
-    selection.value = selectionData
-    selectionStatus.value = selectionData.status === 'completed' ? 'completed' : 'draft'
-
-    // Initialize sets sidebar
-    mediaSetsSidebar.setContext(selectionData.id, selectionData.mediaSets || [])
-
-    // Load media for this selection
-    await loadMediaItems()
-  } catch (error) {
-    console.error('Failed to load selection:', error)
-  } finally {
-    isLoading.value = false
-  }
+const handleFileSelect = () => {
+  // UI only
 }
 
-// Watch for selection updates in the store
-watch(
-  () => selectionStore.currentSelection,
-  updatedSelection => {
-    if (updatedSelection && selection.value && updatedSelection.id === selection.value.id) {
-      // Don't overwrite thumbnail/image if we're currently updating the cover
-      if (isUpdatingCover.value) {
-        // Only update other fields, preserve thumbnail/image
-        selection.value = {
-          ...selection.value,
-          ...updatedSelection,
-          thumbnail: selection.value.thumbnail, // Preserve current
-          image: selection.value.image, // Preserve current
-          mediaSets: updatedSelection.mediaSets || selection.value.mediaSets || [],
-        }
-        // Clear flag after a short delay
-        setTimeout(() => {
-          isUpdatingCover.value = false
-        }, 1000)
-      } else {
-        selection.value = {
-          ...selection.value,
-          ...updatedSelection,
-          mediaSets: updatedSelection.mediaSets || selection.value.mediaSets || [],
-        }
-      }
-    }
-  },
-  { deep: true }
-)
+const handleDrop = () => {
+  // UI only
+}
 
-watch(
-  () => selectionStore.selections,
-  selections => {
-    if (selection.value) {
-      const updatedSelection = selections.find(s => s.id === selection.value?.id)
-      if (updatedSelection && updatedSelection.id === selection.value.id) {
-        // Don't overwrite thumbnail/image if we're currently updating the cover
-        if (isUpdatingCover.value) {
-          // Only update other fields, preserve thumbnail/image
-          selection.value = {
-            ...selection.value,
-            ...updatedSelection,
-            thumbnail: selection.value.thumbnail, // Preserve current
-            image: selection.value.image, // Preserve current
-            mediaSets: updatedSelection.mediaSets || selection.value.mediaSets || [],
-          }
-        } else {
-          selection.value = {
-            ...selection.value,
-            ...updatedSelection,
-            mediaSets: updatedSelection.mediaSets || selection.value.mediaSets || [],
-          }
-        }
-      }
-    }
-  },
-  { deep: true }
-)
+const handleRetryUpload = () => {
+  // UI only
+}
 
 const goBack = () => {
-  router.push({ name: 'selections' })
+  // UI only - no navigation
 }
-
-onMounted(() => {
-  loadSelection()
-})
-
-watch(
-  () => route.params.id,
-  () => {
-    loadSelection()
-  }
-)
-
-// Watch for media sets changes (when a new set is created/updated/deleted)
-watch(
-  () => mediaSets.value,
-  async (newSets, oldSets) => {
-    if (!selection.value) return
-
-    const oldLength = oldSets?.length || 0
-    const newLength = newSets.length
-
-    // If a new set was created, reload the selection to get updated data
-    if (newLength > oldLength) {
-      // Reload selection to get updated media sets with counts
-      try {
-        const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
-        selection.value = updatedSelection
-        // Update media sets in sidebar with fresh data from API
-        await mediaSetsSidebar.loadMediaSets()
-      } catch (error) {
-        console.error('Failed to reload selection:', error)
-      }
-
-      // Auto-select the newly created set if none is selected
-      if (!selectedSetId.value) {
-        const newSet = newSets[newSets.length - 1]
-        if (newSet) {
-          mediaSetsSidebar.handleSelectSet(newSet.id)
-        }
-      } else if (selectedSetId.value) {
-        // If a set is already selected, reload its media (which will be empty for new sets)
-        loadMediaItems()
-      }
-    } else if (newLength < oldLength) {
-      // A set was deleted, reload media items if a set is still selected
-      if (selectedSetId.value) {
-        loadMediaItems()
-      }
-    }
-  },
-  { deep: true }
-)
-
-// Watch for selectedSetId changes to reload media when switching sets
-watch(selectedSetId, (newSetId, oldSetId) => {
-  if (newSetId && newSetId !== oldSetId && selection.value) {
-    // Load media for the newly selected set (will be empty if it's a new set)
-    loadMediaItems()
-  } else if (!newSetId && oldSetId) {
-    // Set was deselected, clear media items
-    mediaItems.value = []
-  }
-})
 </script>
 
 <style scoped>

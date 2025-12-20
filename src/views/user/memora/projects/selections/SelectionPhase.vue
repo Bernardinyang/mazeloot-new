@@ -242,6 +242,7 @@ import {
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useSelectionStore } from '@/stores/selection'
+import { useSelectionHeaderStore } from '@/stores/selectionHeader'
 import { useMediaApi } from '@/api/media'
 import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { getDaysUntilDeletion, getRecoverableCount } from '@/utils/autoDeleteService'
@@ -256,6 +257,7 @@ const theme = useThemeClasses()
 
 const projectStore = useProjectStore()
 const selectionStore = useSelectionStore()
+const headerStore = useSelectionHeaderStore()
 const mediaApi = useMediaApi()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
@@ -310,6 +312,8 @@ const loadData = async () => {
       // Load standalone selection directly
       const selectionData = await selectionStore.fetchSelection(selectionIdFromQuery)
       selection.value = selectionData
+      // Initialize header store
+      headerStore.setSelection(selectionData)
       mediaItems.value = selectionData.media || []
       // Initialize sets sidebar
       mediaSetsSidebar.setContext(selectionData.id, selectionData.mediaSets || [])
@@ -332,6 +336,8 @@ const loadData = async () => {
       if (projectData.selections && projectData.selections.length > 0) {
         const selectionData = await selectionStore.fetchSelection(projectData.selections[0].id)
         selection.value = selectionData
+        // Initialize header store
+        headerStore.setSelection(selectionData)
         mediaItems.value = selectionData.media || []
         // Initialize sets sidebar
         mediaSetsSidebar.setContext(selectionData.id, selectionData.mediaSets || [])

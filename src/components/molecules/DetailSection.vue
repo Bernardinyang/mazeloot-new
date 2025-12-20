@@ -1,8 +1,15 @@
 <template>
   <div :class="['space-y-4', containerClass]">
-    <div v-if="title" class="flex items-center gap-2 mb-1">
-      <component v-if="icon" :is="icon" class="h-4 w-4" :class="theme.textSecondary" />
-      <h3 :class="['text-sm font-semibold', theme.textPrimary]">{{ title }}</h3>
+    <div v-if="title" class="flex items-center gap-2.5 mb-2">
+      <component
+        v-if="icon"
+        :is="icon"
+        class="h-4 w-4 flex-shrink-0"
+        :class="['text-teal-500 dark:text-teal-400']"
+      />
+      <h3 :class="['text-sm font-semibold uppercase tracking-wide', theme.textPrimary]">
+        {{ title }}
+      </h3>
     </div>
     <div :class="['space-y-3', contentClass]">
       <slot />

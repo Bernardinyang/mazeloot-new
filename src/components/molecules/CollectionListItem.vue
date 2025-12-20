@@ -73,6 +73,8 @@
         <h3 class="font-medium text-sm truncate" :class="theme.textPrimary">
           {{ captionText }}
         </h3>
+        <Star v-if="isStarred" class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
+        <Lock v-if="password" class="h-3.5 w-3.5 shrink-0" :class="theme.textSecondary" />
         <StatusBadge v-if="status" :status="status" />
       </div>
       <p v-if="subtitle" class="text-xs mt-0.5 truncate" :class="theme.textSecondary">
@@ -252,6 +254,7 @@ import {
   Eye,
   EyeOff,
   Info,
+  Lock,
 } from 'lucide-vue-next'
 import {
   DropdownMenu,
