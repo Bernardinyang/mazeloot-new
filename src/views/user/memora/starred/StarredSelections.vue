@@ -238,14 +238,36 @@ const getSubtitle = selection => {
   return parts.join(' • ')
 }
 
-const handleSelectionClick = () => {
-  // UI only - no navigation
+const handleSelectionClick = selection => {
+  if (selection && selection.id) {
+    router.push({ name: 'selectionDetail', params: { id: selection.id } })
+  }
 }
 
 const toggleStar = async selection => {
   if (selection && selection.id) {
-    await selectionStore.toggleStarSelection(selection.id)
-    await fetch()
+    try {
+      await selectionStore.toggleStarSelection(selection.id)
+      // Update local state without reloading
+      const index = sortedSelections.value.findIndex(s => s.id === selection.id)
+      if (index !== -1) {
+        const newStarredState = !sortedSelections.value[index].isStarred
+        sortedSelections.value[index] = {
+          ...sortedSelections.value[index],
+          isStarred: newStarredState,
+        }
+        // If unstarred in starred view, remove from list
+        if (!newStarredState) {
+          sortedSelections.value.splice(index, 1)
+          // Update pagination total
+          if (pagination.value.total > 0) {
+            pagination.value.total -= 1
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle star:', error)
+    }
   }
 }
 

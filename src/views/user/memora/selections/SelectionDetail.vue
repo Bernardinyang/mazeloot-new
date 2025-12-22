@@ -354,7 +354,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Loader2 } from 'lucide-vue-next'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
@@ -377,16 +378,19 @@ import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MediaViewerSingle from '@/components/organisms/MediaViewerSingle.vue'
 import MediaViewerSlideshow from '@/components/organisms/MediaViewerSlideshow.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
+import { useSelectionStore } from '@/stores/selection.js'
+import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
+import { storeToRefs } from 'pinia'
 
 const theme = useThemeClasses()
+const route = useRoute()
+const router = useRouter()
+const selectionStore = useSelectionStore()
+const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
-// UI State only - no functionality
-const selectedSetId = ref('set-1')
-const mediaSets = ref([
-  { id: 'set-1', name: 'Set 1', description: '', count: 8, order: 0 },
-  { id: 'set-2', name: 'Set 2', description: '', count: 5, order: 1 },
-])
-const sortedMediaSets = computed(() => mediaSets.value)
+// Use store for media sets
+const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
+const mediaSets = computed(() => mediaSetsSidebar.mediaSets)
 const showCreateSetModal = ref(false)
 const newSetName = ref('')
 const newSetDescription = ref('')
@@ -401,15 +405,9 @@ const handleCancelCreateSet = () => {
   showCreateSetModal.value = false
 }
 
-// Mock static data
-const selection = ref({
-  id: 'selection-1',
-  name: 'Wedding Photos',
-  status: 'draft',
-  color: '#10B981',
-  createdAt: '2024-01-15T10:00:00Z',
-})
-const selectionStatus = ref('draft')
+// Selection data
+const selection = ref(null)
+const selectionStatus = computed(() => selection.value?.status || 'draft')
 const isDragging = ref(false)
 const viewMode = ref('grid')
 const gridSize = ref('small')
@@ -463,7 +461,46 @@ const handleImageError = event => {
     img.src = placeholderImage
   }
 }
+
+// Load selection data
 const isLoading = ref(false)
+const loadSelection = async () => {
+  const selectionId = route.params.id
+  if (!selectionId) {
+    console.error('No selection ID in route params')
+    return
+  }
+
+  isLoading.value = true
+  try {
+    const selectionData = await selectionStore.fetchSelection(selectionId)
+    selection.value = selectionData
+
+    // Media sets are automatically initialized by SelectionLayout via the store
+    // No need to manually set them here
+
+    // Initialize media items from all sets
+    if (selectionData.mediaSets) {
+      const allMedia = []
+      for (const set of selectionData.mediaSets) {
+        if (set.media) {
+          allMedia.push(...set.media.map(m => ({ ...m, setId: set.id })))
+        }
+      }
+      mediaItems.value = allMedia
+    }
+  } catch (error) {
+    console.error('Failed to load selection:', error)
+    // Optionally redirect back or show error message
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Load selection on mount
+onMounted(() => {
+  loadSelection()
+})
 const fileInputRef = ref(null)
 const showDeleteModal = ref(false)
 const itemToDelete = ref(null)
@@ -843,7 +880,7 @@ const handleRetryUpload = () => {
 }
 
 const goBack = () => {
-  // UI only - no navigation
+  router.push({ name: 'selections' })
 }
 </script>
 

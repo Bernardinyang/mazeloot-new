@@ -235,8 +235,13 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         })
         // Reload all media sets to ensure sync
         await loadMediaSets()
-        // Auto-select the newly created set
-        selectedSetId.value = newSet.id
+        // Auto-select the newly created set (set after loadMediaSets to ensure it's in the list)
+        if (newSet && newSet.id) {
+          selectedSetId.value = newSet.id
+        } else if (mediaSets.value.length > 0) {
+          // Fallback: select the last set (should be the newly created one)
+          selectedSetId.value = mediaSets.value[mediaSets.value.length - 1].id
+        }
       }
 
       // Show success message

@@ -151,8 +151,10 @@ import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationMo
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
+import { useRouter } from 'vue-router'
 
 const selectionStore = useSelectionStore()
+const router = useRouter()
 const viewMode = computed({
   get: () => selectionStore.viewMode,
   set: value => selectionStore.setViewMode(value),
@@ -166,8 +168,6 @@ const selectedSelectionId = ref(null)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const showDeleteModal = ref(false)
-const selectionToEdit = ref(null)
-const itemToDelete = ref(null)
 const isDeleting = ref(false)
 const activeSelection = ref(null)
 
@@ -223,7 +223,7 @@ const {
   setPerPage,
 } = useAsyncPagination(fetchSelections, {
   initialPage: 1,
-  initialPerPage: 5,
+  initialPerPage: 10,
   autoFetch: false, // We'll call fetch manually in onMounted
   watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
 })
@@ -247,14 +247,27 @@ const handleCreateSuccess = async () => {
   await resetToFirstPage()
 }
 
-const handleSelectionClick = () => {
-  // UI only - no navigation
+const handleSelectionClick = selection => {
+  if (selection && selection.id) {
+    router.push({ name: 'selectionDetail', params: { id: selection.id } })
+  }
 }
 
 const toggleStar = async selection => {
   if (selection && selection.id) {
-    await selectionStore.toggleStarSelection(selection.id)
-    await fetch()
+    try {
+      await selectionStore.toggleStarSelection(selection.id)
+      // Update local state without reloading
+      const index = selections.value.findIndex(s => s.id === selection.id)
+      if (index !== -1) {
+        selections.value[index] = {
+          ...selections.value[index],
+          isStarred: !selections.value[index].isStarred,
+        }
+      }
+    } catch (error) {
+      console.error('Failed to toggle star:', error)
+    }
   }
 }
 
