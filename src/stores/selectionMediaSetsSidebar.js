@@ -196,9 +196,24 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
   const handleCreateSet = async () => {
     if (!ensureSelectionId()) return
-    if (!newSetName.value.trim()) {
+    const trimmedName = newSetName.value.trim()
+    if (!trimmedName) {
       toast.error('Name required', {
         description: 'Please enter a name for the photo set.',
+      })
+      return
+    }
+
+    // Check for duplicate name (case-insensitive)
+    const duplicateSet = mediaSets.value.find(
+      s =>
+        s.name?.toLowerCase().trim() === trimmedName.toLowerCase() &&
+        s.id !== editingSetIdInModal.value
+    )
+
+    if (duplicateSet) {
+      toast.error('Duplicate name', {
+        description: 'A photo set with this name already exists. Please choose a different name.',
       })
       return
     }
@@ -214,7 +229,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
             selectionId.value,
             editingSetIdInModal.value,
             {
-              name: newSetName.value.trim(),
+              name: trimmedName,
               description: newSetDescription.value || '',
               order: set.order ?? maxOrder,
             }
@@ -229,7 +244,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         // Create new set
         const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
         const newSet = await selectionsApi.createMediaSet(selectionId.value, {
-          name: newSetName.value.trim(),
+          name: trimmedName,
           description: newSetDescription.value || '',
           order: maxOrder + 1,
         })

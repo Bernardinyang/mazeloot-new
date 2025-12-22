@@ -138,14 +138,29 @@ export const checkDuplicateFilename = (filename, existingMedia = []) => {
  * @param {string[]} options.allowedTypes - Allowed MIME types
  * @param {object} options.dimensions - Image dimension constraints
  * @param {Array} options.existingMedia - Existing media items for duplicate check
+ * @param {boolean} options.skipDuplicateCheck - Skip duplicate checking (duplicates already handled)
  * @returns {Promise<{ valid: boolean, errors: string[], width?: number, height?: number }>}
  */
 export const validateUploadFile = async (file, options = {}) => {
+  // Get max upload size from environment variable or use defaults
+  // Videos default to 50MB, images default to 10MB
+  const isVideo = file.type.startsWith('video/')
+  const envMaxSizeMB = import.meta.env.VITE_MAX_UPLOAD_SIZE_MB
+    ? parseInt(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB, 10)
+    : null
+  const defaultMaxSize =
+    envMaxSizeMB && !isNaN(envMaxSizeMB)
+      ? envMaxSizeMB * 1024 * 1024
+      : isVideo
+        ? 50 * 1024 * 1024
+        : 10 * 1024 * 1024
+
   const {
-    maxSize = 10 * 1024 * 1024, // 10MB default
+    maxSize = defaultMaxSize,
     allowedTypes = VALID_UPLOAD_MIME_TYPES,
     dimensions = {},
     existingMedia = [],
+    skipDuplicateCheck = false,
   } = options
 
   const errors = []
@@ -175,10 +190,13 @@ export const validateUploadFile = async (file, options = {}) => {
     }
   }
 
-  // Duplicate check
-  const duplicateCheck = checkDuplicateFilename(file.name, existingMedia)
-  if (duplicateCheck.isDuplicate) {
-    errors.push(`File "${file.name}" already exists in this set`)
+  // Duplicate check (skip if duplicates were already handled by processFiles)
+  let duplicateCheck = { isDuplicate: false, existingMedia: undefined }
+  if (!skipDuplicateCheck) {
+    duplicateCheck = checkDuplicateFilename(file.name, existingMedia)
+    if (duplicateCheck.isDuplicate) {
+      errors.push(`File "${file.name}" already exists in this set`)
+    }
   }
 
   return {

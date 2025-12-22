@@ -9,6 +9,9 @@ import { useSelectionsApi } from '@/api/selections'
 import { storage } from '@/utils/storage'
 
 const VIEW_MODE_STORAGE_KEY = 'mazeloot_selection_view_mode'
+const GRID_SIZE_STORAGE_KEY = 'mazeloot_selection_grid_size'
+const SHOW_FILENAME_STORAGE_KEY = 'mazeloot_selection_show_filename'
+const SORT_ORDER_STORAGE_KEY = 'mazeloot_selection_sort_order'
 
 export const useSelectionStore = defineStore('selection', () => {
   const selections = ref([])
@@ -17,12 +20,27 @@ export const useSelectionStore = defineStore('selection', () => {
   const isLoading = ref(false)
   const error = ref(null)
   const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
+  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
+  const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
+  const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
 
   const selectionsApi = useSelectionsApi()
 
-  // Persist view mode to localStorage
+  // Persist preferences to localStorage
   watch(viewMode, () => {
     storage.set(VIEW_MODE_STORAGE_KEY, viewMode.value)
+  })
+
+  watch(gridSize, () => {
+    storage.set(GRID_SIZE_STORAGE_KEY, gridSize.value)
+  })
+
+  watch(showFilename, () => {
+    storage.set(SHOW_FILENAME_STORAGE_KEY, showFilename.value)
+  })
+
+  watch(sortOrder, () => {
+    storage.set(SORT_ORDER_STORAGE_KEY, sortOrder.value)
   })
 
   /**
@@ -35,6 +53,32 @@ export const useSelectionStore = defineStore('selection', () => {
       console.warn(`Invalid view mode: ${mode}. Using 'grid'.`)
       viewMode.value = 'grid'
     }
+  }
+
+  /**
+   * Set grid size
+   */
+  const setGridSize = size => {
+    if (['small', 'medium', 'large'].includes(size)) {
+      gridSize.value = size
+    } else {
+      console.warn(`Invalid grid size: ${size}. Using 'small'.`)
+      gridSize.value = 'small'
+    }
+  }
+
+  /**
+   * Set show filename
+   */
+  const setShowFilename = value => {
+    showFilename.value = Boolean(value)
+  }
+
+  /**
+   * Set sort order
+   */
+  const setSortOrder = order => {
+    sortOrder.value = order
   }
 
   /**
@@ -301,7 +345,13 @@ export const useSelectionStore = defineStore('selection', () => {
     isLoading,
     error,
     viewMode,
+    gridSize,
+    showFilename,
+    sortOrder,
     setViewMode,
+    setGridSize,
+    setShowFilename,
+    setSortOrder,
     fetchSelection,
     fetchAllSelections,
     createSelection,

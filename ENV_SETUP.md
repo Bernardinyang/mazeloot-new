@@ -24,6 +24,10 @@ VITE_API_BASE_URL_LIVE=https://api.mazeloot.com/api
 
 # Whether to use real API (set to false to use mock data)
 VITE_USE_REAL_API=true
+
+# Maximum file upload size in megabytes (applies to both images and videos)
+# If not set, defaults to 50MB for videos and 10MB for images
+VITE_MAX_UPLOAD_SIZE_MB=50
 ```
 
 ### How It Works
@@ -63,6 +67,10 @@ VITE_API_BASE_URL_LIVE=https://api.mazeloot.com/api
 
 # Use real API (not mock data)
 VITE_USE_REAL_API=true
+
+# Maximum file upload size in megabytes
+# If not set, defaults to 50MB for videos and 10MB for images
+VITE_MAX_UPLOAD_SIZE_MB=50
 ```
 
 ### Hostname Detection Examples
@@ -89,3 +97,34 @@ The API client will automatically use the correct backend URL based on the hostn
    - The API base URL being used
 
 2. Checking the Network tab in DevTools to see which backend URL is being called
+
+## File Upload Configuration
+
+### Maximum Upload Size
+
+You can configure the maximum file upload size using the `VITE_MAX_UPLOAD_SIZE_MB` environment variable:
+
+```bash
+# Set maximum upload size to 50MB (applies to both images and videos)
+VITE_MAX_UPLOAD_SIZE_MB=50
+```
+
+**Default Behavior:**
+
+- If `VITE_MAX_UPLOAD_SIZE_MB` is not set:
+  - Videos default to 50MB
+  - Images default to 10MB
+- If `VITE_MAX_UPLOAD_SIZE_MB` is set:
+  - Both videos and images use the specified size limit
+
+**Example:**
+
+```bash
+# Allow uploads up to 100MB for both images and videos
+VITE_MAX_UPLOAD_SIZE_MB=100
+
+# Allow uploads up to 25MB for both images and videos
+VITE_MAX_UPLOAD_SIZE_MB=25
+```
+
+**Note:** Make sure the backend is configured with a matching or higher limit. The backend configuration is in `mazeloot-backend/config/upload.php`.

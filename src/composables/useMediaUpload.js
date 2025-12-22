@@ -43,6 +43,7 @@ import { apiClient } from '@/api/client'
 import { validateUploadFile } from '@/utils/media/validateUploadFile'
 import { splitDuplicateUploadFiles } from '@/utils/media/splitDuplicateUploadFiles'
 import { filterValidUploadFiles } from '@/utils/media/filterValidUploadFiles'
+import { getErrorMessage } from '@/utils/errors'
 
 /**
  * @param {object} options - Configuration options
@@ -77,6 +78,9 @@ export function useMediaUpload(options = {}) {
   const duplicateFiles = ref([])
   const duplicateFileActions = ref(new Map())
 
+  // Track active upload batches to prevent duplicates
+  const activeUploadBatches = ref(new Set()) // Set of batch IDs
+
   // Helper to get context ID value (handles refs, computed, functions, and plain values)
   const getContextId = () => {
     if (!contextId) return null
@@ -110,14 +114,30 @@ export function useMediaUpload(options = {}) {
   }
 
   // Retry with exponential backoff
+  // Don't retry on client errors (4xx) - these are validation errors, not transient failures
   const retryWithBackoff = async (fn, retries = maxRetries, baseDelay = 1000) => {
     for (let attempt = 0; attempt < retries; attempt++) {
       try {
         return await fn()
       } catch (error) {
+        // Don't retry on client errors (4xx) - these are validation/request errors
+        const statusCode = error?.response?.status || error?.status
+        if (statusCode >= 400 && statusCode < 500) {
+          console.log(
+            '[retryWithBackoff] Client error (4xx), not retrying:',
+            statusCode,
+            error.message
+          )
+          throw error
+        }
+
         if (attempt === retries - 1) {
           throw error
         }
+        console.log(
+          `[retryWithBackoff] Retry attempt ${attempt + 1}/${retries} after error:`,
+          error.message
+        )
         const delay = baseDelay * Math.pow(2, attempt)
         await new Promise(resolve => setTimeout(resolve, delay))
       }
@@ -141,10 +161,21 @@ export function useMediaUpload(options = {}) {
     const validFiles = filterValidUploadFiles(Array.from(files))
 
     if (validFiles.length === 0) {
+      const fileTypes = Array.from(files)
+        .map(f => f.type || 'unknown')
+        .join(', ')
       toast.error('Invalid files', {
-        description: 'Please select valid image or video files.',
+        description: `The selected files are not supported. Please select valid image or video files. (Received types: ${fileTypes})`,
       })
       return { hasDuplicates: false, filesToUpload: [] }
+    }
+
+    // If some files were filtered out, notify user
+    if (validFiles.length < files.length) {
+      const filteredCount = files.length - validFiles.length
+      toast.warning(`${filteredCount} file(s) skipped`, {
+        description: 'Some files were not valid image or video files and were skipped.',
+      })
     }
 
     // Get existing media for duplicate check
@@ -218,76 +249,142 @@ export function useMediaUpload(options = {}) {
    * Upload a single file with retry logic
    */
   const uploadSingleFile = async (file, fileId, contextIdValue, setIdValue, signal) => {
-    return retryWithBackoff(async () => {
-      // Update status to uploading
-      uploadProgress.value[fileId] = {
-        ...uploadProgress.value[fileId],
-        status: 'uploading',
-        error: null,
-      }
+    console.log('[uploadSingleFile] Starting upload for file:', file.name, 'fileId:', fileId)
 
-      // Upload file with progress tracking
-      const uploadResult = await apiClient.uploadWithProgress('/v1/uploads', file, {
-        signal,
-        onProgress: (loaded, total) => {
-          uploadProgress.value[fileId] = {
-            ...uploadProgress.value[fileId],
-            loaded,
-            total,
-            percentage: total > 0 ? Math.round((loaded / total) * 100) : 0,
-          }
-          updateOverallProgress()
-        },
+    // Update status to uploading
+    uploadProgress.value[fileId] = {
+      ...uploadProgress.value[fileId],
+      status: 'uploading',
+      error: null,
+    }
+
+    // Upload file with progress tracking (with retry for transient errors only)
+    // Use image upload endpoint for images (generates variants), regular upload for videos
+    const isImage = file.type.startsWith('image/')
+    const uploadEndpoint = isImage ? '/v1/images/upload' : '/v1/uploads'
+
+    let uploadResult
+    try {
+      console.log('[uploadSingleFile] Calling API upload:', uploadEndpoint, 'for file:', file.name)
+      // Only retry the API upload part, not the media creation
+      uploadResult = await retryWithBackoff(async () => {
+        return await apiClient.uploadWithProgress(uploadEndpoint, file, {
+          signal,
+          onProgress: (loaded, total) => {
+            uploadProgress.value[fileId] = {
+              ...uploadProgress.value[fileId],
+              loaded,
+              total,
+              percentage: total > 0 ? Math.round((loaded / total) * 100) : 0,
+            }
+            updateOverallProgress()
+          },
+        })
       })
-
-      // Update status to processing
+    } catch (error) {
+      // If upload fails, don't proceed to media creation
+      const errorMessage = getErrorMessage(error, `Failed to upload "${file.name}"`)
+      console.error('[uploadSingleFile] Upload failed for file:', file.name, error)
       uploadProgress.value[fileId] = {
         ...uploadProgress.value[fileId],
-        status: 'processing',
-        percentage: 100,
+        status: 'failed',
+        error: errorMessage,
       }
+      // Create a more specific error with file context
+      const uploadError = new Error(`Upload failed for "${file.name}": ${errorMessage}`)
+      uploadError.originalError = error
+      throw uploadError
+    }
 
-      // Extract data from upload response object
-      // The upload endpoint returns: { url, path, originalFilename, mimeType, size, width, height, userFileUuid, ... }
-      const uploadResponse = uploadResult.data
-      const imageUrl = uploadResponse.url // Extract the URL from the upload response
-      const userFileUuid = uploadResponse.userFileUuid // Extract the user_file UUID
+    // Update status to processing
+    uploadProgress.value[fileId] = {
+      ...uploadProgress.value[fileId],
+      status: 'processing',
+      percentage: 100,
+    }
 
-      // Determine media type
-      const type = file.type.startsWith('image/') ? 'image' : 'video'
+    // Extract data from upload response object
+    // The upload endpoint returns: { url, path, originalFilename, mimeType, size, width, height, userFileUuid, variants?, thumbnail?, ... }
+    const uploadResponse = uploadResult.data
 
-      // Prepare media data with extracted URL and userFileUuid
-      const mediaData = {
-        userFileUuid: userFileUuid, // Pass user_file UUID to use stored URL
-        uploadUrl: imageUrl, // Fallback URL if userFileUuid not available
-        filename: uploadResponse.originalFilename || file.name,
-        mimeType: uploadResponse.mimeType || file.type,
-        size: uploadResponse.size || file.size,
-        type: type,
-        width: uploadResponse.width || null,
-        height: uploadResponse.height || null,
-        thumbnail: type === 'image' ? imageUrl : null, // Use extracted URL for thumbnail
-      }
+    // For image uploads, use the 'large' variant as the main URL, 'thumb' for thumbnail
+    // For videos, use the standard url and thumbnail from response (if available)
+    const imageUrl =
+      isImage && uploadResponse.variants
+        ? uploadResponse.variants.large || uploadResponse.variants.original || uploadResponse.url
+        : uploadResponse.url
 
-      // Call context-specific upload function
-      if (!uploadMediaFn) {
-        throw new Error('uploadMediaFn is required')
-      }
+    // Determine thumbnail URL:
+    // - For images: use thumb variant from variants
+    // - For videos: use thumbnail from response (generated by backend)
+    const thumbnailUrl =
+      isImage && uploadResponse.variants
+        ? uploadResponse.variants.thumb || uploadResponse.variants.medium || imageUrl
+        : uploadResponse.thumbnail || (isImage ? imageUrl : null)
 
-      const media = await uploadMediaFn(uploadResponse, file, {
+    const userFileUuid = uploadResponse.userFileUuid // Extract the user_file UUID
+
+    // Determine media type
+    const type = isImage ? 'image' : 'video'
+
+    // Prepare media data with extracted URL and userFileUuid
+    const mediaData = {
+      userFileUuid: userFileUuid, // Pass user_file UUID to use stored URL
+      uploadUrl: imageUrl, // Fallback URL if userFileUuid not available
+      filename: uploadResponse.originalFilename || file.name,
+      mimeType: uploadResponse.mimeType || file.type,
+      size: uploadResponse.size || file.size,
+      type: type,
+      width: uploadResponse.width || null,
+      height: uploadResponse.height || null,
+      thumbnail: thumbnailUrl, // Use thumb variant for images, backend-generated thumbnail for videos
+      variants: uploadResponse.variants || null, // Include variants if available (images only)
+    }
+
+    // Call context-specific upload function (NO RETRY - this should only be called once)
+    if (!uploadMediaFn) {
+      throw new Error('uploadMediaFn is required')
+    }
+
+    console.log('[uploadSingleFile] Calling uploadMediaFn for file:', file.name)
+    let media
+    try {
+      media = await uploadMediaFn(uploadResponse, file, {
         contextId: contextIdValue,
         setId: setIdValue,
         mediaData,
       })
-
-      // Update status to completed
+      console.log(
+        '[uploadSingleFile] uploadMediaFn completed for file:',
+        file.name,
+        'media:',
+        media
+      )
+    } catch (error) {
+      const errorMessage = getErrorMessage(
+        error,
+        `Failed to create media record for "${file.name}"`
+      )
+      console.error('[uploadSingleFile] Media creation failed for file:', file.name, error)
       uploadProgress.value[fileId] = {
         ...uploadProgress.value[fileId],
-        status: 'completed',
+        status: 'failed',
+        error: errorMessage,
       }
+      const mediaError = new Error(
+        `Failed to create media record for "${file.name}": ${errorMessage}`
+      )
+      mediaError.originalError = error
+      throw mediaError
+    }
 
-      return { file, media, uploadResult: uploadResult.data }
-    })
+    // Update status to completed
+    uploadProgress.value[fileId] = {
+      ...uploadProgress.value[fileId],
+      status: 'completed',
+    }
+
+    return { file, media, uploadResult: uploadResult.data }
   }
 
   /**
@@ -315,11 +412,45 @@ export function useMediaUpload(options = {}) {
   }
 
   /**
+   * Generate a unique batch ID from files
+   */
+  const generateBatchId = files => {
+    const fileIds = Array.from(files)
+      .map((file, index) => `${file.name}-${file.size}-${file.lastModified}-${index}`)
+      .join('|')
+    return `${Date.now()}-${fileIds.slice(0, 100)}` // Limit length
+  }
+
+  /**
    * Upload media to a set with advanced features
    */
   const uploadMediaToSet = async (files, setId, uploadOptions = {}) => {
-    console.log(files)
     const { skipValidation = false } = uploadOptions
+
+    // Generate batch ID to prevent duplicate uploads of the same files
+    const batchId = generateBatchId(files)
+
+    console.log('[uploadMediaToSet] Called with batch:', batchId, {
+      fileCount: files.length,
+      fileNames: Array.from(files).map(f => f.name),
+      isUploading: isUploading.value,
+      activeBatches: Array.from(activeUploadBatches.value),
+    })
+
+    // Prevent multiple simultaneous uploads
+    if (isUploading.value) {
+      console.warn(
+        '[uploadMediaToSet] Upload already in progress, skipping duplicate call',
+        batchId
+      )
+      return
+    }
+
+    // Check if this exact batch is already being processed
+    if (activeUploadBatches.value.has(batchId)) {
+      console.warn('[uploadMediaToSet] Batch already being processed, skipping duplicate', batchId)
+      return
+    }
 
     try {
       const contextIdValue = getContextId()
@@ -342,12 +473,15 @@ export function useMediaUpload(options = {}) {
         throw new Error('uploadMediaFn is required')
       }
 
-      // Reset state
+      // Reset state and track this batch
       uploadProgress.value = {}
       overallProgress.value = 0
       uploadErrors.value = []
       isUploading.value = true
       uploadAbortController.value = new AbortController()
+      activeUploadBatches.value.add(batchId)
+
+      console.log('[uploadMediaToSet] Starting upload for batch:', batchId)
 
       const fileArray = Array.from(files)
       const results = {
@@ -370,6 +504,7 @@ export function useMediaUpload(options = {}) {
       })
 
       // Validate files if not skipped
+      // Skip duplicate check since processFiles already handles duplicates
       if (!skipValidation) {
         const existingMediaList = getExistingMedia()
 
@@ -377,13 +512,40 @@ export function useMediaUpload(options = {}) {
           const file = fileArray[i]
           const fileId = getFileId(file, i)
 
+          console.log(
+            '[uploadMediaToSet] Validating file:',
+            file.name,
+            'type:',
+            file.type,
+            'size:',
+            file.size,
+            'validationOptions:',
+            validationOptions
+          )
+
           try {
             const validation = await validateUploadFile(file, {
               existingMedia: existingMediaList,
+              skipDuplicateCheck: true, // Duplicates already handled by processFiles
               ...validationOptions,
             })
 
+            console.log(
+              '[uploadMediaToSet] Validation result for file:',
+              file.name,
+              'valid:',
+              validation.valid,
+              'errors:',
+              validation.errors
+            )
+
             if (!validation.valid) {
+              console.error(
+                '[uploadMediaToSet] Validation failed for file:',
+                file.name,
+                'errors:',
+                validation.errors
+              )
               uploadProgress.value[fileId] = {
                 ...uploadProgress.value[fileId],
                 status: 'failed',
@@ -396,14 +558,16 @@ export function useMediaUpload(options = {}) {
               continue
             }
           } catch (error) {
+            const errorMessage = getErrorMessage(error, `Validation failed for "${file.name}"`)
+            console.error('[uploadMediaToSet] Validation exception for file:', file.name, error)
             uploadProgress.value[fileId] = {
               ...uploadProgress.value[fileId],
               status: 'failed',
-              error: error.message || 'Validation failed',
+              error: errorMessage,
             }
             results.failed.push({
               file,
-              error: error.message || 'Validation failed',
+              error: errorMessage,
             })
             continue
           }
@@ -416,13 +580,34 @@ export function useMediaUpload(options = {}) {
         return uploadProgress.value[fileId]?.status !== 'failed'
       })
 
+      console.log(
+        '[uploadMediaToSet] Processing',
+        filesToUpload.length,
+        'files in batches of',
+        batchSize
+      )
+
       for (let i = 0; i < filesToUpload.length; i += batchSize) {
         const batch = filesToUpload.slice(i, i + batchSize)
+        console.log(
+          '[uploadMediaToSet] Processing batch',
+          Math.floor(i / batchSize) + 1,
+          'with',
+          batch.length,
+          'files:',
+          batch.map(f => f.name)
+        )
 
         const batchPromises = batch.map(async (file, batchIndex) => {
           const originalIndex = fileArray.indexOf(file)
           const fileId = getFileId(file, originalIndex)
 
+          console.log(
+            '[uploadMediaToSet] Adding file to batch promise:',
+            file.name,
+            'batchIndex:',
+            batchIndex
+          )
           try {
             const result = await uploadSingleFile(
               file,
@@ -431,10 +616,12 @@ export function useMediaUpload(options = {}) {
               setIdValue,
               uploadAbortController.value.signal
             )
+            console.log('[uploadMediaToSet] File upload successful:', file.name)
             results.successful.push(result)
             return result
           } catch (error) {
-            const errorMessage = error.message || 'Upload failed'
+            const errorMessage = getErrorMessage(error, `Failed to upload "${file.name}"`)
+            console.error('[uploadMediaToSet] Upload failed for file:', file.name, error)
             uploadProgress.value[fileId] = {
               ...uploadProgress.value[fileId],
               status: 'failed',
@@ -458,7 +645,7 @@ export function useMediaUpload(options = {}) {
                 )
               },
             })
-            throw error
+            // Don't throw - allow batch to continue with other files
           }
         })
 
@@ -481,25 +668,36 @@ export function useMediaUpload(options = {}) {
           description: `${results.successful.length} succeeded, ${results.failed.length} failed.`,
         })
       } else if (results.failed.length > 0) {
-        toast.error('Upload failed', {
-          description: `${results.failed.length} file(s) failed to upload.`,
+        const failedFileNames = results.failed.map(f => f.file.name).join(', ')
+        const errorDetails = results.failed.map(f => `"${f.file.name}": ${f.error}`).join('; ')
+        toast.error(`Upload failed for ${results.failed.length} file(s)`, {
+          description: errorDetails.length > 200 ? failedFileNames : errorDetails,
         })
       }
 
+      console.log('[uploadMediaToSet] Upload completed for batch:', batchId, {
+        successful: results.successful.length,
+        failed: results.failed.length,
+        failedFiles: results.failed.map(f => ({ name: f.file.name, error: f.error })),
+      })
+
       return results
     } catch (error) {
-      console.error('Failed to upload media:', error)
+      const errorMessage = getErrorMessage(error, 'Failed to upload media files')
+      console.error('[uploadMediaToSet] Failed to upload media for batch:', batchId, error)
 
       // Don't show error if upload was cancelled
       if (error.name !== 'AbortError') {
         toast.error('Upload failed', {
-          description: error instanceof Error ? error.message : 'Failed to upload media.',
+          description: errorMessage,
         })
       }
       throw error
     } finally {
       isUploading.value = false
       uploadAbortController.value = null
+      activeUploadBatches.value.delete(batchId)
+      console.log('[uploadMediaToSet] Cleaned up batch:', batchId)
     }
   }
 

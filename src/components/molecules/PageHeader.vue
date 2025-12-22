@@ -57,8 +57,9 @@
       <!-- Sort Dropdown -->
       <DropdownMenu v-if="showSort && sortOptions.length > 0">
         <DropdownMenuTrigger as-child>
-          <Button variant="ghost" size="icon" :class="[theme.textSecondary, theme.bgButtonHover]">
-            <ArrowDownUp class="h-5 w-5" />
+          <Button variant="ghost" :class="[theme.textSecondary, theme.bgButtonHover, 'gap-2']">
+            <ArrowDownUp class="h-4 w-4" />
+            <span class="text-sm">{{ selectedSortLabel }}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -79,6 +80,7 @@
             @click="$emit('update:sortBy', option.value)"
           >
             {{ option.label }}
+            <Check v-if="sortBy === option.value" class="ml-auto h-4 w-4" />
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -137,6 +139,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Search, ArrowDownUp, Grid3x3, List, Check, X, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
@@ -203,6 +206,11 @@ const emit = defineEmits([
 ])
 
 const theme = useThemeClasses()
+
+const selectedSortLabel = computed(() => {
+  const selectedOption = props.sortOptions.find(option => option.value === props.sortBy)
+  return selectedOption ? selectedOption.label : 'Sort'
+})
 
 const updateSearchQuery = value => {
   emit('update:searchQuery', value)

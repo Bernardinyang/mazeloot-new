@@ -7,6 +7,7 @@ import { toast } from '@/utils/toast'
 import { useSelectionsApi } from '@/api/selections'
 import { useSelectionStore } from '@/stores/selection'
 import { useMediaUpload } from './useMediaUpload'
+import { getErrorMessage } from '@/utils/errors'
 
 export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedia = [] } = {}) {
   const selectionsApi = useSelectionsApi()
@@ -51,9 +52,10 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
         description: 'Selected media has been marked and the selection is now completed.',
       })
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to complete selection')
       console.error('Failed to complete selection:', error)
       toast.error('Failed to complete selection', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: errorMessage,
       })
       throw error
     }
@@ -76,9 +78,10 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
         description: 'Selection has been published to active status.',
       })
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to publish selection')
       console.error('Failed to publish selection:', error)
       toast.error('Failed to publish selection', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: errorMessage,
       })
       throw error
     }
@@ -107,9 +110,10 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
 
       return recovered
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to recover media')
       console.error('Failed to recover media:', error)
       toast.error('Recovery failed', {
-        description: error instanceof Error ? error.message : 'Failed to recover media.',
+        description: errorMessage,
       })
       throw error
     }
@@ -145,9 +149,10 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
 
       return filenames
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to copy filenames')
       console.error('Failed to copy filenames:', error)
       toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: errorMessage,
       })
       throw error
     }

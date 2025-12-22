@@ -1,5 +1,6 @@
 import { ref } from 'vue'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 
 import { fileToDataURL } from '@/utils/fileToDataURL'
 import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
@@ -150,6 +151,7 @@ export function useMediaUploadFlow({
 
       // Process each file and save to mock data
       const uploadedItems = []
+      let failedFiles = []
 
       for (const file of files) {
         try {
@@ -302,13 +304,23 @@ export function useMediaUploadFlow({
             mediaItems.value.push(newMedia)
           }
         } catch (error) {
+          const errorMessage = getErrorMessage(error, `Failed to process "${file.name}"`)
           console.error('Error processing file:', file.name, error)
+          // Track failed files for better error reporting
+          failedFiles.push({ file: file.name, error: errorMessage })
         }
       }
 
       if (uploadedItems.length === 0) {
+        const errorDetails =
+          failedFiles.length > 0
+            ? failedFiles.map(f => `"${f.file}": ${f.error}`).join('; ')
+            : description || 'No files were uploaded successfully'
         toast.error('Upload failed', {
-          description,
+          description:
+            errorDetails.length > 200
+              ? `${failedFiles.length} file(s) failed to upload`
+              : errorDetails,
         })
         isUploading.value = false
         return
@@ -317,13 +329,21 @@ export function useMediaUploadFlow({
       // Update set counts based on actual media (more accurate than incrementing)
       await updateSetCounts()
 
-      toast.success('Files uploaded', {
-        description: `${uploadedItems.length} file${uploadedItems.length > 1 ? 's' : ''} uploaded successfully.`,
-      })
+      const successMessage = `${uploadedItems.length} file${uploadedItems.length > 1 ? 's' : ''} uploaded successfully.`
+      if (failedFiles && failedFiles.length > 0) {
+        toast.warning('Partial upload', {
+          description: `${successMessage} ${failedFiles.length} file(s) failed.`,
+        })
+      } else {
+        toast.success('Files uploaded', {
+          description: successMessage,
+        })
+      }
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to upload files')
       console.error('Upload error:', error)
       toast.error('Upload failed', {
-        description,
+        description: errorMessage,
       })
     } finally {
       isUploading.value = false

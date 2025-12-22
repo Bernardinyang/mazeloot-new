@@ -32,8 +32,19 @@ export function parseError(error) {
   // If it's an API response with error structure
   if (error?.response?.data) {
     const data = error.response.data
+    // Extract the most specific error message
+    let message = data.message || data.error
+
+    // If there are field-specific errors, include the first one for more context
+    if (data.errors && typeof data.errors === 'object') {
+      const fieldErrors = Object.values(data.errors).flat()
+      if (fieldErrors.length > 0 && fieldErrors[0]) {
+        message = message ? `${message}. ${fieldErrors[0]}` : fieldErrors[0]
+      }
+    }
+
     return {
-      message: data.message || data.error || 'An error occurred',
+      message: message || `Request failed with status ${error.response.status}`,
       code: data.code,
       status: error.response.status,
       errors: data.errors,

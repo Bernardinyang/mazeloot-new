@@ -13,12 +13,7 @@
 
       <!-- Main Content Area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-          <div class="text-center space-y-4">
-            <Loader2 :class="theme.textTertiary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm font-medium">Loading collection...</p>
-          </div>
-        </div>
+        <ContentLoader v-if="isLoading" message="Loading collection..." />
 
         <div v-else class="p-8">
           <!-- Content -->
@@ -328,6 +323,7 @@ import { Loader2 } from 'lucide-vue-next'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
+import ContentLoader from '@/components/molecules/ContentLoader.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
 import { useWatermarkStore } from '@/stores/watermark'

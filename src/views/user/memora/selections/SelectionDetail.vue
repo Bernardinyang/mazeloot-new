@@ -12,14 +12,7 @@
 
       <!-- Main Content Area -->
       <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
-        {{ selectedMediaIds }}
-
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-          <div class="text-center space-y-4">
-            <Loader2 :class="theme.textTertiary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm font-medium">Loading selection...</p>
-          </div>
-        </div>
+        <ContentLoader v-if="isLoading" message="Loading selection..." />
 
         <div v-else class="p-8">
           <!-- Section Header -->
@@ -31,25 +24,10 @@
           </div>
           <MediaItemsHeaderBar
             v-else-if="selectedSetId"
-            v-model:is-sort-menu-open="isSortMenuOpen"
-            v-model:is-view-menu-open="isViewMenuOpen"
-            :grid-size="gridSize"
-            :grid-size-options="gridSizeOptions"
-            :is-all-selected="
-              selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
-            "
             :is-uploading="isUploading"
             :selected-count="selectedMediaIds.size"
-            :show-filename="showFilename"
-            :sort-options="sortOptions"
-            :sort-order="sortOrder"
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
-            :view-mode="viewMode"
-            @sort-change="handleSortChange"
-            @grid-size-change="handleGridSizeChange"
-            @filename-toggle="handleFilenameToggle"
-            @set-view-mode="viewMode = $event"
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
@@ -354,9 +332,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2 } from 'lucide-vue-next'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
@@ -369,6 +346,7 @@ import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetMo
 import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
 import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
+import ContentLoader from '@/components/molecules/ContentLoader.vue'
 import RenameMediaModal from '@/components/organisms/RenameMediaModal.vue'
 import TagModal from '@/components/organisms/TagModal.vue'
 import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
@@ -381,6 +359,11 @@ import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
+import { FolderPlus, Plus } from 'lucide-vue-next'
+import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
+import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
+import { useSelectionsApi } from '@/api/selections'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -409,9 +392,9 @@ const handleCancelCreateSet = () => {
 const selection = ref(null)
 const selectionStatus = computed(() => selection.value?.status || 'draft')
 const isDragging = ref(false)
-const viewMode = ref('grid')
-const gridSize = ref('small')
-const showFilename = ref(true)
+
+// Get state from selection store
+const { gridSize, viewMode, showFilename, sortOrder } = storeToRefs(selectionStore)
 const selectedMediaIds = ref(new Set())
 const showMoveCopyModal = ref(false)
 const moveCopyAction = ref('move')
@@ -421,9 +404,6 @@ const isBulkTagLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
 const isUpdatingSetCounts = ref(false)
-const sortOrder = ref('uploaded-new-old')
-const isSortMenuOpen = ref(false)
-const isViewMenuOpen = ref(false)
 const isLoadingMedia = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
@@ -479,15 +459,14 @@ const loadSelection = async () => {
     // Media sets are automatically initialized by SelectionLayout via the store
     // No need to manually set them here
 
-    // Initialize media items from all sets
-    if (selectionData.mediaSets) {
-      const allMedia = []
-      for (const set of selectionData.mediaSets) {
-        if (set.media) {
-          allMedia.push(...set.media.map(m => ({ ...m, setId: set.id })))
-        }
-      }
-      mediaItems.value = allMedia
+    // Load media items for the selected set (if one is selected)
+    // Note: If no set is selected, handleSelectSet will trigger the watcher to load media
+    if (selectedSetId.value) {
+      await loadMediaItems()
+    } else if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
+      // If no set is selected but sets exist, select the first one
+      // The watcher on selectedSetId will automatically load media
+      mediaSetsSidebar.handleSelectSet(selectionData.mediaSets[0].id)
     }
   } catch (error) {
     console.error('Failed to load selection:', error)
@@ -524,90 +503,83 @@ const selectedSet = computed(() => {
   return mediaSets.value.find(set => set.id === selectedSetId.value) || mediaSets.value[0]
 })
 
-// Sort options
-const sortOptions = [
-  { label: 'Uploaded (New → Old)', value: 'uploaded-new-old' },
-  { label: 'Uploaded (Old → New)', value: 'uploaded-old-new' },
-  { label: 'Date Taken (New → Old)', value: 'date-taken-new-old' },
-  { label: 'Date Taken (Old → New)', value: 'date-taken-old-new' },
-  { label: 'Name (A → Z)', value: 'name-a-z' },
-  { label: 'Name (Z → A)', value: 'name-z-a' },
-  { label: 'Random', value: 'random' },
-]
+// Initialize media items as empty array
+const mediaItems = ref([])
 
-const gridSizeOptions = [
-  { label: 'Small', value: 'small' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Large', value: 'large' },
-]
+// Load media items for the selected set
+const selectionsApi = useSelectionsApi()
+const loadMediaItems = async () => {
+  if (!selection.value?.id || !selectedSetId.value) {
+    return
+  }
 
-// Mock static media data
-const mediaItems = ref([
-  {
-    id: 'media-1',
-    title: 'Photo 1',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T10:00:00Z',
-    setId: 'set-1',
+  // Prevent multiple simultaneous calls
+  if (isLoadingMedia.value) {
+    return
+  }
+
+  isLoadingMedia.value = true
+  try {
+    const setMedia = await selectionsApi.fetchSetMedia(selection.value.id, selectedSetId.value, {
+      sortBy: sortOrder.value,
+    })
+    // Update media items for the selected set
+    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
+    const currentSetMedia = Array.isArray(setMedia)
+      ? setMedia.map(m => ({ ...m, setId: selectedSetId.value }))
+      : []
+    mediaItems.value = [...otherMedia, ...currentSetMedia]
+  } catch (error) {
+    console.error('Failed to load media items:', error)
+  } finally {
+    isLoadingMedia.value = false
+  }
+}
+
+// Initialize selection workflow for uploads
+const {
+  processFiles,
+  uploadMediaToSet,
+  handleConfirmDuplicateFiles: confirmDuplicateFiles,
+  handleCancelDuplicateFiles: cancelDuplicateFiles,
+  isUploading: isUploadingFromWorkflow,
+  showDuplicateFilesModal: showDuplicateModal,
+  duplicateFiles: duplicateFilesFromWorkflow,
+  duplicateFileActions: duplicateFileActionsFromWorkflow,
+} = useSelectionWorkflow({
+  selectionId: () => selection.value?.id,
+  loadMediaItems,
+  existingMedia: () => mediaItems.value,
+})
+
+// Update isUploading ref to match workflow
+watch(isUploadingFromWorkflow, val => {
+  isUploading.value = val
+})
+
+// Update duplicate files modal state
+watch(showDuplicateModal, val => {
+  showDuplicateFilesModal.value = val
+})
+
+watch(duplicateFilesFromWorkflow, val => {
+  duplicateFiles.value = val
+})
+
+watch(duplicateFileActionsFromWorkflow, val => {
+  duplicateFileActions.value = val
+})
+
+// Watch for selectedSetId changes to load media
+watch(
+  selectedSetId,
+  () => {
+    if (selection.value?.id && selectedSetId.value) {
+      loadMediaItems()
+    }
   },
-  {
-    id: 'media-2',
-    title: 'Photo 2',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T11:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-3',
-    title: 'Photo 3',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T12:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-4',
-    title: 'Photo 4',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T13:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-5',
-    title: 'Photo 5',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T14:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-6',
-    title: 'Photo 6',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T15:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-7',
-    title: 'Photo 7',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T16:00:00Z',
-    setId: 'set-1',
-  },
-  {
-    id: 'media-8',
-    title: 'Photo 8',
-    url: 'https://via.placeholder.com/400',
-    type: 'image',
-    createdAt: '2024-01-15T17:00:00Z',
-    setId: 'set-1',
-  },
-])
+  { immediate: false }
+)
 
 // Filter media items by selected set
 const filteredMediaItems = computed(() => {
@@ -620,20 +592,7 @@ const filteredMediaItems = computed(() => {
 // Media items are now sorted/filtered by the backend
 const sortedMediaItems = computed(() => filteredMediaItems.value)
 
-// UI-only handlers
-const handleSortChange = value => {
-  sortOrder.value = value
-  isSortMenuOpen.value = false
-}
-
-const handleGridSizeChange = value => {
-  gridSize.value = value
-  isViewMenuOpen.value = false
-}
-
-const handleFilenameToggle = event => {
-  showFilename.value = event.target.checked
-}
+// No handlers needed - state is managed internally by MediaItemsHeaderBar and accessed via inject
 
 const openMediaViewer = item => {
   selectedMedia.value = item
@@ -840,19 +799,31 @@ const getDeleteModalWarning = () => {
 }
 
 const handleAddMedia = () => {
-  // UI only
+  triggerFileInputClick(fileInputRef.value)
 }
 
 const handleBrowseFiles = () => {
-  // UI only
+  triggerFileInputClick(fileInputRef.value)
 }
 
-const handleConfirmDuplicateFiles = () => {
-  showDuplicateFilesModal.value = false
+const handleConfirmDuplicateFiles = async () => {
+  // Prevent multiple simultaneous uploads
+  if (isUploading.value || isProcessingFiles.value) {
+    console.warn('Upload or file processing already in progress, ignoring duplicate confirmation')
+    return
+  }
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+  await confirmDuplicateFiles(selectedSetId.value)
 }
 
 const handleCancelDuplicateFiles = () => {
-  showDuplicateFilesModal.value = false
+  cancelDuplicateFiles()
 }
 
 const cancelUpload = () => {
@@ -866,13 +837,124 @@ const isUploading = ref(false)
 const showDuplicateFilesModal = ref(false)
 const duplicateFiles = ref([])
 const duplicateFileActions = ref({})
+const isProcessingFiles = ref(false)
 
-const handleFileSelect = () => {
-  // UI only
+const handleFileSelect = async event => {
+  console.log('[handleFileSelect] File input changed', {
+    files: event.target.files?.length || 0,
+    isUploading: isUploading.value,
+    isProcessingFiles: isProcessingFiles.value,
+  })
+
+  const files = Array.from(event.target.files || [])
+  if (files.length === 0) return
+
+  // Prevent multiple simultaneous uploads or file processing
+  if (isUploading.value || isProcessingFiles.value) {
+    console.warn(
+      '[handleFileSelect] Upload or file processing already in progress, ignoring file select'
+    )
+    event.target.value = ''
+    return
+  }
+
+  // Reset input immediately to prevent duplicate events
+  event.target.value = ''
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+
+  isProcessingFiles.value = true
+  try {
+    console.log(
+      '[handleFileSelect] Processing files:',
+      files.map(f => f.name)
+    )
+    // Process files (checks for duplicates)
+    const { hasDuplicates, filesToUpload } = await processFiles(files)
+
+    if (hasDuplicates) {
+      console.log('[handleFileSelect] Duplicates found, showing modal')
+      // Duplicate modal will be shown by the workflow
+      return
+    }
+
+    if (filesToUpload.length > 0) {
+      console.log(
+        '[handleFileSelect] Uploading files:',
+        filesToUpload.map(f => f.name)
+      )
+      await uploadMediaToSet(filesToUpload, selectedSetId.value)
+    } else {
+      console.log('[handleFileSelect] No files to upload after processing')
+    }
+  } catch (error) {
+    console.error('[handleFileSelect] Upload failed:', error)
+  } finally {
+    isProcessingFiles.value = false
+  }
 }
 
-const handleDrop = () => {
-  // UI only
+const handleDrop = async e => {
+  e.preventDefault()
+  if (isDragging) isDragging.value = false
+
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  console.log('[handleDrop] Files dropped', {
+    fileCount: files.length,
+    isUploading: isUploading.value,
+    isProcessingFiles: isProcessingFiles.value,
+  })
+
+  // Prevent multiple simultaneous uploads or file processing
+  if (isUploading.value || isProcessingFiles.value) {
+    console.warn('[handleDrop] Upload or file processing already in progress, ignoring drop')
+    return
+  }
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+
+  isProcessingFiles.value = true
+  try {
+    const fileArray = Array.from(files)
+    console.log(
+      '[handleDrop] Processing files:',
+      fileArray.map(f => f.name)
+    )
+    // Process files (checks for duplicates)
+    const { hasDuplicates, filesToUpload } = await processFiles(fileArray)
+
+    if (hasDuplicates) {
+      console.log('[handleDrop] Duplicates found, showing modal')
+      // Duplicate modal will be shown by the workflow
+      return
+    }
+
+    if (filesToUpload.length > 0) {
+      console.log(
+        '[handleDrop] Uploading files:',
+        filesToUpload.map(f => f.name)
+      )
+      await uploadMediaToSet(filesToUpload, selectedSetId.value)
+    } else {
+      console.log('[handleDrop] No files to upload after processing')
+    }
+  } catch (error) {
+    console.error('[handleDrop] Upload failed:', error)
+  } finally {
+    isProcessingFiles.value = false
+  }
 }
 
 const handleRetryUpload = () => {

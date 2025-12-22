@@ -1,12 +1,7 @@
 <template>
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
-      <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-        <div class="text-center space-y-4">
-          <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-          <p :class="theme.textSecondary" class="text-sm">Loading grid config...</p>
-        </div>
-      </div>
+      <ContentLoader v-if="isLoading" message="Loading grid config..." />
       <div v-else class="mx-auto p-8 pb-16 transition-all duration-300 h-full overflow-y-auto">
         <div class="mb-10">
           <div class="flex items-start justify-between mb-4">
@@ -511,6 +506,7 @@ import { Button } from '@/components/shadcn/button'
 import { Slider } from '@/components/shadcn/slider'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
+import ContentLoader from '@/components/molecules/ContentLoader.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
