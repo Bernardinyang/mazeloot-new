@@ -20,21 +20,21 @@
     <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="emit('open-viewer')">
       <img
         :alt="props.item?.title || 'Media'"
-        :src="imageSrc"
         :class="[
           'w-20 h-20 object-cover rounded-lg shadow-sm transition-all duration-300 will-change-transform',
           isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
         ]"
-        @load="isImageLoaded = true"
+        :src="imageSrc"
         @error="emit('image-error', $event)"
+        @load="isImageLoaded = true"
       />
       <div class="flex-1 min-w-0">
         <p
-          v-if="props.showFilename && props.item?.title"
+          v-if="props.showFilename && props.item?.filename"
           :class="theme.textPrimary"
           class="text-sm font-medium truncate"
         >
-          {{ props.item.title }}
+          {{ props.item.filename }}
         </p>
         <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">Media Item</p>
         <p :class="theme.textTertiary" class="text-xs mt-1">
@@ -152,7 +152,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   getMediaDisplayUrl,
   getMediaDisplayUrlSync,

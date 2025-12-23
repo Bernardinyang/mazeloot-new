@@ -5,11 +5,11 @@
       <Button
         v-if="cancelLabel"
         type="button"
-        variant="ghost"
+        :variant="cancelButtonClass ? 'default' : 'ghost'"
         :class="[
-          theme.textSecondary,
-          theme.bgButtonHover,
-          'hover:text-teal-600 dark:hover:text-teal-400',
+          cancelButtonClass || theme.textSecondary,
+          cancelButtonClass || theme.bgButtonHover,
+          cancelButtonClass ? '' : 'hover:text-teal-600 dark:hover:text-teal-400',
           cancelButtonClass,
         ]"
         :disabled="loading"

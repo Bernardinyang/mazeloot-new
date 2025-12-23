@@ -275,12 +275,12 @@
 
       <UploadProgressBar
         v-model="showUploadProgress"
-        :is-uploading="isUploading"
-        :overall-progress="overallProgress"
-        :upload-errors="uploadErrors"
-        :upload-progress="uploadProgress"
+        :is-uploading="isUploadingFromWorkflow"
+        :overall-progress="overallProgressFromWorkflow"
+        :upload-errors="uploadErrorsFromWorkflow"
+        :upload-progress="uploadProgressFromWorkflow"
         @cancel="cancelUpload"
-        @close="showUploadProgress = false"
+        @close="handleCloseUploadProgress"
         @retry="handleRetryUpload"
       />
 
@@ -551,7 +551,10 @@ const closeDeleteModal = () => {
 }
 
 const getItemName = () => {
-  return itemToDelete.value?.name || 'Item'
+  if (!itemToDelete.value) return 'Item'
+  const item = itemToDelete.value
+  // For media items, try to get filename from file relationship
+  return item.file?.filename || item.filename || item.title || item.name || 'Item'
 }
 
 const selectedSet = computed(() => {
@@ -575,8 +578,31 @@ const loadMediaItems = async () => {
 
   isLoadingMedia.value = true
   try {
+    // Convert frontend sort format to backend format
+    // Frontend: 'uploaded-new-old', 'name-a-z', etc.
+    // Backend: 'uploaded-desc', 'name-asc', etc.
+    const convertSortOrder = sortValue => {
+      if (!sortValue) return null
+
+      // Handle special case
+      if (sortValue === 'random') return 'random'
+
+      // Map frontend format to backend format
+      const mapping = {
+        'uploaded-new-old': 'uploaded-desc',
+        'uploaded-old-new': 'uploaded-asc',
+        'date-taken-new-old': 'date-taken-desc',
+        'date-taken-old-new': 'date-taken-asc',
+        'name-a-z': 'name-asc',
+        'name-z-a': 'name-desc',
+      }
+
+      return mapping[sortValue] || sortValue
+    }
+
     // Always include sortBy if it exists, otherwise omit it (backend will use default)
-    const params = sortOrder.value ? { sortBy: sortOrder.value } : {}
+    const backendSortBy = convertSortOrder(sortOrder.value)
+    const params = backendSortBy ? { sortBy: backendSortBy } : {}
     const setMedia = await selectionsApi.fetchSetMedia(
       selection.value.id,
       selectedSetId.value,
@@ -604,7 +630,11 @@ const {
   handleSetDuplicateAction: setDuplicateAction,
   handleReplaceAllDuplicates: replaceAllDuplicates,
   handleSkipAllDuplicates: skipAllDuplicates,
+  cancelUpload: cancelUploadFromWorkflow,
   isUploading: isUploadingFromWorkflow,
+  uploadProgress: uploadProgressFromWorkflow,
+  overallProgress: overallProgressFromWorkflow,
+  uploadErrors: uploadErrorsFromWorkflow,
   showDuplicateFilesModal: showDuplicateModal,
   duplicateFiles: duplicateFilesFromWorkflow,
   duplicateFileActions: duplicateFileActionsFromWorkflow,
@@ -615,18 +645,42 @@ const {
   existingMedia: () => mediaItems.value,
 })
 
-// Update isUploading ref to match workflow
+// Watch upload state to control progress modal
 watch(isUploadingFromWorkflow, val => {
-  isUploading.value = val
+  // Show upload progress modal when upload starts
+  if (val) {
+    showUploadProgress.value = true
+  }
   // Set flag when upload completes to prevent watch from triggering
   if (!val) {
     justUploaded.value = true
+    // Keep modal open if there are failed uploads to allow retry
+    const hasFailedUploads = Object.values(uploadProgressFromWorkflow.value || {}).some(
+      p => p.status === 'failed'
+    )
+    if (!hasFailedUploads) {
+      // Close modal after a delay if no failed uploads
+      setTimeout(() => {
+        showUploadProgress.value = false
+      }, 1000)
+    }
     // Clear flag after a delay to allow loadMediaItems from uploadMediaToSet to complete
     setTimeout(() => {
       justUploaded.value = false
     }, 500)
   }
 })
+
+// Also watch for failed uploads to keep modal open
+watch(
+  () => uploadErrorsFromWorkflow.value?.length || 0,
+  errorCount => {
+    if (errorCount > 0 && !isUploadingFromWorkflow.value) {
+      // Keep modal open if there are errors
+      showUploadProgress.value = true
+    }
+  }
+)
 
 // Update duplicate files modal state
 watch(showDuplicateModal, val => {
@@ -653,6 +707,17 @@ watch(
       !isLoadingMedia.value &&
       !justUploaded.value
     ) {
+      loadMediaItems()
+    }
+  },
+  { immediate: false }
+)
+
+// Watch for sortOrder changes to reload media with new sorting
+watch(
+  sortOrder,
+  () => {
+    if (selection.value?.id && selectedSetId.value && !isUploading.value && !isLoadingMedia.value) {
       loadMediaItems()
     }
   },
@@ -1171,9 +1236,52 @@ const handleDeleteMedia = item => {
   openDeleteModal(item)
 }
 
-const handleConfirmDeleteItem = () => {
-  showDeleteModal.value = false
-  itemToDelete.value = null
+const handleConfirmDeleteItem = async () => {
+  if (!itemToDelete.value || isDeleting.value) return
+
+  const item = itemToDelete.value
+
+  // Check if it's a MediaSet or MediaItem
+  if (item.collectionId || item.setId || item.id) {
+    // It's a MediaItem
+    isDeleting.value = true
+
+    try {
+      // Use the selections API delete function
+      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
+
+      // Remove from local array
+      const index = mediaItems.value.findIndex(m => m.id === item.id)
+      if (index !== -1) {
+        mediaItems.value.splice(index, 1)
+        // Force reactivity
+        mediaItems.value = [...mediaItems.value]
+      }
+
+      // Remove from selection if selected
+      selectedMediaIds.value.delete(item.id)
+
+      // Reload media sets to update counts
+      await mediaSetsSidebar.loadMediaSets()
+
+      toast.success('Media deleted', {
+        description: 'The media item has been deleted successfully.',
+      })
+
+      closeDeleteModal()
+    } catch (error) {
+      console.error('Failed to delete media:', error)
+      toast.error('Failed to delete media', {
+        description:
+          error instanceof Error ? error.message : 'An error occurred while deleting the media.',
+      })
+    } finally {
+      isDeleting.value = false
+    }
+  } else {
+    // It's a MediaSet - this should be handled elsewhere
+    closeDeleteModal()
+  }
 }
 
 const handleReplacePhoto = item => {
@@ -1336,13 +1444,19 @@ const handleSkipAllDuplicates = () => {
 }
 
 const cancelUpload = () => {
+  cancelUploadFromWorkflow()
   showUploadProgress.value = false
 }
 
-const uploadProgress = ref([])
-const overallProgress = ref(0)
-const uploadErrors = ref([])
-const isUploading = ref(false)
+const handleCloseUploadProgress = () => {
+  showUploadProgress.value = false
+  // Dismiss the progress toast when modal is closed
+  toast.dismiss('upload-progress')
+}
+
+// Remove local definitions - use from workflow instead
+// Local refs that sync with workflow state (for backward compatibility)
+const isUploading = computed(() => isUploadingFromWorkflow.value)
 const showDuplicateFilesModal = ref(false)
 const duplicateFiles = ref([])
 const duplicateFileActions = ref({})
@@ -1405,8 +1519,8 @@ const handleFileSelect = async event => {
       '[handleFileSelect] Processing files:',
       files.map(f => f.name)
     )
-    // Process files (checks for duplicates)
-    const { hasDuplicates, filesToUpload } = await processFiles(files)
+    // Process files (checks for duplicates) - only check within the selected set
+    const { hasDuplicates, filesToUpload } = await processFiles(files, selectedSetId.value)
 
     if (hasDuplicates) {
       console.log('[handleFileSelect] Duplicates found, showing modal')
@@ -1463,8 +1577,8 @@ const handleDrop = async e => {
       '[handleDrop] Processing files:',
       fileArray.map(f => f.name)
     )
-    // Process files (checks for duplicates)
-    const { hasDuplicates, filesToUpload } = await processFiles(fileArray)
+    // Process files (checks for duplicates) - only check within the selected set
+    const { hasDuplicates, filesToUpload } = await processFiles(fileArray, selectedSetId.value)
 
     if (hasDuplicates) {
       console.log('[handleDrop] Duplicates found, showing modal')
@@ -1488,8 +1602,52 @@ const handleDrop = async e => {
   }
 }
 
-const handleRetryUpload = () => {
-  // UI only
+const handleRetryUpload = async (fileId, retryFn) => {
+  if (!retryFn || typeof retryFn !== 'function') {
+    console.error('Invalid retry function provided')
+    toast.error('Retry failed', {
+      description: 'Invalid retry function.',
+    })
+    return
+  }
+
+  if (!selection.value?.id || !selectedSetId.value) {
+    toast.error('Invalid context', {
+      description: 'Selection or set not found.',
+    })
+    return
+  }
+
+  try {
+    // Update progress status to uploading
+    if (uploadProgressFromWorkflow.value[fileId]) {
+      uploadProgressFromWorkflow.value[fileId] = {
+        ...uploadProgressFromWorkflow.value[fileId],
+        status: 'uploading',
+        error: null,
+      }
+    }
+
+    // Don't remove from errors array here - let the retry function handle it
+    // This allows multiple retries if the first one fails
+
+    // Call the retry function which will re-upload the file
+    await retryFn()
+
+    // Reload media items after successful retry
+    await loadMediaItems()
+
+    toast.success('Upload retried', {
+      description: 'The file upload has been retried successfully.',
+    })
+  } catch (error) {
+    console.error('Failed to retry upload:', error)
+    // The error is already updated in the errors array by the retry function
+    toast.error('Retry failed', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while retrying the upload.',
+    })
+  }
 }
 
 const goBack = () => {
