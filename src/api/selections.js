@@ -386,6 +386,27 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Rename media by updating the filename
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   * @param {string} filename - New filename
+   */
+  const renameMedia = async (selectionId, setId, mediaId, filename) => {
+    try {
+      const response = await apiClient.patch(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/rename`,
+        {
+          filename,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Move media items to a different set
    * @param {string} selectionId - Selection ID
    * @param {string} setId - Source set ID
@@ -635,6 +656,7 @@ export function useSelectionsApi() {
     fetchSetMedia,
     uploadMediaToSet,
     deleteMedia,
+    renameMedia,
     moveMediaToSet,
     copyMediaToSet,
     addMediaFeedback,

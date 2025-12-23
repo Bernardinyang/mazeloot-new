@@ -12,16 +12,18 @@
         <Input
           :model-value="props.newMediaName"
           :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+          :disabled="props.isRenaming"
           class="w-full"
           placeholder="Enter media name"
           @update:model-value="emit('update:newMediaName', $event)"
-          @keydown.enter="emit('confirm')"
+          @keydown.enter="!props.isRenaming && emit('confirm')"
         />
       </div>
     </div>
     <template #footer>
       <ActionButtonGroup
-        :disabled="!props.newMediaName.trim()"
+        :disabled="!props.newMediaName.trim() || props.isRenaming"
+        :loading="props.isRenaming"
         cancel-label="Cancel"
         confirm-label="Rename"
         @cancel="emit('cancel')"
@@ -42,6 +44,7 @@ const theme = useThemeClasses()
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
   newMediaName: { type: String, required: true },
+  isRenaming: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:modelValue', 'update:newMediaName', 'cancel', 'confirm'])

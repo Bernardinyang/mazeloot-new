@@ -287,6 +287,7 @@
       <RenameMediaModal
         v-model="showRenameMediaModal"
         v-model:new-media-name="newMediaName"
+        :is-renaming="isRenamingMedia"
         @cancel="handleCancelRenameMedia"
         @confirm="handleConfirmRenameMedia"
       />
@@ -459,6 +460,7 @@ const existingTags = ref([])
 const showRenameMediaModal = ref(false)
 const mediaToRename = ref(null)
 const newMediaName = ref('')
+const isRenamingMedia = ref(false)
 const showReplacePhotoModal = ref(false)
 const mediaToReplace = ref(null)
 const isReplacingPhoto = ref(false)
@@ -1064,18 +1066,104 @@ const watermarks = ref([])
 
 const handleRenameMedia = item => {
   mediaToRename.value = item
-  newMediaName.value = item.title || item.name || ''
+  // Use filename from file relationship, with fallbacks
+  const fullFilename = item.file?.filename || item.filename || item.title || item.name || ''
+  // Extract just the name without extension for editing
+  const extension = fullFilename ? fullFilename.split('.').pop() : ''
+  const hasExtension = fullFilename.includes('.') && extension && extension.length < 10 // Heuristic: extension is short
+  newMediaName.value = hasExtension
+    ? fullFilename.substring(0, fullFilename.lastIndexOf('.'))
+    : fullFilename
   showRenameMediaModal.value = true
 }
 
 const handleCancelRenameMedia = () => {
   showRenameMediaModal.value = false
   mediaToRename.value = null
+  newMediaName.value = ''
 }
 
-const handleConfirmRenameMedia = () => {
-  showRenameMediaModal.value = false
-  mediaToRename.value = null
+const handleConfirmRenameMedia = async () => {
+  if (
+    !mediaToRename.value ||
+    !newMediaName.value.trim() ||
+    !selection.value?.id ||
+    !selectedSetId.value ||
+    isRenamingMedia.value
+  ) {
+    return
+  }
+
+  const trimmedName = newMediaName.value.trim()
+  const originalFilename = mediaToRename.value.file?.filename || mediaToRename.value.filename || ''
+
+  // Extract original extension
+  const originalExtension = originalFilename.includes('.')
+    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
+    : ''
+
+  // Remove any extension the user might have added
+  let finalFilename = trimmedName
+  if (trimmedName.includes('.')) {
+    const userExtension = trimmedName.substring(trimmedName.lastIndexOf('.'))
+    // If user added an extension, remove it (backend will preserve original)
+    if (userExtension.length < 10) {
+      // Heuristic: likely an extension
+      finalFilename = trimmedName.substring(0, trimmedName.lastIndexOf('.'))
+    }
+  }
+
+  // Add back the original extension if it existed
+  if (originalExtension) {
+    finalFilename = finalFilename + originalExtension
+  }
+
+  // Don't make API call if filename hasn't changed
+  if (finalFilename === originalFilename) {
+    handleCancelRenameMedia()
+    return
+  }
+
+  isRenamingMedia.value = true
+
+  try {
+    const result = await selectionsApi.renameMedia(
+      selection.value.id,
+      selectedSetId.value,
+      mediaToRename.value.id,
+      finalFilename
+    )
+
+    // Update local media item with the actual returned filename (backend preserves extension)
+    const updatedFilename = result?.data?.filename || result?.filename || finalFilename
+    const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
+    if (index !== -1) {
+      // Update the file filename in the local item
+      if (mediaItems.value[index].file) {
+        mediaItems.value[index].file.filename = updatedFilename
+      } else {
+        mediaItems.value[index].file = { filename: updatedFilename }
+      }
+      // Also update top-level filename for backward compatibility
+      mediaItems.value[index].filename = updatedFilename
+      // Force reactivity
+      mediaItems.value = [...mediaItems.value]
+    }
+
+    toast.success('Media renamed', {
+      description: 'The filename has been updated successfully.',
+    })
+
+    handleCancelRenameMedia()
+  } catch (error) {
+    console.error('Failed to rename media:', error)
+    toast.error('Failed to rename media', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while renaming the media.',
+    })
+  } finally {
+    isRenamingMedia.value = false
+  }
 }
 
 const handleDeleteMedia = item => {
