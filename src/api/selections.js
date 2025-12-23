@@ -407,6 +407,27 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Replace media file by updating the user_file_uuid
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   * @param {string} userFileUuid - New UserFile UUID
+   */
+  const replaceMedia = async (selectionId, setId, mediaId, userFileUuid) => {
+    try {
+      const response = await apiClient.patch(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/replace`,
+        {
+          user_file_uuid: userFileUuid,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Move media items to a different set
    * @param {string} selectionId - Selection ID
    * @param {string} setId - Source set ID
@@ -657,6 +678,7 @@ export function useSelectionsApi() {
     uploadMediaToSet,
     deleteMedia,
     renameMedia,
+    replaceMedia,
     moveMediaToSet,
     copyMediaToSet,
     addMediaFeedback,

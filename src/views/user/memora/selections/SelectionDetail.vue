@@ -392,6 +392,7 @@ import { FolderPlus, Plus } from 'lucide-vue-next'
 import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
 import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { useSelectionsApi } from '@/api/selections'
+import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
@@ -1185,8 +1186,80 @@ const handleCancelReplacePhoto = () => {
   mediaToReplace.value = null
 }
 
-const handleReplacePhotoFileSelect = () => {
-  // UI only
+const handleReplacePhotoFileSelect = async event => {
+  const input = event.target
+  const files = input.files
+  if (!files || files.length === 0 || !mediaToReplace.value) return
+
+  const file = files[0]
+  if (!file.type.startsWith('image/')) {
+    toast.error('Invalid file type', {
+      description: 'Please select an image file.',
+    })
+    return
+  }
+
+  if (!selection.value?.id || !selectedSetId.value) {
+    toast.error('Invalid context', {
+      description: 'Selection or set not found.',
+    })
+    return
+  }
+
+  isReplacingPhoto.value = true
+
+  try {
+    // Upload the new file first (use image upload endpoint for images to get variants)
+    const isImage = file.type.startsWith('image/')
+    const uploadEndpoint = isImage ? '/v1/images/upload' : '/v1/uploads'
+
+    const uploadResponse = await apiClient.upload(uploadEndpoint, file, {
+      purpose: 'memora-media',
+    })
+
+    // Extract userFileUuid from response (could be in data.userFileUuid or data.data.userFileUuid)
+    const userFileUuid =
+      uploadResponse.data?.userFileUuid || uploadResponse.data?.data?.userFileUuid
+
+    if (!userFileUuid) {
+      throw new Error('Upload response missing userFileUuid')
+    }
+
+    // Replace the media with the new file
+    const result = await selectionsApi.replaceMedia(
+      selection.value.id,
+      selectedSetId.value,
+      mediaToReplace.value.id,
+      userFileUuid
+    )
+
+    // Update local media item
+    const index = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
+    if (index !== -1) {
+      // Replace the entire media item with the updated one from the response
+      const updatedMedia = result?.data || result
+      if (updatedMedia) {
+        mediaItems.value[index] = updatedMedia
+        // Force reactivity
+        mediaItems.value = [...mediaItems.value]
+      }
+    }
+
+    toast.success('Photo replaced', {
+      description: 'The photo has been replaced successfully.',
+    })
+
+    showReplacePhotoModal.value = false
+    mediaToReplace.value = null
+  } catch (error) {
+    console.error('Failed to replace photo:', error)
+    toast.error('Failed to replace photo', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while replacing the photo.',
+    })
+  } finally {
+    isReplacingPhoto.value = false
+  }
 }
 
 const handleWatermarkMedia = item => {
