@@ -6,6 +6,8 @@
  *   toast.success('Message')
  *   toast.success('Message', { duration: 5000 })
  *   toast.success('', { description: 'Message' }) // Legacy format supported
+ *   toast.loading('Uploading...', { id: 'upload-toast' })
+ *   toast.loading('Uploading...', { id: 'upload-toast', progress: 50 })
  */
 import { toast as sonnerToast } from 'vue-sonner'
 
@@ -55,5 +57,23 @@ export const toast = {
       ...options,
       description: message,
     })
+  },
+
+  loading: (title, options = {}) => {
+    const message = getMessage(title, options)
+    const { progress, ...restOptions } = options
+    return sonnerToast.loading('', {
+      ...restOptions,
+      description: message,
+      ...(progress !== undefined && { progress }),
+    })
+  },
+
+  promise: (promise, options = {}) => {
+    return sonnerToast.promise(promise, options)
+  },
+
+  dismiss: id => {
+    return sonnerToast.dismiss(id)
   },
 }

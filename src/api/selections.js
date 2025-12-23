@@ -6,6 +6,7 @@
 
 import { apiClient } from '@/api/client'
 import { parseError } from '@/utils/errors'
+import { API_CONFIG } from '@/api/config'
 
 export function useSelectionsApi() {
   /**
@@ -331,24 +332,17 @@ export function useSelectionsApi() {
 
   /**
    * Upload media to a set
+   * Only requires user_file_uuid - all metadata comes from UserFile relationship
    */
   const uploadMediaToSet = async (selectionId, setId, data) => {
     try {
+      // Only send user_file_uuid - backend will get all metadata from UserFile
       const payload = {
-        filename: data.filename,
-        mimeType: data.mimeType,
-        size: data.size,
-        type: data.type || 'image',
-        width: data.width || null,
-        height: data.height || null,
-        thumbnail: data.thumbnail || null,
+        user_file_uuid: data.userFileUuid || data.user_file_uuid,
       }
 
-      // Prefer userFileUuid if available, otherwise use uploadUrl
-      if (data.userFileUuid) {
-        payload.userFileUuid = data.userFileUuid
-      } else {
-        payload.uploadUrl = data.uploadUrl
+      if (!payload.user_file_uuid) {
+        throw new Error('user_file_uuid is required')
       }
 
       const response = await apiClient.post(
@@ -371,6 +365,75 @@ export function useSelectionsApi() {
       )
       return response.data
     } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Download media file by UUID
+   * Returns a blob that can be downloaded
+   */
+  const downloadMedia = async mediaUuid => {
+    try {
+      const endpoint = `/v1/selections/media/${mediaUuid}/download`
+      const url = endpoint.startsWith('http') ? endpoint : `${API_CONFIG.API_BASE_URL}${endpoint}`
+      const authHeader = apiClient.getAuthHeader()
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: authHeader || '',
+        },
+      })
+
+      if (!response.ok) {
+        // Try to parse error as JSON, fallback to text
+        let errorData = {}
+        try {
+          const contentType = response.headers.get('content-type')
+          if (contentType?.includes('application/json')) {
+            errorData = await response.json()
+          } else {
+            const text = await response.text()
+            errorData = { message: text || `Download failed with status ${response.status}` }
+          }
+        } catch {
+          errorData = { message: `Download failed with status ${response.status}` }
+        }
+
+        throw {
+          message:
+            errorData.message ||
+            errorData.error ||
+            `Download failed with status ${response.status}`,
+          code: errorData.code,
+          status: response.status,
+        }
+      }
+
+      // Get filename from Content-Disposition header if available
+      const contentDisposition = response.headers.get('Content-Disposition')
+      let filename = `media-${mediaUuid}`
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/)
+        if (filenameMatch && filenameMatch[1]) {
+          filename = filenameMatch[1].replace(/['"]/g, '')
+          // Decode URI if needed
+          try {
+            filename = decodeURIComponent(filename)
+          } catch {
+            // Keep original if decode fails
+          }
+        }
+      }
+
+      const blob = await response.blob()
+      return { blob, filename }
+    } catch (error) {
+      // If it's already a parsed error, re-throw it
+      if (error.status !== undefined || error.code) {
+        throw error
+      }
       throw parseError(error)
     }
   }
@@ -512,6 +575,7 @@ export function useSelectionsApi() {
     uploadMediaToSet,
     deleteMedia,
     addMediaFeedback,
+    downloadMedia,
 
     // Guest Access
     generateGuestToken,

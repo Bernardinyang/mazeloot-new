@@ -65,7 +65,7 @@ export function useMediaUploadFlow({
       duplicateFiles.value = duplicates
       filesToUpload.value = newFiles
       duplicateFileActions.value = new Map()
-      // Default action
+      // Default action: skip
       duplicates.forEach(({ file }) => {
         duplicateFileActions.value.set(file.name, 'skip')
       })

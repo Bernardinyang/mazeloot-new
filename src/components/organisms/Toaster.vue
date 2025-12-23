@@ -1,5 +1,5 @@
 <template>
-  <Toaster position="top-right" richColors :theme="toastTheme" closeButton />
+  <Toaster position="bottom-right" richColors :theme="toastTheme" closeButton />
 </template>
 
 <script setup>

@@ -57,7 +57,13 @@
           >
             <img
               :alt="photo.title || 'Photo'"
-              :src="photo.thumbnail || photo.url"
+              :src="
+                photo.thumbnailUrl ||
+                photo.thumbnail ||
+                photo.largeImageUrl ||
+                photo.file?.url ||
+                photo.url
+              "
               class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
               loading="lazy"
             />
@@ -167,7 +173,13 @@
           >
             <img
               :alt="photo.title || 'Photo'"
-              :src="photo.thumbnail || photo.url"
+              :src="
+                photo.thumbnailUrl ||
+                photo.thumbnail ||
+                photo.largeImageUrl ||
+                photo.file?.url ||
+                photo.url
+              "
               class="w-16 h-16 rounded object-cover flex-shrink-0"
               loading="lazy"
             />
@@ -242,10 +254,11 @@
     </div>
 
     <!-- Photo Viewer Modal -->
-    <PhotoViewer
+    <MediaLightbox
       v-model="showPhotoViewer"
       :initial-index="selectedPhotoIndex"
-      :photos="sortedPhotos"
+      :items="sortedPhotos"
+      :placeholder-image="'/placeholder-image.png'"
       @download="handleDownloadPhoto"
     />
   </DashboardLayout>
@@ -268,7 +281,7 @@ import { useCollectionSort } from '@/composables/useCollectionSort'
 import { PHOTO_SORT_OPTIONS } from '@/constants/sortOptions'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
-import PhotoViewer from '@/components/organisms/PhotoViewer.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import { toast } from '@/utils/toast'
 
 const router = useRouter()
@@ -348,9 +361,9 @@ const handleViewCollection = photo => {
 
 const handleDownloadPhoto = async photo => {
   try {
-    // TODO
     const link = document.createElement('a')
-    link.href = photo.url || photo.thumbnail
+    link.href =
+      photo.largeImageUrl || photo.file?.url || photo.url || photo.thumbnailUrl || photo.thumbnail
     link.download = photo.title || 'photo.jpg'
     link.target = '_blank'
     document.body.appendChild(link)

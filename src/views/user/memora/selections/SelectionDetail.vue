@@ -106,8 +106,8 @@
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
                 @open-viewer="openMediaViewer(item)"
+                @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
-                @quick-share="handleQuickShare(item)"
                 @move-copy="handleMoveCopy(item)"
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
@@ -131,8 +131,8 @@
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
                 @open-viewer="openMediaViewer(item)"
+                @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
-                @quick-share="handleQuickShare(item)"
                 @move-copy="handleMoveCopy(item)"
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
@@ -257,17 +257,16 @@
       />
 
       <DuplicateFilesModal
+        :key="duplicateFileActionsKey"
         v-model="showDuplicateFilesModal"
-        :duplicate-file-actions="duplicateFileActions"
+        :duplicate-file-actions="duplicateFileActionsObject"
         :duplicate-files="duplicateFiles"
         :is-uploading="isUploading"
         @cancel="handleCancelDuplicateFiles"
-        @confirm="handleConfirmDuplicateFiles(selectedSetId)"
-        @set-action="duplicateFileActions.set($event[0], $event[1])"
-        @replace-all="
-          duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
-        "
-        @skip-all="duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))"
+        @confirm="handleConfirmDuplicateFiles"
+        @set-action="handleSetDuplicateAction"
+        @replace-all="handleReplaceAllDuplicates"
+        @skip-all="handleSkipAllDuplicates"
       />
 
       <UploadProgressBar
@@ -308,24 +307,29 @@
         @confirm="handleConfirmWatermarkMedia"
       />
 
-      <!-- Media Viewer Modal (Single) -->
-      <MediaViewerSingle
-        v-if="selectedMedia && !showMediaViewer"
-        :media="selectedMedia"
+      <!-- Media Lightbox -->
+      <MediaLightbox
+        v-model="showMediaViewer"
+        :items="
+          selectedMediaForView.length > 0
+            ? selectedMediaForView
+            : selectedMedia
+              ? [selectedMedia]
+              : []
+        "
+        :initial-index="currentViewIndex"
         :placeholder-image="placeholderImage"
         @close="closeMediaViewer"
+        @download="handleDownloadMedia"
         @image-error="handleImageError"
       />
 
-      <!-- Media Viewer Slideshow (Multiple) -->
-      <MediaViewerSlideshow
-        v-if="showMediaViewer && selectedMediaForView.length > 0"
-        :current-index="currentViewIndex"
-        :items="selectedMediaForView"
+      <MediaDetailSidebar
+        v-model="showMediaDetailSidebar"
+        :media="selectedMediaForDetails"
         :placeholder-image="placeholderImage"
-        @close="closeMediaViewer"
-        @navigate="navigateSlideshow"
-        @image-error="handleImageError"
+        @view="openMediaViewer"
+        @download="handleDownloadMedia"
       />
     </template>
   </SelectionLayout>
@@ -342,6 +346,7 @@ import MediaItemsHeaderBar from '@/components/organisms/MediaItemsHeaderBar.vue'
 import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
 import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
 import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
+import MediaDetailSidebar from '@/components/organisms/MediaDetailSidebar.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
 import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
@@ -353,8 +358,7 @@ import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
 import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
-import MediaViewerSingle from '@/components/organisms/MediaViewerSingle.vue'
-import MediaViewerSlideshow from '@/components/organisms/MediaViewerSlideshow.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -409,6 +413,8 @@ const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
 const showMediaViewer = ref(false)
+const showMediaDetailSidebar = ref(false)
+const selectedMediaForDetails = ref(null)
 const showBulkDeleteModal = ref(false)
 const showEditModal = ref(false)
 const showTagModal = ref(false)
@@ -520,9 +526,13 @@ const loadMediaItems = async () => {
 
   isLoadingMedia.value = true
   try {
-    const setMedia = await selectionsApi.fetchSetMedia(selection.value.id, selectedSetId.value, {
-      sortBy: sortOrder.value,
-    })
+    // Always include sortBy if it exists, otherwise omit it (backend will use default)
+    const params = sortOrder.value ? { sortBy: sortOrder.value } : {}
+    const setMedia = await selectionsApi.fetchSetMedia(
+      selection.value.id,
+      selectedSetId.value,
+      params
+    )
     // Update media items for the selected set
     const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
     const currentSetMedia = Array.isArray(setMedia)
@@ -542,10 +552,14 @@ const {
   uploadMediaToSet,
   handleConfirmDuplicateFiles: confirmDuplicateFiles,
   handleCancelDuplicateFiles: cancelDuplicateFiles,
+  handleSetDuplicateAction: setDuplicateAction,
+  handleReplaceAllDuplicates: replaceAllDuplicates,
+  handleSkipAllDuplicates: skipAllDuplicates,
   isUploading: isUploadingFromWorkflow,
   showDuplicateFilesModal: showDuplicateModal,
   duplicateFiles: duplicateFilesFromWorkflow,
   duplicateFileActions: duplicateFileActionsFromWorkflow,
+  duplicateFileActionsObject: duplicateFileActionsObjectFromWorkflow,
 } = useSelectionWorkflow({
   selectionId: () => selection.value?.id,
   loadMediaItems,
@@ -555,6 +569,14 @@ const {
 // Update isUploading ref to match workflow
 watch(isUploadingFromWorkflow, val => {
   isUploading.value = val
+  // Set flag when upload completes to prevent watch from triggering
+  if (!val) {
+    justUploaded.value = true
+    // Clear flag after a delay to allow loadMediaItems from uploadMediaToSet to complete
+    setTimeout(() => {
+      justUploaded.value = false
+    }, 500)
+  }
 })
 
 // Update duplicate files modal state
@@ -571,10 +593,17 @@ watch(duplicateFileActionsFromWorkflow, val => {
 })
 
 // Watch for selectedSetId changes to load media
+// Skip if upload is in progress or just completed to avoid duplicate calls
 watch(
   selectedSetId,
   () => {
-    if (selection.value?.id && selectedSetId.value) {
+    if (
+      selection.value?.id &&
+      selectedSetId.value &&
+      !isUploading.value &&
+      !isLoadingMedia.value &&
+      !justUploaded.value
+    ) {
       loadMediaItems()
     }
   },
@@ -595,18 +624,25 @@ const sortedMediaItems = computed(() => filteredMediaItems.value)
 // No handlers needed - state is managed internally by MediaItemsHeaderBar and accessed via inject
 
 const openMediaViewer = item => {
-  selectedMedia.value = item
-  selectedMediaForView.value = [item]
-  currentViewIndex.value = 0
+  // Find the index of the item in the sorted media items
+  const index = sortedMediaItems.value.findIndex(m => m.id === item.id)
+
+  // Set all media items for lightbox navigation
+  selectedMediaForView.value = sortedMediaItems.value
+  currentViewIndex.value = index >= 0 ? index : 0
   showMediaViewer.value = true
 }
 
 const closeMediaViewer = () => {
   showMediaViewer.value = false
+  selectedMedia.value = null
+  selectedMediaForView.value = []
+  currentViewIndex.value = 0
 }
 
-const navigateSlideshow = direction => {
-  // UI only - no functionality
+const handleViewDetails = item => {
+  selectedMediaForDetails.value = item
+  showMediaDetailSidebar.value = true
 }
 
 // UI-only handlers - no functionality
@@ -614,12 +650,42 @@ const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
-const handleQuickShare = () => {
-  // UI only
-}
+const handleDownloadMedia = async item => {
+  if (!item?.id) {
+    toast.error('Media not found', {
+      description: 'Unable to download media. Please try again.',
+    })
+    return
+  }
 
-const handleDownloadMedia = () => {
-  // UI only
+  try {
+    toast.loading('Preparing download...', {
+      id: 'download-media',
+    })
+
+    const { blob, filename } = await selectionsApi.downloadMedia(item.id)
+
+    // Trigger browser download
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = filename
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+
+    toast.dismiss('download-media')
+    toast.success('Download started', {
+      description: `Downloading ${filename}`,
+    })
+  } catch (error) {
+    toast.dismiss('download-media')
+    console.error('Download error:', error)
+    toast.error('Download failed', {
+      description: error.message || 'Unable to download media. Please try again.',
+    })
+  }
 }
 
 const handleCopyFilenames = () => {
@@ -826,6 +892,18 @@ const handleCancelDuplicateFiles = () => {
   cancelDuplicateFiles()
 }
 
+const handleSetDuplicateAction = (fileName, action) => {
+  setDuplicateAction(fileName, action)
+}
+
+const handleReplaceAllDuplicates = () => {
+  replaceAllDuplicates()
+}
+
+const handleSkipAllDuplicates = () => {
+  skipAllDuplicates()
+}
+
 const cancelUpload = () => {
   showUploadProgress.value = false
 }
@@ -837,7 +915,29 @@ const isUploading = ref(false)
 const showDuplicateFilesModal = ref(false)
 const duplicateFiles = ref([])
 const duplicateFileActions = ref({})
+const duplicateFileActionsObject = ref({})
 const isProcessingFiles = ref(false)
+const justUploaded = ref(false) // Flag to prevent watch from triggering immediately after upload
+
+// Watch the reactive object and sync properties - use immediate and deep watch
+watch(
+  () => duplicateFileActionsObjectFromWorkflow,
+  newVal => {
+    if (newVal && typeof newVal === 'object') {
+      // Create a new object to trigger reactivity
+      const updated = { ...newVal }
+      // Remove properties that no longer exist
+      Object.keys(duplicateFileActionsObject.value).forEach(key => {
+        if (!(key in updated)) {
+          delete duplicateFileActionsObject.value[key]
+        }
+      })
+      // Update with new values - assign to trigger reactivity
+      Object.assign(duplicateFileActionsObject.value, updated)
+    }
+  },
+  { deep: true, immediate: true }
+)
 
 const handleFileSelect = async event => {
   console.log('[handleFileSelect] File input changed', {

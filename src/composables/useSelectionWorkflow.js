@@ -18,12 +18,49 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
     return await selectionsApi.uploadMediaToSet(contextId, setId, mediaData)
   }
 
+  // Create delete function for selections
+  // Supports both signatures: (mediaId) or (selectionId, setId, mediaId)
+  const deleteMediaFn = async (selectionIdOrMediaId, setId, mediaId) => {
+    let selectionIdValue
+    let setIdValue
+    let mediaIdValue
+
+    // Determine which signature is being used
+    if (mediaId !== undefined) {
+      // Signature: (selectionId, setId, mediaId)
+      selectionIdValue = selectionIdOrMediaId
+      setIdValue = setId
+      mediaIdValue = mediaId
+    } else {
+      // Signature: (mediaId) - need to find selectionId and setId from existingMedia
+      mediaIdValue = selectionIdOrMediaId
+      selectionIdValue = getSelectionId()
+      if (!selectionIdValue) {
+        throw new Error('Selection ID is required')
+      }
+      // Try to find the setId from existingMedia
+      const existingMediaList =
+        typeof existingMedia === 'function' ? existingMedia() : existingMedia
+      const media = Array.isArray(existingMediaList)
+        ? existingMediaList.find(m => m.id === mediaIdValue)
+        : null
+      if (media && media.setId) {
+        setIdValue = media.setId
+      } else {
+        throw new Error('Set ID is required to delete media')
+      }
+    }
+
+    return await selectionsApi.deleteMedia(selectionIdValue, setIdValue, mediaIdValue)
+  }
+
   // Use generic media upload composable
   const mediaUpload = useMediaUpload({
     uploadMediaFn,
     contextId: selectionId,
     existingMedia,
     loadMediaItems,
+    deleteMediaFn,
   })
 
   // Helper to get selectionId value (handles refs, computed, functions, and plain values)
@@ -164,6 +201,9 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
     processFiles: mediaUpload.processFiles,
     handleConfirmDuplicateFiles: mediaUpload.handleConfirmDuplicateFiles,
     handleCancelDuplicateFiles: mediaUpload.handleCancelDuplicateFiles,
+    handleSetDuplicateAction: mediaUpload.handleSetDuplicateAction,
+    handleReplaceAllDuplicates: mediaUpload.handleReplaceAllDuplicates,
+    handleSkipAllDuplicates: mediaUpload.handleSkipAllDuplicates,
     cancelUpload: mediaUpload.cancelUpload,
 
     // State (from generic composable)
@@ -174,6 +214,8 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
     showDuplicateFilesModal: mediaUpload.showDuplicateFilesModal,
     duplicateFiles: mediaUpload.duplicateFiles,
     duplicateFileActions: mediaUpload.duplicateFileActions,
+    duplicateFileActionsObject: mediaUpload.duplicateFileActionsObject,
+    duplicateFileActionsKey: mediaUpload.duplicateFileActionsKey,
 
     // Selection-specific functions
     completeSelection,

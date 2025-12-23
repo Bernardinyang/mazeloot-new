@@ -293,23 +293,20 @@
         @update:target-set-id="targetSetIdInCollection = $event"
       />
 
-      <!-- Media Viewer Modal (Single) -->
-      <MediaViewerSingle
-        v-if="selectedMedia && !showMediaViewer"
-        :media="selectedMedia"
+      <!-- Media Lightbox -->
+      <MediaLightbox
+        v-model="showMediaViewer"
+        :items="
+          selectedMediaForView.length > 0
+            ? selectedMediaForView
+            : selectedMedia
+              ? [selectedMedia]
+              : []
+        "
+        :initial-index="currentViewIndex"
         :placeholder-image="placeholderImage"
         @close="closeMediaViewer"
-        @image-error="handleImageError"
-      />
-
-      <!-- Media Viewer Slideshow (Multiple) -->
-      <MediaViewerSlideshow
-        v-if="showMediaViewer && selectedMediaForView.length > 0"
-        :current-index="currentViewIndex"
-        :items="selectedMediaForView"
-        :placeholder-image="placeholderImage"
-        @close="closeMediaViewer"
-        @navigate="navigateSlideshow"
+        @download="handleDownloadMedia"
         @image-error="handleImageError"
       />
     </template>
@@ -344,8 +341,7 @@ import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
-import MediaViewerSingle from '@/components/organisms/MediaViewerSingle.vue'
-import MediaViewerSlideshow from '@/components/organisms/MediaViewerSlideshow.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import { fileToDataURL } from '@/utils/fileToDataURL'
 import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
 import { createThumbnail } from '@/utils/media/createThumbnail'
@@ -569,12 +565,23 @@ const { handleSortChange, handleGridSizeChange, handleFilenameToggle } = useMedi
   showFilename,
 })
 
-const { openMediaViewer, closeMediaViewer, navigateSlideshow } = useMediaViewerFlow({
+const { closeMediaViewer } = useMediaViewerFlow({
   selectedMedia,
   selectedMediaForView,
   currentViewIndex,
   showMediaViewer,
 })
+
+// Override openMediaViewer to work with lightbox
+const openMediaViewer = item => {
+  // Find the index of the item in the sorted media items
+  const index = sortedMediaItems.value.findIndex(m => m.id === item.id)
+
+  // Set all media items for lightbox navigation
+  selectedMediaForView.value = sortedMediaItems.value
+  currentViewIndex.value = index >= 0 ? index : 0
+  showMediaViewer.value = true
+}
 
 const { updateSetCounts, loadMediaItems } = useCollectionMediaItemsFlow({
   collection,
@@ -593,7 +600,7 @@ const { updateSetCounts, loadMediaItems } = useCollectionMediaItemsFlow({
 watch(
   () => selectedSetId.value,
   async () => {
-    // Clear the previous set’s media immediately to avoid showing stale items.
+    // Clear the previous set's media immediately to avoid showing stale items.
     mediaItems.value = []
     await loadMediaItems()
   }

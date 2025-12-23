@@ -37,7 +37,7 @@
  * })
  */
 
-import { ref } from 'vue'
+import { ref, reactive } from 'vue'
 import { toast } from '@/utils/toast'
 import { apiClient } from '@/api/client'
 import { validateUploadFile } from '@/utils/media/validateUploadFile'
@@ -52,6 +52,7 @@ import { getErrorMessage } from '@/utils/errors'
  * @param {function|ref|string} options.setId - Set ID (optional, can be provided per upload)
  * @param {function|ref|Array} options.existingMedia - Array of existing media for duplicate checking
  * @param {function} options.loadMediaItems - Function to reload media after upload
+ * @param {function} options.deleteMediaFn - Function to delete existing media when replacing: (mediaId) => Promise
  * @param {object} options.validationOptions - Validation options (maxSize, allowedTypes, dimensions)
  * @param {number} options.batchSize - Number of concurrent uploads (default: 3)
  * @param {number} options.maxRetries - Maximum retry attempts (default: 3)
@@ -63,6 +64,7 @@ export function useMediaUpload(options = {}) {
     setId: defaultSetId,
     existingMedia = [],
     loadMediaItems,
+    deleteMediaFn,
     validationOptions = {},
     batchSize = 3,
     maxRetries = 3,
@@ -77,6 +79,9 @@ export function useMediaUpload(options = {}) {
   const showDuplicateFilesModal = ref(false)
   const duplicateFiles = ref([])
   const duplicateFileActions = ref(new Map())
+  const duplicateFileActionsObject = reactive({}) // Reactive object for template binding
+  const duplicateFileActionsKey = ref(0) // Key to force reactivity updates
+  const newFilesFromProcess = ref([]) // Store new files from processFiles for use in confirmation
 
   // Track active upload batches to prevent duplicates
   const activeUploadBatches = ref(new Set()) // Set of batch IDs
@@ -187,14 +192,21 @@ export function useMediaUpload(options = {}) {
     if (duplicates.length > 0) {
       duplicateFiles.value = duplicates
       duplicateFileActions.value = new Map()
+      // Reset reactive object by clearing all properties
+      Object.keys(duplicateFileActionsObject).forEach(key => {
+        delete duplicateFileActionsObject[key]
+      })
+      newFilesFromProcess.value = newFiles // Store new files for later use
       // Default action: skip
       duplicates.forEach(({ file }) => {
         duplicateFileActions.value.set(file.name, 'skip')
+        duplicateFileActionsObject[file.name] = 'skip' // Also set in reactive object
       })
       showDuplicateFilesModal.value = true
       return { hasDuplicates: true, filesToUpload: newFiles }
     }
 
+    newFilesFromProcess.value = newFiles
     return { hasDuplicates: false, filesToUpload: newFiles }
   }
 
@@ -205,22 +217,108 @@ export function useMediaUpload(options = {}) {
     showDuplicateFilesModal.value = false
 
     const filesToProcess = []
+    const mediaToDelete = []
 
-    for (const { file } of duplicateFiles.value) {
+    // Collect files to replace and media to delete
+    for (const { file, existingMedia: existingMediaItem } of duplicateFiles.value) {
       const action = duplicateFileActions.value.get(file.name) || 'skip'
+      console.log('[handleConfirmDuplicateFiles] File:', file.name, 'Action:', action)
+
       if (action === 'replace') {
         filesToProcess.push(file)
-        // Note: Existing media deletion would need to be handled by the specific context
+        // Collect existing media to delete
+        if (existingMediaItem && existingMediaItem.id) {
+          mediaToDelete.push(existingMediaItem.id)
+        }
       }
     }
 
-    if (filesToProcess.length > 0) {
-      await uploadMediaToSet(filesToProcess, setId)
+    console.log('[handleConfirmDuplicateFiles] Files to process:', filesToProcess.length)
+    console.log('[handleConfirmDuplicateFiles] Media to delete:', mediaToDelete.length)
+
+    // Delete existing media before uploading replacements
+    if (mediaToDelete.length > 0 && deleteMediaFn) {
+      try {
+        const contextIdValue = getContextId()
+        const setIdValue = getSetId(setId)
+
+        for (const mediaId of mediaToDelete) {
+          // deleteMediaFn can accept (mediaId) or (contextId, setId, mediaId)
+          if (deleteMediaFn.length === 1) {
+            await deleteMediaFn(mediaId)
+          } else if (deleteMediaFn.length === 3) {
+            await deleteMediaFn(contextIdValue, setIdValue, mediaId)
+          } else {
+            // Try to call with mediaId first, fallback to full signature
+            try {
+              await deleteMediaFn(mediaId)
+            } catch {
+              await deleteMediaFn(contextIdValue, setIdValue, mediaId)
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to delete existing media:', error)
+        toast.error('Failed to delete some existing media', {
+          description: 'Some files may not have been replaced. Please try again.',
+        })
+      }
+    }
+
+    // Combine new files (non-duplicates) with files to replace
+    const allFilesToUpload = [...newFilesFromProcess.value, ...filesToProcess]
+
+    if (allFilesToUpload.length > 0) {
+      // uploadMediaToSet already calls loadMediaItems() at the end, so no need to call it again here
+      await uploadMediaToSet(allFilesToUpload, setId)
     } else {
       toast.info('No files to upload', {
         description: 'All duplicate files were skipped.',
       })
     }
+
+    // Clear stored files
+    newFilesFromProcess.value = []
+    duplicateFiles.value = []
+    duplicateFileActions.value.clear()
+  }
+
+  /**
+   * Handle setting action for a specific duplicate file
+   */
+  const handleSetDuplicateAction = (fileName, action) => {
+    console.log('[handleSetDuplicateAction] Setting action for:', fileName, 'to:', action)
+    duplicateFileActions.value.set(fileName, action)
+    // Update reactive object directly - reactive() allows direct property assignment
+    duplicateFileActionsObject[fileName] = action
+    // Increment key to force reactivity
+    duplicateFileActionsKey.value++
+  }
+
+  /**
+   * Handle replace all duplicates
+   */
+  const handleReplaceAllDuplicates = () => {
+    console.log('[handleReplaceAllDuplicates] Replacing all duplicates')
+    duplicateFiles.value.forEach(({ file }) => {
+      duplicateFileActions.value.set(file.name, 'replace')
+      duplicateFileActionsObject[file.name] = 'replace'
+    })
+    // Increment key to force reactivity
+    duplicateFileActionsKey.value++
+  }
+
+  /**
+   * Handle skip all duplicates
+   */
+  const handleSkipAllDuplicates = () => {
+    console.log('[handleSkipAllDuplicates] Skipping all duplicates')
+    duplicateFiles.value.forEach(({ file }) => {
+      duplicateFileActions.value.set(file.name, 'skip')
+      duplicateFileActionsObject[file.name] = 'skip'
+    })
+    // Increment key to force reactivity
+    duplicateFileActionsKey.value++
   }
 
   /**
@@ -230,6 +328,11 @@ export function useMediaUpload(options = {}) {
     showDuplicateFilesModal.value = false
     duplicateFiles.value = []
     duplicateFileActions.value.clear()
+    // Clear reactive object
+    Object.keys(duplicateFileActionsObject).forEach(key => {
+      delete duplicateFileActionsObject[key]
+    })
+    newFilesFromProcess.value = []
   }
 
   /**
@@ -243,6 +346,8 @@ export function useMediaUpload(options = {}) {
     isUploading.value = false
     uploadProgress.value = {}
     overallProgress.value = 0
+    // Dismiss progress toast
+    toast.dismiss('upload-progress')
   }
 
   /**
@@ -327,10 +432,10 @@ export function useMediaUpload(options = {}) {
     // Determine media type
     const type = isImage ? 'image' : 'video'
 
-    // Prepare media data with extracted URL and userFileUuid
+    // Prepare media data with extracted URL and user_file_uuid
     const mediaData = {
-      userFileUuid: userFileUuid, // Pass user_file UUID to use stored URL
-      uploadUrl: imageUrl, // Fallback URL if userFileUuid not available
+      userFileUuid: userFileUuid, // Pass user_file UUID (will be converted to user_file_uuid by API)
+      uploadUrl: imageUrl, // Fallback URL if user_file_uuid not available
       filename: uploadResponse.originalFilename || file.name,
       mimeType: uploadResponse.mimeType || file.type,
       size: uploadResponse.size || file.size,
@@ -409,6 +514,24 @@ export function useMediaUpload(options = {}) {
     })
 
     overallProgress.value = totalSize > 0 ? Math.round((totalLoaded / totalSize) * 100) : 0
+
+    // Update progress toast if it exists
+    const toastId = 'upload-progress'
+    const completedCount = fileIds.filter(
+      fileId => uploadProgress.value[fileId]?.status === 'completed'
+    ).length
+    const totalCount = fileIds.length
+
+    if (isUploading.value && overallProgress.value >= 0) {
+      toast.loading(
+        `Uploading ${completedCount}/${totalCount} file${totalCount > 1 ? 's' : ''}... ${overallProgress.value}%`,
+        {
+          id: toastId,
+          progress: overallProgress.value,
+          duration: Infinity,
+        }
+      )
+    }
   }
 
   /**
@@ -481,6 +604,14 @@ export function useMediaUpload(options = {}) {
       uploadAbortController.value = new AbortController()
       activeUploadBatches.value.add(batchId)
 
+      // Show upload progress toast
+      const toastId = 'upload-progress'
+      const fileCount = files.length
+      toast.loading(`Uploading ${fileCount} file${fileCount > 1 ? 's' : ''}...`, {
+        id: toastId,
+        duration: Infinity, // Keep it open until we dismiss it
+      })
+
       console.log('[uploadMediaToSet] Starting upload for batch:', batchId)
 
       const fileArray = Array.from(files)
@@ -503,13 +634,18 @@ export function useMediaUpload(options = {}) {
         }
       })
 
-      // Validate files if not skipped
-      // Skip duplicate check since processFiles already handles duplicates
-      if (!skipValidation) {
-        const existingMediaList = getExistingMedia()
+      // Note: Duplicate checking is handled by processFiles before uploadMediaToSet is called
+      // This function assumes files have already been filtered for duplicates
+      const filteredFileArray = fileArray
 
-        for (let i = 0; i < fileArray.length; i++) {
-          const file = fileArray[i]
+      // Get existing media for validation (if needed)
+      const existingMediaList = getExistingMedia()
+
+      // Validate files if not skipped
+      // Skip duplicate check since we already handled duplicates above
+      if (!skipValidation) {
+        for (let i = 0; i < filteredFileArray.length; i++) {
+          const file = filteredFileArray[i]
           const fileId = getFileId(file, i)
 
           console.log(
@@ -574,21 +710,21 @@ export function useMediaUpload(options = {}) {
         }
       }
 
-      // Upload files in batches
-      const filesToUpload = fileArray.filter((file, index) => {
+      // Upload files in batches (use filtered array)
+      const filesToUploadBatch = filteredFileArray.filter((file, index) => {
         const fileId = getFileId(file, index)
         return uploadProgress.value[fileId]?.status !== 'failed'
       })
 
       console.log(
         '[uploadMediaToSet] Processing',
-        filesToUpload.length,
+        filesToUploadBatch.length,
         'files in batches of',
         batchSize
       )
 
-      for (let i = 0; i < filesToUpload.length; i += batchSize) {
-        const batch = filesToUpload.slice(i, i + batchSize)
+      for (let i = 0; i < filesToUploadBatch.length; i += batchSize) {
+        const batch = filesToUploadBatch.slice(i, i + batchSize)
         console.log(
           '[uploadMediaToSet] Processing batch',
           Math.floor(i / batchSize) + 1,
@@ -599,7 +735,7 @@ export function useMediaUpload(options = {}) {
         )
 
         const batchPromises = batch.map(async (file, batchIndex) => {
-          const originalIndex = fileArray.indexOf(file)
+          const originalIndex = filteredFileArray.indexOf(file)
           const fileId = getFileId(file, originalIndex)
 
           console.log(
@@ -654,9 +790,15 @@ export function useMediaUpload(options = {}) {
       }
 
       // Reload media items if any were successful
+      // Use nextTick to ensure this happens after any reactive updates
       if (results.successful.length > 0 && loadMediaItems) {
+        // Add a small delay to batch any potential duplicate calls
+        await new Promise(resolve => setTimeout(resolve, 100))
         await loadMediaItems()
       }
+
+      // Dismiss progress toast
+      toast.dismiss('upload-progress')
 
       // Show results
       if (results.successful.length > 0 && results.failed.length === 0) {
@@ -686,6 +828,9 @@ export function useMediaUpload(options = {}) {
       const errorMessage = getErrorMessage(error, 'Failed to upload media files')
       console.error('[uploadMediaToSet] Failed to upload media for batch:', batchId, error)
 
+      // Dismiss progress toast
+      toast.dismiss('upload-progress')
+
       // Don't show error if upload was cancelled
       if (error.name !== 'AbortError') {
         toast.error('Upload failed', {
@@ -707,6 +852,9 @@ export function useMediaUpload(options = {}) {
     processFiles,
     handleConfirmDuplicateFiles,
     handleCancelDuplicateFiles,
+    handleSetDuplicateAction,
+    handleReplaceAllDuplicates,
+    handleSkipAllDuplicates,
     cancelUpload,
 
     // State
@@ -717,5 +865,7 @@ export function useMediaUpload(options = {}) {
     showDuplicateFilesModal,
     duplicateFiles,
     duplicateFileActions,
+    duplicateFileActionsObject, // Reactive object for template binding
+    duplicateFileActionsKey, // Key to force reactivity updates
   }
 }

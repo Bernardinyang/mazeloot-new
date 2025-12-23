@@ -28,12 +28,11 @@
           <div class="flex items-center gap-2 ml-4">
             <button
               :class="[
-                props.duplicateFileActions.get(item.file.name) === 'replace'
+                duplicateFileActions[item.file.name] === 'replace'
                   ? 'bg-teal-500 text-white border-teal-500'
-                  : '',
-                theme.bgInput,
+                  : theme.bgInput,
                 theme.borderSecondary,
-                theme.textPrimary,
+                duplicateFileActions[item.file.name] === 'replace' ? '' : theme.textPrimary,
                 'hover:' + theme.bgButtonHover,
               ]"
               class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
@@ -43,12 +42,11 @@
             </button>
             <button
               :class="[
-                props.duplicateFileActions.get(item.file.name) === 'skip'
-                  ? 'bg-gray-500 text-white border-gray-500'
-                  : '',
-                theme.bgInput,
+                duplicateFileActions[item.file.name] === 'skip'
+                  ? 'bg-red-500 text-white border-red-500'
+                  : theme.bgInput,
                 theme.borderSecondary,
-                theme.textPrimary,
+                duplicateFileActions[item.file.name] === 'skip' ? '' : theme.textPrimary,
                 'hover:' + theme.bgButtonHover,
               ]"
               class="px-3 py-1.5 text-xs rounded-lg border transition-colors"
@@ -101,6 +99,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -110,7 +109,7 @@ const theme = useThemeClasses()
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
   duplicateFiles: { type: Array, required: true },
-  duplicateFileActions: { type: Object, required: true }, // Map
+  duplicateFileActions: { type: Object, required: true }, // Object with filename -> action mapping
   isUploading: { type: Boolean, required: true },
 })
 
@@ -122,4 +121,7 @@ const emit = defineEmits([
   'cancel',
   'confirm',
 ])
+
+// Use computed to ensure reactivity
+const duplicateFileActions = computed(() => props.duplicateFileActions)
 </script>

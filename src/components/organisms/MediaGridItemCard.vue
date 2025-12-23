@@ -22,15 +22,15 @@
       <div class="w-full h-full cursor-pointer" @click="emit('open-viewer')">
         <img
           :alt="props.item?.title || 'Media'"
-          :src="imageSrc"
           :class="[
             'w-full h-full object-cover transition-all duration-300 will-change-transform',
             isImageLoaded
               ? 'opacity-100 scale-100 group-hover:scale-110'
               : 'opacity-0 scale-[0.98]',
           ]"
-          @load="isImageLoaded = true"
+          :src="imageSrc"
           @error="emit('image-error', $event)"
+          @load="isImageLoaded = true"
         />
       </div>
 
@@ -68,13 +68,6 @@
             >
               <ExternalLink class="h-4 w-4 mr-2" />
               Open
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="emit('quick-share')"
-            >
-              <Share2 class="h-4 w-4 mr-2" />
-              Quick share link
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -152,17 +145,17 @@
 
     <!-- Filename below image -->
     <p
-      v-if="props.showFilename && props.item?.title"
+      v-if="props.showFilename && props.item?.file?.filename"
       :class="theme.textPrimary"
       class="text-xs font-medium truncate mt-2 text-center"
     >
-      {{ props.item.title }}
+      {{ props.item?.file?.filename }}
     </p>
   </div>
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   getMediaDisplayUrl,
   getMediaDisplayUrlSync,
@@ -178,7 +171,6 @@ import {
   MoreVertical,
   Move,
   Pencil,
-  Share2,
   Square,
   Trash2,
   X,
@@ -215,9 +207,26 @@ const props = defineProps({
 const imageSrc = ref(props.placeholderImage)
 const isImageLoaded = ref(false)
 
-// Initialize image source
+const getThumbnailUrl = () => {
+  const item = props.item
+  if (!item) return null
+
+  const mediaType = item.type || item.file?.type
+
+  if (item.thumbnailUrl) {
+    return item.thumbnailUrl
+  }
+
+  if (mediaType === 'image') {
+    return item.file?.url || null
+  } else if (mediaType === 'video') {
+    return item.file?.url || null
+  }
+
+  return item.file?.url || item.thumbnail || null
+}
 const updateImageSrc = async () => {
-  const url = props.item?.thumbnail || props.item?.url
+  const url = getThumbnailUrl()
   if (!url) {
     imageSrc.value = props.placeholderImage
     return
@@ -225,8 +234,6 @@ const updateImageSrc = async () => {
 
   try {
     const displayUrl = await getMediaDisplayUrl(url, props.placeholderImage)
-    // Always update with the result, even if it's the fallback
-    // This ensures blob URLs are set when available
     imageSrc.value = displayUrl || props.placeholderImage
   } catch (error) {
     console.error('Error updating image source:', error, 'URL:', url)
@@ -235,11 +242,9 @@ const updateImageSrc = async () => {
 }
 
 onMounted(() => {
-  // Set initial sync URL for immediate display
-  const url = props.item?.thumbnail || props.item?.url
+  const url = getThumbnailUrl()
   if (url) {
     imageSrc.value = getMediaDisplayUrlSync(url, props.placeholderImage)
-    // Then update with async blob URL if needed
     updateImageSrc()
   } else {
     imageSrc.value = props.placeholderImage
@@ -247,7 +252,7 @@ onMounted(() => {
 })
 
 watch(
-  () => [props.item?.thumbnail, props.item?.url],
+  () => [props.item?.thumbnailUrl, props.item?.file?.url, props.item?.type],
   () => {
     isImageLoaded.value = false
     updateImageSrc()
@@ -255,7 +260,6 @@ watch(
 )
 
 onUnmounted(() => {
-  // Cleanup blob URLs
   if (imageSrc.value && imageSrc.value.startsWith('blob:')) {
     revokeMediaBlobUrl(imageSrc.value)
   }
@@ -267,7 +271,6 @@ const emit = defineEmits([
   'image-error',
   'view-details',
   'open',
-  'quick-share',
   'download',
   'move-copy',
   'copy-filenames',
