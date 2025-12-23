@@ -52,6 +52,7 @@ import { getErrorMessage } from '@/utils/errors'
  * @param {function|ref|string} options.setId - Set ID (optional, can be provided per upload)
  * @param {function|ref|Array} options.existingMedia - Array of existing media for duplicate checking
  * @param {function} options.loadMediaItems - Function to reload media after upload
+ * @param {function} options.onUploadComplete - Optional callback after successful upload: (results) => Promise
  * @param {function} options.deleteMediaFn - Function to delete existing media when replacing: (mediaId) => Promise
  * @param {object} options.validationOptions - Validation options (maxSize, allowedTypes, dimensions)
  * @param {number} options.batchSize - Number of concurrent uploads (default: 3)
@@ -64,6 +65,7 @@ export function useMediaUpload(options = {}) {
     setId: defaultSetId,
     existingMedia = [],
     loadMediaItems,
+    onUploadComplete,
     deleteMediaFn,
     validationOptions = {},
     batchSize = 3,
@@ -913,10 +915,19 @@ export function useMediaUpload(options = {}) {
 
       // Reload media items if any were successful
       // Use nextTick to ensure this happens after any reactive updates
-      if (results.successful.length > 0 && loadMediaItems) {
+      if (results.successful.length > 0) {
         // Add a small delay to batch any potential duplicate calls
         await new Promise(resolve => setTimeout(resolve, 100))
-        await loadMediaItems()
+
+        // Call loadMediaItems if provided
+        if (loadMediaItems) {
+          await loadMediaItems()
+        }
+
+        // Call optional onUploadComplete callback (e.g., to reload media sets, update counts, etc.)
+        if (onUploadComplete) {
+          await onUploadComplete(results)
+        }
       }
 
       // Dismiss progress toast

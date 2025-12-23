@@ -32,14 +32,18 @@
         <!-- File Name and Status -->
         <div class="flex items-start justify-between gap-2">
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <p :class="theme.textPrimary" class="text-sm font-medium truncate">
+            <div class="flex items-center gap-2 min-w-0">
+              <p
+                :class="theme.textPrimary"
+                class="text-sm font-medium truncate min-w-0 flex-1"
+                :title="progress.file.name"
+              >
                 {{ progress.file.name }}
               </p>
               <span
                 :class="[
                   isImage ? 'bg-blue-500/10 text-blue-500' : 'bg-purple-500/10 text-purple-500',
-                  'px-1.5 py-0.5 rounded text-xs font-medium',
+                  'px-1.5 py-0.5 rounded text-xs font-medium flex-shrink-0',
                 ]"
               >
                 {{ isImage ? 'IMG' : 'VID' }}

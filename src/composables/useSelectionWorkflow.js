@@ -9,7 +9,12 @@ import { useSelectionStore } from '@/stores/selection'
 import { useMediaUpload } from './useMediaUpload'
 import { getErrorMessage } from '@/utils/errors'
 
-export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedia = [] } = {}) {
+export function useSelectionWorkflow({
+  selectionId,
+  loadMediaItems,
+  existingMedia = [],
+  onUploadComplete, // Optional callback for post-upload actions (e.g., reload media sets)
+} = {}) {
   const selectionsApi = useSelectionsApi()
   const selectionStore = useSelectionStore()
 
@@ -61,6 +66,7 @@ export function useSelectionWorkflow({ selectionId, loadMediaItems, existingMedi
     existingMedia,
     loadMediaItems,
     deleteMediaFn,
+    onUploadComplete, // Pass through for post-upload actions (e.g., reload media sets)
   })
 
   // Helper to get selectionId value (handles refs, computed, functions, and plain values)

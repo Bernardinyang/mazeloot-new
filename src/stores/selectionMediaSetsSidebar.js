@@ -304,7 +304,18 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       const deletingId = setToDelete.value.id
       await selectionsApi.deleteMediaSet(selectionId.value, deletingId)
       mediaSets.value = mediaSets.value.filter(s => s.id !== deletingId)
-      if (selectedSetId.value === deletingId) selectedSetId.value = null
+
+      // Handle selected set fallback
+      if (selectedSetId.value === deletingId) {
+        // If there are other sets available, select the first one
+        if (mediaSets.value.length > 0) {
+          selectedSetId.value = mediaSets.value[0].id
+        } else {
+          // No sets available, clear selection to show empty state
+          selectedSetId.value = null
+        }
+      }
+
       toast.success('Set deleted', {
         description: 'Photo set has been deleted.',
       })

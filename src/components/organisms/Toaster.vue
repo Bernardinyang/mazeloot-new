@@ -369,4 +369,58 @@ onMounted(() => {
   height: 10px;
   stroke-width: 2.5;
 }
+
+/* Style action buttons in toasts */
+[data-sonner-toast] [data-button] {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  margin-top: 8px !important;
+  color: inherit !important;
+}
+
+[data-sonner-toast] [data-button]:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.2) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* Dark mode action buttons */
+.dark [data-sonner-toast] [data-button] {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.dark [data-sonner-toast] [data-button]:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+/* Success toast action buttons - subtle teal accent */
+[data-sonner-toast][data-type='success'] [data-button] {
+  background: rgba(20, 184, 166, 0.1) !important;
+  border-color: rgba(20, 184, 166, 0.2) !important;
+  color: rgb(20, 184, 166) !important;
+}
+
+[data-sonner-toast][data-type='success'] [data-button]:hover {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+}
+
+.dark [data-sonner-toast][data-type='success'] [data-button] {
+  background: rgba(20, 184, 166, 0.15) !important;
+  border-color: rgba(20, 184, 166, 0.3) !important;
+  color: rgb(94, 234, 212) !important;
+}
+
+.dark [data-sonner-toast][data-type='success'] [data-button]:hover {
+  background: rgba(20, 184, 166, 0.2) !important;
+  border-color: rgba(20, 184, 166, 0.4) !important;
+}
 </style>

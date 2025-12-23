@@ -8,6 +8,7 @@
  *   toast.success('', { description: 'Message' }) // Legacy format supported
  *   toast.loading('Uploading...', { id: 'upload-toast' })
  *   toast.loading('Uploading...', { id: 'upload-toast', progress: 50 })
+ *   toast.success('Message', { action: { label: 'Undo', onClick: () => {} } })
  */
 import { toast as sonnerToast } from 'vue-sonner'
 

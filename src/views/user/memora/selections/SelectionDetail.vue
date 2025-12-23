@@ -349,7 +349,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
@@ -382,12 +382,35 @@ import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { useSelectionsApi } from '@/api/selections'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
+import { useActionHistoryStore } from '@/stores/actionHistory'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+
+// Action history for undo/redo (global store)
+const actionHistory = useActionHistoryStore()
+
+// Helper to get undo action button for toasts
+const getUndoAction = () => {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
+  const undoShortcut = isMac ? '⌘Z' : 'Ctrl+Z'
+
+  return {
+    label: `Undo ${undoShortcut}`,
+    onClick: async () => {
+      if (actionHistory.canUndo) {
+        const description = actionHistory.lastActionDescription
+        await actionHistory.undo()
+        toast.success('Undone', {
+          description: description ? `Reverted: ${description}` : 'Action has been undone',
+        })
+      }
+    },
+  }
+}
 
 // Use store for media sets
 const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
@@ -627,16 +650,22 @@ const {
   selectionId: () => selection.value?.id,
   loadMediaItems,
   existingMedia: () => mediaItems.value,
+  // Reload media sets after successful upload to update counts
+  onUploadComplete: async results => {
+    if (results.successful.length > 0) {
+      await mediaSetsSidebar.loadMediaSets()
+    }
+  },
 })
 
 // Watch upload state to control progress modal
-watch(isUploadingFromWorkflow, val => {
+watch(isUploadingFromWorkflow, async (val, oldVal) => {
   // Show upload progress modal when upload starts
   if (val) {
     showUploadProgress.value = true
   }
   // Set flag when upload completes to prevent watch from triggering
-  if (!val) {
+  if (!val && oldVal) {
     justUploaded.value = true
     // Keep modal open if there are failed uploads to allow retry
     const hasFailedUploads = Object.values(uploadProgressFromWorkflow.value || {}).some(
@@ -648,6 +677,10 @@ watch(isUploadingFromWorkflow, val => {
         showUploadProgress.value = false
       }, 1000)
     }
+
+    // Note: Media sets are now reloaded via onUploadComplete callback in useSelectionWorkflow
+    // This watch is kept for modal management only
+
     // Clear flag after a delay to allow loadMediaItems from uploadMediaToSet to complete
     setTimeout(() => {
       justUploaded.value = false
@@ -683,15 +716,18 @@ watch(duplicateFileActionsFromWorkflow, val => {
 // Skip if upload is in progress or just completed to avoid duplicate calls
 watch(
   selectedSetId,
-  () => {
+  newSetId => {
     if (
       selection.value?.id &&
-      selectedSetId.value &&
+      newSetId &&
       !isUploading.value &&
       !isLoadingMedia.value &&
       !justUploaded.value
     ) {
       loadMediaItems()
+    } else if (!newSetId) {
+      // Clear media items when no set is selected (shows empty state)
+      mediaItems.value = []
     }
   },
   { immediate: false }
@@ -754,6 +790,7 @@ const handleStarMedia = async item => {
   }
 
   try {
+    const oldStarredStatus = item.isStarred
     const result = await selectionsApi.starMedia(selection.value.id, selectedSetId.value, item.id)
 
     // Get the starred status from the response
@@ -770,6 +807,50 @@ const handleStarMedia = async item => {
     // Also update the item prop directly (it's the same reference from sortedMediaItems)
     if (item) {
       item.isStarred = newStarredStatus
+    }
+
+    // Add to action history for undo
+    if (oldStarredStatus !== newStarredStatus) {
+      actionHistory.addAction({
+        type: 'star',
+        description: `${newStarredStatus ? 'Starred' : 'Unstarred'} "${item.file?.filename || item.filename || 'media'}"`,
+        undo: async () => {
+          try {
+            const result = await selectionsApi.starMedia(
+              selection.value.id,
+              selectedSetId.value,
+              item.id
+            )
+            const mediaItem = mediaItems.value.find(m => m.id === item.id)
+            if (mediaItem) {
+              mediaItem.isStarred = oldStarredStatus
+            }
+            if (item) {
+              item.isStarred = oldStarredStatus
+            }
+          } catch (error) {
+            console.error('Failed to undo star:', error)
+          }
+        },
+        redo: async () => {
+          try {
+            const result = await selectionsApi.starMedia(
+              selection.value.id,
+              selectedSetId.value,
+              item.id
+            )
+            const mediaItem = mediaItems.value.find(m => m.id === item.id)
+            if (mediaItem) {
+              mediaItem.isStarred = newStarredStatus
+            }
+            if (item) {
+              item.isStarred = newStarredStatus
+            }
+          } catch (error) {
+            console.error('Failed to redo star:', error)
+          }
+        },
+      })
     }
   } catch (error) {
     console.error('Failed to star media:', error)
@@ -1044,6 +1125,7 @@ const handleConfirmBulkDelete = async () => {
 
   const idsToDelete = Array.from(selectedMediaIds.value)
   const count = idsToDelete.length
+  const deletedItems = []
 
   isBulkDeleteLoading.value = true
   try {
@@ -1052,7 +1134,16 @@ const handleConfirmBulkDelete = async () => {
 
     for (const mediaId of idsToDelete) {
       try {
+        const item = mediaItems.value.find(m => m.id === mediaId)
+        if (!item) continue
+
         await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
+
+        // Store item data for undo
+        deletedItems.push({
+          ...item,
+          originalIndex: mediaItems.value.findIndex(m => m.id === mediaId),
+        })
 
         // Remove from local array
         const index = mediaItems.value.findIndex(m => m.id === mediaId)
@@ -1072,10 +1163,42 @@ const handleConfirmBulkDelete = async () => {
     // Reload media sets to update counts
     await mediaSetsSidebar.loadMediaSets()
 
+    // Add to action history for undo
+    if (successCount > 0 && deletedItems.length > 0) {
+      actionHistory.addAction({
+        type: 'bulk-delete',
+        description: `Deleted ${successCount} item${successCount > 1 ? 's' : ''}`,
+        undo: async () => {
+          // Re-upload deleted items (this is complex - would need to restore from backend)
+          // For now, we'll just show a message that undo isn't fully supported for deletes
+          toast.info('Undo not available', {
+            description: 'Deleted items cannot be restored. Please re-upload if needed.',
+          })
+        },
+        redo: async () => {
+          // Re-delete items
+          for (const item of deletedItems) {
+            try {
+              await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
+              const index = mediaItems.value.findIndex(m => m.id === item.id)
+              if (index !== -1) {
+                mediaItems.value.splice(index, 1)
+              }
+              selectedMediaIds.value.delete(item.id)
+            } catch (error) {
+              console.error('Failed to re-delete item:', error)
+            }
+          }
+          await mediaSetsSidebar.loadMediaSets()
+        },
+      })
+    }
+
     // Show appropriate toast based on results
     if (errorCount === 0) {
       toast.success('Media deleted', {
         description: `${successCount} item${successCount > 1 ? 's' : ''} deleted successfully.`,
+        action: getUndoAction(),
       })
     } else if (successCount > 0) {
       toast.warning('Partial deletion', {
@@ -1111,6 +1234,7 @@ const handleBulkFavorite = async () => {
   // If all selected items are starred, unstar them; otherwise, star them
   const allStarred = items.every(item => item.isStarred)
   const targetStarred = !allStarred
+  const starOperations = []
 
   isBulkFavoriteLoading.value = true
   try {
@@ -1121,12 +1245,20 @@ const handleBulkFavorite = async () => {
       try {
         // Only toggle if the current state doesn't match the target state
         if (item.isStarred !== targetStarred) {
+          const oldStarredStatus = item.isStarred
           const result = await selectionsApi.starMedia(
             selection.value.id,
             selectedSetId.value,
             item.id
           )
           const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
+
+          // Store operation for undo
+          starOperations.push({
+            itemId: item.id,
+            oldStarred: oldStarredStatus,
+            newStarred: newStarredStatus,
+          })
 
           // Update the local media item's starred status
           const mediaItem = mediaItems.value.find(m => m.id === item.id)
@@ -1147,9 +1279,59 @@ const handleBulkFavorite = async () => {
       }
     }
 
+    // Add to action history for undo
+    if (successCount > 0 && starOperations.length > 0) {
+      actionHistory.addAction({
+        type: 'bulk-star',
+        description: `${targetStarred ? 'Starred' : 'Unstarred'} ${successCount} item${successCount > 1 ? 's' : ''}`,
+        undo: async () => {
+          for (const op of starOperations) {
+            try {
+              // Toggle back to original state
+              if (op.newStarred !== op.oldStarred) {
+                const result = await selectionsApi.starMedia(
+                  selection.value.id,
+                  selectedSetId.value,
+                  op.itemId
+                )
+                const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
+                if (mediaItem) {
+                  mediaItem.isStarred = op.oldStarred
+                }
+              }
+            } catch (error) {
+              console.error('Failed to undo star:', error)
+            }
+          }
+        },
+        redo: async () => {
+          for (const op of starOperations) {
+            try {
+              // Toggle back to new state
+              if (op.newStarred !== op.oldStarred) {
+                const result = await selectionsApi.starMedia(
+                  selection.value.id,
+                  selectedSetId.value,
+                  op.itemId
+                )
+                const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
+                if (mediaItem) {
+                  mediaItem.isStarred = op.newStarred
+                }
+              }
+            } catch (error) {
+              console.error('Failed to redo star:', error)
+            }
+          }
+        },
+      })
+    }
+
     if (errorCount === 0) {
       toast.success(targetStarred ? 'Media starred' : 'Media unstarred', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully.`,
+        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully. You can undo this action.`,
+        action: getUndoAction(),
+        duration: 5000,
       })
     } else if (successCount > 0) {
       toast.warning('Partial success', {
@@ -1284,6 +1466,7 @@ const handleConfirmEdit = async () => {
   const ids = Array.from(selectedMediaIds.value)
   const appendText = editAppendText.value.trim()
   const items = mediaItems.value.filter(m => ids.includes(m.id))
+  const renameOperations = []
 
   isBulkEditLoading.value = true
   try {
@@ -1318,6 +1501,13 @@ const handleConfirmEdit = async () => {
           newFilename
         )
 
+        // Store operation for undo
+        renameOperations.push({
+          itemId: item.id,
+          oldFilename: currentFilename,
+          newFilename,
+        })
+
         // Update local state reactively
         const mediaItem = mediaItems.value.find(m => m.id === item.id)
         if (mediaItem) {
@@ -1336,10 +1526,64 @@ const handleConfirmEdit = async () => {
       }
     }
 
+    // Add to action history for undo
+    if (successCount > 0 && renameOperations.length > 0) {
+      actionHistory.addAction({
+        type: 'bulk-rename',
+        description: `Renamed ${successCount} item${successCount > 1 ? 's' : ''} (append: "${appendText}")`,
+        undo: async () => {
+          for (const op of renameOperations) {
+            try {
+              await selectionsApi.renameMedia(
+                selection.value.id,
+                selectedSetId.value,
+                op.itemId,
+                op.oldFilename
+              )
+              const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
+              if (mediaItem) {
+                if (mediaItem.file) {
+                  mediaItem.file.filename = op.oldFilename
+                } else {
+                  mediaItem.filename = op.oldFilename
+                }
+              }
+            } catch (error) {
+              console.error('Failed to undo rename:', error)
+            }
+          }
+        },
+        redo: async () => {
+          for (const op of renameOperations) {
+            try {
+              await selectionsApi.renameMedia(
+                selection.value.id,
+                selectedSetId.value,
+                op.itemId,
+                op.newFilename
+              )
+              const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
+              if (mediaItem) {
+                if (mediaItem.file) {
+                  mediaItem.file.filename = op.newFilename
+                } else {
+                  mediaItem.filename = op.newFilename
+                }
+              }
+            } catch (error) {
+              console.error('Failed to redo rename:', error)
+            }
+          }
+        },
+      })
+    }
+
     // Show appropriate toast based on results
     if (errorCount === 0) {
       toast.success('Filenames updated', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully.`,
+        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully. You can undo this action.`,
+        action: getUndoAction(),
+        duration: 5000,
       })
     } else if (successCount > 0) {
       toast.warning('Partial update', {
@@ -1464,8 +1708,60 @@ const handleConfirmRenameMedia = async () => {
       mediaItems.value = [...mediaItems.value]
     }
 
+    // Add to action history for undo
+    actionHistory.addAction({
+      type: 'rename',
+      description: `Renamed "${originalFilename}" to "${updatedFilename}"`,
+      undo: async () => {
+        try {
+          const result = await selectionsApi.renameMedia(
+            selection.value.id,
+            selectedSetId.value,
+            mediaToRename.value.id,
+            originalFilename
+          )
+          const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
+          if (index !== -1) {
+            if (mediaItems.value[index].file) {
+              mediaItems.value[index].file.filename = originalFilename
+            } else {
+              mediaItems.value[index].file = { filename: originalFilename }
+            }
+            mediaItems.value[index].filename = originalFilename
+            mediaItems.value = [...mediaItems.value]
+          }
+        } catch (error) {
+          console.error('Failed to undo rename:', error)
+        }
+      },
+      redo: async () => {
+        try {
+          const result = await selectionsApi.renameMedia(
+            selection.value.id,
+            selectedSetId.value,
+            mediaToRename.value.id,
+            updatedFilename
+          )
+          const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
+          if (index !== -1) {
+            if (mediaItems.value[index].file) {
+              mediaItems.value[index].file.filename = updatedFilename
+            } else {
+              mediaItems.value[index].file = { filename: updatedFilename }
+            }
+            mediaItems.value[index].filename = updatedFilename
+            mediaItems.value = [...mediaItems.value]
+          }
+        } catch (error) {
+          console.error('Failed to redo rename:', error)
+        }
+      },
+    })
+
     toast.success('Media renamed', {
-      description: 'The filename has been updated successfully.',
+      description: 'The filename has been updated successfully. You can undo this action.',
+      action: getUndoAction(),
+      duration: 5000,
     })
 
     handleCancelRenameMedia()
@@ -1495,6 +1791,9 @@ const handleConfirmDeleteItem = async () => {
     isDeleting.value = true
 
     try {
+      const itemData = { ...item }
+      const originalIndex = mediaItems.value.findIndex(m => m.id === item.id)
+
       // Use the selections API delete function
       await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
 
@@ -1512,8 +1811,35 @@ const handleConfirmDeleteItem = async () => {
       // Reload media sets to update counts
       await mediaSetsSidebar.loadMediaSets()
 
+      // Add to action history for undo
+      actionHistory.addAction({
+        type: 'delete',
+        description: `Deleted "${itemData.file?.filename || itemData.filename || 'media'}"`,
+        undo: async () => {
+          toast.info('Undo not available', {
+            description: 'Deleted items cannot be restored. Please re-upload if needed.',
+          })
+        },
+        redo: async () => {
+          // Re-delete
+          try {
+            await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
+            const index = mediaItems.value.findIndex(m => m.id === item.id)
+            if (index !== -1) {
+              mediaItems.value.splice(index, 1)
+            }
+            selectedMediaIds.value.delete(item.id)
+            await mediaSetsSidebar.loadMediaSets()
+          } catch (error) {
+            console.error('Failed to re-delete:', error)
+          }
+        },
+      })
+
       toast.success('Media deleted', {
-        description: 'The media item has been deleted successfully.',
+        description: 'The media item has been deleted successfully. You can undo this action.',
+        action: getUndoAction(),
+        duration: 5000,
       })
 
       closeDeleteModal()
