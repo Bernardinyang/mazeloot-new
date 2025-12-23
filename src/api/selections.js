@@ -472,6 +472,23 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Toggle star status for a media item
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   */
+  const starMedia = async (selectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/star`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Download media file by UUID
    * Returns a blob that can be downloaded
    */
@@ -682,6 +699,7 @@ export function useSelectionsApi() {
     moveMediaToSet,
     copyMediaToSet,
     addMediaFeedback,
+    starMedia,
     downloadMedia,
 
     // Guest Access

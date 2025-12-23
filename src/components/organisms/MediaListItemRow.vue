@@ -17,17 +17,31 @@
       <Square v-else :class="theme.textSecondary" class="h-5 w-5" />
     </button>
 
-    <div class="flex items-center gap-4 flex-1 cursor-pointer" @click="emit('open-viewer')">
-      <img
-        :alt="props.item?.title || 'Media'"
-        :class="[
-          'w-20 h-20 object-cover rounded-lg shadow-sm transition-all duration-300 will-change-transform',
-          isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
-        ]"
-        :src="imageSrc"
-        @error="emit('image-error', $event)"
-        @load="isImageLoaded = true"
-      />
+    <div
+      class="flex items-center gap-4 flex-1 cursor-pointer relative"
+      @click="emit('open-viewer')"
+    >
+      <div class="relative">
+        <img
+          :alt="props.item?.title || 'Media'"
+          :class="[
+            'w-20 h-20 object-cover rounded-lg shadow-sm transition-all duration-300 will-change-transform',
+            isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
+          ]"
+          :src="imageSrc"
+          @error="emit('image-error', $event)"
+          @load="isImageLoaded = true"
+        />
+        <!-- Starred Badge (always visible when starred) -->
+        <div v-if="props.item?.isStarred" class="absolute bottom-1 left-1 z-30">
+          <div
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+            title="Starred"
+          >
+            <Star class="h-3 w-3 fill-white text-white" />
+          </div>
+        </div>
+      </div>
       <div class="flex-1 min-w-0">
         <p
           v-if="props.showFilename && props.item?.filename"
@@ -42,6 +56,19 @@
         </p>
       </div>
     </div>
+
+    <!-- Star Toggle Button (on hover) -->
+    <button
+      class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
+      @click.stop="emit('star-click')"
+    >
+      <Star
+        :class="[
+          'h-4 w-4',
+          props.item?.isStarred ? 'fill-yellow-400 text-yellow-400' : theme.textSecondary,
+        ]"
+      />
+    </button>
 
     <!-- Context Menu Button -->
     <div class="opacity-0 group-hover:opacity-100 transition-opacity duration-200" @click.stop>
@@ -169,6 +196,7 @@ import {
   Move,
   Pencil,
   Square,
+  Star,
   Trash2,
   X,
 } from 'lucide-vue-next'
@@ -281,5 +309,6 @@ const emit = defineEmits([
   'remove-watermark',
   'watermark',
   'delete',
+  'star-click',
 ])
 </script>

@@ -46,7 +46,6 @@
             @edit="handleBulkEdit"
             @favorite="handleBulkFavorite"
             @move="showMoveCopyModal = true"
-            @tag="handleBulkTag"
             @view="handleBulkView"
             @watermark="handleBulkWatermark"
             @clear-selection="selectedMediaIds = new Set()"
@@ -116,6 +115,7 @@
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
+                @star-click="handleStarMedia(item)"
               />
             </TransitionGroup>
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
@@ -141,6 +141,7 @@
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
+                @star-click="handleStarMedia(item)"
               />
             </TransitionGroup>
           </div>
@@ -248,18 +249,6 @@
         @confirm="handleConfirmBulkWatermark"
       />
 
-      <TagModal
-        v-model="showTagModal"
-        v-model:tag-input="tagInput"
-        :existing-tags="existingTags"
-        :is-loading="isBulkTagLoading"
-        :selected-count="selectedMediaIds.size"
-        @cancel="handleCancelTag"
-        @confirm="handleConfirmTag"
-        @add-tag="handleAddTag"
-        @remove-tag="existingTags = existingTags.filter(t => t !== $event)"
-      />
-
       <DuplicateFilesModal
         :key="duplicateFileActionsKey"
         v-model="showDuplicateFilesModal"
@@ -360,7 +349,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
@@ -377,7 +366,6 @@ import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import ContentLoader from '@/components/molecules/ContentLoader.vue'
 import RenameMediaModal from '@/components/organisms/RenameMediaModal.vue'
-import TagModal from '@/components/organisms/TagModal.vue'
 import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
 import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
@@ -436,7 +424,6 @@ const isLoadingSelections = ref(false)
 const targetSelectionSets = ref([])
 const isLoadingTargetSets = ref(false)
 const isBulkFavoriteLoading = ref(false)
-const isBulkTagLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
 const isUpdatingSetCounts = ref(false)
@@ -450,14 +437,11 @@ const showMediaDetailSidebar = ref(false)
 const selectedMediaForDetails = ref(null)
 const showBulkDeleteModal = ref(false)
 const showEditModal = ref(false)
-const showTagModal = ref(false)
 const showBulkWatermarkModal = ref(false)
 const selectedBulkWatermark = ref('none')
 const showUploadProgress = ref(false)
 const isBulkWatermarkLoading = ref(false)
 const editAppendText = ref('')
-const tagInput = ref('')
-const existingTags = ref([])
 const showRenameMediaModal = ref(false)
 const mediaToRename = ref(null)
 const newMediaName = ref('')
@@ -764,6 +748,38 @@ const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
+const handleStarMedia = async item => {
+  if (!item?.id || !selection.value?.id || !selectedSetId.value) {
+    return
+  }
+
+  try {
+    const result = await selectionsApi.starMedia(selection.value.id, selectedSetId.value, item.id)
+
+    // Get the starred status from the response
+    // ApiResponse wraps data in { data: { starred: bool } }
+    const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
+
+    // Update the local media item's starred status reactively
+    // Directly mutate the property to preserve the object reference
+    const mediaItem = mediaItems.value.find(m => m.id === item.id)
+    if (mediaItem) {
+      mediaItem.isStarred = newStarredStatus
+    }
+
+    // Also update the item prop directly (it's the same reference from sortedMediaItems)
+    if (item) {
+      item.isStarred = newStarredStatus
+    }
+  } catch (error) {
+    console.error('Failed to star media:', error)
+    toast.error('Failed to star media', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while starring the media.',
+    })
+  }
+}
+
 const handleDownloadMedia = async item => {
   if (!item?.id) {
     toast.error('Media not found', {
@@ -1014,16 +1030,145 @@ const handleToggleSelectAll = () => {
 }
 
 const handleBulkDelete = () => {
+  if (selectedMediaIds.value.size === 0) {
+    return
+  }
   showBulkDeleteModal.value = true
 }
 
-const handleConfirmBulkDelete = () => {
-  showBulkDeleteModal.value = false
-  selectedMediaIds.value.clear()
+const handleConfirmBulkDelete = async () => {
+  if (selectedMediaIds.value.size === 0 || !selection.value?.id || !selectedSetId.value) {
+    showBulkDeleteModal.value = false
+    return
+  }
+
+  const idsToDelete = Array.from(selectedMediaIds.value)
+  const count = idsToDelete.length
+
+  isBulkDeleteLoading.value = true
+  try {
+    let successCount = 0
+    let errorCount = 0
+
+    for (const mediaId of idsToDelete) {
+      try {
+        await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
+
+        // Remove from local array
+        const index = mediaItems.value.findIndex(m => m.id === mediaId)
+        if (index !== -1) {
+          mediaItems.value.splice(index, 1)
+        }
+
+        // Remove from selection
+        selectedMediaIds.value.delete(mediaId)
+        successCount++
+      } catch (error) {
+        console.error(`Failed to delete media ${mediaId}:`, error)
+        errorCount++
+      }
+    }
+
+    // Reload media sets to update counts
+    await mediaSetsSidebar.loadMediaSets()
+
+    // Show appropriate toast based on results
+    if (errorCount === 0) {
+      toast.success('Media deleted', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} deleted successfully.`,
+      })
+    } else if (successCount > 0) {
+      toast.warning('Partial deletion', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} deleted, ${errorCount} failed.`,
+      })
+    } else {
+      toast.error('Failed to delete media', {
+        description: `Failed to delete ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
+      })
+    }
+
+    showBulkDeleteModal.value = false
+  } catch (error) {
+    console.error('Failed to bulk delete media:', error)
+    toast.error('Failed to delete media', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while deleting media.',
+    })
+  } finally {
+    isBulkDeleteLoading.value = false
+  }
 }
 
-const handleBulkFavorite = () => {
-  // UI only
+const handleBulkFavorite = async () => {
+  if (selectedMediaIds.value.size === 0 || !selection.value?.id || !selectedSetId.value) {
+    return
+  }
+
+  const ids = Array.from(selectedMediaIds.value)
+  const items = mediaItems.value.filter(m => ids.includes(m.id))
+
+  // Determine if we should star or unstar based on current state
+  // If all selected items are starred, unstar them; otherwise, star them
+  const allStarred = items.every(item => item.isStarred)
+  const targetStarred = !allStarred
+
+  isBulkFavoriteLoading.value = true
+  try {
+    let successCount = 0
+    let errorCount = 0
+
+    for (const item of items) {
+      try {
+        // Only toggle if the current state doesn't match the target state
+        if (item.isStarred !== targetStarred) {
+          const result = await selectionsApi.starMedia(
+            selection.value.id,
+            selectedSetId.value,
+            item.id
+          )
+          const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
+
+          // Update the local media item's starred status
+          const mediaItem = mediaItems.value.find(m => m.id === item.id)
+          if (mediaItem) {
+            mediaItem.isStarred = newStarredStatus
+          }
+
+          if (newStarredStatus === targetStarred) {
+            successCount++
+          }
+        } else {
+          // Already in the target state, count as success
+          successCount++
+        }
+      } catch (error) {
+        console.error(`Failed to star media ${item.id}:`, error)
+        errorCount++
+      }
+    }
+
+    if (errorCount === 0) {
+      toast.success(targetStarred ? 'Media starred' : 'Media unstarred', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully.`,
+      })
+    } else if (successCount > 0) {
+      toast.warning('Partial success', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} updated, ${errorCount} failed.`,
+      })
+    } else {
+      toast.error('Failed to update media', {
+        description: `Failed to ${targetStarred ? 'star' : 'unstar'} ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
+      })
+    }
+  } catch (error) {
+    console.error('Failed to bulk star media:', error)
+    toast.error('Failed to update media', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while updating media.',
+    })
+  } finally {
+    isBulkFavoriteLoading.value = false
+  }
 }
 
 const handleSetAsCover = async item => {
@@ -1077,43 +1222,146 @@ const handleCoverImageUpload = () => {
 }
 
 const handleBulkView = () => {
-  if (selectedMediaIds.value.size === 0) return
+  if (selectedMediaIds.value.size === 0) {
+    toast.info('No items selected', {
+      description: 'Please select some media items to view.',
+    })
+    return
+  }
+
   const ids = Array.from(selectedMediaIds.value)
   const items = mediaItems.value.filter(m => ids.includes(m.id))
-  const imageItems = items.filter(item => item.type === 'image')
-  if (imageItems.length > 0) {
-    selectedMediaForView.value = imageItems
-    currentViewIndex.value = 0
-    showMediaViewer.value = true
+  const imageItems = items.filter(item => {
+    // Check both top-level type and nested file.type
+    const itemType = item.type || item.file?.type
+    return itemType === 'image'
+  })
+
+  if (imageItems.length === 0) {
+    toast.info('No images to view', {
+      description:
+        'The selected items do not contain any images. Only images can be viewed in the lightbox.',
+    })
+    return
   }
-}
 
-const handleBulkTag = () => {
-  showTagModal.value = true
-}
+  console.log('[handleBulkView] Opening lightbox with', imageItems.length, 'images')
 
-const handleCancelTag = () => {
-  showTagModal.value = false
-}
+  // Set the selected images for viewing
+  selectedMediaForView.value = imageItems
+  currentViewIndex.value = 0
+  showMediaViewer.value = true
 
-const handleAddTag = () => {
-  // UI only
-}
-
-const handleConfirmTag = () => {
-  showTagModal.value = false
+  // Use nextTick to ensure the component has updated
+  nextTick(() => {
+    console.log('[handleBulkView] Lightbox opened, items:', selectedMediaForView.value.length)
+  })
 }
 
 const handleBulkEdit = () => {
+  if (selectedMediaIds.value.size === 0) {
+    return
+  }
+  editAppendText.value = ''
   showEditModal.value = true
 }
 
 const handleCancelEdit = () => {
   showEditModal.value = false
+  editAppendText.value = ''
 }
 
-const handleConfirmEdit = () => {
-  showEditModal.value = false
+const handleConfirmEdit = async () => {
+  if (
+    selectedMediaIds.value.size === 0 ||
+    !editAppendText.value.trim() ||
+    !selection.value?.id ||
+    !selectedSetId.value
+  ) {
+    return
+  }
+
+  const ids = Array.from(selectedMediaIds.value)
+  const appendText = editAppendText.value.trim()
+  const items = mediaItems.value.filter(m => ids.includes(m.id))
+
+  isBulkEditLoading.value = true
+  try {
+    let successCount = 0
+    let errorCount = 0
+
+    for (const item of items) {
+      try {
+        // Get the current filename - prioritize file?.filename, then filename, then title
+        const currentFilename =
+          item.file?.filename || item.filename || item.title || `media-${item.id}`
+
+        // Extract extension
+        const lastDotIndex = currentFilename.lastIndexOf('.')
+        let nameWithoutExt = currentFilename
+        let extension = ''
+
+        if (lastDotIndex > 0) {
+          // Has extension
+          nameWithoutExt = currentFilename.substring(0, lastDotIndex)
+          extension = currentFilename.substring(lastDotIndex)
+        }
+
+        // Append text before extension
+        const newFilename = nameWithoutExt + appendText + extension
+
+        // Call rename API
+        await selectionsApi.renameMedia(
+          selection.value.id,
+          selectedSetId.value,
+          item.id,
+          newFilename
+        )
+
+        // Update local state reactively
+        const mediaItem = mediaItems.value.find(m => m.id === item.id)
+        if (mediaItem) {
+          // Update filename in the item
+          if (mediaItem.file) {
+            mediaItem.file.filename = newFilename
+          } else {
+            mediaItem.filename = newFilename
+          }
+        }
+
+        successCount++
+      } catch (error) {
+        console.error(`Failed to rename media ${item.id}:`, error)
+        errorCount++
+      }
+    }
+
+    // Show appropriate toast based on results
+    if (errorCount === 0) {
+      toast.success('Filenames updated', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully.`,
+      })
+    } else if (successCount > 0) {
+      toast.warning('Partial update', {
+        description: `${successCount} item${successCount > 1 ? 's' : ''} updated, ${errorCount} failed.`,
+      })
+    } else {
+      toast.error('Failed to update filenames', {
+        description: `Failed to update ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
+      })
+    }
+
+    showEditModal.value = false
+    editAppendText.value = ''
+  } catch (error) {
+    console.error('Failed to bulk edit filenames:', error)
+    toast.error('Failed to update filenames', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while updating filenames.',
+    })
+  } finally {
+    isBulkEditLoading.value = false
+  }
 }
 
 const handleBulkWatermark = () => {

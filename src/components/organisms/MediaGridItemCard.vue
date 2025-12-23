@@ -19,6 +19,24 @@
         </button>
       </div>
 
+      <!-- Star Toggle Button (on hover) -->
+      <div
+        class="absolute top-2 right-12 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        @click.stop
+      >
+        <button
+          class="p-1.5 rounded-md bg-black/50 hover:bg-black/70 backdrop-blur-sm transition-colors"
+          @click.stop="emit('star-click')"
+        >
+          <Star
+            :class="[
+              'h-4 w-4',
+              props.item?.isStarred ? 'fill-yellow-400 text-yellow-400' : 'text-white',
+            ]"
+          />
+        </button>
+      </div>
+
       <div class="w-full h-full cursor-pointer" @click="emit('open-viewer')">
         <img
           :alt="props.item?.title || 'Media'"
@@ -32,6 +50,16 @@
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
         />
+      </div>
+
+      <!-- Starred Badge (always visible when starred) -->
+      <div v-if="props.item?.isStarred" class="absolute bottom-2 left-2 z-30">
+        <div
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
       </div>
 
       <!-- Context Menu Button -->
@@ -172,6 +200,7 @@ import {
   Move,
   Pencil,
   Square,
+  Star,
   Trash2,
   X,
 } from 'lucide-vue-next'

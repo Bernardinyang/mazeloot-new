@@ -6,6 +6,14 @@
     >
       <!-- Left: Selection info with dropdown -->
       <div class="flex items-center gap-3">
+        <!-- Close button -->
+        <button
+          class="p-1.5 rounded-lg bg-red-500 hover:bg-red-600 transition-colors text-white"
+          title="Clear selection"
+          @click="handleClearSelection"
+        >
+          <X class="h-4 w-4" />
+        </button>
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <button class="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
@@ -70,24 +78,6 @@
             </TooltipTrigger>
             <TooltipContent>
               <p>View</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <!-- Tag -->
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger as-child>
-              <button
-                class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
-                title="Tag"
-                @click="handleTag"
-              >
-                <Tag class="h-5 w-5 text-white" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Tag</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
@@ -177,8 +167,8 @@ import {
   Move,
   Pencil as PencilIcon,
   Star,
-  Tag,
   Trash2,
+  X,
 } from 'lucide-vue-next'
 import {
   Tooltip,
@@ -216,7 +206,6 @@ const emit = defineEmits([
   'select-all',
   'favorite',
   'view',
-  'tag',
   'watermark',
   'move',
   'delete',
@@ -237,10 +226,6 @@ const handleFavorite = () => {
 
 const handleView = () => {
   emit('view')
-}
-
-const handleTag = () => {
-  emit('tag')
 }
 
 const handleWatermark = () => {

@@ -341,7 +341,9 @@ watch(
 
 watch(isOpen, open => {
   if (open) {
-    currentIndex.value = props.initialIndex
+    // Ensure currentIndex is within bounds
+    const safeIndex = Math.max(0, Math.min(props.initialIndex, props.items.length - 1))
+    currentIndex.value = safeIndex
     updateMediaUrl()
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
@@ -350,6 +352,20 @@ watch(isOpen, open => {
     document.body.style.overflow = ''
   }
 })
+
+// Watch for items changes to update when bulk view sets new items
+watch(
+  () => props.items,
+  newItems => {
+    if (isOpen.value && newItems.length > 0) {
+      // Ensure currentIndex is within bounds of new items
+      const safeIndex = Math.max(0, Math.min(currentIndex.value, newItems.length - 1))
+      currentIndex.value = safeIndex
+      updateMediaUrl()
+    }
+  },
+  { deep: true }
+)
 
 onMounted(() => {
   if (isOpen.value) {
