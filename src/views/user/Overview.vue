@@ -827,41 +827,23 @@ const handleSignOut = async () => {
   await logout()
 }
 
-const handleViewProfile = () => {
-  // TODO
-}
+const handleViewProfile = () => {}
 
-const handleViewAllOrders = () => {
-  // TODO
-}
+const handleViewAllOrders = () => {}
 
-const handleOrderClick = _order => {
-  // TODO
-}
+const handleOrderClick = _order => {}
 
-const handleViewAllWishlist = () => {
-  // TODO
-}
+const handleViewAllWishlist = () => {}
 
-const handleWishlistItemClick = _item => {
-  // TODO
-}
+const handleWishlistItemClick = _item => {}
 
-const handleViewAllPosts = () => {
-  // TODO
-}
+const handleViewAllPosts = () => {}
 
-const handlePostClick = _post => {
-  // TODO
-}
+const handlePostClick = _post => {}
 
-const handleManageProducts = () => {
-  // TODO
-}
+const handleManageProducts = () => {}
 
-const handleServiceProductClick = _product => {
-  // TODO
-}
+const handleServiceProductClick = _product => {}
 
 // Mazeloot Products
 const mazelootProducts = MAZELOOT_PRODUCTS
@@ -882,7 +864,6 @@ const handleProductClick = product => {
 //   // TODO
 // }
 
-// Get logged-in user from store
 const userStore = useUserStore()
 const galleryStore = useGalleryStore()
 
@@ -943,14 +924,11 @@ const formatDate = dateString => {
 
 // Fetch collections on mount
 onMounted(async () => {
-  // Set all loading states to true initially
   setAllLoading(true)
   // Fetch collections
   try {
     await galleryStore.fetchCollections()
-  } catch (error) {
-    console.error('Failed to fetch collections:', error)
-  }
+  } catch (error) {}
   // Simulate data fetch - keep loading for 2 seconds to see skeleton loaders
   setTimeout(() => {
     setAllLoading(false)

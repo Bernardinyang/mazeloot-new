@@ -209,7 +209,6 @@ const themeStore = useThemeStore()
 // Form state
 const applyToWebDownloads = ref(true)
 
-// Delete confirmation state
 const showDeleteModal = ref(false)
 const watermarkToDelete = ref(null)
 const isDeleting = ref(false)
@@ -283,7 +282,6 @@ const getAutoContrastColor = savedColor => {
     }
   }
 
-  // Return original color if it has good contrast
   return savedColor
 }
 
@@ -303,7 +301,6 @@ onMounted(async () => {
   try {
     await watermarkStore.fetchWatermarks()
   } catch (error) {
-    console.error('Failed to fetch watermarks:', error)
     toast.error('Failed to load watermarks', {
       description,
     })

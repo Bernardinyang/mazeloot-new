@@ -310,7 +310,6 @@ const subtitleSeparator = ref('•')
 // Selected collections (for list view)
 const selectedCollections = ref([])
 
-// Delete modal state
 const showDeleteModal = ref(false)
 const collectionToDelete = ref(null)
 const isDeleting = ref(false)
@@ -455,7 +454,6 @@ const handleCopyLink = async collection => {
       description,
     })
   } catch (error) {
-    console.error('Failed to copy link:', error)
     toast.error('Failed to copy', {
       description,
     })
@@ -477,7 +475,6 @@ const handleCopyPin = async collection => {
       description,
     })
   } catch (error) {
-    console.error('Failed to copy PIN:', error)
     toast.error('Failed to copy', {
       description,
     })

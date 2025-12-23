@@ -139,7 +139,6 @@ const handleRegister = async values => {
       await router.push(redirect || { name: 'overview' })
     }
   } catch (error) {
-    console.error('Registration error:', error)
     await handleError(error, {
       fallbackMessage: 'An error occurred during registration',
     })
@@ -155,7 +154,6 @@ const handleGoogleSignUp = async () => {
     // Redirect to Google OAuth
     window.location.href = redirectUrl
   } catch (error) {
-    console.error('Google sign up error:', error)
     handleError(error, {
       fallbackMessage: 'Google sign up failed. Please try again.',
     })

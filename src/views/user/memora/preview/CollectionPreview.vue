@@ -701,13 +701,11 @@ const activeTab = ref('Highlights')
 // Track if we're in initial load to prevent store updates from overwriting API data
 let isInitialLoad = true
 
-// Get collection ID from route (only if not in preview mode)
 const collectionId = computed(() => {
   if (props.previewMode) return ''
   return route.params.id || ''
 })
 
-// Get preset design config (use preview config, collection's preset, or default)
 // Force reactivity by tracking the prop explicitly
 const designConfig = computed(() => {
   // Access props.previewDesignConfig to ensure this computed tracks it
@@ -718,7 +716,6 @@ const designConfig = computed(() => {
     // Access coverLayoutConfig to ensure it's tracked as a dependency
     const previewCoverLayoutConfig = previewConfig.coverLayoutConfig
 
-    // Create a new object reference to ensure reactivity
     const coverLayoutConfig = previewCoverLayoutConfig ? { ...previewCoverLayoutConfig } : undefined
 
     return {
@@ -728,7 +725,6 @@ const designConfig = computed(() => {
     }
   }
 
-  // Check if this is a preset preview route
   if (route.name === 'presetPreview') {
     const presetName = route.params.name
     if (presetName) {
@@ -760,7 +756,6 @@ const designConfig = computed(() => {
     collectionCoverDesign &&
     (collectionCoverDesign.coverLayoutConfig || collectionCoverDesign.coverLayoutUuid)
   ) {
-    // Get base design from preset (for other design properties like colors, fonts, etc.)
     const presetDesign = preset?.design || {}
     const baseDesign = {
       coverFocalPoint: presetDesign.coverFocalPoint || { x: 50, y: 50 },
@@ -814,7 +809,6 @@ const designConfig = computed(() => {
     }
   }
 
-  // Check collection.design directly for coverLayoutConfig (another fallback)
   if (collection.value?.design?.coverLayoutConfig || collection.value?.design?.coverLayoutUuid) {
     return {
       ...baseDesign,
@@ -902,7 +896,6 @@ const coverLayoutConfig = computed(() => {
   // Access config.coverLayoutConfig to ensure it's tracked
   const configCoverLayoutConfig = config.coverLayoutConfig
 
-  // Check if cover is 'none' first (backward compatibility)
   if (config.cover === 'none' && !configCoverLayoutConfig && !config.coverLayoutUuid) {
     return {
       layout: 'none',
@@ -949,7 +942,6 @@ const coverLayoutConfig = computed(() => {
     alignment = 'top-center'
   }
 
-  // Handle special layouts
   if (oldConfig.specialLayout === 'none') {
     // For 'none', we still use the layout engine but with minimal styling
     return {
@@ -1008,13 +1000,10 @@ const coverImageWithFallback = computed(() => {
   return coverImage.value || fallbackImageUrl
 })
 
-// Handle image load errors - no longer needed since we use computed, but kept for compatibility
 const handleCoverImageError = () => {
   // Error handling is now done at the component level
-  console.warn('[CollectionPreview] Cover image failed to load')
 }
 
-// Get focal point for cover image positioning
 const coverFocalPoint = computed(() => {
   const focalPoint = designConfig.value.coverFocalPoint
   // Support both old string format and new object format
@@ -1105,7 +1094,6 @@ const fontStyleClass = computed(() => {
   return styleMap[designConfig.value.fontStyle || 'bold'] || 'font-bold'
 })
 
-// Get grid spacing value (convert string to number for backward compatibility)
 const gridSpacingValue = computed(() => {
   const spacing = designConfig.value.gridSpacing
   if (typeof spacing === 'number') {
@@ -1236,7 +1224,6 @@ const joyCoverShowButton = computed(() => designConfig.value.joyCoverShowButton)
 const joyCoverButtonText = computed(() => designConfig.value.joyCoverButtonText)
 
 const tabs = computed(() => {
-  // Get tabs from preset or use defaults
   let preset = presetStore.currentPreset
 
   // If this is a preset preview route, get the preset by name
@@ -1297,14 +1284,12 @@ const filteredMedia = computed(() => {
   // Filter out the cover image to avoid repetition
   let filtered = mediaToUse.filter(item => {
     if (!coverImageUrl) return true
-    // Check if this item's URL matches the cover image URL
     return item.url !== coverImageUrl && item.thumbnail !== coverImageUrl
   })
 
   // Filter by set if activeTab is not 'Highlights'
   if (activeTab.value !== 'Highlights') {
     // Find the set ID for the active tab name
-    // Check if collection has mediaSets with matching names
     const collectionSets = collection.value?.mediaSets || []
     const matchingSet = collectionSets.find(set => set.name === activeTab.value)
 
@@ -1350,7 +1335,6 @@ const pagination = usePagination({
   initialPage,
 })
 
-// Update pagination total when filteredMedia changes
 watch(
   () => filteredMedia.value.length,
   newLength => {
@@ -1416,7 +1400,6 @@ const closeMediaViewer = () => {
   selectedMedia.value = null
 }
 
-// Get icon for navigation tabs
 const getTabIcon = tab => {
   const iconMap = {
     Highlights: Sparkles,
@@ -1477,13 +1460,10 @@ onMounted(async () => {
     return
   }
 
-  // Check if this is a preset preview route
   if (route.name === 'presetPreview') {
-    // Get preset to use its name and settings
     const presetName = route.params.name
     const preset = presetName ? presetStore.getPresetByName(presetName) : null
 
-    // Set current preset so tabs and other computed properties work
     if (preset) {
       presetStore.setCurrentPreset(preset.id)
     }
@@ -1559,7 +1539,6 @@ onMounted(async () => {
       isInitialLoad = false
     }, 1000)
   } catch (error) {
-    console.error('Failed to load collection:', error)
     isInitialLoad = false
   } finally {
     isLoading.value = false
@@ -1582,15 +1561,12 @@ watch(
         return
       }
 
-      // Get coverDesign from both sources
       const existingCoverDesign = collection.value.coverDesign
       const storeCoverDesign = updatedCollection.coverDesign
 
-      // Check if store has valid coverDesign with layout config
       const storeHasValidCoverDesign =
         storeCoverDesign && (storeCoverDesign.coverLayoutConfig || storeCoverDesign.coverLayoutUuid)
 
-      // Check if existing (API) has valid coverDesign
       const existingHasValidCoverDesign =
         existingCoverDesign &&
         (existingCoverDesign.coverLayoutConfig || existingCoverDesign.coverLayoutUuid)

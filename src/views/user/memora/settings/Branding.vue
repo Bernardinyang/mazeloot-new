@@ -202,7 +202,6 @@ const isDisabled = ref(true)
 
 const handleUploadLogo = () => {
   if (isDisabled.value) return
-  // TODO
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
@@ -222,7 +221,6 @@ const handleUploadLogo = () => {
 
 const handleUploadFavicon = () => {
   if (isDisabled.value) return
-  // TODO
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*,.gif,.ico'

@@ -56,7 +56,6 @@ export function useMoveCopyFlow({
       // Reset set selection when collection changes
       targetSetIdInCollection.value = ''
     } catch (error) {
-      console.error('Failed to load collection sets:', error)
       targetCollectionSets.value = []
     } finally {
       isLoadingTargetCollectionSets.value = false
@@ -78,7 +77,6 @@ export function useMoveCopyFlow({
 
     isMovingMedia.value = true
     try {
-      // Update media items' collectionId and setId via API
       for (const id of idsToMove) {
         await mediaApi.updateMedia(String(id), {
           collectionId: targetCollectionId,
@@ -94,7 +92,6 @@ export function useMoveCopyFlow({
         mediaItems.value = mediaItems.value.filter(m => !idsToMove.includes(m.id))
       }
 
-      // Update set counts
       await updateSetCounts()
 
       selectedMediaIds.value.clear()
@@ -104,7 +101,6 @@ export function useMoveCopyFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to move media:', error)
       toast.error('Failed to move media', {
         description,
       })
@@ -152,7 +148,6 @@ export function useMoveCopyFlow({
         }
       }
 
-      // Update set counts for both source and target collections
       await updateSetCounts() // Update current collection
       if (targetCollectionId !== collection.value.id) {
         await updateSetCounts(targetCollectionId) // Update target collection
@@ -179,7 +174,6 @@ export function useMoveCopyFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to copy media:', error)
       const errorMessage = error?.message || 'An error occurred while copying the media items.'
       toast.error('Failed to copy media', {
         description: errorMessage,

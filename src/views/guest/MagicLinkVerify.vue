@@ -55,7 +55,6 @@ onMounted(async () => {
     const redirect = route.query.redirect
     await router.push(redirect || { name: 'overview' })
   } catch (error) {
-    console.error('Magic link verification error:', error)
     handleError(error, {
       fallbackMessage: 'Invalid or expired magic link. Please try again.',
     })

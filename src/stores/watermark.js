@@ -59,7 +59,6 @@ export const useWatermarkStore = defineStore('watermark', () => {
     isLoading.value = true
     error.value = null
 
-    // Create temporary watermark for optimistic update
     const tempId = `temp-${Date.now()}`
     const tempWatermark = {
       id: tempId,
@@ -72,7 +71,6 @@ export const useWatermarkStore = defineStore('watermark', () => {
     watermarks.value.push(tempWatermark)
 
     try {
-      // Create on server
       const newWatermark = await watermarksApi.createWatermark(data)
 
       // Replace temp watermark with real one
@@ -123,7 +121,6 @@ export const useWatermarkStore = defineStore('watermark', () => {
     }
 
     try {
-      // Update on server
       const updated = await watermarksApi.updateWatermark(id, data)
 
       // Replace with server response
@@ -167,7 +164,6 @@ export const useWatermarkStore = defineStore('watermark', () => {
     }
 
     try {
-      // Delete on server
       await watermarksApi.deleteWatermark(id)
     } catch (err) {
       // Revert optimistic update on error

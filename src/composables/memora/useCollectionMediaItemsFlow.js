@@ -42,7 +42,6 @@ export function useCollectionMediaItemsFlow({
             return { ...set, count }
           })
 
-          // Update the collection in the store
           await galleryStore.updateCollection(collectionId, {
             mediaSets: updatedSets,
           })
@@ -50,7 +49,6 @@ export function useCollectionMediaItemsFlow({
       }
     } catch (error) {
       // Keep existing behavior: log only
-      console.error('Failed to update set counts:', error)
     } finally {
       isUpdatingSetCounts.value = false
     }
@@ -70,7 +68,6 @@ export function useCollectionMediaItemsFlow({
       )
       mediaItems.value = items
     } catch (error) {
-      console.error('Failed to load media items:', error)
       toast.error('Failed to load media', {
         description:
           error instanceof Error ? error.message : description || 'An unknown error occurred',

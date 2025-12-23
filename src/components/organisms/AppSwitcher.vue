@@ -32,7 +32,6 @@ const { navigateTo } = useNavigation()
 const userStore = useUserStore()
 const activeTeam = ref(props.teams[0])
 
-// Check if user is admin (for now, check if email contains admin or if user has admin role)
 // TODO: Replace with actual admin check from user store/API
 const isAdmin = computed(() => {
   if (props.isAdmin !== undefined) return props.isAdmin

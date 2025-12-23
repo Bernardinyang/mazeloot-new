@@ -70,9 +70,7 @@ const emit = defineEmits(['update:modelValue', 'input', 'blur'])
 const attrs = useAttrs()
 const showPassword = ref(false)
 
-// Get value from either modelValue (v-model) or value (v-bind from VeeValidate)
 const inputValue = computed(() => {
-  // Check if we have a value from VeeValidate's field binding
   if (attrs.value !== undefined) {
     return attrs.value
   }

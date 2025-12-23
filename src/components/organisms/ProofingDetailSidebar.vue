@@ -234,12 +234,9 @@ const loadData = async () => {
       try {
         const projectData = await projectStore.fetchProject(proofingData.projectId)
         project.value = projectData
-      } catch (err) {
-        console.warn('Failed to load project:', err)
-      }
+      } catch (err) {}
     }
   } catch (error) {
-    console.error('Failed to load proofing:', error)
   } finally {
     isLoading.value = false
   }
@@ -274,7 +271,6 @@ const handleViewProofing = () => {
 const handleComplete = async () => {
   if (!proofing.value) return
   // TODO: Implement complete proofing
-  console.log('Complete proofing:', proofing.value.id)
 }
 
 watch(

@@ -61,7 +61,6 @@ export const getMediaFromIndexedDB = async () => {
       }
     })
   } catch (error) {
-    console.error('IndexedDB not available:', error)
     return []
   }
 }
@@ -100,13 +99,11 @@ export const saveMediaToIndexedDB = async media => {
         }
         request.onerror = event => {
           hasError = true
-          console.error('Failed to save media item:', item.id, event)
           reject(new Error(`Failed to save media item ${item.id}`))
         }
       })
     })
   } catch (error) {
-    console.error('IndexedDB not available:', error)
     throw error
   }
 }

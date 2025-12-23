@@ -47,15 +47,6 @@ const layoutEngine = computed(() => {
   }
 
   const engine = LayoutEngines[layoutType] || LayoutEngines.stack
-  if (!engine) {
-    console.error(
-      '[DynamicCoverRenderer] No engine found for layout type:',
-      layoutType,
-      'Available:',
-      Object.keys(LayoutEngines)
-    )
-    return LayoutEngines.stack // Fallback
-  }
   return engine
 })
 

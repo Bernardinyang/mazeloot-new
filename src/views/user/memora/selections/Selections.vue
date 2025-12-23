@@ -257,7 +257,6 @@ const toggleStar = async selection => {
   if (selection && selection.id) {
     try {
       await selectionStore.toggleStarSelection(selection.id)
-      // Update local state without reloading
       const index = selections.value.findIndex(s => s.id === selection.id)
       if (index !== -1) {
         selections.value[index] = {
@@ -265,9 +264,7 @@ const toggleStar = async selection => {
           isStarred: !selections.value[index].isStarred,
         }
       }
-    } catch (error) {
-      console.error('Failed to toggle star:', error)
-    }
+    } catch (error) {}
   }
 }
 
@@ -301,7 +298,6 @@ const handleConfirmDelete = async () => {
       await fetch()
     }
   } catch (error) {
-    console.error('Failed to delete selection:', error)
   } finally {
     isDeleting.value = false
   }

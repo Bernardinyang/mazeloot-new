@@ -17,7 +17,6 @@ export function useMediaSetsFlow({
   editingSetId,
   editingSetName,
   setNameInputRef,
-  // delete confirmation composable
   itemToDelete,
   openDeleteModal,
   closeDeleteModal,
@@ -44,12 +43,10 @@ export function useMediaSetsFlow({
         mediaSets: setsToSave,
       })
 
-      // Update local collection ref
       if (collection.value) {
         collection.value.mediaSets = setsToSave
       }
     } catch (error) {
-      console.error('Failed to save media sets:', error)
       toast.error('Failed to save media sets', {
         description: error instanceof Error ? error.message : 'Please try again.',
       })
@@ -87,7 +84,6 @@ export function useMediaSetsFlow({
     isCreatingSet.value = true
     try {
       if (editingSetIdInModal.value) {
-        // Update existing set
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
           set.name = trimmedName
@@ -104,7 +100,6 @@ export function useMediaSetsFlow({
           })
         }
       } else {
-        // Create new set
         const maxOrder = Math.max(...mediaSets.value.map(s => s.order ?? 0), -1)
         const newSet = {
           id: `set-${Date.now()}`,
@@ -210,8 +205,6 @@ export function useMediaSetsFlow({
 
     const set = itemToDelete.value
     const index = mediaSets.value.findIndex(s => s.id === set.id)
-
-    console.log(mediaSets.value)
 
     if (index !== -1) {
       isDeleting.value = true

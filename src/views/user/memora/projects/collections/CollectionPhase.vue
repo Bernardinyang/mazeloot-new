@@ -147,7 +147,6 @@ const loadProject = async () => {
       projectCollections.value = projectData.collections
     }
   } catch (error) {
-    console.error('Failed to load project:', error)
     handleError(error, {
       fallbackMessage: 'Failed to load project.',
     })
@@ -164,7 +163,6 @@ const handleCreateCollectionSubmit = async data => {
   if (isCreatingCollection.value) return
   isCreatingCollection.value = true
   try {
-    // Create collection linked to project
     const newCollection = await galleryStore.createCollection({
       ...data,
       projectId: projectId.value,

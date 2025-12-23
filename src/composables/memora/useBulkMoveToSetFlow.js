@@ -20,7 +20,6 @@ export function useBulkMoveToSetFlow({
 
     isMovingMedia.value = true
     try {
-      // Update media items' setId via API
       for (const id of idsToMove) {
         await mediaApi.updateMedia(id, { setId: targetSetId })
       }
@@ -28,7 +27,6 @@ export function useBulkMoveToSetFlow({
       // Reload media items to reflect changes
       await loadMediaItems()
 
-      // Update set counts
       await updateSetCounts()
 
       selectedMediaIds.value.clear()
@@ -37,7 +35,6 @@ export function useBulkMoveToSetFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to move media:', error)
       toast.error('Failed to move media', {
         description,
       })

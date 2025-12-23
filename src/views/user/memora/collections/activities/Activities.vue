@@ -178,12 +178,10 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // TODO
     // downloadCount.value = await fetchDownloadCount(collectionId)
     // favouriteCount.value = await fetchFavouriteCount(collectionId)
     // emailCount.value = await fetchEmailCount(collectionId)
   } catch (error) {
-    console.error('Failed to load collection:', error)
   } finally {
     isLoading.value = false
   }

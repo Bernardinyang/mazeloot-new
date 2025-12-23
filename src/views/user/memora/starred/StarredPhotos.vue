@@ -345,8 +345,6 @@ const handleOpenPhoto = photo => {
 }
 
 const handleViewCollection = photo => {
-  // TODO
-  console.log('View collection:', photo.collection)
   if (photo.collection) {
     toast.info('Viewing collection...', {
       description: 'Opening collection in a new tab',
@@ -374,7 +372,6 @@ const handleDownloadPhoto = async photo => {
       description: 'Your download has started',
     })
   } catch (error) {
-    console.error('Failed to download photo:', error)
     toast.error('Download failed', {
       description: error.message || 'Failed to start download',
     })
@@ -389,7 +386,6 @@ const handleCopyFilenames = async photo => {
       description: 'The filename has been copied to your clipboard',
     })
   } catch (error) {
-    console.error('Failed to copy filename:', error)
     toast.error('Failed to copy', {
       description: error.message || 'Could not copy to clipboard',
     })
@@ -397,13 +393,11 @@ const handleCopyFilenames = async photo => {
 }
 
 const handleBrowsePhotos = () => {
-  // TODO
   router.push({ name: 'manageCollections' })
 }
 
 // Simulate loading on mount
 onMounted(() => {
-  // Set loading state to true initially
   setAllLoading(true)
   // Simulate data fetch - keep loading for 1.5 seconds to see skeleton loaders
   setTimeout(() => {

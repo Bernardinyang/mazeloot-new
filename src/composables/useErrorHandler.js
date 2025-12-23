@@ -21,7 +21,6 @@ export function useErrorHandler() {
     const errorMessage = getErrorMessage(err, fallbackMessage)
     error.value = errorMessage
 
-    // Handle authentication errors
     if (isAuthError(err)) {
       if (onAuthError) {
         onAuthError()
@@ -35,7 +34,6 @@ export function useErrorHandler() {
       return
     }
 
-    // Handle network errors
     if (isNetworkError(err)) {
       if (onNetworkError) {
         onNetworkError()
@@ -46,7 +44,6 @@ export function useErrorHandler() {
       return
     }
 
-    // Handle validation errors
     if (isValidationError(err)) {
       if (showToast) {
         toast.error(errorMessage)

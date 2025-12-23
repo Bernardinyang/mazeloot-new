@@ -82,13 +82,11 @@ export const useProjectStore = defineStore('project', () => {
     try {
       const updated = await projectsApi.updateProject(id, data)
 
-      // Update in projects array
       const index = projects.value.findIndex(p => p.id === id)
       if (index !== -1) {
         projects.value[index] = updated
       }
 
-      // Update current project if it's the one being updated
       if (currentProject.value && currentProject.value.id === id) {
         currentProject.value = updated
       }
@@ -159,7 +157,6 @@ export const useProjectStore = defineStore('project', () => {
     project.isStarred = newStarredState
     project.starred = newStarredState
 
-    // Update current project if it's the one being starred
     if (currentProject.value && currentProject.value.id === projectId) {
       currentProject.value.isStarred = newStarredState
       currentProject.value.starred = newStarredState

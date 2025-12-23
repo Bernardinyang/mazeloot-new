@@ -35,7 +35,6 @@ export function useCollectionLoadFlow({
 
       const collectionData = await galleryStore.fetchCollection(uuid)
       if (!collectionData) {
-        console.error('Collection not found:', uuid)
         toast.error('Collection not found', {
           description: 'The collection you are looking for does not exist.',
         })
@@ -43,18 +42,15 @@ export function useCollectionLoadFlow({
         return
       }
 
-      // Update local collection reference
       collection.value = collectionData
       // Map 'active' status to 'published' for display
       collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
 
-      // Set event date if available (as Date object for datepicker, but stored)
       // API stores 'date' field
       const dateString = collectionData.date
       if (dateString) {
         try {
           const dateValue = typeof dateString === 'string' ? new Date(dateString) : dateString
-          // Check if date is valid
           if (dateValue instanceof Date && !isNaN(dateValue.getTime())) {
             eventDate.value = dateValue
           } else if (typeof dateString === 'string') {
@@ -63,25 +59,21 @@ export function useCollectionLoadFlow({
             if (!isNaN(parsed.getTime())) {
               eventDate.value = parsed
             } else {
-              console.warn('Invalid date value:', dateString)
               eventDate.value = null
             }
           } else {
             eventDate.value = null
           }
         } catch (error) {
-          console.error('Error parsing date:', error, dateString)
           eventDate.value = null
         }
       } else {
         eventDate.value = null
       }
 
-      // Set preset if available (assuming collection has presetId field)
       const presetId = collectionData.presetId
       selectedPresetId.value = presetId != null ? String(presetId) : 'none'
 
-      // Set watermark if available (assuming collection has watermarkId field)
       const watermarkId = collectionData.watermarkId
       selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
@@ -99,12 +91,10 @@ export function useCollectionLoadFlow({
         mediaSets.value = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
       }
 
-      // Set default selected set
       if (mediaSets.value.length > 0) {
         selectedSetId.value = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
       }
 
-      // Update set counts based on actual media
       await updateSetCounts()
     } catch (error) {
       toast.error('Failed to load collection', {
@@ -122,9 +112,7 @@ export function useCollectionLoadFlow({
       if (collection.value) {
         const updatedCollection = collections.find(c => c.id === collection.value?.id)
         if (updatedCollection && updatedCollection.id === collection.value.id) {
-          // Update local collection ref with latest data from store
           collection.value = { ...collection.value, ...updatedCollection }
-          // Update local state to reflect changes (only if not currently saving to avoid race conditions)
           if (!isSavingPreset.value) {
             const newPresetId = updatedCollection.presetId
             selectedPresetId.value = newPresetId != null ? String(newPresetId) : 'none'
@@ -133,10 +121,8 @@ export function useCollectionLoadFlow({
             const newWatermarkId = updatedCollection.watermarkId
             selectedWatermark.value = newWatermarkId != null ? String(newWatermarkId) : 'none'
           }
-          // Update status if changed
           collectionStatus.value = updatedCollection.status === 'active' ? 'published' : 'draft'
 
-          // Update media sets if they changed
           if (updatedCollection.mediaSets) {
             mediaSets.value = updatedCollection.mediaSets.map(set => ({
               id: set.id,
@@ -161,9 +147,7 @@ export function useCollectionLoadFlow({
     }
     try {
       await watermarkStore.fetchWatermarks()
-    } catch (error) {
-      console.error('Failed to fetch watermarks:', error)
-    }
+    } catch (error) {}
   })
 
   return {

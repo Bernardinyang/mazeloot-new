@@ -469,7 +469,6 @@ const isApplyingWatermark = ref(false)
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {
@@ -577,7 +576,6 @@ const openMediaViewer = item => {
   // Find the index of the item in the sorted media items
   const index = sortedMediaItems.value.findIndex(m => m.id === item.id)
 
-  // Set all media items for lightbox navigation
   selectedMediaForView.value = sortedMediaItems.value
   currentViewIndex.value = index >= 0 ? index : 0
   showMediaViewer.value = true

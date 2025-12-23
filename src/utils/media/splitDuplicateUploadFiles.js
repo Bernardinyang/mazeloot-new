@@ -16,7 +16,6 @@ export const splitDuplicateUploadFiles = (files, mediaItems) => {
 
     // Find existing media that matches by filename AND size
     const existingMedia = mediaItems.find(m => {
-      // Check filename in multiple possible locations
       // Priority: filename (top-level) > file.filename (nested) > title > originalFilename
       const mediaFilename = (
         m.filename || // Top-level filename (from MediaResource)
@@ -30,7 +29,6 @@ export const splitDuplicateUploadFiles = (files, mediaItems) => {
 
       const mediaSize = m.size || m.file?.size || 0
 
-      // Check if filename matches (with or without extension)
       const filenameMatches =
         mediaFilename === fileName ||
         mediaFilename === fileName.replace(/\.[^/.]+$/, '') ||

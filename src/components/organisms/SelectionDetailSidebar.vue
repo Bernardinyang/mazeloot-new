@@ -447,14 +447,12 @@ const hasSets = computed(() => {
 const hasAdditionalFields = computed(() => {
   if (!selection.value) return false
 
-  // Check for specific fields that should be shown
   const hasColor = selection.value.color !== null && selection.value.color !== undefined
   const hasCoverPhoto = selection.value.coverPhotoUrl || selection.value.cover_photo_url
   const hasCompletedBy = selection.value.completedByEmail || selection.value.completed_by_email
   const hasStarred =
     selection.value.isStarred !== undefined || selection.value.starred !== undefined
 
-  // Check for any other non-excluded fields
   const hasOtherFields = Object.keys(selection.value).some(
     key =>
       !excludedKeys.includes(key) &&
@@ -496,12 +494,9 @@ const loadData = async () => {
       try {
         const projectData = await projectStore.fetchProject(selectionData.projectId)
         project.value = projectData
-      } catch (err) {
-        console.warn('Failed to load project:', err)
-      }
+      } catch (err) {}
     }
   } catch (error) {
-    console.error('Failed to load selection:', error)
   } finally {
     isLoading.value = false
   }

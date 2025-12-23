@@ -297,12 +297,10 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // TODO
     // shareLinks.value = await fetchShareLinks(collectionId)
     // For now, use demo data
     shareLinks.value = generateDemoData()
   } catch (error) {
-    console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     shareLinks.value = generateDemoData()
   } finally {
@@ -335,15 +333,9 @@ const copyToClipboard = async text => {
 }
 
 // Edit link
-const editLink = link => {
-  // TODO
-  console.log('Edit link:', link)
-}
+const editLink = link => {}
 
-// Delete link
 const deleteLink = async linkId => {
-  // TODO
-  console.log('Delete link:', linkId)
   toast.success('Link deleted')
 }
 </script>

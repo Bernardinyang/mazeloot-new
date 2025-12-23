@@ -354,7 +354,6 @@ const goBack = () => {
   router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
 }
 
-// Handle status change
 const handleStatusChange = async newStatus => {
   if (!collection.value || !newStatus) return
 
@@ -373,7 +372,6 @@ const handleStatusChange = async newStatus => {
   }
 }
 
-// Handle date change
 const handleDateChange = async newDate => {
   if (!collection.value) return
 
@@ -392,13 +390,11 @@ const handleDateChange = async newDate => {
   }
 }
 
-// Handle preset change
 const handlePresetChange = async presetId => {
   if (!collection.value) return
   selectedPresetId.value = presetId
 }
 
-// Handle watermark change
 const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId

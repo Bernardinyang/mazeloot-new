@@ -35,7 +35,6 @@ class ApiClient {
       data = null
     }
 
-    // Handle 401/403 - authentication errors
     if (response.status === 401 || response.status === 403) {
       const { useUserStore } = await import('@/stores/user')
       const userStore = useUserStore()
@@ -102,7 +101,6 @@ class ApiClient {
         signal, // Support AbortSignal
       })
 
-      // Check if request was aborted
       if (signal?.aborted) {
         throw new DOMException('Request aborted', 'AbortError')
       }
@@ -260,7 +258,6 @@ class ApiClient {
           formData.append('files[]', file)
         })
 
-        // Handle abort
         if (signal) {
           signal.addEventListener('abort', () => {
             xhr.abort()
@@ -291,7 +288,6 @@ class ApiClient {
               const isJson = contentType?.includes('application/json')
               const data = isJson ? JSON.parse(xhr.responseText) : xhr.responseText
 
-              // Handle response similar to handleResponse
               if (data?.data !== undefined) {
                 resolve({ data: data.data, status: xhr.status, statusText: xhr.statusText })
               } else {
@@ -305,7 +301,6 @@ class ApiClient {
               })
             }
           } else {
-            // Handle error response
             try {
               const contentType = xhr.getResponseHeader('content-type')
               const isJson = contentType?.includes('application/json')
@@ -342,7 +337,6 @@ class ApiClient {
 
         xhr.open('POST', url)
 
-        // Set headers
         const authHeader = !skipAuth ? this.getAuthHeader() : null
         if (authHeader) {
           xhr.setRequestHeader('Authorization', authHeader)
@@ -413,7 +407,6 @@ class ApiClient {
       const formData = new FormData()
       formData.append('file', file)
 
-      // Handle abort
       if (signal) {
         signal.addEventListener('abort', () => {
           xhr.abort()

@@ -114,7 +114,6 @@ export function useProjectsApi() {
       throw new Error(`Project not found: ${id}`)
     }
 
-    // Get associated phases
     const selections = getAllSelections().filter(s => s.projectId === id)
     const proofing = getAllProofing().filter(p => p.projectId === id)
     const collections = storage.get('mazeloot_collections') || []
@@ -136,7 +135,6 @@ export function useProjectsApi() {
 
     const projects = getAllProjects()
 
-    // Get preset if presetId is provided
     let preset = null
     if (data.presetId) {
       const PRESETS_STORAGE_KEY = 'mazeloot_presets'
@@ -216,7 +214,6 @@ export function useProjectsApi() {
     projects.push(newProject)
     saveProjects(projects)
 
-    // Create phases if requested
     const selections = getAllSelections()
     const proofing = getAllProofing()
 
@@ -251,7 +248,6 @@ export function useProjectsApi() {
     }
 
     if (data.hasCollections) {
-      // Create a collection linked to the project
       const collections = storage.get('mazeloot_collections') || []
       const newCollection = {
         id: generateUUID(),
@@ -291,7 +287,6 @@ export function useProjectsApi() {
       throw new Error('Project not found')
     }
 
-    // Handle eventDate conversion to date field
     let dateValue = projects[index].date
     if (data.eventDate !== undefined) {
       if (data.eventDate === null) {

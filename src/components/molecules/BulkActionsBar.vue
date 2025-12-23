@@ -153,6 +153,24 @@
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
+
+        <!-- Copy Filenames -->
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button
+                class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors"
+                title="Copy Filenames"
+                @click="handleCopyFilenames"
+              >
+                <Copy class="h-5 w-5 text-white" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Copy Filenames</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
     </div>
   </Transition>
@@ -161,6 +179,7 @@
 <script setup>
 import {
   ArrowDown,
+  Copy,
   Eye,
   ImageIcon,
   Loader2,
@@ -210,6 +229,7 @@ const emit = defineEmits([
   'move',
   'delete',
   'edit',
+  'copy-filenames',
 ])
 
 const handleClearSelection = () => {
@@ -242,6 +262,10 @@ const handleDelete = () => {
 
 const handleEdit = () => {
   emit('edit')
+}
+
+const handleCopyFilenames = () => {
+  emit('copy-filenames')
 }
 </script>
 

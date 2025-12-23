@@ -12,7 +12,6 @@ export const useThemeStore = defineStore('theme', () => {
     window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   )
 
-  // Get effective theme (resolves 'system' to actual theme)
   const effectiveTheme = ref(theme.value === 'system' ? systemTheme.value : theme.value)
 
   // Watch for system theme changes
@@ -54,17 +53,14 @@ export const useThemeStore = defineStore('theme', () => {
     storage.set(TOAST_DESIGN_STORAGE_KEY, toastDesign.value)
   })
 
-  // Set toast design
   const setToastDesign = design => {
     if (['1', '2', '3', '4', '5', 'default'].includes(design)) {
       toastDesign.value = design
     } else {
-      console.warn(`Invalid toast design: ${design}. Using default.`)
       toastDesign.value = '1'
     }
   }
 
-  // Set theme
   const setTheme = newTheme => {
     theme.value = newTheme
 

@@ -142,7 +142,6 @@ export const checkDuplicateFilename = (filename, existingMedia = []) => {
  * @returns {Promise<{ valid: boolean, errors: string[], width?: number, height?: number }>}
  */
 export const validateUploadFile = async (file, options = {}) => {
-  // Get max upload size from environment variable or use defaults
   // Videos default to 50MB, images default to 10MB
   const isVideo = file.type.startsWith('video/')
   const envMaxSizeMB = import.meta.env.VITE_MAX_UPLOAD_SIZE_MB

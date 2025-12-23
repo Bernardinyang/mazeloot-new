@@ -206,7 +206,6 @@ const magicLinkSchema = yup.object({
 })
 
 const handleLogin = async values => {
-  console.log('Login values:', values)
   try {
     await userStore.login(values.email, values.password, values.remember)
 
@@ -216,7 +215,6 @@ const handleLogin = async values => {
     const redirect = route.query.redirect
     await router.push(redirect || { name: 'overview' })
   } catch (error) {
-    console.error('Login error:', error)
     await handleError(error, {
       fallbackMessage: 'Invalid email or password. Please try again.',
     })
@@ -232,7 +230,6 @@ const handleMagicLinkLogin = async values => {
       description: 'Check your email for a link to sign in.',
     })
   } catch (error) {
-    console.error('Magic link error:', error)
     magicLinkSent.value = false
     await handleError(error, {
       fallbackMessage: 'Failed to send magic link. Please try again.',
@@ -257,7 +254,6 @@ const handleGoogleSignIn = async () => {
     // Redirect to Google OAuth
     window.location.href = redirectUrl
   } catch (error) {
-    console.error('Google sign in error:', error)
     await handleError(error, {
       fallbackMessage: 'Google sign in failed. Please try again.',
     })

@@ -53,7 +53,6 @@ export function useMediaUploadFlow({
       return
     }
 
-    // Check for duplicate file names in the current set
     // Filter mediaItems to only check against items in the selected set
     const mediaInSelectedSet = selectedSetId?.value
       ? mediaItems.value.filter(item => item.setId === selectedSetId.value)
@@ -93,9 +92,7 @@ export function useMediaUploadFlow({
           if (index !== -1) {
             mediaItems.value.splice(index, 1)
           }
-        } catch (error) {
-          console.error('Failed to delete existing media:', error)
-        }
+        } catch (error) {}
       }
     }
 
@@ -124,14 +121,11 @@ export function useMediaUploadFlow({
     isUploading.value = true
 
     try {
-      // Get watermark if selected
       let watermark
       if (selectedWatermark.value && selectedWatermark.value !== 'none') {
         try {
           watermark = await watermarkStore.fetchWatermark(selectedWatermark.value)
-        } catch (error) {
-          console.error('Failed to fetch watermark:', error)
-        }
+        } catch (error) {}
       }
 
       // Determine if this is a selection or collection
@@ -149,7 +143,6 @@ export function useMediaUploadFlow({
         return
       }
 
-      // Process each file and save to mock data
       const uploadedItems = []
       let failedFiles = []
 
@@ -158,7 +151,6 @@ export function useMediaUploadFlow({
           // Determine media type
           const type = file.type.startsWith('image/') ? 'image' : 'video'
 
-          // Get filename without extension for title
           const fileName = getFileBaseName(file.name)
 
           if (file.type.startsWith('image/')) {
@@ -167,21 +159,18 @@ export function useMediaUploadFlow({
             try {
               filePath = await storeFile(file)
             } catch (error) {
-              console.error('Error storing file in IndexedDB:', error)
               toast.error('Failed to store file', {
                 description: `Error storing ${file.name}: ${error.message}`,
               })
               continue
             }
 
-            // Create thumbnail and store it in IndexedDB
             let thumbnailPath
             try {
               const thumbnailDataURL = await createThumbnail(file, watermark || undefined)
               const thumbnailBlob = await (await fetch(thumbnailDataURL)).blob()
               thumbnailPath = await storeBlob(thumbnailBlob, `thumb_${fileName}.jpg`)
             } catch (error) {
-              console.error('Error creating/storing thumbnail:', error)
               // Continue with upload even if thumbnail fails
               thumbnailPath = filePath
             }
@@ -211,20 +200,17 @@ export function useMediaUploadFlow({
               // Small delay to ensure media is persisted before background processing
               await new Promise(resolve => setTimeout(resolve, 100))
             } catch (error) {
-              console.error('Error adding media to API:', error)
               toast.error('Failed to add media', {
                 description: `Error adding ${file.name}: ${error.message}`,
               })
               continue
             }
 
-            // Process full image with watermark in background and update
             ;(async () => {
               try {
                 // Wait a bit longer to ensure media is fully saved to storage
                 await new Promise(resolve => setTimeout(resolve, 1000))
 
-                // Get the file from IndexedDB
                 const storedFile = await getFile(filePath)
                 const originalImageUrl = await fileToDataURL(storedFile)
                 let watermarkedPath = filePath
@@ -253,7 +239,6 @@ export function useMediaUploadFlow({
                     } catch (error) {
                       retries--
                       if (retries === 0) {
-                        console.error('Error updating media after retries:', error)
                         // Don't throw, just log - the media is already added
                       } else {
                         // Wait before retry
@@ -275,13 +260,10 @@ export function useMediaUploadFlow({
                         id: `${newMedia.id}_original`,
                       })
                       mediaItems.value[index].originalUrl = originalPath
-                    } catch (error) {
-                      console.error('Error storing original file:', error)
-                    }
+                    } catch (error) {}
                   }
                 }
               } catch (error) {
-                console.error('Error processing full image:', error)
                 // Don't show error toast for background processing failures
               }
             })()
@@ -305,7 +287,6 @@ export function useMediaUploadFlow({
           }
         } catch (error) {
           const errorMessage = getErrorMessage(error, `Failed to process "${file.name}"`)
-          console.error('Error processing file:', file.name, error)
           // Track failed files for better error reporting
           failedFiles.push({ file: file.name, error: errorMessage })
         }
@@ -326,7 +307,6 @@ export function useMediaUploadFlow({
         return
       }
 
-      // Update set counts based on actual media (more accurate than incrementing)
       await updateSetCounts()
 
       const successMessage = `${uploadedItems.length} file${uploadedItems.length > 1 ? 's' : ''} uploaded successfully.`
@@ -341,7 +321,6 @@ export function useMediaUploadFlow({
       }
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Failed to upload files')
-      console.error('Upload error:', error)
       toast.error('Upload failed', {
         description: errorMessage,
       })

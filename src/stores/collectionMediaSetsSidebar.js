@@ -76,7 +76,6 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     try {
       await galleryStore.updateCollection(collectionId.value, { mediaSets: mediaSets.value })
     } catch (error) {
-      console.error('Failed to save media sets:', error)
       toast.error('Failed to save media sets', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -171,7 +170,6 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     }
   }
 
-  // Delete flow: keep simple/consistent (layout will host confirmation modal)
   const showDeleteSetModal = ref(false)
   const setToDelete = ref(null)
   const isDeletingSet = ref(false)
@@ -280,7 +278,6 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     handleCreateSet,
     handleSelectSet,
 
-    // delete modal
     showDeleteSetModal,
     setToDelete,
     isDeletingSet,

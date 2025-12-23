@@ -14,14 +14,12 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
-  // Check route meta properties
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
   const isGuestRoute = to.matched.some(record => record.meta.isGuestRoute)
 
   // Use the store's isAuthenticated computed property for consistency
   const isAuthenticated = userStore.isAuthenticated
 
-  // Handle protected routes (requires authentication)
   if (requiresAuth) {
     if (!isAuthenticated) {
       // Guest trying to access authenticated route - redirect to login
@@ -36,7 +34,6 @@ router.beforeEach((to, from, next) => {
     return
   }
 
-  // Handle guest routes (login, register, etc.)
   if (isGuestRoute) {
     if (isAuthenticated) {
       // Authenticated user trying to access guest route - redirect to overview
@@ -53,8 +50,6 @@ router.beforeEach((to, from, next) => {
 })
 
 // Error handling for route navigation
-router.onError(error => {
-  console.error('Router error:', error)
-})
+router.onError(error => {})
 
 export default router

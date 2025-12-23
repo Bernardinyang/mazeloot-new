@@ -306,7 +306,6 @@ const formData = reactive({
 // Store original loaded data for comparison
 const originalData = ref(null)
 
-// Check if there are actual unsaved changes
 const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoading.value) {
     return false
@@ -314,7 +313,6 @@ const hasUnsavedChanges = computed(() => {
   return formData.colorPalette !== originalData.value.colorPalette
 })
 
-// Get merged design config for preview (from collection store)
 const previewDesignConfig = computed(() => {
   const defaults = {
     cover: 'none',
@@ -346,8 +344,6 @@ const previewDesignConfig = computed(() => {
     }
   }
 
-  // Get all design configs from the collection in store (which is updated by the watcher)
-  // Check for separate design properties first, then fallback to unified design object
   const coverDesign =
     collectionInStore.coverDesign ||
     (collectionInStore.design
@@ -383,7 +379,6 @@ const previewDesignConfig = computed(() => {
         }
       : {})
 
-  // Return merged config from store
   return {
     ...defaults,
     ...gridDesign,
@@ -452,7 +447,6 @@ const loadCollectionData = async () => {
     collection.value = collectionData
 
     // Load color design data
-    // Check for colorDesign first, then fallback to design object (for backward compatibility)
     const colorDesign =
       collectionData.colorDesign ||
       (collectionData.design
@@ -497,7 +491,6 @@ const saveColorDesign = async () => {
       colorDesign: formData,
     })
 
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData }
     }
@@ -526,7 +519,6 @@ const discardChanges = () => {
   }
 }
 
-// Set up unsaved changes guard
 const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
   useUnsavedChangesGuard({
     hasUnsavedChanges,

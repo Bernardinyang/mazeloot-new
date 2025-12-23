@@ -127,7 +127,6 @@ const handleSubmit = async () => {
     formData.color = generateRandomColorFromPalette()
     emit('update:open', false)
   } catch (error) {
-    console.error('Failed to create folder:', error)
   } finally {
     isSubmitting.value = false
   }

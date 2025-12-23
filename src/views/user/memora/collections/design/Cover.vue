@@ -455,7 +455,6 @@ const formData = reactive({
 // Store original loaded data for comparison
 const originalData = ref(null)
 
-// Check if there are actual unsaved changes
 const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoading.value) {
     return false
@@ -469,7 +468,6 @@ const hasUnsavedChanges = computed(() => {
   )
 })
 
-// Get merged design config for preview
 // IMPORTANT: formData values always take priority to ensure live preview reflects current form state
 // This computed property passes formData.coverLayoutConfig directly to CollectionPreview
 const previewDesignConfig = computed(() => {
@@ -489,7 +487,6 @@ const previewDesignConfig = computed(() => {
   // Early returns for cases where collection is not loaded or not in store
   if (!collection.value) {
     // Fallback to formData if collection not loaded
-    // Create new object reference for reactivity
     const coverLayoutConfigValue = formData.coverLayoutConfig
       ? { ...formData.coverLayoutConfig }
       : { ...defaultLayoutConfig }
@@ -505,7 +502,6 @@ const previewDesignConfig = computed(() => {
   const collectionInStore = galleryStore.collections.find(c => c.id === collection.value?.id)
   if (!collectionInStore) {
     // Fallback to formData if not in store
-    // Create new object reference for reactivity
     const coverLayoutConfigValue = formData.coverLayoutConfig
       ? { ...formData.coverLayoutConfig }
       : { ...defaultLayoutConfig }
@@ -518,8 +514,6 @@ const previewDesignConfig = computed(() => {
     }
   }
 
-  // Get all design configs from the collection in store (which is updated by the watcher)
-  // Check for separate design properties first, then fallback to unified design object
   const coverDesign =
     collectionInStore.coverDesign ||
     (collectionInStore.design
@@ -559,7 +553,6 @@ const previewDesignConfig = computed(() => {
 
   // PRIORITY: Always use formData for cover layout config (for live preview)
   // This ensures the preview reflects the current form state, not the saved state
-  // Create a new object reference to ensure reactivity when formData changes
   const coverLayoutConfigValue = formData.coverLayoutConfig
     ? { ...formData.coverLayoutConfig } // Create new reference from formData (always prefer this)
     : coverDesign.coverLayoutConfig
@@ -575,7 +568,6 @@ const previewDesignConfig = computed(() => {
         ? coverDesign.cover
         : undefined
 
-  // Return merged config - formData values take priority for preview
   // This should match the structure that CollectionPreview expects
   // Always create a new object to ensure reactivity when formData changes
   return {
@@ -628,11 +620,9 @@ const loadCoverLayouts = async () => {
     await useCoverLayouts()
     // Wait a tick to ensure reactive updates propagate
     await new Promise(resolve => setTimeout(resolve, 0))
-    // Get options after layouts are loaded
     const options = getCoverLayoutOptions()
     coverLayoutOptions.value = options
   } catch (err) {
-    console.warn('Failed to load cover layouts:', err)
     coverLayoutOptions.value = []
   } finally {
     coverLayoutsLoading.value = false
@@ -644,7 +634,6 @@ onMounted(() => {
   loadCoverLayouts()
 })
 
-// Get selected layout object
 const selectedLayout = computed(() => {
   if (!formData.coverLayoutUuid) {
     return null
@@ -652,7 +641,6 @@ const selectedLayout = computed(() => {
   return coverLayoutOptions.value.find(l => l.uuid === formData.coverLayoutUuid) || null
 })
 
-// Get layout config for selected layout
 const selectedLayoutConfig = computed(() => {
   if (selectedLayout.value && selectedLayout.value.layoutConfig) {
     return selectedLayout.value.layoutConfig
@@ -660,7 +648,6 @@ const selectedLayoutConfig = computed(() => {
   return formData.coverLayoutConfig || getDefaultLayoutConfig()
 })
 
-// Handle layout selection
 const selectCoverLayout = async layout => {
   // Always store the full layout config when selecting
   // This ensures preview and save both have the config
@@ -672,12 +659,10 @@ const selectCoverLayout = async layout => {
     try {
       layoutConfig = await getCoverLayoutConfig(layout.uuid)
     } catch (err) {
-      console.warn('[Cover.vue] Failed to fetch layout config:', err)
       layoutConfig = getDefaultLayoutConfig()
     }
   }
 
-  // Update formData - create completely new object reference for reactivity
   // This ensures previewDesignConfig computed detects the change immediately
   Object.assign(formData, {
     coverLayoutUuid: layout.uuid,
@@ -686,7 +671,6 @@ const selectCoverLayout = async layout => {
   })
 }
 
-// Handle focal point click
 const handleFocalPointClick = event => {
   if (!focalPointImageContainer.value) return
 
@@ -701,9 +685,7 @@ const handleFocalPointClick = event => {
   }
 }
 
-// Handle cover photo click
 const handleCoverPhotoClick = () => {
-  // TODO
   toast.info('Cover Photo', {
     description,
   })
@@ -732,7 +714,6 @@ const loadCollectionData = async () => {
     collection.value = collectionData
 
     // Load cover design data
-    // Check for coverDesign first, then fallback to design object (for backward compatibility)
     const coverDesign =
       collectionData.coverDesign ||
       (collectionData.design
@@ -750,7 +731,6 @@ const loadCollectionData = async () => {
       try {
         layoutConfig = await getCoverLayoutConfig(coverDesign.coverLayoutUuid)
       } catch (err) {
-        console.warn('Failed to fetch layout config:', err)
         layoutConfig = getDefaultLayoutConfig()
       }
     } else if (!layoutConfig) {
@@ -768,7 +748,6 @@ const loadCollectionData = async () => {
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
 
-    // Set cover image
     collectionCoverImage.value = collectionData.thumbnail || null
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error)
@@ -819,15 +798,11 @@ const saveCoverDesign = async () => {
       coverDesign: coverDesignData,
     })
 
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData }
     }
     return true
   } catch (error) {
-    console.error('[Cover.vue] Save error:', error)
-
-    // Check if collection was not found
     const errorMessage = error instanceof Error ? error.message : String(error)
     if (errorMessage.includes('Collection not found') || errorMessage === 'Collection not found') {
       toast.error('Collection not found', {
@@ -864,7 +839,6 @@ const discardChanges = () => {
   }
 }
 
-// Set up unsaved changes guard
 const { handleSaveAndLeave, handleDiscardAndLeave, handleCancelNavigation } =
   useUnsavedChangesGuard({
     hasUnsavedChanges,

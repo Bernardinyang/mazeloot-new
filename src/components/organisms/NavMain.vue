@@ -35,19 +35,15 @@ const { isActiveRoute, route } = useNavigation()
 const { state, isMobile } = useSidebar()
 const isCollapsed = computed(() => state === 'collapsed')
 
-// Check if an item is label-only (only has title, no navigation properties)
 const isLabelOnly = item => {
   return !item.name && !item.url && !item.icon && (!item.items || item.items.length === 0)
 }
 
-// Check if an item or any of its children is active
 const isItemActive = item => {
-  // Check if the item itself is active
   if (isActiveRoute(item.url, item.name)) {
     return true
   }
 
-  // Check if any child item is active
   if (item.items && item.items.length > 0) {
     return item.items.some(subItem => isActiveRoute(subItem.url, subItem.name))
   }
@@ -55,7 +51,6 @@ const isItemActive = item => {
   return false
 }
 
-// Check if a collapsible should be open (if item or any child is active)
 const shouldBeOpen = item => {
   return isItemActive(item)
 }
@@ -80,7 +75,6 @@ watch(
   () => {
     ;(props.items || []).forEach(item => {
       if (item.items && item.items.length > 0) {
-        // Update open state based on whether item or any child is active
         openStates.value[item.title] = shouldBeOpen(item)
       }
     })

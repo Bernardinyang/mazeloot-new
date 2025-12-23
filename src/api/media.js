@@ -18,13 +18,11 @@ const MEDIA_STORAGE_KEY = 'mazeloot_media'
 const USE_INDEXED_DB_KEY = 'mazeloot_use_indexeddb'
 let useIndexedDB = false
 
-// Check if we should use IndexedDB (persisted preference)
 const checkIndexedDBPreference = () => {
   const preference = storage.get(USE_INDEXED_DB_KEY)
   return preference === true
 }
 
-// Set IndexedDB preference
 const setIndexedDBPreference = value => {
   try {
     storage.set(USE_INDEXED_DB_KEY, value)
@@ -77,7 +75,6 @@ const initializeMockMedia = () => {
     return stored
   }
 
-  // Return empty array - no default images
   return []
 }
 
@@ -93,7 +90,6 @@ const getAllMedia = async () => {
         return indexedMedia
       }
     } catch (error) {
-      console.error('Failed to read from IndexedDB:', error)
       // Fall back to localStorage if IndexedDB fails
     }
   }
@@ -130,7 +126,6 @@ const saveMedia = async media => {
       storage.set(MEDIA_STORAGE_KEY, media)
       return
     } catch (error) {
-      // Check for quota exceeded error in multiple ways
       const isQuotaError =
         error?.name === 'QuotaExceededError' ||
         error?.code === 22 ||
@@ -141,16 +136,10 @@ const saveMedia = async media => {
         error?.originalError?.name === 'QuotaExceededError'
 
       if (isQuotaError) {
-        console.warn(
-          'localStorage quota exceeded. Switching to IndexedDB for media storage...',
-          error
-        )
-
         if (isIndexedDBAvailable()) {
           useIndexedDB = true
           setIndexedDBPreference(true) // Persist preference
           try {
-            // Get existing data from localStorage before it's lost
             const existing = getAllMediaSync()
             const allMediaToSave = [...existing, ...media]
 
@@ -164,10 +153,8 @@ const saveMedia = async media => {
 
             // Save all media to IndexedDB
             await saveMediaToIndexedDB(uniqueMedia)
-            console.log('Successfully migrated to IndexedDB')
             return
           } catch (indexedError) {
-            console.error('Failed to save to IndexedDB:', indexedError)
             throw new Error(
               'Storage quota exceeded and IndexedDB save failed. Please clear some data.'
             )
@@ -188,7 +175,6 @@ const saveMedia = async media => {
     try {
       await saveMediaToIndexedDB(media)
     } catch (error) {
-      console.error('Failed to save media to IndexedDB:', error)
       throw error
     }
   }
@@ -262,7 +248,6 @@ export function useMediaApi() {
     try {
       await saveMedia(allMedia)
     } catch (error) {
-      console.error('Failed to save media:', error)
       // Remove from array if save failed
       allMedia.pop()
       throw new Error(`Failed to save media: ${error.message}`)
@@ -345,7 +330,6 @@ export function useMediaApi() {
           phaseId: toPhaseId,
           updatedAt: new Date().toISOString(),
         }
-        // Update collectionId for backward compatibility if moving to collection
         if (toPhase === 'collection') {
           allMedia[index].collectionId = toPhaseId
         }
@@ -369,7 +353,6 @@ export function useMediaApi() {
       throw new Error('Media not found')
     }
 
-    // Create low-res copy using thumbnail
     const lowResCopy = {
       ...media,
       id: generateUUID(),

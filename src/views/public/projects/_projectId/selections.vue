@@ -122,7 +122,6 @@ const loadData = async () => {
       mediaItems.value = selectionData.media || []
     }
   } catch (error) {
-    console.error('Failed to load selection:', error)
   } finally {
     isLoading.value = false
   }
@@ -133,9 +132,7 @@ const loadMediaItems = async () => {
   try {
     const media = await mediaApi.fetchPhaseMedia('selection', selection.value.id)
     mediaItems.value = media
-  } catch (error) {
-    console.error('Failed to load media:', error)
-  }
+  } catch (error) {}
 }
 
 const { markMediaSelected, completeSelection } = useSelectionWorkflow({
@@ -157,18 +154,14 @@ const handleToggleSelection = async mediaId => {
       })
       await loadMediaItems()
     }
-  } catch (error) {
-    console.error('Failed to toggle selection:', error)
-  }
+  } catch (error) {}
 }
 
 const handleComplete = async () => {
   try {
     await completeSelection()
     await loadData()
-  } catch (error) {
-    console.error('Failed to complete selection:', error)
-  }
+  } catch (error) {}
 }
 
 onMounted(() => {

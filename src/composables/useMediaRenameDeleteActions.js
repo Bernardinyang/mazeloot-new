@@ -5,7 +5,6 @@ export function useMediaRenameDeleteActions({
   showRenameMediaModal,
   mediaToRename,
   newMediaName,
-  // delete confirmation state/composable
   itemToDelete,
   openDeleteModal,
   closeDeleteModal,
@@ -16,7 +15,6 @@ export function useMediaRenameDeleteActions({
   mediaApi,
   deleteMediaFn, // Optional: custom delete function (e.g., for selections)
   updateSetCounts,
-  // set delete handler fallback
   handleConfirmDeleteSet,
   description,
 } = {}) {
@@ -40,7 +38,6 @@ export function useMediaRenameDeleteActions({
         title: newMediaName.value.trim(),
       })
 
-      // Update local item
       const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
       if (index !== -1) {
         mediaItems.value[index].title = newMediaName.value.trim()
@@ -54,7 +51,6 @@ export function useMediaRenameDeleteActions({
         description,
       })
     } catch (error) {
-      console.error('Failed to rename media:', error)
       toast.error('Failed to rename media', {
         description,
       })
@@ -67,14 +63,10 @@ export function useMediaRenameDeleteActions({
   }
 
   const handleConfirmDeleteItem = async () => {
-    console.log(itemToDelete.value)
     if (!itemToDelete.value) return
 
     const item = itemToDelete.value
 
-    console.log(item.collectionId)
-
-    // Check if it's a MediaSet or MediaItem
     if (item.collectionId || item.setId) {
       // It's a MediaItem
       try {
@@ -89,7 +81,6 @@ export function useMediaRenameDeleteActions({
         const index = mediaItems.value.findIndex(m => m.id === item.id)
         if (index !== -1) {
           mediaItems.value.splice(index, 1)
-          // Update set counts based on actual media
           await updateSetCounts()
         }
         // Remove from selection if selected
@@ -99,7 +90,6 @@ export function useMediaRenameDeleteActions({
           description,
         })
       } catch (error) {
-        console.error('Failed to delete media:', error)
         toast.error('Failed to delete media', {
           description,
         })

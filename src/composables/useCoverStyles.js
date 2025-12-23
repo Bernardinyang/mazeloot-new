@@ -49,7 +49,6 @@ async function loadCoverStyles() {
     coverStyles.value = transformCoverStyles(apiStyles)
     isInitialized.value = true
   } catch (err) {
-    console.warn('Failed to fetch cover styles from API, using fallback:', err)
     error.value = err
 
     // Fallback to hardcoded config

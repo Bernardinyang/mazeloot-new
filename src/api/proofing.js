@@ -126,11 +126,9 @@ export function useProofingApi() {
       throw new Error(`Proofing not found: ${id}`)
     }
 
-    // Get media for this proofing
     const allMedia = getAllMedia()
     const proofingMedia = allMedia.filter(m => m.phase === 'proofing' && m.phaseId === id)
 
-    // Get feedback for all media in this proofing
     const allFeedback = getAllFeedback()
     const mediaIds = proofingMedia.map(m => m.id)
     const proofingFeedback = allFeedback.filter(f => mediaIds.includes(f.mediaId))
@@ -196,7 +194,6 @@ export function useProofingApi() {
     }
 
     if (existingMedia) {
-      // Update existing media with new revision
       existingMedia = {
         ...existingMedia,
         ...mediaData,
@@ -206,7 +203,6 @@ export function useProofingApi() {
       const index = allMedia.findIndex(m => m.id === existingMedia.id)
       allMedia[index] = existingMedia
     } else {
-      // Create new media entry
       const newMedia = {
         id: generateUUID(),
         projectId: proofingPhase.projectId,
@@ -223,7 +219,6 @@ export function useProofingApi() {
       existingMedia = newMedia
     }
 
-    // Update proofing current revision
     proofingPhase.currentRevision = Math.max(proofingPhase.currentRevision, revisionNumber)
     proofingPhase.updatedAt = new Date().toISOString()
 
@@ -334,7 +329,6 @@ export function useProofingApi() {
         throw new Error('Project not found')
       }
 
-      // Create collection linked to project
       const { generateUUID } = await import('@/utils/uuid')
       collection = {
         id: generateUUID(),
@@ -364,7 +358,6 @@ export function useProofingApi() {
       saveCollections(collections)
     }
 
-    // Create low-res copies and keep in proofing
     const { createLowResMediaItem } = await import('@/utils/media/generateLowResCopy')
     const lowResCopies = []
     for (const media of proofingMedia) {
@@ -403,15 +396,12 @@ export function useProofingApi() {
     const allMedia = getAllMedia()
     const allFeedback = getAllFeedback()
 
-    // Get projects for project name lookup
     const { useProjectsApi } = await import('@/api/projects')
     const projectsApi = useProjectsApi()
     let projects = []
     try {
       projects = await projectsApi.fetchProjects({ parentId: null })
-    } catch (err) {
-      console.warn('Failed to load projects for proofing enrichment:', err)
-    }
+    } catch (err) {}
 
     // Enrich each proofing with media count, feedback count, and project name
     return proofing.map(proofingPhase => {

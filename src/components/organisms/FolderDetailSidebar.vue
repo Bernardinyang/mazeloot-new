@@ -240,7 +240,6 @@ const loadData = async () => {
       folder.value = folderData
     }
   } catch (error) {
-    console.error('Failed to load folder:', error)
   } finally {
     isLoading.value = false
   }
@@ -259,7 +258,6 @@ const formatKey = key => {
 
 const handleViewFolder = () => {
   // TODO: Navigate to folder view
-  console.log('View folder:', folder.value?.id)
   isOpen.value = false
 }
 

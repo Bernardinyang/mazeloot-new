@@ -106,7 +106,6 @@ const handleForgotPassword = async values => {
     })
     showOtp.value = true
   } catch (error) {
-    console.error('Forgot password error:', error)
     handleError(error, {
       fallbackMessage,
     })
@@ -130,7 +129,6 @@ const handleVerifyOtp = async verificationCode => {
       },
     })
   } catch (error) {
-    console.error('OTP verification error:', error)
     handleError(error, {
       fallbackMessage: 'Failed to verify code',
     })
@@ -158,7 +156,6 @@ const resendOtp = async () => {
       description: `A new verification code has been sent to ${email.value}`,
     })
   } catch (error) {
-    console.error('Resend error:', error)
     handleError(error, {
       fallbackMessage: 'Failed to resend code',
     })

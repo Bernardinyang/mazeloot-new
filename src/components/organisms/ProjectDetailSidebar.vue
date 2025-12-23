@@ -286,7 +286,6 @@ const loadData = async () => {
     const projectData = await projectStore.fetchProject(props.projectId)
     project.value = projectData
   } catch (error) {
-    console.error('Failed to load project:', error)
   } finally {
     isLoading.value = false
   }

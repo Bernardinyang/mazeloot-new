@@ -226,11 +226,15 @@ export function useSelectionsApi() {
    * @param {string} selectionId - Selection ID
    * @param {string} mediaUuid - Media UUID
    */
-  const setCoverPhotoFromMedia = async (selectionId, mediaUuid) => {
+  const setCoverPhotoFromMedia = async (selectionId, mediaUuid, focalPoint = null) => {
     try {
-      const response = await apiClient.post(`/v1/selections/${selectionId}/cover-photo`, {
+      const payload = {
         media_uuid: mediaUuid,
-      })
+      }
+      if (focalPoint) {
+        payload.focal_point = focalPoint
+      }
+      const response = await apiClient.post(`/v1/selections/${selectionId}/cover-photo`, payload)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -530,7 +534,6 @@ export function useSelectionsApi() {
         }
       }
 
-      // Get filename from Content-Disposition header if available
       const contentDisposition = response.headers.get('Content-Disposition')
       let filename = `media-${mediaUuid}`
       if (contentDisposition) {

@@ -33,6 +33,16 @@
             />
           </div>
         </div>
+        <!-- Single Video -->
+        <video
+          v-else-if="getItemImage(item) && isVideoUrl(getItemImage(item))"
+          :src="getItemImage(item)"
+          class="w-full h-full object-cover"
+          autoplay
+          loop
+          muted
+          playsinline
+        />
         <!-- Single Image -->
         <img
           v-else-if="getItemImage(item)"
@@ -112,43 +122,54 @@
             ]"
           />
         </button>
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <button
-              class="h-8 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-              type="button"
-              @click.stop
-            >
-              <MoreVertical :class="theme.textSecondary" class="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
-            <DropdownMenuItem
-              v-if="showViewDetails"
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('view-details', item)"
-            >
-              <Info class="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('edit', item)"
-            >
-              <Pencil class="mr-2 h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem
-              :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
-              @click.stop="$emit('delete', item)"
-            >
-              <Trash2 class="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div
+          :class="[
+            'transition-opacity duration-200',
+            getDropdownOpenState(item) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+          ]"
+          @click.stop
+        >
+          <DropdownMenu
+            :open="getDropdownOpenState(item)"
+            @update:open="setDropdownOpenState(item, $event)"
+          >
+            <DropdownMenuTrigger as-child>
+              <button
+                class="h-8 w-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                type="button"
+                @click.stop
+              >
+                <MoreVertical :class="theme.textSecondary" class="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
+              <DropdownMenuItem
+                v-if="showViewDetails"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('view-details', item)"
+              >
+                <Info class="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('edit', item)"
+              >
+                <Pencil class="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+                @click.stop="$emit('delete', item)"
+              >
+                <Trash2 class="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </template>
 
@@ -163,7 +184,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, reactive } from 'vue'
 import {
   CheckSquare,
   Copy,
@@ -189,6 +210,19 @@ import PasswordCell from '@/components/molecules/PasswordCell.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
+
+// Track dropdown open state per item
+const dropdownOpenStates = reactive({})
+
+const getDropdownOpenState = item => {
+  const id = getId(item)
+  return dropdownOpenStates[id] || false
+}
+
+const setDropdownOpenState = (item, value) => {
+  const id = getId(item)
+  dropdownOpenStates[id] = value
+}
 
 const props = defineProps({
   items: {
@@ -292,7 +326,6 @@ const emit = defineEmits([
   'view-details',
 ])
 
-// Handle row click
 const handleRowClick = (item, index) => {
   emit('item-click', item)
 }
@@ -335,6 +368,7 @@ const columns = computed(() => [
 ])
 
 // Helper functions
+const getId = item => props.getId(item)
 const getItemTitle = item => props.getTitle(item)
 const getItemImage = item => props.getImage(item)
 const getItemPreviewImages = item => props.getPreviewImages(item)
@@ -361,7 +395,13 @@ const getPreviewGrid = previewImages => {
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
+const isVideoUrl = url => {
+  if (!url) return false
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  const lowerUrl = url.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+}
+
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {

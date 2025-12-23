@@ -73,7 +73,6 @@ export const useActionHistoryStore = defineStore('actionHistory', () => {
       currentIndex.value--
       return true
     } catch (error) {
-      console.error('Failed to undo action:', error)
       return false
     }
   }
@@ -90,7 +89,6 @@ export const useActionHistoryStore = defineStore('actionHistory', () => {
       await action.redo()
       return true
     } catch (error) {
-      console.error('Failed to redo action:', error)
       currentIndex.value-- // Rollback on error
       return false
     }
@@ -166,9 +164,7 @@ export const useActionHistoryStore = defineStore('actionHistory', () => {
       try {
         storage.set(ACTION_HISTORY_STORAGE_KEY, metadata)
         storage.set(ACTION_HISTORY_INDEX_KEY, currentIndex.value)
-      } catch (error) {
-        console.warn('Failed to persist action history metadata:', error)
-      }
+      } catch (error) {}
     },
     { deep: true }
   )

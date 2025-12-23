@@ -85,7 +85,6 @@ const mediaContainerStyles = computed(() => {
   if (aspectRatio) {
     const [width, height] = aspectRatio.split(':').map(Number)
     const ratio = width / height
-    // Set a reasonable max width for row layouts
     styles.maxWidth = '50%'
     styles.flexBasis = '50%'
   }

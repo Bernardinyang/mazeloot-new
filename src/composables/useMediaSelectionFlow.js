@@ -2,7 +2,6 @@ import { toast } from '@/utils/toast'
 
 export function useMediaSelectionFlow({ selectedMediaIds, sortedMediaItems, description } = {}) {
   const handleToggleMediaSelection = mediaId => {
-    // Create a new Set to ensure reactivity
     const newSet = new Set(selectedMediaIds.value)
     if (newSet.has(mediaId)) {
       newSet.delete(mediaId)
@@ -22,7 +21,6 @@ export function useMediaSelectionFlow({ selectedMediaIds, sortedMediaItems, desc
       return
     }
 
-    // Check if all items are selected by comparing sizes and verifying all IDs are in the set
     const allSelected =
       selectedMediaIds.value.size === allItemIds.length &&
       allItemIds.every(id => selectedMediaIds.value.has(id))

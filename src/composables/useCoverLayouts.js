@@ -57,7 +57,6 @@ async function loadCoverLayouts() {
     coverLayouts.value = transformCoverLayouts(layoutsData)
     isInitialized.value = true
   } catch (err) {
-    console.error('Failed to fetch cover layouts from API:', err)
     error.value = err
     coverLayouts.value = []
     isInitialized.value = true
@@ -90,7 +89,6 @@ export async function getCoverLayoutConfig(identifier) {
     const transformed = transformCoverLayout(apiLayout)
     return transformed.layoutConfig || getDefaultLayoutConfig()
   } catch (err) {
-    console.warn('Failed to fetch cover layout:', err)
     return getDefaultLayoutConfig()
   }
 }

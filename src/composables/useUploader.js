@@ -22,12 +22,10 @@ export function useUploader(options = {}) {
    * Validate file
    */
   const validateFile = file => {
-    // Check file size
     if (file.size > config.maxSize) {
       return `File size exceeds ${config.maxSize / (1024 * 1024)}MB limit`
     }
 
-    // Check file type
     if (config.allowedTypes.length > 0 && !config.allowedTypes.includes(file.type)) {
       return `File type ${file.type} is not allowed`
     }
@@ -50,7 +48,6 @@ export function useUploader(options = {}) {
         return
       }
 
-      // Create preview for images
       let preview
       if (file.type.startsWith('image/')) {
         preview = URL.createObjectURL(file)

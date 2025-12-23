@@ -49,7 +49,6 @@ export function useAsyncPagination(fetchFn, options = {}) {
 
       const response = await fetchFn(params)
 
-      // Handle paginated response
       if (response && response.data && response.pagination) {
         data.value = Array.isArray(response.data) ? response.data : []
         pagination.value = response.pagination

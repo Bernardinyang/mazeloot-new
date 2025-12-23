@@ -386,12 +386,10 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // TODO
     // activities.value = await fetchPrivatePhotoActivities(collectionId)
     // For now, use demo data
     activities.value = generateDemoData()
   } catch (error) {
-    console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     activities.value = generateDemoData()
   } finally {
@@ -421,8 +419,5 @@ const formatTime = dateString => {
 }
 
 // Export data
-const exportData = () => {
-  // TODO
-  console.log('Exporting private photo activity data...')
-}
+const exportData = () => {}
 </script>

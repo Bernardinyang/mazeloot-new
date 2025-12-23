@@ -1,15 +1,18 @@
 <template>
   <div
+    ref="cardRef"
     :class="[
       'group relative rounded-xl overflow-hidden cursor-pointer',
-      'transform-gpu transition-all duration-300',
+      'transform-gpu',
       'hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-black/40',
-      'hover:scale-[1.02] hover:-translate-y-1',
-      'border-2 hover:border-opacity-100',
+      'transition-shadow duration-300 ease-out',
+      'hover:border-opacity-100',
+      'border-2',
       theme.bgCard,
       theme.shadowCard,
     ]"
     :style="{
+      ...tiltStyle,
       '--index': index,
       '--card-color': cardColor,
       '--card-color-light': cardColorLight,
@@ -19,8 +22,9 @@
     role="button"
     tabindex="0"
     @click="$emit('click', selection)"
-    @mouseenter="isHovering = true"
-    @mouseleave="isHovering = false"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+    @mousemove="handleMouseMove"
   >
     <!-- Selection-specific gradient background (only shown when no cover image) -->
     <div
@@ -51,9 +55,20 @@
           <Lock class="h-4 w-4 text-white" />
         </div>
       </div>
+      <!-- Cover Video -->
+      <video
+        v-if="coverImage && isVideoCover"
+        ref="videoRef"
+        :src="coverImage"
+        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        autoplay
+        loop
+        muted
+        playsinline
+      />
       <!-- Cover Image -->
       <img
-        v-if="coverImage"
+        v-else-if="coverImage"
         :alt="selection?.name || 'Selection'"
         :src="coverImage"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
@@ -114,7 +129,10 @@
 
       <!-- Action buttons -->
       <div
-        class="absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100"
+        :class="[
+          'absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300',
+          isDropdownOpen || isHovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ]"
       >
         <Button
           v-if="showStar"
@@ -194,7 +212,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { CheckSquare, Lock, MoreVertical, Star } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -225,6 +243,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  rotateAmplitude: {
+    type: Number,
+    default: 8,
+  },
 })
 
 const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'view-details'])
@@ -233,8 +255,75 @@ const theme = useThemeClasses()
 const isDropdownOpen = ref(false)
 const isHovering = ref(false)
 
+// Tilt effect
+const cardRef = ref(null)
+const rotateX = ref(0)
+const rotateY = ref(0)
+const videoRef = ref(null)
+
+const handleMouseMove = e => {
+  if (!cardRef.value) return
+
+  const rect = cardRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+
+  const rotateXValue = ((y - centerY) / centerY) * -props.rotateAmplitude
+  const rotateYValue = ((x - centerX) / centerX) * props.rotateAmplitude
+
+  rotateX.value = rotateXValue
+  rotateY.value = rotateYValue
+}
+
+const handleMouseEnter = () => {
+  isHovering.value = true
+}
+
+const handleMouseLeave = () => {
+  // Keep hover state if dropdown is open
+  if (!isDropdownOpen.value) {
+    isHovering.value = false
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+}
+
+// Watch dropdown state - when it closes, reset hover if mouse is not over card
+watch(isDropdownOpen, isOpen => {
+  if (!isOpen && !isHovering.value) {
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+})
+
+const tiltStyle = computed(() => ({
+  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) translateZ(0)`,
+  transition:
+    isHovering.value || isDropdownOpen.value
+      ? 'none'
+      : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+  willChange: isHovering.value || isDropdownOpen.value ? 'transform' : 'auto',
+}))
+
 const coverImage = computed(() => {
-  return props.selection?.thumbnail || props.selection?.image || null
+  // Priority: coverPhotoUrl > cover_photo_url > thumbnail > image
+  return (
+    props.selection?.coverPhotoUrl ||
+    props.selection?.cover_photo_url ||
+    props.selection?.thumbnail ||
+    props.selection?.image ||
+    null
+  )
+})
+
+const isVideoCover = computed(() => {
+  const url = coverImage.value
+  if (!url) return false
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext))
 })
 
 const cardColor = computed(() => {
@@ -283,7 +372,6 @@ const getMediaAndListCount = selection => {
     parts.push(`${listCount} ${listLabel}`)
   }
 
-  // Set count - check multiple possible property names
   const setCount =
     selection.setCount ||
     selection.setsCount ||

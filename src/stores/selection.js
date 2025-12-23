@@ -50,7 +50,6 @@ export const useSelectionStore = defineStore('selection', () => {
     if (mode === 'grid' || mode === 'list') {
       viewMode.value = mode
     } else {
-      console.warn(`Invalid view mode: ${mode}. Using 'grid'.`)
       viewMode.value = 'grid'
     }
   }
@@ -62,7 +61,6 @@ export const useSelectionStore = defineStore('selection', () => {
     if (['small', 'medium', 'large'].includes(size)) {
       gridSize.value = size
     } else {
-      console.warn(`Invalid grid size: ${size}. Using 'small'.`)
       gridSize.value = 'small'
     }
   }
@@ -158,13 +156,11 @@ export const useSelectionStore = defineStore('selection', () => {
     try {
       const updated = await selectionsApi.updateSelection(id, data)
 
-      // Update in selections array
       const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
       if (index !== -1) {
         selections.value[index] = updated
       }
 
-      // Update current selection if it's the one being updated
       if (
         currentSelection.value &&
         (currentSelection.value.id === id || currentSelection.value.uuid === id)
@@ -191,13 +187,11 @@ export const useSelectionStore = defineStore('selection', () => {
     try {
       const published = await selectionsApi.publishSelection(id)
 
-      // Update in selections array
       const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
       if (index !== -1) {
         selections.value[index] = published
       }
 
-      // Update current selection
       if (
         currentSelection.value &&
         (currentSelection.value.id === id || currentSelection.value.uuid === id)
@@ -224,13 +218,11 @@ export const useSelectionStore = defineStore('selection', () => {
     try {
       const completed = await selectionsApi.completeSelection(id, mediaIds)
 
-      // Update in selections array
       const index = selections.value.findIndex(s => s.id === id || s.uuid === id)
       if (index !== -1) {
         selections.value[index] = completed
       }
 
-      // Update current selection
       if (
         currentSelection.value &&
         (currentSelection.value.id === id || currentSelection.value.uuid === id)

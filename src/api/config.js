@@ -10,7 +10,6 @@
  * - else → LOCAL environment
  */
 const detectEnvironment = () => {
-  // Check if we're in a browser environment
   if (typeof window === 'undefined') {
     // SSR or Node.js environment - fall back to Vite's mode
     return import.meta.env.DEV ? 'local' : 'live'
@@ -18,12 +17,10 @@ const detectEnvironment = () => {
 
   const hostname = window.location.hostname
 
-  // Check for Vercel preview/staging deployments
   if (hostname.includes('.vercel.app')) {
     return 'dev'
   }
 
-  // Check for production domain
   if (hostname === 'mazeloot.com' || hostname.endsWith('.mazeloot.com')) {
     return 'live'
   }
@@ -61,16 +58,6 @@ const getApiBaseUrl = () => {
 }
 
 const apiBaseUrl = getApiBaseUrl()
-
-// Log API configuration for debugging
-if (typeof window !== 'undefined') {
-  console.log('🔧 API Configuration:', {
-    hostname: window.location.hostname,
-    environment,
-    baseURL: apiBaseUrl,
-    useRealAPI: import.meta.env.VITE_USE_REAL_API !== 'false',
-  })
-}
 
 export const API_CONFIG = {
   // Base URL for API (auto-detected based on hostname)

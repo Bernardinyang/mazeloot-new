@@ -29,7 +29,6 @@ export function useMediaWatermarkActions({
       return
     }
     mediaToWatermark.value = item
-    // Check if image already has a watermark (has originalUrl stored)
     // If it does, we're editing/removing, otherwise we're adding
     selectedWatermarkForMedia.value = item.originalUrl ? 'none' : selectedWatermark.value || 'none'
     showWatermarkMediaModal.value = true
@@ -65,7 +64,6 @@ export function useMediaWatermarkActions({
         thumbnail: undefined, // Remove watermarked thumbnail
       })
 
-      // Update local item
       const index = mediaItems.value.findIndex(m => m.id === item.id)
       if (index !== -1) {
         mediaItems.value[index].url = item.originalUrl
@@ -77,7 +75,6 @@ export function useMediaWatermarkActions({
         description,
       })
     } catch (error) {
-      console.error('Failed to remove watermark:', error)
       toast.error('Failed to remove watermark', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -99,7 +96,6 @@ export function useMediaWatermarkActions({
             throw new Error('Watermark not found')
           }
         } catch (error) {
-          console.error('Failed to fetch watermark:', error)
           toast.error('Failed to fetch watermark', {
             description,
           })
@@ -116,7 +112,6 @@ export function useMediaWatermarkActions({
           thumbnail: undefined, // Remove watermarked thumbnail
         })
 
-        // Update local item
         const index = mediaItems.value.findIndex(m => m.id === mediaToWatermark.value?.id)
         if (index !== -1) {
           mediaItems.value[index].url = mediaToWatermark.value.originalUrl
@@ -152,7 +147,6 @@ export function useMediaWatermarkActions({
             }
           }
         } catch (error) {
-          console.warn('Could not fetch image for watermarking, using existing URL:', error)
           // If fetch fails, try to use the URL directly
           if (!imageUrl) {
             imageUrl = mediaToWatermark.value.thumbnail || mediaToWatermark.value.url || ''
@@ -174,28 +168,23 @@ export function useMediaWatermarkActions({
       // Store original URL if not already stored
       const originalUrlToStore = mediaToWatermark.value.originalUrl || originalImageUrl
 
-      // Update media item with watermarked URL and preserve original
       await mediaApi.updateMedia(mediaToWatermark.value.id, {
         url: watermarkedUrl,
         originalUrl: originalUrlToStore, // Store original for future removal
       })
 
-      // Update local item
       const index = mediaItems.value.findIndex(m => m.id === mediaToWatermark.value?.id)
       if (index !== -1) {
         mediaItems.value[index].url = watermarkedUrl
         mediaItems.value[index].originalUrl = originalUrlToStore
 
-        // Update thumbnail with watermark
         try {
           const watermarkedThumbnail = await applyWatermarkToImage(imageUrl, watermark)
           mediaItems.value[index].thumbnail = watermarkedThumbnail
           await mediaApi.updateMedia(mediaToWatermark.value.id, {
             thumbnail: watermarkedThumbnail,
           })
-        } catch (error) {
-          console.warn('Could not create watermarked thumbnail:', error)
-        }
+        } catch (error) {}
       }
 
       showWatermarkMediaModal.value = false
@@ -206,7 +195,6 @@ export function useMediaWatermarkActions({
         description,
       })
     } catch (error) {
-      console.error('Failed to apply watermark:', error)
       toast.error('Failed to apply watermark', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })

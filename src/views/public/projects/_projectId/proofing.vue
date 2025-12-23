@@ -120,7 +120,6 @@ const loadData = async () => {
       feedback.value = proofingData.feedback || []
     }
   } catch (error) {
-    console.error('Failed to load proofing:', error)
   } finally {
     isLoading.value = false
   }
@@ -137,7 +136,6 @@ const handleAddFeedback = async (mediaId, [type, content]) => {
     await addFeedback(mediaId, type, content)
     await loadData()
   } catch (error) {
-    console.error('Failed to add feedback:', error)
   } finally {
     isSubmittingFeedback.value = false
   }
@@ -147,9 +145,7 @@ const handleMarkApproved = async mediaId => {
   try {
     await markMediaApproved(mediaId)
     await loadData()
-  } catch (error) {
-    console.error('Failed to mark approved:', error)
-  }
+  } catch (error) {}
 }
 
 const getMediaFeedback = mediaId => {

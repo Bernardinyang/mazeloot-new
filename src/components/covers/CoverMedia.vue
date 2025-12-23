@@ -55,7 +55,6 @@ const emit = defineEmits(['error'])
 
 onMounted(() => {
   if (!props.src) {
-    console.warn('[CoverMedia] No src provided!')
   }
 })
 

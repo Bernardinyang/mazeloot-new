@@ -39,13 +39,10 @@ import { MAZELOOT_PRODUCTS } from '@/constants/products'
 
 const theme = useThemeClasses()
 
-// Get dynamic navigation based on current product/route
 const { navigationItems, navigationLabel } = useProductNavigation()
 
-// Get logged-in user from store
 const userStore = useUserStore()
 
-// Check if user is admin
 const isAdmin = computed(() => {
   // Mock admin check - in production, this would come from user store/API
   return userStore.user?.email?.includes('admin') || false

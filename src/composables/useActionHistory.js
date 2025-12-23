@@ -10,7 +10,6 @@ import { useActionHistoryStore } from '@/stores/actionHistory'
 export function useActionHistory(maxHistorySize = 5) {
   const actionHistory = useActionHistoryStore()
 
-  // Set max history size if provided and different from current
   if (maxHistorySize !== actionHistory.maxHistorySize) {
     actionHistory.setMaxHistorySize(maxHistorySize)
   }

@@ -10,15 +10,19 @@ export function useCollectionCoverActions({
     if (!collection.value) return
 
     try {
+      // For videos, use file.url (the actual video URL), for images use item.url
+      const mediaUrl = item.file?.url || item.url
+      const thumbnailUrl =
+        item.thumbnail || item.thumbnailUrl || item.file?.thumbnailUrl || item.url
+
       await galleryStore.updateCollection(collection.value.id, {
-        thumbnail: item.thumbnail || item.url,
-        image: item.url,
+        thumbnail: thumbnailUrl,
+        image: mediaUrl,
       })
       toast.success('Cover updated', {
         description,
       })
     } catch (error) {
-      console.error('Failed to set cover:', error)
       toast.error('Failed to set cover', {
         description,
       })
@@ -29,7 +33,6 @@ export function useCollectionCoverActions({
     if (!collection.value) return
 
     try {
-      // Create a thumbnail from the uploaded image
       const thumbnail = await createThumbnailFromDataURL(imageUrl)
 
       const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
@@ -37,7 +40,6 @@ export function useCollectionCoverActions({
         image: imageUrl,
       })
 
-      // Update local collection reference
       if (updatedCollection) {
         collection.value = updatedCollection
       } else {
@@ -50,7 +52,6 @@ export function useCollectionCoverActions({
         description,
       })
     } catch (error) {
-      console.error('Failed to upload cover image:', error)
       toast.error('Failed to upload cover image', {
         description,
       })

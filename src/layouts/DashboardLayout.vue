@@ -211,7 +211,6 @@ const customBreadcrumbSeparator = computed(
 const theme = useThemeClasses()
 const userStore = useUserStore()
 
-// Check if user is admin
 const isAdmin = computed(() => {
   return userStore.user?.email?.includes('admin') || false
 })

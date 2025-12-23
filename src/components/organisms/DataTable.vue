@@ -165,7 +165,6 @@ const props = defineProps({
 
 const emit = defineEmits(['row-click', 'empty-action'])
 
-// Get column value using dataSelector
 const getColumnValue = (item, column) => {
   if (column.dataSelector) {
     return column.dataSelector(item)
@@ -197,12 +196,10 @@ const formatValue = (value, column) => {
   return value
 }
 
-// Get item ID
 const getItemId = (item, index) => {
   return props.getId(item, index)
 }
 
-// Check if item is selected
 const isItemSelected = (item, index) => {
   const id = getItemId(item, index)
   return props.selectedItems.includes(id)

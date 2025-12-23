@@ -156,7 +156,6 @@ export function useAuthApi() {
   const googleSignIn = async () => {
     try {
       const response = await apiClient.get('/v1/auth/oauth/google/redirect', { skipAuth: true })
-      // Return the redirect URL for the frontend to navigate to
       return response.data.redirect_url
     } catch (error) {
       throw parseError(error)

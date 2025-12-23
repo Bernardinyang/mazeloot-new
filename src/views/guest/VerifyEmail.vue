@@ -85,7 +85,6 @@ const handleVerify = async verificationCode => {
     const redirect = route.query.redirect
     router.push(redirect || { name: 'overview' })
   } catch (error) {
-    console.error('Verification error:', error)
     handleError(error, {
       fallbackMessage: 'Failed to verify email',
     })
@@ -113,7 +112,6 @@ const resendCode = async () => {
       description: 'A new verification code has been sent to your email',
     })
   } catch (error) {
-    console.error('Resend error:', error)
     handleError(error, {
       fallbackMessage: 'Failed to verify email',
     })

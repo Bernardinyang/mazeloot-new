@@ -18,12 +18,10 @@ export function useSelectionWorkflow({
   const selectionsApi = useSelectionsApi()
   const selectionStore = useSelectionStore()
 
-  // Create upload function for selections
   const uploadMediaFn = async (uploadResult, file, { contextId, setId, mediaData }) => {
     return await selectionsApi.uploadMediaToSet(contextId, setId, mediaData)
   }
 
-  // Create delete function for selections
   // Supports both signatures: (mediaId) or (selectionId, setId, mediaId)
   const deleteMediaFn = async (selectionIdOrMediaId, setId, mediaId) => {
     let selectionIdValue
@@ -96,7 +94,6 @@ export function useSelectionWorkflow({
       })
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Failed to complete selection')
-      console.error('Failed to complete selection:', error)
       toast.error('Failed to complete selection', {
         description: errorMessage,
       })
@@ -122,7 +119,6 @@ export function useSelectionWorkflow({
       })
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Failed to publish selection')
-      console.error('Failed to publish selection:', error)
       toast.error('Failed to publish selection', {
         description: errorMessage,
       })
@@ -154,7 +150,6 @@ export function useSelectionWorkflow({
       return recovered
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Failed to recover media')
-      console.error('Failed to recover media:', error)
       toast.error('Recovery failed', {
         description: errorMessage,
       })
@@ -193,7 +188,6 @@ export function useSelectionWorkflow({
       return filenames
     } catch (error) {
       const errorMessage = getErrorMessage(error, 'Failed to copy filenames')
-      console.error('Failed to copy filenames:', error)
       toast.error('Failed to copy filenames', {
         description: errorMessage,
       })

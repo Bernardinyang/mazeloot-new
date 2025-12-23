@@ -268,7 +268,6 @@ const handleCopyPassword = async () => {
       description: 'Password has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy password:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy password to clipboard. Please try again.',
     })
@@ -291,7 +290,6 @@ const previewGrid = computed(() => {
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {

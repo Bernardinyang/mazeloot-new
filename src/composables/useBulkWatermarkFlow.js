@@ -46,7 +46,6 @@ export function useBulkWatermarkFlow({
             throw new Error('Watermark not found')
           }
         } catch (error) {
-          console.error('Failed to fetch watermark:', error)
           toast.error('Failed to fetch watermark', {
             description,
           })
@@ -59,7 +58,6 @@ export function useBulkWatermarkFlow({
 
       for (const item of imageItems) {
         try {
-          // Get original image URL (before watermark)
           let originalImageUrl = item.originalUrl || item.url
           let imageUrl = originalImageUrl
 
@@ -80,7 +78,6 @@ export function useBulkWatermarkFlow({
                 }
               }
             } catch (error) {
-              console.warn('Could not fetch image for watermarking:', item.id, error)
               if (!imageUrl) {
                 imageUrl = item.thumbnail || item.url || ''
               }
@@ -122,16 +119,13 @@ export function useBulkWatermarkFlow({
               mediaItems.value[index].url = watermarkedUrl
               mediaItems.value[index].originalUrl = originalUrlToStore
 
-              // Update thumbnail with watermark
               try {
                 const watermarkedThumbnail = await applyWatermarkToImage(imageUrl, watermark)
                 mediaItems.value[index].thumbnail = watermarkedThumbnail
                 await mediaApi.updateMedia(item.id, {
                   thumbnail: watermarkedThumbnail,
                 })
-              } catch (error) {
-                console.warn('Could not create watermarked thumbnail:', item.id, error)
-              }
+              } catch (error) {}
             }
             successCount++
           } else {
@@ -139,7 +133,6 @@ export function useBulkWatermarkFlow({
             successCount++
           }
         } catch (error) {
-          console.error('Failed to apply watermark to item:', item.id, error)
           errorCount++
         }
       }
@@ -157,7 +150,6 @@ export function useBulkWatermarkFlow({
         })
       }
     } catch (error) {
-      console.error('Failed to apply bulk watermark:', error)
       toast.error('Failed to apply watermark', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })

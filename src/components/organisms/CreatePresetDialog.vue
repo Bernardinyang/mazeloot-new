@@ -100,7 +100,6 @@ const handleSubmit = async () => {
     errors.value = {}
     emit('update:open', false)
   } catch (error) {
-    console.error('Failed to create preset:', error)
     // Keep dialog open on error so user can retry
   } finally {
     isSubmitting.value = false

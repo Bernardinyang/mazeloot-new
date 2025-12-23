@@ -194,7 +194,6 @@ const sortedProofing = computed(() => {
 
 const handleCreateProofing = async () => {
   try {
-    // Create standalone proofing (no projectId)
     const newProofing = await proofingStore.createProofing(null, {
       name: 'New Proofing',
     })

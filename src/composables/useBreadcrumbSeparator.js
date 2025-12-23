@@ -52,9 +52,7 @@ const saveSeparator = separator => {
   if (typeof window === 'undefined') return
   try {
     localStorage.setItem(STORAGE_KEY, separator)
-  } catch (error) {
-    console.warn('Failed to save breadcrumb separator preference:', error)
-  }
+  } catch (error) {}
 }
 
 /**
@@ -79,7 +77,6 @@ export function useBreadcrumbSeparator(initialSeparator = null) {
     if (BREADCRUMB_SEPARATORS[newSeparator] || newSeparator === 'custom') {
       separator.value = newSeparator
     } else {
-      console.warn(`Invalid separator: ${newSeparator}. Using default.`)
       separator.value = DEFAULT_SEPARATOR
     }
   }

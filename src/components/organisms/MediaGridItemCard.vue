@@ -37,9 +37,11 @@
         </button>
       </div>
 
-      <div class="w-full h-full cursor-pointer" @click="emit('open-viewer')">
+      <div class="w-full h-full cursor-pointer relative" @click="emit('open-viewer')">
+        <!-- Image thumbnail -->
         <img
-          :alt="props.item?.title || 'Media'"
+          v-if="(item?.type || item?.file?.type) !== 'video'"
+          :alt="props.item?.filename || 'Media'"
           :class="[
             'w-full h-full object-cover transition-all duration-300 will-change-transform',
             isImageLoaded
@@ -50,6 +52,35 @@
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
         />
+        <!-- Video thumbnail with play icon -->
+        <div
+          v-else-if="(props.item?.type || props.item?.file?.type) === 'video'"
+          class="w-full h-full relative"
+        >
+          <img
+            v-if="imageSrc && imageSrc !== placeholderImage"
+            :alt="props.item?.filename || 'Video'"
+            :class="[
+              'w-full h-full object-cover transition-all duration-300 will-change-transform',
+              isImageLoaded
+                ? 'opacity-100 scale-100 group-hover:scale-110'
+                : 'opacity-0 scale-[0.98]',
+            ]"
+            :src="imageSrc"
+            @error="emit('image-error', $event)"
+            @load="isImageLoaded = true"
+          />
+          <!-- Video play icon overlay -->
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors"
+          >
+            <div
+              class="w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
+            >
+              <Play class="h-8 w-8 text-teal-600 dark:text-teal-400 ml-1" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Starred Badge (always visible when starred) -->
@@ -64,10 +95,13 @@
 
       <!-- Context Menu Button -->
       <div
-        class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-10"
+        :class="[
+          'absolute top-2 right-2 transition-opacity duration-200 z-10',
+          isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ]"
         @click.stop
       >
-        <DropdownMenu>
+        <DropdownMenu v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <button
               class="p-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110"
@@ -199,6 +233,7 @@ import {
   MoreVertical,
   Move,
   Pencil,
+  Play,
   Square,
   Star,
   Trash2,
@@ -235,6 +270,7 @@ const props = defineProps({
 
 const imageSrc = ref(props.placeholderImage)
 const isImageLoaded = ref(false)
+const isDropdownOpen = ref(false)
 
 const getThumbnailUrl = () => {
   const item = props.item
@@ -242,16 +278,33 @@ const getThumbnailUrl = () => {
 
   const mediaType = item.type || item.file?.type
 
+  // Priority order for thumbnails:
+  // 1. Direct thumbnailUrl from media
   if (item.thumbnailUrl) {
     return item.thumbnailUrl
   }
 
-  if (mediaType === 'image') {
-    return item.file?.url || null
-  } else if (mediaType === 'video') {
+  // 2. For videos, check file thumbnailUrl or metadata thumbnail
+  if (mediaType === 'video') {
+    if (item.file?.thumbnailUrl && item.file.thumbnailUrl !== item.file?.url) {
+      return item.file.thumbnailUrl
+    }
+    if (item.file?.metadata?.thumbnail) {
+      return item.file.metadata.thumbnail
+    }
+    // Fallback to video URL (will show video player)
     return item.file?.url || null
   }
 
+  // 3. For images, use file URL or variants
+  if (mediaType === 'image') {
+    if (item.file?.variants?.thumb) {
+      return item.file.variants.thumb
+    }
+    return item.file?.url || null
+  }
+
+  // 4. Fallback
   return item.file?.url || item.thumbnail || null
 }
 const updateImageSrc = async () => {
@@ -265,7 +318,6 @@ const updateImageSrc = async () => {
     const displayUrl = await getMediaDisplayUrl(url, props.placeholderImage)
     imageSrc.value = displayUrl || props.placeholderImage
   } catch (error) {
-    console.error('Error updating image source:', error, 'URL:', url)
     imageSrc.value = props.placeholderImage
   }
 }

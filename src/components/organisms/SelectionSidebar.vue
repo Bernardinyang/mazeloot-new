@@ -44,18 +44,43 @@
       >
         <div class="w-full h-full bg-gray-200 dark:bg-gray-700"></div>
       </div>
-      <!-- Selection Image/Icon -->
+      <!-- Selection Image/Video/Icon -->
       <div
         v-else
         :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center border-2 shadow-md cursor-pointer hover:opacity-90 transition-opacity relative group"
-        @click="triggerCoverFilePicker"
-        title="Click to upload cover photo"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
+        @click="isVideoCover ? toggleVideoPlay() : null"
       >
         <CheckSquare
           v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
           class="h-16 w-16 text-teal-500 dark:text-teal-400"
         />
+        <!-- Video Cover -->
+        <template v-else-if="isVideoCover">
+          <video
+            ref="videoRef"
+            :src="coverVideoUrl"
+            class="w-full h-full object-cover"
+            autoplay
+            loop
+            muted
+            playsinline
+            @click.stop="toggleVideoPlay"
+          />
+          <!-- Play/Pause Overlay -->
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300"
+            @click.stop="toggleVideoPlay"
+          >
+            <div
+              class="w-16 h-16 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+            >
+              <Pause v-if="isVideoPlaying" class="w-8 h-8 text-white ml-0.5" />
+              <Play v-else class="w-8 h-8 text-white ml-1" />
+            </div>
+          </div>
+        </template>
+        <!-- Image Cover -->
         <img
           v-else
           :alt="props.selection?.name ?? ''"
@@ -63,27 +88,7 @@
           class="w-full h-full object-cover transition-opacity duration-200"
           @error="handleImageError"
         />
-        <!-- Upload overlay hint -->
-        <div
-          class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center"
-        >
-          <div
-            v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
-            :class="theme.textPrimary"
-            class="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity"
-          >
-            Click to upload
-          </div>
-        </div>
       </div>
-      <!-- Hidden file input for cover upload -->
-      <input
-        ref="coverFileInputRef"
-        type="file"
-        accept="image/*"
-        class="hidden"
-        @change="handleCoverFileChange"
-      />
     </div>
 
     <!-- Navigation Tabs -->
@@ -139,10 +144,18 @@
 </template>
 
 <script setup>
-import { ChevronsLeft, ChevronsRight, ImageIcon, Settings, CheckSquare } from 'lucide-vue-next'
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  ImageIcon,
+  Pause,
+  Play,
+  Settings,
+  CheckSquare,
+} from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useRoute, useRouter } from 'vue-router'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 
 const theme = useThemeClasses()
@@ -168,17 +181,56 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:isSidebarCollapsed', 'handle-cover-image-upload'])
-
-const coverFileInputRef = ref(null)
+const emit = defineEmits(['update:isSidebarCollapsed'])
 
 // Fallback placeholder image (SVG data URL)
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
 const coverImageSrc = ref(placeholderImage)
+const videoRef = ref(null)
+const isVideoPlaying = ref(true)
 
-// Update cover image when selection changes
+const isVideoCover = computed(() => {
+  const coverUrl = props.selection?.coverPhotoUrl || props.selection?.cover_photo_url
+  if (!coverUrl) return false
+
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  const lowerUrl = coverUrl.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+})
+
+const coverVideoUrl = computed(() => {
+  if (!isVideoCover.value) return null
+  return props.selection?.coverPhotoUrl || props.selection?.cover_photo_url || null
+})
+
+const toggleVideoPlay = () => {
+  if (!videoRef.value) return
+
+  if (isVideoPlaying.value) {
+    videoRef.value.pause()
+    isVideoPlaying.value = false
+  } else {
+    videoRef.value.play()
+    isVideoPlaying.value = true
+  }
+}
+
+// Watch video play/pause state
+watch(
+  () => [props.selection?.coverPhotoUrl, props.selection?.cover_photo_url],
+  () => {
+    if (isVideoCover.value && videoRef.value) {
+      // Reset video when cover changes
+      isVideoPlaying.value = true
+      videoRef.value.play().catch(() => {
+        // Autoplay might be blocked, that's okay
+      })
+    }
+  }
+)
+
 const updateCoverImage = async () => {
   const imageUrl = props.selection?.coverPhotoUrl || props.selection?.cover_photo_url
   if (!imageUrl) {
@@ -189,7 +241,6 @@ const updateCoverImage = async () => {
   try {
     coverImageSrc.value = await getMediaDisplayUrl(imageUrl, placeholderImage)
   } catch (error) {
-    console.error('Error loading cover image:', error)
     coverImageSrc.value = placeholderImage
   }
 }
@@ -203,35 +254,10 @@ watch(
   { immediate: true }
 )
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event?.target
   if (img && typeof img === 'object' && 'src' in img && img.src !== placeholderImage) {
     img.src = placeholderImage
-  }
-}
-
-const triggerCoverFilePicker = () => {
-  coverFileInputRef.value?.click?.()
-}
-
-const handleCoverFileChange = async event => {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-
-  try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(reader.error)
-      reader.readAsDataURL(file)
-    })
-
-    if (typeof dataUrl === 'string') {
-      emit('handle-cover-image-upload', dataUrl)
-    }
-  } finally {
-    if (event?.target) event.target.value = ''
   }
 }
 

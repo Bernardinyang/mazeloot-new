@@ -34,27 +34,21 @@ export function useLogout() {
     try {
       // Clear user store (handles its own localStorage via watchers)
       userStore.clearAuth()
-    } catch (e) {
-      console.warn('Error clearing user store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear gallery store
       galleryStore.collections = []
       galleryStore.starredCollectionIds = new Set()
       galleryStore.error = null
-    } catch (e) {
-      console.warn('Error clearing gallery store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear watermark store
       watermarkStore.watermarks = []
       watermarkStore.currentWatermark = null
       watermarkStore.error = null
-    } catch (e) {
-      console.warn('Error clearing watermark store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear project store
@@ -62,17 +56,13 @@ export function useLogout() {
       projectStore.currentProject = null
       projectStore.error = null
       projectStore.isLoading = false
-    } catch (e) {
-      console.warn('Error clearing project store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear preset store
       presetStore.presets = []
       presetStore.currentPreset = null
-    } catch (e) {
-      console.warn('Error clearing preset store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear selection store
@@ -81,9 +71,7 @@ export function useLogout() {
       selectionStore.selectedMedia = []
       selectionStore.error = null
       selectionStore.isLoading = false
-    } catch (e) {
-      console.warn('Error clearing selection store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear proofing store
@@ -93,17 +81,13 @@ export function useLogout() {
       proofingStore.revisions = []
       proofingStore.error = null
       proofingStore.isLoading = false
-    } catch (e) {
-      console.warn('Error clearing proofing store:', e)
-    }
+    } catch (e) {}
 
     try {
       // Clear sidebar stores
       collectionMediaSetsSidebarStore.items = []
       selectionMediaSetsSidebarStore.items = []
-    } catch (e) {
-      console.warn('Error clearing sidebar stores:', e)
-    }
+    } catch (e) {}
 
     // Note: User store watchers handle localStorage cleanup automatically
     // when clearAuth() sets user.value and token.value to null
@@ -130,7 +114,6 @@ export function useLogout() {
       router.push({ name: 'login' })
     } catch (error) {
       // Even if logout fails, clear local state and redirect
-      console.error('Logout error:', error)
 
       // Force clear all stores
       clearAllStores()

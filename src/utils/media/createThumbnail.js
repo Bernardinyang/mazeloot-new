@@ -1,6 +1,5 @@
 import { applyWatermarkToImage } from '../watermark/applyWatermarkToImage'
 
-// Create thumbnail for image
 export const createThumbnail = (file, watermark) => {
   return new Promise((resolve, reject) => {
     if (!file.type.startsWith('image/')) {

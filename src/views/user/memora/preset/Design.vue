@@ -894,7 +894,6 @@ const presetStore = usePresetStore()
 // Inject sidebar collapse state from PresetLayout
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
-// Get preset from store based on route params
 const currentPreset = computed(() => {
   const nameParam = route.params.name
   if (nameParam) {
@@ -958,7 +957,6 @@ const formData = reactive({
 // Store original loaded data for comparison
 const originalData = ref(null)
 
-// Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoadingData.value) {
     return false
@@ -1004,12 +1002,9 @@ const coverOptions = computed(() => getCoverStyleOptions())
 
 // Preload cover styles on component mount
 onMounted(() => {
-  useCoverStyles().catch(err => {
-    console.warn('Failed to load cover styles:', err)
-  })
+  useCoverStyles().catch(err => {})
 })
 
-// Handle focal point click
 const handleFocalPointClick = event => {
   if (!focalPointImageContainer.value) return
 
@@ -1024,14 +1019,12 @@ const handleFocalPointClick = event => {
   }
 }
 
-// Handle joy pattern change
 const handleJoyPatternChange = patternId => {
   if (patternId === 'crosses' || patternId === 'sparkles' || patternId === 'none') {
     formData.joyCoverBackgroundPattern = patternId
   }
 }
 
-// Handle avatar upload
 const handleAvatarUpload = () => {
   avatarInputRef.value?.click()
 }
@@ -1040,7 +1033,6 @@ const handleAvatarFileChange = event => {
   const target = event.target
   const file = target.files?.[0]
   if (file) {
-    // Create a preview URL
     const reader = new FileReader()
     reader.onload = e => {
       if (e.target?.result) {
@@ -1230,7 +1222,6 @@ const savePresetDesign = async () => {
     await presetStore.updatePreset(presetId.value, {
       design: formData,
     })
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData }
     }
@@ -1290,7 +1281,6 @@ const handleNext = async () => {
 
 const isSaving = computed(() => presetStore.isLoading)
 
-// Set up unsaved changes guard
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {

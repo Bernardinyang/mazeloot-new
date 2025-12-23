@@ -19,7 +19,6 @@ export function useMediaShareDownloadActions({
       await copyTextToClipboard(shareUrl)
       toast.success('The share link has been copied to your clipboard.')
     } catch (error) {
-      console.error('Failed to copy share link:', error)
       toast.error('Please try again.')
     }
   }
@@ -47,7 +46,6 @@ export function useMediaShareDownloadActions({
 
       toast.success(description || 'Download started')
     } catch (error) {
-      console.error('Download error:', error)
       toast.error(description || 'Download failed')
     }
   }
@@ -58,7 +56,6 @@ export function useMediaShareDownloadActions({
       await copyTextToClipboard(filename)
       toast.success(description || 'Filename copied')
     } catch (error) {
-      console.error('Failed to copy filename:', error)
       toast.error(description || 'Failed to copy filename')
     }
   }

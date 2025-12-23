@@ -250,7 +250,6 @@ const emit = defineEmits([
   'move-to',
 ])
 
-// Handle select event - CollectionsTable expects (id, checked) but parent might pass (id, checked) or (id, checked)
 const handleSelectItem = (id, checked) => {
   emit('select', id, checked)
 }

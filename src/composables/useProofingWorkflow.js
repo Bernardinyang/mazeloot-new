@@ -42,7 +42,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         // Determine media type
         const type = file.type.startsWith('image/') ? 'image' : 'video'
 
-        // Create media data for revision (ensure plain object, no refs)
         const mediaData = {
           originalMediaId: originalMediaId,
           phase: 'proofing',
@@ -70,7 +69,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
 
       return uploaded
     } catch (error) {
-      console.error('Failed to upload revision:', error)
       toast.error('Upload failed', {
         description: error instanceof Error ? error.message : 'Failed to upload revision.',
       })
@@ -95,7 +93,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
 
       return feedback
     } catch (error) {
-      console.error('Failed to add feedback:', error)
       toast.error('Failed to add feedback', {
         description: error instanceof Error ? error.message : 'An unknown error occurred.',
       })
@@ -118,7 +115,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         description: 'This media has been marked as completed.',
       })
     } catch (error) {
-      console.error('Failed to mark media as approved:', error)
       toast.error('Failed to approve media', {
         description: error instanceof Error ? error.message : 'An unknown error occurred.',
       })
@@ -137,7 +133,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         throw new Error('Proofing ID is required')
       }
 
-      // Get original media to find originalMediaId
       const allMedia = await mediaApi.fetchPhaseMedia('proofing', proofingIdValue)
       const originalMedia = allMedia.find(m => m.id === mediaId)
 
@@ -150,7 +145,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
       // Determine media type
       const type = file.type.startsWith('image/') ? 'image' : 'video'
 
-      // Create revision
       const mediaData = {
         originalMediaId: originalMediaId,
         phase: 'proofing',
@@ -176,7 +170,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
 
       return revision
     } catch (error) {
-      console.error('Failed to upload revision:', error)
       toast.error('Upload failed', {
         description: error instanceof Error ? error.message : 'Failed to upload revision.',
       })
@@ -201,7 +194,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         description: 'You can now move approved media to collections.',
       })
     } catch (error) {
-      console.error('Failed to complete proofing:', error)
       toast.error('Failed to complete proofing', {
         description: error instanceof Error ? error.message : 'An unknown error occurred.',
       })
@@ -233,7 +225,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
 
       return result
     } catch (error) {
-      console.error('Failed to move media to collection:', error)
       toast.error('Move failed', {
         description: error instanceof Error ? error.message : 'Failed to move media to collection.',
       })

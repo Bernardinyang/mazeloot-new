@@ -206,7 +206,6 @@ const presetStore = usePresetStore()
 // Inject sidebar collapse state from PresetLayout
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
-// Get preset from store based on route params
 const currentPreset = computed(() => {
   const nameParam = route.params.name
   if (nameParam) {
@@ -236,7 +235,6 @@ const formData = reactive({
 // Store original loaded data for comparison
 const originalData = ref(null)
 
-// Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoadingData.value) {
     return false
@@ -311,7 +309,6 @@ const savePresetFavorite = async () => {
     await presetStore.updatePreset(presetId.value, {
       favorite: formData,
     })
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = { ...formData }
     }
@@ -368,7 +365,6 @@ const handleNext = async () => {
 
 const isSaving = computed(() => presetStore.isLoading)
 
-// Set up unsaved changes guard
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {

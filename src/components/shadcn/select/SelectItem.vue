@@ -19,7 +19,6 @@ const forwardedProps = useForwardProps(delegatedProps)
 
 const theme = useThemeClasses()
 
-// Get search query from parent SelectContent
 const searchQuery = inject('selectSearchQuery', ref(''))
 
 // Filter items based on search query

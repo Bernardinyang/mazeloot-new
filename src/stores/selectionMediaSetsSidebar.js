@@ -58,7 +58,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         const fetchedSets = await selectionsApi.fetchMediaSets(id)
         mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
       } catch (error) {
-        console.error('Failed to fetch media sets:', error)
         mediaSets.value = []
       }
     } else {
@@ -85,7 +84,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         selectedSetId.value = mediaSets.value[0].id
       }
     } catch (error) {
-      console.error('Failed to load media sets:', error)
       toast.error('Failed to load media sets', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -134,14 +132,12 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         description: set.description,
         order: set.order,
       })
-      // Update local state
       const index = mediaSets.value.findIndex(s => s.id === setId)
       if (index !== -1) {
         mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
       }
       cancelSetNameEdit()
     } catch (error) {
-      console.error('Failed to update set name:', error)
       toast.error('Failed to update set name', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -160,14 +156,11 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         description: set.description,
         order: set.order,
       })
-      // Update local state
       const index = mediaSets.value.findIndex(s => s.id === setId)
       if (index !== -1) {
         mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
       }
-    } catch (error) {
-      console.error('Failed to auto-save set name:', error)
-    }
+    } catch (error) {}
   }, 600)
 
   const handleAddSet = () => {
@@ -204,7 +197,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       return
     }
 
-    // Check for duplicate name (case-insensitive)
     const duplicateSet = mediaSets.value.find(
       s =>
         s.name?.toLowerCase().trim() === trimmedName.toLowerCase() &&
@@ -221,7 +213,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     isCreatingSet.value = true
     try {
       if (editingSetIdInModal.value) {
-        // Update existing set
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
           const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
@@ -234,14 +225,12 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
               order: set.order ?? maxOrder,
             }
           )
-          // Update local state
           const index = mediaSets.value.findIndex(s => s.id === editingSetIdInModal.value)
           if (index !== -1) {
             mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
           }
         }
       } else {
-        // Create new set
         const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
         const newSet = await selectionsApi.createMediaSet(selectionId.value, {
           name: trimmedName,
@@ -268,7 +257,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
       handleCancelCreateSet()
     } catch (error) {
-      console.error('Failed to create/update set:', error)
       toast.error(editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -277,7 +265,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     }
   }
 
-  // Delete flow: keep simple/consistent (layout will host confirmation modal)
   const showDeleteSetModal = ref(false)
   const setToDelete = ref(null)
   const isDeletingSet = ref(false)
@@ -305,7 +292,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       await selectionsApi.deleteMediaSet(selectionId.value, deletingId)
       mediaSets.value = mediaSets.value.filter(s => s.id !== deletingId)
 
-      // Handle selected set fallback
       if (selectedSetId.value === deletingId) {
         // If there are other sets available, select the first one
         if (mediaSets.value.length > 0) {
@@ -321,7 +307,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       })
       cancelDeleteSet()
     } catch (error) {
-      console.error('Failed to delete set:', error)
       toast.error('Failed to delete set', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -371,7 +356,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       const setIds = sets.map(s => s.id)
       await selectionsApi.reorderMediaSets(selectionId.value, setIds)
     } catch (error) {
-      console.error('Failed to reorder sets:', error)
       toast.error('Failed to reorder sets', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -419,7 +403,6 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     handleCreateSet,
     handleSelectSet,
 
-    // delete modal
     showDeleteSetModal,
     setToDelete,
     isDeletingSet,

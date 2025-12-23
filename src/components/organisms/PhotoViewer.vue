@@ -178,7 +178,6 @@ const handleDownload = () => {
 
     emit('download', currentPhoto.value)
   } catch (error) {
-    console.error('Failed to download photo:', error)
     toast.error('Failed to download', {
       description: 'Could not download the photo.',
     })

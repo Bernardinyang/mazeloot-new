@@ -12,7 +12,6 @@ export function useSelectionCoverActions({
     if (!selection.value) return
 
     try {
-      // Set flag to prevent watch from overwriting
       if (isUpdatingCover) {
         isUpdatingCover.value = true
       }
@@ -20,17 +19,14 @@ export function useSelectionCoverActions({
       let thumbnailPath = item.thumbnail || item.url
       let imagePath = item.url
 
-      // Handle file:// paths (IndexedDB)
       if (item.url && item.url.startsWith('file://')) {
         try {
-          // Get the file from IndexedDB
           const imageBlob = await getFile(item.url)
           // Store as cover image
           imagePath = await storeBlob(imageBlob, `cover_${item.id}.jpg`, {
             id: `cover_${selection.value.id}_image`,
           })
 
-          // Handle thumbnail
           if (item.thumbnail && item.thumbnail.startsWith('file://')) {
             const thumbBlob = await getFile(item.thumbnail)
             thumbnailPath = await storeBlob(thumbBlob, `cover_thumb_${item.id}.jpg`, {
@@ -48,14 +44,11 @@ export function useSelectionCoverActions({
             thumbnailPath = imagePath
           }
         } catch (error) {
-          console.error('Error processing file:// path for cover:', error)
           // Fallback to using the paths directly
           thumbnailPath = item.thumbnail || item.url
           imagePath = item.url
         }
-      }
-      // Handle data URLs (legacy or direct uploads)
-      else if (item.url && item.url.startsWith('data:')) {
+      } else if (item.url && item.url.startsWith('data:')) {
         try {
           const response = await fetch(item.url)
           const blob = await response.blob()
@@ -73,20 +66,17 @@ export function useSelectionCoverActions({
             thumbnailPath = imagePath
           }
         } catch (error) {
-          console.error('Error converting data URL to file storage:', error)
           // If storage fails, use data URL as fallback (may cause quota issues)
           thumbnailPath = item.thumbnail || item.url
           imagePath = item.url
         }
       }
 
-      // Update the store
       await selectionStore.updateSelection(selection.value.id, {
         thumbnail: thumbnailPath,
         image: imagePath,
       })
 
-      // Update local selection reference with the final stored paths
       // This ensures we have the correct file:// paths
       if (selection.value) {
         selection.value.thumbnail = thumbnailPath
@@ -106,7 +96,6 @@ export function useSelectionCoverActions({
         description: description || 'The cover photo has been updated.',
       })
     } catch (error) {
-      console.error('Failed to set cover:', error)
       toast.error('Failed to set cover', {
         description: description || 'An error occurred while updating the cover photo.',
       })
@@ -117,7 +106,6 @@ export function useSelectionCoverActions({
     if (!selection.value) return
 
     try {
-      // Create a thumbnail from the uploaded image
       const thumbnailDataUrl = await createThumbnailFromDataURL(imageUrl)
 
       // Store both image and thumbnail in IndexedDB
@@ -133,7 +121,6 @@ export function useSelectionCoverActions({
             id: `cover_${selection.value.id}_image`,
           })
         } catch (error) {
-          console.error('Error storing cover image:', error)
           // Fallback to data URL
         }
       }
@@ -147,7 +134,6 @@ export function useSelectionCoverActions({
             id: `cover_${selection.value.id}_thumb`,
           })
         } catch (error) {
-          console.error('Error storing cover thumbnail:', error)
           // Fallback to data URL
         }
       }
@@ -157,7 +143,6 @@ export function useSelectionCoverActions({
         image: imagePath,
       })
 
-      // Update local selection reference immediately
       if (selection.value) {
         selection.value.thumbnail = thumbnailPath
         selection.value.image = imagePath
@@ -175,7 +160,6 @@ export function useSelectionCoverActions({
         description: description || 'The cover photo has been updated.',
       })
     } catch (error) {
-      console.error('Failed to upload cover image:', error)
       toast.error('Failed to upload cover image', {
         description: description || 'An error occurred while uploading the cover photo.',
       })

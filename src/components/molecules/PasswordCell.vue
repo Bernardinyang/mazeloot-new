@@ -60,7 +60,6 @@ const handleCopyPassword = async () => {
       description: 'Password has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy password:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy password to clipboard. Please try again.',
     })

@@ -210,7 +210,6 @@ const loadProject = async () => {
       projectCollections.value = projectData.collections
     }
   } catch (error) {
-    console.error('Failed to load project:', error)
   } finally {
     isLoading.value = false
   }

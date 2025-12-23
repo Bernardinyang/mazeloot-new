@@ -88,10 +88,8 @@ export const storeFile = async (file, options = {}) => {
     const fileExtension = file.name.split('.').pop() || 'bin'
     const fileName = options.filename || `${fileId}.${fileExtension}`
 
-    // Get the directory handle
     const dirHandle = folder.handle || folder
 
-    // Create the file in the folder
     const fileHandle = await dirHandle.getFileHandle(fileName, { create: true })
     const writable = await fileHandle.createWritable()
 
@@ -99,12 +97,10 @@ export const storeFile = async (file, options = {}) => {
     await writable.write(file)
     await writable.close()
 
-    // Return the file path (relative to the uploads folder)
     const filePath = `${UPLOADS_FOLDER_NAME}/${fileName}`
 
     return filePath
   } catch (error) {
-    console.error('Error storing file:', error)
     throw error
   }
 }
@@ -118,10 +114,8 @@ export const storeBlob = async (blob, filename, options = {}) => {
     const fileId = options.id || generateFileId()
     const fileName = filename || `file_${fileId}.bin`
 
-    // Get the directory handle
     const dirHandle = folder.handle || folder
 
-    // Create the file in the folder
     const fileHandle = await dirHandle.getFileHandle(fileName, { create: true })
     const writable = await fileHandle.createWritable()
 
@@ -129,12 +123,10 @@ export const storeBlob = async (blob, filename, options = {}) => {
     await writable.write(blob)
     await writable.close()
 
-    // Return the file path
     const filePath = `${UPLOADS_FOLDER_NAME}/${fileName}`
 
     return filePath
   } catch (error) {
-    console.error('Error storing blob:', error)
     throw error
   }
 }
@@ -150,15 +142,12 @@ export const getFile = async filePath => {
     // Extract filename from path
     const fileName = filePath.split('/').pop() || filePath
 
-    // Get the file handle
     const fileHandle = await dirHandle.getFileHandle(fileName)
 
-    // Get the file
     const file = await fileHandle.getFile()
 
     return file
   } catch (error) {
-    console.error('Error retrieving file:', error)
     throw error
   }
 }
@@ -171,7 +160,6 @@ export const getFileBlobURL = async filePath => {
     const file = await getFile(filePath)
     return URL.createObjectURL(file)
   } catch (error) {
-    console.error('Error creating blob URL:', error)
     throw error
   }
 }
@@ -190,7 +178,6 @@ export const deleteFile = async filePath => {
     // Remove the file
     await dirHandle.removeEntry(fileName)
   } catch (error) {
-    console.error('Error deleting file:', error)
     throw error
   }
 }
@@ -226,7 +213,6 @@ export const listStoredFiles = async () => {
 
     return files
   } catch (error) {
-    console.error('Error listing files:', error)
     throw error
   }
 }

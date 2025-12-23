@@ -591,7 +591,6 @@ const showMoveModal = ref(false)
 const pendingMove = ref(null)
 const movingCollectionId = ref(null)
 
-// Delete confirmation using reusable composable
 const {
   showDeleteModal,
   itemToDelete: collectionToDelete,
@@ -753,7 +752,6 @@ const handleCopyLink = async collection => {
       description: 'Collection link has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy link:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy link to clipboard.',
     })
@@ -775,7 +773,6 @@ const handleCopyPin = async collection => {
       description: 'Download PIN has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy PIN:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy PIN to clipboard.',
     })
@@ -911,7 +908,6 @@ const handleConfirmMove = async () => {
 
   const { item, targetFolder } = pendingMove.value
 
-  // Set moving state to trigger animation
   movingCollectionId.value = String(item.id)
 
   try {

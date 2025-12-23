@@ -239,7 +239,6 @@ const completedCount = computed(() => mediaItems.value.filter(m => m.isCompleted
 const loadData = async () => {
   isLoading.value = true
   try {
-    // Check if this is a standalone proofing (via query param) or project-linked
     const proofingIdFromQuery = route.query.proofingId
 
     if (proofingIdFromQuery) {
@@ -258,13 +257,11 @@ const loadData = async () => {
           const projectData = await projectStore.fetchProject(proofingData.projectId)
           project.value = projectData
 
-          // Get project collections
           if (projectData.collections) {
             projectCollections.value = projectData.collections
           }
         } catch (err) {
           // Project not found, but continue with standalone proofing
-          console.warn('Project not found for proofing:', err)
         }
       }
     } else if (projectId.value && projectId.value !== 'standalone') {
@@ -272,7 +269,6 @@ const loadData = async () => {
       const projectData = await projectStore.fetchProject(projectId.value)
       project.value = projectData
 
-      // Get proofing phase
       if (projectData.proofing && projectData.proofing.length > 0) {
         const proofingData = await proofingStore.fetchProofing(projectData.proofing[0].id)
         proofing.value = proofingData
@@ -283,13 +279,11 @@ const loadData = async () => {
         await loadMediaRevisions()
       }
 
-      // Get project collections
       if (projectData.collections) {
         projectCollections.value = projectData.collections
       }
     }
   } catch (error) {
-    console.error('Failed to load proofing phase:', error)
   } finally {
     isLoading.value = false
   }
@@ -300,9 +294,7 @@ const loadMediaItems = async () => {
   try {
     const media = await mediaApi.fetchPhaseMedia('proofing', proofing.value.id)
     mediaItems.value = media
-  } catch (error) {
-    console.error('Failed to load media:', error)
-  }
+  } catch (error) {}
 }
 
 const {
@@ -324,9 +316,7 @@ const handleFileSelect = async event => {
     // For now, upload as new media (in production, link to original selection media)
     await uploadEditedMedia(files, null, 'highlights')
     event.target.value = ''
-  } catch (error) {
-    console.error('Upload failed:', error)
-  }
+  } catch (error) {}
 }
 
 const handleAddFeedback = async (mediaId, [type, content]) => {
@@ -336,7 +326,6 @@ const handleAddFeedback = async (mediaId, [type, content]) => {
     // Reload proofing to get updated feedback
     await loadData()
   } catch (error) {
-    console.error('Failed to add feedback:', error)
   } finally {
     isSubmittingFeedback.value = false
   }
@@ -345,18 +334,14 @@ const handleAddFeedback = async (mediaId, [type, content]) => {
 const handleMarkApproved = async mediaId => {
   try {
     await markMediaApproved(mediaId)
-  } catch (error) {
-    console.error('Failed to mark approved:', error)
-  }
+  } catch (error) {}
 }
 
 const handleComplete = async () => {
   try {
     await completeProofing()
     await loadData()
-  } catch (error) {
-    console.error('Failed to complete proofing:', error)
-  }
+  } catch (error) {}
 }
 
 const handleMoveToCollection = async () => {
@@ -373,9 +358,7 @@ const handleMoveToCollection = async () => {
         projectCollections.value = updatedProject.collections
       }
     }
-  } catch (error) {
-    console.error('Failed to move to collection:', error)
-  }
+  } catch (error) {}
 }
 
 const getMediaFeedback = mediaId => {
@@ -396,9 +379,7 @@ const loadMediaRevisions = async () => {
       revisionsMap[originalId].push(media)
     }
     mediaRevisions.value = revisionsMap
-  } catch (error) {
-    console.error('Failed to load revisions:', error)
-  }
+  } catch (error) {}
 }
 
 onMounted(() => {

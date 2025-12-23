@@ -38,28 +38,34 @@
         <!-- Media Container -->
         <div class="relative w-full h-full flex items-center justify-center p-4 md:p-8">
           <Transition mode="out-in" name="lightbox-slide">
-            <div :key="currentIndex" class="relative max-w-full max-h-full">
+            <div
+              :key="currentIndex"
+              class="relative max-w-full max-h-full w-full h-full flex items-center justify-center"
+            >
               <!-- Image -->
               <img
                 v-if="currentMediaType === 'image' && currentMediaUrl"
                 :alt="currentItem?.title || currentItem?.filename || 'Media'"
                 :src="currentMediaUrl"
-                class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+                class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
                 @error="handleImageError"
                 @load="handleImageLoad"
               />
 
               <!-- Video -->
-              <video
-                v-else-if="currentMediaType === 'video'"
-                :poster="currentThumbnailUrl"
+              <CustomVideoPlayer
+                v-else-if="currentMediaType === 'video' && currentMediaUrl"
+                :poster="
+                  currentThumbnailUrl && currentThumbnailUrl !== placeholderImage
+                    ? currentThumbnailUrl
+                    : undefined
+                "
                 :src="currentMediaUrl"
-                class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-                controls
+                :autoplay="true"
                 @error="handleVideoError"
-              >
-                Your browser does not support the video tag.
-              </video>
+                @play="handleVideoPlay"
+                @pause="handleVideoPause"
+              />
 
               <!-- Loading State -->
               <div
@@ -74,8 +80,8 @@
 
         <!-- Media Info (Bottom) -->
         <div
-          v-if="currentItem"
-          class="absolute bottom-0 left-0 right-0 p-4 md:p-6 bg-gradient-to-t from-black/90 via-black/70 to-transparent"
+          v-if="currentItem && currentMediaType !== 'video'"
+          class="absolute bottom-0 left-0 right-0 z-50 p-4 md:p-6 bg-gradient-to-t from-black/90 via-black/70 to-transparent"
         >
           <div class="max-w-4xl mx-auto flex items-center justify-between text-white">
             <div class="flex-1 min-w-0">
@@ -128,6 +134,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight, Download, Loader2, X } from 'lucide-vue-next'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
+import CustomVideoPlayer from './CustomVideoPlayer.vue'
 
 const props = defineProps({
   modelValue: {
@@ -182,23 +189,42 @@ const getThumbnailUrl = item => {
 
   const mediaType = item.type || item.file?.type
 
+  // Priority order for thumbnails:
+  // 1. Direct thumbnailUrl from media
   if (item.thumbnailUrl) {
     return item.thumbnailUrl
   }
 
+  // 2. For videos, check file thumbnailUrl or metadata thumbnail
+  if (mediaType === 'video') {
+    if (item.file?.thumbnailUrl && item.file.thumbnailUrl !== item.file?.url) {
+      return item.file.thumbnailUrl
+    }
+    if (item.file?.metadata?.thumbnail) {
+      return item.file.metadata.thumbnail
+    }
+    // For videos without thumbnail, return null (video will use poster or no poster)
+    return null
+  }
+
+  // 3. For images, use file URL or variants
   if (mediaType === 'image') {
-    return item.file?.url || item.url
-  } else if (mediaType === 'video') {
+    if (item.file?.variants?.thumb) {
+      return item.file.variants.thumb
+    }
     return item.file?.url || item.url
   }
 
+  // 4. Fallback
   return item.file?.url || item.url || item.thumbnail
 }
 
 const getMediaUrl = item => {
   if (!item) return null
 
-  if (item.type === 'image' || item.file?.type === 'image') {
+  const mediaType = item.type || item.file?.type
+
+  if (mediaType === 'image') {
     if (item.largeImageUrl) {
       return item.largeImageUrl
     }
@@ -208,7 +234,12 @@ const getMediaUrl = item => {
     return item.file?.url || null
   }
 
-  return item.file?.url || null
+  // For videos, return the video URL
+  if (mediaType === 'video') {
+    return item.file?.url || item.url || null
+  }
+
+  return item.file?.url || item.url || null
 }
 
 const updateMediaUrl = async () => {
@@ -243,9 +274,7 @@ const updateMediaUrl = async () => {
   if (thumbnail && thumbnail.startsWith('file://')) {
     try {
       currentThumbnailUrl.value = await getMediaDisplayUrl(thumbnail, props.placeholderImage)
-    } catch (error) {
-      console.error('Error loading thumbnail:', error)
-    }
+    } catch (error) {}
   }
 
   if (url && url.startsWith('file://')) {
@@ -253,7 +282,6 @@ const updateMediaUrl = async () => {
       currentMediaUrl.value = await getMediaDisplayUrl(url, props.placeholderImage)
       isLoading.value = false
     } catch (error) {
-      console.error('Error loading media:', error)
       currentMediaUrl.value = props.placeholderImage
       isLoading.value = false
     }
@@ -293,6 +321,18 @@ const handleImageError = event => {
 const handleVideoError = event => {
   isLoading.value = false
   emit('image-error', event)
+}
+
+const handleVideoLoaded = () => {
+  isLoading.value = false
+}
+
+const handleVideoPlay = () => {
+  isLoading.value = false
+}
+
+const handleVideoPause = () => {
+  // Keep loading state as is when paused
 }
 
 const handleDownload = () => {

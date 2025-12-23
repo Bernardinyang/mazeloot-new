@@ -396,12 +396,10 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // TODO
     // registrations.value = await fetchEmailRegistrations(collectionId)
     // For now, use demo data
     registrations.value = generateDemoData()
   } catch (error) {
-    console.error('Failed to load collection:', error)
     // Still load demo data even if collection fetch fails
     registrations.value = generateDemoData()
   } finally {
@@ -431,8 +429,5 @@ const formatTime = dateString => {
 }
 
 // Export data
-const exportData = () => {
-  // TODO
-  console.log('Exporting email registration data...')
-}
+const exportData = () => {}
 </script>

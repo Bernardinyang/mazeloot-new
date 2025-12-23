@@ -76,7 +76,6 @@ export function useBulkTagFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to add tags:', error)
       toast.error('Failed to add tags', {
         description,
       })

@@ -305,7 +305,6 @@ const recoverableCount = computed(() =>
 const loadData = async () => {
   isLoading.value = true
   try {
-    // Check if this is a standalone selection (via query param) or project-linked
     const selectionIdFromQuery = route.query.selectionId
 
     if (selectionIdFromQuery) {
@@ -324,7 +323,6 @@ const loadData = async () => {
           project.value = projectData
         } catch (err) {
           // Project not found, but continue with standalone selection
-          console.warn('Project not found for selection:', err)
         }
       }
     } else if (projectId.value && projectId.value !== 'standalone') {
@@ -332,7 +330,6 @@ const loadData = async () => {
       const projectData = await projectStore.fetchProject(projectId.value)
       project.value = projectData
 
-      // Get selection phase
       if (projectData.selections && projectData.selections.length > 0) {
         const selectionData = await selectionStore.fetchSelection(projectData.selections[0].id)
         selection.value = selectionData
@@ -344,7 +341,6 @@ const loadData = async () => {
       }
     }
   } catch (error) {
-    console.error('Failed to load selection phase:', error)
   } finally {
     isLoading.value = false
   }
@@ -355,9 +351,7 @@ const loadMediaItems = async () => {
   try {
     const media = await mediaApi.fetchPhaseMedia('selection', selection.value.id)
     mediaItems.value = media
-  } catch (error) {
-    console.error('Failed to load media:', error)
-  }
+  } catch (error) {}
 }
 
 const {
@@ -382,9 +376,7 @@ const handleFileSelect = async event => {
     event.target.value = '' // Reset input
     // Reload media items to show the newly uploaded media
     await loadMediaItems()
-  } catch (error) {
-    console.error('Upload failed:', error)
-  }
+  } catch (error) {}
 }
 
 const handleToggleSelection = async mediaId => {
@@ -402,35 +394,27 @@ const handleToggleSelection = async mediaId => {
       })
       await loadMediaItems()
     }
-  } catch (error) {
-    console.error('Failed to toggle selection:', error)
-  }
+  } catch (error) {}
 }
 
 const handleComplete = async () => {
   try {
     await completeSelection()
     await loadData()
-  } catch (error) {
-    console.error('Failed to complete selection:', error)
-  }
+  } catch (error) {}
 }
 
 const handleRecover = async () => {
   try {
     await recoverDeletedMedia()
     await loadData()
-  } catch (error) {
-    console.error('Failed to recover media:', error)
-  }
+  } catch (error) {}
 }
 
 const handleCopyFilenames = async () => {
   try {
     await copySelectedFilenames()
-  } catch (error) {
-    console.error('Failed to copy filenames:', error)
-  }
+  } catch (error) {}
 }
 
 // Watch for selection changes to update sets sidebar

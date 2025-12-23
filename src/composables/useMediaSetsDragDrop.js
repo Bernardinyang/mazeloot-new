@@ -48,12 +48,10 @@ export function useMediaSetsDragDrop({
     const [draggedSet] = sorted.splice(draggedIndex, 1)
     sorted.splice(dropIndex, 0, draggedSet)
 
-    // Update order values
     sorted.forEach((set, index) => {
       set.order = index
     })
 
-    // Update the original array
     mediaSets.value.forEach(set => {
       const updated = sorted.find(s => s.id === set.id)
       if (updated) {

@@ -52,7 +52,6 @@ const overlayStyles = computed(() => {
       gradientDirection = 'to bottom'
     }
 
-    // Create gradient from transparent to black with opacity
     const gradientColor = `rgba(0, 0, 0, ${props.opacity})`
     styles.background = `linear-gradient(${gradientDirection}, transparent, ${gradientColor})`
   }

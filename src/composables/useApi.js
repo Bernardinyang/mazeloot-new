@@ -71,7 +71,6 @@ export function useApi(options = {}) {
    * Make API request with retry and caching
    */
   const request = async (method, endpoint, data, callOptions = {}) => {
-    // Check cache first
     if (options.cache && method === 'get') {
       const cached = getCached(requestKey, options.cacheTTL || 60000)
       if (cached) {
@@ -82,7 +81,6 @@ export function useApi(options = {}) {
     isLoading.value = true
     error.value = null
 
-    // Create abort signal
     const signal = requestCanceller.create(requestKey)
 
     try {

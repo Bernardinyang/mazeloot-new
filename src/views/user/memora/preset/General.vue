@@ -475,7 +475,6 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
-// Get preset from store based on route params
 const currentPreset = computed(() => {
   const nameParam = route.params.name
   if (nameParam) {
@@ -528,7 +527,6 @@ const formData = reactive({
 // Store original loaded data for comparison
 const originalData = ref(null)
 
-// Check if there are actual unsaved changes by comparing with original data
 const hasUnsavedChanges = computed(() => {
   if (!originalData.value || isLoadingData.value) {
     return false
@@ -582,7 +580,6 @@ const loadPresetData = () => {
         ? [...currentPreset.value.photoSets]
         : ['Highlights']
 
-    // Update ref values
     defaultWatermark.value = currentPreset.value.defaultWatermark || 'none'
     emailRegistration.value = currentPreset.value.emailRegistration ?? false
     galleryAssist.value = currentPreset.value.galleryAssist ?? false
@@ -592,7 +589,6 @@ const loadPresetData = () => {
     collectionTags.value = loadedCollectionTags
     photoSets.value = loadedPhotoSets
 
-    // Update formData
     Object.assign(formData, {
       collectionTags: loadedCollectionTags,
       defaultWatermark: defaultWatermark.value,
@@ -632,9 +628,7 @@ onMounted(async () => {
   // Fetch watermarks
   try {
     await watermarkStore.fetchWatermarks()
-  } catch (error) {
-    console.error('Failed to fetch watermarks:', error)
-  }
+  } catch (error) {}
 
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
@@ -708,7 +702,6 @@ const handleSave = async () => {
       language: formData.language,
     })
 
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
         formData: { ...formData },
@@ -745,7 +738,6 @@ const handleNext = async () => {
       language: formData.language,
     })
 
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
         formData: { ...formData },
@@ -790,7 +782,6 @@ const savePresetGeneral = async () => {
       language: formData.language,
     })
 
-    // Update original data after successful save
     if (originalData.value) {
       originalData.value = {
         formData: { ...formData },
@@ -809,7 +800,6 @@ const savePresetGeneral = async () => {
 
 const isSaving = computed(() => presetStore.isLoading)
 
-// Set up unsaved changes guard
 // Discard function to reset form data to original state
 const discardChanges = () => {
   if (originalData.value) {

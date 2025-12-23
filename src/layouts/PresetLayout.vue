@@ -189,7 +189,6 @@ const isSidebarCollapsed = ref(false)
 // Provide sidebar collapse state to child components
 provide('isSidebarCollapsed', isSidebarCollapsed)
 
-// Get preset from store based on route params
 const currentPreset = computed(() => {
   const nameParam = route.params.name
   if (nameParam) {
@@ -262,7 +261,6 @@ const saveTitle = async () => {
     return
   }
 
-  // Check if name already exists (excluding current preset)
   const existingPreset = presetStore.presets.find(
     p => p.name.toLowerCase() === newName.toLowerCase() && p.id !== currentPreset.value?.id
   )
@@ -277,7 +275,6 @@ const saveTitle = async () => {
   try {
     await presetStore.updatePreset(currentPreset.value.id, { name: editingTitle.value })
 
-    // Update route if name changed
     if (oldName !== newName) {
       // Convert name to URL-friendly format
       const urlFriendlyName = newName.toLowerCase().replace(/\s+/g, '-')

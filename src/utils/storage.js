@@ -20,7 +20,6 @@ export const storage = {
         return item
       }
     } catch (error) {
-      console.error(`Error reading from localStorage key "${key}":`, error)
       return defaultValue
     }
   },
@@ -33,7 +32,6 @@ export const storage = {
       const serialized = JSON.stringify(value)
       localStorage.setItem(key, serialized)
     } catch (error) {
-      // Check for quota exceeded error in multiple ways
       const isQuotaError =
         error?.name === 'QuotaExceededError' ||
         error?.code === 22 ||
@@ -61,9 +59,7 @@ export const storage = {
   remove(key) {
     try {
       localStorage.removeItem(key)
-    } catch (error) {
-      console.error(`Error removing localStorage key "${key}":`, error)
-    }
+    } catch (error) {}
   },
 
   /**
@@ -72,9 +68,7 @@ export const storage = {
   clear() {
     try {
       localStorage.clear()
-    } catch (error) {
-      console.error('Error clearing localStorage:', error)
-    }
+    } catch (error) {}
   },
 
   /**

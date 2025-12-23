@@ -53,7 +53,6 @@ export async function fetchCoverLayoutBySlug(slug) {
  * Transform API cover layout response to normalized format
  */
 export function transformCoverLayout(apiLayout) {
-  // Handle layoutConfig - it might be an object or need default
   let layoutConfig = apiLayout.layoutConfig
 
   // If layoutConfig is missing or invalid, use default

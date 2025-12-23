@@ -32,7 +32,6 @@ export function useBulkEditFilenamesFlow({
       for (const id of ids) {
         const item = mediaItems.value.find(m => m.id === id)
         if (item) {
-          // Get filename without extension for title
           const currentTitle = item.title || `media-${item.id}`
           const parts = currentTitle.split('.')
           const extension = parts.length > 1 ? '.' + parts.pop() : ''
@@ -53,7 +52,6 @@ export function useBulkEditFilenamesFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to update filenames:', error)
       toast.error('Failed to update filenames', {
         description,
       })

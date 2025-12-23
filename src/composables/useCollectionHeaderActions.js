@@ -25,7 +25,6 @@ export function useCollectionHeaderActions({
   description,
 } = {}) {
   const handlePreview = () => {
-    // TODO
     const uuid = route.params.uuid
     router.push({
       name: 'collectionPreview',
@@ -96,7 +95,6 @@ export function useCollectionHeaderActions({
 
       if (updatedCollection) {
         collection.value = updatedCollection
-        // Update eventDate from the returned collection data - API stores'date'
         const dateFromCollection = updatedCollection.date
         if (dateFromCollection) {
           const parsedDate =
@@ -117,7 +115,6 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      console.error('Date save error:', error)
       toast.error('Failed to save event date', {
         description,
       })
@@ -146,7 +143,6 @@ export function useCollectionHeaderActions({
       return
     }
 
-    // Set the value immediately for responsive UI
     selectedPresetId.value = presetIdStr
 
     isSavingPreset.value = true
@@ -162,7 +158,6 @@ export function useCollectionHeaderActions({
         const newPresetId = updatedCollection.presetId
         selectedPresetId.value = newPresetId != null ? String(newPresetId) : 'none'
       } else {
-        // Update local collection
         collection.value.presetId = presetIdStr === 'none' ? undefined : presetIdStr
         // Value already set above
       }
@@ -193,7 +188,6 @@ export function useCollectionHeaderActions({
       return
     }
 
-    // Set the value immediately for responsive UI
     selectedWatermark.value = watermarkIdStr
 
     isSavingWatermark.value = true
@@ -209,7 +203,6 @@ export function useCollectionHeaderActions({
         const newWatermarkId = updatedCollection.watermarkId
         selectedWatermark.value = newWatermarkId != null ? String(newWatermarkId) : 'none'
       } else {
-        // Update local collection
         collection.value.watermarkId = watermarkIdStr === 'none' ? undefined : watermarkIdStr
         // Value already set above
       }
@@ -299,7 +292,6 @@ export function useCollectionHeaderActions({
       const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
         name: trimmedName,
       })
-      // Update local collection reference with the returned data
       if (updatedCollection) {
         collection.value = updatedCollection
       } else {

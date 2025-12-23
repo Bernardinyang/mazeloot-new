@@ -11,7 +11,6 @@
         :is-sidebar-collapsed="isSidebarCollapsed"
         :selection="selection"
         @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
-        @handle-cover-image-upload="handleCoverImageUpload"
       >
         <SelectionSidebarPanels
           :active-tab="activeTab"
@@ -73,8 +72,6 @@ import { useSelectionStore } from '@/stores/selection'
 import { useSelectionHeaderStore } from '@/stores/selectionHeader'
 import { useRoute, useRouter } from 'vue-router'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
-import { useSelectionCoverActions } from '@/composables/useSelectionCoverActions'
-import { createThumbnailFromDataURL } from '@/utils/media/createThumbnailFromDataURL'
 
 const props = defineProps({
   selection: { type: [Object, null], default: null },
@@ -105,7 +102,6 @@ const tabFromRouteName = routeName => {
   const n = routeName?.toString?.() ?? ''
   if (n === 'selectionPhotos' || n === 'selectionPreview') return 'photos'
   if (n.startsWith('selectionSettings')) return 'settings'
-  // Check query parameter for tab
   if (route.query?.tab) {
     return route.query.tab
   }
@@ -153,11 +149,4 @@ watch(
   },
   { immediate: true }
 )
-
-const { handleCoverImageUpload } = useSelectionCoverActions({
-  selection,
-  selectionStore,
-  createThumbnailFromDataURL,
-  description: 'The cover photo has been updated.',
-})
 </script>

@@ -115,7 +115,6 @@ const addDefaultSettings = collection => {
  * This data structure matches what the backend will send
  */
 const initializeMockData = () => {
-  // Check if data already exists
   const existing = storage.get(COLLECTIONS_STORAGE_KEY)
   if (existing && existing.length > 0) {
     // Add default settings to existing collections that don't have them
@@ -132,7 +131,6 @@ const initializeMockData = () => {
   const expiringSoon = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000) // 5 days from now
   const expiredDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
 
-  // Get available presets from localStorage to assign to collections
   const PRESETS_STORAGE_KEY = 'mazeloot_presets'
   const presets = storage.get(PRESETS_STORAGE_KEY) || []
   const presetIds = presets.length > 0 ? presets.map(p => p.id) : []
@@ -515,7 +513,6 @@ const getAllCollections = () => {
  * Save collections to localStorage
  */
 const saveCollections = collections => {
-  // Update folder counts before saving
   collections.forEach(collection => {
     if (collection.isFolder) {
       // itemCount should match previewImages.length for folders
@@ -580,11 +577,6 @@ export function useCollectionsApi() {
     const collection = collections.find(c => c.id === id)
 
     if (!collection) {
-      console.error('Collection not found. ID:', id)
-      console.error(
-        'Available collections:',
-        collections.map(c => ({ id: c.id, name: c.name }))
-      )
       throw new Error(`Collection not found: ${id}`)
     }
 
@@ -599,27 +591,14 @@ export function useCollectionsApi() {
 
     const collections = getAllCollections()
 
-    // Get preset if presetId is provided
     let preset = null
     if (data.presetId) {
       const PRESETS_STORAGE_KEY = 'mazeloot_presets'
       const presets = storage.get(PRESETS_STORAGE_KEY) || []
       preset = presets.find(p => p.id === data.presetId)
 
-      // Debug: Log preset structure to verify it has all sections
+      // Apply preset to collection
       if (preset) {
-        console.log('Applying preset to collection:', {
-          presetId: preset.id,
-          presetName: preset.name,
-          hasDesign: !!preset.design,
-          hasPrivacy: !!preset.privacy,
-          hasDownload: !!preset.download,
-          hasFavorite: !!preset.favorite,
-          design: preset.design,
-          privacy: preset.privacy,
-          download: preset.download,
-          favorite: preset.favorite,
-        })
       }
     }
 
@@ -695,7 +674,6 @@ export function useCollectionsApi() {
       presetId: data.presetId || undefined,
       watermarkId: watermarkId || undefined,
       color: data.color || generateRandomColorFromPalette(),
-      // Set mediaSets if not a folder
       // If projectId exists, inherit mediaSets from project
       ...(!data.isFolder && mediaSets && { mediaSets }),
     }
@@ -849,26 +827,8 @@ export function useCollectionsApi() {
         }),
     }
 
-    // Debug: Log final collection to verify preset values were applied
+    // Collection created with preset values
     if (preset) {
-      console.log('Collection created with preset values:', {
-        collectionId: newCollection.id,
-        collectionName: newCollection.name,
-        presetId: newCollection.presetId,
-        hasDesign: !!newCollection.design,
-        hasPrivacy: !!newCollection.privacy,
-        hasDownload: !!newCollection.download,
-        hasFavorite: !!newCollection.favorite,
-        emailRegistration: newCollection.emailRegistration,
-        slideshow: newCollection.slideshow,
-        socialSharing: newCollection.socialSharing,
-        tags: newCollection.tags,
-        mediaSets: newCollection.mediaSets,
-        design: newCollection.design,
-        privacy: newCollection.privacy,
-        download: newCollection.download,
-        favorite: newCollection.favorite,
-      })
     }
 
     collections.push(newCollection)
@@ -890,7 +850,6 @@ export function useCollectionsApi() {
       throw new Error('Collection not found')
     }
 
-    // Handle eventDate conversion to date field
     let dateValue = collections[index].date
     if (data.eventDate !== undefined) {
       if (data.eventDate === null) {
@@ -915,7 +874,6 @@ export function useCollectionsApi() {
 
     saveCollections(collections)
 
-    // Return collection without eventDate (it's stored as 'date')
     const { eventDate: _, ...collectionToReturn } = collections[index]
     return collectionToReturn
   }
@@ -982,7 +940,6 @@ export function useCollectionsApi() {
       if (collectionId === targetFolderId) {
         throw new Error('Cannot move folder into itself')
       }
-      // Check if target is a child of the collection being moved
       const isChild = (folderId, checkId) => {
         const folder = collections.find(c => c.id === folderId)
         if (!folder || !folder.isFolder) return false
@@ -999,14 +956,12 @@ export function useCollectionsApi() {
     // Store old parentId before updating
     const oldParentId = collections[collectionIndex].parentId
 
-    // Update parentId
     collections[collectionIndex] = {
       ...collections[collectionIndex],
       parentId: targetFolderId,
       updatedAt: new Date().toISOString(),
     }
 
-    // Update target folder's preview images if it's a folder
     if (targetFolderId !== null) {
       const targetFolder = collections.find(c => c.id === targetFolderId)
       if (targetFolder && targetFolder.isFolder) {
@@ -1026,12 +981,10 @@ export function useCollectionsApi() {
           targetFolder.previewImages = [movedCollection.thumbnail]
         }
 
-        // Update folder itemCount to match previewImages.length
         targetFolder.itemCount = targetFolder.previewImages?.length || 0
       }
     }
 
-    // Update old parent folder if collection was moved from another folder
     if (oldParentId !== null && oldParentId !== targetFolderId) {
       const oldParent = collections.find(c => c.id === oldParentId)
       if (oldParent && oldParent.isFolder) {

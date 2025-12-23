@@ -1001,7 +1001,6 @@ const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
 // const themeStore = useThemeStore() // Unused for now
 
-// Check if editing existing watermark
 const isEditing = computed(() => !!route.params.id)
 const watermarkId = computed(() => (isEditing.value ? String(route.params.id) : null))
 
@@ -1116,7 +1115,6 @@ const getFontStyleProperties = style => {
 
 // Unused functions (kept for future use)
 // const getFontStylePreview = () => {
-//   return getFontStyleProperties(fontStyle.value)
 // }
 
 const getStylePreview = styleValue => {
@@ -1125,7 +1123,6 @@ const getStylePreview = styleValue => {
 
 // const getFontStyleLabel = () => {
 //   const option = fontStyleOptions.find(opt => opt.value === fontStyle.value)
-//   return option?.label || 'Normal'
 // }
 
 const handleUploadImage = () => {
@@ -1222,7 +1219,6 @@ onMounted(async () => {
       opacity.value = [watermark.opacity]
       position.value = watermark.position
     } catch (error) {
-      console.error('Failed to load watermark:', error)
       toast.error('Failed to load watermark', {
         description,
       })
@@ -1275,13 +1271,11 @@ const handleSave = async () => {
     }
 
     if (isEditing.value && watermarkId.value) {
-      // Update existing watermark
       await watermarkStore.updateWatermark(watermarkId.value, watermarkData)
       toast.success('Watermark updated successfully', {
         description,
       })
     } else {
-      // Create new watermark
       await watermarkStore.createWatermark(watermarkData)
       toast.success('Watermark created successfully', {
         description,
@@ -1290,7 +1284,6 @@ const handleSave = async () => {
 
     router.push({ name: 'watermarkSettings' })
   } catch (error) {
-    console.error('Save error:', error)
     toast.error('Failed to save watermark', {
       description,
     })

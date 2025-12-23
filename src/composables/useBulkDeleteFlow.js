@@ -42,7 +42,6 @@ export function useBulkDeleteFlow({
         description,
       })
     } catch (error) {
-      console.error('Failed to delete media:', error)
       toast.error('Failed to delete media', {
         description,
       })

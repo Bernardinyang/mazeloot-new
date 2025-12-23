@@ -79,7 +79,6 @@ export const storeFile = async (file, options = {}) => {
       const request = store.put(fileData)
 
       request.onsuccess = () => {
-        // Return a file path/URL that can be used to retrieve the file
         resolve(`file://${fileId}`)
       }
 
@@ -88,7 +87,6 @@ export const storeFile = async (file, options = {}) => {
       }
     })
   } catch (error) {
-    console.error('Error storing file:', error)
     throw error
   }
 }
@@ -127,7 +125,6 @@ export const storeBlob = async (blob, filename, options = {}) => {
       }
     })
   } catch (error) {
-    console.error('Error storing blob:', error)
     throw error
   }
 }
@@ -164,7 +161,6 @@ export const getFile = async filePath => {
       }
     })
   } catch (error) {
-    console.error('Error retrieving file:', error)
     throw error
   }
 }
@@ -177,7 +173,6 @@ export const getFileBlobURL = async filePath => {
     const blob = await getFile(filePath)
     return URL.createObjectURL(blob)
   } catch (error) {
-    console.error('Error creating blob URL:', error)
     throw error
   }
 }
@@ -204,7 +199,6 @@ export const deleteFile = async filePath => {
       }
     })
   } catch (error) {
-    console.error('Error deleting file:', error)
     throw error
   }
 }
@@ -238,7 +232,6 @@ export const listStoredFiles = async () => {
       }
     })
   } catch (error) {
-    console.error('Error listing files:', error)
     throw error
   }
 }
@@ -258,7 +251,6 @@ export const getStorageStats = async () => {
       files: files,
     }
   } catch (error) {
-    console.error('Error getting storage stats:', error)
     throw error
   }
 }

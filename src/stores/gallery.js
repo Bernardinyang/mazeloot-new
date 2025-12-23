@@ -57,7 +57,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     try {
       const data = await collectionsApi.fetchCollections(params)
       collections.value = data
-      // Update starred status
       collections.value.forEach(collection => {
         if (starredCollectionIds.value.has(collection.id)) {
           collection.isStarred = true
@@ -130,7 +129,6 @@ export const useGalleryStore = defineStore('gallery', () => {
       data.mediaSets = defaultHighlightsSet
     }
 
-    // Create temporary collection for optimistic update
     const tempId = `temp-${Date.now()}`
     const tempCollection = {
       id: tempId,
@@ -158,7 +156,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     collections.value.push(tempCollection)
 
     try {
-      // Create on server
       const newCollection = await collectionsApi.createCollection(data)
 
       // Replace temp collection with real one
@@ -218,7 +215,6 @@ export const useGalleryStore = defineStore('gallery', () => {
       if ('expiryDate' in updatedData && updatedData.expiryDate === null) {
         updatedData.expiryDate = undefined
       }
-      // Handle eventDate conversion to date field for optimistic update
       if ('eventDate' in updatedData) {
         if (updatedData.eventDate === null || updatedData.eventDate === undefined) {
           updatedData.date = undefined
@@ -230,14 +226,12 @@ export const useGalleryStore = defineStore('gallery', () => {
         }
         delete updatedData.eventDate
       }
-      // Handle presetId and watermarkId - convert undefined to null for consistency
       if ('presetId' in updatedData && updatedData.presetId === undefined) {
         updatedData.presetId = null
       }
       if ('watermarkId' in updatedData && updatedData.watermarkId === undefined) {
         updatedData.watermarkId = null
       }
-      // Handle mediaSets - keep as is if provided
       if ('mediaSets' in updatedData) {
         // mediaSets is already in updatedData, no conversion needed
       }
@@ -250,7 +244,6 @@ export const useGalleryStore = defineStore('gallery', () => {
 
     try {
       const updatedCollection = await collectionsApi.updateCollection(id, data)
-      // Update the collection in the store with the returned data
       if (index !== -1) {
         collections.value[index] = {
           ...collections.value[index],
@@ -318,7 +311,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     // Persistence is handled by watcher
 
     try {
-      // Delete on server
       await collectionsApi.deleteCollection(id)
     } catch (err) {
       // Revert optimistic update on error
@@ -381,10 +373,8 @@ export const useGalleryStore = defineStore('gallery', () => {
       }
     }
 
-    // Update folder preview images and counts optimistically
     collections.value.forEach(c => {
       if (c.isFolder) {
-        // Update preview images for target folder
         if (c.id === targetFolderId && collection.thumbnail) {
           const previewImages = c.previewImages || []
           // Add collection thumbnail if not already present
@@ -398,7 +388,6 @@ export const useGalleryStore = defineStore('gallery', () => {
           }
         }
 
-        // Update itemCount to match previewImages.length for folders
         if (c.previewImages && c.previewImages.length > 0) {
           c.itemCount = c.previewImages.length
         } else {
@@ -474,7 +463,6 @@ export const useGalleryStore = defineStore('gallery', () => {
     error.value = null
     try {
       const collection = await collectionsApi.fetchCollection(id)
-      // Update starred status
       if (starredCollectionIds.value.has(collection.id)) {
         collection.isStarred = true
       }

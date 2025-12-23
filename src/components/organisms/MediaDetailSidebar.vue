@@ -569,7 +569,6 @@ const copyToClipboard = async (text, label = 'Text') => {
     await navigator.clipboard.writeText(text)
     toast.success(`${label} copied to clipboard`)
   } catch (error) {
-    console.error('Failed to copy:', error)
     toast.error('Failed to copy to clipboard')
   }
 }
@@ -618,7 +617,6 @@ const handleDownload = async () => {
     isOpen.value = false
   } catch (error) {
     toast.dismiss('download-media')
-    console.error('Download error:', error)
     toast.error('Download failed', {
       description: error.message || 'Unable to download media. Please try again.',
     })

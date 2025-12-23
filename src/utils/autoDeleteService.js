@@ -29,7 +29,6 @@ export const processAutoDeletions = () => {
     return new Date(media.canRecoverUntil) >= now
   })
 
-  // Update storage with only recoverable media
   storage.set(DELETED_MEDIA_STORAGE_KEY, recoverable)
 
   return {
@@ -86,14 +85,11 @@ export const getDaysUntilDeletion = selectionId => {
  * Call this on app startup
  */
 export const initializeAutoDeleteService = () => {
-  // Process deletions on startup
   const result = processAutoDeletions()
 
   if (result.expired > 0) {
-    console.log(`Auto-deleted ${result.expired} expired media items`)
   }
 
-  // Set up periodic check (every 24 hours)
   if (typeof window !== 'undefined') {
     setInterval(
       () => {

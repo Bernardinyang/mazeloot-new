@@ -167,74 +167,82 @@
           :class="['h-4 w-4', isStarred ? 'fill-yellow-400 text-yellow-400' : theme.textSecondary]"
         />
       </button>
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <button
-            type="button"
-            class="h-8 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
-            @click.stop
-          >
-            <MoreVertical class="h-4 w-4" :class="theme.textSecondary" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
-          <slot name="menu-items">
-            <DropdownMenuItem
-              v-if="showViewDetails"
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('view-details')"
+      <div
+        :class="[
+          'transition-opacity duration-200',
+          isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ]"
+        @click.stop
+      >
+        <DropdownMenu v-model:open="isDropdownOpen">
+          <DropdownMenuTrigger as-child>
+            <button
+              type="button"
+              class="h-8 w-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+              @click.stop
             >
-              <Info class="mr-2 h-4 w-4" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('publish')"
-            >
-              <Globe class="mr-2 h-4 w-4" />
-              Publish
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('preview')"
-            >
-              <Eye class="mr-2 h-4 w-4" />
-              Preview
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('edit')"
-            >
-              <Pencil class="mr-2 h-4 w-4" />
-              Quick edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              v-if="showMoveTo"
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('move-to')"
-            >
-              <ArrowRightToLine class="mr-2 h-4 w-4" />
-              Move to
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="$emit('duplicate')"
-            >
-              <Copy class="mr-2 h-4 w-4" />
-              Duplicate
-            </DropdownMenuItem>
-            <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem
-              :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
-              @click.stop="$emit('delete')"
-            >
-              <Trash2 class="mr-2 h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </slot>
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <MoreVertical class="h-4 w-4" :class="theme.textSecondary" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" :class="[theme.bgDropdown, theme.borderSecondary]">
+            <slot name="menu-items">
+              <DropdownMenuItem
+                v-if="showViewDetails"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('view-details')"
+              >
+                <Info class="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('publish')"
+              >
+                <Globe class="mr-2 h-4 w-4" />
+                Publish
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('preview')"
+              >
+                <Eye class="mr-2 h-4 w-4" />
+                Preview
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('edit')"
+              >
+                <Pencil class="mr-2 h-4 w-4" />
+                Quick edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                v-if="showMoveTo"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('move-to')"
+              >
+                <ArrowRightToLine class="mr-2 h-4 w-4" />
+                Move to
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('duplicate')"
+              >
+                <Copy class="mr-2 h-4 w-4" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+                @click.stop="$emit('delete')"
+              >
+                <Trash2 class="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </slot>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </div>
   </div>
 </template>
@@ -354,6 +362,7 @@ const emit = defineEmits([
 // View/hide state for password and PIN
 const showPassword = ref(false)
 const showPin = ref(false)
+const isDropdownOpen = ref(false)
 
 // Toggle password visibility
 const togglePasswordVisibility = () => {
@@ -380,7 +389,6 @@ const handleCopyPassword = async () => {
       description: 'Password has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy password:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy password to clipboard. Please try again.',
     })
@@ -402,7 +410,6 @@ const handleCopyPin = async () => {
       description: 'Download PIN has been copied to clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy PIN:', error)
     // Fallback for older browsers
     try {
       const textArea = document.createElement('textarea')
@@ -417,7 +424,6 @@ const handleCopyPin = async () => {
         description: 'Download PIN has been copied to clipboard.',
       })
     } catch (fallbackError) {
-      console.error('Fallback copy failed:', fallbackError)
       toast.error('Failed to copy', {
         description: 'Could not copy PIN to clipboard. Please try again.',
       })
@@ -438,7 +444,6 @@ const handleCopyLink = async () => {
     })
     emit('link-click')
   } catch (error) {
-    console.error('Failed to copy link:', error)
     toast.error('Failed to copy', {
       description: 'Could not copy link to clipboard. Please try again.',
       duration: 3000,
@@ -470,7 +475,6 @@ const handleCopyLink = async () => {
 //     strength = Math.max(0, strength - 2) // Common weak PINs
 //   }
 
-//   return Math.min(5, strength) // Cap at 5
 // })
 
 // PIN strength levels for visual indicator (currently unused, kept for future use)
@@ -493,7 +497,6 @@ const handleCopyLink = async () => {
 //     }
 //   }
 
-//   return levels
 // })
 
 // Generate preview grid (always 4 cells)
@@ -512,7 +515,6 @@ const previewGrid = computed(() => {
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {

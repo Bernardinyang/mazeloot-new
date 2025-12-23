@@ -28,12 +28,10 @@ export function useNavigation() {
   }
 
   const isActiveRoute = (urlOrName, routeName) => {
-    // Check by route name first (preferred)
     if (routeName && route.name === routeName) {
       return true
     }
 
-    // Check if current route has a parent that matches the routeName
     if (routeName && route.meta?.parent === routeName) {
       return true
     }
@@ -49,7 +47,6 @@ export function useNavigation() {
         return true
       }
 
-      // Check if current route starts with the compare path (for nested routes)
       // Only if comparePath is not empty and routePath is longer
       if (comparePath && routePath.startsWith(comparePath + '/')) {
         return true

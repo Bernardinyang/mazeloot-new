@@ -186,7 +186,6 @@ const generateQRCode = async () => {
     const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(shareLink.value)}`
     qrCodeDataUrl.value = qrUrl
   } catch (error) {
-    console.error('Failed to generate QR code:', error)
     toast.error('Failed to generate QR code', {
       description: 'Please try again.',
     })
@@ -211,7 +210,6 @@ const handleCopyLink = async () => {
       description: 'The share link has been copied to your clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy link:', error)
     toast.error('Failed to copy link', {
       description: 'Please try again.',
     })
@@ -240,7 +238,6 @@ const handleDownloadQR = () => {
   if (!qrCodeDataUrl.value) return
 
   try {
-    // Create a temporary anchor element to download the QR code
     const link = document.createElement('a')
     link.href = qrCodeDataUrl.value
     link.download = `selection-${props.selectionId}-qr-code.png`
@@ -252,7 +249,6 @@ const handleDownloadQR = () => {
       description: 'The QR code has been downloaded.',
     })
   } catch (error) {
-    console.error('Failed to download QR code:', error)
     toast.error('Failed to download QR code', {
       description: 'Please try again.',
     })

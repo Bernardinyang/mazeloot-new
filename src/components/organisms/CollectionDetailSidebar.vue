@@ -473,13 +473,10 @@ const loadData = async () => {
         try {
           const projectData = await projectStore.fetchProject(collectionData.projectId)
           project.value = projectData
-        } catch (err) {
-          console.warn('Failed to load project:', err)
-        }
+        } catch (err) {}
       }
     }
   } catch (error) {
-    console.error('Failed to load collection:', error)
   } finally {
     isLoading.value = false
   }

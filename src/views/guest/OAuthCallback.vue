@@ -24,13 +24,11 @@ const { handleError } = useErrorHandler()
 
 onMounted(async () => {
   try {
-    // Check if we have a token in the URL hash (from backend redirect)
     const hash = window.location.hash.substring(1)
     const params = new URLSearchParams(hash)
     const token = params.get('token')
     const success = params.get('success')
 
-    // Check for error in query params
     const error = route.query.error
     const errorMessage = route.query.message
 
@@ -60,7 +58,6 @@ onMounted(async () => {
         emailVerified: !!response.user.email_verified_at,
       }
     } catch (error) {
-      console.error('Failed to fetch user data:', error)
       throw new Error('Failed to fetch user data. Please try logging in again.')
     }
 
@@ -72,7 +69,6 @@ onMounted(async () => {
     const redirect = route.query.redirect
     await router.push(redirect || { name: 'overview' })
   } catch (error) {
-    console.error('OAuth callback error:', error)
     handleError(error, {
       fallbackMessage: 'Authentication failed. Please try again.',
     })

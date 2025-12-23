@@ -66,13 +66,11 @@ export const useProofingStore = defineStore('proofing', () => {
     try {
       const updated = await proofingApi.updateProofing(id, data)
 
-      // Update in proofings array
       const index = proofings.value.findIndex(p => p.id === id)
       if (index !== -1) {
         proofings.value[index] = updated
       }
 
-      // Update current proofing if it's the one being updated
       if (currentProofing.value && currentProofing.value.id === id) {
         currentProofing.value = updated
       }
@@ -151,13 +149,11 @@ export const useProofingStore = defineStore('proofing', () => {
     try {
       const completed = await proofingApi.completeProofing(id)
 
-      // Update in proofings array
       const index = proofings.value.findIndex(p => p.id === id)
       if (index !== -1) {
         proofings.value[index] = completed
       }
 
-      // Update current proofing
       if (currentProofing.value && currentProofing.value.id === id) {
         currentProofing.value = completed
       }
@@ -223,7 +219,6 @@ export const useProofingStore = defineStore('proofing', () => {
     proofing.isStarred = newStarredState
     proofing.starred = newStarredState
 
-    // Update current proofing if it's the one being starred
     if (currentProofing.value && currentProofing.value.id === proofingId) {
       currentProofing.value.isStarred = newStarredState
       currentProofing.value.starred = newStarredState

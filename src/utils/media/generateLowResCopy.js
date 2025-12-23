@@ -65,7 +65,6 @@ export const generateLowResCopy = async (mediaItem, maxWidth = 800, maxHeight = 
       // For now, return thumbnail or a modified URL
       return mediaItem.url
     } catch (error) {
-      console.error('Failed to generate low-res copy:', error)
       return mediaItem.thumbnail || mediaItem.url
     }
   }

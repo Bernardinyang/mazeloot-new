@@ -89,7 +89,6 @@ const handleResetPassword = async values => {
     })
     router.push({ name: 'login' })
   } catch (error) {
-    console.error('Reset password error:', error)
     handleError(error, {
       fallbackMessage: 'Failed to reset password',
     })

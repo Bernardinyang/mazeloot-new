@@ -260,9 +260,7 @@ const watermarks = computed(() => watermarkStore.watermarks)
 onMounted(async () => {
   try {
     await watermarkStore.fetchWatermarks()
-  } catch (error) {
-    console.error('Failed to fetch watermarks:', error)
-  }
+  } catch (error) {}
 })
 
 // Reset form when dialog opens/closes
@@ -338,7 +336,6 @@ const handleSubmit = async () => {
       color: formData.color,
     })
   } catch (error) {
-    console.error('Failed to create project:', error)
   } finally {
     isLocalSubmitting.value = false
   }

@@ -48,6 +48,7 @@
             @move="showMoveCopyModal = true"
             @view="handleBulkView"
             @watermark="handleBulkWatermark"
+            @copy-filenames="handleBulkCopyFilenames"
             @clear-selection="selectedMediaIds = new Set()"
             @select-all="handleToggleSelectAll"
           />
@@ -344,6 +345,14 @@
         @cancel="handleCancelMoveCopy"
         @confirm="handleConfirmMoveCopy"
       />
+
+      <!-- Focal Point Modal -->
+      <FocalPointModal
+        v-model:is-open="showFocalPointModal"
+        :image-url="focalPointImageUrl"
+        :initial-focal-point="currentFocalPoint"
+        @confirm="handleFocalPointConfirm"
+      />
     </template>
   </SelectionLayout>
 </template>
@@ -372,6 +381,7 @@ import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
+import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -434,7 +444,6 @@ const selection = ref(null)
 const selectionStatus = computed(() => selection.value?.status || 'draft')
 const isDragging = ref(false)
 
-// Get state from selection store
 const { gridSize, viewMode, showFilename, sortOrder } = storeToRefs(selectionStore)
 const selectedMediaIds = ref(new Set())
 const showMoveCopyModal = ref(false)
@@ -457,6 +466,12 @@ const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
 const showMediaViewer = ref(false)
 const showMediaDetailSidebar = ref(false)
+
+// Focal point modal state
+const showFocalPointModal = ref(false)
+const focalPointImageUrl = ref(null)
+const selectedMediaForCover = ref(null)
+const currentFocalPoint = ref({ x: 50, y: 50 })
 const selectedMediaForDetails = ref(null)
 const showBulkDeleteModal = ref(false)
 const showEditModal = ref(false)
@@ -481,7 +496,6 @@ const isApplyingWatermark = ref(false)
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {
@@ -494,7 +508,6 @@ const isLoading = ref(false)
 const loadSelection = async () => {
   const selectionId = route.params.id
   if (!selectionId) {
-    console.error('No selection ID in route params')
     return
   }
 
@@ -516,7 +529,6 @@ const loadSelection = async () => {
       mediaSetsSidebar.handleSelectSet(selectionData.mediaSets[0].id)
     }
   } catch (error) {
-    console.error('Failed to load selection:', error)
     // Optionally redirect back or show error message
   } finally {
     isLoading.value = false
@@ -591,7 +603,6 @@ const loadMediaItems = async () => {
     const convertSortOrder = sortValue => {
       if (!sortValue) return null
 
-      // Handle special case
       if (sortValue === 'random') return 'random'
 
       // Map frontend format to backend format
@@ -615,14 +626,12 @@ const loadMediaItems = async () => {
       selectedSetId.value,
       params
     )
-    // Update media items for the selected set
     const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
     const currentSetMedia = Array.isArray(setMedia)
       ? setMedia.map(m => ({ ...m, setId: selectedSetId.value }))
       : []
     mediaItems.value = [...otherMedia, ...currentSetMedia]
   } catch (error) {
-    console.error('Failed to load media items:', error)
   } finally {
     isLoadingMedia.value = false
   }
@@ -664,7 +673,6 @@ watch(isUploadingFromWorkflow, async (val, oldVal) => {
   if (val) {
     showUploadProgress.value = true
   }
-  // Set flag when upload completes to prevent watch from triggering
   if (!val && oldVal) {
     justUploaded.value = true
     // Keep modal open if there are failed uploads to allow retry
@@ -699,7 +707,6 @@ watch(
   }
 )
 
-// Update duplicate files modal state
 watch(showDuplicateModal, val => {
   showDuplicateFilesModal.value = val
 })
@@ -761,7 +768,6 @@ const openMediaViewer = item => {
   // Find the index of the item in the sorted media items
   const index = sortedMediaItems.value.findIndex(m => m.id === item.id)
 
-  // Set all media items for lightbox navigation
   selectedMediaForView.value = sortedMediaItems.value
   currentViewIndex.value = index >= 0 ? index : 0
   showMediaViewer.value = true
@@ -793,11 +799,9 @@ const handleStarMedia = async item => {
     const oldStarredStatus = item.isStarred
     const result = await selectionsApi.starMedia(selection.value.id, selectedSetId.value, item.id)
 
-    // Get the starred status from the response
     // ApiResponse wraps data in { data: { starred: bool } }
     const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
 
-    // Update the local media item's starred status reactively
     // Directly mutate the property to preserve the object reference
     const mediaItem = mediaItems.value.find(m => m.id === item.id)
     if (mediaItem) {
@@ -828,9 +832,7 @@ const handleStarMedia = async item => {
             if (item) {
               item.isStarred = oldStarredStatus
             }
-          } catch (error) {
-            console.error('Failed to undo star:', error)
-          }
+          } catch (error) {}
         },
         redo: async () => {
           try {
@@ -846,14 +848,11 @@ const handleStarMedia = async item => {
             if (item) {
               item.isStarred = newStarredStatus
             }
-          } catch (error) {
-            console.error('Failed to redo star:', error)
-          }
+          } catch (error) {}
         },
       })
     }
   } catch (error) {
-    console.error('Failed to star media:', error)
     toast.error('Failed to star media', {
       description:
         error instanceof Error ? error.message : 'An error occurred while starring the media.',
@@ -892,7 +891,6 @@ const handleDownloadMedia = async item => {
     })
   } catch (error) {
     toast.dismiss('download-media')
-    console.error('Download error:', error)
     toast.error('Download failed', {
       description: error.message || 'Unable to download media. Please try again.',
     })
@@ -907,9 +905,40 @@ const handleCopyFilenames = async item => {
       description: 'The filename has been copied to your clipboard.',
     })
   } catch (error) {
-    console.error('Failed to copy filename:', error)
     toast.error('Failed to copy', {
       description: error instanceof Error ? error.message : 'Could not copy to clipboard',
+    })
+  }
+}
+
+const handleBulkCopyFilenames = async () => {
+  if (selectedMediaIds.value.size === 0) {
+    toast.info('No items selected', {
+      description: 'Please select some media items to copy filenames.',
+    })
+    return
+  }
+
+  try {
+    const selectedItems = sortedMediaItems.value.filter(item => selectedMediaIds.value.has(item.id))
+
+    // Extract filenames from selected items
+    const filenames = selectedItems.map(item => {
+      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
+    })
+
+    // Join with comma and space
+    const filenamesText = filenames.join(', ')
+
+    // Copy to clipboard
+    await navigator.clipboard.writeText(filenamesText)
+
+    toast.success('Filenames copied', {
+      description: `${filenames.length} filename(s) copied to clipboard.`,
+    })
+  } catch (error) {
+    toast.error('Failed to copy filenames', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
 }
@@ -930,14 +959,12 @@ const loadAvailableSelections = async () => {
     const result = await selectionStore.fetchAllSelections({ perPage: 100 })
     availableSelections.value = Array.isArray(result) ? result : result?.data || []
   } catch (error) {
-    console.error('Failed to load selections:', error)
     availableSelections.value = []
   } finally {
     isLoadingSelections.value = false
   }
 }
 
-// Handle target selection change
 const handleTargetSelectionChange = async selectionId => {
   targetSelectionId.value = selectionId
   targetSetId.value = '' // Reset set selection when selection changes
@@ -978,7 +1005,6 @@ const handleTargetSelectionChange = async selectionId => {
       targetSetId.value = targetSelectionSets.value[0].id
     }
   } catch (error) {
-    console.error('Failed to load selection sets:', error)
     targetSelectionSets.value = []
     toast.error('Failed to load sets', {
       description: 'Unable to load sets for the selected selection.',
@@ -988,7 +1014,6 @@ const handleTargetSelectionChange = async selectionId => {
   }
 }
 
-// Handle cancel move/copy
 const handleCancelMoveCopy = () => {
   showMoveCopyModal.value = false
   targetSelectionId.value = selection.value?.id || ''
@@ -997,7 +1022,6 @@ const handleCancelMoveCopy = () => {
   moveCopyAction.value = 'move'
 }
 
-// Handle confirm move/copy
 const handleConfirmMoveCopy = async () => {
   // Validate inputs
   if (!targetSelectionId.value || selectedMediaIds.value.size === 0) {
@@ -1083,7 +1107,6 @@ const handleConfirmMoveCopy = async () => {
       handleCancelMoveCopy()
     }
   } catch (error) {
-    console.error('Failed to move/copy media:', error)
     toast.error(`Failed to ${moveCopyAction.value} media`, {
       description: error instanceof Error ? error.message : 'An unknown error occurred.',
     })
@@ -1155,7 +1178,6 @@ const handleConfirmBulkDelete = async () => {
         selectedMediaIds.value.delete(mediaId)
         successCount++
       } catch (error) {
-        console.error(`Failed to delete media ${mediaId}:`, error)
         errorCount++
       }
     }
@@ -1185,9 +1207,7 @@ const handleConfirmBulkDelete = async () => {
                 mediaItems.value.splice(index, 1)
               }
               selectedMediaIds.value.delete(item.id)
-            } catch (error) {
-              console.error('Failed to re-delete item:', error)
-            }
+            } catch (error) {}
           }
           await mediaSetsSidebar.loadMediaSets()
         },
@@ -1212,7 +1232,6 @@ const handleConfirmBulkDelete = async () => {
 
     showBulkDeleteModal.value = false
   } catch (error) {
-    console.error('Failed to bulk delete media:', error)
     toast.error('Failed to delete media', {
       description:
         error instanceof Error ? error.message : 'An error occurred while deleting media.',
@@ -1260,7 +1279,6 @@ const handleBulkFavorite = async () => {
             newStarred: newStarredStatus,
           })
 
-          // Update the local media item's starred status
           const mediaItem = mediaItems.value.find(m => m.id === item.id)
           if (mediaItem) {
             mediaItem.isStarred = newStarredStatus
@@ -1274,7 +1292,6 @@ const handleBulkFavorite = async () => {
           successCount++
         }
       } catch (error) {
-        console.error(`Failed to star media ${item.id}:`, error)
         errorCount++
       }
     }
@@ -1299,9 +1316,7 @@ const handleBulkFavorite = async () => {
                   mediaItem.isStarred = op.oldStarred
                 }
               }
-            } catch (error) {
-              console.error('Failed to undo star:', error)
-            }
+            } catch (error) {}
           }
         },
         redo: async () => {
@@ -1319,9 +1334,7 @@ const handleBulkFavorite = async () => {
                   mediaItem.isStarred = op.newStarred
                 }
               }
-            } catch (error) {
-              console.error('Failed to redo star:', error)
-            }
+            } catch (error) {}
           }
         },
       })
@@ -1343,7 +1356,6 @@ const handleBulkFavorite = async () => {
       })
     }
   } catch (error) {
-    console.error('Failed to bulk star media:', error)
     toast.error('Failed to update media', {
       description:
         error instanceof Error ? error.message : 'An error occurred while updating media.',
@@ -1356,25 +1368,80 @@ const handleBulkFavorite = async () => {
 const handleSetAsCover = async item => {
   if (!selection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
-  // Get the thumbnail URL from the media item for immediate update
-  const thumbnailUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
+  const isVideo = item.type === 'video' || item.file?.type === 'video'
 
-  if (!thumbnailUrl) {
+  if (isVideo) {
+    // For videos, set cover directly without focal point
+    const coverUrl = item.file?.url || item.url
+    if (!coverUrl) {
+      toast.error('Invalid media', {
+        description: 'Media does not have a valid URL.',
+      })
+      return
+    }
+
+    isUpdatingCoverPhoto.value = true
+    try {
+      await selectionsApi.setCoverPhotoFromMedia(selection.value.id, item.id)
+
+      if (selection.value) {
+        selection.value.coverPhotoUrl = coverUrl
+        selection.value.cover_photo_url = coverUrl
+        selection.value = { ...selection.value }
+      }
+
+      toast.success('Cover photo updated', {
+        description: 'The cover photo has been set successfully.',
+      })
+    } catch (error) {
+      toast.error('Failed to set cover photo', {
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An error occurred while setting the cover photo.',
+      })
+    } finally {
+      isUpdatingCoverPhoto.value = false
+    }
+    return
+  }
+
+  // For images, open focal point modal
+  const coverUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
+  if (!coverUrl) {
     toast.error('Invalid media', {
-      description: 'Media does not have a valid thumbnail URL.',
+      description: 'Media does not have a valid URL.',
     })
     return
   }
 
+  const existingFocalPoint = selection.value?.coverFocalPoint ||
+    selection.value?.cover_focal_point || { x: 50, y: 50 }
+
+  selectedMediaForCover.value = item
+  focalPointImageUrl.value = coverUrl
+  currentFocalPoint.value = existingFocalPoint
+  showFocalPointModal.value = true
+}
+
+const handleFocalPointConfirm = async focalPoint => {
+  if (!selection.value?.id || !selectedMediaForCover.value?.id || isUpdatingCoverPhoto.value) return
+
   isUpdatingCoverPhoto.value = true
 
   try {
-    await selectionsApi.setCoverPhotoFromMedia(selection.value.id, item.id)
+    await selectionsApi.setCoverPhotoFromMedia(
+      selection.value.id,
+      selectedMediaForCover.value.id,
+      focalPoint
+    )
 
-    // Update local selection reference immediately (optimistic update)
     if (selection.value) {
-      selection.value.coverPhotoUrl = thumbnailUrl
-      selection.value.cover_photo_url = thumbnailUrl
+      const coverUrl = focalPointImageUrl.value
+      selection.value.coverPhotoUrl = coverUrl
+      selection.value.cover_photo_url = coverUrl
+      selection.value.coverFocalPoint = focalPoint
+      selection.value.cover_focal_point = focalPoint
       // Force reactivity
       selection.value = { ...selection.value }
     }
@@ -1383,24 +1450,15 @@ const handleSetAsCover = async item => {
       description: 'The cover photo has been set successfully.',
     })
   } catch (error) {
-    console.error('Failed to set cover photo:', error)
-
-    // Revert optimistic update on error
-    if (selection.value) {
-      // Could reload here, but for now just show error
-    }
-
     toast.error('Failed to set cover photo', {
       description:
         error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
     })
   } finally {
     isUpdatingCoverPhoto.value = false
+    selectedMediaForCover.value = null
+    focalPointImageUrl.value = null
   }
-}
-
-const handleCoverImageUpload = () => {
-  // UI only
 }
 
 const handleBulkView = () => {
@@ -1414,7 +1472,6 @@ const handleBulkView = () => {
   const ids = Array.from(selectedMediaIds.value)
   const items = mediaItems.value.filter(m => ids.includes(m.id))
   const imageItems = items.filter(item => {
-    // Check both top-level type and nested file.type
     const itemType = item.type || item.file?.type
     return itemType === 'image'
   })
@@ -1427,17 +1484,12 @@ const handleBulkView = () => {
     return
   }
 
-  console.log('[handleBulkView] Opening lightbox with', imageItems.length, 'images')
-
-  // Set the selected images for viewing
   selectedMediaForView.value = imageItems
   currentViewIndex.value = 0
   showMediaViewer.value = true
 
   // Use nextTick to ensure the component has updated
-  nextTick(() => {
-    console.log('[handleBulkView] Lightbox opened, items:', selectedMediaForView.value.length)
-  })
+  nextTick(() => {})
 }
 
 const handleBulkEdit = () => {
@@ -1475,7 +1527,6 @@ const handleConfirmEdit = async () => {
 
     for (const item of items) {
       try {
-        // Get the current filename - prioritize file?.filename, then filename, then title
         const currentFilename =
           item.file?.filename || item.filename || item.title || `media-${item.id}`
 
@@ -1508,10 +1559,8 @@ const handleConfirmEdit = async () => {
           newFilename,
         })
 
-        // Update local state reactively
         const mediaItem = mediaItems.value.find(m => m.id === item.id)
         if (mediaItem) {
-          // Update filename in the item
           if (mediaItem.file) {
             mediaItem.file.filename = newFilename
           } else {
@@ -1521,7 +1570,6 @@ const handleConfirmEdit = async () => {
 
         successCount++
       } catch (error) {
-        console.error(`Failed to rename media ${item.id}:`, error)
         errorCount++
       }
     }
@@ -1548,9 +1596,7 @@ const handleConfirmEdit = async () => {
                   mediaItem.filename = op.oldFilename
                 }
               }
-            } catch (error) {
-              console.error('Failed to undo rename:', error)
-            }
+            } catch (error) {}
           }
         },
         redo: async () => {
@@ -1570,9 +1616,7 @@ const handleConfirmEdit = async () => {
                   mediaItem.filename = op.newFilename
                 }
               }
-            } catch (error) {
-              console.error('Failed to redo rename:', error)
-            }
+            } catch (error) {}
           }
         },
       })
@@ -1598,7 +1642,6 @@ const handleConfirmEdit = async () => {
     showEditModal.value = false
     editAppendText.value = ''
   } catch (error) {
-    console.error('Failed to bulk edit filenames:', error)
     toast.error('Failed to update filenames', {
       description:
         error instanceof Error ? error.message : 'An error occurred while updating filenames.',
@@ -1692,11 +1735,9 @@ const handleConfirmRenameMedia = async () => {
       finalFilename
     )
 
-    // Update local media item with the actual returned filename (backend preserves extension)
     const updatedFilename = result?.data?.filename || result?.filename || finalFilename
     const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
     if (index !== -1) {
-      // Update the file filename in the local item
       if (mediaItems.value[index].file) {
         mediaItems.value[index].file.filename = updatedFilename
       } else {
@@ -1730,9 +1771,7 @@ const handleConfirmRenameMedia = async () => {
             mediaItems.value[index].filename = originalFilename
             mediaItems.value = [...mediaItems.value]
           }
-        } catch (error) {
-          console.error('Failed to undo rename:', error)
-        }
+        } catch (error) {}
       },
       redo: async () => {
         try {
@@ -1752,9 +1791,7 @@ const handleConfirmRenameMedia = async () => {
             mediaItems.value[index].filename = updatedFilename
             mediaItems.value = [...mediaItems.value]
           }
-        } catch (error) {
-          console.error('Failed to redo rename:', error)
-        }
+        } catch (error) {}
       },
     })
 
@@ -1766,7 +1803,6 @@ const handleConfirmRenameMedia = async () => {
 
     handleCancelRenameMedia()
   } catch (error) {
-    console.error('Failed to rename media:', error)
     toast.error('Failed to rename media', {
       description:
         error instanceof Error ? error.message : 'An error occurred while renaming the media.',
@@ -1785,7 +1821,6 @@ const handleConfirmDeleteItem = async () => {
 
   const item = itemToDelete.value
 
-  // Check if it's a MediaSet or MediaItem
   if (item.collectionId || item.setId || item.id) {
     // It's a MediaItem
     isDeleting.value = true
@@ -1830,9 +1865,7 @@ const handleConfirmDeleteItem = async () => {
             }
             selectedMediaIds.value.delete(item.id)
             await mediaSetsSidebar.loadMediaSets()
-          } catch (error) {
-            console.error('Failed to re-delete:', error)
-          }
+          } catch (error) {}
         },
       })
 
@@ -1844,7 +1877,6 @@ const handleConfirmDeleteItem = async () => {
 
       closeDeleteModal()
     } catch (error) {
-      console.error('Failed to delete media:', error)
       toast.error('Failed to delete media', {
         description:
           error instanceof Error ? error.message : 'An error occurred while deleting the media.',
@@ -1915,7 +1947,6 @@ const handleReplacePhotoFileSelect = async event => {
       userFileUuid
     )
 
-    // Update local media item
     const index = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
     if (index !== -1) {
       // Replace the entire media item with the updated one from the response
@@ -1934,7 +1965,6 @@ const handleReplacePhotoFileSelect = async event => {
     showReplacePhotoModal.value = false
     mediaToReplace.value = null
   } catch (error) {
-    console.error('Failed to replace photo:', error)
     toast.error('Failed to replace photo', {
       description:
         error instanceof Error ? error.message : 'An error occurred while replacing the photo.',
@@ -1988,7 +2018,6 @@ const handleBrowseFiles = () => {
 const handleConfirmDuplicateFiles = async () => {
   // Prevent multiple simultaneous uploads
   if (isUploading.value || isProcessingFiles.value) {
-    console.warn('Upload or file processing already in progress, ignoring duplicate confirmation')
     return
   }
 
@@ -2043,7 +2072,6 @@ watch(
   () => duplicateFileActionsObjectFromWorkflow,
   newVal => {
     if (newVal && typeof newVal === 'object') {
-      // Create a new object to trigger reactivity
       const updated = { ...newVal }
       // Remove properties that no longer exist
       Object.keys(duplicateFileActionsObject.value).forEach(key => {
@@ -2051,7 +2079,6 @@ watch(
           delete duplicateFileActionsObject.value[key]
         }
       })
-      // Update with new values - assign to trigger reactivity
       Object.assign(duplicateFileActionsObject.value, updated)
     }
   },
@@ -2059,20 +2086,11 @@ watch(
 )
 
 const handleFileSelect = async event => {
-  console.log('[handleFileSelect] File input changed', {
-    files: event.target.files?.length || 0,
-    isUploading: isUploading.value,
-    isProcessingFiles: isProcessingFiles.value,
-  })
-
   const files = Array.from(event.target.files || [])
   if (files.length === 0) return
 
   // Prevent multiple simultaneous uploads or file processing
   if (isUploading.value || isProcessingFiles.value) {
-    console.warn(
-      '[handleFileSelect] Upload or file processing already in progress, ignoring file select'
-    )
     event.target.value = ''
     return
   }
@@ -2089,30 +2107,18 @@ const handleFileSelect = async event => {
 
   isProcessingFiles.value = true
   try {
-    console.log(
-      '[handleFileSelect] Processing files:',
-      files.map(f => f.name)
-    )
-    // Process files (checks for duplicates) - only check within the selected set
     const { hasDuplicates, filesToUpload } = await processFiles(files, selectedSetId.value)
 
     if (hasDuplicates) {
-      console.log('[handleFileSelect] Duplicates found, showing modal')
       // Duplicate modal will be shown by the workflow
       return
     }
 
     if (filesToUpload.length > 0) {
-      console.log(
-        '[handleFileSelect] Uploading files:',
-        filesToUpload.map(f => f.name)
-      )
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
     } else {
-      console.log('[handleFileSelect] No files to upload after processing')
     }
   } catch (error) {
-    console.error('[handleFileSelect] Upload failed:', error)
   } finally {
     isProcessingFiles.value = false
   }
@@ -2125,15 +2131,8 @@ const handleDrop = async e => {
   const files = e.dataTransfer?.files
   if (!files || files.length === 0) return
 
-  console.log('[handleDrop] Files dropped', {
-    fileCount: files.length,
-    isUploading: isUploading.value,
-    isProcessingFiles: isProcessingFiles.value,
-  })
-
   // Prevent multiple simultaneous uploads or file processing
   if (isUploading.value || isProcessingFiles.value) {
-    console.warn('[handleDrop] Upload or file processing already in progress, ignoring drop')
     return
   }
 
@@ -2147,30 +2146,18 @@ const handleDrop = async e => {
   isProcessingFiles.value = true
   try {
     const fileArray = Array.from(files)
-    console.log(
-      '[handleDrop] Processing files:',
-      fileArray.map(f => f.name)
-    )
-    // Process files (checks for duplicates) - only check within the selected set
     const { hasDuplicates, filesToUpload } = await processFiles(fileArray, selectedSetId.value)
 
     if (hasDuplicates) {
-      console.log('[handleDrop] Duplicates found, showing modal')
       // Duplicate modal will be shown by the workflow
       return
     }
 
     if (filesToUpload.length > 0) {
-      console.log(
-        '[handleDrop] Uploading files:',
-        filesToUpload.map(f => f.name)
-      )
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
     } else {
-      console.log('[handleDrop] No files to upload after processing')
     }
   } catch (error) {
-    console.error('[handleDrop] Upload failed:', error)
   } finally {
     isProcessingFiles.value = false
   }
@@ -2178,7 +2165,6 @@ const handleDrop = async e => {
 
 const handleRetryUpload = async (fileId, retryFn) => {
   if (!retryFn || typeof retryFn !== 'function') {
-    console.error('Invalid retry function provided')
     toast.error('Retry failed', {
       description: 'Invalid retry function.',
     })
@@ -2193,7 +2179,6 @@ const handleRetryUpload = async (fileId, retryFn) => {
   }
 
   try {
-    // Update progress status to uploading
     if (uploadProgressFromWorkflow.value[fileId]) {
       uploadProgressFromWorkflow.value[fileId] = {
         ...uploadProgressFromWorkflow.value[fileId],
@@ -2215,7 +2200,6 @@ const handleRetryUpload = async (fileId, retryFn) => {
       description: 'The file upload has been retried successfully.',
     })
   } catch (error) {
-    console.error('Failed to retry upload:', error)
     // The error is already updated in the errors array by the retry function
     toast.error('Retry failed', {
       description:

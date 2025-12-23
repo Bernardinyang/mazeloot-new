@@ -20,7 +20,6 @@ export const getMediaDisplayUrl = async (url, fallback = null) => {
 
   // If it's a file:// path (IndexedDB), convert to blob URL
   if (url.startsWith('file://')) {
-    // Check cache first
     if (blobUrlCache.has(url)) {
       return blobUrlCache.get(url)
     }
@@ -31,11 +30,9 @@ export const getMediaDisplayUrl = async (url, fallback = null) => {
         blobUrlCache.set(url, blobUrl)
         return blobUrl
       } else {
-        console.warn('getFileBlobURL returned null for:', url)
         return fallback
       }
     } catch (error) {
-      console.error('Error getting blob URL for file:', url, error)
       return fallback
     }
   }

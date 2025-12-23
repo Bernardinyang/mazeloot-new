@@ -42,27 +42,55 @@
       >
         <div class="w-full h-full bg-gray-200 dark:bg-gray-700"></div>
       </div>
-      <!-- Cover Image -->
+      <!-- Cover Image/Video -->
       <div
         v-else-if="props.collection?.thumbnail || props.collection?.image"
         :class="theme.borderSecondary"
         class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 group cursor-pointer relative"
-        @click="triggerCoverFilePicker"
+        @click="isVideoCover ? toggleVideoPlay() : triggerCoverFilePicker()"
       >
-        <img
-          :alt="props.collection?.name ?? ''"
-          :src="props.collection?.thumbnail ?? props.collection?.image ?? placeholderImage"
-          class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
-          @error="handleImageError"
-        />
-        <div
-          class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        ></div>
-        <div
-          class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-        >
-          <p class="text-white text-xs font-medium">Click to change cover</p>
-        </div>
+        <!-- Video Cover -->
+        <template v-if="isVideoCover">
+          <video
+            ref="videoRef"
+            :src="coverVideoUrl"
+            class="w-full h-full object-cover"
+            autoplay
+            loop
+            muted
+            playsinline
+            @click.stop="toggleVideoPlay"
+          />
+          <!-- Play/Pause Overlay -->
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300"
+            @click.stop="toggleVideoPlay"
+          >
+            <div
+              class="w-16 h-16 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md flex items-center justify-center transition-all duration-200 shadow-lg opacity-0 group-hover:opacity-100"
+            >
+              <Pause v-if="isVideoPlaying" class="w-8 h-8 text-white ml-0.5" />
+              <Play v-else class="w-8 h-8 text-white ml-1" />
+            </div>
+          </div>
+        </template>
+        <!-- Image Cover -->
+        <template v-else>
+          <img
+            :alt="props.collection?.name ?? ''"
+            :src="props.collection?.thumbnail ?? props.collection?.image ?? placeholderImage"
+            class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            @error="handleImageError"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          ></div>
+          <div
+            class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+          >
+            <p class="text-white text-xs font-medium">Click to change cover</p>
+          </div>
+        </template>
       </div>
       <!-- No Cover Image Placeholder -->
       <div
@@ -141,12 +169,23 @@
       <!-- Cover Photo (Collapsed) -->
       <div
         :class="theme.borderSecondary"
-        class="w-12 h-12 rounded-lg overflow-hidden border-2 shadow-sm flex-shrink-0"
+        class="w-12 h-12 rounded-lg overflow-hidden border-2 shadow-sm flex-shrink-0 relative"
       >
         <div
           v-if="props.isLoading"
           class="w-full h-full bg-gray-200 dark:bg-gray-800 animate-pulse"
         ></div>
+        <!-- Video Cover (Collapsed) -->
+        <video
+          v-else-if="isVideoCover && coverVideoUrl"
+          :src="coverVideoUrl"
+          class="w-full h-full object-cover"
+          autoplay
+          loop
+          muted
+          playsinline
+        />
+        <!-- Image Cover (Collapsed) -->
         <img
           v-else-if="props.collection?.thumbnail || props.collection?.image"
           :alt="props.collection?.name ?? ''"
@@ -269,7 +308,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   ChevronsLeft,
@@ -277,6 +316,8 @@ import {
   ImageIcon,
   Loader2,
   Paintbrush,
+  Pause,
+  Play,
   Radio,
   Settings,
 } from 'lucide-vue-next'
@@ -306,6 +347,49 @@ const theme = useThemeClasses()
 const router = useRouter()
 
 const tabs = ref([])
+const videoRef = ref(null)
+const isVideoPlaying = ref(true)
+
+const isVideoCover = computed(() => {
+  const imageUrl = props.collection?.image || props.collection?.thumbnail
+  if (!imageUrl) return false
+
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  const lowerUrl = imageUrl.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+})
+
+const coverVideoUrl = computed(() => {
+  if (!isVideoCover.value) return null
+  // Use collection.image which should contain the video URL from the media item's file.url
+  return props.collection?.image || null
+})
+
+const toggleVideoPlay = () => {
+  if (!videoRef.value) return
+
+  if (isVideoPlaying.value) {
+    videoRef.value.pause()
+    isVideoPlaying.value = false
+  } else {
+    videoRef.value.play()
+    isVideoPlaying.value = true
+  }
+}
+
+// Watch video play/pause state
+watch(
+  () => props.collection?.image,
+  () => {
+    if (isVideoCover.value && videoRef.value) {
+      // Reset video when cover changes
+      isVideoPlaying.value = true
+      videoRef.value.play().catch(() => {
+        // Autoplay might be blocked, that's okay
+      })
+    }
+  }
+)
 
 // Cover upload (sidebar cover tile click)
 const coverFileInputRef = ref(null)
@@ -343,7 +427,6 @@ const handleTabClick = tab => {
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-// Handle image load errors
 const handleImageError = event => {
   const img = event?.target
   if (img && typeof img === 'object' && 'src' in img && img.src !== placeholderImage)

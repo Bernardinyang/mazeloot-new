@@ -252,7 +252,6 @@ const getFrameStyle = () => {
     pointerEvents: 'none',
   }
 
-  // Handle frame types
   if (props.config.frame.type === 'inset') {
     style.top = `${props.config.frame.padding}px`
     style.left = `${props.config.frame.padding}px`
@@ -262,7 +261,6 @@ const getFrameStyle = () => {
     style.height = 'auto'
   }
 
-  // Handle partial frames - set border width to 0 first, then apply to specific sides
   if (props.config.frame.sides.length < 4) {
     style.borderTopWidth = '0'
     style.borderRightWidth = '0'
@@ -286,7 +284,6 @@ const getBorderStyle = () => {
     borderRadius: `${props.config.borders.radius}px`,
   }
 
-  // Set border width for each side
   props.config.borders.sides.forEach(side => {
     style[`border${side.charAt(0).toUpperCase() + side.slice(1)}Width`] =
       `${props.config.borders.width}px`

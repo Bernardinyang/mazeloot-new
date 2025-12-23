@@ -166,7 +166,6 @@ watch(
   () => props.progress.file,
   file => {
     if (file && isImage.value) {
-      // Create thumbnail for images
       if (file instanceof File) {
         // Clean up old URL if exists
         if (thumbnailUrl.value) {

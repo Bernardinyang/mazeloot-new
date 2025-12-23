@@ -485,7 +485,6 @@ const handleCopyUrl = async () => {
       description,
     })
   } catch (error) {
-    console.error('Failed to copy URL:', error)
     toast.error('Failed to copy', {
       description,
     })
@@ -512,7 +511,6 @@ const handleGeneratePassword = () => {
 }
 
 const handleViewSite = () => {
-  // TODO
   window.open(homepageUrl.value, '_blank')
 }
 </script>

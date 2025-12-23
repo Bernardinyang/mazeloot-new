@@ -18,7 +18,6 @@ export function useCollectionMediaUpload({
 } = {}) {
   const mediaApi = useMediaApi()
 
-  // Create upload function for collections
   const uploadMediaFn = async (uploadResult, file, { contextId, setId: setIdValue, mediaData }) => {
     // Collections use phase/phaseId approach
     return await mediaApi.addMedia(contextId, {

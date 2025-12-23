@@ -248,7 +248,6 @@ const toggleStar = async selection => {
   if (selection && selection.id) {
     try {
       await selectionStore.toggleStarSelection(selection.id)
-      // Update local state without reloading
       const index = sortedSelections.value.findIndex(s => s.id === selection.id)
       if (index !== -1) {
         const newStarredState = !sortedSelections.value[index].isStarred
@@ -259,15 +258,12 @@ const toggleStar = async selection => {
         // If unstarred in starred view, remove from list
         if (!newStarredState) {
           sortedSelections.value.splice(index, 1)
-          // Update pagination total
           if (pagination.value.total > 0) {
             pagination.value.total -= 1
           }
         }
       }
-    } catch (error) {
-      console.error('Failed to toggle star:', error)
-    }
+    } catch (error) {}
   }
 }
 
@@ -305,7 +301,6 @@ const handleConfirmDelete = async () => {
       await fetch()
     }
   } catch (error) {
-    console.error('Failed to delete selection:', error)
   } finally {
     isDeleting.value = false
   }
