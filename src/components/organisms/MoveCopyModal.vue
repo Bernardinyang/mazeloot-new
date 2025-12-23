@@ -31,29 +31,42 @@
         {{ props.action === 'move' ? 'Move' : 'Copy' }}{{ props.selectedCount > 1 ? 's' : '' }} to:
       </p>
 
-      <!-- Collection Selection -->
+      <!-- Collection/Selection Selection -->
       <div class="space-y-2">
-        <label :class="theme.textPrimary" class="text-sm font-semibold"> Select Collection </label>
+        <label :class="theme.textPrimary" class="text-sm font-semibold">
+          Select {{ props.context === 'selection' ? 'Selection' : 'Collection' }}
+        </label>
         <Select
           :model-value="props.targetCollectionId"
-          @update:model-value="emit('collection-change', $event)"
+          @update:model-value="
+            emit(props.context === 'selection' ? 'selection-change' : 'collection-change', $event)
+          "
         >
           <SelectTrigger
             :class="[theme.bgInput, theme.borderInput, theme.textInput]"
             class="w-full"
           >
-            <SelectValue placeholder="Choose a collection" />
+            <SelectValue
+              :placeholder="`Choose a ${props.context === 'selection' ? 'selection' : 'collection'}`"
+            />
           </SelectTrigger>
           <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
             <SelectItem
+              v-if="props.currentCollectionId"
               :class="[theme.textPrimary, theme.bgButtonHover]"
-              :label="props.currentCollectionName || 'Current Collection'"
-              :value="props.currentCollectionId || ''"
+              :label="
+                props.currentCollectionName ||
+                `Current ${props.context === 'selection' ? 'Selection' : 'Collection'}`
+              "
+              :value="props.currentCollectionId"
             >
-              {{ props.currentCollectionName || 'Current Collection' }}
+              {{
+                props.currentCollectionName ||
+                `Current ${props.context === 'selection' ? 'Selection' : 'Collection'}`
+              }}
             </SelectItem>
             <SelectItem
-              v-for="col in props.availableCollections"
+              v-for="col in filteredAvailableCollections"
               :key="col.id"
               :class="[theme.textPrimary, theme.bgButtonHover]"
               :label="col.name"
@@ -70,14 +83,14 @@
         <label :class="theme.textPrimary" class="text-sm font-semibold"> Select Set </label>
         <Select
           :model-value="props.targetSetId"
-          :disabled="props.isLoadingSets"
+          :disabled="props.isLoadingSets || !props.targetCollectionId"
           @update:model-value="emit('update:targetSetId', $event)"
         >
           <SelectTrigger
             :class="[theme.bgInput, theme.borderInput, theme.textInput]"
             class="w-full"
           >
-            <SelectValue placeholder="Choose a set" />
+            <SelectValue :placeholder="props.isLoadingSets ? 'Loading sets...' : 'Choose a set'" />
           </SelectTrigger>
           <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
             <SelectItem
@@ -103,13 +116,25 @@
         <p v-if="props.isLoadingSets" :class="theme.textTertiary" class="text-xs">
           Loading sets...
         </p>
+        <p
+          v-else-if="props.targetCollectionSets.length > 0"
+          :class="theme.textTertiary"
+          class="text-xs"
+        >
+          {{ props.targetCollectionSets.length }} set{{
+            props.targetCollectionSets.length > 1 ? 's' : ''
+          }}
+          available
+        </p>
       </div>
     </div>
 
     <template #footer>
       <ActionButtonGroup
         :confirm-label="props.action === 'move' ? 'Move' : 'Copy'"
-        :disabled="props.isMoving || !props.targetCollectionId"
+        :disabled="
+          props.isMoving || !props.targetCollectionId || !props.targetSetId || props.isLoadingSets
+        "
         :loading="props.isMoving"
         :loading-label="props.action === 'move' ? 'Moving...' : 'Copying...'"
         cancel-label="Cancel"
@@ -121,6 +146,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -146,14 +172,24 @@ const props = defineProps({
   isLoadingSets: { type: Boolean, required: true },
   targetSetId: { type: String, required: true },
   isMoving: { type: Boolean, required: true },
+  context: { type: String, default: 'collection' }, // 'collection' | 'selection'
 })
 
 const emit = defineEmits([
   'update:modelValue',
   'update:action',
   'collection-change',
+  'selection-change',
   'update:targetSetId',
   'cancel',
   'confirm',
 ])
+
+// Filter out the current collection/selection from available collections to avoid duplicates
+const filteredAvailableCollections = computed(() => {
+  if (!props.currentCollectionId) {
+    return props.availableCollections
+  }
+  return props.availableCollections.filter(col => col.id !== props.currentCollectionId)
+})
 </script>

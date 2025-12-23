@@ -53,7 +53,7 @@
         title="Click to upload cover photo"
       >
         <CheckSquare
-          v-if="!props.selection?.thumbnail && !props.selection?.image"
+          v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
           class="h-16 w-16 text-teal-500 dark:text-teal-400"
         />
         <img
@@ -68,7 +68,7 @@
           class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center"
         >
           <div
-            v-if="!props.selection?.thumbnail && !props.selection?.image"
+            v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
             :class="theme.textPrimary"
             class="text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity"
           >
@@ -180,7 +180,7 @@ const coverImageSrc = ref(placeholderImage)
 
 // Update cover image when selection changes
 const updateCoverImage = async () => {
-  const imageUrl = props.selection?.thumbnail || props.selection?.image
+  const imageUrl = props.selection?.coverPhotoUrl || props.selection?.cover_photo_url
   if (!imageUrl) {
     coverImageSrc.value = placeholderImage
     return
@@ -196,7 +196,7 @@ const updateCoverImage = async () => {
 
 // Watch for selection changes
 watch(
-  () => [props.selection?.thumbnail, props.selection?.image],
+  () => [props.selection?.coverPhotoUrl, props.selection?.cover_photo_url],
   () => {
     updateCoverImage()
   },

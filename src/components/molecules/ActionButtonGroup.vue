@@ -12,7 +12,7 @@
           'hover:text-teal-600 dark:hover:text-teal-400',
           cancelButtonClass,
         ]"
-        :disabled="disabled || loading"
+        :disabled="loading"
         @click="$emit('cancel')"
       >
         {{ cancelLabel }}

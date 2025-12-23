@@ -221,6 +221,22 @@ export function useSelectionsApi() {
     }
   }
 
+  /**
+   * Set cover photo from media thumbnail URL
+   * @param {string} selectionId - Selection ID
+   * @param {string} mediaUuid - Media UUID
+   */
+  const setCoverPhotoFromMedia = async (selectionId, mediaUuid) => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${selectionId}/cover-photo`, {
+        media_uuid: mediaUuid,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   // ==================== Media Sets ====================
 
   /**
@@ -362,6 +378,50 @@ export function useSelectionsApi() {
     try {
       const response = await apiClient.delete(
         `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Move media items to a different set
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Source set ID
+   * @param {Array<string>} mediaUuids - Array of media UUIDs to move
+   * @param {string} targetSetUuid - Target set UUID
+   */
+  const moveMediaToSet = async (selectionId, setId, mediaUuids, targetSetUuid) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media/move`,
+        {
+          media_uuids: mediaUuids,
+          target_set_uuid: targetSetUuid,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Copy media items to a different set
+   * @param {string} selectionId - Selection ID
+   * @param {string} setId - Source set ID
+   * @param {Array<string>} mediaUuids - Array of media UUIDs to copy
+   * @param {string} targetSetUuid - Target set UUID
+   */
+  const copyMediaToSet = async (selectionId, setId, mediaUuids, targetSetUuid) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media/copy`,
+        {
+          media_uuids: mediaUuids,
+          target_set_uuid: targetSetUuid,
+        }
       )
       return response.data
     } catch (error) {
@@ -561,6 +621,7 @@ export function useSelectionsApi() {
     getSelectedMedia,
     getSelectedFilenames,
     copyFilenames,
+    setCoverPhotoFromMedia,
 
     // Media Sets
     fetchMediaSets,
@@ -574,6 +635,8 @@ export function useSelectionsApi() {
     fetchSetMedia,
     uploadMediaToSet,
     deleteMedia,
+    moveMediaToSet,
+    copyMediaToSet,
     addMediaFeedback,
     downloadMedia,
 

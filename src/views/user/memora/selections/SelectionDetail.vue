@@ -1,5 +1,9 @@
 <template>
-  <SelectionLayout :is-loading="isLoading" :selection="selection" @go-back="goBack">
+  <SelectionLayout
+    :is-loading="isLoading || isUpdatingCoverPhoto"
+    :selection="selection"
+    @go-back="goBack"
+  >
     <template #content>
       <input
         ref="fileInputRef"
@@ -331,6 +335,25 @@
         @view="openMediaViewer"
         @download="handleDownloadMedia"
       />
+
+      <MoveCopyModal
+        v-model="showMoveCopyModal"
+        v-model:action="moveCopyAction"
+        context="selection"
+        :available-collections="availableSelections"
+        :current-collection-id="selection?.id || ''"
+        :current-collection-name="selection?.name || ''"
+        :target-collection-id="targetSelectionId"
+        :target-collection-sets="targetSelectionSets"
+        :is-loading-sets="isLoadingTargetSets"
+        :target-set-id="targetSetId"
+        :is-moving="isMovingMedia"
+        :selected-count="selectedMediaIds.size"
+        @selection-change="handleTargetSelectionChange"
+        @update:target-set-id="targetSetId = $event"
+        @cancel="handleCancelMoveCopy"
+        @confirm="handleConfirmMoveCopy"
+      />
     </template>
   </SelectionLayout>
 </template>
@@ -359,6 +382,7 @@ import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -403,11 +427,18 @@ const selectedMediaIds = ref(new Set())
 const showMoveCopyModal = ref(false)
 const moveCopyAction = ref('move')
 const isMovingMedia = ref(false)
+const targetSelectionId = ref('')
+const targetSetId = ref('')
+const availableSelections = ref([])
+const isLoadingSelections = ref(false)
+const targetSelectionSets = ref([])
+const isLoadingTargetSets = ref(false)
 const isBulkFavoriteLoading = ref(false)
 const isBulkTagLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
 const isUpdatingSetCounts = ref(false)
+const isUpdatingCoverPhoto = ref(false)
 const isLoadingMedia = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
@@ -485,6 +516,21 @@ const loadSelection = async () => {
 // Load selection on mount
 onMounted(() => {
   loadSelection()
+})
+
+// Watch for modal opening to load selections
+watch(showMoveCopyModal, isOpen => {
+  if (isOpen) {
+    // Only load selections when modal opens
+    if (availableSelections.value.length === 0) {
+      loadAvailableSelections()
+    }
+    // Initialize with current selection
+    if (selection.value) {
+      targetSelectionId.value = selection.value.id
+      handleTargetSelectionChange(selection.value.id)
+    }
+  }
 })
 const fileInputRef = ref(null)
 const showDeleteModal = ref(false)
@@ -688,15 +734,197 @@ const handleDownloadMedia = async item => {
   }
 }
 
-const handleCopyFilenames = () => {
-  // UI only
+const handleCopyFilenames = async item => {
+  try {
+    const filename = item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
+    await navigator.clipboard.writeText(filename)
+    toast.success('Filename copied', {
+      description: 'The filename has been copied to your clipboard.',
+    })
+  } catch (error) {
+    console.error('Failed to copy filename:', error)
+    toast.error('Failed to copy', {
+      description: error instanceof Error ? error.message : 'Could not copy to clipboard',
+    })
+  }
 }
 
 const handleMoveCopy = item => {
   selectedMediaIds.value.clear()
   selectedMediaIds.value.add(item.id)
   moveCopyAction.value = 'move'
+  targetSelectionId.value = selection.value?.id || ''
+  targetSetId.value = ''
   showMoveCopyModal.value = true
+}
+
+// Load available selections for move/copy modal
+const loadAvailableSelections = async () => {
+  isLoadingSelections.value = true
+  try {
+    const result = await selectionStore.fetchAllSelections({ perPage: 100 })
+    availableSelections.value = Array.isArray(result) ? result : result?.data || []
+  } catch (error) {
+    console.error('Failed to load selections:', error)
+    availableSelections.value = []
+  } finally {
+    isLoadingSelections.value = false
+  }
+}
+
+// Handle target selection change
+const handleTargetSelectionChange = async selectionId => {
+  targetSelectionId.value = selectionId
+  targetSetId.value = '' // Reset set selection when selection changes
+
+  if (!selectionId) {
+    targetSelectionSets.value = []
+    return
+  }
+
+  isLoadingTargetSets.value = true
+  try {
+    let allSets = []
+    // If it's the current selection, use local mediaSets
+    if (selectionId === selection.value?.id) {
+      allSets = mediaSets.value.map(set => ({
+        id: set.id,
+        name: set.name,
+        description: set.description,
+        count: set.count,
+        order: set.order,
+      }))
+    } else {
+      // Fetch sets from API for other selections
+      const sets = await selectionsApi.fetchMediaSets(selectionId)
+      allSets = Array.isArray(sets) ? sets : []
+    }
+
+    // Filter out the current set to prevent moving/copying to the same set
+    // Only filter if we're in the same selection (moving within the same selection)
+    if (selectionId === selection.value?.id && selectedSetId.value) {
+      targetSelectionSets.value = allSets.filter(set => set.id !== selectedSetId.value)
+    } else {
+      targetSelectionSets.value = allSets
+    }
+
+    // Auto-select the first set if available and only one set exists
+    if (targetSelectionSets.value.length === 1) {
+      targetSetId.value = targetSelectionSets.value[0].id
+    }
+  } catch (error) {
+    console.error('Failed to load selection sets:', error)
+    targetSelectionSets.value = []
+    toast.error('Failed to load sets', {
+      description: 'Unable to load sets for the selected selection.',
+    })
+  } finally {
+    isLoadingTargetSets.value = false
+  }
+}
+
+// Handle cancel move/copy
+const handleCancelMoveCopy = () => {
+  showMoveCopyModal.value = false
+  targetSelectionId.value = selection.value?.id || ''
+  targetSetId.value = ''
+  targetSelectionSets.value = []
+  moveCopyAction.value = 'move'
+}
+
+// Handle confirm move/copy
+const handleConfirmMoveCopy = async () => {
+  // Validate inputs
+  if (!targetSelectionId.value || selectedMediaIds.value.size === 0) {
+    toast.error('Missing selection', {
+      description: 'Please select a target selection.',
+    })
+    return
+  }
+
+  if (!targetSetId.value) {
+    toast.error('Missing set', {
+      description: 'Please select a target set.',
+    })
+    return
+  }
+
+  if (!selection.value?.id || !selectedSetId.value) {
+    toast.error('Invalid context', {
+      description: 'Unable to determine source selection or set.',
+    })
+    return
+  }
+
+  const mediaIds = Array.from(selectedMediaIds.value)
+  const targetSet = targetSetId.value
+
+  // Validate: Prevent moving/copying to the same set
+  if (targetSet === selectedSetId.value && targetSelectionId.value === selection.value?.id) {
+    toast.error(`Cannot ${moveCopyAction.value} to same set`, {
+      description: `The media is already in this set. Please select a different set.`,
+    })
+    return
+  }
+
+  isMovingMedia.value = true
+  try {
+    if (moveCopyAction.value === 'move') {
+      // Move: Use the new backend endpoint
+      const result = await selectionsApi.moveMediaToSet(
+        selection.value.id,
+        selectedSetId.value,
+        mediaIds,
+        targetSet
+      )
+
+      toast.success('Media moved', {
+        description: `${result.moved_count || mediaIds.length} item${(result.moved_count || mediaIds.length) > 1 ? 's' : ''} moved successfully.`,
+      })
+
+      // Reload media sets to update counts
+      if (targetSelectionId.value === selection.value?.id) {
+        await mediaSetsSidebar.loadMediaSets()
+      }
+
+      // Reload media items to reflect changes
+      await loadMediaItems()
+      selectedMediaIds.value.clear()
+      handleCancelMoveCopy()
+    } else {
+      // Copy: Use the new backend endpoint
+      const result = await selectionsApi.copyMediaToSet(
+        selection.value.id,
+        selectedSetId.value,
+        mediaIds,
+        targetSet
+      )
+
+      toast.success('Media copied', {
+        description: `${result.copied_count || result.media?.length || mediaIds.length} item${(result.copied_count || result.media?.length || mediaIds.length) > 1 ? 's' : ''} copied successfully.`,
+      })
+
+      // Reload media sets to update counts (target set will have increased count)
+      if (targetSelectionId.value === selection.value?.id) {
+        await mediaSetsSidebar.loadMediaSets()
+      }
+
+      // Reload media items if we're still viewing the same set
+      if (targetSelectionId.value === selection.value?.id && targetSet === selectedSetId.value) {
+        await loadMediaItems()
+      }
+
+      selectedMediaIds.value.clear()
+      handleCancelMoveCopy()
+    }
+  } catch (error) {
+    console.error('Failed to move/copy media:', error)
+    toast.error(`Failed to ${moveCopyAction.value} media`, {
+      description: error instanceof Error ? error.message : 'An unknown error occurred.',
+    })
+  } finally {
+    isMovingMedia.value = false
+  }
 }
 
 const handleToggleMediaSelection = id => {
@@ -730,8 +958,50 @@ const handleBulkFavorite = () => {
   // UI only
 }
 
-const handleSetAsCover = () => {
-  // UI only
+const handleSetAsCover = async item => {
+  if (!selection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
+
+  // Get the thumbnail URL from the media item for immediate update
+  const thumbnailUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
+
+  if (!thumbnailUrl) {
+    toast.error('Invalid media', {
+      description: 'Media does not have a valid thumbnail URL.',
+    })
+    return
+  }
+
+  isUpdatingCoverPhoto.value = true
+
+  try {
+    await selectionsApi.setCoverPhotoFromMedia(selection.value.id, item.id)
+
+    // Update local selection reference immediately (optimistic update)
+    if (selection.value) {
+      selection.value.coverPhotoUrl = thumbnailUrl
+      selection.value.cover_photo_url = thumbnailUrl
+      // Force reactivity
+      selection.value = { ...selection.value }
+    }
+
+    toast.success('Cover photo updated', {
+      description: 'The cover photo has been set successfully.',
+    })
+  } catch (error) {
+    console.error('Failed to set cover photo:', error)
+
+    // Revert optimistic update on error
+    if (selection.value) {
+      // Could reload here, but for now just show error
+    }
+
+    toast.error('Failed to set cover photo', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
+    })
+  } finally {
+    isUpdatingCoverPhoto.value = false
+  }
 }
 
 const handleCoverImageUpload = () => {
