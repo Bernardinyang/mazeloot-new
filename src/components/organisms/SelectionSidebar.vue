@@ -23,17 +23,6 @@
       <ChevronsLeft :class="theme.textSecondary" class="h-4 w-4" />
     </button>
 
-    <!-- Expand Button (Bottom Left) - When Collapsed -->
-    <button
-      v-else
-      :class="[theme.borderSecondary, theme.bgCard]"
-      class="absolute bottom-4 left-2 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 z-10 opacity-70 hover:opacity-100 shadow-sm border"
-      title="Expand sidebar"
-      @click="emit('update:isSidebarCollapsed', false)"
-    >
-      <ChevronsRight :class="theme.textSecondary" class="h-4 w-4" />
-    </button>
-
     <!-- Selection Info (only when expanded) -->
     <div v-if="!props.isSidebarCollapsed" class="mb-6">
       <!-- Skeleton Loader -->
@@ -138,8 +127,165 @@
       </div>
     </div>
 
-    <!-- Sidebar Content Panels -->
-    <slot />
+    <!-- Collapsed Sidebar - Icon Only Navigation (show for all tabs) -->
+    <div v-if="props.isSidebarCollapsed" class="flex flex-col items-center gap-3 pt-4 h-full pb-4">
+      <!-- Cover Photo (Collapsed) -->
+      <div
+        :class="theme.borderSecondary"
+        class="w-12 h-12 rounded-lg overflow-hidden border-2 shadow-sm flex-shrink-0 relative"
+      >
+        <div
+          v-if="props.isLoading"
+          class="w-full h-full bg-gray-200 dark:bg-gray-800 animate-pulse"
+        ></div>
+        <!-- Video Cover (Collapsed) -->
+        <video
+          v-else-if="isVideoCover && coverVideoUrl"
+          :src="coverVideoUrl"
+          class="w-full h-full object-cover"
+          autoplay
+          loop
+          muted
+          playsinline
+        />
+        <!-- Image Cover (Collapsed) -->
+        <img
+          v-else-if="props.selection?.coverPhotoUrl || props.selection?.cover_photo_url"
+          :alt="props.selection?.name ?? ''"
+          :src="coverImageSrc"
+          class="w-full h-full object-cover"
+          @error="handleImageError"
+        />
+        <div
+          v-else
+          class="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center"
+        >
+          <CheckSquare class="h-5 w-5 text-teal-500 dark:text-teal-400" />
+        </div>
+      </div>
+
+      <!-- Selection Title Popover (at top) -->
+      <Popover>
+        <PopoverTrigger as-child>
+          <button
+            :class="theme.borderSecondary"
+            :disabled="props.isLoading"
+            class="w-12 h-12 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center border-2 border-dashed"
+            title="Selection name"
+          >
+            <Loader2
+              v-if="props.isLoading"
+              :class="theme.textTertiary"
+              class="h-4 w-4 animate-spin"
+            />
+            <span
+              v-else
+              :class="theme.textPrimary"
+              class="text-xs font-bold truncate max-w-[2.5rem]"
+            >
+              {{ props.selection?.name?.charAt(0)?.toUpperCase() || 'S' }}
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent
+          :class="[theme.bgCard, theme.borderCard, 'p-3 max-w-xs']"
+          align="start"
+          side="right"
+        >
+          <div v-if="props.isLoading" class="space-y-2">
+            <div class="h-4 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+            <div class="h-3 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+          </div>
+          <template v-else>
+            <p :class="theme.textPrimary" class="text-sm font-semibold">
+              {{ props.selection?.name || 'Loading...' }}
+            </p>
+            <p
+              v-if="props.selection?.status"
+              :class="theme.textTertiary"
+              class="text-xs mt-1 capitalize"
+            >
+              {{ props.selection.status }}
+            </p>
+          </template>
+        </PopoverContent>
+      </Popover>
+
+      <!-- Tab Icons (Collapsed) -->
+      <div v-if="props.isLoading" class="space-y-2">
+        <div
+          v-for="i in 2"
+          :key="`skeleton-${i}`"
+          class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+        ></div>
+      </div>
+      <TooltipProvider v-else>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button
+              :class="[
+                props.activeTab === 'photos'
+                  ? 'bg-teal-500 text-white shadow-md'
+                  : theme.textSecondary +
+                    ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-teal-600 dark:hover:text-teal-400',
+              ]"
+              class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
+              @click="handleTabClick('photos')"
+            >
+              <ImageIcon class="h-5 w-5" />
+              <span
+                v-if="props.activeTab === 'photos'"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+              ></span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+            <p :class="theme.textPrimary" class="text-sm font-semibold">Photos</p>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button
+              :class="[
+                props.activeTab === 'settings'
+                  ? 'bg-teal-500 text-white shadow-md'
+                  : theme.textSecondary +
+                    ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-teal-600 dark:hover:text-teal-400',
+              ]"
+              class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
+              @click="handleTabClick('settings')"
+            >
+              <Settings class="h-5 w-5" />
+              <span
+                v-if="props.activeTab === 'settings'"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+              ></span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
+            <p :class="theme.textPrimary" class="text-sm font-semibold">Settings</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <!-- Spacer to push expand button to bottom -->
+      <div class="flex-1"></div>
+
+      <!-- Expand Button (at bottom) -->
+      <button
+        :class="[theme.borderSecondary, theme.bgCard]"
+        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 opacity-70 hover:opacity-100 shadow-sm border mb-4"
+        title="Expand sidebar"
+        @click="emit('update:isSidebarCollapsed', false)"
+      >
+        <ChevronsRight :class="theme.textSecondary" class="h-4 w-4" />
+      </button>
+    </div>
+
+    <!-- Sidebar Content Panels (only show when expanded) -->
+    <div v-if="!props.isSidebarCollapsed">
+      <slot />
+    </div>
   </aside>
 </template>
 
@@ -148,11 +294,19 @@ import {
   ChevronsLeft,
   ChevronsRight,
   ImageIcon,
+  Loader2,
   Pause,
   Play,
   Settings,
   CheckSquare,
 } from 'lucide-vue-next'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover/index'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useRoute, useRouter } from 'vue-router'
 import { computed, ref, watch } from 'vue'
@@ -267,10 +421,14 @@ const handleTabClick = tab => {
 
   // Use query parameters to change tabs without navigating to different routes
   // The SelectionLayout will handle showing the appropriate content based on the query
+  const query = { tab }
+  if (tab === 'settings') {
+    query.section = 'general'
+  }
   router.push({
     name: 'selectionDetail',
     params: { id: selectionId },
-    query: { tab },
+    query,
   })
 }
 </script>

@@ -37,6 +37,12 @@
       :is-sidebar-collapsed="props.isSidebarCollapsed"
     />
   </div>
+  <div v-else-if="props.activeTab === 'settings' && props.isSidebarCollapsed">
+    <SelectionSettingsSidebarNav
+      :selection-id="props.selectionId"
+      :is-sidebar-collapsed="props.isSidebarCollapsed"
+    />
+  </div>
 </template>
 
 <script setup>

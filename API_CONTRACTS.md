@@ -271,7 +271,16 @@ Error responses:
 ```json
 {
   "name": "Updated Name",
-  "status": "active"
+  "status": "active",
+  "color": "#10B981",
+  "password": "newpassword",
+  "auto_delete_date": "2024-12-31",
+  "display_settings": {
+    "view_mode": "grid",
+    "grid_size": "medium",
+    "show_filename": true,
+    "sort_order": "uploaded-new-old"
+  }
 }
 ```
 

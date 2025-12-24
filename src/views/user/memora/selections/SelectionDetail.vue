@@ -1,5 +1,12 @@
 <template>
+  <!-- Settings View -->
+  <SelectionSettingsGeneral
+    v-if="route.query?.tab === 'settings' && route.query?.section === 'general'"
+  />
+
+  <!-- Default Photos View -->
   <SelectionLayout
+    v-else
     :is-loading="isLoading || isUpdatingCoverPhoto"
     :selection="selection"
     @go-back="goBack"
@@ -15,7 +22,27 @@
       />
 
       <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
+      <main
+        class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
+        :class="isDragging ? 'ring-4 ring-teal-500/20' : ''"
+        @dragover.prevent="handleDragOver"
+        @dragleave="handleDragLeave"
+        @drop="handleDrop"
+      >
+        <!-- Drag overlay when dragging files -->
+        <div
+          v-if="isDragging && selectedSetId"
+          class="absolute inset-0 z-50 bg-teal-500/10 dark:bg-teal-500/20 border-4 border-dashed border-teal-500 rounded-lg flex items-center justify-center pointer-events-none"
+        >
+          <div class="text-center space-y-4">
+            <div class="p-6 rounded-full bg-teal-500/20 dark:bg-teal-500/30">
+              <ImagePlus class="h-16 w-16 text-teal-600 dark:text-teal-400 mx-auto" />
+            </div>
+            <p class="text-2xl font-bold text-teal-600 dark:text-teal-400">
+              Drop files here to upload
+            </p>
+          </div>
+        </div>
         <ContentLoader v-if="isLoading" message="Loading selection..." />
 
         <div v-else class="p-8">
@@ -361,6 +388,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
+import SelectionSettingsGeneral from '@/views/user/memora/selections/settings/General.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -386,7 +414,7 @@ import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, Plus } from 'lucide-vue-next'
+import { FolderPlus, ImagePlus, Plus } from 'lucide-vue-next'
 import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
 import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { useSelectionsApi } from '@/api/selections'
@@ -519,6 +547,15 @@ const loadSelection = async () => {
     // Media sets are automatically initialized by SelectionLayout via the store
     // No need to manually set them here
 
+    // Check if setId is in route query and set it first
+    if (route.query.setId) {
+      const setIdFromRoute = route.query.setId
+      // Verify the set exists in mediaSets before selecting
+      if (selectionData.mediaSets && selectionData.mediaSets.some(s => s.id === setIdFromRoute)) {
+        mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+      }
+    }
+
     // Load media items for the selected set (if one is selected)
     // Note: If no set is selected, handleSelectSet will trigger the watcher to load media
     if (selectedSetId.value) {
@@ -535,9 +572,125 @@ const loadSelection = async () => {
   }
 }
 
-// Load selection on mount
+// Sync selectedSetId with route query parameter
+let isUpdatingFromRoute = false
+watch(selectedSetId, newSetId => {
+  // Don't update route if we're updating from route (to avoid loops)
+  if (isUpdatingFromRoute) return
+
+  if (newSetId) {
+    router.replace({
+      query: {
+        ...route.query,
+        setId: newSetId,
+      },
+    })
+  } else {
+    // Remove setId from query if no set is selected
+    const query = { ...route.query }
+    delete query.setId
+    router.replace({ query })
+  }
+})
+
+// Watch for route query changes (browser back/forward, direct URL)
+watch(
+  () => route.query.setId,
+  setIdFromRoute => {
+    if (!setIdFromRoute) {
+      // If setId is removed from route, clear selection
+      if (selectedSetId.value) {
+        isUpdatingFromRoute = true
+        mediaSetsSidebar.handleSelectSet(null)
+        isUpdatingFromRoute = false
+      }
+      return
+    }
+
+    // Only update if different from current selection
+    if (setIdFromRoute !== selectedSetId.value) {
+      // Verify the set exists in mediaSets before selecting
+      if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
+        isUpdatingFromRoute = true
+        mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+        isUpdatingFromRoute = false
+      }
+    }
+  }
+)
+
+// Helper to determine if photos tab is active
+const isPhotosTabActive = computed(() => {
+  const tab = route.query.tab
+  const routeName = route.name?.toString() ?? ''
+  return (
+    tab === 'photos' ||
+    routeName === 'selectionPhotos' ||
+    routeName === 'selectionPreview' ||
+    (!tab && routeName !== 'selectionSettings')
+  )
+})
+
+// Auto-select first set when photos tab is clicked and sets exist
+watch(
+  () => route.query.tab,
+  newTab => {
+    // When photos tab is active and no set is selected, auto-select first set if available
+    if (newTab === 'photos' || (!newTab && isPhotosTabActive.value)) {
+      // Wait a bit for mediaSets to be loaded
+      const checkAndSelect = () => {
+        if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0 && !route.query.setId) {
+          isUpdatingFromRoute = true
+          mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
+          isUpdatingFromRoute = false
+        }
+      }
+
+      // Check immediately and also after a short delay to ensure mediaSets are loaded
+      checkAndSelect()
+      setTimeout(checkAndSelect, 100)
+    }
+  },
+  { immediate: true }
+)
+
+// Also watch for when mediaSets become available while on photos tab
+watch(
+  () => mediaSetsSidebar.mediaSets.length,
+  () => {
+    if (
+      isPhotosTabActive.value &&
+      !selectedSetId.value &&
+      mediaSetsSidebar.mediaSets.length > 0 &&
+      !route.query.setId
+    ) {
+      isUpdatingFromRoute = true
+      mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
+      isUpdatingFromRoute = false
+    }
+  }
+)
+
+// Initialize selectedSetId from route query on mount
 onMounted(() => {
   loadSelection()
+
+  // Check if setId is in route query and set it after mediaSets are loaded
+  watch(
+    () => mediaSetsSidebar.mediaSets.length,
+    () => {
+      if (route.query.setId && !selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
+        const setIdFromRoute = route.query.setId
+        // Verify the set exists in mediaSets before selecting
+        if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
+          isUpdatingFromRoute = true
+          mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+          isUpdatingFromRoute = false
+        }
+      }
+    },
+    { immediate: true, once: true }
+  )
 })
 
 // Watch for modal opening to load selections
@@ -2124,9 +2277,26 @@ const handleFileSelect = async event => {
   }
 }
 
+const handleDragOver = e => {
+  // Only show drag overlay if files are being dragged (not internal drag operations)
+  if (e.dataTransfer?.types?.includes('Files')) {
+    e.preventDefault()
+    if (selectedSetId.value && !isUploading.value && !isProcessingFiles.value) {
+      isDragging.value = true
+    }
+  }
+}
+
+const handleDragLeave = e => {
+  // Only hide drag overlay if we're leaving the main element (not just moving to a child)
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    isDragging.value = false
+  }
+}
+
 const handleDrop = async e => {
   e.preventDefault()
-  if (isDragging) isDragging.value = false
+  isDragging.value = false
 
   const files = e.dataTransfer?.files
   if (!files || files.length === 0) return

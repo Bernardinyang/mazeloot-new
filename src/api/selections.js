@@ -97,12 +97,17 @@ export function useSelectionsApi() {
    */
   const updateSelection = async (id, data) => {
     try {
-      const response = await apiClient.patch(`/v1/selections/${id}`, {
-        name: data.name,
-        status: data.status,
-        color: data.color,
-        cover_photo_url: data.coverPhotoUrl || data.cover_photo_url,
-      })
+      const updateData = {}
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.status !== undefined) updateData.status = data.status
+      if (data.color !== undefined) updateData.color = data.color
+      if (data.coverPhotoUrl !== undefined || data.cover_photo_url !== undefined) {
+        updateData.cover_photo_url = data.coverPhotoUrl || data.cover_photo_url
+      }
+      if (data.password !== undefined) updateData.password = data.password
+      if (data.autoDeleteDate !== undefined) updateData.auto_delete_date = data.autoDeleteDate
+
+      const response = await apiClient.patch(`/v1/selections/${id}`, updateData)
       return response.data
     } catch (error) {
       throw parseError(error)
