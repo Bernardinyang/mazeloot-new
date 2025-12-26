@@ -36,6 +36,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   const editingSetIdInModal = ref(null)
   const newSetName = ref('')
   const newSetDescription = ref('')
+  const newSetSelectionLimit = ref(null)
   const isCreatingSet = ref(false)
 
   // Drag/drop state
@@ -168,6 +169,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     editingSetIdInModal.value = null
     newSetName.value = ''
     newSetDescription.value = ''
+    newSetSelectionLimit.value = null
   }
 
   const handleEditSet = setId => {
@@ -177,6 +179,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     editingSetIdInModal.value = setId
     newSetName.value = set.name || ''
     newSetDescription.value = set.description || ''
+    newSetSelectionLimit.value = set.selectionLimit ?? null
   }
 
   const handleCancelCreateSet = () => {
@@ -184,6 +187,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     editingSetIdInModal.value = null
     newSetName.value = ''
     newSetDescription.value = ''
+    newSetSelectionLimit.value = null
     isCreatingSet.value = false
   }
 
@@ -223,6 +227,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
               name: trimmedName,
               description: newSetDescription.value || '',
               order: set.order ?? maxOrder,
+              selectionLimit: newSetSelectionLimit.value ?? null, // Explicitly set to null if undefined
             }
           )
           const index = mediaSets.value.findIndex(s => s.id === editingSetIdInModal.value)
@@ -236,6 +241,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
           name: trimmedName,
           description: newSetDescription.value || '',
           order: maxOrder + 1,
+          selectionLimit: newSetSelectionLimit.value,
         })
         // Reload all media sets to ensure sync
         await loadMediaSets()
@@ -396,6 +402,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     editingSetIdInModal,
     newSetName,
     newSetDescription,
+    newSetSelectionLimit,
     isCreatingSet,
     handleAddSet,
     handleEditSet,

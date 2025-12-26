@@ -161,6 +161,10 @@ const props = defineProps({
     type: String,
     default: 'Selection',
   },
+  projectId: {
+    type: String,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -174,7 +178,19 @@ const isOpen = computed({
 
 const shareLink = computed(() => {
   if (!props.selectionId) return ''
-  return `${window.location.origin}/selections/${props.selectionId}`
+
+  // Build the public URL using the correct route format
+  // Format: /p/:projectId/selections?selectionId=:selectionId
+  const baseUrl = window.location.origin
+
+  if (props.projectId) {
+    // Use project-based public route
+    return `${baseUrl}/p/${props.projectId}/selections?selectionId=${props.selectionId}`
+  } else {
+    // Fallback: if no project ID, use selection ID directly
+    // This might need adjustment based on your routing structure
+    return `${baseUrl}/p/standalone/selections?selectionId=${props.selectionId}`
+  }
 })
 
 const qrCodeDataUrl = ref(null)

@@ -14,11 +14,20 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   const userStore = useUserStore()
 
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const isGuestRoute = to.matched.some(record => record.meta.isGuestRoute)
+  // Check if route explicitly requires auth (must be true, not just truthy)
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth === true)
+  const isGuestRoute = to.matched.some(record => record.meta.isGuestRoute === true)
+  // Check if route explicitly allows public access
+  const isPublicRoute = to.matched.some(record => record.meta.requiresAuth === false)
 
   // Use the store's isAuthenticated computed property for consistency
   const isAuthenticated = userStore.isAuthenticated
+
+  // If route explicitly allows public access, allow it
+  if (isPublicRoute) {
+    next()
+    return
+  }
 
   if (requiresAuth) {
     if (!isAuthenticated) {

@@ -19,16 +19,25 @@ export const publicRoutes = [
     path: '/p/:projectId/selections',
     name: 'clientSelections',
     component: ClientSelectionView,
+    meta: {
+      requiresAuth: false,
+    },
   },
   {
     path: '/p/:projectId/proofing',
     name: 'clientProofing',
     component: ClientProofingView,
+    meta: {
+      requiresAuth: false,
+    },
   },
   {
     path: '/p/:projectId/collection',
     name: 'clientCollection',
     component: () => import('@/views/user/memora/preview/CollectionPreview.vue'),
+    meta: {
+      requiresAuth: false,
+    },
   },
   {
     path: '/:pathMatch(.*)*',

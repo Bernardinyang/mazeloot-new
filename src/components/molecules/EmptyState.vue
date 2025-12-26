@@ -12,7 +12,10 @@
       :variant="actionVariant || 'default'"
       :size="actionSize || 'sm'"
       :class="actionClass"
+      :style="actionStyle"
       @click="$emit('action')"
+      @mouseenter="handleMouseEnter"
+      @mouseleave="handleMouseLeave"
     >
       <component v-if="actionIcon" :is="actionIcon" class="h-4 w-4 mr-2" />
       {{ actionLabel }}
@@ -21,7 +24,6 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { Button } from '@/components/shadcn/button'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
@@ -66,6 +68,14 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  actionStyle: {
+    type: Object,
+    default: () => ({}),
+  },
+  actionHoverColor: {
+    type: String,
+    default: '',
+  },
   containerClass: {
     type: String,
     default: '',
@@ -73,6 +83,18 @@ const props = defineProps({
 })
 
 const theme = useThemeClasses()
+
+const handleMouseEnter = e => {
+  if (props.actionHoverColor && props.actionStyle?.backgroundColor) {
+    e.target.style.backgroundColor = props.actionHoverColor
+  }
+}
+
+const handleMouseLeave = e => {
+  if (props.actionStyle?.backgroundColor) {
+    e.target.style.backgroundColor = props.actionStyle.backgroundColor
+  }
+}
 
 defineEmits(['action'])
 </script>

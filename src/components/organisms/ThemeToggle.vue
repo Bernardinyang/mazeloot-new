@@ -4,7 +4,12 @@
       <Button
         variant="ghost"
         size="icon"
-        :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+        :class="[
+          contrast
+            ? 'text-white hover:text-white hover:bg-white/20'
+            : [theme.textPrimary, theme.bgButtonHover],
+          theme.transition,
+        ]"
       >
         <Sun v-if="themeStore.effectiveTheme === 'dark'" class="h-5 w-5" />
         <Moon v-else class="h-5 w-5" />
@@ -69,6 +74,13 @@ import {
 } from '@/components/shadcn/dropdown-menu/index'
 import { useThemeStore } from '@/stores/theme'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+
+const props = defineProps({
+  contrast: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const themeStore = useThemeStore()
 const theme = useThemeClasses()

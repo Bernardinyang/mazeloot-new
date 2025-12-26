@@ -1,61 +1,72 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
-    <SelectionTopNav :go-back="() => $emit('goBack')" />
+  <div>
+    <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+      <SelectionTopNav
+        :go-back="() => $emit('goBack')"
+        :overall-progress="props.overallProgress"
+        :on-reset-limit="props.onResetLimit"
+        :is-resetting-limit="props.isResettingLimit"
+        :on-copy-all-selected-filenames="props.onCopyAllSelectedFilenames"
+        :selected-count="props.selectedCount"
+      />
 
-    <!-- Main Content Area (Sidebar + Content) -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Left Sidebar -->
-      <SelectionSidebar
-        :active-tab="activeTab"
-        :is-loading="isLoading"
-        :is-sidebar-collapsed="isSidebarCollapsed"
-        :selection="selection"
-        @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
-      >
-        <SelectionSidebarPanels
+      <!-- Main Content Area (Sidebar + Content) -->
+      <div class="flex flex-1 overflow-hidden">
+        <!-- Left Sidebar -->
+        <SelectionSidebar
           :active-tab="activeTab"
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
-          :selection-id="selection?.id || ''"
-        />
-      </SelectionSidebar>
+          :selection="selection"
+          @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
+        >
+          <SelectionSidebarPanels
+            :active-tab="activeTab"
+            :is-loading="isLoading"
+            :is-sidebar-collapsed="isSidebarCollapsed"
+            :selection-id="selection?.id || ''"
+          />
+        </SelectionSidebar>
 
-      <!-- Main Content Slot -->
-      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
-        <slot name="content" />
-      </main>
+        <!-- Main Content Slot -->
+        <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
+          <slot name="content" />
+        </main>
+      </div>
     </div>
+
+    <!-- Share Modal -->
+    <SelectionShareModal
+      v-model="headerStore.showShareModal"
+      :selection-id="selection?.id || ''"
+      :selection-name="selection?.name || 'Selection'"
+      :project-id="selection?.projectId || selection?.project_uuid || null"
+    />
+
+    <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
+    <DeleteConfirmationModal
+      v-model="showDeleteSetModal"
+      :is-deleting="isDeletingSet"
+      :item-name="setToDelete?.name || 'Media Set'"
+      description="This action cannot be undone."
+      title="Delete Media Set"
+      warning-message="Delete this media set?"
+      @cancel="mediaSetsSidebar.cancelDeleteSet"
+      @confirm="mediaSetsSidebar.confirmDeleteSet"
+    />
+
+    <!-- Create/Edit Set Modal -->
+    <CreateEditMediaSetModal
+      v-model="showCreateSetModal"
+      v-model:description="newSetDescription"
+      v-model:name="newSetName"
+      v-model:selectionLimit="newSetSelectionLimit"
+      :is-creating="isCreatingSet"
+      :is-editing="!!editingSetIdInModal"
+      @cancel="mediaSetsSidebar.handleCancelCreateSet"
+      @confirm="mediaSetsSidebar.handleCreateSet"
+    />
   </div>
-
-  <!-- Share Modal -->
-  <SelectionShareModal
-    v-model="headerStore.showShareModal"
-    :selection-id="selection?.id || ''"
-    :selection-name="selection?.name || 'Selection'"
-  />
-
-  <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
-  <DeleteConfirmationModal
-    v-model="showDeleteSetModal"
-    :is-deleting="isDeletingSet"
-    :item-name="setToDelete?.name || 'Media Set'"
-    description="This action cannot be undone."
-    title="Delete Media Set"
-    warning-message="Delete this media set?"
-    @cancel="mediaSetsSidebar.cancelDeleteSet"
-    @confirm="mediaSetsSidebar.confirmDeleteSet"
-  />
-
-  <!-- Create/Edit Set Modal -->
-  <CreateEditMediaSetModal
-    v-model="showCreateSetModal"
-    v-model:description="newSetDescription"
-    v-model:name="newSetName"
-    :is-creating="isCreatingSet"
-    :is-editing="!!editingSetIdInModal"
-    @cancel="mediaSetsSidebar.handleCancelCreateSet"
-    @confirm="mediaSetsSidebar.handleCreateSet"
-  />
 </template>
 
 <script setup>
@@ -63,7 +74,7 @@ import SelectionSidebar from '../components/organisms/SelectionSidebar.vue'
 import SelectionTopNav from '../components/organisms/SelectionTopNav.vue'
 import SelectionSidebarPanels from '../components/organisms/SelectionSidebarPanels.vue'
 import SelectionShareModal from '../components/organisms/SelectionShareModal.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, provide, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
@@ -72,18 +83,59 @@ import { useSelectionStore } from '@/stores/selection'
 import { useSelectionHeaderStore } from '@/stores/selectionHeader'
 import { useRoute, useRouter } from 'vue-router'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
+import { useThemeStore } from '@/stores/theme'
 
 const props = defineProps({
   selection: { type: [Object, null], default: null },
   isLoading: { type: Boolean, required: true },
+  // Optional props for selection actions and progress
+  onCopyFilenamesPerSet: { type: Function, default: null },
+  onCopySelectedFilenamesInSet: { type: Function, default: null },
+  onCopyAllSelectedFilenames: { type: Function, default: null },
+  selectedCount: { type: Number, default: 0 },
+  isCopyingFilenames: { type: Boolean, default: false },
+  setProgress: { type: Object, default: () => ({}) },
+  overallProgress: { type: Object, default: null },
+  onResetLimit: { type: Function, default: null },
+  isResettingLimit: { type: Boolean, default: false },
 })
 
 defineEmits(['goBack'])
+
+// Get selection theme color (with fallback to teal-500)
+const selectionColor = computed(() => {
+  return selection.value?.color || '#10B981' // Default teal-500
+})
+
+// Get hover color (slightly darker)
+const getSelectionHoverColor = () => {
+  const color = selectionColor.value
+  // Convert hex to RGB, darken by 10%
+  const hex = color.replace('#', '')
+  const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 20)
+  const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 20)
+  const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 20)
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Provide selection actions and progress data for child components
+provide('selectionActions', {
+  onCopyFilenamesPerSet: props.onCopyFilenamesPerSet,
+  onCopySelectedFilenamesInSet: props.onCopySelectedFilenamesInSet,
+  isCopyingFilenames: computed(() => props.isCopyingFilenames),
+  setProgress: computed(() => props.setProgress),
+  selectionStatus: computed(() => selection.value?.status),
+})
+
+// Provide selection color theming for child components
+provide('selectionColor', selectionColor)
+provide('getSelectionHoverColor', getSelectionHoverColor)
 
 const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const headerStore = useSelectionHeaderStore()
+const themeStore = useThemeStore()
 
 // Local, mutable selection ref:
 const selection = ref(props.selection)
@@ -108,7 +160,16 @@ const tabFromRouteName = routeName => {
   return 'photos'
 }
 
-const activeTab = computed(() => tabFromRouteName(route.name))
+const activeTab = computed(() => {
+  // Check query parameter first (for collapsed sidebar tab clicks)
+  // Explicitly access route.query.tab to ensure reactivity
+  const queryTab = route.query?.tab
+  if (queryTab) {
+    return queryTab
+  }
+  // Fall back to route name
+  return tabFromRouteName(route.name)
+})
 
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
@@ -120,6 +181,7 @@ const {
   showCreateSetModal,
   newSetName,
   newSetDescription,
+  newSetSelectionLimit,
   isCreatingSet,
   editingSetIdInModal,
 } = storeToRefs(mediaSetsSidebar)

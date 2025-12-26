@@ -9,6 +9,15 @@
     v-else
     :is-loading="isLoading || isUpdatingCoverPhoto"
     :selection="selection"
+    :on-copy-filenames-per-set="handleCopyFilenamesPerSet"
+    :on-copy-selected-filenames-in-set="handleCopySelectedFilenamesInSet"
+    :on-copy-all-selected-filenames="handleCopyAllSelectedFilenames"
+    :selected-count="selectedCountAcrossSelection"
+    :is-copying-filenames="isCopyingFilenames"
+    :set-progress="setProgressMap"
+    :overall-progress="overallProgress"
+    :on-reset-limit="handleResetSelectionLimit"
+    :is-resetting-limit="isResettingLimit"
     @go-back="goBack"
   >
     <template #content>
@@ -24,7 +33,8 @@
       <!-- Main Content Area -->
       <main
         class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
-        :class="isDragging ? 'ring-4 ring-teal-500/20' : ''"
+        :style="isDragging ? { '--tw-ring-color': `${selectionColor.value}33` } : {}"
+        :class="isDragging ? 'ring-4' : ''"
         @dragover.prevent="handleDragOver"
         @dragleave="handleDragLeave"
         @drop="handleDrop"
@@ -32,13 +42,22 @@
         <!-- Drag overlay when dragging files -->
         <div
           v-if="isDragging && selectedSetId"
-          class="absolute inset-0 z-50 bg-teal-500/10 dark:bg-teal-500/20 border-4 border-dashed border-teal-500 rounded-lg flex items-center justify-center pointer-events-none"
+          class="absolute inset-0 z-50 border-4 border-dashed rounded-lg flex items-center justify-center pointer-events-none"
+          :style="{
+            backgroundColor: `${selectionColor.value}1A`,
+            borderColor: selectionColor.value,
+          }"
         >
           <div class="text-center space-y-4">
-            <div class="p-6 rounded-full bg-teal-500/20 dark:bg-teal-500/30">
-              <ImagePlus class="h-16 w-16 text-teal-600 dark:text-teal-400 mx-auto" />
+            <div
+              class="p-6 rounded-full"
+              :style="{
+                backgroundColor: `${selectionColor.value}33`,
+              }"
+            >
+              <ImagePlus class="h-16 w-16 mx-auto" :style="{ color: selectionColor.value }" />
             </div>
-            <p class="text-2xl font-bold text-teal-600 dark:text-teal-400">
+            <p class="text-2xl font-bold" :style="{ color: selectionColor.value }">
               Drop files here to upload
             </p>
           </div>
@@ -56,9 +75,13 @@
           <MediaItemsHeaderBar
             v-else-if="selectedSetId"
             :is-uploading="isUploading"
-            :selected-count="selectedMediaIds.size"
+            :selected-count="selectedCountInCurrentSet"
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
+            :selection-status="selection?.status"
+            :on-copy-selected-filenames-in-set="
+              () => handleCopySelectedFilenamesInSet(selectedSetId)
+            "
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
@@ -125,17 +148,21 @@
               <MediaGridItemCard
                 v-for="item in sortedMediaItems"
                 :key="item.id"
-                :is-selected="selectedMediaIds.has(item.id)"
+                :is-selected="selectedMediaIds.has(getItemId(item))"
+                :was-selected-on-completion="
+                  selection?.status === 'completed' ? item.isSelected : false
+                "
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
+                :selection-status="selection?.status"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
                 @rename="handleRenameMedia(item)"
                 @replace="handleReplacePhoto(item)"
                 @watermark="handleWatermarkMedia(item)"
-                @toggle-selection="handleToggleMediaSelection(item.id)"
+                @toggle-selection="handleToggleMediaSelection(getItemId(item))"
                 @open-viewer="openMediaViewer(item)"
                 @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
@@ -150,10 +177,14 @@
               <MediaListItemRow
                 v-for="item in sortedMediaItems"
                 :key="item.id"
-                :is-selected="selectedMediaIds.has(item.id)"
+                :is-selected="selectedMediaIds.has(getItemId(item))"
+                :was-selected-on-completion="
+                  selection?.status === 'completed' ? item.isSelected : false
+                "
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
+                :selection-status="selection?.status"
                 :subtitle="formatMediaDate(item.createdAt)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
@@ -161,7 +192,7 @@
                 @rename="handleRenameMedia(item)"
                 @replace="handleReplacePhoto(item)"
                 @watermark="handleWatermarkMedia(item)"
-                @toggle-selection="handleToggleMediaSelection(item.id)"
+                @toggle-selection="handleToggleMediaSelection(getItemId(item))"
                 @open-viewer="openMediaViewer(item)"
                 @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
@@ -187,6 +218,11 @@
           >
             <EmptyState
               :action-icon="Plus"
+              :action-class="'text-white transition-colors'"
+              :action-hover-color="selectionHoverColor"
+              :action-style="{
+                backgroundColor: selectionColor.value,
+              }"
               :icon="FolderPlus"
               action-label="Create Set"
               description="Create a set to organize and upload your media files."
@@ -225,13 +261,14 @@
 
       <!-- Create/Edit Set Modal -->
       <CreateEditMediaSetModal
-        v-model="showCreateSetModal"
-        v-model:description="newSetDescription"
-        v-model:name="newSetName"
-        :is-creating="isCreatingSet"
-        :is-editing="!!editingSetIdInModal"
-        @cancel="handleCancelCreateSet"
-        @confirm="handleCreateSet"
+        v-model="mediaSetsSidebar.showCreateSetModal"
+        v-model:description="mediaSetsSidebar.newSetDescription"
+        v-model:name="mediaSetsSidebar.newSetName"
+        v-model:selectionLimit="mediaSetsSidebar.newSetSelectionLimit"
+        :is-creating="mediaSetsSidebar.isCreatingSet"
+        :is-editing="!!mediaSetsSidebar.editingSetIdInModal"
+        @cancel="mediaSetsSidebar.handleCancelCreateSet"
+        @confirm="mediaSetsSidebar.handleCreateSet"
       />
 
       <!-- Delete Confirmation Modal -->
@@ -244,6 +281,15 @@
         description="This action cannot be undone."
         @cancel="closeDeleteModal"
         @confirm="handleConfirmDeleteItem"
+      />
+
+      <!-- Selection Limit Modal -->
+      <SelectionLimitModal
+        v-model="showSelectionLimitModal"
+        :current-limit="selection?.selectionLimit"
+        :is-saving="isSavingSelectionLimit"
+        @save="handleSaveSelectionLimit"
+        @cancel="handleCancelSelectionLimit"
       />
 
       <!-- Bulk Delete Confirmation Modal -->
@@ -385,7 +431,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import SelectionSettingsGeneral from '@/views/user/memora/selections/settings/General.vue'
@@ -417,16 +463,31 @@ import { storeToRefs } from 'pinia'
 import { FolderPlus, ImagePlus, Plus } from 'lucide-vue-next'
 import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
 import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
+import { useSelectionActions } from '@/composables/useSelectionActions'
+import { useSelectionProgress } from '@/composables/useSelectionProgress'
 import { useSelectionsApi } from '@/api/selections'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
 import { useActionHistoryStore } from '@/stores/actionHistory'
+import { darkenColor } from '@/utils/colors'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+
+// Get selection color from parent (provided by SelectionLayout)
+const selectionColor = inject(
+  'selectionColor',
+  computed(() => '#10B981')
+)
+const getSelectionHoverColor = inject('getSelectionHoverColor', () => '#059669')
+
+// Get hover color (slightly darker) for use in this component
+const selectionHoverColor = computed(() => {
+  return darkenColor(selectionColor.value, 10)
+})
 
 // Action history for undo/redo (global store)
 const actionHistory = useActionHistoryStore()
@@ -453,19 +514,6 @@ const getUndoAction = () => {
 // Use store for media sets
 const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
 const mediaSets = computed(() => mediaSetsSidebar.mediaSets)
-const showCreateSetModal = ref(false)
-const newSetName = ref('')
-const newSetDescription = ref('')
-const isCreatingSet = ref(false)
-const editingSetIdInModal = ref(null)
-
-const handleCreateSet = () => {
-  showCreateSetModal.value = false
-}
-
-const handleCancelCreateSet = () => {
-  showCreateSetModal.value = false
-}
 
 // Selection data
 const selection = ref(null)
@@ -1064,6 +1112,79 @@ const handleCopyFilenames = async item => {
   }
 }
 
+// Use selection actions composable
+const selectionId = computed(() => selection.value?.id)
+const { copyFilenames, resetSelectionLimit, isCopyingFilenames, isResettingLimit } =
+  useSelectionActions(selectionId)
+
+// Use selection progress composable
+const {
+  overallProgress: overallProgressFromComposable,
+  setsProgress,
+  getSetProgress,
+} = useSelectionProgress(
+  () => mediaItems.value,
+  () => mediaSets.value
+)
+
+// Override overallProgress for completed selections to use selection's stored counts
+const overallProgress = computed(() => {
+  // For completed selections, use the selection's stored counts (stable values)
+  if (selection.value?.status === 'completed') {
+    // Try different property names that might come from the backend
+    const selected =
+      selection.value.selected_count ||
+      selection.value.selectedCount ||
+      selection.value.selectedMediaCount ||
+      0
+    const total = selection.value.media_count || selection.value.mediaCount || 0
+    const percentage = total > 0 ? Math.round((selected / total) * 100) : 0
+
+    return {
+      selected,
+      total,
+      percentage,
+    }
+  }
+
+  // For active/draft selections, use the composable's progress
+  return overallProgressFromComposable.value
+})
+
+// Create a computed object for set progress (for easy lookup)
+const setProgressMap = computed(() => {
+  const map = {}
+  if (mediaSets.value && mediaItems.value) {
+    mediaSets.value.forEach(set => {
+      map[set.id] = getSetProgress(set.id)
+    })
+  }
+  return map
+})
+
+// Count of items with isSelected: true in current set
+const selectedCountInCurrentSet = computed(() => {
+  if (!selectedSetId.value) return 0
+  return sortedMediaItems.value.filter(item => item.isSelected === true).length
+})
+
+// Count of items with isSelected: true across entire selection
+// Use selection's stored count from backend for accuracy (includes all sets, not just loaded ones)
+const selectedCountAcrossSelection = computed(() => {
+  // For completed selections, use the selection's stored count
+  if (selection.value?.status === 'completed') {
+    return (
+      selection.value.selected_count ||
+      selection.value.selectedCount ||
+      selection.value.selectedMediaCount ||
+      0
+    )
+  }
+
+  // For active/draft selections, count from loaded media items
+  return mediaItems.value.filter(item => item.isSelected === true).length
+})
+
 const handleBulkCopyFilenames = async () => {
   if (selectedMediaIds.value.size === 0) {
     toast.info('No items selected', {
@@ -1073,7 +1194,9 @@ const handleBulkCopyFilenames = async () => {
   }
 
   try {
-    const selectedItems = sortedMediaItems.value.filter(item => selectedMediaIds.value.has(item.id))
+    const selectedItems = sortedMediaItems.value.filter(item =>
+      selectedMediaIds.value.has(getItemId(item))
+    )
 
     // Extract filenames from selected items
     const filenames = selectedItems.map(item => {
@@ -1094,6 +1217,174 @@ const handleBulkCopyFilenames = async () => {
       description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
   }
+}
+
+// Copy filenames of items with isSelected: true in a specific set
+const handleCopySelectedFilenamesInSet = async setId => {
+  if (!setId) return
+
+  // For completed selections, use the backend API to get selected filenames for the set
+  if (selection.value?.status === 'completed') {
+    try {
+      const result = await selectionsApi.getSelectedFilenames(selection.value.id, setId)
+      const filenames = result.filenames || []
+
+      if (filenames.length === 0) {
+        toast.info('No selected items', {
+          description: 'No items with selected status in this set.',
+        })
+        return
+      }
+
+      // Copy to clipboard (join with comma and space for consistency)
+      const filenamesText = filenames.join(', ')
+      await navigator.clipboard.writeText(filenamesText)
+
+      toast.success('Filenames copied', {
+        description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
+      })
+    } catch (error) {
+      toast.error('Failed to copy filenames', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
+    return
+  }
+
+  // For active/draft selections, use loaded media items
+  const setItems = mediaItems.value.filter(item => item.setId === setId)
+  const selectedItems = setItems.filter(item => item.isSelected === true)
+
+  if (selectedItems.length === 0) {
+    toast.info('No selected items', {
+      description: 'No items with selected status in this set.',
+    })
+    return
+  }
+
+  try {
+    const filenames = selectedItems.map(item => {
+      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
+    })
+
+    const filenamesText = filenames.join(', ')
+    await navigator.clipboard.writeText(filenamesText)
+
+    toast.success('Filenames copied', {
+      description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
+    })
+  } catch (error) {
+    toast.error('Failed to copy filenames', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  }
+}
+
+// Copy filenames of all items with isSelected: true across the entire selection
+const handleCopyAllSelectedFilenames = async () => {
+  // For completed selections, use the backend API to get all selected filenames across all sets
+  if (selection.value?.status === 'completed') {
+    try {
+      const result = await selectionsApi.getSelectedFilenames(selection.value.id, null)
+      const filenames = result.filenames || []
+
+      if (filenames.length === 0) {
+        toast.info('No selected items', {
+          description: 'No items with selected status in this selection.',
+        })
+        return
+      }
+
+      // Copy to clipboard (join with comma and space for consistency)
+      const filenamesText = filenames.join(', ')
+      await navigator.clipboard.writeText(filenamesText)
+
+      toast.success('Filenames copied', {
+        description: `${filenames.length} selected filename(s) across all sets copied to clipboard.`,
+      })
+    } catch (error) {
+      toast.error('Failed to copy filenames', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
+    return
+  }
+
+  // For active/draft selections, use loaded media items
+  const selectedItems = mediaItems.value.filter(item => item.isSelected === true)
+
+  if (selectedItems.length === 0) {
+    toast.info('No selected items', {
+      description: 'No items with selected status in this selection.',
+    })
+    return
+  }
+
+  try {
+    const filenames = selectedItems.map(item => {
+      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
+    })
+
+    const filenamesText = filenames.join(', ')
+    await navigator.clipboard.writeText(filenamesText)
+
+    toast.success('Filenames copied', {
+      description: `${filenames.length} selected filename(s) across all sets copied to clipboard.`,
+    })
+  } catch (error) {
+    toast.error('Failed to copy filenames', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  }
+}
+
+// Handle copy filenames per set
+const handleCopyFilenamesPerSet = async setId => {
+  await copyFilenames(setId)
+}
+
+// Handle reset selection limit
+const handleResetSelectionLimit = async () => {
+  try {
+    const updatedSelection = await resetSelectionLimit()
+    if (updatedSelection) {
+      selection.value = updatedSelection
+    }
+  } catch (error) {
+    // Error is already handled in composable
+  }
+}
+
+// Selection limit modals state
+const showSelectionLimitModal = ref(false)
+const isSavingSelectionLimit = ref(false)
+
+// Handle selection limit modal
+const handleOpenSelectionLimitModal = () => {
+  showSelectionLimitModal.value = true
+}
+
+const handleSaveSelectionLimit = async limit => {
+  if (!selection.value?.id) return
+
+  isSavingSelectionLimit.value = true
+  try {
+    const updatedSelection = await selectionsApi.updateSelection(selection.value.id, {
+      selectionLimit: limit,
+    })
+    selection.value = updatedSelection
+    showSelectionLimitModal.value = false
+  } catch (error) {
+    toast.error('Failed to update selection limit', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isSavingSelectionLimit.value = false
+  }
+}
+
+const handleCancelSelectionLimit = () => {
+  showSelectionLimitModal.value = false
 }
 
 const handleMoveCopy = item => {
@@ -1269,21 +1560,37 @@ const handleConfirmMoveCopy = async () => {
 }
 
 const handleToggleMediaSelection = id => {
-  if (selectedMediaIds.value.has(id)) {
-    selectedMediaIds.value.delete(id)
+  // Normalize ID to string
+  const normalizedId = id ? String(id) : ''
+  if (!normalizedId) return
+
+  // Create a new Set to trigger reactivity
+  const newSet = new Set(selectedMediaIds.value)
+  if (newSet.has(normalizedId)) {
+    newSet.delete(normalizedId)
   } else {
-    selectedMediaIds.value.add(id)
+    newSet.add(normalizedId)
   }
+  selectedMediaIds.value = newSet
+}
+
+// Helper to get item ID (handles both id and uuid, always returns string)
+const getItemId = item => {
+  if (!item) return ''
+  const id = item.id ?? item.uuid
+  return id ? String(id) : ''
 }
 
 const handleToggleSelectAll = () => {
-  if (selectedMediaIds.value.size === sortedMediaItems.value.length) {
-    selectedMediaIds.value.clear()
+  const newSet = new Set(selectedMediaIds.value)
+  if (newSet.size === sortedMediaItems.value.length) {
+    newSet.clear()
   } else {
     sortedMediaItems.value.forEach(item => {
-      selectedMediaIds.value.add(item.id)
+      newSet.add(getItemId(item))
     })
   }
+  selectedMediaIds.value = newSet
 }
 
 const handleBulkDelete = () => {

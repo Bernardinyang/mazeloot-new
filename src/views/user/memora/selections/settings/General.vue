@@ -1,6 +1,15 @@
 <template>
   <SelectionLayout :is-loading="isLoading" :selection="selection" @go-back="goBack">
     <template #content>
+      <!-- Selection Limit Modal -->
+      <SelectionLimitModal
+        v-model="showSelectionLimitModal"
+        :current-limit="selection?.selectionLimit"
+        :is-saving="isSavingSelectionLimit"
+        @save="handleSaveSelectionLimit"
+        @cancel="handleCancelSelectionLimit"
+      />
+
       <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
@@ -78,6 +87,60 @@
               </div>
             </div>
 
+            <!-- Allowed Emails -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+            >
+              <div>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Allowed Emails</h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                  Specify which email addresses are allowed to access this selection. Leave empty to
+                  allow all emails.
+                </p>
+              </div>
+              <div class="space-y-3 max-w-2xl">
+                <div
+                  v-for="(email, index) in allowedEmails || []"
+                  :key="index"
+                  class="flex items-center gap-2"
+                >
+                  <Input
+                    v-model="allowedEmails[index]"
+                    :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                    class="flex-1"
+                    placeholder="email@example.com"
+                    type="email"
+                    @blur="handleAllowedEmailsChange"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    :class="[theme.textSecondary, theme.bgButtonHover]"
+                    @click="removeAllowedEmail(index)"
+                  >
+                    <X class="h-4 w-4" />
+                  </Button>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :class="[theme.borderSecondary, theme.textPrimary]"
+                  @click="addAllowedEmail"
+                >
+                  <Plus class="h-4 w-4 mr-2" />
+                  Add Email
+                </Button>
+                <p
+                  v-if="!allowedEmails || allowedEmails.length === 0"
+                  :class="theme.textSecondary"
+                  class="text-xs italic"
+                >
+                  No email restrictions. Anyone with the link can access this selection.
+                </p>
+              </div>
+            </div>
+
             <!-- Password Protection -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -94,25 +157,38 @@
                 </div>
                 <div class="flex-shrink-0 pt-1">
                   <ToggleSwitch
-                    v-model="hasPassword"
+                    :model-value="hasPassword"
                     label=""
                     @update:model-value="handlePasswordToggle"
                   />
                 </div>
               </div>
               <div v-if="hasPassword" class="space-y-3 max-w-md">
-                <PasswordInput
-                  v-if="!isChangingPassword"
-                  :model-value="passwordPlaceholder"
-                  :input-class="[
-                    theme.bgInput,
-                    theme.borderInput,
-                    theme.textInput,
-                    'focus:ring-2 focus:ring-teal-500/20 transition-all',
-                  ]"
-                  disabled
-                  placeholder="Enter new password"
-                />
+                <div v-if="!isChangingPassword" class="flex items-center gap-2">
+                  <div class="flex-1">
+                    <PasswordInput
+                      :model-value="passwordDisplay"
+                      :input-class="[
+                        theme.bgInput,
+                        theme.borderInput,
+                        theme.textInput,
+                        'w-full focus:ring-2 focus:ring-teal-500/20 transition-all',
+                      ]"
+                      readonly
+                      placeholder="Password"
+                    />
+                  </div>
+                  <Button
+                    :class="[theme.borderSecondary, theme.textPrimary]"
+                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    size="sm"
+                    variant="outline"
+                    @click="handleCopyPassword"
+                  >
+                    <Copy class="h-4 w-4 mr-2" />
+                    Copy
+                  </Button>
+                </div>
                 <PasswordInput
                   v-else
                   v-model="newPassword"
@@ -145,6 +221,51 @@
                     {{ isSavingPassword ? 'Saving...' : 'Save Password' }}
                   </Button>
                 </div>
+              </div>
+            </div>
+
+            <!-- Selection Limit -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Selection Limit
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Set the maximum number of media items clients can select from this selection.
+                    Leave empty for unlimited.
+                  </p>
+                </div>
+              </div>
+              <div class="space-y-3 max-w-md">
+                <div class="flex items-center gap-3">
+                  <div class="flex-1">
+                    <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Current Limit</p>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      {{
+                        selection?.selectionLimit
+                          ? `${selection.selectionLimit} items`
+                          : 'Unlimited'
+                      }}
+                    </p>
+                  </div>
+                  <Button
+                    :class="[theme.borderSecondary, theme.textPrimary]"
+                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    size="sm"
+                    variant="outline"
+                    @click="handleOpenSelectionLimitModal"
+                  >
+                    <Settings class="h-4 w-4 mr-2" />
+                    {{ selection?.selectionLimit ? 'Change Limit' : 'Set Limit' }}
+                  </Button>
+                </div>
+                <p :class="theme.textSecondary" class="text-xs italic">
+                  This limit applies to all sets unless a set has its own limit.
+                </p>
               </div>
             </div>
 
@@ -437,7 +558,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Info, Loader2 } from 'lucide-vue-next'
+import { Copy, Info, Loader2, X, Plus, Settings } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -450,6 +571,7 @@ import {
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
+import SelectionLimitModal from '@/components/organisms/SelectionLimitModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useSelectionsApi } from '@/api/selections'
@@ -471,11 +593,18 @@ const isSaving = ref(false)
 const selectionName = ref('')
 const selectionColor = ref('#10B981')
 const hasPassword = ref(false)
+const currentPassword = ref('') // Store the actual password value
 const isChangingPassword = ref(false)
 const newPassword = ref('')
 const isSavingPassword = ref(false)
 const autoDeleteEnabled = ref(false)
 const autoDeleteDays = ref(30)
+const allowedEmails = ref([])
+const isSavingAllowedEmails = ref(false)
+
+// Selection limit modal state
+const showSelectionLimitModal = ref(false)
+const isSavingSelectionLimit = ref(false)
 
 // Original values for change tracking
 const originalValues = ref({
@@ -487,6 +616,7 @@ const originalValues = ref({
   gridSize: 'small',
   showFilename: true,
   sortOrder: 'uploaded-new-old',
+  allowedEmails: [],
 })
 
 // Display preferences (from store)
@@ -494,8 +624,9 @@ const { viewMode, gridSize, showFilename, sortOrder } = storeToRefs(selectionSto
 
 // Computed
 
-const passwordPlaceholder = computed(() => {
-  return hasPassword.value ? '••••••••' : ''
+const passwordDisplay = computed(() => {
+  if (!hasPassword.value) return ''
+  return currentPassword.value || '••••••••'
 })
 
 const autoDeleteDate = computed(() => {
@@ -543,6 +674,15 @@ onMounted(async () => {
     selectionName.value = selectionData.name || ''
     selectionColor.value = selectionData.color || '#10B981'
     hasPassword.value = !!selectionData.hasPassword || !!selectionData.password
+
+    // Set password from backend response (only available for owner)
+    if (selectionData.password) {
+      currentPassword.value = selectionData.password
+    }
+
+    // Initialize allowedEmails as array
+    const emails = selectionData.allowedEmails || selectionData.allowed_emails
+    allowedEmails.value = Array.isArray(emails) && emails.length > 0 ? [...emails] : []
     autoDeleteEnabled.value = !!selectionData.autoDeleteDate || !!selectionData.auto_delete_date
     if (selectionData.autoDeleteDate || selectionData.auto_delete_date) {
       // Calculate days from completion date if available
@@ -582,6 +722,7 @@ onMounted(async () => {
       gridSize: gridSize.value,
       showFilename: showFilename.value,
       sortOrder: sortOrder.value,
+      allowedEmails: [...allowedEmails.value],
     }
   } catch (error) {
     toast.error('Failed to load selection', {
@@ -748,13 +889,65 @@ const handleSave = async () => {
   }
 }
 
-const handlePasswordToggle = enabled => {
-  if (enabled && !hasPassword.value) {
-    // Password is being enabled but no password set yet
-    isChangingPassword.value = true
-  } else if (!enabled) {
-    // User wants to disable password - they'll need to save it
-    hasPassword.value = false
+const handlePasswordToggle = async enabled => {
+  if (!selection.value?.id) return
+
+  // Store the previous state to check what changed
+  const wasEnabled = hasPassword.value
+
+  if (enabled && !wasEnabled) {
+    // Password is being enabled
+    if (currentPassword.value) {
+      // If we have a password stored, enable it immediately
+      try {
+        await selectionsApi.updateSelection(selection.value.id, {
+          password: currentPassword.value,
+        })
+        hasPassword.value = true
+        // Update selection object
+        if (selection.value) {
+          selection.value.password = currentPassword.value
+          selection.value.hasPassword = true
+        }
+        toast.success('Password enabled', {
+          description: 'Password protection has been enabled for this selection.',
+        })
+      } catch (error) {
+        // Revert the toggle if API call fails
+        hasPassword.value = false
+        toast.error('Failed to enable password', {
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+        })
+      }
+    } else {
+      // No password set yet - prompt user to enter one
+      hasPassword.value = true // Update UI to show password input
+      isChangingPassword.value = true
+    }
+  } else if (!enabled && wasEnabled) {
+    // User wants to disable password - remove it from backend
+    try {
+      await selectionsApi.updateSelection(selection.value.id, {
+        password: '', // Empty string will set password to null in backend
+      })
+      hasPassword.value = false
+      currentPassword.value = ''
+      isChangingPassword.value = false // Reset password change mode
+      // Update selection object
+      if (selection.value) {
+        selection.value.password = null
+        selection.value.hasPassword = false
+      }
+      toast.success('Password removed', {
+        description: 'Password protection has been disabled for this selection.',
+      })
+    } catch (error) {
+      // Revert the toggle if API call fails
+      hasPassword.value = true
+      toast.error('Failed to remove password', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
   }
 }
 
@@ -768,10 +961,29 @@ const handleSavePassword = async () => {
 
   isSavingPassword.value = true
   try {
-    await selectionsApi.updateSelection(selection.value.id, {
+    const response = await selectionsApi.updateSelection(selection.value.id, {
       password: newPassword.value,
     })
     hasPassword.value = true
+    // Update password from backend response
+    // The response structure is: { data: { ...selection data... } }
+    const updatedSelection = response?.data || response
+    if (updatedSelection?.password) {
+      currentPassword.value = updatedSelection.password
+    } else {
+      currentPassword.value = newPassword.value // Fallback to the value we just set
+    }
+    // Also update the selection object to reflect the new password
+    if (selection.value) {
+      selection.value.password = currentPassword.value
+      selection.value.hasPassword = true
+    }
+    // Refresh the selection data to get the latest from backend
+    const refreshedSelection = await selectionStore.fetchSelection(selection.value.id)
+    if (refreshedSelection?.password) {
+      currentPassword.value = refreshedSelection.password
+      selection.value = refreshedSelection
+    }
     isChangingPassword.value = false
     newPassword.value = ''
     toast.success('Password set', {
@@ -783,6 +995,94 @@ const handleSavePassword = async () => {
     })
   } finally {
     isSavingPassword.value = false
+  }
+}
+
+const handleCopyPassword = async () => {
+  if (!currentPassword.value) {
+    toast.error('No password available', {
+      description: 'Password is not set or not available.',
+    })
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(currentPassword.value)
+    toast.success('Password copied!', {
+      description: 'Password has been copied to clipboard.',
+    })
+  } catch (error) {
+    toast.error('Failed to copy', {
+      description: 'Could not copy password to clipboard. Please try again.',
+    })
+  }
+}
+
+// Allowed emails management
+const addAllowedEmail = () => {
+  if (!Array.isArray(allowedEmails.value)) {
+    allowedEmails.value = []
+  }
+  allowedEmails.value.push('')
+}
+
+const removeAllowedEmail = index => {
+  if (!Array.isArray(allowedEmails.value)) {
+    allowedEmails.value = []
+    return
+  }
+  allowedEmails.value.splice(index, 1)
+  handleAllowedEmailsChange()
+}
+
+const handleAllowedEmailsChange = async () => {
+  if (!selection.value) return
+
+  // Ensure allowedEmails is an array
+  const emailsArray = Array.isArray(allowedEmails.value) ? allowedEmails.value : []
+
+  // Filter out empty emails and validate
+  const validEmails = emailsArray
+    .map(email => (email || '').trim().toLowerCase())
+    .filter(email => {
+      if (!email) return false
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      return emailRegex.test(email)
+    })
+
+  // Remove duplicates
+  const uniqueEmails = [...new Set(validEmails)]
+
+  // Update the array
+  allowedEmails.value = uniqueEmails.length > 0 ? uniqueEmails : []
+
+  // Save if changed
+  const currentEmails = selection.value.allowedEmails || selection.value.allowed_emails || []
+  if (JSON.stringify(uniqueEmails.sort()) !== JSON.stringify([...currentEmails].sort())) {
+    isSavingAllowedEmails.value = true
+    try {
+      await selectionsApi.updateSelection(selection.value.id, {
+        allowedEmails: uniqueEmails.length > 0 ? uniqueEmails : null,
+      })
+      const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
+      selection.value = updatedSelection
+      toast.success('Allowed emails updated', {
+        description: 'The allowed emails list has been updated.',
+      })
+    } catch (error) {
+      toast.error('Failed to update allowed emails', {
+        description: error?.message || 'An unknown error occurred',
+      })
+      // Reload to get original values
+      const selectionData = await selectionStore.fetchSelection(selection.value.id)
+      allowedEmails.value = Array.isArray(selectionData.allowedEmails)
+        ? [...selectionData.allowedEmails]
+        : Array.isArray(selectionData.allowed_emails)
+          ? [...selectionData.allowed_emails]
+          : []
+    } finally {
+      isSavingAllowedEmails.value = false
+    }
   }
 }
 
@@ -807,5 +1107,38 @@ const formatDate = date => {
     month: 'long',
     day: 'numeric',
   })
+}
+
+// Selection limit handlers
+const handleOpenSelectionLimitModal = () => {
+  showSelectionLimitModal.value = true
+}
+
+const handleSaveSelectionLimit = async limit => {
+  if (!selection.value?.id) return
+
+  isSavingSelectionLimit.value = true
+  try {
+    const updatedSelection = await selectionsApi.updateSelection(selection.value.id, {
+      selectionLimit: limit,
+    })
+    selection.value = updatedSelection
+    showSelectionLimitModal.value = false
+    toast.success('Selection limit updated', {
+      description: limit
+        ? `Clients can now select up to ${limit} items.`
+        : 'Selection limit removed.',
+    })
+  } catch (error) {
+    toast.error('Failed to update selection limit', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isSavingSelectionLimit.value = false
+  }
+}
+
+const handleCancelSelectionLimit = () => {
+  showSelectionLimitModal.value = false
 }
 </script>

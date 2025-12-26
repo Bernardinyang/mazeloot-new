@@ -1,7 +1,16 @@
 <template>
   <div class="group">
     <div
-      :class="props.isSelected ? 'ring-2 ring-teal-500 ring-offset-2' : ''"
+      :class="[
+        props.isSelected
+          ? 'ring-2 ring-teal-500 ring-offset-2 opacity-100'
+          : props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
+            ? 'opacity-100'
+            : props.selectionStatus === 'completed'
+              ? 'opacity-50 grayscale'
+              : 'opacity-60 hover:opacity-100',
+        props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
+      ]"
       class="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl border border-gray-200 dark:border-gray-700"
     >
       <!-- Selection Checkbox -->
@@ -90,6 +99,19 @@
           title="Starred"
         >
           <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+      </div>
+
+      <!-- Was Selected on Completion Badge (bottom right, like star badge) -->
+      <div
+        v-if="props.wasSelectedOnCompletion && props.selectionStatus === 'completed'"
+        class="absolute bottom-2 right-2 z-30"
+      >
+        <div
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-green-500/90 backdrop-blur-sm shadow-lg"
+          title="Selected when completed"
+        >
+          <CheckCircle2 class="h-4 w-4 fill-white text-white" />
         </div>
       </div>
 
@@ -224,6 +246,7 @@ import {
   revokeMediaBlobUrl,
 } from '@/utils/media/getMediaDisplayUrl'
 import {
+  CheckCircle2,
   CheckSquare2,
   Copy,
   Download,
@@ -265,6 +288,14 @@ const props = defineProps({
   placeholderImage: {
     type: String,
     required: true,
+  },
+  selectionStatus: {
+    type: String,
+    default: null,
+  },
+  wasSelectedOnCompletion: {
+    type: Boolean,
+    default: false,
   },
 })
 

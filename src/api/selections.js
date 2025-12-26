@@ -81,6 +81,10 @@ export function useSelectionsApi() {
     try {
       const response = await apiClient.post('/v1/selections', {
         name: data.name,
+        description:
+          data.description !== null && data.description !== undefined
+            ? data.description.trim() || null
+            : null,
         project_uuid: data.projectUuid || data.project_uuid || null,
         status: data.status || 'active',
         color: data.color || '#10B981',
@@ -99,13 +103,30 @@ export function useSelectionsApi() {
     try {
       const updateData = {}
       if (data.name !== undefined) updateData.name = data.name
+      // Always include description if it's provided (even if null)
+      // Note: We check !== undefined because null is a valid value we want to send
+      if ('description' in data) {
+        // If description is null, send null. If it's a string, trim it and send null if empty
+        updateData.description =
+          data.description === null || data.description === undefined
+            ? null
+            : String(data.description).trim() || null
+      }
       if (data.status !== undefined) updateData.status = data.status
       if (data.color !== undefined) updateData.color = data.color
       if (data.coverPhotoUrl !== undefined || data.cover_photo_url !== undefined) {
         updateData.cover_photo_url = data.coverPhotoUrl || data.cover_photo_url
       }
       if (data.password !== undefined) updateData.password = data.password
+      if (data.allowedEmails !== undefined || data.allowed_emails !== undefined) {
+        updateData.allowedEmails =
+          data.allowedEmails !== undefined ? data.allowedEmails : data.allowed_emails
+      }
       if (data.autoDeleteDate !== undefined) updateData.auto_delete_date = data.autoDeleteDate
+      if (data.selectionLimit !== undefined || data.selection_limit !== undefined) {
+        updateData.selection_limit =
+          data.selectionLimit !== undefined ? data.selectionLimit : data.selection_limit
+      }
 
       const response = await apiClient.patch(`/v1/selections/${id}`, updateData)
       return response.data
@@ -151,17 +172,28 @@ export function useSelectionsApi() {
   }
 
   /**
-   * Complete selection (guest access - marks media as selected and completes)
+   * Complete selection (works for both authenticated and guest access)
+   * For guest access, guest token should be in headers
    */
-  const completeSelection = async (id, mediaIds) => {
+  const completeSelection = async (id, mediaIds, guestToken = null) => {
     try {
+      const headers = {}
+      if (guestToken) {
+        headers.Authorization = `Bearer ${guestToken}`
+      }
+
+      const endpoint = guestToken
+        ? `/v1/public/selections/${id}/complete`
+        : `/v1/selections/${id}/complete`
+
       const response = await apiClient.post(
-        `/v1/guest/selections/${id}/complete`,
+        endpoint,
         {
           mediaIds: mediaIds || [],
         },
         {
-          skipAuth: true, // Guest token is handled via middleware
+          headers,
+          skipAuth: !!guestToken, // Skip auth if using guest token
         }
       )
       return response.data
@@ -204,10 +236,17 @@ export function useSelectionsApi() {
 
   /**
    * Get selected filenames
+   * @param {string} id - Selection ID
+   * @param {string|null} setId - Optional Media Set ID to filter by set
    */
-  const getSelectedFilenames = async id => {
+  const getSelectedFilenames = async (id, setId = null) => {
     try {
-      const response = await apiClient.get(`/v1/selections/${id}/filenames`)
+      const queryParams = new URLSearchParams()
+      if (setId) {
+        queryParams.append('setId', setId)
+      }
+      const url = `/v1/selections/${id}/filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(url)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -216,11 +255,26 @@ export function useSelectionsApi() {
 
   /**
    * Copy selected filenames (helper that gets and formats filenames)
+   * @param {string} id - Selection ID
+   * @param {string|null} setId - Optional Media Set ID to filter by set
    */
-  const copyFilenames = async id => {
+  const copyFilenames = async (id, setId = null) => {
     try {
-      const result = await getSelectedFilenames(id)
+      const result = await getSelectedFilenames(id, setId)
       return result.filenames || []
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Reset selection limit
+   * @param {string} id - Selection ID
+   */
+  const resetSelectionLimit = async id => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${id}/reset-limit`)
+      return response.data
     } catch (error) {
       throw parseError(error)
     }
@@ -277,11 +331,20 @@ export function useSelectionsApi() {
    */
   const createMediaSet = async (selectionId, data) => {
     try {
-      const response = await apiClient.post(`/v1/selections/${selectionId}/sets`, {
+      const { normalizeSelectionLimit } = await import('@/utils/selectionLimit')
+      const createData = {
         name: data.name,
         description: data.description || null,
         order: data.order || 0,
-      })
+      }
+
+      // Include selectionLimit if provided (including null to clear limit)
+      if (data.selectionLimit !== undefined || data.selection_limit !== undefined) {
+        const limit = data.selectionLimit !== undefined ? data.selectionLimit : data.selection_limit
+        createData.selection_limit = normalizeSelectionLimit(limit)
+      }
+
+      const response = await apiClient.post(`/v1/selections/${selectionId}/sets`, createData)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -293,11 +356,21 @@ export function useSelectionsApi() {
    */
   const updateMediaSet = async (selectionId, setId, data) => {
     try {
-      const response = await apiClient.patch(`/v1/selections/${selectionId}/sets/${setId}`, {
-        name: data.name,
-        description: data.description,
-        order: data.order,
-      })
+      const updateData = {}
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.description !== undefined) updateData.description = data.description
+      if (data.order !== undefined) updateData.order = data.order
+
+      // Always include selection_limit if it's provided in data (check for both camelCase and snake_case)
+      if ('selectionLimit' in data || 'selection_limit' in data) {
+        const { normalizeSelectionLimit } = await import('@/utils/selectionLimit')
+        const limit = data.selectionLimit !== undefined ? data.selectionLimit : data.selection_limit
+        updateData.selection_limit = normalizeSelectionLimit(limit)
+      }
+      const response = await apiClient.patch(
+        `/v1/selections/${selectionId}/sets/${setId}`,
+        updateData
+      )
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -589,10 +662,37 @@ export function useSelectionsApi() {
   /**
    * Generate guest token for a selection
    */
+  /**
+   * Verify password for a public selection
+   */
+  const verifyPassword = async (selectionId, password) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/selections/${selectionId}/verify-password`,
+        { password },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const checkSelectionStatus = async selectionId => {
+    try {
+      const response = await apiClient.get(`/v1/public/selections/${selectionId}/status`, {
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const generateGuestToken = async (selectionId, email) => {
     try {
       const response = await apiClient.post(
-        `/v1/selections/${selectionId}/guest-token`,
+        `/v1/public/selections/${selectionId}/token`,
         {
           email: email,
         },
@@ -611,7 +711,7 @@ export function useSelectionsApi() {
    */
   const fetchSelectionGuest = async (id, guestToken) => {
     try {
-      const response = await apiClient.get(`/v1/guest/selections/${id}`, {
+      const response = await apiClient.get(`/v1/public/selections/${id}`, {
         headers: {
           Authorization: `Bearer ${guestToken}`,
         },
@@ -628,7 +728,7 @@ export function useSelectionsApi() {
    */
   const fetchMediaSetsGuest = async (id, guestToken) => {
     try {
-      const response = await apiClient.get(`/v1/guest/selections/${id}/sets`, {
+      const response = await apiClient.get(`/v1/public/selections/${id}/sets`, {
         headers: {
           Authorization: `Bearer ${guestToken}`,
         },
@@ -645,7 +745,7 @@ export function useSelectionsApi() {
    */
   const fetchMediaSetGuest = async (id, setId, guestToken) => {
     try {
-      const response = await apiClient.get(`/v1/guest/selections/${id}/sets/${setId}`, {
+      const response = await apiClient.get(`/v1/public/selections/${id}/sets/${setId}`, {
         headers: {
           Authorization: `Bearer ${guestToken}`,
         },
@@ -662,7 +762,50 @@ export function useSelectionsApi() {
    */
   const fetchSetMediaGuest = async (id, setId, guestToken) => {
     try {
-      const response = await apiClient.get(`/v1/guest/selections/${id}/sets/${setId}/media`, {
+      const response = await apiClient.get(`/v1/public/selections/${id}/sets/${setId}/media`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle selected status for media (guest access)
+   */
+  const toggleSelectedGuest = async (id, mediaId, guestToken) => {
+    try {
+      const response = await apiClient.patch(
+        `/v1/public/selections/${id}/media/${mediaId}/toggle-selected`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true, // Using guest token instead
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get selected filenames (guest access)
+   */
+  const getSelectedFilenamesGuest = async (id, guestToken, setId = null) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (setId) {
+        queryParams.append('setId', setId)
+      }
+      const url = `/v1/public/selections/${id}/filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(url, {
         headers: {
           Authorization: `Bearer ${guestToken}`,
         },
@@ -688,6 +831,7 @@ export function useSelectionsApi() {
     getSelectedMedia,
     getSelectedFilenames,
     copyFilenames,
+    resetSelectionLimit,
     setCoverPhotoFromMedia,
 
     // Media Sets
@@ -711,10 +855,14 @@ export function useSelectionsApi() {
     downloadMedia,
 
     // Guest Access
+    checkSelectionStatus,
+    verifyPassword,
     generateGuestToken,
     fetchSelectionGuest,
     fetchMediaSetsGuest,
     fetchMediaSetGuest,
     fetchSetMediaGuest,
+    toggleSelectedGuest,
+    getSelectedFilenamesGuest,
   }
 }

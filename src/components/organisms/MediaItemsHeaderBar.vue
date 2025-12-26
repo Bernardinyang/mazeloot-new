@@ -139,7 +139,20 @@
       </div>
 
       <Button
+        v-if="props.onCopySelectedFilenamesInSet && props.selectionStatus === 'completed'"
+        variant="outline"
+        size="sm"
+        :class="[theme.borderSecondary, theme.textPrimary]"
+        :disabled="props.isUploading || props.selectedCount === 0"
+        @click="handleCopySelectedFilenames"
+      >
+        <Copy class="h-4 w-4 mr-2" />
+        Copy Selected ({{ props.selectedCount }})
+      </Button>
+
+      <Button
         :disabled="props.isUploading"
+        size="sm"
         class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
         @click="emit('add-media')"
       >
@@ -154,7 +167,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ArrowUpDown, Check, Grid3x3, ImagePlus, List, Loader2 } from 'lucide-vue-next'
+import { ArrowUpDown, Check, Copy, Grid3x3, ImagePlus, List, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -208,6 +221,14 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
+  onCopySelectedFilenamesInSet: {
+    type: Function,
+    default: null,
+  },
+  selectionStatus: {
+    type: String,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['toggle-select-all', 'add-media'])
@@ -229,5 +250,11 @@ const handleFilenameToggle = event => {
 
 const handleViewModeChange = mode => {
   selectionStore.setViewMode(mode)
+}
+
+const handleCopySelectedFilenames = () => {
+  if (props.onCopySelectedFilenamesInSet) {
+    props.onCopySelectedFilenamesInSet()
+  }
 }
 </script>

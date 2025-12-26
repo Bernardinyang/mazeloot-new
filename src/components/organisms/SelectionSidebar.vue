@@ -1,10 +1,10 @@
 <template>
   <aside
     :class="[
-      'relative border-r transition-all duration-300 overflow-hidden',
+      'relative border-r transition-all duration-300',
       'bg-white dark:bg-gray-900',
       theme.borderSecondary,
-      props.isSidebarCollapsed ? 'w-16 p-0' : 'w-80 p-3 overflow-y-auto',
+      props.isSidebarCollapsed ? 'w-16 p-0 overflow-visible' : 'w-80 p-3 overflow-y-auto',
     ]"
     :style="
       props.isSidebarCollapsed
@@ -42,7 +42,8 @@
       >
         <CheckSquare
           v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
-          class="h-16 w-16 text-teal-500 dark:text-teal-400"
+          class="h-16 w-16"
+          :style="{ color: selectionColor.value }"
         />
         <!-- Video Cover -->
         <template v-else-if="isVideoCover">
@@ -103,8 +104,8 @@
         <button
           :class="[
             activeTab === 'photos'
-              ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/70',
+              ? 'bg-teal-500 dark:bg-teal-800 text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-teal-500 dark:hover:bg-teal-500',
             'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
           ]"
           @click="handleTabClick('photos')"
@@ -115,8 +116,8 @@
         <button
           :class="[
             activeTab === 'settings'
-              ? 'bg-white dark:bg-gray-800 text-teal-600 dark:text-teal-400 shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/70',
+              ? 'bg-teal-500 dark:bg-teal-800 text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-teal-500 dark:hover:bg-teal-500',
             'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
           ]"
           @click="handleTabClick('settings')"
@@ -128,7 +129,10 @@
     </div>
 
     <!-- Collapsed Sidebar - Icon Only Navigation (show for all tabs) -->
-    <div v-if="props.isSidebarCollapsed" class="flex flex-col items-center gap-3 pt-4 h-full pb-4">
+    <div
+      v-if="props.isSidebarCollapsed"
+      class="flex flex-col items-center gap-3 pt-4 h-full pb-4 overflow-visible"
+    >
       <!-- Cover Photo (Collapsed) -->
       <div
         :class="theme.borderSecondary"
@@ -160,7 +164,7 @@
           v-else
           class="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center"
         >
-          <CheckSquare class="h-5 w-5 text-teal-500 dark:text-teal-400" />
+          <CheckSquare class="h-5 w-5" :style="{ color: selectionColor.value }" />
         </div>
       </div>
 
@@ -225,17 +229,28 @@
             <button
               :class="[
                 props.activeTab === 'photos'
-                  ? 'bg-teal-500 text-white shadow-md'
-                  : theme.textSecondary +
-                    ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-teal-600 dark:hover:text-teal-400',
+                  ? 'text-white shadow-md'
+                  : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
               class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
+              :style="getActiveButtonStyle('photos')"
+              style="
+                props.activeTab === 'photos' ? 'background-color: ' + selectionColor.value + '; color: white;' : ''
+              "
+              @mouseenter="
+                props.activeTab !== 'photos' && (e => (e.target.style.color = selectionColor.value))
+              "
+              @mouseleave="props.activeTab !== 'photos' && (e => (e.target.style.color = ''))"
               @click="handleTabClick('photos')"
             >
-              <ImageIcon class="h-5 w-5" />
+              <ImageIcon
+                class="h-5 w-5"
+                :style="props.activeTab === 'photos' ? { color: 'white' } : {}"
+              />
               <span
                 v-if="props.activeTab === 'photos'"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full z-20"
+                :style="{ backgroundColor: selectionColor.value }"
               ></span>
             </button>
           </TooltipTrigger>
@@ -248,17 +263,26 @@
             <button
               :class="[
                 props.activeTab === 'settings'
-                  ? 'bg-teal-500 text-white shadow-md'
-                  : theme.textSecondary +
-                    ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-teal-600 dark:hover:text-teal-400',
+                  ? 'text-white shadow-md'
+                  : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
               ]"
               class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
+              :style="getActiveButtonStyle('settings')"
+              @mouseenter="
+                props.activeTab !== 'settings' &&
+                (e => (e.target.style.color = selectionColor.value))
+              "
+              @mouseleave="props.activeTab !== 'settings' && (e => (e.target.style.color = ''))"
               @click="handleTabClick('settings')"
             >
-              <Settings class="h-5 w-5" />
+              <Settings
+                class="h-5 w-5"
+                :style="props.activeTab === 'settings' ? { color: 'white' } : {}"
+              />
               <span
                 v-if="props.activeTab === 'settings'"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 rounded-r-full z-20"
+                :style="{ backgroundColor: selectionColor.value }"
               ></span>
             </button>
           </TooltipTrigger>
@@ -309,12 +333,19 @@ import {
 } from '@/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useRoute, useRouter } from 'vue-router'
-import { computed, ref, watch } from 'vue'
+import { computed, inject, ref, watch } from 'vue'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
+
+// Get selection color from parent (provided by SelectionLayout)
+const selectionColor = inject(
+  'selectionColor',
+  computed(() => '#10B981')
+)
+const getSelectionHoverColor = inject('getSelectionHoverColor', () => '#059669')
 
 const props = defineProps({
   activeTab: {
@@ -414,6 +445,26 @@ const handleImageError = event => {
     img.src = placeholderImage
   }
 }
+
+// Computed styles for active buttons
+const getActiveButtonStyle = tab => {
+  if (props.activeTab === tab) {
+    return {
+      backgroundColor: selectionColor.value,
+      color: 'white',
+    }
+  }
+  return {}
+}
+
+// Debug: log activeTab changes
+watch(
+  () => props.activeTab,
+  newVal => {
+    console.log('ActiveTab changed to:', newVal)
+  },
+  { immediate: true }
+)
 
 const handleTabClick = tab => {
   const selectionId = route.params.id

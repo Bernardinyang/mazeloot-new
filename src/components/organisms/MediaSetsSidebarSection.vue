@@ -106,12 +106,25 @@
             @keydown.esc="emit('cancel-set-name-edit')"
             @click.stop
           />
-          <span
-            :class="[props.selectedSetId === set.id ? 'bg-teal-500 text-white shadow-sm' : '']"
-            class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
-          >
-            {{ set.count }}
-          </span>
+          <div class="flex items-center gap-2">
+            <span
+              v-if="props.setProgress && props.setProgress[set.id]"
+              :class="[
+                props.selectedSetId === set.id
+                  ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                  : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
+                'text-xs px-2 py-1 rounded-full font-semibold',
+              ]"
+            >
+              {{ props.setProgress[set.id].selected }}/{{ props.setProgress[set.id].total }}
+            </span>
+            <span
+              :class="[props.selectedSetId === set.id ? 'bg-teal-500 text-white shadow-sm' : '']"
+              class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
+            >
+              {{ set.count }}
+            </span>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger as-child>
               <button
@@ -136,6 +149,16 @@
               >
                 <Pencil class="h-4 w-4 mr-2" />
                 Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                v-if="props.selectionStatus === 'completed'"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                :disabled="props.isSavingSets || props.isCopyingFilenames"
+                @click="emit('copy-filenames', set.id)"
+              >
+                <Copy v-if="!props.isCopyingFilenames" class="h-4 w-4 mr-2" />
+                <Loader2 v-else class="h-4 w-4 mr-2 animate-spin" />
+                {{ props.isCopyingFilenames ? 'Copying...' : 'Copy All Selected Filenames' }}
               </DropdownMenuItem>
               <DropdownMenuItem
                 :class="[
@@ -166,10 +189,12 @@
 
 <script setup>
 import {
+  Copy,
   Loader2,
   MoreVertical,
   Pencil,
   Plus,
+  Settings,
   Trash2,
   GripVertical,
   ImageIcon,
@@ -230,6 +255,22 @@ const props = defineProps({
     type: String,
     required: true,
   },
+  selectionStatus: {
+    type: String,
+    default: null,
+  },
+  isCopyingFilenames: {
+    type: Boolean,
+    default: false,
+  },
+  setProgress: {
+    type: Object,
+    default: () => ({}),
+  },
+  onCopySelectedFilenamesInSet: {
+    type: Function,
+    default: null,
+  },
 })
 
 const emit = defineEmits([
@@ -237,6 +278,8 @@ const emit = defineEmits([
   'select-set',
   'edit-set',
   'delete-set',
+  'copy-filenames',
+  'copy-selected-filenames',
   'save-set-name',
   'cancel-set-name-edit',
   'update:editingSetName',

@@ -23,6 +23,26 @@
         <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
 
+      <!-- Description -->
+      <div class="space-y-2">
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Description </label>
+        <Textarea
+          v-model="formData.description"
+          :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+          :maxlength="1000"
+          class="w-full min-h-[100px] resize-none"
+          placeholder="Optional description for this selection"
+        />
+        <div class="flex items-center justify-between">
+          <p :class="theme.textTertiary" class="text-xs">
+            Description is shown to clients viewing this selection.
+          </p>
+          <span :class="theme.textTertiary" class="text-xs">
+            {{ (formData.description || '').length }}/1000
+          </span>
+        </div>
+      </div>
+
       <!-- Color -->
       <ColorSelector v-model="formData.color" />
     </form>
@@ -61,6 +81,7 @@
 import { ref, reactive, watch } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
+import Textarea from '@/components/shadcn/Textarea.vue'
 import { Button } from '@/components/shadcn/button'
 import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -85,6 +106,7 @@ const { handleError } = useErrorHandler()
 
 const formData = reactive({
   name: '',
+  description: '',
   color: generateRandomColorFromPalette(), // Random color from palette
 })
 
@@ -97,6 +119,7 @@ watch(
     if (!newValue) {
       // Reset form when dialog closes
       formData.name = ''
+      formData.description = ''
       formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
@@ -105,6 +128,7 @@ watch(
 
 const handleCancel = () => {
   formData.name = ''
+  formData.description = ''
   errors.value = {}
   emit('update:open', false)
 }
@@ -121,6 +145,7 @@ const handleSubmit = async () => {
   try {
     const newSelection = await selectionStore.createSelection({
       name: formData.name.trim(),
+      description: formData.description?.trim() || null,
       color: formData.color,
       projectUuid: null,
     })

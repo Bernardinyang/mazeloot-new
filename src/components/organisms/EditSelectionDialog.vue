@@ -23,6 +23,26 @@
         <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
 
+      <!-- Description -->
+      <div class="space-y-2">
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Description </label>
+        <Textarea
+          v-model="formData.description"
+          :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+          :maxlength="1000"
+          class="w-full min-h-[100px] resize-none"
+          placeholder="Optional description for this selection"
+        />
+        <div class="flex items-center justify-between">
+          <p :class="theme.textTertiary" class="text-xs">
+            Description is shown to clients viewing this selection.
+          </p>
+          <span :class="theme.textTertiary" class="text-xs">
+            {{ (formData.description || '').length }}/1000
+          </span>
+        </div>
+      </div>
+
       <!-- Color -->
       <ColorSelector v-model="formData.color" />
     </form>
@@ -61,6 +81,7 @@
 import { reactive, ref, watch } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
+import Textarea from '@/components/shadcn/Textarea.vue'
 import { Button } from '@/components/shadcn/button'
 import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -89,42 +110,36 @@ const { handleError } = useErrorHandler()
 
 const formData = reactive({
   name: '',
+  description: '',
   color: generateRandomColorFromPalette(),
 })
 
 const errors = ref({})
 const isSubmitting = ref(false)
 
-// Populate form when dialog opens or selection changes
+// Populate form only when dialog opens (not when selection changes while open)
 watch(
   () => props.open,
   newValue => {
     if (newValue && props.selection) {
+      // Only populate when dialog opens, not when it's already open
       formData.name = props.selection.name || ''
+      formData.description = props.selection.description || ''
       formData.color = props.selection.color || generateRandomColorFromPalette()
       errors.value = {}
     } else if (!newValue) {
+      // Reset form when dialog closes
       formData.name = ''
+      formData.description = ''
       formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
   }
 )
 
-watch(
-  () => props.selection,
-  newSelection => {
-    if (props.open && newSelection) {
-      formData.name = newSelection.name || ''
-      formData.color = newSelection.color || generateRandomColorFromPalette()
-      errors.value = {}
-    }
-  },
-  { immediate: true }
-)
-
 const handleCancel = () => {
   formData.name = ''
+  formData.description = ''
   formData.color = generateRandomColorFromPalette()
   errors.value = {}
   emit('update:open', false)
@@ -138,10 +153,26 @@ const handleSubmit = async () => {
     return
   }
 
+  // Check if anything actually changed
+  // Normalize descriptions for comparison (treat null, undefined, and empty string as equivalent)
+  const normalizeForComparison = desc => {
+    if (desc === null || desc === undefined || desc === '') return ''
+    return String(desc).trim()
+  }
+
+  const formName = formData.name.trim()
+  const originalName = (props.selection?.name || '').trim()
+  const formDescription = normalizeForComparison(formData.description)
+  const originalDescription = normalizeForComparison(props.selection?.description)
+  const formColor = formData.color
+  const originalColor = props.selection?.color
+
+  // Only skip update if nothing changed
   if (
     props.selection &&
-    formData.name.trim() === props.selection.name &&
-    formData.color === props.selection.color
+    formName === originalName &&
+    formDescription === originalDescription &&
+    formColor === originalColor
   ) {
     emit('update:open', false)
     return
@@ -152,8 +183,13 @@ const handleSubmit = async () => {
   isSubmitting.value = true
   try {
     // Perform the update action inside the modal
+    // Always include description - normalize empty string to null
+    const descriptionValue =
+      formData.description && formData.description.trim() ? formData.description.trim() : null
+
     const updated = await selectionStore.updateSelection(props.selection.id, {
       name: formData.name.trim(),
+      description: descriptionValue, // Always send description (null if empty)
       color: formData.color,
     })
 

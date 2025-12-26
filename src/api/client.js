@@ -40,7 +40,7 @@ class ApiClient {
       const userStore = useUserStore()
       userStore.clearAuth()
 
-      // Only redirect if not already on auth pages
+      // Only redirect if not already on auth pages or public routes
       // Use window.location for hard redirect to reset app state properly
       const currentPath = window.location.pathname
       const isOnAuthPage =
@@ -50,7 +50,11 @@ class ApiClient {
         currentPath.includes('/forgot-password') ||
         currentPath.includes('/reset-password')
 
-      if (!isOnAuthPage) {
+      // Check if it's a public route (client selection/proofing/collection routes)
+      const isPublicRoute =
+        currentPath.startsWith('/p/') || currentPath === '/' || currentPath === '/about'
+
+      if (!isOnAuthPage && !isPublicRoute) {
         window.location.href = '/login'
       }
     }

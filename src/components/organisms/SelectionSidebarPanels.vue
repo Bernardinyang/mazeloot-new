@@ -13,10 +13,16 @@
       :media-sets="mediaSetsSidebar.mediaSets"
       :selected-set-id="mediaSetsSidebar.selectedSetId"
       :sorted-media-sets="mediaSetsSidebar.sortedMediaSets"
+      :selection-status="selectionActions.selectionStatus"
+      :is-copying-filenames="selectionActions.isCopyingFilenames"
+      :set-progress="selectionActions.setProgress"
+      :on-copy-selected-filenames-in-set="selectionActions.onCopySelectedFilenamesInSet"
       @add-set="mediaSetsSidebar.handleAddSet"
       @select-set="mediaSetsSidebar.handleSelectSet($event)"
       @edit-set="mediaSetsSidebar.handleEditSet($event)"
       @delete-set="mediaSetsSidebar.requestDeleteSet($event)"
+      @copy-filenames="handleCopyFilenames"
+      @copy-selected-filenames="handleCopySelectedFilenames"
       @save-set-name="mediaSetsSidebar.saveSetName($event)"
       @cancel-set-name-edit="mediaSetsSidebar.cancelSetNameEdit"
       @set-drag-start="
@@ -46,6 +52,7 @@
 </template>
 
 <script setup>
+import { computed, inject } from 'vue'
 import MediaSetsSidebarSection from '@/components/organisms/MediaSetsSidebarSection.vue'
 import SelectionSettingsSidebarNav from '@/components/organisms/SelectionSettingsSidebarNav.vue'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -58,4 +65,25 @@ const props = defineProps({
 })
 
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+
+// Inject selection actions and progress data
+const selectionActions = inject('selectionActions', {
+  onCopyFilenamesPerSet: null,
+  onCopySelectedFilenamesInSet: null,
+  isCopyingFilenames: false,
+  setProgress: {},
+  selectionStatus: null,
+})
+
+const handleCopyFilenames = setId => {
+  if (selectionActions.onCopyFilenamesPerSet) {
+    selectionActions.onCopyFilenamesPerSet(setId)
+  }
+}
+
+const handleCopySelectedFilenames = setId => {
+  if (selectionActions.onCopySelectedFilenamesInSet) {
+    selectionActions.onCopySelectedFilenamesInSet(setId)
+  }
+}
 </script>

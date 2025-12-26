@@ -27,26 +27,24 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
   // Status state
   const selectionStatus = ref('draft') // 'draft' | 'completed'
   const isSavingStatus = ref(false)
+  const isPublishing = ref(false)
+
+  // Email modal state
+  const showAddEmailModal = ref(false)
 
   // Share modal state
   const showShareModal = ref(false)
 
-  // Computed status from selection
   const effectiveStatus = computed(() => {
-    if (selection.value?.status === 'completed') return 'completed'
-    return selectionStatus.value || 'draft'
+    return selection.value?.status || selectionStatus.value || 'draft'
   })
 
-  // Computed loading state
   const isLoading = computed(() => selectionStore.isLoading)
 
-  /**
-   * Set the current selection
-   */
   const setSelection = sel => {
     selection.value = sel
-    if (sel) {
-      selectionStatus.value = sel.status === 'completed' ? 'completed' : 'draft'
+    if (sel?.status) {
+      selectionStatus.value = sel.status
     }
   }
 
@@ -180,6 +178,33 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
   }
 
   /**
+   * Update selection (for unpublishing, etc.)
+   */
+  const updateSelection = async updateData => {
+    if (!selection.value) return
+
+    isSavingStatus.value = true
+    try {
+      const updatedSelection = await selectionStore.updateSelection(selection.value.id, updateData)
+      if (updatedSelection) {
+        selection.value = updatedSelection
+        selectionStatus.value = updatedSelection.status || 'draft'
+      }
+      toast.success('Selection updated', {
+        description: 'The selection has been updated successfully.',
+      })
+      return updatedSelection
+    } catch (error) {
+      toast.error('Failed to update selection', {
+        description: error?.message || 'An unknown error occurred',
+      })
+      throw error
+    } finally {
+      isSavingStatus.value = false
+    }
+  }
+
+  /**
    * Open share modal
    */
   const openShareModal = () => {
@@ -193,6 +218,79 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
     showShareModal.value = false
   }
 
+  /**
+   * Publish selection (change status to active)
+   */
+  const handlePublish = async (skipValidation = false) => {
+    if (!selection.value) return
+
+    const currentStatus = selection.value.status
+    const newStatus =
+      currentStatus === 'draft' || currentStatus === 'completed' ? 'active' : 'draft'
+
+    // Validate that at least one email is in allowed_emails before publishing to active
+    if (newStatus === 'active' && !skipValidation) {
+      const allowedEmails = selection.value.allowedEmails || selection.value.allowed_emails || []
+      const validEmails = Array.isArray(allowedEmails)
+        ? allowedEmails.filter(email => email && email.trim())
+        : []
+
+      if (validEmails.length === 0) {
+        // Show modal to add emails
+        showAddEmailModal.value = true
+        return
+      }
+    }
+
+    isPublishing.value = true
+    try {
+      const updatedSelection = await selectionStore.publishSelection(selection.value.id)
+      if (updatedSelection) {
+        selection.value = updatedSelection
+        selectionStatus.value = updatedSelection.status || 'draft'
+
+        const finalStatus = updatedSelection.status
+        const messages = {
+          draft: {
+            title: 'Selection unpublished',
+            description: 'The selection has been moved back to draft.',
+          },
+          active:
+            currentStatus === 'completed'
+              ? {
+                  title: 'Selection republished',
+                  description: 'The selection has been republished and is now active.',
+                }
+              : {
+                  title: 'Selection published',
+                  description: 'The selection has been published and is now active.',
+                },
+        }
+
+        const message = messages[finalStatus] || messages['active']
+        toast.success(message.title, { description: message.description })
+      }
+      return updatedSelection
+    } catch (error) {
+      // Check if error is about missing allowed emails
+      const errorMessage = error?.message || ''
+      if (
+        errorMessage.includes('allowed_emails') ||
+        errorMessage.includes('email address must be added')
+      ) {
+        // Show modal to add emails
+        showAddEmailModal.value = true
+      } else {
+        toast.error('Failed to update selection status', {
+          description: errorMessage || 'An unknown error occurred',
+        })
+      }
+      throw error
+    } finally {
+      isPublishing.value = false
+    }
+  }
+
   return {
     // State
     selection,
@@ -203,6 +301,7 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
     nameInputRef,
     selectionStatus,
     isSavingStatus,
+    isPublishing,
     showShareModal,
     isLoading,
 
@@ -217,7 +316,10 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
     saveName,
     handleComplete,
     handleStatusChange,
+    handlePublish,
     openShareModal,
     closeShareModal,
+    updateSelection,
+    showAddEmailModal,
   }
 })

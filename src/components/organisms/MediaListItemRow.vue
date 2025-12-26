@@ -3,10 +3,20 @@
     :class="[
       theme.borderSecondary,
       props.isSelected
-        ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20'
-        : '',
+        ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20 opacity-100'
+        : props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
+          ? 'opacity-100'
+          : props.selectionStatus === 'completed'
+            ? 'opacity-50 grayscale'
+            : 'opacity-60 hover:opacity-100',
+      props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
     ]"
     class="group flex items-center gap-4 p-4 rounded-xl border bg-white dark:bg-gray-900 hover:shadow-lg transition-all duration-200"
+    :style="
+      props.isSelected || (props.wasSelectedOnCompletion && props.selectionStatus === 'completed')
+        ? { opacity: 1 }
+        : {}
+    "
   >
     <!-- Selection Checkbox -->
     <button
@@ -30,6 +40,7 @@
             'w-20 h-20 object-cover rounded-lg shadow-sm transition-all duration-300 will-change-transform',
             isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
           ]"
+          :style="props.isSelected ? { opacity: 1 } : {}"
           :src="imageSrc"
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
@@ -43,6 +54,7 @@
               'w-full h-full object-cover transition-all duration-300 will-change-transform',
               isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
             ]"
+            :style="props.isSelected ? { opacity: 1 } : {}"
             :src="imageSrc"
             @error="emit('image-error', $event)"
             @load="isImageLoaded = true"
@@ -65,6 +77,18 @@
             title="Starred"
           >
             <Star class="h-3 w-3 fill-white text-white" />
+          </div>
+        </div>
+        <!-- Was Selected on Completion Badge (bottom right, like star badge) -->
+        <div
+          v-if="props.wasSelectedOnCompletion && props.selectionStatus === 'completed'"
+          class="absolute bottom-1 right-1 z-30"
+        >
+          <div
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-green-500/90 backdrop-blur-sm shadow-lg"
+            title="Selected when completed"
+          >
+            <CheckCircle2 class="h-3 w-3 fill-white text-white" />
           </div>
         </div>
       </div>
@@ -218,6 +242,7 @@ import {
   revokeMediaBlobUrl,
 } from '@/utils/media/getMediaDisplayUrl'
 import {
+  CheckCircle2,
   CheckSquare2,
   Copy,
   Download,
@@ -263,6 +288,14 @@ const props = defineProps({
   subtitle: {
     type: String,
     required: true,
+  },
+  selectionStatus: {
+    type: String,
+    default: null,
+  },
+  wasSelectedOnCompletion: {
+    type: Boolean,
+    default: false,
   },
 })
 
