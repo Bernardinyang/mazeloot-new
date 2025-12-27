@@ -19,6 +19,8 @@
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
+        @search="handleSearch"
+        @clear="handleClearSearch"
       >
         <template #actions>
           <Button
@@ -940,6 +942,39 @@ const handleCancelMove = () => {
   showMoveModal.value = false
 }
 
+const handleSearch = async () => {
+  try {
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error) {
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to search collections.',
+      })
+    }
+  }
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  try {
+    await galleryStore.fetchCollections({
+      search: '',
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error) {
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to load collections.',
+      })
+    }
+  }
+}
+
 // Fetch collections on mount
 onMounted(async () => {
   try {
@@ -960,30 +995,22 @@ onMounted(async () => {
   }
 })
 
-// Watch for search/sort changes and refetch (debounced)
-let searchTimeout = null
-watch([searchQuery, sortBy], async () => {
-  // Debounce search
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-
-  searchTimeout = setTimeout(async () => {
-    try {
-      await galleryStore.fetchCollections({
-        search: searchQuery.value,
-        sortBy: sortBy.value,
-        parentId: null, // Only fetch root-level collections
+// Watch for sort changes and refetch (search only on button click)
+watch([sortBy], async () => {
+  try {
+    await galleryStore.fetchCollections({
+      search: searchQuery.value,
+      sortBy: sortBy.value,
+      parentId: null, // Only fetch root-level collections
+    })
+  } catch (error) {
+    // Only show error if not aborted
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to load collections.',
       })
-    } catch (error) {
-      // Only show error if not aborted
-      if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
-        handleError(error, {
-          fallbackMessage: 'Failed to load collections.',
-        })
-      }
     }
-  }, 300) // 300ms debounce
+  }
 })
 
 // Mock collections data (remove when API is ready) - Currently unused

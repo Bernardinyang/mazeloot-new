@@ -9,7 +9,7 @@
     </p>
     <Button
       v-if="actionLabel"
-      :variant="actionVariant || 'default'"
+      :variant="actionVariant || 'success'"
       :size="actionSize || 'sm'"
       :class="actionClass"
       :style="actionStyle"

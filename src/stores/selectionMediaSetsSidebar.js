@@ -79,7 +79,19 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     if (!selectionId.value) return
     try {
       const fetchedSets = await selectionsApi.fetchMediaSets(selectionId.value)
-      mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
+      // Handle different response formats
+      let setsArray = []
+      if (Array.isArray(fetchedSets)) {
+        setsArray = fetchedSets
+      } else if (fetchedSets && Array.isArray(fetchedSets.data)) {
+        setsArray = fetchedSets.data
+      } else if (fetchedSets && fetchedSets.sets && Array.isArray(fetchedSets.sets)) {
+        setsArray = fetchedSets.sets
+      }
+
+      // Force reactivity by creating a new array reference
+      mediaSets.value = [...setsArray]
+
       // Auto-select first set if none selected
       if (!selectedSetId.value && mediaSets.value.length > 0) {
         selectedSetId.value = mediaSets.value[0].id
@@ -245,6 +257,8 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
         })
         // Reload all media sets to ensure sync
         await loadMediaSets()
+        // Wait a tick to ensure reactivity updates
+        await new Promise(resolve => setTimeout(resolve, 0))
         // Auto-select the newly created set (set after loadMediaSets to ensure it's in the list)
         if (newSet && newSet.id) {
           selectedSetId.value = newSet.id

@@ -231,10 +231,6 @@
             <EmptyState
               :action-icon="Plus"
               :action-class="'text-white transition-colors'"
-              :action-hover-color="selectionHoverColor"
-              :action-style="{
-                backgroundColor: selectionColor.value,
-              }"
               :icon="FolderPlus"
               action-label="Create Set"
               description="Create a set to organize and upload your media files."

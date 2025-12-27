@@ -37,7 +37,7 @@
 
     <!-- Media Sets List -->
     <div
-      v-else-if="props.mediaSets.length > 0"
+      v-else-if="displayMediaSets.length > 0"
       class="space-y-2.5 max-h-[calc(5*3.5rem+4*0.625rem)] overflow-y-auto pr-1 custom-scrollbar relative"
     >
       <!-- Loading overlay -->
@@ -54,7 +54,7 @@
       </Transition>
       <TransitionGroup class="space-y-2.5" name="set-list" tag="div">
         <div
-          v-for="(set, index) in props.sortedMediaSets"
+          v-for="(set, index) in displaySortedMediaSets"
           :key="set.id"
           :class="[
             props.selectedSetId === set.id
@@ -205,9 +205,25 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
 
 const theme = useThemeClasses()
+const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+
+// Use store directly for reactivity instead of props
+const { mediaSets: storeMediaSets, sortedMediaSets: storeSortedMediaSets } =
+  storeToRefs(mediaSetsSidebar)
+
+// Use store values if available, otherwise fall back to props (for backward compatibility)
+const displayMediaSets = computed(() =>
+  storeMediaSets.value.length > 0 ? storeMediaSets.value : props.mediaSets
+)
+const displaySortedMediaSets = computed(() =>
+  storeSortedMediaSets.value.length > 0 ? storeSortedMediaSets.value : props.sortedMediaSets
+)
 
 const props = defineProps({
   activeTab: {

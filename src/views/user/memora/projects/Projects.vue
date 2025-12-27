@@ -202,7 +202,7 @@ const {
   initialPage: 1,
   initialPerPage: 10,
   autoFetch: false, // We'll call fetch manually in onMounted
-  watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
+  watchForReset: [sortBy], // Reset to page 1 when sort changes (search only on button click)
 })
 
 const handleSelectProject = (id, checked) => {

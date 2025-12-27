@@ -335,6 +335,39 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Fetch all starred media for the authenticated user
+   * @param {Object} params - Query parameters
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'uploaded-desc', 'name-asc')
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}>}
+   */
+  const fetchStarredMedia = async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      const endpoint = `/v1/selections/media/starred${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get single media set
    */
   const fetchMediaSet = async (selectionId, setId) => {
@@ -879,6 +912,7 @@ export function useSelectionsApi() {
 
     // Media
     fetchSetMedia,
+    fetchStarredMedia,
     uploadMediaToSet,
     deleteMedia,
     renameMedia,

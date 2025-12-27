@@ -3,16 +3,16 @@
   <div v-if="props.activeTab === 'photos' && !props.isSidebarCollapsed">
     <MediaSetsSidebarSection
       :active-tab="props.activeTab"
-      :drag-over-index="mediaSetsSidebar.dragOverIndex"
-      :dragged-set-id="mediaSetsSidebar.draggedSetId"
-      :editing-set-id="mediaSetsSidebar.editingSetId"
-      :editing-set-name="mediaSetsSidebar.editingSetName"
+      :drag-over-index="dragOverIndex"
+      :dragged-set-id="draggedSetId"
+      :editing-set-id="editingSetId"
+      :editing-set-name="editingSetName"
       :is-loading="props.isLoading"
-      :is-saving-sets="mediaSetsSidebar.isSavingSets"
+      :is-saving-sets="isSavingSets"
       :is-sidebar-collapsed="props.isSidebarCollapsed"
-      :media-sets="mediaSetsSidebar.mediaSets"
-      :selected-set-id="mediaSetsSidebar.selectedSetId"
-      :sorted-media-sets="mediaSetsSidebar.sortedMediaSets"
+      :media-sets="mediaSets"
+      :selected-set-id="selectedSetId"
+      :sorted-media-sets="sortedMediaSets"
       :selection-status="selectionActions.selectionStatus"
       :is-copying-filenames="selectionActions.isCopyingFilenames"
       :set-progress="selectionActions.setProgress"
@@ -53,6 +53,7 @@
 
 <script setup>
 import { computed, inject } from 'vue'
+import { storeToRefs } from 'pinia'
 import MediaSetsSidebarSection from '@/components/organisms/MediaSetsSidebarSection.vue'
 import SelectionSettingsSidebarNav from '@/components/organisms/SelectionSettingsSidebarNav.vue'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -65,6 +66,16 @@ const props = defineProps({
 })
 
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+const {
+  mediaSets,
+  sortedMediaSets,
+  selectedSetId,
+  editingSetId,
+  editingSetName,
+  draggedSetId,
+  dragOverIndex,
+  isSavingSets,
+} = storeToRefs(mediaSetsSidebar)
 
 // Inject selection actions and progress data
 const selectionActions = inject('selectionActions', {

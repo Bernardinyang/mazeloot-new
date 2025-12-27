@@ -3,51 +3,14 @@
     <!-- Left: Title and Search -->
     <div class="flex items-center gap-4 flex-1">
       <h1 class="text-4xl font-bold tracking-tight" :class="theme.textPrimary">{{ title }}</h1>
-      <div v-if="showSearch" class="relative flex-1 max-w-md flex gap-2">
-        <div class="relative flex-1">
-          <Search
-            class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
-            :class="theme.textTertiary"
-          />
-          <Input
-            :model-value="searchQuery"
-            @update:model-value="value => updateSearchQuery(String(value))"
-            @keyup.enter="handleSearch"
-            type="text"
-            placeholder="Search"
-            :class="[
-              'pl-9 w-full',
-              theme.bgInput,
-              theme.borderInput,
-              theme.textInput,
-              theme.placeholderInput,
-            ]"
-          />
-        </div>
-        <Button
-          v-if="searchQuery.trim()"
-          variant="ghost"
-          size="icon"
-          :class="[theme.textSecondary, theme.bgButtonHover]"
-          @click="handleClear"
-          title="Clear search"
-        >
-          <X class="h-4 w-4" />
-        </Button>
-        <Button
-          :disabled="isSearching"
-          :class="[
-            'bg-teal-500 hover:bg-teal-600 text-white',
-            { 'opacity-50 cursor-not-allowed': isSearching },
-          ]"
-          @click="handleSearch"
-          title="Search"
-        >
-          <Loader2 v-if="isSearching" class="h-4 w-4 mr-2 animate-spin" />
-          <Search v-else class="h-4 w-4 mr-2" />
-          Search
-        </Button>
-      </div>
+      <SearchBar
+        v-if="showSearch"
+        :model-value="searchQuery"
+        :is-loading="isSearching"
+        @update:model-value="updateSearchQuery"
+        @search="handleSearch"
+        @clear="handleClear"
+      />
     </div>
 
     <!-- Right: Actions -->
@@ -84,6 +47,8 @@
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <slot name="afterSort" />
 
       <!-- View Style Toggle -->
       <DropdownMenu v-if="showViewToggle">
@@ -140,9 +105,9 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Search, ArrowDownUp, Grid3x3, List, Check, X, Loader2 } from 'lucide-vue-next'
+import { ArrowDownUp, Grid3x3, List, Check } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
-import Input from '@/components/shadcn/input/Input.vue'
+import SearchBar from '@/components/molecules/SearchBar.vue'
 import {
   DropdownMenu,
   DropdownMenuContent,

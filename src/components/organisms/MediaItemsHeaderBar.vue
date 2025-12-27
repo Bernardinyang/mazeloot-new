@@ -45,8 +45,8 @@
         </PopoverContent>
       </Popover>
 
-      <!-- View Options Menu (only show in grid view) -->
-      <Popover v-if="viewMode === 'grid'" v-model:open="isViewMenuOpen">
+      <!-- Merged View Options Menu (includes view style and grid options) -->
+      <Popover v-model:open="isViewMenuOpen">
         <PopoverTrigger as-child>
           <button
             :class="[
@@ -66,8 +66,44 @@
           @click.stop
         >
           <div class="p-2 space-y-4">
-            <!-- Grid Size -->
+            <!-- View Style -->
             <div>
+              <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">
+                View Style
+              </p>
+              <div class="mt-1 space-y-0.5">
+                <button
+                  :class="[
+                    viewMode === 'grid' ? theme.bgButtonHover + ' ' + theme.textPrimary : '',
+                  ]"
+                  class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-800"
+                  @click="handleViewModeChange('grid')"
+                >
+                  <div class="flex items-center gap-2">
+                    <Grid3x3 class="h-4 w-4" />
+                    <span>Grid View</span>
+                  </div>
+                  <Check v-if="viewMode === 'grid'" class="h-4 w-4 text-teal-500" />
+                </button>
+                <button
+                  :class="[
+                    viewMode === 'list' ? theme.bgButtonHover + ' ' + theme.textPrimary : '',
+                  ]"
+                  class="w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors flex items-center justify-between hover:bg-gray-100 dark:hover:bg-gray-800"
+                  @click="handleViewModeChange('list')"
+                >
+                  <div class="flex items-center gap-2">
+                    <List class="h-4 w-4" />
+                    <span>List View</span>
+                  </div>
+                  <Check v-if="viewMode === 'list'" class="h-4 w-4 text-teal-500" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Grid Size (only show in grid view) -->
+            <div v-if="viewMode === 'grid'">
+              <div :class="theme.borderSecondary" class="h-px"></div>
               <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">Grid Size</p>
               <div class="mt-1 space-y-0.5">
                 <button
@@ -85,11 +121,9 @@
               </div>
             </div>
 
-            <!-- Divider -->
-            <div :class="theme.borderSecondary" class="h-px"></div>
-
-            <!-- Show Filename -->
-            <div>
+            <!-- Show Filename (only show in grid view) -->
+            <div v-if="viewMode === 'grid'">
+              <div :class="theme.borderSecondary" class="h-px"></div>
               <p :class="theme.textTertiary" class="px-2 py-1.5 text-xs font-semibold">Show</p>
               <div class="mt-1 px-2 py-1.5">
                 <div class="flex items-center justify-between">
@@ -117,26 +151,6 @@
           </div>
         </PopoverContent>
       </Popover>
-
-      <div
-        :class="theme.borderSecondary"
-        class="flex items-center gap-0.5 p-0.5 rounded-lg bg-white dark:bg-gray-900 border shadow-sm"
-      >
-        <button
-          :class="[viewMode === 'list' ? 'bg-teal-500 text-white shadow-sm' : '']"
-          class="p-2 rounded-md transition-all duration-200"
-          @click="handleViewModeChange('list')"
-        >
-          <List class="h-4 w-4" />
-        </button>
-        <button
-          :class="[viewMode === 'grid' ? 'bg-teal-500 text-white shadow-sm' : '']"
-          class="p-2 rounded-md transition-all duration-200"
-          @click="handleViewModeChange('grid')"
-        >
-          <Grid3x3 class="h-4 w-4" />
-        </button>
-      </div>
 
       <Button
         v-if="props.onCopySelectedFilenamesInSet && props.selectionStatus === 'completed'"
@@ -250,6 +264,7 @@ const handleFilenameToggle = event => {
 
 const handleViewModeChange = mode => {
   selectionStore.setViewMode(mode)
+  isViewMenuOpen.value = false
 }
 
 const handleCopySelectedFilenames = () => {

@@ -20,6 +20,7 @@
   >
     <!-- Selection Checkbox -->
     <button
+      v-if="props.showSelectionCheckbox"
       class="flex-shrink-0 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       @click.stop="emit('toggle-selection')"
     >
@@ -167,6 +168,7 @@
             Download
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('move-copy')"
           >
@@ -181,6 +183,7 @@
             Copy filenames
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('set-as-cover')"
           >
@@ -188,6 +191,7 @@
             Set as cover
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('rename')"
           >
@@ -195,6 +199,7 @@
             Rename
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('replace')"
           >
@@ -202,7 +207,7 @@
             Replace photo
           </DropdownMenuItem>
           <DropdownMenuItem
-            v-if="props.item?.originalUrl"
+            v-if="props.showManagementActions && props.item?.originalUrl"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('remove-watermark')"
           >
@@ -210,14 +215,20 @@
             Remove Watermark
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('watermark')"
           >
             <Eye class="h-4 w-4 mr-2" />
             {{ props.item?.originalUrl ? 'Change Watermark' : 'Add Watermark' }}
           </DropdownMenuItem>
-          <div :class="theme.borderSecondary" class="h-px my-1"></div>
+          <div
+            v-if="props.showManagementActions"
+            :class="theme.borderSecondary"
+            class="h-px my-1"
+          ></div>
           <DropdownMenuItem
+            v-if="props.showManagementActions"
             :class="[
               'text-red-600 dark:text-red-400',
               'hover:bg-red-50 dark:hover:bg-red-900/20',
@@ -296,6 +307,14 @@ const props = defineProps({
   wasSelectedOnCompletion: {
     type: Boolean,
     default: false,
+  },
+  showManagementActions: {
+    type: Boolean,
+    default: true,
+  },
+  showSelectionCheckbox: {
+    type: Boolean,
+    default: true,
   },
 })
 

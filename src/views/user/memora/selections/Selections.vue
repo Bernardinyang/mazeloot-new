@@ -225,7 +225,7 @@ const {
   initialPage: 1,
   initialPerPage: 10,
   autoFetch: false, // We'll call fetch manually in onMounted
-  watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
+  watchForReset: [sortBy], // Reset to page 1 when sort changes (search only on button click)
 })
 
 const getSubtitle = selection => {
@@ -324,7 +324,7 @@ const handlePageSizeChange = async newSize => {
   await setPerPage(newSize)
 }
 
-// Note: watchForReset in useAsyncPagination handles resetting to page 1 when sortBy or searchQuery changes
+// Note: watchForReset in useAsyncPagination handles resetting to page 1 when sortBy changes (search only on button click)
 
 const handleSearch = async () => {
   if (!searchQuery.value || !searchQuery.value.trim()) {
