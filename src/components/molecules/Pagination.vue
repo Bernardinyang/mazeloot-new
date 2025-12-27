@@ -1,6 +1,7 @@
 <template>
   <div
-    class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-2xl border"
+    v-if="shouldShow"
+    class="flex flex-col sm:flex-row items-center justify-between gap-4 px-6 py-5 rounded-2xl border mt-8"
     :class="[theme.borderSecondary, theme.bgCard, 'shadow-sm']"
   >
     <!-- Left: Info and Page Size -->
@@ -231,7 +232,7 @@ const props = defineProps({
   limit: {
     type: Number,
     required: true,
-    default: 50,
+    default: 10,
   },
   showPageSize: {
     type: Boolean,
@@ -254,6 +255,11 @@ const props = defineProps({
 const emit = defineEmits(['page-change', 'page-size-change'])
 
 const theme = useThemeClasses()
+
+// Hide pagination when not needed (only 1 page or no items)
+const shouldShow = computed(() => {
+  return props.totalPages > 1 && props.total > 0
+})
 
 const goToPageInput = ref(props.currentPage)
 

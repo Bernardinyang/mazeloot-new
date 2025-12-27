@@ -8,6 +8,9 @@ import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
 import { generateRandomColorFromPalette } from '@/utils/colors'
+import { apiClient } from '@/api/client'
+import { parseError } from '@/utils/errors'
+import { API_CONFIG } from '@/api/config'
 
 const PROJECTS_STORAGE_KEY = 'mazeloot_projects'
 const SELECTIONS_STORAGE_KEY = 'mazeloot_selections'
@@ -69,9 +72,51 @@ const saveProofing = proofing => {
 
 export function useProjectsApi() {
   /**
-   * Fetch all projects
+   * Fetch all projects with optional search, filter, and pagination parameters
+   * @param {Object} params - Query parameters
+   * @param {string} params.status - Filter by status
+   * @param {string} params.search - Search query
+   * @param {string} params.parentId - Filter by parent ID
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}|Array>}
    */
   const fetchProjects = async params => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+
+        if (params?.status && params.status !== 'all') {
+          queryParams.append('status', params.status)
+        }
+
+        if (params?.search && params.search.trim()) {
+          queryParams.append('search', params.search.trim())
+        }
+
+        if (params?.parentId !== undefined) {
+          queryParams.append('parentId', params.parentId || '')
+        }
+
+        if (params?.page) {
+          queryParams.append('page', params.page.toString())
+        }
+
+        if (params?.perPage) {
+          queryParams.append('per_page', params.perPage.toString())
+        }
+
+        const endpoint = `/v1/projects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.get(endpoint)
+
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation with pagination support
     await delay(500)
 
     let projects = getAllProjects()
@@ -98,13 +143,42 @@ export function useProjectsApi() {
       )
     }
 
-    return projects
+    // Apply pagination
+    const page = params?.page || 1
+    const perPage = params?.perPage || 10
+    const total = projects.length
+    const totalPages = Math.ceil(total / perPage)
+    const start = (page - 1) * perPage
+    const end = start + perPage
+    const paginatedProjects = projects.slice(start, end)
+
+    // Return paginated response format
+    return {
+      data: paginatedProjects,
+      pagination: {
+        page,
+        limit: perPage,
+        total,
+        totalPages,
+      },
+    }
   }
 
   /**
    * Fetch single project by ID
    */
   const fetchProject = async id => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const response = await apiClient.get(`/v1/projects/${id}`)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
     const projects = getAllProjects()

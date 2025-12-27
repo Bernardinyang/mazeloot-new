@@ -99,6 +99,18 @@
       />
     </div>
 
+    <!-- Pagination -->
+    <Pagination
+      v-if="pagination.totalPages > 1 || pagination.total > 0"
+      :current-page="pagination.page"
+      :limit="pagination.limit"
+      :total="pagination.total"
+      :total-pages="pagination.totalPages"
+      :show-page-size="true"
+      @page-change="goToPage"
+      @page-size-change="setPerPage"
+    />
+
     <!-- Project Detail Sidebar -->
     <ProjectDetailSidebar
       v-model="showDetailSidebar"
@@ -128,15 +140,19 @@ import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import CreateProjectDialog from '@/components/organisms/CreateProjectDialog.vue'
 import ProjectDetailSidebar from '@/components/organisms/ProjectDetailSidebar.vue'
+import Pagination from '@/components/molecules/Pagination.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
+import { useProjectsApi } from '@/api/projects'
 import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const projectStore = useProjectStore()
 const { handleError } = useErrorHandler()
+const projectsApi = useProjectsApi()
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -152,11 +168,42 @@ const sortOptions = [
 const showCreateProjectDialog = ref(false)
 const isCreatingProject = ref(false)
 
-const projects = computed(() => projectStore.projects)
-const isLoading = computed(() => projectStore.isLoading)
 const selectedProjects = ref([])
 const showDetailSidebar = ref(false)
 const selectedProjectId = ref(null)
+
+/**
+ * Fetch function for pagination
+ */
+const fetchProjects = async params => {
+  const fetchParams = {
+    parentId: null, // Only show root-level projects
+    ...params,
+  }
+
+  // Add search parameter
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  return await projectsApi.fetchProjects(fetchParams)
+}
+
+// Use async pagination composable
+const {
+  data: projects,
+  pagination,
+  isLoading,
+  fetch,
+  goToPage,
+  resetToFirstPage,
+  setPerPage,
+} = useAsyncPagination(fetchProjects, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually in onMounted
+  watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
+})
 
 const handleSelectProject = (id, checked) => {
   if (checked) {
@@ -228,6 +275,8 @@ const handleCreateProjectSubmit = async data => {
       description: 'Your new project has been created with selected phases.',
     })
     showCreateProjectDialog.value = false
+    // Refresh projects list and reset to first page
+    await resetToFirstPage()
     // Route to the project dashboard
     router.push({
       name: 'projectDashboard',
@@ -280,7 +329,7 @@ const handleViewPresets = () => {
 
 onMounted(async () => {
   try {
-    await projectStore.fetchProjects({ parentId: null })
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to load projects.',

@@ -8,6 +8,9 @@ import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
 import { generateRandomColorFromPalette } from '@/utils/colors'
+import { apiClient } from '@/api/client'
+import { parseError } from '@/utils/errors'
+import { API_CONFIG } from '@/api/config'
 
 const COLLECTIONS_STORAGE_KEY = 'mazeloot_collections'
 
@@ -1027,9 +1030,71 @@ export function useCollectionsApi() {
     return duplicated
   }
 
+  /**
+   * Fetch collections for a project with optional pagination parameters
+   * @param {string} projectId - Project ID
+   * @param {Object} params - Query parameters
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}|Array>}
+   */
+  const fetchProjectCollections = async (projectId, params = {}) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+
+        if (params.page) {
+          queryParams.append('page', params.page.toString())
+        }
+
+        if (params.perPage) {
+          queryParams.append('per_page', params.perPage.toString())
+        }
+
+        const endpoint = `/v1/projects/${projectId}/collections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.get(endpoint)
+
+        // The backend returns { data: { data: [...], pagination: {...} }, status: 200 }
+        // The API client extracts data.data, so response.data is { data: [...], pagination: {...} }
+        // Return it directly as the composable expects this format
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation with pagination support
+    await delay(500)
+
+    const collections = getAllCollections()
+    let projectCollections = collections.filter(c => c.projectId === projectId)
+
+    // Apply pagination
+    const page = params?.page || 1
+    const perPage = params?.perPage || 10
+    const total = projectCollections.length
+    const totalPages = Math.ceil(total / perPage)
+    const start = (page - 1) * perPage
+    const end = start + perPage
+    const paginatedCollections = projectCollections.slice(start, end)
+
+    // Return paginated response format
+    return {
+      data: paginatedCollections,
+      pagination: {
+        page,
+        limit: perPage,
+        total,
+        totalPages,
+      },
+    }
+  }
+
   return {
     fetchCollections,
     fetchCollection,
+    fetchProjectCollections,
     createCollection,
     updateCollection,
     deleteCollection,

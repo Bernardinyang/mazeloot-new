@@ -203,6 +203,18 @@
                 @star-click="handleStarMedia(item)"
               />
             </TransitionGroup>
+
+            <!-- Pagination -->
+            <Pagination
+              v-if="mediaPagination.totalPages > 1 || mediaPagination.total > 0"
+              :current-page="mediaPagination.page"
+              :limit="mediaPagination.limit"
+              :total="mediaPagination.total"
+              :total-pages="mediaPagination.totalPages"
+              :show-page-size="true"
+              @page-change="goToMediaPage"
+              @page-size-change="setMediaPerPage"
+            />
           </div>
 
           <!-- Empty State / Upload Zone -->
@@ -470,6 +482,8 @@ import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
 import { useActionHistoryStore } from '@/stores/actionHistory'
 import { darkenColor } from '@/utils/colors'
+import Pagination from '@/components/molecules/Pagination.vue'
+import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -536,7 +550,6 @@ const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
 const isUpdatingSetCounts = ref(false)
 const isUpdatingCoverPhoto = ref(false)
-const isLoadingMedia = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
@@ -633,6 +646,8 @@ watch(selectedSetId, newSetId => {
         setId: newSetId,
       },
     })
+    // Reset pagination to first page and load media for the newly selected set
+    resetMediaToFirstPage()
   } else {
     // Remove setId from query if no set is selected
     const query = { ...route.query }
@@ -784,59 +799,116 @@ const selectedSet = computed(() => {
 // Initialize media items as empty array
 const mediaItems = ref([])
 
-// Load media items for the selected set
+// Load media items for the selected set with pagination
 const selectionsApi = useSelectionsApi()
+
+// Convert frontend sort format to backend format
+const convertSortOrder = sortValue => {
+  if (!sortValue) return null
+
+  if (sortValue === 'random') return 'random'
+
+  // Map frontend format to backend format
+  const mapping = {
+    'uploaded-new-old': 'uploaded-desc',
+    'uploaded-old-new': 'uploaded-asc',
+    'date-taken-new-old': 'date-taken-desc',
+    'date-taken-old-new': 'date-taken-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+  }
+
+  return mapping[sortValue] || sortValue
+}
+
+/**
+ * Fetch function for pagination
+ */
+const fetchSetMedia = async params => {
+  if (!selection.value?.id || !selectedSetId.value) {
+    return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
+  }
+
+  const backendSortBy = convertSortOrder(sortOrder.value)
+  const fetchParams = {
+    ...params,
+  }
+
+  if (backendSortBy) {
+    fetchParams.sortBy = backendSortBy
+  }
+
+  const response = await selectionsApi.fetchSetMedia(
+    selection.value.id,
+    selectedSetId.value,
+    fetchParams
+  )
+
+  // Handle both paginated and non-paginated responses
+  if (response && typeof response === 'object' && 'data' in response && 'pagination' in response) {
+    // Paginated response - map items to include setId
+    return {
+      data: Array.isArray(response.data)
+        ? response.data.map(m => ({ ...m, setId: selectedSetId.value }))
+        : [],
+      pagination: response.pagination,
+    }
+  } else if (Array.isArray(response)) {
+    // Non-paginated array response (backward compatibility)
+    const mapped = response.map(m => ({ ...m, setId: selectedSetId.value }))
+    return {
+      data: mapped,
+      pagination: {
+        page: 1,
+        limit: mapped.length,
+        total: mapped.length,
+        totalPages: 1,
+      },
+    }
+  }
+
+  return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
+}
+
+// Use async pagination composable
+const {
+  data: paginatedMediaItems,
+  pagination: mediaPagination,
+  isLoading: isLoadingMediaPagination,
+  fetch: fetchMedia,
+  goToPage: goToMediaPage,
+  resetToFirstPage: resetMediaToFirstPage,
+  setPerPage: setMediaPerPage,
+} = useAsyncPagination(fetchSetMedia, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually when selection/set changes
+  watchForReset: [sortOrder], // Reset to page 1 when sort changes
+})
+
+// Keep mediaItems in sync with paginated data
+watch(
+  paginatedMediaItems,
+  newItems => {
+    // Only update mediaItems for the current set
+    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
+    mediaItems.value = [...otherMedia, ...newItems]
+  },
+  { immediate: true }
+)
+
+// Load media items for the selected set
 const loadMediaItems = async () => {
   if (!selection.value?.id || !selectedSetId.value) {
     return
   }
 
-  // Prevent multiple simultaneous calls
-  if (isLoadingMedia.value) {
-    return
-  }
-
-  isLoadingMedia.value = true
-  try {
-    // Convert frontend sort format to backend format
-    // Frontend: 'uploaded-new-old', 'name-a-z', etc.
-    // Backend: 'uploaded-desc', 'name-asc', etc.
-    const convertSortOrder = sortValue => {
-      if (!sortValue) return null
-
-      if (sortValue === 'random') return 'random'
-
-      // Map frontend format to backend format
-      const mapping = {
-        'uploaded-new-old': 'uploaded-desc',
-        'uploaded-old-new': 'uploaded-asc',
-        'date-taken-new-old': 'date-taken-desc',
-        'date-taken-old-new': 'date-taken-asc',
-        'name-a-z': 'name-asc',
-        'name-z-a': 'name-desc',
-      }
-
-      return mapping[sortValue] || sortValue
-    }
-
-    // Always include sortBy if it exists, otherwise omit it (backend will use default)
-    const backendSortBy = convertSortOrder(sortOrder.value)
-    const params = backendSortBy ? { sortBy: backendSortBy } : {}
-    const setMedia = await selectionsApi.fetchSetMedia(
-      selection.value.id,
-      selectedSetId.value,
-      params
-    )
-    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
-    const currentSetMedia = Array.isArray(setMedia)
-      ? setMedia.map(m => ({ ...m, setId: selectedSetId.value }))
-      : []
-    mediaItems.value = [...otherMedia, ...currentSetMedia]
-  } catch (error) {
-  } finally {
-    isLoadingMedia.value = false
-  }
+  // Use pagination fetch
+  await fetchMedia()
 }
+
+// Update isLoadingMedia to use pagination loading state
+const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
 
 // Initialize selection workflow for uploads
 const {

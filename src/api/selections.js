@@ -18,7 +18,7 @@ export function useSelectionsApi() {
    * @param {string} params.status - Filter by status (e.g., 'draft', 'completed')
    * @param {boolean} params.starred - Filter by starred status
    * @param {number} params.page - Page number (default: 1)
-   * @param {number} params.perPage - Items per page (default: 50)
+   * @param {number} params.perPage - Items per page (default: 10)
    * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}>}
    */
   const fetchAllSelections = async (params = {}) => {
@@ -305,9 +305,29 @@ export function useSelectionsApi() {
   /**
    * Get all media sets for a selection
    */
-  const fetchMediaSets = async selectionId => {
+  /**
+   * Fetch media sets for a selection with optional pagination parameters
+   * @param {string} selectionId - Selection ID
+   * @param {Object} params - Query parameters
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}|Array>}
+   */
+  const fetchMediaSets = async (selectionId, params = {}) => {
     try {
-      const response = await apiClient.get(`/v1/selections/${selectionId}/sets`)
+      const queryParams = new URLSearchParams()
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      const endpoint = `/v1/selections/${selectionId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -406,11 +426,14 @@ export function useSelectionsApi() {
   // ==================== Media ====================
 
   /**
-   * Get media in a set with optional sorting
+   * Get media in a set with optional sorting and pagination
    * @param {string} selectionId - Selection ID
    * @param {string} setId - Set ID
    * @param {Object} params - Query parameters
    * @param {string} params.sortBy - Sort field and direction (e.g., 'uploaded-desc', 'name-asc', 'date-taken-desc')
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}|Array>}
    */
   const fetchSetMedia = async (selectionId, setId, params = {}) => {
     try {
@@ -420,8 +443,20 @@ export function useSelectionsApi() {
         queryParams.append('sort_by', params.sortBy)
       }
 
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
       const endpoint = `/v1/selections/${selectionId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
+
+      // The backend returns { data: { data: [...], pagination: {...} }, status: 200 }
+      // The API client extracts data.data, so response.data is { data: [...], pagination: {...} }
+      // Return it directly as the composable expects this format
       return response.data
     } catch (error) {
       throw parseError(error)

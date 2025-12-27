@@ -210,7 +210,7 @@ const {
   setPerPage,
 } = useAsyncPagination(fetchStarredSelections, {
   initialPage: 1,
-  initialPerPage: 50,
+  initialPerPage: 10,
   autoFetch: false, // We'll call fetch manually in onMounted
   watchForReset: [sortBy, searchQuery], // Reset to page 1 when these change
 })

@@ -9,20 +9,20 @@ import { ref, watch, computed } from 'vue'
  * @param {Function} fetchFn - Async function that fetches data with pagination params
  * @param {Object} options - Configuration options
  * @param {number} options.initialPage - Initial page number (default: 1)
- * @param {number} options.initialPerPage - Initial items per page (default: 50)
+ * @param {number} options.initialPerPage - Initial items per page (default: 10)
  * @param {boolean} options.autoFetch - Whether to fetch on mount (default: true)
  * @param {Array} options.watchForReset - Reactive values that should reset pagination to page 1 when changed
  * @returns {Object} Pagination state and methods
  */
 export function useAsyncPagination(fetchFn, options = {}) {
-  const { initialPage = 1, initialPerPage = 50, autoFetch = true, watchForReset = [] } = options
+  const { initialPage = 1, initialPerPage = 10, autoFetch = true, watchForReset = [] } = options
 
   // Pagination state
   const currentPage = ref(initialPage)
   const perPage = ref(initialPerPage)
   const pagination = ref({
     page: 1,
-    limit: 50,
+    limit: 10,
     total: 0,
     totalPages: 1,
   })
@@ -49,17 +49,38 @@ export function useAsyncPagination(fetchFn, options = {}) {
 
       const response = await fetchFn(params)
 
-      if (response && response.data && response.pagination) {
+      // Check if response has pagination structure: { data: [...], pagination: {...} }
+      if (
+        response &&
+        typeof response === 'object' &&
+        'data' in response &&
+        'pagination' in response
+      ) {
         data.value = Array.isArray(response.data) ? response.data : []
-        pagination.value = response.pagination
-        currentPage.value = response.pagination.page
-      } else {
-        // Fallback for non-paginated response (backward compatibility)
-        data.value = Array.isArray(response) ? response : []
+        pagination.value = {
+          page: response.pagination.page || 1,
+          limit: response.pagination.limit || perPage.value,
+          total: response.pagination.total || 0,
+          totalPages: response.pagination.totalPages || 1,
+        }
+        currentPage.value = response.pagination.page || 1
+      } else if (Array.isArray(response)) {
+        // Fallback for non-paginated array response (backward compatibility)
+        data.value = response
         pagination.value = {
           page: 1,
           limit: perPage.value,
-          total: data.value.length,
+          total: response.length,
+          totalPages: Math.ceil(response.length / perPage.value) || 1,
+        }
+      } else {
+        // Unknown response format, treat as empty
+        console.warn('Unexpected response format from fetchFn:', response)
+        data.value = []
+        pagination.value = {
+          page: 1,
+          limit: perPage.value,
+          total: 0,
           totalPages: 1,
         }
       }
@@ -146,12 +167,14 @@ export function useAsyncPagination(fetchFn, options = {}) {
   })
   const isEmpty = computed(() => !isLoading.value && data.value.length === 0)
 
-  // Watch for reset triggers
+  // Watch for reset triggers - reset to page 1 and refetch when watched values change
   if (watchForReset.length > 0) {
     watch(
       watchForReset,
       () => {
         currentPage.value = 1
+        // Trigger refetch with new parameters
+        fetch()
       },
       { deep: true }
     )

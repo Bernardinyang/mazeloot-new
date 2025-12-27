@@ -15,7 +15,7 @@
       </div>
     </template>
 
-    <div v-if="isLoading" class="flex items-center justify-center py-12">
+    <div v-if="isLoading || isLoadingCollections" class="flex items-center justify-center py-12">
       <Loader2 class="h-8 w-8 animate-spin" :class="theme.textSecondary" />
     </div>
 
@@ -51,10 +51,10 @@
       </div>
 
       <!-- Collections List -->
-      <div v-if="projectCollections.length > 0" class="space-y-4">
+      <div v-if="collections.length > 0" class="space-y-4">
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div
-            v-for="collection in projectCollections"
+            v-for="collection in collections"
             :key="collection.id"
             :class="[
               theme.bgCard,
@@ -85,9 +85,21 @@
             </div>
           </div>
         </div>
+
+        <!-- Pagination -->
+        <Pagination
+          v-if="pagination.totalPages > 1 || pagination.total > 0"
+          :current-page="pagination.page"
+          :limit="pagination.limit"
+          :total="pagination.total"
+          :total-pages="pagination.totalPages"
+          :show-page-size="true"
+          @page-change="goToPage"
+          @page-size-change="setPerPage"
+        />
       </div>
 
-      <div v-else class="text-center py-12">
+      <div v-else-if="!isLoadingCollections" class="text-center py-12">
         <p :class="theme.textSecondary" class="mb-4">No collections created yet</p>
         <Button
           variant="default"
@@ -115,10 +127,13 @@ import { Loader2, ChevronRight } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import CreateCollectionDialog from '@/components/organisms/CreateCollectionDialog.vue'
+import Pagination from '@/components/molecules/Pagination.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
+import { useCollectionsApi } from '@/api/collections'
 import { toast } from '@/utils/toast'
 import { capitalize } from '@/lib/utils'
 
@@ -128,14 +143,36 @@ const theme = useThemeClasses()
 
 const projectStore = useProjectStore()
 const galleryStore = useGalleryStore()
+const collectionsApi = useCollectionsApi()
 const { handleError } = useErrorHandler()
 
 const projectId = computed(() => route.params.id)
 const project = ref(null)
-const projectCollections = ref([])
 const showCreateDialog = ref(false)
 const isCreatingCollection = ref(false)
 const isLoading = ref(true)
+
+/**
+ * Fetch function for pagination
+ */
+const fetchProjectCollections = async params => {
+  return await collectionsApi.fetchProjectCollections(projectId.value, params)
+}
+
+// Use async pagination composable
+const {
+  data: collections,
+  pagination,
+  isLoading: isLoadingCollections,
+  fetch: fetchCollections,
+  goToPage,
+  resetToFirstPage,
+  setPerPage,
+} = useAsyncPagination(fetchProjectCollections, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually after loading project
+})
 
 const loadProject = async () => {
   isLoading.value = true
@@ -143,9 +180,8 @@ const loadProject = async () => {
     const projectData = await projectStore.fetchProject(projectId.value)
     project.value = projectData
 
-    if (projectData.collections) {
-      projectCollections.value = projectData.collections
-    }
+    // Load collections with pagination
+    await fetchCollections()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to load project.',
@@ -173,7 +209,8 @@ const handleCreateCollectionSubmit = async data => {
     })
 
     showCreateDialog.value = false
-    await loadProject()
+    // Refresh collections list and reset to first page
+    await resetToFirstPage()
 
     // Route to the new collection's photos page
     router.push({
