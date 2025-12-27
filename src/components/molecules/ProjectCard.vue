@@ -8,22 +8,34 @@
       borderColor: `${cardColor}33`,
     }"
     :class="[
-      'group relative rounded-xl overflow-hidden cursor-pointer',
+      'group relative rounded-xl overflow-hidden',
       'transform-gpu transition-all duration-300',
-      'hover:scale-[1.02] hover:-translate-y-1',
+      isDeleting
+        ? 'opacity-50 cursor-not-allowed'
+        : 'cursor-pointer hover:scale-[1.02] hover:-translate-y-1',
       'border-2 hover:border-opacity-100',
       theme.bgCard,
       theme.shadowCard,
     ]"
-    @click="$emit('click', project)"
-    @mouseenter="isHovering = true"
+    @click="!isDeleting && $emit('click', project)"
+    @mouseenter="!isDeleting && (isHovering = true)"
     @mouseleave="isHovering = false"
     tabindex="0"
     role="button"
   >
-    <!-- Project-specific gradient background (only shown when no cover image) -->
+    <!-- Loading Overlay -->
     <div
-      v-if="!coverImage"
+      v-if="isDeleting"
+      class="absolute inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm rounded-xl"
+    >
+      <div class="flex flex-col items-center gap-2">
+        <Loader2 class="h-8 w-8 animate-spin text-white" />
+        <span class="text-sm font-medium text-white">Deleting...</span>
+      </div>
+    </div>
+    <!-- Project-specific gradient background (only shown when no preview images) -->
+    <div
+      v-if="!hasPreviewImages"
       :style="{
         background: `linear-gradient(to bottom right, ${cardColorLight}, ${cardColorDark})`,
         opacity: '0.6',
@@ -33,15 +45,8 @@
 
     <!-- Image/Icon Container -->
     <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
-      <!-- Starred Badge and Lock Icon -->
+      <!-- Lock Icon (top left) -->
       <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
-        <div
-          v-if="project.isStarred || project.starred"
-          class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
-          title="Starred"
-        >
-          <Star class="h-4 w-4 fill-white text-white" />
-        </div>
         <div
           v-if="project.hasPassword || project.password"
           class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
@@ -50,30 +55,58 @@
           <Lock class="h-4 w-4 fill-white text-white" />
         </div>
       </div>
-      <!-- Cover Image -->
-      <img
-        v-if="coverImage"
-        :src="coverImage"
-        :alt="project.name"
-        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-        loading="lazy"
-        @error="handleImageError"
-      />
 
-      <!-- Gradient overlay when image is present for better contrast -->
+      <!-- Starred Badge Indicator (bottom left) -->
+      <div class="absolute bottom-3 left-3 z-30">
+        <div
+          v-if="project.isStarred || project.starred"
+          class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+      </div>
+
+      <!-- Preview Images Grid (2x2) -->
       <div
-        v-if="coverImage"
+        v-if="hasPreviewImages"
+        class="w-full h-full grid grid-cols-2 grid-rows-2 gap-0.5 bg-gray-200/50 dark:bg-gray-800/50 p-0.5 relative"
+      >
+        <!-- Subtle color overlay for brand consistency -->
+        <div
+          :style="{
+            background: `linear-gradient(to bottom right, ${cardColor}15, transparent)`,
+          }"
+          class="absolute inset-0 pointer-events-none z-10"
+        ></div>
+        <div
+          v-for="(preview, index) in previewGrid"
+          :key="index"
+          class="relative bg-gray-100 dark:bg-gray-800 overflow-hidden group/preview transition-all duration-300"
+          :class="preview ? 'hover:brightness-110' : ''"
+        >
+          <img
+            v-if="preview"
+            :src="preview"
+            :alt="`Preview ${index + 1}`"
+            class="w-full h-full object-cover transition-transform duration-300 group-hover/preview:scale-105"
+            loading="lazy"
+            @error="handleImageError($event)"
+          />
+          <div v-else class="w-full h-full flex items-center justify-center">
+            <div
+              class="w-8 h-8 rounded border-2 border-dashed"
+              :class="theme.borderSecondary"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gradient overlay when preview images are present for better contrast -->
+      <div
+        v-if="hasPreviewImages"
         class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
         :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-70'"
-      ></div>
-
-      <!-- Subtle color overlay for brand consistency -->
-      <div
-        v-if="coverImage"
-        :style="{
-          background: `linear-gradient(to bottom right, ${cardColor}15, transparent)`,
-        }"
-        class="absolute inset-0 pointer-events-none"
       ></div>
 
       <!-- Project phases indicator -->
@@ -84,9 +117,9 @@
         <span class="text-xs font-semibold text-emerald-700 dark:text-emerald-300">Project</span>
       </div>
 
-      <!-- Large centered icon with unique styling (shown when no cover image) -->
+      <!-- Large centered icon with unique styling (shown when no preview images) -->
       <div
-        v-if="!coverImage"
+        v-if="!hasPreviewImages"
         class="relative z-10 flex flex-col items-center justify-center gap-4 p-8 transition-transform duration-300 group-hover:scale-110"
       >
         <div
@@ -118,7 +151,7 @@
         </div>
       </div>
 
-      <!-- Action buttons -->
+      <!-- Action buttons (top right) -->
       <div
         class="absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100"
       >
@@ -167,8 +200,12 @@
               <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuItem
-              :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
-              @click.stop="$emit('delete', project)"
+              :class="[
+                'text-red-500 hover:bg-red-500/10',
+                isDeleting ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+              ]"
+              :disabled="isDeleting"
+              @click.stop="!isDeleting && $emit('delete', project)"
             >
               <span>Delete</span>
             </DropdownMenuItem>
@@ -201,7 +238,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Folder, Star, MoreVertical, Lock } from 'lucide-vue-next'
+import { Folder, Star, MoreVertical, Lock, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
@@ -230,6 +267,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  isDeleting: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'view-details'])
@@ -238,8 +279,21 @@ const theme = useThemeClasses()
 const isDropdownOpen = ref(false)
 const isHovering = ref(false)
 
-const coverImage = computed(() => {
-  return props.project?.thumbnail || props.project?.image || null
+const previewImages = computed(() => {
+  return props.project?.previewImages || []
+})
+
+const previewGrid = computed(() => {
+  const images = previewImages.value.slice(0, 4)
+  // Always return 4 items (fill with null if less than 4)
+  while (images.length < 4) {
+    images.push(null)
+  }
+  return images
+})
+
+const hasPreviewImages = computed(() => {
+  return previewImages.value && previewImages.value.length > 0
 })
 
 const cardColor = computed(() => {
@@ -255,7 +309,10 @@ const cardColorDark = computed(() => {
 })
 
 const handleImageError = event => {
-  event.target.style.display = 'none'
+  // Hide the broken image
+  if (event.target) {
+    event.target.style.display = 'none'
+  }
 }
 
 const getSubtitle = project => {

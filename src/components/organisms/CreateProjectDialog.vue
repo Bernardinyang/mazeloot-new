@@ -45,61 +45,148 @@
         <p class="text-xs" :class="theme.textSecondary">
           Select which phases to include in this project. You can add more later.
         </p>
-        <div class="space-y-2">
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              v-model="formData.hasSelections"
-              class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-            />
-            <div>
-              <span class="text-sm font-medium" :class="theme.textPrimary">Selections</span>
-              <p class="text-xs" :class="theme.textSecondary">
-                Raw media upload for client selection
-              </p>
+        <div class="space-y-4">
+          <!-- Selections Phase -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="formData.hasSelections"
+                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-medium" :class="theme.textPrimary">Selections</span>
+                <p class="text-xs" :class="theme.textSecondary">
+                  Raw media upload for client selection
+                </p>
+              </div>
+            </label>
+            <!-- Selection Settings (shown when checked) -->
+            <div
+              v-if="formData.hasSelections"
+              class="ml-6 space-y-3 pl-4 border-l-2"
+              :class="theme.borderSecondary"
+            >
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary">Selection Name</label>
+                <Input
+                  v-model="formData.selectionSettings.name"
+                  placeholder="Selections"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary">Description</label>
+                <Input
+                  v-model="formData.selectionSettings.description"
+                  placeholder="Optional description"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary"
+                  >Selection Limit</label
+                >
+                <Input
+                  v-model.number="formData.selectionSettings.selectionLimit"
+                  type="number"
+                  min="0"
+                  placeholder="0 (unlimited)"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+                <p class="text-xs" :class="theme.textSecondary">
+                  Maximum number of media items clients can select (0 = unlimited)
+                </p>
+              </div>
             </div>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              v-model="formData.hasProofing"
-              class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-            />
-            <div>
-              <span class="text-sm font-medium" :class="theme.textPrimary">Proofing</span>
-              <p class="text-xs" :class="theme.textSecondary">
-                Edited media review with client feedback
-              </p>
-            </div>
-          </label>
-          <label class="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              v-model="formData.hasCollections"
-              class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
-            />
-            <div>
-              <span class="text-sm font-medium" :class="theme.textPrimary">Collections</span>
-              <p class="text-xs" :class="theme.textSecondary">Final approved media for sharing</p>
-            </div>
-          </label>
-        </div>
-      </div>
+          </div>
 
-      <!-- Max Revisions (if Proofing is selected) -->
-      <div v-if="formData.hasProofing" class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Max Revisions </label>
-        <Input
-          v-model.number="formData.maxRevisions"
-          type="number"
-          min="1"
-          max="20"
-          placeholder="5"
-          :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-        />
-        <p class="text-xs" :class="theme.textSecondary">
-          Maximum number of revision rounds allowed in proofing phase
-        </p>
+          <!-- Proofing Phase -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="formData.hasProofing"
+                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-medium" :class="theme.textPrimary">Proofing</span>
+                <p class="text-xs" :class="theme.textSecondary">
+                  Edited media review with client feedback
+                </p>
+              </div>
+            </label>
+            <!-- Proofing Settings (shown when checked) -->
+            <div
+              v-if="formData.hasProofing"
+              class="ml-6 space-y-3 pl-4 border-l-2"
+              :class="theme.borderSecondary"
+            >
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary">Proofing Name</label>
+                <Input
+                  v-model="formData.proofingSettings.name"
+                  placeholder="Proofing"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary">Max Revisions</label>
+                <Input
+                  v-model.number="formData.proofingSettings.maxRevisions"
+                  type="number"
+                  min="1"
+                  max="20"
+                  placeholder="5"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+                <p class="text-xs" :class="theme.textSecondary">
+                  Maximum number of revision rounds allowed
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Collections Phase -->
+          <div class="space-y-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                v-model="formData.hasCollections"
+                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+              />
+              <div class="flex-1">
+                <span class="text-sm font-medium" :class="theme.textPrimary">Collections</span>
+                <p class="text-xs" :class="theme.textSecondary">Final approved media for sharing</p>
+              </div>
+            </label>
+            <!-- Collection Settings (shown when checked) -->
+            <div
+              v-if="formData.hasCollections"
+              class="ml-6 space-y-3 pl-4 border-l-2"
+              :class="theme.borderSecondary"
+            >
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary"
+                  >Collection Name</label
+                >
+                <Input
+                  v-model="formData.collectionSettings.name"
+                  placeholder="Collections"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+              </div>
+              <div class="space-y-2">
+                <label class="text-xs font-medium" :class="theme.textPrimary">Description</label>
+                <Input
+                  v-model="formData.collectionSettings.description"
+                  placeholder="Optional description"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Preset -->
@@ -244,10 +331,23 @@ const formData = reactive({
   hasSelections: false,
   hasProofing: false,
   hasCollections: false,
-  maxRevisions: 5,
   presetId: 'none',
   watermarkId: 'none',
   color: generateRandomColorFromPalette(), // Random color from palette
+  // Phase settings
+  selectionSettings: {
+    name: 'Selections',
+    description: '',
+    selectionLimit: 0, // 0 = unlimited
+  },
+  proofingSettings: {
+    name: 'Proofing',
+    maxRevisions: 5,
+  },
+  collectionSettings: {
+    name: 'Collections',
+    description: '',
+  },
 })
 
 const errors = ref({})
@@ -275,10 +375,22 @@ watch(
       formData.hasSelections = false
       formData.hasProofing = false
       formData.hasCollections = false
-      formData.maxRevisions = 5
       formData.presetId = 'none'
       formData.watermarkId = 'none'
       formData.color = generateRandomColorFromPalette()
+      formData.selectionSettings = {
+        name: 'Selections',
+        description: '',
+        selectionLimit: 0,
+      }
+      formData.proofingSettings = {
+        name: 'Proofing',
+        maxRevisions: 5,
+      }
+      formData.collectionSettings = {
+        name: 'Collections',
+        description: '',
+      }
       errors.value = {}
     }
   }
@@ -291,10 +403,22 @@ const handleCancel = () => {
   formData.hasSelections = false
   formData.hasProofing = false
   formData.hasCollections = false
-  formData.maxRevisions = 5
   formData.presetId = 'none'
   formData.watermarkId = 'none'
   formData.color = generateRandomColorFromPalette()
+  formData.selectionSettings = {
+    name: 'Selections',
+    description: '',
+    selectionLimit: 0,
+  }
+  formData.proofingSettings = {
+    name: 'Proofing',
+    maxRevisions: 5,
+  }
+  formData.collectionSettings = {
+    name: 'Collections',
+    description: '',
+  }
   errors.value = {}
   emit('update:open', false)
 }
@@ -330,10 +454,29 @@ const handleSubmit = async () => {
       hasSelections: formData.hasSelections,
       hasProofing: formData.hasProofing,
       hasCollections: formData.hasCollections,
-      maxRevisions: formData.hasProofing ? formData.maxRevisions : undefined,
       presetId: formData.presetId === 'none' ? undefined : formData.presetId,
       watermarkId: formData.watermarkId === 'none' ? undefined : formData.watermarkId,
       color: formData.color,
+      // Phase settings
+      selectionSettings: formData.hasSelections
+        ? {
+            name: formData.selectionSettings.name.trim() || 'Selections',
+            description: formData.selectionSettings.description.trim() || null,
+            selectionLimit: formData.selectionSettings.selectionLimit || 0,
+          }
+        : undefined,
+      proofingSettings: formData.hasProofing
+        ? {
+            name: formData.proofingSettings.name.trim() || 'Proofing',
+            maxRevisions: formData.proofingSettings.maxRevisions || 5,
+          }
+        : undefined,
+      collectionSettings: formData.hasCollections
+        ? {
+            name: formData.collectionSettings.name.trim() || 'Collections',
+            description: formData.collectionSettings.description.trim() || null,
+          }
+        : undefined,
     })
   } catch (error) {
   } finally {

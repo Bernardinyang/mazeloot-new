@@ -144,35 +144,14 @@ export const useProjectStore = defineStore('project', () => {
   }
 
   /**
-   * Toggle star status with optimistic update
+   * Toggle star status
    */
   const toggleStar = async projectId => {
-    const project = projects.value.find(p => p.id === projectId)
-    if (!project) return
-
-    const wasStarred = project.isStarred || project.starred || false
-    const newStarredState = !wasStarred
-
-    // Optimistic update - update UI immediately
-    project.isStarred = newStarredState
-    project.starred = newStarredState
-
-    if (currentProject.value && currentProject.value.id === projectId) {
-      currentProject.value.isStarred = newStarredState
-      currentProject.value.starred = newStarredState
-    }
-
     try {
-      // Sync with server in background
-      await projectsApi.toggleStar(projectId, newStarredState)
+      // Call the API to toggle star
+      const result = await projectsApi.toggleStar(projectId)
+      return result
     } catch (err) {
-      // Revert optimistic update on error
-      project.isStarred = wasStarred
-      project.starred = wasStarred
-      if (currentProject.value && currentProject.value.id === projectId) {
-        currentProject.value.isStarred = wasStarred
-        currentProject.value.starred = wasStarred
-      }
       throw err
     }
   }

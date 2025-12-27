@@ -9,7 +9,7 @@
     @click="$emit('click')"
   >
     <!-- Checkbox -->
-    <div class="flex items-center">
+    <div v-if="showCheckbox" class="flex items-center">
       <input
         type="checkbox"
         :checked="isSelected"
@@ -62,7 +62,7 @@
     </div>
 
     <!-- Name and Details -->
-    <div class="flex-1 min-w-0 max-w-lg">
+    <div class="flex-1 min-w-0 cursor-pointer">
       <div class="flex items-center gap-2">
         <component
           v-if="isFolder"
@@ -74,7 +74,11 @@
           {{ captionText }}
         </h3>
         <Star v-if="isStarred" class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
-        <Lock v-if="password" class="h-3.5 w-3.5 shrink-0" :class="theme.textSecondary" />
+        <Lock
+          v-if="password && showPasswordAndPin"
+          class="h-3.5 w-3.5 shrink-0"
+          :class="theme.textSecondary"
+        />
         <StatusBadge v-if="status" :status="status" />
       </div>
       <p v-if="subtitle" class="text-xs mt-0.5 truncate" :class="theme.textSecondary">
@@ -83,7 +87,7 @@
     </div>
 
     <!-- Password -->
-    <div class="w-40 flex items-center">
+    <div v-if="showPasswordAndPin" class="w-40 flex items-center">
       <div v-if="password" class="flex items-center gap-1.5">
         <span class="text-xs font-mono leading-none" :class="theme.textSecondary">
           {{ showPassword ? password : '••••••••' }}
@@ -112,7 +116,7 @@
     </div>
 
     <!-- Download PIN -->
-    <div class="w-40 flex items-center">
+    <div v-if="showPasswordAndPin" class="w-40 flex items-center">
       <div v-if="downloadPin" class="flex items-center gap-1.5">
         <span class="text-xs font-mono leading-none" :class="theme.textSecondary">
           {{ showPin ? downloadPin : '••••' }}
@@ -341,6 +345,14 @@ const props = defineProps({
   showViewDetails: {
     type: Boolean,
     default: false,
+  },
+  showPasswordAndPin: {
+    type: Boolean,
+    default: true,
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: true,
   },
 })
 

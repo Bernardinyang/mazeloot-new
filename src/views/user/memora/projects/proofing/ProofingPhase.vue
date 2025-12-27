@@ -270,13 +270,22 @@ const loadData = async () => {
       project.value = projectData
 
       if (projectData.proofing && projectData.proofing.length > 0) {
-        const proofingData = await proofingStore.fetchProofing(projectData.proofing[0].id)
-        proofing.value = proofingData
-        mediaItems.value = proofingData.media || []
-        feedback.value = proofingData.feedback || []
+        // Use proofing data from project if available
+        const proofingFromProject = projectData.proofing[0]
+        proofing.value = proofingFromProject
 
-        // Load revision history
-        await loadMediaRevisions()
+        // Load media items separately (not included in project response)
+        try {
+          const proofingData = await proofingStore.fetchProofing(proofingFromProject.id)
+          mediaItems.value = proofingData.media || []
+          feedback.value = proofingData.feedback || []
+
+          // Load revision history
+          await loadMediaRevisions()
+        } catch (error) {
+          mediaItems.value = []
+          feedback.value = []
+        }
       }
 
       if (projectData.collections) {

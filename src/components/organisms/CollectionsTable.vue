@@ -6,16 +6,16 @@
       class="flex items-center gap-4 px-4 py-3 border-b font-semibold text-xs uppercase tracking-wider"
       :class="[theme.borderSecondary, theme.textTertiary, theme.bgCardSolid]"
     >
-      <div class="w-4"></div>
+      <div v-if="showCheckbox" class="w-4"></div>
       <!-- Checkbox column -->
-      <div class="w-10"></div>
+      <div v-if="showCheckbox" class="w-10"></div>
       <!-- Icon column -->
-      <div class="flex-1 max-w-lg">NAME</div>
-      <div class="w-40 flex items-center gap-1">
+      <div class="flex-1">NAME</div>
+      <div v-if="showPasswordAndPin" class="w-40 flex items-center gap-1">
         <span>PASSWORD</span>
         <Info class="h-3 w-3" :class="theme.textTertiary" />
       </div>
-      <div class="w-40 flex items-center gap-1">
+      <div v-if="showPasswordAndPin" class="w-40 flex items-center gap-1">
         <span>DOWNLOAD PIN</span>
         <Info class="h-3 w-3" :class="theme.textTertiary" />
       </div>
@@ -28,7 +28,7 @@
     <div v-if="loading" class="divide-y" :class="theme.borderSecondary">
       <div v-for="i in 8" :key="i" class="flex items-center gap-4 px-4 py-3 animate-pulse">
         <!-- Checkbox skeleton -->
-        <div :class="['h-4 w-4 rounded', theme.bgSkeleton]"></div>
+        <div v-if="showCheckbox" :class="['h-4 w-4 rounded', theme.bgSkeleton]"></div>
         <!-- Icon skeleton -->
         <div :class="['h-10 w-10 rounded', theme.bgSkeleton]"></div>
         <!-- Name skeleton -->
@@ -37,11 +37,11 @@
           <div :class="['h-3 w-32 rounded', theme.bgSkeleton]"></div>
         </div>
         <!-- Password skeleton -->
-        <div class="w-32 flex items-center gap-1">
+        <div v-if="showPasswordAndPin" class="w-32 flex items-center gap-1">
           <div :class="['h-3 w-20 rounded', theme.bgSkeleton]"></div>
         </div>
         <!-- Download PIN skeleton -->
-        <div class="w-32 flex items-center gap-1">
+        <div v-if="showPasswordAndPin" class="w-32 flex items-center gap-1">
           <div :class="['h-3 w-16 rounded', theme.bgSkeleton]"></div>
         </div>
         <!-- Date skeleton -->
@@ -79,9 +79,11 @@
           :preview-images="getItemPreviewImages(item)"
           :folder-icon="getItemIcon(item)"
           :status="getItemStatus(item)"
-          :password="getItemPassword(item)"
-          :download-pin="getItemDownloadPin(item)"
+          :password="showPasswordAndPin ? getItemPassword(item) : null"
+          :download-pin="showPasswordAndPin ? getItemDownloadPin(item) : null"
           :date-created="getItemDateCreated(item)"
+          :show-password-and-pin="showPasswordAndPin"
+          :show-checkbox="showCheckbox"
           :is-selected="selectedItems.includes(getItemId(item))"
           :is-starred="getItemStarred(item)"
           :show-star="getItemShowStar(item)"
@@ -231,6 +233,14 @@ const props = defineProps({
   showViewDetails: {
     type: Boolean,
     default: false,
+  },
+  showPasswordAndPin: {
+    type: Boolean,
+    default: true,
+  },
+  showCheckbox: {
+    type: Boolean,
+    default: true,
   },
 })
 

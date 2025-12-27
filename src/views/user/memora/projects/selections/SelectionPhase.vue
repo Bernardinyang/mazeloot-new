@@ -331,13 +331,23 @@ const loadData = async () => {
       project.value = projectData
 
       if (projectData.selections && projectData.selections.length > 0) {
-        const selectionData = await selectionStore.fetchSelection(projectData.selections[0].id)
-        selection.value = selectionData
+        // Use selection data from project if available (includes mediaSets)
+        const selectionFromProject = projectData.selections[0]
+        selection.value = selectionFromProject
+
         // Initialize header store
-        headerStore.setSelection(selectionData)
-        mediaItems.value = selectionData.media || []
-        // Initialize sets sidebar
-        mediaSetsSidebar.setContext(selectionData.id, selectionData.mediaSets || [])
+        headerStore.setSelection(selectionFromProject)
+
+        // Initialize sets sidebar with mediaSets from project data
+        mediaSetsSidebar.setContext(selectionFromProject.id, selectionFromProject.mediaSets || [])
+
+        // Load media items separately (not included in project response)
+        try {
+          const media = await mediaApi.fetchPhaseMedia('selection', selectionFromProject.id)
+          mediaItems.value = media
+        } catch (error) {
+          mediaItems.value = []
+        }
       }
     }
   } catch (error) {

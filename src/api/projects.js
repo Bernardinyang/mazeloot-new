@@ -95,6 +95,10 @@ export function useProjectsApi() {
           queryParams.append('search', params.search.trim())
         }
 
+        if (params?.sortBy) {
+          queryParams.append('sortBy', params.sortBy)
+        }
+
         if (params?.parentId !== undefined) {
           queryParams.append('parentId', params.parentId || '')
         }
@@ -205,6 +209,45 @@ export function useProjectsApi() {
    * Create new project
    */
   const createProject = async data => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        // Prepare request payload matching backend StoreProjectRequest
+        const payload = {
+          name: data.name,
+          description: data.description || null,
+          status: data.status || 'draft',
+          hasSelections: data.hasSelections || false,
+          hasProofing: data.hasProofing || false,
+          hasCollections: data.hasCollections || false,
+          parentId: data.parentId || null,
+          presetId: data.presetId || data.settings?.presetId || null,
+          watermarkId: data.watermarkId || data.settings?.watermarkId || null,
+          settings: data.settings || {},
+          color: data.color || null,
+          // Phase settings
+          selectionSettings: data.selectionSettings || null,
+          proofingSettings: data.proofingSettings || null,
+          collectionSettings: data.collectionSettings || null,
+        }
+
+        // Include mediaSets if provided
+        if (data.mediaSets && Array.isArray(data.mediaSets) && data.mediaSets.length > 0) {
+          payload.mediaSets = data.mediaSets.map(set => ({
+            name: set.name,
+            description: set.description || null,
+            order: set.order || 0,
+          }))
+        }
+
+        const response = await apiClient.post('/v1/projects', payload)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(1000)
 
     const projects = getAllProjects()
@@ -352,6 +395,44 @@ export function useProjectsApi() {
    * Update project
    */
   const updateProject = async (id, data) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        // Prepare request payload matching backend UpdateProjectRequest
+        const payload = {}
+
+        if (data.name !== undefined) payload.name = data.name
+        if (data.description !== undefined) payload.description = data.description
+        if (data.status !== undefined) payload.status = data.status
+        if (data.settings !== undefined) payload.settings = data.settings
+        if (data.color !== undefined) payload.color = data.color
+        if (data.presetId !== undefined) payload.presetId = data.presetId
+        if (data.watermarkId !== undefined) payload.watermarkId = data.watermarkId
+        if (data.eventDate !== undefined) {
+          payload.eventDate = data.eventDate
+            ? typeof data.eventDate === 'string'
+              ? data.eventDate
+              : data.eventDate.toISOString()
+            : null
+        }
+
+        // Include mediaSets if provided
+        if (data.mediaSets !== undefined) {
+          payload.mediaSets = data.mediaSets.map(set => ({
+            name: set.name,
+            description: set.description || null,
+            order: set.order || 0,
+          }))
+        }
+
+        const response = await apiClient.patch(`/v1/projects/${id}`, payload)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
     const projects = getAllProjects()
@@ -373,8 +454,12 @@ export function useProjectsApi() {
 
     projects[index] = {
       ...projects[index],
-      ...data,
+      name: data.name !== undefined ? data.name : projects[index].name,
+      description: data.description !== undefined ? data.description : projects[index].description,
       date: dateValue,
+      color: data.color !== undefined ? data.color : projects[index].color,
+      presetId: data.presetId !== undefined ? data.presetId : projects[index].presetId,
+      watermarkId: data.watermarkId !== undefined ? data.watermarkId : projects[index].watermarkId,
       updatedAt: new Date().toISOString(),
     }
 
@@ -387,6 +472,17 @@ export function useProjectsApi() {
    * Delete project
    */
   const deleteProject = async id => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        await apiClient.delete(`/v1/projects/${id}`)
+        return
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
     const projects = getAllProjects()
@@ -411,6 +507,24 @@ export function useProjectsApi() {
    * Get all phases for a project
    */
   const getProjectPhases = async projectId => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const response = await apiClient.get(`/v1/projects/${projectId}/phases`)
+        // Backend returns { selection, proofing, collection } format
+        // Convert to frontend expected format
+        const phases = response.data
+        return {
+          selection: phases.selection ? [phases.selection] : [],
+          proofing: phases.proofing ? [phases.proofing] : [],
+          collections: phases.collection ? [phases.collection] : [],
+        }
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(300)
 
     const selections = getAllSelections().filter(s => s.projectId === projectId)
@@ -429,6 +543,18 @@ export function useProjectsApi() {
    * Toggle star status
    */
   const toggleStar = async (id, isStarred) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const response = await apiClient.post(`/v1/projects/${id}/star`)
+        // Return the starred status from the response
+        return response.data?.data || response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(300)
 
     const projects = getAllProjects()
