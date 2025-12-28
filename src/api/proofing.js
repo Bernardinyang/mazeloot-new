@@ -1,9 +1,11 @@
 /**
  * Proofing API composable
  * Handles all proofing phase-related API calls
- * Uses localStorage for persistence until backend is ready
+ * Integrates with backend API
  */
 
+import { apiClient } from '@/api/client'
+import { parseError } from '@/utils/errors'
 import { storage } from '@/utils/storage'
 import { generateUUID } from '@/utils/uuid'
 import { delay } from '@/utils/delay'
@@ -88,80 +90,78 @@ const saveCollections = collections => {
 
 export function useProofingApi() {
   /**
-   * Create proofing phase
+   * Create proofing phase (standalone or project-based)
+   * @param {string|null} projectId - Project UUID (optional, null for standalone)
+   * @param {Object} data - Proofing data
+   * @param {string} data.name - Proofing name
+   * @param {number} data.maxRevisions - Maximum revisions
+   * @param {string} data.color - Proofing color
    */
   const createProofing = async (projectId, data) => {
-    await delay(500)
+    try {
+      const payload = {
+        name: data.name || 'Proofing',
+        maxRevisions: data.maxRevisions || 5,
+        color: data.color || undefined,
+      }
 
-    const proofing = getAllProofing()
+      let response
+      if (projectId) {
+        // Project-based proofing
+        response = await apiClient.post(`/v1/projects/${projectId}/proofing`, payload)
+      } else {
+        // Standalone proofing
+        response = await apiClient.post('/v1/proofing', payload)
+      }
 
-    const newProofing = {
-      id: generateUUID(),
-      projectId,
-      name: data.name || 'Proofing',
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      maxRevisions: data.maxRevisions || 5,
-      currentRevision: 0,
-      color: data.color || generateRandomColorFromPalette(),
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    proofing.push(newProofing)
-    saveProofing(proofing)
-
-    return newProofing
   }
 
   /**
    * Fetch proofing by ID
+   * @param {string} id - Proofing UUID
+   * @param {string|null} projectId - Optional project UUID for project-based proofing
    */
-  const fetchProofing = async id => {
-    await delay(300)
+  const fetchProofing = async (id, projectId = null) => {
+    try {
+      let endpoint = `/v1/proofing/${id}`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+      }
 
-    const proofing = getAllProofing()
-    const proofingPhase = proofing.find(p => p.id === id)
-
-    if (!proofingPhase) {
-      throw new Error(`Proofing not found: ${id}`)
-    }
-
-    const allMedia = getAllMedia()
-    const proofingMedia = allMedia.filter(m => m.phase === 'proofing' && m.phaseId === id)
-
-    const allFeedback = getAllFeedback()
-    const mediaIds = proofingMedia.map(m => m.id)
-    const proofingFeedback = allFeedback.filter(f => mediaIds.includes(f.mediaId))
-
-    return {
-      ...proofingPhase,
-      media: proofingMedia,
-      feedback: proofingFeedback,
+      const response = await apiClient.get(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
   }
 
   /**
-   * Update proofing
+   * Update proofing (standalone or project-based)
    */
-  const updateProofing = async (id, data) => {
-    await delay(300)
+  const updateProofing = async (projectId, id, data) => {
+    try {
+      let endpoint = `/v1/proofing/${id}`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+      }
 
-    const proofing = getAllProofing()
-    const index = proofing.findIndex(p => p.id === id)
+      const payload = {}
+      if (data.name !== undefined) payload.name = data.name
+      if (data.description !== undefined) payload.description = data.description
+      if (data.maxRevisions !== undefined) payload.maxRevisions = data.maxRevisions
+      if (data.color !== undefined) payload.color = data.color
+      if (data.status !== undefined) payload.status = data.status
+      if (data.allowedEmails !== undefined) payload.allowedEmails = data.allowedEmails
 
-    if (index === -1) {
-      throw new Error('Proofing not found')
+      const response = await apiClient.patch(endpoint, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    proofing[index] = {
-      ...proofing[index],
-      ...data,
-      updatedAt: new Date().toISOString(),
-    }
-
-    saveProofing(proofing)
-
-    return proofing[index]
   }
 
   /**
@@ -387,56 +387,725 @@ export function useProofingApi() {
   }
 
   /**
-   * Fetch all proofing (both standalone and project-linked)
+   * Fetch all proofing with optional search, sort, filter, and pagination parameters
+   * @param {Object} params - Query parameters
+   * @param {string} params.projectUuid - Filter by project UUID
+   * @param {string} params.search - Search query (searches in name)
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'created-desc', 'name-asc', 'status-asc')
+   * @param {string} params.status - Filter by status (e.g., 'draft', 'completed')
+   * @param {boolean} params.starred - Filter by starred status
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}>}
    */
-  const fetchAllProofing = async () => {
-    await delay(300)
-
-    const proofing = getAllProofing()
-    const allMedia = getAllMedia()
-    const allFeedback = getAllFeedback()
-
-    const { useProjectsApi } = await import('@/api/projects')
-    const projectsApi = useProjectsApi()
-    let projects = []
+  const fetchAllProofing = async (params = {}) => {
     try {
-      projects = await projectsApi.fetchProjects({ parentId: null })
-    } catch (err) {}
+      const queryParams = new URLSearchParams()
 
-    // Enrich each proofing with media count, feedback count, and project name
-    return proofing.map(proofingPhase => {
-      const proofingMedia = allMedia.filter(
-        m => m.phase === 'proofing' && m.phaseId === proofingPhase.id
-      )
-      const mediaIds = proofingMedia.map(m => m.id)
-      const proofingFeedback = allFeedback.filter(f => mediaIds.includes(f.mediaId))
-      const project = proofingPhase.projectId
-        ? projects.find(p => p.id === proofingPhase.projectId)
-        : null
-
-      return {
-        ...proofingPhase,
-        mediaCount: proofingMedia.length,
-        completedMediaCount: proofingMedia.filter(m => m.isCompleted).length,
-        feedbackCount: proofingFeedback.length,
-        projectName: project?.name || null,
+      if (params.projectUuid) {
+        queryParams.append('project_uuid', params.projectUuid)
       }
-    })
+
+      if (params.search && params.search.trim()) {
+        queryParams.append('search', params.search.trim())
+      }
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      if (params.status) {
+        queryParams.append('status', params.status)
+      }
+
+      if (params.starred !== undefined && params.starred !== null) {
+        queryParams.append('starred', params.starred.toString())
+      }
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      const endpoint = `/v1/proofing${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
   }
 
   /**
-   * Toggle star status
+   * Delete proofing (standalone or project-based)
    */
-  const toggleStar = async (id, isStarred) => {
-    await delay(300)
+  const deleteProofing = async (projectId, id) => {
+    try {
+      let endpoint = `/v1/proofing/${id}`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+      }
 
-    const proofing = getAllProofing()
-    const index = proofing.findIndex(p => p.id === id)
+      await apiClient.delete(endpoint)
+      return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
 
-    if (index !== -1) {
-      proofing[index].isStarred = isStarred
-      proofing[index].starred = isStarred
-      saveProofing(proofing)
+  /**
+   * Publish proofing (standalone or project-based)
+   */
+  const publishProofing = async (projectId, id) => {
+    try {
+      let endpoint = `/v1/proofing/${id}/publish`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}/publish`
+      }
+
+      const response = await apiClient.post(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle star status (standalone or project-based)
+   */
+  const toggleStar = async (projectId, id) => {
+    try {
+      let endpoint = `/v1/proofing/${id}/star`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}/star`
+      }
+
+      const response = await apiClient.post(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Set cover photo from media (standalone or project-based)
+   */
+  const setCoverPhoto = async (projectId, proofingId, mediaUuid, focalPoint = null) => {
+    try {
+      let endpoint = `/v1/proofing/${proofingId}/cover-photo`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/cover-photo`
+      }
+
+      const payload = {
+        media_uuid: mediaUuid,
+      }
+      if (focalPoint) {
+        payload.focal_point = focalPoint
+      }
+
+      const response = await apiClient.post(endpoint, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Recover deleted media (standalone or project-based)
+   */
+  const recoverDeletedMedia = async (projectId, proofingId, mediaIds) => {
+    try {
+      let endpoint = `/v1/proofing/${proofingId}/recover`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/recover`
+      }
+
+      const response = await apiClient.post(endpoint, { mediaIds })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Check proofing status (public endpoint)
+   */
+  const checkProofingStatus = async proofingId => {
+    try {
+      const response = await apiClient.get(`/v1/public/proofing/${proofingId}/status`, {
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Verify password for proofing (public endpoint)
+   */
+  const verifyProofingPassword = async (proofingId, password) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/proofing/${proofingId}/verify-password`,
+        { password },
+        {
+          skipAuth: true,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Generate guest token for proofing (public endpoint)
+   */
+  const generateProofingToken = async (proofingId, email) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/proofing/${proofingId}/token`,
+        { email },
+        {
+          skipAuth: true,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get proofing (guest access)
+   */
+  const fetchPublicProofing = async (id, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/public/proofing/${id}`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media sets for proofing (guest access)
+   */
+  const fetchProofingSets = async (id, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/public/proofing/${id}/sets`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media set for proofing (guest access)
+   */
+  const fetchProofingMediaSet = async (id, setId, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/public/proofing/${id}/sets/${setId}`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media in proofing set (guest access)
+   */
+  const fetchProofingSetMedia = async (id, setId, guestToken) => {
+    try {
+      const response = await apiClient.get(`/v1/public/proofing/${id}/sets/${setId}/media`, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle selected status for proofing media (guest access)
+   */
+  const toggleProofingMediaSelected = async (id, mediaId, guestToken) => {
+    try {
+      const response = await apiClient.patch(
+        `/v1/public/proofing/${id}/media/${mediaId}/toggle-selected`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Complete proofing (guest access)
+   */
+  const completePublicProofing = async (id, guestToken) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/proofing/${id}/complete`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get selected filenames for proofing (guest access)
+   */
+  const getProofingSelectedFilenames = async (id, guestToken, setId = null) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (setId) {
+        queryParams.append('setId', setId)
+      }
+      const url = `/v1/public/proofing/${id}/filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(url, {
+        headers: {
+          Authorization: `Bearer ${guestToken}`,
+        },
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  // ==================== Media Sets ====================
+
+  /**
+   * Fetch media sets for proofing
+   */
+  const fetchMediaSets = async (proofingId, projectId = null, params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      }
+
+      const response = await apiClient.get(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get single media set
+   */
+  const fetchMediaSet = async (proofingId, setId, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      }
+      const response = await apiClient.get(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Create media set
+   */
+  const createMediaSet = async (proofingId, data, projectId = null) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to create a media set')
+    }
+    try {
+      const createData = {
+        name: data.name,
+        description: data.description || null,
+        order: data.order || 0,
+      }
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets`
+      }
+
+      const response = await apiClient.post(endpoint, createData)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Update media set
+   */
+  const updateMediaSet = async (proofingId, setId, data, projectId = null) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to update a media set')
+    }
+    if (!setId) {
+      throw new Error('Set ID is required to update a media set')
+    }
+    try {
+      const updateData = {}
+      if (data.name !== undefined) updateData.name = data.name
+      if (data.description !== undefined) updateData.description = data.description
+      if (data.order !== undefined) updateData.order = data.order
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      }
+
+      const response = await apiClient.patch(endpoint, updateData)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete media set
+   */
+  const deleteMediaSet = async (proofingId, setId, projectId = null) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to delete a media set')
+    }
+    if (!setId) {
+      throw new Error('Set ID is required to delete a media set')
+    }
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      }
+      await apiClient.delete(endpoint)
+      return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Reorder media sets
+   */
+  const reorderMediaSets = async (proofingId, setIds, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/reorder`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/reorder`
+      }
+      const response = await apiClient.post(endpoint, { setIds: setIds })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  // ==================== Media Operations ====================
+
+  /**
+   * Get media in a set with optional sorting and pagination
+   */
+  const fetchSetMedia = async (proofingId, setId, projectId = null, params = {}) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to fetch media')
+    }
+    if (!setId) {
+      throw new Error('Set ID is required to fetch media')
+    }
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      }
+
+      const response = await apiClient.get(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Upload media to a set
+   */
+  const uploadMediaToSet = async (proofingId, setId, data, projectId = null) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to upload media')
+    }
+    if (!setId) {
+      throw new Error('Set ID is required to upload media')
+    }
+    try {
+      const payload = {
+        user_file_uuid: data.userFileUuid || data.user_file_uuid,
+      }
+
+      if (!payload.user_file_uuid) {
+        throw new Error('user_file_uuid is required')
+      }
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media`
+      }
+
+      const response = await apiClient.post(endpoint, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete media from a set
+   */
+  const deleteMedia = async (proofingId, setId, mediaId, projectId = null) => {
+    if (!proofingId) {
+      throw new Error('Proofing ID is required to delete media')
+    }
+    if (!setId) {
+      throw new Error('Set ID is required to delete media')
+    }
+    if (!mediaId) {
+      throw new Error('Media ID is required to delete media')
+    }
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
+      }
+      const response = await apiClient.delete(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Rename media
+   */
+  const renameMedia = async (proofingId, setId, mediaId, filename, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
+      }
+      const response = await apiClient.patch(endpoint, { filename })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Replace media file
+   */
+  const replaceMedia = async (proofingId, setId, mediaId, userFileUuid, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
+      }
+      const response = await apiClient.patch(endpoint, { user_file_uuid: userFileUuid })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Move media items to a different set
+   */
+  const moveMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/move`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/move`
+      }
+      const response = await apiClient.post(endpoint, {
+        media_ids: mediaIds,
+        target_set_uuid: targetSetId,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Copy media items to a different set
+   */
+  const copyMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/copy`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/copy`
+      }
+      const response = await apiClient.post(endpoint, {
+        media_ids: mediaIds,
+        target_set_uuid: targetSetId,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle star for media
+   */
+  const starMedia = async (proofingId, setId, mediaId, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
+      }
+      const response = await apiClient.post(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Add feedback to media
+   */
+  const addMediaFeedback = async (proofingId, setId, mediaId, feedbackData, projectId = null) => {
+    try {
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
+      }
+      const response = await apiClient.post(endpoint, feedbackData)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Download media
+   */
+  const downloadMedia = async mediaId => {
+    try {
+      const response = await apiClient.get(`/v1/media/${mediaId}/download`, {
+        responseType: 'blob',
+      })
+      const blob = response.data
+      const contentDisposition = response.headers['content-disposition']
+      const filenameMatch = contentDisposition?.match(/filename="?([^"]+)"?/)
+      const filename = filenameMatch ? filenameMatch[1] : 'download'
+      return { blob, filename }
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get approved filenames for proofing
+   * @param {string} id - Proofing ID
+   * @param {string|null} setId - Optional Media Set ID to filter by set
+   */
+  const getApprovedFilenames = async (id, setId = null) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (setId) {
+        queryParams.append('setId', setId)
+      }
+      const url = `/v1/proofing/${id}/approved-filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(url)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
   }
 
@@ -445,11 +1114,45 @@ export function useProofingApi() {
     fetchProofing,
     fetchAllProofing,
     updateProofing,
+    deleteProofing,
+    publishProofing,
     uploadRevision,
     addFeedback,
     markMediaCompleted,
     completeProofing,
     moveToCollection,
     toggleStar,
+    setCoverPhoto,
+    recoverDeletedMedia,
+    // Media Sets
+    fetchMediaSets,
+    fetchMediaSet,
+    createMediaSet,
+    updateMediaSet,
+    deleteMediaSet,
+    reorderMediaSets,
+    // Media Operations
+    fetchSetMedia,
+    uploadMediaToSet,
+    deleteMedia,
+    renameMedia,
+    replaceMedia,
+    moveMediaToSet,
+    copyMediaToSet,
+    starMedia,
+    addMediaFeedback,
+    downloadMedia,
+    getApprovedFilenames,
+    // Public/Guest Access
+    checkProofingStatus,
+    verifyProofingPassword,
+    generateProofingToken,
+    fetchPublicProofing,
+    fetchProofingSets,
+    fetchProofingMediaSet,
+    fetchProofingSetMedia,
+    toggleProofingMediaSelected,
+    completePublicProofing,
+    getProofingSelectedFilenames,
   }
 }

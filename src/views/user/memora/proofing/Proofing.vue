@@ -10,12 +10,15 @@
     <div class="space-y-6">
       <!-- Top Header Bar -->
       <PageHeader
-        title="Proofing"
+        :is-searching="isSearching"
         :search-query="searchQuery"
         :sort-by="sortBy"
-        :view-mode="viewMode"
         :sort-options="sortOptions"
+        :view-mode="viewMode"
         sort-label="Sort proofing by"
+        title="Proofing"
+        @clear="handleClearSearch"
+        @search="handleSearch"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
@@ -37,31 +40,31 @@
 
         <!-- Empty State -->
         <EmptyState
-          v-else-if="sortedProofing.length === 0"
-          message="No proofing found"
-          description="Create a proofing phase to allow clients to review and provide feedback on media."
-          action-label="Create New Proofing"
+          v-else-if="proofing.length === 0"
           :icon="Eye"
           action-icon="Plus"
+          action-label="Create New Proofing"
+          description="Create a proofing phase to allow clients to review and provide feedback on media."
+          message="No proofing found"
           @action="handleCreateProofing"
         />
 
         <!-- Proofing Grid -->
         <TransitionGroup
           v-else
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
           name="list"
           tag="div"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
         >
           <ProofingCard
-            v-for="(proofing, index) in sortedProofing"
-            :key="proofing.id"
-            :proofing="proofing"
+            v-for="(proofingItem, index) in proofing"
+            :key="proofingItem.id"
             :index="index"
+            :proofing="proofingItem"
             @click="handleProofingClick"
-            @star-click="toggleStar"
-            @edit="handleEditProofing"
             @delete="handleDeleteProofing"
+            @edit="handleEditProofing"
+            @star-click="toggleStar"
             @view-details="handleViewDetails"
           />
         </TransitionGroup>
@@ -70,36 +73,71 @@
       <!-- Proofing List View -->
       <CollectionsTable
         v-else
-        :items="sortedProofing"
-        :loading="isLoading"
-        :selected-items="selectedProofing"
-        empty-message="No proofing found"
-        empty-action-label="Create New Proofing"
         :empty-icon="Eye"
-        :get-subtitle="getSubtitle"
         :get-icon="() => Eye"
         :get-status="item => item.status"
-        :show-move-to="false"
+        :get-subtitle="getSubtitle"
+        :items="proofing"
+        :loading="isLoading"
+        :selected-items="selectedProofing"
         :show-view-details="true"
+        empty-action-label="Create New Proofing"
+        empty-message="No proofing found"
+        @delete="handleDeleteProofing"
+        @edit="handleEditProofing"
+        @empty-action="handleCreateProofing"
+        @item-click="handleProofingClick"
         @select="handleSelectProofing"
         @star-click="toggleStar"
-        @item-click="handleProofingClick"
-        @empty-action="handleCreateProofing"
-        @edit="handleEditProofing"
-        @delete="handleDeleteProofing"
         @view-details="handleViewDetails"
+      />
+
+      <!-- Pagination -->
+      <Pagination
+        v-if="pagination.totalPages > 1 || pagination.total > 0"
+        :current-page="pagination.page"
+        :limit="pagination.limit"
+        :show-first-last="true"
+        :show-go-to-page="true"
+        :show-page-size="true"
+        :total="pagination.total"
+        :total-pages="pagination.totalPages"
+        @page-change="handlePageChange"
+        @page-size-change="handlePageSizeChange"
       />
     </div>
 
     <!-- Proofing Detail Sidebar -->
     <ProofingDetailSidebar v-model="showDetailSidebar" :proofing-id="selectedProofingId" />
+
+    <!-- Create Proofing Dialog -->
+    <CreateProofingDialog v-model:open="showCreateDialog" @success="handleCreateSuccess" />
+
+    <!-- Edit Proofing Dialog -->
+    <EditProofingDialog
+      v-model:open="showEditDialog"
+      :proofing="activeProofing"
+      @success="handleEditSuccess"
+    />
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDeleteModal"
+      :is-deleting="isDeleting"
+      :item-name="getItemName()"
+      description="This action cannot be undone."
+      title="Delete Proofing"
+      warning-message="This proofing and all its media will be permanently removed."
+      @cancel="showDeleteModal = false"
+      @confirm="handleConfirmDelete"
+    />
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { Eye } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import { Eye, Plus } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
@@ -108,8 +146,13 @@ import ProofingCard from '@/components/molecules/ProofingCard.vue'
 import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import ProofingDetailSidebar from '@/components/organisms/ProofingDetailSidebar.vue'
+import Pagination from '@/components/molecules/Pagination.vue'
+import CreateProofingDialog from '@/components/organisms/CreateProofingDialog.vue'
+import EditProofingDialog from '@/components/organisms/EditProofingDialog.vue'
+import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProofingStore } from '@/stores/proofing'
+import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { toast } from '@/utils/toast'
 
@@ -122,6 +165,7 @@ const { handleError } = useErrorHandler()
 const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
   { label: 'Created (Old → New)', value: 'created-old-new' },
@@ -130,25 +174,69 @@ const sortOptions = [
   { label: 'Status', value: 'status' },
 ]
 
-const proofing = computed(() => proofingStore.proofings)
-const isLoading = computed(() => proofingStore.isLoading)
 const selectedProofing = ref([])
 const showDetailSidebar = ref(false)
 const selectedProofingId = ref(null)
+const showEditDialog = ref(false)
+const showDeleteModal = ref(false)
+const isDeleting = ref(false)
+const activeProofing = ref(null)
 
-const handleSelectProofing = (id, checked) => {
-  if (checked) {
-    if (!selectedProofing.value.includes(id)) {
-      selectedProofing.value.push(id)
-    }
-  } else {
-    selectedProofing.value = selectedProofing.value.filter(proofId => proofId !== id)
+/**
+ * Map frontend sort values to backend sort values
+ */
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+    status: 'status-asc',
   }
+  return mapping[frontendSort] || 'created-desc'
+}
+
+/**
+ * Fetch function for pagination
+ */
+const fetchProofing = async params => {
+  const fetchParams = { ...params }
+
+  // Add search parameter
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  // Add sort parameter
+  if (sortBy.value) {
+    fetchParams.sortBy = mapSortToBackend(sortBy.value)
+  }
+
+  return await proofingStore.fetchAllProofing(fetchParams)
+}
+
+// Use async pagination composable
+const {
+  data: proofing,
+  pagination,
+  isLoading,
+  fetch,
+  goToPage,
+  resetToFirstPage,
+  setPerPage,
+} = useAsyncPagination(fetchProofing, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually in onMounted
+  watchForReset: [sortBy], // Reset to page 1 when sort changes (search only on button click)
+})
+
+const handleSelectProofing = () => {
+  // UI only - no functionality
 }
 
 const getSubtitle = proofingPhase => {
   const parts = []
-  // Only show essential info on card - rest in detail sidebar
   if (proofingPhase.mediaCount !== undefined) {
     parts.push(`${proofingPhase.mediaCount} media`)
   }
@@ -157,104 +245,90 @@ const getSubtitle = proofingPhase => {
   return parts.join(' • ')
 }
 
-// Filter and sort proofing
-const filteredProofing = computed(() => {
-  let filtered = [...proofing.value]
+const showCreateDialog = ref(false)
 
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(proofingPhase => {
-      const name = (proofingPhase.name || '').toLowerCase()
-      return name.includes(query)
-    })
-  }
+const handleCreateProofing = () => {
+  showCreateDialog.value = true
+}
 
-  return filtered
-})
-
-const sortedProofing = computed(() => {
-  const sorted = [...filteredProofing.value]
-
-  switch (sortBy.value) {
-    case 'created-new-old':
-      return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    case 'created-old-new':
-      return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    case 'name-a-z':
-      return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-    case 'name-z-a':
-      return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
-    case 'status':
-      return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''))
-    default:
-      return sorted
-  }
-})
-
-const handleCreateProofing = async () => {
-  try {
-    const newProofing = await proofingStore.createProofing(null, {
-      name: 'New Proofing',
-    })
-    toast.success('Proofing created', {
-      description: 'Your new proofing has been created.',
-    })
-    // Navigate to the proofing phase view
-    if (newProofing.projectId) {
-      router.push({
-        name: 'projectProofing',
-        params: { id: newProofing.projectId },
-        query: { proofingId: newProofing.id },
-      })
-    } else {
-      // For standalone proofing, we'll navigate to a detail view
-      // For now, just refresh the list
-      await proofingStore.fetchAllProofing()
-    }
-  } catch (error) {
-    handleError(error, {
-      fallbackMessage: 'Failed to create proofing.',
-    })
-  }
+const handleCreateSuccess = async () => {
+  showCreateDialog.value = false
+  await resetToFirstPage()
 }
 
 const handleProofingClick = proofingPhase => {
-  if (proofingPhase.projectId) {
+  if (proofingPhase && proofingPhase.id) {
+    // Always route to proofing detail view
     router.push({
-      name: 'projectProofing',
-      params: { id: proofingPhase.projectId },
-      query: { proofingId: proofingPhase.id },
-    })
-  } else {
-    // For standalone proofing, navigate to a detail view
-    // For now, we'll use the project route structure but with a standalone flag
-    router.push({
-      name: 'projectProofing',
-      params: { id: 'standalone' },
-      query: { proofingId: proofingPhase.id },
+      name: 'proofingDetail',
+      params: { id: proofingPhase.id },
     })
   }
 }
 
 const toggleStar = async proofingPhase => {
-  try {
-    await proofingStore.toggleStar(proofingPhase.id)
-  } catch (error) {
-    handleError(error, {
-      fallbackMessage: 'Failed to update star status.',
-    })
+  if (proofingPhase && proofingPhase.id) {
+    try {
+      const proofingId = proofingPhase.id || proofingPhase.uuid
+      const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
+      await proofingStore.toggleStar(proofingId, projectId)
+      const index = proofings.value.findIndex(p => p.id === proofingId || p.uuid === proofingId)
+      if (index !== -1) {
+        proofings.value[index] = {
+          ...proofings.value[index],
+          isStarred: !proofings.value[index].isStarred,
+        }
+      }
+    } catch (error) {
+      handleError(error, {
+        fallbackMessage: 'Failed to update star status.',
+      })
+    }
   }
 }
 
 const handleEditProofing = proofingPhase => {
-  // TODO: Implement proofing editing
-  toast.info('Edit feature coming soon')
+  if (proofingPhase && proofingPhase.id) {
+    activeProofing.value = proofingPhase
+    showEditDialog.value = true
+  }
 }
 
-const handleDeleteProofing = async proofingPhase => {
-  // TODO: Implement proofing deletion with confirmation
-  toast.info('Delete feature coming soon')
+const handleEditSuccess = async () => {
+  activeProofing.value = null
+  showEditDialog.value = false
+  await fetch()
+}
+
+const handleDeleteProofing = proofingPhase => {
+  if (proofingPhase && proofingPhase.id) {
+    activeProofing.value = proofingPhase
+    showDeleteModal.value = true
+  }
+}
+
+const handleConfirmDelete = async () => {
+  isDeleting.value = true
+  try {
+    const deleted = await proofingStore.deleteProofing(
+      activeProofing.value.id || activeProofing.value.uuid
+    )
+    if (deleted) {
+      activeProofing.value = null
+      showDeleteModal.value = false
+      await fetch()
+    }
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to delete proofing.',
+    })
+  } finally {
+    isDeleting.value = false
+  }
+}
+
+const getItemName = () => {
+  return activeProofing.value?.name || 'Proofing'
 }
 
 const handleViewDetails = proofingPhase => {
@@ -262,13 +336,31 @@ const handleViewDetails = proofingPhase => {
   showDetailSidebar.value = true
 }
 
-onMounted(async () => {
-  try {
-    await proofingStore.fetchAllProofing()
-  } catch (error) {
-    handleError(error, {
-      fallbackMessage: 'Failed to load proofing.',
-    })
+const handlePageChange = page => {
+  goToPage(page)
+}
+
+const handlePageSizeChange = async newSize => {
+  await setPerPage(newSize)
+}
+
+const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
   }
+  isSearching.value = true
+  await resetToFirstPage()
+  isSearching.value = false
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  await resetToFirstPage()
+}
+
+// Initial load
+onMounted(async () => {
+  await fetch()
 })
 </script>

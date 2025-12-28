@@ -1,15 +1,15 @@
 <template>
   <SelectionLayout :is-loading="isLoading" :selection="selection" @go-back="goBack">
     <template #content>
-      <!-- Selection Limit Modal -->
-      <SelectionLimitModal
-        v-model="showSelectionLimitModal"
-        :current-limit="selection?.selectionLimit"
-        :is-saving="isSavingSelectionLimit"
-        @save="handleSaveSelectionLimit"
-        @cancel="handleCancelSelectionLimit"
-      />
-
+      <div>
+        <SelectionLimitModal
+          v-model="showSelectionLimitModal"
+          :current-limit="selection?.selectionLimit"
+          :is-saving="isSavingSelectionLimit"
+          @save="handleSaveSelectionLimit"
+          @cancel="handleCancelSelectionLimit"
+        />
+      </div>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
@@ -46,17 +46,26 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Selection Name</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  The name of this selection as it appears in your dashboard and to customers.
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Selection Name
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    The name of this selection as it appears in your dashboard and to customers.
+                  </p>
+                </div>
+                <div v-if="nameSaved" class="flex items-center gap-2 text-teal-500">
+                  <Check class="h-4 w-4" />
+                  <span class="text-xs font-medium">Saved</span>
+                </div>
               </div>
               <Input
                 v-model="selectionName"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                 class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
                 placeholder="My Selection"
+                @keydown.enter="handleSave"
               />
             </div>
 
@@ -65,25 +74,40 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Selection Color</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Choose a color to help identify this selection in your dashboard.
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Selection Color
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Choose a color to help identify this selection in your dashboard.
+                  </p>
+                </div>
+                <div v-if="colorSaved" class="flex items-center gap-2 text-teal-500">
+                  <Check class="h-4 w-4" />
+                  <span class="text-xs font-medium">Saved</span>
+                </div>
               </div>
               <div class="flex items-center gap-3 max-w-md">
                 <input
                   v-model="selectionColor"
                   :class="theme.borderSecondary"
-                  class="h-12 w-20 rounded-lg border-2 cursor-pointer"
+                  class="h-12 w-20 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
                   type="color"
+                  @change="handleSave"
                 />
                 <Input
                   v-model="selectionColor"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                   class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono text-sm"
                   placeholder="#10B981"
+                  @keydown.enter="handleSave"
                 />
+                <div
+                  class="h-12 w-12 rounded-lg border-2 transition-all"
+                  :style="{ backgroundColor: selectionColor, borderColor: selectionColor }"
+                  :class="theme.borderSecondary"
+                ></div>
               </div>
             </div>
 
@@ -92,52 +116,119 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Allowed Emails</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Specify which email addresses are allowed to access this selection. Leave empty to
-                  allow all emails.
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Allowed Emails
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Specify which email addresses are allowed to access this selection. Leave empty
+                    to allow all emails.
+                  </p>
+                </div>
+                <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-teal-500">
+                  <Loader2 class="h-4 w-4 animate-spin" />
+                  <span class="text-xs font-medium">Saving...</span>
+                </div>
+                <div v-else-if="emailsSaved" class="flex items-center gap-2 text-teal-500">
+                  <Check class="h-4 w-4" />
+                  <span class="text-xs font-medium">Saved</span>
+                </div>
               </div>
               <div class="space-y-3 max-w-2xl">
                 <div
                   v-for="(email, index) in allowedEmails || []"
                   :key="index"
-                  class="flex items-center gap-2"
+                  class="flex items-start gap-2 group"
                 >
-                  <Input
-                    v-model="allowedEmails[index]"
-                    :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                    class="flex-1"
-                    placeholder="email@example.com"
-                    type="email"
-                    @blur="handleAllowedEmailsChange"
-                  />
+                  <div class="flex-1 relative">
+                    <Input
+                      v-model="allowedEmails[index]"
+                      :class="[
+                        theme.bgInput,
+                        theme.borderInput,
+                        theme.textInput,
+                        email && !isValidEmail(email) ? 'border-red-300 dark:border-red-700' : '',
+                      ]"
+                      class="w-full transition-all"
+                      placeholder="email@example.com"
+                      type="email"
+                      @blur="() => handleAllowedEmailsChange(false)"
+                      @keydown.enter="handleAllowedEmailsChange(true)"
+                    />
+                    <p
+                      v-if="email && !isValidEmail(email)"
+                      class="absolute -bottom-5 left-0 text-xs text-red-500 dark:text-red-400 mt-1"
+                    >
+                      Please enter a valid email address
+                    </p>
+                  </div>
                   <Button
+                    v-if="allowedEmails.length > 1"
                     variant="ghost"
                     size="sm"
-                    :class="[theme.textSecondary, theme.bgButtonHover]"
+                    :class="[
+                      theme.textSecondary,
+                      theme.bgButtonHover,
+                      'opacity-0 group-hover:opacity-100 transition-opacity',
+                    ]"
                     @click="removeAllowedEmail(index)"
                   >
                     <X class="h-4 w-4" />
                   </Button>
+                  <div v-else class="w-10"></div>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  :class="[theme.borderSecondary, theme.textPrimary]"
-                  @click="addAllowedEmail"
-                >
-                  <Plus class="h-4 w-4 mr-2" />
-                  Add Email
-                </Button>
-                <p
-                  v-if="!allowedEmails || allowedEmails.length === 0"
-                  :class="theme.textSecondary"
-                  class="text-xs italic"
-                >
-                  No email restrictions. Anyone with the link can access this selection.
-                </p>
+                <div class="flex items-center gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    :class="[theme.borderSecondary, theme.textPrimary]"
+                    @click="addAllowedEmail"
+                  >
+                    <Plus class="h-4 w-4 mr-2" />
+                    Add Email
+                  </Button>
+                  <Button
+                    :class="[
+                      'bg-teal-500 hover:bg-teal-600 text-white transition-all',
+                      isSavingAllowedEmails ? 'opacity-75 cursor-not-allowed' : '',
+                    ]"
+                    :disabled="isSavingAllowedEmails || !hasValidEmails"
+                    size="sm"
+                    @click="handleAllowedEmailsChange(true)"
+                  >
+                    <Loader2 v-if="isSavingAllowedEmails" class="h-4 w-4 mr-2 animate-spin" />
+                    <Check v-else-if="emailsSaved" class="h-4 w-4 mr-2" />
+                    {{
+                      isSavingAllowedEmails ? 'Saving...' : emailsSaved ? 'Saved' : 'Save Emails'
+                    }}
+                  </Button>
+                </div>
+                <div class="space-y-1 pt-1">
+                  <p
+                    v-if="hasValidEmails && allowedEmails.some(e => e && e.trim())"
+                    :class="theme.textSecondary"
+                    class="text-xs"
+                  >
+                    <span class="font-medium text-teal-600 dark:text-teal-400">
+                      {{ validEmailsCount }} email{{
+                        validEmailsCount !== 1 ? 's' : ''
+                      }}
+                      configured.
+                    </span>
+                  </p>
+                  <p
+                    v-else-if="
+                      !allowedEmails ||
+                      allowedEmails.length === 0 ||
+                      allowedEmails.every(e => !e || !e.trim())
+                    "
+                    :class="theme.textSecondary"
+                    class="text-xs italic"
+                  >
+                    No email restrictions. Anyone with the link can access this selection.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -240,14 +331,19 @@
                   </p>
                 </div>
               </div>
-              <div class="space-y-3 max-w-md">
-                <div class="flex items-center gap-3">
+              <div class="space-y-4 max-w-md">
+                <div
+                  :class="[theme.bgButtonHover, theme.borderSecondary]"
+                  class="p-4 rounded-lg border-2 flex items-center justify-between gap-4"
+                >
                   <div class="flex-1">
-                    <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Current Limit</p>
-                    <p :class="theme.textSecondary" class="text-xs">
+                    <p :class="theme.textSecondary" class="text-xs font-medium mb-1">
+                      Current Limit
+                    </p>
+                    <p :class="theme.textPrimary" class="text-lg font-semibold">
                       {{
                         selection?.selectionLimit
-                          ? `${selection.selectionLimit} items`
+                          ? `${selection.selectionLimit} item${selection.selectionLimit !== 1 ? 's' : ''}`
                           : 'Unlimited'
                       }}
                     </p>
@@ -260,11 +356,12 @@
                     @click="handleOpenSelectionLimitModal"
                   >
                     <Settings class="h-4 w-4 mr-2" />
-                    {{ selection?.selectionLimit ? 'Change Limit' : 'Set Limit' }}
+                    {{ selection?.selectionLimit ? 'Change' : 'Set Limit' }}
                   </Button>
                 </div>
-                <p :class="theme.textSecondary" class="text-xs italic">
-                  This limit applies to all sets unless a set has its own limit.
+                <p :class="theme.textSecondary" class="text-xs">
+                  <span class="font-medium">Note:</span> This limit applies to all sets unless a set
+                  has its own limit.
                 </p>
               </div>
             </div>
@@ -274,14 +371,16 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
-                  Auto-Delete Settings
-                </h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Configure when unselected media will be automatically deleted after selection
-                  completion.
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Auto-Delete Settings
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Configure when unselected media will be automatically deleted after selection
+                    completion.
+                  </p>
+                </div>
               </div>
               <div class="space-y-4">
                 <div class="flex items-start justify-between gap-4">
@@ -297,39 +396,52 @@
                     <ToggleSwitch v-model="autoDeleteEnabled" label="" />
                   </div>
                 </div>
-                <div v-if="autoDeleteEnabled" class="space-y-3 max-w-md">
+                <div v-if="autoDeleteEnabled" class="space-y-4 max-w-md">
                   <div>
                     <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
                       Days Until Deletion
                     </label>
-                    <Input
-                      v-model.number="autoDeleteDays"
-                      :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="focus:ring-2 focus:ring-teal-500/20 transition-all"
-                      max="365"
-                      min="1"
-                      placeholder="30"
-                      type="number"
-                    />
-                    <p :class="theme.textSecondary" class="text-xs mt-1">
+                    <div class="flex items-center gap-3">
+                      <Input
+                        v-model.number="autoDeleteDays"
+                        :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                        class="max-w-xs focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        max="365"
+                        min="1"
+                        placeholder="30"
+                        type="number"
+                        @keydown.enter="handleSave"
+                      />
+                      <span :class="theme.textSecondary" class="text-sm">days</span>
+                    </div>
+                    <p :class="theme.textSecondary" class="text-xs mt-2">
                       Unselected media will be deleted this many days after selection completion.
                     </p>
                   </div>
-                  <div v-if="autoDeleteDate" :class="theme.bgButtonHover" class="p-3 rounded-lg">
-                    <p :class="theme.textSecondary" class="text-xs mb-1">
-                      Calculated Auto-Delete Date
-                    </p>
-                    <p :class="theme.textPrimary" class="text-sm font-medium">
+                  <div
+                    v-if="autoDeleteDate"
+                    :class="[theme.bgButtonHover, theme.borderSecondary]"
+                    class="p-4 rounded-lg border-2"
+                  >
+                    <div class="flex items-start justify-between gap-2 mb-2">
+                      <p :class="theme.textSecondary" class="text-xs font-medium">
+                        Calculated Auto-Delete Date
+                      </p>
+                      <div class="h-2 w-2 rounded-full bg-teal-500"></div>
+                    </div>
+                    <p :class="theme.textPrimary" class="text-base font-semibold mb-1">
                       {{ formatDate(autoDeleteDate) }}
                     </p>
                     <p
                       v-if="selection?.status === 'completed'"
                       :class="theme.textSecondary"
-                      class="text-xs mt-1"
+                      class="text-xs"
                     >
-                      Based on completion date + {{ autoDeleteDays }} days
+                      Based on completion date + {{ autoDeleteDays }} day{{
+                        autoDeleteDays !== 1 ? 's' : ''
+                      }}
                     </p>
-                    <p v-else :class="theme.textSecondary" class="text-xs mt-1">
+                    <p v-else :class="theme.textSecondary" class="text-xs">
                       Will be calculated when selection is completed
                     </p>
                   </div>
@@ -342,92 +454,100 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
-                  Display Preferences
-                </h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Configure how media is displayed in this selection (your view only).
-                </p>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Display Preferences
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Configure how media is displayed in this selection (your view only).
+                  </p>
+                </div>
               </div>
               <div class="space-y-4">
                 <!-- View Mode -->
-                <div>
-                  <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
-                    Default View Mode
-                  </label>
-                  <Select v-model="viewMode">
-                    <SelectTrigger
-                      :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent :class="[theme.bgCard, theme.borderCard]">
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="grid"
-                        >Grid</SelectItem
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <p :class="theme.textPrimary" class="text-sm font-medium mb-1">View Mode</p>
+                    <p :class="theme.textSecondary" class="text-xs">Grid or List view</p>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <Select v-model="viewMode">
+                      <SelectTrigger
+                        :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                        class="w-32 focus:ring-2 focus:ring-teal-500/20 transition-all"
                       >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="list"
-                        >List</SelectItem
-                      >
-                    </SelectContent>
-                  </Select>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent :class="[theme.bgCard, theme.borderCard]">
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="grid"
+                          >Grid</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="list"
+                          >List</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <!-- Grid Size -->
-                <div v-if="viewMode === 'grid'">
-                  <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
-                    Grid Size
-                  </label>
-                  <Select v-model="gridSize">
-                    <SelectTrigger
-                      :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent :class="[theme.bgCard, theme.borderCard]">
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="small"
-                        >Small</SelectItem
+                <div v-if="viewMode === 'grid'" class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Grid Size</p>
+                    <p :class="theme.textSecondary" class="text-xs">Size of grid items</p>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <Select v-model="gridSize">
+                      <SelectTrigger
+                        :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                        class="w-32 focus:ring-2 focus:ring-teal-500/20 transition-all"
                       >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="medium"
-                        >Medium</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="large"
-                        >Large</SelectItem
-                      >
-                    </SelectContent>
-                  </Select>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent :class="[theme.bgCard, theme.borderCard]">
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="small"
+                          >Small</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="medium"
+                          >Medium</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="large"
+                          >Large</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <!-- Show Filenames -->
@@ -446,107 +566,125 @@
                 </div>
 
                 <!-- Sort Order -->
-                <div>
-                  <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
-                    Default Sort Order
-                  </label>
-                  <Select v-model="sortOrder">
-                    <SelectTrigger
-                      :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
-                    >
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent :class="[theme.bgCard, theme.borderCard]">
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="uploaded-new-old"
-                        >Uploaded (Newest First)</SelectItem
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <p :class="theme.textPrimary" class="text-sm font-medium mb-1">Sort Order</p>
+                    <p :class="theme.textSecondary" class="text-xs">How media items are sorted</p>
+                  </div>
+                  <div class="flex-shrink-0">
+                    <Select v-model="sortOrder">
+                      <SelectTrigger
+                        :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                        class="w-64 focus:ring-2 focus:ring-teal-500/20 transition-all"
                       >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="uploaded-old-new"
-                        >Uploaded (Oldest First)</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="name-a-z"
-                        >Name (A-Z)</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="name-z-a"
-                        >Name (Z-A)</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="date-taken-new-old"
-                        >Date Taken (Newest First)</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="date-taken-old-new"
-                        >Date Taken (Oldest First)</SelectItem
-                      >
-                      <SelectItem
-                        :class="[
-                          theme.textPrimary,
-                          theme.bgButtonHover,
-                          'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                        ]"
-                        value="random"
-                        >Random</SelectItem
-                      >
-                    </SelectContent>
-                  </Select>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent :class="[theme.bgCard, theme.borderCard]">
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="uploaded-new-old"
+                          >Uploaded (Newest First)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="uploaded-old-new"
+                          >Uploaded (Oldest First)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="name-a-z"
+                          >Name (A-Z)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="name-z-a"
+                          >Name (Z-A)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="date-taken-new-old"
+                          >Date Taken (Newest First)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="date-taken-old-new"
+                          >Date Taken (Oldest First)</SelectItem
+                        >
+                        <SelectItem
+                          :class="[
+                            theme.textPrimary,
+                            theme.bgButtonHover,
+                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                          ]"
+                          value="random"
+                          >Random</SelectItem
+                        >
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <!-- Save Button -->
-          <div :class="theme.borderSecondary" class="mt-10 pt-6 border-t">
-            <div class="flex items-center justify-end gap-3">
-              <Button
-                :class="[theme.borderSecondary, theme.textPrimary]"
-                class="group hover:bg-gray-50 dark:hover:bg-gray-800/70 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200"
-                variant="outline"
-                @click="goBack"
-              >
-                Cancel
-              </Button>
-              <Button
-                :class="['bg-teal-500 hover:bg-teal-600 text-white']"
-                :disabled="!hasChanges || isSaving"
-                @click="handleSave"
-              >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                {{ isSaving ? 'Saving...' : 'Save Changes' }}
-              </Button>
+            <!-- Save Button -->
+            <div :class="theme.borderSecondary" class="mt-10 pt-6 border-t">
+              <div class="flex items-center justify-between gap-3">
+                <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
+                  <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                  <span :class="theme.textSecondary">You have unsaved changes</span>
+                </div>
+                <div v-else class="flex items-center gap-2 text-sm">
+                  <Check class="h-4 w-4 text-teal-500" />
+                  <span :class="theme.textSecondary">All changes saved</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <Button
+                    :class="[theme.borderSecondary, theme.textPrimary]"
+                    class="group hover:bg-gray-50 dark:hover:bg-gray-800/70 hover:border-gray-300 dark:hover:border-gray-700 transition-all duration-200"
+                    variant="outline"
+                    :disabled="isSaving"
+                    @click="goBack"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    :class="[
+                      'bg-teal-500 hover:bg-teal-600 text-white transition-all',
+                      !hasChanges || isSaving ? 'opacity-50 cursor-not-allowed' : '',
+                    ]"
+                    :disabled="!hasChanges || isSaving"
+                    @click="handleSave"
+                  >
+                    <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
+                    <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
+                    {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -558,7 +696,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Copy, Info, Loader2, X, Plus, Settings } from 'lucide-vue-next'
+import { Copy, Info, Loader2, X, Plus, Settings, Check } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -601,6 +739,9 @@ const autoDeleteEnabled = ref(false)
 const autoDeleteDays = ref(30)
 const allowedEmails = ref([])
 const isSavingAllowedEmails = ref(false)
+const emailsSaved = ref(false)
+const nameSaved = ref(false)
+const colorSaved = ref(false)
 
 // Selection limit modal state
 const showSelectionLimitModal = ref(false)
@@ -627,6 +768,20 @@ const { viewMode, gridSize, showFilename, sortOrder } = storeToRefs(selectionSto
 const passwordDisplay = computed(() => {
   if (!hasPassword.value) return ''
   return currentPassword.value || '••••••••'
+})
+
+const isValidEmail = email => {
+  if (!email || !email.trim()) return false
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email.trim())
+}
+
+const hasValidEmails = computed(() => {
+  return allowedEmails.value.some(email => isValidEmail(email))
+})
+
+const validEmailsCount = computed(() => {
+  return allowedEmails.value.filter(email => isValidEmail(email)).length
 })
 
 const autoDeleteDate = computed(() => {
@@ -791,11 +946,19 @@ const handleSave = async () => {
     // Update selection name
     if (selectionName.value.trim() !== originalValues.value.name) {
       updateData.name = selectionName.value.trim()
+      nameSaved.value = true
+      setTimeout(() => {
+        nameSaved.value = false
+      }, 2000)
     }
 
     // Update color
     if (selectionColor.value !== originalValues.value.color) {
       updateData.color = selectionColor.value
+      colorSaved.value = true
+      setTimeout(() => {
+        colorSaved.value = false
+      }, 2000)
     }
 
     // Update auto-delete settings
@@ -1035,8 +1198,9 @@ const removeAllowedEmail = index => {
   handleAllowedEmailsChange()
 }
 
-const handleAllowedEmailsChange = async () => {
+const handleAllowedEmailsChange = async (forceSave = false) => {
   if (!selection.value) return
+  if (isSavingAllowedEmails.value && !forceSave) return
 
   // Ensure allowedEmails is an array
   const emailsArray = Array.isArray(allowedEmails.value) ? allowedEmails.value : []
@@ -1053,36 +1217,65 @@ const handleAllowedEmailsChange = async () => {
   // Remove duplicates
   const uniqueEmails = [...new Set(validEmails)]
 
-  // Update the array
-  allowedEmails.value = uniqueEmails.length > 0 ? uniqueEmails : []
+  // Only save if emails changed (case-insensitive, order-independent comparison)
+  if (!forceSave) {
+    const currentEmails = selection.value.allowedEmails || selection.value.allowed_emails || []
+    const currentEmailsNormalized = (Array.isArray(currentEmails) ? currentEmails : [])
+      .map(e => (e || '').toLowerCase().trim())
+      .filter(Boolean)
+    const currentEmailsSet = new Set(currentEmailsNormalized)
+    const newEmailsSet = new Set(uniqueEmails)
 
-  // Save if changed
-  const currentEmails = selection.value.allowedEmails || selection.value.allowed_emails || []
-  if (JSON.stringify(uniqueEmails.sort()) !== JSON.stringify([...currentEmails].sort())) {
-    isSavingAllowedEmails.value = true
-    try {
-      await selectionsApi.updateSelection(selection.value.id, {
-        allowedEmails: uniqueEmails.length > 0 ? uniqueEmails : null,
-      })
-      const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
-      selection.value = updatedSelection
-      toast.success('Allowed emails updated', {
-        description: 'The allowed emails list has been updated.',
-      })
-    } catch (error) {
-      toast.error('Failed to update allowed emails', {
-        description: error?.message || 'An unknown error occurred',
-      })
-      // Reload to get original values
-      const selectionData = await selectionStore.fetchSelection(selection.value.id)
-      allowedEmails.value = Array.isArray(selectionData.allowedEmails)
-        ? [...selectionData.allowedEmails]
-        : Array.isArray(selectionData.allowed_emails)
-          ? [...selectionData.allowed_emails]
-          : []
-    } finally {
-      isSavingAllowedEmails.value = false
+    // Check if sets are equal
+    const emailsMatch =
+      currentEmailsSet.size === newEmailsSet.size &&
+      [...currentEmailsSet].every(email => newEmailsSet.has(email))
+
+    if (emailsMatch) {
+      return
     }
+  }
+
+  isSavingAllowedEmails.value = true
+  try {
+    await selectionsApi.updateSelection(selection.value.id, {
+      allowedEmails: uniqueEmails.length > 0 ? uniqueEmails : null,
+    })
+    const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
+    selection.value = updatedSelection
+    selection.value.allowedEmails = uniqueEmails.length > 0 ? uniqueEmails : []
+    selection.value.allowed_emails = uniqueEmails.length > 0 ? uniqueEmails : []
+
+    // Update allowedEmails array to match what was saved
+    const savedEmails = updatedSelection.allowedEmails || updatedSelection.allowed_emails || []
+    if (savedEmails.length > 0) {
+      allowedEmails.value = [...savedEmails, ''] // Add empty field for next email
+    } else {
+      allowedEmails.value = ['']
+    }
+
+    emailsSaved.value = true
+    setTimeout(() => {
+      emailsSaved.value = false
+    }, 3000)
+
+    toast.success('Emails updated', {
+      description: `${uniqueEmails.length} email(s) saved successfully.`,
+    })
+  } catch (error) {
+    emailsSaved.value = false
+    toast.error('Failed to update emails', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+    // Reload to get original values
+    const selectionData = await selectionStore.fetchSelection(selection.value.id)
+    allowedEmails.value = Array.isArray(selectionData.allowedEmails)
+      ? [...selectionData.allowedEmails]
+      : Array.isArray(selectionData.allowed_emails)
+        ? [...selectionData.allowed_emails]
+        : []
+  } finally {
+    isSavingAllowedEmails.value = false
   }
 }
 

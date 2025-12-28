@@ -34,12 +34,11 @@ import CollectionActivitiesEmailRegistrationView from '@/views/user/memora/colle
 import CollectionActivitiesQuickShareView from '@/views/user/memora/collections/activities/QuickShareLinks.vue'
 import CollectionActivitiesPrivatePhotosView from '@/views/user/memora/collections/activities/PrivatePhotos.vue'
 import ProjectDashboardView from '@/views/user/memora/projects/ProjectDashboard.vue'
-import SelectionPhaseView from '@/views/user/memora/projects/selections/SelectionPhase.vue'
-import ProofingPhaseView from '@/views/user/memora/projects/proofing/ProofingPhase.vue'
 import CollectionPhaseView from '@/views/user/memora/projects/collections/CollectionPhase.vue'
 import SelectionsListView from '@/views/user/memora/selections/Selections.vue'
 import SelectionDetailView from '@/views/user/memora/selections/SelectionDetail.vue'
 import ProofingListView from '@/views/user/memora/proofing/Proofing.vue'
+import ProofingDetailView from '@/views/user/memora/proofing/ProofingDetail.vue'
 
 export const memoraRoutes = [
   {
@@ -409,6 +408,14 @@ export const memoraRoutes = [
       requiresAuth: true,
     },
   },
+  {
+    path: '/memora/proofing/:id',
+    name: 'proofingDetail',
+    component: ProofingDetailView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
   // Project Routes
   {
     path: '/memora/projects',
@@ -429,7 +436,17 @@ export const memoraRoutes = [
   {
     path: '/memora/projects/:id/selections',
     name: 'projectSelections',
-    component: SelectionPhaseView,
+    redirect: to => {
+      // If there's a selectionId query param, redirect to selectionDetail
+      if (to.query.selectionId) {
+        return {
+          name: 'selectionDetail',
+          params: { id: to.query.selectionId },
+        }
+      }
+      // Otherwise, redirect to selections list
+      return { name: 'selections' }
+    },
     meta: {
       requiresAuth: true,
     },
@@ -437,7 +454,17 @@ export const memoraRoutes = [
   {
     path: '/memora/projects/:id/proofing',
     name: 'projectProofing',
-    component: ProofingPhaseView,
+    redirect: to => {
+      // If there's a proofingId query param, redirect to proofingDetail
+      if (to.query.proofingId) {
+        return {
+          name: 'proofingDetail',
+          params: { id: to.query.proofingId },
+        }
+      }
+      // Otherwise, redirect to proofing list
+      return { name: 'proofing' }
+    },
     meta: {
       requiresAuth: true,
     },

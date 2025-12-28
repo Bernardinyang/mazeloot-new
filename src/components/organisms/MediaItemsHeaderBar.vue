@@ -186,37 +186,9 @@ import { Button } from '@/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
+import { useProofingStore } from '@/stores/proofing'
 
 const theme = useThemeClasses()
-const selectionStore = useSelectionStore()
-
-// Use storeToRefs to ensure reactivity in template
-const { gridSize, viewMode, showFilename, sortOrder } = storeToRefs(selectionStore)
-
-const gridSizeOptions = [
-  { label: 'Small', value: 'small' },
-  { label: 'Medium', value: 'medium' },
-  { label: 'Large', value: 'large' },
-]
-
-const sortOptions = [
-  { label: 'Uploaded (New → Old)', value: 'uploaded-new-old' },
-  { label: 'Uploaded (Old → New)', value: 'uploaded-old-new' },
-  { label: 'Date Taken (New → Old)', value: 'date-taken-new-old' },
-  { label: 'Date Taken (Old → New)', value: 'date-taken-old-new' },
-  { label: 'Name (A → Z)', value: 'name-a-z' },
-  { label: 'Name (Z → A)', value: 'name-z-a' },
-  { label: 'Random', value: 'random' },
-]
-
-const selectedSortLabel = computed(() => {
-  const selectedOption = sortOptions.find(option => option.value === sortOrder.value)
-  return selectedOption ? selectedOption.label : 'Sort'
-})
-
-// Internal menu state
-const isSortMenuOpen = ref(false)
-const isViewMenuOpen = ref(false)
 
 const props = defineProps({
   title: {
@@ -243,27 +215,102 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  storeType: {
+    type: String,
+    default: 'selection', // 'selection' or 'proofing'
+    validator: value => ['selection', 'proofing'].includes(value),
+  },
 })
+
+// Use the appropriate store based on storeType prop
+const selectionStore = useSelectionStore()
+const proofingStore = useProofingStore()
+
+// Get refs from both stores
+const selectionRefs = storeToRefs(selectionStore)
+const proofingRefs = storeToRefs(proofingStore)
+
+// Use computed refs that switch based on storeType
+const gridSize = computed(() => {
+  return props.storeType === 'proofing' ? proofingRefs.gridSize.value : selectionRefs.gridSize.value
+})
+
+const viewMode = computed(() => {
+  return props.storeType === 'proofing' ? proofingRefs.viewMode.value : selectionRefs.viewMode.value
+})
+
+const showFilename = computed(() => {
+  return props.storeType === 'proofing'
+    ? proofingRefs.showFilename.value
+    : selectionRefs.showFilename.value
+})
+
+const sortOrder = computed(() => {
+  return props.storeType === 'proofing'
+    ? proofingRefs.sortOrder.value
+    : selectionRefs.sortOrder.value
+})
+
+const gridSizeOptions = [
+  { label: 'Small', value: 'small' },
+  { label: 'Medium', value: 'medium' },
+  { label: 'Large', value: 'large' },
+]
+
+const sortOptions = [
+  { label: 'Uploaded (New → Old)', value: 'uploaded-new-old' },
+  { label: 'Uploaded (Old → New)', value: 'uploaded-old-new' },
+  { label: 'Date Taken (New → Old)', value: 'date-taken-new-old' },
+  { label: 'Date Taken (Old → New)', value: 'date-taken-old-new' },
+  { label: 'Name (A → Z)', value: 'name-a-z' },
+  { label: 'Name (Z → A)', value: 'name-z-a' },
+  { label: 'Random', value: 'random' },
+]
+
+const selectedSortLabel = computed(() => {
+  const selectedOption = sortOptions.find(option => option.value === sortOrder.value)
+  return selectedOption ? selectedOption.label : 'Sort'
+})
+
+// Internal menu state
+const isSortMenuOpen = ref(false)
+const isViewMenuOpen = ref(false)
 
 const emit = defineEmits(['toggle-select-all', 'add-media'])
 
 // Internal handlers - update store directly
 const handleGridSizeChange = value => {
-  selectionStore.setGridSize(value)
+  if (props.storeType === 'proofing') {
+    proofingStore.setGridSize(value)
+  } else {
+    selectionStore.setGridSize(value)
+  }
   isViewMenuOpen.value = false
 }
 
 const handleSortChange = value => {
-  selectionStore.setSortOrder(value)
+  if (props.storeType === 'proofing') {
+    proofingStore.setSortOrder(value)
+  } else {
+    selectionStore.setSortOrder(value)
+  }
   isSortMenuOpen.value = false
 }
 
 const handleFilenameToggle = event => {
-  selectionStore.setShowFilename(event.target.checked)
+  if (props.storeType === 'proofing') {
+    proofingStore.setShowFilename(event.target.checked)
+  } else {
+    selectionStore.setShowFilename(event.target.checked)
+  }
 }
 
 const handleViewModeChange = mode => {
-  selectionStore.setViewMode(mode)
+  if (props.storeType === 'proofing') {
+    proofingStore.setViewMode(mode)
+  } else {
+    selectionStore.setViewMode(mode)
+  }
   isViewMenuOpen.value = false
 }
 

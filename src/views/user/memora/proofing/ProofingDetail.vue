@@ -1,23 +1,15 @@
 <template>
   <!-- Settings View -->
-  <SelectionSettingsGeneral
+  <ProofingSettingsGeneral
     v-if="route.query?.tab === 'settings' && route.query?.section === 'general'"
   />
 
   <!-- Default Photos View -->
-  <SelectionLayout
+  <ProofingLayout
     v-else
     :is-loading="isLoading || isUpdatingCoverPhoto"
-    :selection="selection"
-    :on-copy-filenames-per-set="handleCopyFilenamesPerSet"
-    :on-copy-selected-filenames-in-set="handleCopySelectedFilenamesInSet"
-    :on-copy-all-selected-filenames="handleCopyAllSelectedFilenames"
-    :selected-count="selectedCountAcrossSelection"
-    :is-copying-filenames="isCopyingFilenames"
-    :set-progress="setProgressMap"
+    :proofing="proofing"
     :overall-progress="overallProgress"
-    :on-reset-limit="handleResetSelectionLimit"
-    :is-resetting-limit="isResettingLimit"
     @go-back="goBack"
   >
     <template #content>
@@ -33,7 +25,7 @@
       <!-- Main Content Area -->
       <main
         class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
-        :style="isDragging ? { '--tw-ring-color': `${selectionColor.value}33` } : {}"
+        :style="isDragging ? { '--tw-ring-color': `${proofingColor.value}33` } : {}"
         :class="isDragging ? 'ring-4' : ''"
         @dragover.prevent="handleDragOver"
         @dragleave="handleDragLeave"
@@ -44,25 +36,25 @@
           v-if="isDragging && selectedSetId"
           class="absolute inset-0 z-50 border-4 border-dashed rounded-lg flex items-center justify-center pointer-events-none"
           :style="{
-            backgroundColor: `${selectionColor.value}1A`,
-            borderColor: selectionColor.value,
+            backgroundColor: `${proofingColor.value}1A`,
+            borderColor: proofingColor.value,
           }"
         >
           <div class="text-center space-y-4">
             <div
               class="p-6 rounded-full"
               :style="{
-                backgroundColor: `${selectionColor.value}33`,
+                backgroundColor: `${proofingColor.value}33`,
               }"
             >
-              <ImagePlus class="h-16 w-16 mx-auto" :style="{ color: selectionColor.value }" />
+              <ImagePlus class="h-16 w-16 mx-auto" :style="{ color: proofingColor.value }" />
             </div>
-            <p class="text-2xl font-bold" :style="{ color: selectionColor.value }">
+            <p class="text-2xl font-bold" :style="{ color: proofingColor.value }">
               Drop files here to upload
             </p>
           </div>
         </div>
-        <ContentLoader v-if="isLoading" message="Loading selection..." />
+        <ContentLoader v-if="isLoading" message="Loading proofing..." />
 
         <div v-else class="p-8">
           <!-- Section Header -->
@@ -78,10 +70,8 @@
             :selected-count="selectedCountInCurrentSet"
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
-            :selection-status="selection?.status"
-            :on-copy-selected-filenames-in-set="
-              () => handleCopySelectedFilenamesInSet(selectedSetId)
-            "
+            :selection-status="proofing?.status"
+            store-type="proofing"
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
@@ -150,12 +140,12 @@
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :was-selected-on-completion="
-                  selection?.status === 'completed' ? item.isSelected : false
+                  proofing?.status === 'completed' ? item.isCompleted : false
                 "
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
-                :selection-status="selection?.status"
+                :selection-status="proofing?.status"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -179,12 +169,12 @@
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :was-selected-on-completion="
-                  selection?.status === 'completed' ? item.isSelected : false
+                  proofing?.status === 'completed' ? item.isCompleted : false
                 "
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
-                :selection-status="selection?.status"
+                :selection-status="proofing?.status"
                 :subtitle="formatMediaDate(item.createdAt)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
@@ -222,8 +212,8 @@
           <div
             v-if="
               !isLoadingMedia &&
-              selection &&
-              selection.status !== 'completed' &&
+              proofing &&
+              proofing.status !== 'completed' &&
               mediaSets.length === 0
             "
             class="flex items-center justify-center py-16"
@@ -234,32 +224,30 @@
               :icon="FolderPlus"
               action-label="Create Set"
               description="Create a set to organize and upload your media files."
-              message="No sets in this selection"
+              message="No sets in this proofing"
               @action="mediaSetsSidebar.handleAddSet"
             />
           </div>
           <!-- Show upload zone when sets exist but no media -->
           <MediaUploadDropzone
             v-else-if="
-              !isLoadingMedia &&
-              selection &&
-              selection.status !== 'completed' &&
-              mediaSets.length > 0
+              !isLoadingMedia && proofing && proofing.status !== 'completed' && mediaSets.length > 0
             "
-            v-model:is-dragging="isDragging"
+            :is-dragging="isDragging"
             :is-empty="sortedMediaItems.length === 0"
             @browse="handleBrowseFiles"
             @drop="handleDrop"
+            @update:is-dragging="isDragging = $event"
           />
-          <!-- Show empty state for completed selections or when no media -->
+          <!-- Show empty state for completed proofing or when no media -->
           <div
             v-else-if="sortedMediaItems.length === 0 && !isLoadingMedia"
             class="text-center py-16"
           >
-            <p :class="theme.textSecondary" class="text-lg mb-4">No media in this selection yet</p>
+            <p :class="theme.textSecondary" class="text-lg mb-4">No media in this proofing yet</p>
             <p :class="theme.textTertiary" class="text-sm">
-              <span v-if="selection && selection.status === 'completed'">
-                This selection has been completed.
+              <span v-if="proofing && proofing.status === 'completed'">
+                This proofing has been completed.
               </span>
               <span v-else>Select a set from the sidebar or upload media to get started.</span>
             </p>
@@ -269,13 +257,15 @@
 
       <!-- Create/Edit Set Modal -->
       <CreateEditMediaSetModal
-        v-model="mediaSetsSidebar.showCreateSetModal"
-        v-model:description="mediaSetsSidebar.newSetDescription"
-        v-model:name="mediaSetsSidebar.newSetName"
-        v-model:selectionLimit="mediaSetsSidebar.newSetSelectionLimit"
+        :model-value="mediaSetsSidebar.showCreateSetModal"
+        :description="mediaSetsSidebar.newSetDescription"
+        :name="mediaSetsSidebar.newSetName"
         :is-creating="mediaSetsSidebar.isCreatingSet"
         :is-editing="!!mediaSetsSidebar.editingSetIdInModal"
-        context="selection"
+        context="proofing"
+        @update:model-value="mediaSetsSidebar.showCreateSetModal = $event"
+        @update:description="mediaSetsSidebar.newSetDescription = $event"
+        @update:name="mediaSetsSidebar.newSetName = $event"
         @cancel="mediaSetsSidebar.handleCancelCreateSet"
         @confirm="mediaSetsSidebar.handleCreateSet"
       />
@@ -292,15 +282,6 @@
         @confirm="handleConfirmDeleteItem"
       />
 
-      <!-- Selection Limit Modal -->
-      <SelectionLimitModal
-        v-model="showSelectionLimitModal"
-        :current-limit="selection?.selectionLimit"
-        :is-saving="isSavingSelectionLimit"
-        @save="handleSaveSelectionLimit"
-        @cancel="handleCancelSelectionLimit"
-      />
-
       <!-- Bulk Delete Confirmation Modal -->
       <DeleteConfirmationModal
         v-model="showBulkDeleteModal"
@@ -314,20 +295,24 @@
       />
 
       <EditFilenamesModal
-        v-model="showEditModal"
-        v-model:append-text="editAppendText"
+        :model-value="showEditModal"
+        :append-text="editAppendText"
         :is-loading="isBulkEditLoading"
         :selected-count="selectedMediaIds.size"
+        @update:model-value="showEditModal = $event"
+        @update:append-text="editAppendText = $event"
         @cancel="handleCancelEdit"
         @confirm="handleConfirmEdit"
       />
 
       <BulkWatermarkModal
-        v-model="showBulkWatermarkModal"
-        v-model:selected-watermark="selectedBulkWatermark"
+        :model-value="showBulkWatermarkModal"
+        :selected-watermark="selectedBulkWatermark"
         :is-loading="isBulkWatermarkLoading"
         :selected-count="selectedMediaIds.size"
         :watermarks="watermarks"
+        @update:model-value="showBulkWatermarkModal = $event"
+        @update:selected-watermark="selectedBulkWatermark = $event"
         @cancel="handleCancelBulkWatermark"
         @confirm="handleConfirmBulkWatermark"
       />
@@ -357,9 +342,11 @@
       />
 
       <RenameMediaModal
-        v-model="showRenameMediaModal"
-        v-model:new-media-name="newMediaName"
+        :model-value="showRenameMediaModal"
+        :new-media-name="newMediaName"
         :is-renaming="isRenamingMedia"
+        @update:model-value="showRenameMediaModal = $event"
+        @update:new-media-name="newMediaName = $event"
         @cancel="handleCancelRenameMedia"
         @confirm="handleConfirmRenameMedia"
       />
@@ -372,14 +359,16 @@
       />
 
       <WatermarkMediaModal
-        v-model="showWatermarkMediaModal"
-        v-model:selected-watermark="selectedWatermarkForMedia"
+        :model-value="showWatermarkMediaModal"
+        :selected-watermark="selectedWatermarkForMedia"
         :confirm-label="
           selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl ? 'Remove' : 'Add'
         "
         :is-editing="!!mediaToWatermark?.originalUrl"
         :is-loading="isApplyingWatermark"
         :watermarks="watermarks"
+        @update:model-value="showWatermarkMediaModal = $event"
+        @update:selected-watermark="selectedWatermarkForMedia = $event"
         @cancel="handleCancelWatermarkMedia"
         @confirm="handleConfirmWatermarkMedia"
       />
@@ -410,19 +399,21 @@
       />
 
       <MoveCopyModal
-        v-model="showMoveCopyModal"
-        v-model:action="moveCopyAction"
-        context="selection"
-        :available-collections="availableSelections"
-        :current-collection-id="selection?.id || ''"
-        :current-collection-name="selection?.name || ''"
-        :target-collection-id="targetSelectionId"
-        :target-collection-sets="targetSelectionSets"
+        :model-value="showMoveCopyModal"
+        :action="moveCopyAction"
+        context="proofing"
+        :available-collections="availableProofings"
+        :current-collection-id="proofing?.id || ''"
+        :current-collection-name="proofing?.name || ''"
+        :target-collection-id="targetProofingId"
+        :target-collection-sets="targetProofingSets"
         :is-loading-sets="isLoadingTargetSets"
         :target-set-id="targetSetId"
         :is-moving="isMovingMedia"
         :selected-count="selectedMediaIds.size"
-        @selection-change="handleTargetSelectionChange"
+        @update:model-value="showMoveCopyModal = $event"
+        @update:action="moveCopyAction = $event"
+        @selection-change="handleTargetProofingChange"
         @update:target-set-id="targetSetId = $event"
         @cancel="handleCancelMoveCopy"
         @confirm="handleConfirmMoveCopy"
@@ -430,20 +421,21 @@
 
       <!-- Focal Point Modal -->
       <FocalPointModal
-        v-model:is-open="showFocalPointModal"
+        :is-open="showFocalPointModal"
         :image-url="focalPointImageUrl"
         :initial-focal-point="currentFocalPoint"
+        @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
     </template>
-  </SelectionLayout>
+  </ProofingLayout>
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import SelectionLayout from '@/layouts/SelectionLayout.vue'
-import SelectionSettingsGeneral from '@/views/user/memora/selections/settings/General.vue'
+import ProofingLayout from '@/layouts/ProofingLayout.vue'
+import ProofingSettingsGeneral from '@/views/user/memora/proofing/settings/General.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -466,39 +458,30 @@ import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
 import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
-import { useSelectionStore } from '@/stores/selection.js'
-import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
+import { useProofingStore } from '@/stores/proofing'
+import { useProofingMediaSetsSidebarStore } from '@/stores/proofingMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
 import { FolderPlus, ImagePlus, Plus } from 'lucide-vue-next'
 import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
-import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
-import { useSelectionActions } from '@/composables/useSelectionActions'
-import { useSelectionProgress } from '@/composables/useSelectionProgress'
-import { useSelectionsApi } from '@/api/selections'
+import { useProofingWorkflow } from '@/composables/useProofingWorkflow'
+import { useProofingApi } from '@/api/proofing'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
 import { useActionHistoryStore } from '@/stores/actionHistory'
-import { darkenColor } from '@/utils/colors'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
-const selectionStore = useSelectionStore()
-const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+const proofingStore = useProofingStore()
+const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 
-// Get selection color from parent (provided by SelectionLayout)
-const selectionColor = inject(
-  'selectionColor',
+// Get proofing color from parent (provided by ProofingLayout)
+const proofingColor = inject(
+  'proofingColor',
   computed(() => '#10B981')
 )
-const getSelectionHoverColor = inject('getSelectionHoverColor', () => '#059669')
-
-// Get hover color (slightly darker) for use in this component
-const selectionHoverColor = computed(() => {
-  return darkenColor(selectionColor.value, 10)
-})
 
 // Action history for undo/redo (global store)
 const actionHistory = useActionHistoryStore()
@@ -523,29 +506,27 @@ const getUndoAction = () => {
 }
 
 // Use store for media sets
-const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
+const { selectedSetId } = storeToRefs(mediaSetsSidebar)
 const mediaSets = computed(() => mediaSetsSidebar.mediaSets)
 
-// Selection data
-const selection = ref(null)
-const selectionStatus = computed(() => selection.value?.status || 'draft')
+// Proofing data
+const proofing = ref(null)
 const isDragging = ref(false)
 
-const { gridSize, viewMode, showFilename, sortOrder } = storeToRefs(selectionStore)
+const { gridSize, viewMode, showFilename, sortOrder } = storeToRefs(proofingStore)
 const selectedMediaIds = ref(new Set())
 const showMoveCopyModal = ref(false)
 const moveCopyAction = ref('move')
 const isMovingMedia = ref(false)
-const targetSelectionId = ref('')
+const targetProofingId = ref('')
 const targetSetId = ref('')
-const availableSelections = ref([])
-const isLoadingSelections = ref(false)
-const targetSelectionSets = ref([])
+const availableProofings = ref([])
+const isLoadingProofings = ref(false)
+const targetProofingSets = ref([])
 const isLoadingTargetSets = ref(false)
 const isBulkFavoriteLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
-const isUpdatingSetCounts = ref(false)
 const isUpdatingCoverPhoto = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
@@ -589,39 +570,32 @@ const handleImageError = event => {
   }
 }
 
-// Load selection data
+// Load proofing data
 const isLoading = ref(false)
-const loadSelection = async () => {
-  const selectionId = route.params.id
-  if (!selectionId) {
+const loadProofing = async () => {
+  const proofingId = route.params.id
+  if (!proofingId) {
     return
   }
 
   isLoading.value = true
   try {
-    const selectionData = await selectionStore.fetchSelection(selectionId)
-    selection.value = selectionData
-
-    // Media sets are automatically initialized by SelectionLayout via the store
-    // No need to manually set them here
+    const proofingData = await proofingStore.fetchProofing(proofingId)
+    proofing.value = proofingData
 
     // Check if setId is in route query and set it first
     if (route.query.setId) {
       const setIdFromRoute = route.query.setId
-      // Verify the set exists in mediaSets before selecting
-      if (selectionData.mediaSets && selectionData.mediaSets.some(s => s.id === setIdFromRoute)) {
+      if (proofingData.mediaSets && proofingData.mediaSets.some(s => s.id === setIdFromRoute)) {
         mediaSetsSidebar.handleSelectSet(setIdFromRoute)
       }
     }
 
     // Load media items for the selected set (if one is selected)
-    // Note: If no set is selected, handleSelectSet will trigger the watcher to load media
     if (selectedSetId.value) {
       await loadMediaItems()
-    } else if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
-      // If no set is selected but sets exist, select the first one
-      // The watcher on selectedSetId will automatically load media
-      mediaSetsSidebar.handleSelectSet(selectionData.mediaSets[0].id)
+    } else if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
+      mediaSetsSidebar.handleSelectSet(proofingData.mediaSets[0].id)
     }
   } catch (error) {
     // Optionally redirect back or show error message
@@ -633,7 +607,6 @@ const loadSelection = async () => {
 // Sync selectedSetId with route query parameter
 let isUpdatingFromRoute = false
 watch(selectedSetId, newSetId => {
-  // Don't update route if we're updating from route (to avoid loops)
   if (isUpdatingFromRoute) return
 
   if (newSetId) {
@@ -643,22 +616,19 @@ watch(selectedSetId, newSetId => {
         setId: newSetId,
       },
     })
-    // Reset pagination to first page and load media for the newly selected set
     resetMediaToFirstPage()
   } else {
-    // Remove setId from query if no set is selected
     const query = { ...route.query }
     delete query.setId
     router.replace({ query })
   }
 })
 
-// Watch for route query changes (browser back/forward, direct URL)
+// Watch for route query changes
 watch(
   () => route.query.setId,
   setIdFromRoute => {
     if (!setIdFromRoute) {
-      // If setId is removed from route, clear selection
       if (selectedSetId.value) {
         isUpdatingFromRoute = true
         mediaSetsSidebar.handleSelectSet(null)
@@ -667,9 +637,7 @@ watch(
       return
     }
 
-    // Only update if different from current selection
     if (setIdFromRoute !== selectedSetId.value) {
-      // Verify the set exists in mediaSets before selecting
       if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
         isUpdatingFromRoute = true
         mediaSetsSidebar.handleSelectSet(setIdFromRoute)
@@ -685,19 +653,17 @@ const isPhotosTabActive = computed(() => {
   const routeName = route.name?.toString() ?? ''
   return (
     tab === 'photos' ||
-    routeName === 'selectionPhotos' ||
-    routeName === 'selectionPreview' ||
-    (!tab && routeName !== 'selectionSettings')
+    routeName === 'proofingPhotos' ||
+    routeName === 'proofingPreview' ||
+    (!tab && routeName !== 'proofingSettings')
   )
 })
 
-// Auto-select first set when photos tab is clicked and sets exist
+// Auto-select first set when photos tab is clicked
 watch(
   () => route.query.tab,
   newTab => {
-    // When photos tab is active and no set is selected, auto-select first set if available
     if (newTab === 'photos' || (!newTab && isPhotosTabActive.value)) {
-      // Wait a bit for mediaSets to be loaded
       const checkAndSelect = () => {
         if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0 && !route.query.setId) {
           isUpdatingFromRoute = true
@@ -706,7 +672,6 @@ watch(
         }
       }
 
-      // Check immediately and also after a short delay to ensure mediaSets are loaded
       checkAndSelect()
       setTimeout(checkAndSelect, 100)
     }
@@ -714,7 +679,7 @@ watch(
   { immediate: true }
 )
 
-// Also watch for when mediaSets become available while on photos tab
+// Watch for when mediaSets become available
 watch(
   () => mediaSetsSidebar.mediaSets.length,
   () => {
@@ -733,15 +698,13 @@ watch(
 
 // Initialize selectedSetId from route query on mount
 onMounted(() => {
-  loadSelection()
+  loadProofing()
 
-  // Check if setId is in route query and set it after mediaSets are loaded
   watch(
     () => mediaSetsSidebar.mediaSets.length,
     () => {
       if (route.query.setId && !selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
         const setIdFromRoute = route.query.setId
-        // Verify the set exists in mediaSets before selecting
         if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
           isUpdatingFromRoute = true
           mediaSetsSidebar.handleSelectSet(setIdFromRoute)
@@ -753,20 +716,19 @@ onMounted(() => {
   )
 })
 
-// Watch for modal opening to load selections
+// Watch for modal opening to load proofings
 watch(showMoveCopyModal, isOpen => {
   if (isOpen) {
-    // Only load selections when modal opens
-    if (availableSelections.value.length === 0) {
-      loadAvailableSelections()
+    if (availableProofings.value.length === 0) {
+      loadAvailableProofings()
     }
-    // Initialize with current selection
-    if (selection.value) {
-      targetSelectionId.value = selection.value.id
-      handleTargetSelectionChange(selection.value.id)
+    if (proofing.value) {
+      targetProofingId.value = proofing.value.id
+      handleTargetProofingChange(proofing.value.id)
     }
   }
 })
+
 const fileInputRef = ref(null)
 const showDeleteModal = ref(false)
 const itemToDelete = ref(null)
@@ -785,7 +747,6 @@ const closeDeleteModal = () => {
 const getItemName = () => {
   if (!itemToDelete.value) return 'Item'
   const item = itemToDelete.value
-  // For media items, try to get filename from file relationship
   return item.file?.filename || item.filename || item.title || item.name || 'Item'
 }
 
@@ -797,7 +758,7 @@ const selectedSet = computed(() => {
 const mediaItems = ref([])
 
 // Load media items for the selected set with pagination
-const selectionsApi = useSelectionsApi()
+const proofingApi = useProofingApi()
 
 // Convert frontend sort format to backend format
 const convertSortOrder = sortValue => {
@@ -805,7 +766,6 @@ const convertSortOrder = sortValue => {
 
   if (sortValue === 'random') return 'random'
 
-  // Map frontend format to backend format
   const mapping = {
     'uploaded-new-old': 'uploaded-desc',
     'uploaded-old-new': 'uploaded-asc',
@@ -822,7 +782,7 @@ const convertSortOrder = sortValue => {
  * Fetch function for pagination
  */
 const fetchSetMedia = async params => {
-  if (!selection.value?.id || !selectedSetId.value) {
+  if (!proofing.value?.id || !selectedSetId.value) {
     return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
   }
 
@@ -835,15 +795,14 @@ const fetchSetMedia = async params => {
     fetchParams.sortBy = backendSortBy
   }
 
-  const response = await selectionsApi.fetchSetMedia(
-    selection.value.id,
+  const response = await proofingApi.fetchSetMedia(
+    proofing.value.id,
     selectedSetId.value,
+    proofing.value.projectId,
     fetchParams
   )
 
-  // Handle both paginated and non-paginated responses
   if (response && typeof response === 'object' && 'data' in response && 'pagination' in response) {
-    // Paginated response - map items to include setId
     return {
       data: Array.isArray(response.data)
         ? response.data.map(m => ({ ...m, setId: selectedSetId.value }))
@@ -851,7 +810,6 @@ const fetchSetMedia = async params => {
       pagination: response.pagination,
     }
   } else if (Array.isArray(response)) {
-    // Non-paginated array response (backward compatibility)
     const mapped = response.map(m => ({ ...m, setId: selectedSetId.value }))
     return {
       data: mapped,
@@ -879,15 +837,14 @@ const {
 } = useAsyncPagination(fetchSetMedia, {
   initialPage: 1,
   initialPerPage: 10,
-  autoFetch: false, // We'll call fetch manually when selection/set changes
-  watchForReset: [sortOrder], // Reset to page 1 when sort changes
+  autoFetch: false,
+  watchForReset: [sortOrder],
 })
 
 // Keep mediaItems in sync with paginated data
 watch(
   paginatedMediaItems,
   newItems => {
-    // Only update mediaItems for the current set
     const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
     mediaItems.value = [...otherMedia, ...newItems]
   },
@@ -896,18 +853,17 @@ watch(
 
 // Load media items for the selected set
 const loadMediaItems = async () => {
-  if (!selection.value?.id || !selectedSetId.value) {
+  if (!proofing.value?.id || !selectedSetId.value) {
     return
   }
 
-  // Use pagination fetch
   await fetchMedia()
 }
 
 // Update isLoadingMedia to use pagination loading state
 const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
 
-// Initialize selection workflow for uploads
+// Initialize proofing workflow for uploads
 const {
   processFiles,
   uploadMediaToSet,
@@ -925,11 +881,11 @@ const {
   duplicateFiles: duplicateFilesFromWorkflow,
   duplicateFileActions: duplicateFileActionsFromWorkflow,
   duplicateFileActionsObject: duplicateFileActionsObjectFromWorkflow,
-} = useSelectionWorkflow({
-  selectionId: () => selection.value?.id,
+  duplicateFileActionsKey,
+} = useProofingWorkflow({
+  proofingId: () => proofing.value?.id,
   loadMediaItems,
   existingMedia: () => mediaItems.value,
-  // Reload media sets after successful upload to update counts
   onUploadComplete: async results => {
     if (results.successful.length > 0) {
       await mediaSetsSidebar.loadMediaSets()
@@ -939,39 +895,31 @@ const {
 
 // Watch upload state to control progress modal
 watch(isUploadingFromWorkflow, async (val, oldVal) => {
-  // Show upload progress modal when upload starts
   if (val) {
     showUploadProgress.value = true
   }
   if (!val && oldVal) {
     justUploaded.value = true
-    // Keep modal open if there are failed uploads to allow retry
     const hasFailedUploads = Object.values(uploadProgressFromWorkflow.value || {}).some(
       p => p.status === 'failed'
     )
     if (!hasFailedUploads) {
-      // Close modal after a delay if no failed uploads
       setTimeout(() => {
         showUploadProgress.value = false
       }, 1000)
     }
 
-    // Note: Media sets are now reloaded via onUploadComplete callback in useSelectionWorkflow
-    // This watch is kept for modal management only
-
-    // Clear flag after a delay to allow loadMediaItems from uploadMediaToSet to complete
     setTimeout(() => {
       justUploaded.value = false
     }, 500)
   }
 })
 
-// Also watch for failed uploads to keep modal open
+// Watch for failed uploads to keep modal open
 watch(
   () => uploadErrorsFromWorkflow.value?.length || 0,
   errorCount => {
     if (errorCount > 0 && !isUploadingFromWorkflow.value) {
-      // Keep modal open if there are errors
       showUploadProgress.value = true
     }
   }
@@ -990,12 +938,11 @@ watch(duplicateFileActionsFromWorkflow, val => {
 })
 
 // Watch for selectedSetId changes to load media
-// Skip if upload is in progress or just completed to avoid duplicate calls
 watch(
   selectedSetId,
   newSetId => {
     if (
-      selection.value?.id &&
+      proofing.value?.id &&
       newSetId &&
       !isUploading.value &&
       !isLoadingMedia.value &&
@@ -1003,18 +950,17 @@ watch(
     ) {
       loadMediaItems()
     } else if (!newSetId) {
-      // Clear media items when no set is selected (shows empty state)
       mediaItems.value = []
     }
   },
   { immediate: false }
 )
 
-// Watch for sortOrder changes to reload media with new sorting
+// Watch for sortOrder changes to reload media
 watch(
   sortOrder,
   () => {
-    if (selection.value?.id && selectedSetId.value && !isUploading.value && !isLoadingMedia.value) {
+    if (proofing.value?.id && selectedSetId.value && !isUploading.value && !isLoadingMedia.value) {
       loadMediaItems()
     }
   },
@@ -1032,10 +978,7 @@ const filteredMediaItems = computed(() => {
 // Media items are now sorted/filtered by the backend
 const sortedMediaItems = computed(() => filteredMediaItems.value)
 
-// No handlers needed - state is managed internally by MediaItemsHeaderBar and accessed via inject
-
 const openMediaViewer = item => {
-  // Find the index of the item in the sorted media items
   const index = sortedMediaItems.value.findIndex(m => m.id === item.id)
 
   selectedMediaForView.value = sortedMediaItems.value
@@ -1055,45 +998,46 @@ const handleViewDetails = item => {
   showMediaDetailSidebar.value = true
 }
 
-// UI-only handlers - no functionality
 const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
 const handleStarMedia = async item => {
-  if (!item?.id || !selection.value?.id || !selectedSetId.value) {
+  if (!item?.id || !proofing.value?.id || !selectedSetId.value) {
     return
   }
 
   try {
     const oldStarredStatus = item.isStarred
-    const result = await selectionsApi.starMedia(selection.value.id, selectedSetId.value, item.id)
+    const result = await proofingApi.starMedia(
+      proofing.value.id,
+      selectedSetId.value,
+      item.id,
+      proofing.value.projectId
+    )
 
-    // ApiResponse wraps data in { data: { starred: bool } }
     const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
 
-    // Directly mutate the property to preserve the object reference
     const mediaItem = mediaItems.value.find(m => m.id === item.id)
     if (mediaItem) {
       mediaItem.isStarred = newStarredStatus
     }
 
-    // Also update the item prop directly (it's the same reference from sortedMediaItems)
     if (item) {
       item.isStarred = newStarredStatus
     }
 
-    // Add to action history for undo
     if (oldStarredStatus !== newStarredStatus) {
       actionHistory.addAction({
         type: 'star',
         description: `${newStarredStatus ? 'Starred' : 'Unstarred'} "${item.file?.filename || item.filename || 'media'}"`,
         undo: async () => {
           try {
-            const result = await selectionsApi.starMedia(
-              selection.value.id,
+            await proofingApi.starMedia(
+              proofing.value.id,
               selectedSetId.value,
-              item.id
+              item.id,
+              proofing.value.projectId
             )
             const mediaItem = mediaItems.value.find(m => m.id === item.id)
             if (mediaItem) {
@@ -1106,10 +1050,11 @@ const handleStarMedia = async item => {
         },
         redo: async () => {
           try {
-            const result = await selectionsApi.starMedia(
-              selection.value.id,
+            await proofingApi.starMedia(
+              proofing.value.id,
               selectedSetId.value,
-              item.id
+              item.id,
+              proofing.value.projectId
             )
             const mediaItem = mediaItems.value.find(m => m.id === item.id)
             if (mediaItem) {
@@ -1143,9 +1088,8 @@ const handleDownloadMedia = async item => {
       id: 'download-media',
     })
 
-    const { blob, filename } = await selectionsApi.downloadMedia(item.id)
+    const { blob, filename } = await proofingApi.downloadMedia(item.id)
 
-    // Trigger browser download
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -1181,77 +1125,35 @@ const handleCopyFilenames = async item => {
   }
 }
 
-// Use selection actions composable
-const selectionId = computed(() => selection.value?.id)
-const { copyFilenames, resetSelectionLimit, isCopyingFilenames, isResettingLimit } =
-  useSelectionActions(selectionId)
-
-// Use selection progress composable
-const {
-  overallProgress: overallProgressFromComposable,
-  setsProgress,
-  getSetProgress,
-} = useSelectionProgress(
-  () => mediaItems.value,
-  () => mediaSets.value
-)
-
-// Override overallProgress for completed selections to use selection's stored counts
+// Progress calculation
 const overallProgress = computed(() => {
-  // For completed selections, use the selection's stored counts (stable values)
-  if (selection.value?.status === 'completed') {
-    // Try different property names that might come from the backend
-    const selected =
-      selection.value.selected_count ||
-      selection.value.selectedCount ||
-      selection.value.selectedMediaCount ||
-      0
-    const total = selection.value.media_count || selection.value.mediaCount || 0
-    const percentage = total > 0 ? Math.round((selected / total) * 100) : 0
+  if (proofing.value?.status === 'completed') {
+    const completed = proofing.value.completedCount || 0
+    const total = proofing.value.mediaCount || 0
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
     return {
-      selected,
+      selected: completed,
       total,
       percentage,
     }
   }
 
-  // For active/draft selections, use the composable's progress
-  return overallProgressFromComposable.value
-})
+  const completed = mediaItems.value.filter(m => m.isCompleted).length
+  const total = mediaItems.value.length
+  const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
-// Create a computed object for set progress (for easy lookup)
-const setProgressMap = computed(() => {
-  const map = {}
-  if (mediaSets.value && mediaItems.value) {
-    mediaSets.value.forEach(set => {
-      map[set.id] = getSetProgress(set.id)
-    })
+  return {
+    selected: completed,
+    total,
+    percentage,
   }
-  return map
 })
 
-// Count of items with isSelected: true in current set
+// Count of items with isCompleted: true in current set
 const selectedCountInCurrentSet = computed(() => {
   if (!selectedSetId.value) return 0
-  return sortedMediaItems.value.filter(item => item.isSelected === true).length
-})
-
-// Count of items with isSelected: true across entire selection
-// Use selection's stored count from backend for accuracy (includes all sets, not just loaded ones)
-const selectedCountAcrossSelection = computed(() => {
-  // For completed selections, use the selection's stored count
-  if (selection.value?.status === 'completed') {
-    return (
-      selection.value.selected_count ||
-      selection.value.selectedCount ||
-      selection.value.selectedMediaCount ||
-      0
-    )
-  }
-
-  // For active/draft selections, count from loaded media items
-  return mediaItems.value.filter(item => item.isSelected === true).length
+  return sortedMediaItems.value.filter(item => item.isCompleted === true).length
 })
 
 const handleBulkCopyFilenames = async () => {
@@ -1267,15 +1169,12 @@ const handleBulkCopyFilenames = async () => {
       selectedMediaIds.value.has(getItemId(item))
     )
 
-    // Extract filenames from selected items
     const filenames = selectedItems.map(item => {
       return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
     })
 
-    // Join with comma and space
     const filenamesText = filenames.join(', ')
 
-    // Copy to clipboard
     await navigator.clipboard.writeText(filenamesText)
 
     toast.success('Filenames copied', {
@@ -1288,210 +1187,41 @@ const handleBulkCopyFilenames = async () => {
   }
 }
 
-// Copy filenames of items with isSelected: true in a specific set
-const handleCopySelectedFilenamesInSet = async setId => {
-  if (!setId) return
-
-  // For completed selections, use the backend API to get selected filenames for the set
-  if (selection.value?.status === 'completed') {
-    try {
-      const result = await selectionsApi.getSelectedFilenames(selection.value.id, setId)
-      const filenames = result.filenames || []
-
-      if (filenames.length === 0) {
-        toast.info('No selected items', {
-          description: 'No items with selected status in this set.',
-        })
-        return
-      }
-
-      // Copy to clipboard (join with comma and space for consistency)
-      const filenamesText = filenames.join(', ')
-      await navigator.clipboard.writeText(filenamesText)
-
-      toast.success('Filenames copied', {
-        description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
-      })
-    } catch (error) {
-      toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
-    }
-    return
-  }
-
-  // For active/draft selections, use loaded media items
-  const setItems = mediaItems.value.filter(item => item.setId === setId)
-  const selectedItems = setItems.filter(item => item.isSelected === true)
-
-  if (selectedItems.length === 0) {
-    toast.info('No selected items', {
-      description: 'No items with selected status in this set.',
-    })
-    return
-  }
-
-  try {
-    const filenames = selectedItems.map(item => {
-      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
-    })
-
-    const filenamesText = filenames.join(', ')
-    await navigator.clipboard.writeText(filenamesText)
-
-    toast.success('Filenames copied', {
-      description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
-    })
-  } catch (error) {
-    toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-}
-
-// Copy filenames of all items with isSelected: true across the entire selection
-const handleCopyAllSelectedFilenames = async () => {
-  // For completed selections, use the backend API to get all selected filenames across all sets
-  if (selection.value?.status === 'completed') {
-    try {
-      const result = await selectionsApi.getSelectedFilenames(selection.value.id, null)
-      const filenames = result.filenames || []
-
-      if (filenames.length === 0) {
-        toast.info('No selected items', {
-          description: 'No items with selected status in this selection.',
-        })
-        return
-      }
-
-      // Copy to clipboard (join with comma and space for consistency)
-      const filenamesText = filenames.join(', ')
-      await navigator.clipboard.writeText(filenamesText)
-
-      toast.success('Filenames copied', {
-        description: `${filenames.length} selected filename(s) across all sets copied to clipboard.`,
-      })
-    } catch (error) {
-      toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
-    }
-    return
-  }
-
-  // For active/draft selections, use loaded media items
-  const selectedItems = mediaItems.value.filter(item => item.isSelected === true)
-
-  if (selectedItems.length === 0) {
-    toast.info('No selected items', {
-      description: 'No items with selected status in this selection.',
-    })
-    return
-  }
-
-  try {
-    const filenames = selectedItems.map(item => {
-      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
-    })
-
-    const filenamesText = filenames.join(', ')
-    await navigator.clipboard.writeText(filenamesText)
-
-    toast.success('Filenames copied', {
-      description: `${filenames.length} selected filename(s) across all sets copied to clipboard.`,
-    })
-  } catch (error) {
-    toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-}
-
-// Handle copy filenames per set
-const handleCopyFilenamesPerSet = async setId => {
-  await copyFilenames(setId)
-}
-
-// Handle reset selection limit
-const handleResetSelectionLimit = async () => {
-  try {
-    const updatedSelection = await resetSelectionLimit()
-    if (updatedSelection) {
-      selection.value = updatedSelection
-    }
-  } catch (error) {
-    // Error is already handled in composable
-  }
-}
-
-// Selection limit modals state
-const showSelectionLimitModal = ref(false)
-const isSavingSelectionLimit = ref(false)
-
-// Handle selection limit modal
-const handleOpenSelectionLimitModal = () => {
-  showSelectionLimitModal.value = true
-}
-
-const handleSaveSelectionLimit = async limit => {
-  if (!selection.value?.id) return
-
-  isSavingSelectionLimit.value = true
-  try {
-    const updatedSelection = await selectionsApi.updateSelection(selection.value.id, {
-      selectionLimit: limit,
-    })
-    selection.value = updatedSelection
-    showSelectionLimitModal.value = false
-  } catch (error) {
-    toast.error('Failed to update selection limit', {
-      description: error?.message || 'An unknown error occurred',
-    })
-  } finally {
-    isSavingSelectionLimit.value = false
-  }
-}
-
-const handleCancelSelectionLimit = () => {
-  showSelectionLimitModal.value = false
-}
-
 const handleMoveCopy = item => {
   selectedMediaIds.value.clear()
   selectedMediaIds.value.add(item.id)
   moveCopyAction.value = 'move'
-  targetSelectionId.value = selection.value?.id || ''
+  targetProofingId.value = proofing.value?.id || ''
   targetSetId.value = ''
   showMoveCopyModal.value = true
 }
 
-// Load available selections for move/copy modal
-const loadAvailableSelections = async () => {
-  isLoadingSelections.value = true
+// Load available proofings for move/copy modal
+const loadAvailableProofings = async () => {
+  isLoadingProofings.value = true
   try {
-    const result = await selectionStore.fetchAllSelections({ perPage: 100 })
-    availableSelections.value = Array.isArray(result) ? result : result?.data || []
+    const result = await proofingStore.fetchAllProofing({ perPage: 100 })
+    availableProofings.value = Array.isArray(result) ? result : result?.data || []
   } catch (error) {
-    availableSelections.value = []
+    availableProofings.value = []
   } finally {
-    isLoadingSelections.value = false
+    isLoadingProofings.value = false
   }
 }
 
-const handleTargetSelectionChange = async selectionId => {
-  targetSelectionId.value = selectionId
-  targetSetId.value = '' // Reset set selection when selection changes
+const handleTargetProofingChange = async proofingId => {
+  targetProofingId.value = proofingId
+  targetSetId.value = ''
 
-  if (!selectionId) {
-    targetSelectionSets.value = []
+  if (!proofingId) {
+    targetProofingSets.value = []
     return
   }
 
   isLoadingTargetSets.value = true
   try {
     let allSets = []
-    // If it's the current selection, use local mediaSets
-    if (selectionId === selection.value?.id) {
+    if (proofingId === proofing.value?.id) {
       allSets = mediaSets.value.map(set => ({
         id: set.id,
         name: set.name,
@@ -1500,27 +1230,23 @@ const handleTargetSelectionChange = async selectionId => {
         order: set.order,
       }))
     } else {
-      // Fetch sets from API for other selections
-      const sets = await selectionsApi.fetchMediaSets(selectionId)
+      const sets = await proofingApi.fetchMediaSets(proofingId)
       allSets = Array.isArray(sets) ? sets : []
     }
 
-    // Filter out the current set to prevent moving/copying to the same set
-    // Only filter if we're in the same selection (moving within the same selection)
-    if (selectionId === selection.value?.id && selectedSetId.value) {
-      targetSelectionSets.value = allSets.filter(set => set.id !== selectedSetId.value)
+    if (proofingId === proofing.value?.id && selectedSetId.value) {
+      targetProofingSets.value = allSets.filter(set => set.id !== selectedSetId.value)
     } else {
-      targetSelectionSets.value = allSets
+      targetProofingSets.value = allSets
     }
 
-    // Auto-select the first set if available and only one set exists
-    if (targetSelectionSets.value.length === 1) {
-      targetSetId.value = targetSelectionSets.value[0].id
+    if (targetProofingSets.value.length === 1) {
+      targetSetId.value = targetProofingSets.value[0].id
     }
   } catch (error) {
-    targetSelectionSets.value = []
+    targetProofingSets.value = []
     toast.error('Failed to load sets', {
-      description: 'Unable to load sets for the selected selection.',
+      description: 'Unable to load sets for the selected proofing.',
     })
   } finally {
     isLoadingTargetSets.value = false
@@ -1529,17 +1255,16 @@ const handleTargetSelectionChange = async selectionId => {
 
 const handleCancelMoveCopy = () => {
   showMoveCopyModal.value = false
-  targetSelectionId.value = selection.value?.id || ''
+  targetProofingId.value = proofing.value?.id || ''
   targetSetId.value = ''
-  targetSelectionSets.value = []
+  targetProofingSets.value = []
   moveCopyAction.value = 'move'
 }
 
 const handleConfirmMoveCopy = async () => {
-  // Validate inputs
-  if (!targetSelectionId.value || selectedMediaIds.value.size === 0) {
-    toast.error('Missing selection', {
-      description: 'Please select a target selection.',
+  if (!targetProofingId.value || selectedMediaIds.value.size === 0) {
+    toast.error('Missing proofing', {
+      description: 'Please select a target proofing.',
     })
     return
   }
@@ -1551,9 +1276,9 @@ const handleConfirmMoveCopy = async () => {
     return
   }
 
-  if (!selection.value?.id || !selectedSetId.value) {
+  if (!proofing.value?.id || !selectedSetId.value) {
     toast.error('Invalid context', {
-      description: 'Unable to determine source selection or set.',
+      description: 'Unable to determine source proofing or set.',
     })
     return
   }
@@ -1561,8 +1286,7 @@ const handleConfirmMoveCopy = async () => {
   const mediaIds = Array.from(selectedMediaIds.value)
   const targetSet = targetSetId.value
 
-  // Validate: Prevent moving/copying to the same set
-  if (targetSet === selectedSetId.value && targetSelectionId.value === selection.value?.id) {
+  if (targetSet === selectedSetId.value && targetProofingId.value === proofing.value?.id) {
     toast.error(`Cannot ${moveCopyAction.value} to same set`, {
       description: `The media is already in this set. Please select a different set.`,
     })
@@ -1572,47 +1296,43 @@ const handleConfirmMoveCopy = async () => {
   isMovingMedia.value = true
   try {
     if (moveCopyAction.value === 'move') {
-      // Move: Use the new backend endpoint
-      const result = await selectionsApi.moveMediaToSet(
-        selection.value.id,
+      const result = await proofingApi.moveMediaToSet(
+        proofing.value.id,
         selectedSetId.value,
         mediaIds,
-        targetSet
+        targetSet,
+        proofing.value.projectId
       )
 
       toast.success('Media moved', {
         description: `${result.moved_count || mediaIds.length} item${(result.moved_count || mediaIds.length) > 1 ? 's' : ''} moved successfully.`,
       })
 
-      // Reload media sets to update counts
-      if (targetSelectionId.value === selection.value?.id) {
+      if (targetProofingId.value === proofing.value?.id) {
         await mediaSetsSidebar.loadMediaSets()
       }
 
-      // Reload media items to reflect changes
       await loadMediaItems()
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
     } else {
-      // Copy: Use the new backend endpoint
-      const result = await selectionsApi.copyMediaToSet(
-        selection.value.id,
+      const result = await proofingApi.copyMediaToSet(
+        proofing.value.id,
         selectedSetId.value,
         mediaIds,
-        targetSet
+        targetSet,
+        proofing.value.projectId
       )
 
       toast.success('Media copied', {
         description: `${result.copied_count || result.media?.length || mediaIds.length} item${(result.copied_count || result.media?.length || mediaIds.length) > 1 ? 's' : ''} copied successfully.`,
       })
 
-      // Reload media sets to update counts (target set will have increased count)
-      if (targetSelectionId.value === selection.value?.id) {
+      if (targetProofingId.value === proofing.value?.id) {
         await mediaSetsSidebar.loadMediaSets()
       }
 
-      // Reload media items if we're still viewing the same set
-      if (targetSelectionId.value === selection.value?.id && targetSet === selectedSetId.value) {
+      if (targetProofingId.value === proofing.value?.id && targetSet === selectedSetId.value) {
         await loadMediaItems()
       }
 
@@ -1629,11 +1349,9 @@ const handleConfirmMoveCopy = async () => {
 }
 
 const handleToggleMediaSelection = id => {
-  // Normalize ID to string
   const normalizedId = id ? String(id) : ''
   if (!normalizedId) return
 
-  // Create a new Set to trigger reactivity
   const newSet = new Set(selectedMediaIds.value)
   if (newSet.has(normalizedId)) {
     newSet.delete(normalizedId)
@@ -1643,7 +1361,6 @@ const handleToggleMediaSelection = id => {
   selectedMediaIds.value = newSet
 }
 
-// Helper to get item ID (handles both id and uuid, always returns string)
 const getItemId = item => {
   if (!item) return ''
   const id = item.id ?? item.uuid
@@ -1670,13 +1387,12 @@ const handleBulkDelete = () => {
 }
 
 const handleConfirmBulkDelete = async () => {
-  if (selectedMediaIds.value.size === 0 || !selection.value?.id || !selectedSetId.value) {
+  if (selectedMediaIds.value.size === 0 || !proofing.value?.id || !selectedSetId.value) {
     showBulkDeleteModal.value = false
     return
   }
 
   const idsToDelete = Array.from(selectedMediaIds.value)
-  const count = idsToDelete.length
   const deletedItems = []
 
   isBulkDeleteLoading.value = true
@@ -1689,21 +1405,23 @@ const handleConfirmBulkDelete = async () => {
         const item = mediaItems.value.find(m => m.id === mediaId)
         if (!item) continue
 
-        await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, mediaId)
+        await proofingApi.deleteMedia(
+          proofing.value.id,
+          selectedSetId.value,
+          mediaId,
+          proofing.value.projectId
+        )
 
-        // Store item data for undo
         deletedItems.push({
           ...item,
           originalIndex: mediaItems.value.findIndex(m => m.id === mediaId),
         })
 
-        // Remove from local array
         const index = mediaItems.value.findIndex(m => m.id === mediaId)
         if (index !== -1) {
           mediaItems.value.splice(index, 1)
         }
 
-        // Remove from selection
         selectedMediaIds.value.delete(mediaId)
         successCount++
       } catch (error) {
@@ -1711,26 +1429,26 @@ const handleConfirmBulkDelete = async () => {
       }
     }
 
-    // Reload media sets to update counts
     await mediaSetsSidebar.loadMediaSets()
 
-    // Add to action history for undo
     if (successCount > 0 && deletedItems.length > 0) {
       actionHistory.addAction({
         type: 'bulk-delete',
         description: `Deleted ${successCount} item${successCount > 1 ? 's' : ''}`,
         undo: async () => {
-          // Re-upload deleted items (this is complex - would need to restore from backend)
-          // For now, we'll just show a message that undo isn't fully supported for deletes
           toast.info('Undo not available', {
             description: 'Deleted items cannot be restored. Please re-upload if needed.',
           })
         },
         redo: async () => {
-          // Re-delete items
           for (const item of deletedItems) {
             try {
-              await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
+              await proofingApi.deleteMedia(
+                proofing.value.id,
+                selectedSetId.value,
+                item.id,
+                proofing.value.projectId
+              )
               const index = mediaItems.value.findIndex(m => m.id === item.id)
               if (index !== -1) {
                 mediaItems.value.splice(index, 1)
@@ -1743,7 +1461,6 @@ const handleConfirmBulkDelete = async () => {
       })
     }
 
-    // Show appropriate toast based on results
     if (errorCount === 0) {
       toast.success('Media deleted', {
         description: `${successCount} item${successCount > 1 ? 's' : ''} deleted successfully.`,
@@ -1771,15 +1488,13 @@ const handleConfirmBulkDelete = async () => {
 }
 
 const handleBulkFavorite = async () => {
-  if (selectedMediaIds.value.size === 0 || !selection.value?.id || !selectedSetId.value) {
+  if (selectedMediaIds.value.size === 0 || !proofing.value?.id || !selectedSetId.value) {
     return
   }
 
   const ids = Array.from(selectedMediaIds.value)
   const items = mediaItems.value.filter(m => ids.includes(m.id))
 
-  // Determine if we should star or unstar based on current state
-  // If all selected items are starred, unstar them; otherwise, star them
   const allStarred = items.every(item => item.isStarred)
   const targetStarred = !allStarred
   const starOperations = []
@@ -1791,17 +1506,16 @@ const handleBulkFavorite = async () => {
 
     for (const item of items) {
       try {
-        // Only toggle if the current state doesn't match the target state
         if (item.isStarred !== targetStarred) {
           const oldStarredStatus = item.isStarred
-          const result = await selectionsApi.starMedia(
-            selection.value.id,
+          const result = await proofingApi.starMedia(
+            proofing.value.id,
             selectedSetId.value,
-            item.id
+            item.id,
+            proofing.value.projectId
           )
           const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
 
-          // Store operation for undo
           starOperations.push({
             itemId: item.id,
             oldStarred: oldStarredStatus,
@@ -1817,7 +1531,6 @@ const handleBulkFavorite = async () => {
             successCount++
           }
         } else {
-          // Already in the target state, count as success
           successCount++
         }
       } catch (error) {
@@ -1825,7 +1538,6 @@ const handleBulkFavorite = async () => {
       }
     }
 
-    // Add to action history for undo
     if (successCount > 0 && starOperations.length > 0) {
       actionHistory.addAction({
         type: 'bulk-star',
@@ -1833,12 +1545,12 @@ const handleBulkFavorite = async () => {
         undo: async () => {
           for (const op of starOperations) {
             try {
-              // Toggle back to original state
               if (op.newStarred !== op.oldStarred) {
-                const result = await selectionsApi.starMedia(
-                  selection.value.id,
+                await proofingApi.starMedia(
+                  proofing.value.id,
                   selectedSetId.value,
-                  op.itemId
+                  op.itemId,
+                  proofing.value.projectId
                 )
                 const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
                 if (mediaItem) {
@@ -1851,12 +1563,12 @@ const handleBulkFavorite = async () => {
         redo: async () => {
           for (const op of starOperations) {
             try {
-              // Toggle back to new state
               if (op.newStarred !== op.oldStarred) {
-                const result = await selectionsApi.starMedia(
-                  selection.value.id,
+                await proofingApi.starMedia(
+                  proofing.value.id,
                   selectedSetId.value,
-                  op.itemId
+                  op.itemId,
+                  proofing.value.projectId
                 )
                 const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
                 if (mediaItem) {
@@ -1871,7 +1583,7 @@ const handleBulkFavorite = async () => {
 
     if (errorCount === 0) {
       toast.success(targetStarred ? 'Media starred' : 'Media unstarred', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully. You can undo this action.`,
+        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully.`,
         action: getUndoAction(),
         duration: 5000,
       })
@@ -1895,12 +1607,11 @@ const handleBulkFavorite = async () => {
 }
 
 const handleSetAsCover = async item => {
-  if (!selection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
+  if (!proofing.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
   const isVideo = item.type === 'video' || item.file?.type === 'video'
 
   if (isVideo) {
-    // For videos, set cover directly without focal point
     const coverUrl = item.file?.url || item.url
     if (!coverUrl) {
       toast.error('Invalid media', {
@@ -1911,12 +1622,12 @@ const handleSetAsCover = async item => {
 
     isUpdatingCoverPhoto.value = true
     try {
-      await selectionsApi.setCoverPhotoFromMedia(selection.value.id, item.id)
+      await proofingApi.setCoverPhoto(proofing.value.projectId, proofing.value.id, item.id, null)
 
-      if (selection.value) {
-        selection.value.coverPhotoUrl = coverUrl
-        selection.value.cover_photo_url = coverUrl
-        selection.value = { ...selection.value }
+      if (proofing.value) {
+        proofing.value.coverPhotoUrl = coverUrl
+        proofing.value.cover_photo_url = coverUrl
+        proofing.value = { ...proofing.value }
       }
 
       toast.success('Cover photo updated', {
@@ -1935,7 +1646,6 @@ const handleSetAsCover = async item => {
     return
   }
 
-  // For images, open focal point modal
   const coverUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {
@@ -1944,8 +1654,8 @@ const handleSetAsCover = async item => {
     return
   }
 
-  const existingFocalPoint = selection.value?.coverFocalPoint ||
-    selection.value?.cover_focal_point || { x: 50, y: 50 }
+  const existingFocalPoint = proofing.value?.coverFocalPoint ||
+    proofing.value?.cover_focal_point || { x: 50, y: 50 }
 
   selectedMediaForCover.value = item
   focalPointImageUrl.value = coverUrl
@@ -1954,25 +1664,25 @@ const handleSetAsCover = async item => {
 }
 
 const handleFocalPointConfirm = async focalPoint => {
-  if (!selection.value?.id || !selectedMediaForCover.value?.id || isUpdatingCoverPhoto.value) return
+  if (!proofing.value?.id || !selectedMediaForCover.value?.id || isUpdatingCoverPhoto.value) return
 
   isUpdatingCoverPhoto.value = true
 
   try {
-    await selectionsApi.setCoverPhotoFromMedia(
-      selection.value.id,
+    await proofingApi.setCoverPhoto(
+      proofing.value.projectId,
+      proofing.value.id,
       selectedMediaForCover.value.id,
       focalPoint
     )
 
-    if (selection.value) {
+    if (proofing.value) {
       const coverUrl = focalPointImageUrl.value
-      selection.value.coverPhotoUrl = coverUrl
-      selection.value.cover_photo_url = coverUrl
-      selection.value.coverFocalPoint = focalPoint
-      selection.value.cover_focal_point = focalPoint
-      // Force reactivity
-      selection.value = { ...selection.value }
+      proofing.value.coverPhotoUrl = coverUrl
+      proofing.value.cover_photo_url = coverUrl
+      proofing.value.coverFocalPoint = focalPoint
+      proofing.value.cover_focal_point = focalPoint
+      proofing.value = { ...proofing.value }
     }
 
     toast.success('Cover photo updated', {
@@ -2017,7 +1727,6 @@ const handleBulkView = () => {
   currentViewIndex.value = 0
   showMediaViewer.value = true
 
-  // Use nextTick to ensure the component has updated
   nextTick(() => {})
 }
 
@@ -2038,7 +1747,7 @@ const handleConfirmEdit = async () => {
   if (
     selectedMediaIds.value.size === 0 ||
     !editAppendText.value.trim() ||
-    !selection.value?.id ||
+    !proofing.value?.id ||
     !selectedSetId.value
   ) {
     return
@@ -2059,29 +1768,25 @@ const handleConfirmEdit = async () => {
         const currentFilename =
           item.file?.filename || item.filename || item.title || `media-${item.id}`
 
-        // Extract extension
         const lastDotIndex = currentFilename.lastIndexOf('.')
         let nameWithoutExt = currentFilename
         let extension = ''
 
         if (lastDotIndex > 0) {
-          // Has extension
           nameWithoutExt = currentFilename.substring(0, lastDotIndex)
           extension = currentFilename.substring(lastDotIndex)
         }
 
-        // Append text before extension
         const newFilename = nameWithoutExt + appendText + extension
 
-        // Call rename API
-        await selectionsApi.renameMedia(
-          selection.value.id,
+        await proofingApi.renameMedia(
+          proofing.value.id,
           selectedSetId.value,
           item.id,
-          newFilename
+          newFilename,
+          proofing.value.projectId
         )
 
-        // Store operation for undo
         renameOperations.push({
           itemId: item.id,
           oldFilename: currentFilename,
@@ -2103,7 +1808,6 @@ const handleConfirmEdit = async () => {
       }
     }
 
-    // Add to action history for undo
     if (successCount > 0 && renameOperations.length > 0) {
       actionHistory.addAction({
         type: 'bulk-rename',
@@ -2111,11 +1815,12 @@ const handleConfirmEdit = async () => {
         undo: async () => {
           for (const op of renameOperations) {
             try {
-              await selectionsApi.renameMedia(
-                selection.value.id,
+              await proofingApi.renameMedia(
+                proofing.value.id,
                 selectedSetId.value,
                 op.itemId,
-                op.oldFilename
+                op.oldFilename,
+                proofing.value.projectId
               )
               const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
               if (mediaItem) {
@@ -2131,11 +1836,12 @@ const handleConfirmEdit = async () => {
         redo: async () => {
           for (const op of renameOperations) {
             try {
-              await selectionsApi.renameMedia(
-                selection.value.id,
+              await proofingApi.renameMedia(
+                proofing.value.id,
                 selectedSetId.value,
                 op.itemId,
-                op.newFilename
+                op.newFilename,
+                proofing.value.projectId
               )
               const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
               if (mediaItem) {
@@ -2151,10 +1857,9 @@ const handleConfirmEdit = async () => {
       })
     }
 
-    // Show appropriate toast based on results
     if (errorCount === 0) {
       toast.success('Filenames updated', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully. You can undo this action.`,
+        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully.`,
         action: getUndoAction(),
         duration: 5000,
       })
@@ -2196,11 +1901,9 @@ const watermarks = ref([])
 
 const handleRenameMedia = item => {
   mediaToRename.value = item
-  // Use filename from file relationship, with fallbacks
   const fullFilename = item.file?.filename || item.filename || item.title || item.name || ''
-  // Extract just the name without extension for editing
   const extension = fullFilename ? fullFilename.split('.').pop() : ''
-  const hasExtension = fullFilename.includes('.') && extension && extension.length < 10 // Heuristic: extension is short
+  const hasExtension = fullFilename.includes('.') && extension && extension.length < 10
   newMediaName.value = hasExtension
     ? fullFilename.substring(0, fullFilename.lastIndexOf('.'))
     : fullFilename
@@ -2217,7 +1920,7 @@ const handleConfirmRenameMedia = async () => {
   if (
     !mediaToRename.value ||
     !newMediaName.value.trim() ||
-    !selection.value?.id ||
+    !proofing.value?.id ||
     !selectedSetId.value ||
     isRenamingMedia.value
   ) {
@@ -2227,28 +1930,22 @@ const handleConfirmRenameMedia = async () => {
   const trimmedName = newMediaName.value.trim()
   const originalFilename = mediaToRename.value.file?.filename || mediaToRename.value.filename || ''
 
-  // Extract original extension
   const originalExtension = originalFilename.includes('.')
     ? originalFilename.substring(originalFilename.lastIndexOf('.'))
     : ''
 
-  // Remove any extension the user might have added
   let finalFilename = trimmedName
   if (trimmedName.includes('.')) {
     const userExtension = trimmedName.substring(trimmedName.lastIndexOf('.'))
-    // If user added an extension, remove it (backend will preserve original)
     if (userExtension.length < 10) {
-      // Heuristic: likely an extension
       finalFilename = trimmedName.substring(0, trimmedName.lastIndexOf('.'))
     }
   }
 
-  // Add back the original extension if it existed
   if (originalExtension) {
     finalFilename = finalFilename + originalExtension
   }
 
-  // Don't make API call if filename hasn't changed
   if (finalFilename === originalFilename) {
     handleCancelRenameMedia()
     return
@@ -2257,11 +1954,12 @@ const handleConfirmRenameMedia = async () => {
   isRenamingMedia.value = true
 
   try {
-    const result = await selectionsApi.renameMedia(
-      selection.value.id,
+    const result = await proofingApi.renameMedia(
+      proofing.value.id,
       selectedSetId.value,
       mediaToRename.value.id,
-      finalFilename
+      finalFilename,
+      proofing.value.projectId
     )
 
     const updatedFilename = result?.data?.filename || result?.filename || finalFilename
@@ -2272,23 +1970,21 @@ const handleConfirmRenameMedia = async () => {
       } else {
         mediaItems.value[index].file = { filename: updatedFilename }
       }
-      // Also update top-level filename for backward compatibility
       mediaItems.value[index].filename = updatedFilename
-      // Force reactivity
       mediaItems.value = [...mediaItems.value]
     }
 
-    // Add to action history for undo
     actionHistory.addAction({
       type: 'rename',
       description: `Renamed "${originalFilename}" to "${updatedFilename}"`,
       undo: async () => {
         try {
-          const result = await selectionsApi.renameMedia(
-            selection.value.id,
+          await proofingApi.renameMedia(
+            proofing.value.id,
             selectedSetId.value,
             mediaToRename.value.id,
-            originalFilename
+            originalFilename,
+            proofing.value.projectId
           )
           const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
           if (index !== -1) {
@@ -2304,11 +2000,12 @@ const handleConfirmRenameMedia = async () => {
       },
       redo: async () => {
         try {
-          const result = await selectionsApi.renameMedia(
-            selection.value.id,
+          await proofingApi.renameMedia(
+            proofing.value.id,
             selectedSetId.value,
             mediaToRename.value.id,
-            updatedFilename
+            updatedFilename,
+            proofing.value.projectId
           )
           const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
           if (index !== -1) {
@@ -2325,7 +2022,7 @@ const handleConfirmRenameMedia = async () => {
     })
 
     toast.success('Media renamed', {
-      description: 'The filename has been updated successfully. You can undo this action.',
+      description: 'The filename has been updated successfully.',
       action: getUndoAction(),
       duration: 5000,
     })
@@ -2350,44 +2047,43 @@ const handleConfirmDeleteItem = async () => {
 
   const item = itemToDelete.value
 
-  if (item.collectionId || item.setId || item.id) {
-    // It's a MediaItem
+  if (item.setId || item.id) {
     isDeleting.value = true
 
     try {
-      const itemData = { ...item }
-      const originalIndex = mediaItems.value.findIndex(m => m.id === item.id)
+      await proofingApi.deleteMedia(
+        proofing.value.id,
+        selectedSetId.value,
+        item.id,
+        proofing.value.projectId
+      )
 
-      // Use the selections API delete function
-      await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
-
-      // Remove from local array
       const index = mediaItems.value.findIndex(m => m.id === item.id)
       if (index !== -1) {
         mediaItems.value.splice(index, 1)
-        // Force reactivity
         mediaItems.value = [...mediaItems.value]
       }
 
-      // Remove from selection if selected
       selectedMediaIds.value.delete(item.id)
 
-      // Reload media sets to update counts
       await mediaSetsSidebar.loadMediaSets()
 
-      // Add to action history for undo
       actionHistory.addAction({
         type: 'delete',
-        description: `Deleted "${itemData.file?.filename || itemData.filename || 'media'}"`,
+        description: `Deleted "${item.file?.filename || item.filename || 'media'}"`,
         undo: async () => {
           toast.info('Undo not available', {
             description: 'Deleted items cannot be restored. Please re-upload if needed.',
           })
         },
         redo: async () => {
-          // Re-delete
           try {
-            await selectionsApi.deleteMedia(selection.value.id, selectedSetId.value, item.id)
+            await proofingApi.deleteMedia(
+              proofing.value.id,
+              selectedSetId.value,
+              item.id,
+              proofing.value.projectId
+            )
             const index = mediaItems.value.findIndex(m => m.id === item.id)
             if (index !== -1) {
               mediaItems.value.splice(index, 1)
@@ -2399,7 +2095,7 @@ const handleConfirmDeleteItem = async () => {
       })
 
       toast.success('Media deleted', {
-        description: 'The media item has been deleted successfully. You can undo this action.',
+        description: 'The media item has been deleted successfully.',
         action: getUndoAction(),
         duration: 5000,
       })
@@ -2414,7 +2110,6 @@ const handleConfirmDeleteItem = async () => {
       isDeleting.value = false
     }
   } else {
-    // It's a MediaSet - this should be handled elsewhere
     closeDeleteModal()
   }
 }
@@ -2442,9 +2137,9 @@ const handleReplacePhotoFileSelect = async event => {
     return
   }
 
-  if (!selection.value?.id || !selectedSetId.value) {
+  if (!proofing.value?.id || !selectedSetId.value) {
     toast.error('Invalid context', {
-      description: 'Selection or set not found.',
+      description: 'Proofing or set not found.',
     })
     return
   }
@@ -2452,7 +2147,6 @@ const handleReplacePhotoFileSelect = async event => {
   isReplacingPhoto.value = true
 
   try {
-    // Upload the new file first (use image upload endpoint for images to get variants)
     const isImage = file.type.startsWith('image/')
     const uploadEndpoint = isImage ? '/v1/images/upload' : '/v1/uploads'
 
@@ -2460,7 +2154,6 @@ const handleReplacePhotoFileSelect = async event => {
       purpose: 'memora-media',
     })
 
-    // Extract userFileUuid from response (could be in data.userFileUuid or data.data.userFileUuid)
     const userFileUuid =
       uploadResponse.data?.userFileUuid || uploadResponse.data?.data?.userFileUuid
 
@@ -2468,21 +2161,19 @@ const handleReplacePhotoFileSelect = async event => {
       throw new Error('Upload response missing userFileUuid')
     }
 
-    // Replace the media with the new file
-    const result = await selectionsApi.replaceMedia(
-      selection.value.id,
+    const result = await proofingApi.replaceMedia(
+      proofing.value.id,
       selectedSetId.value,
       mediaToReplace.value.id,
-      userFileUuid
+      userFileUuid,
+      proofing.value.projectId
     )
 
     const index = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
     if (index !== -1) {
-      // Replace the entire media item with the updated one from the response
       const updatedMedia = result?.data || result
       if (updatedMedia) {
         mediaItems.value[index] = updatedMedia
-        // Force reactivity
         mediaItems.value = [...mediaItems.value]
       }
     }
@@ -2525,13 +2216,13 @@ const handleConfirmWatermarkMedia = () => {
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
   const item = itemToDelete.value
-  return item.collectionId || item.setId ? 'Delete Media' : 'Delete Set'
+  return item.setId ? 'Delete Media' : 'Delete Set'
 }
 
 const getDeleteModalWarning = () => {
   if (!itemToDelete.value) return 'This action cannot be undone.'
   const item = itemToDelete.value
-  return item.collectionId || item.setId
+  return item.setId
     ? 'This media item will be permanently deleted.'
     : 'This set will be permanently deleted.'
 }
@@ -2545,7 +2236,6 @@ const handleBrowseFiles = () => {
 }
 
 const handleConfirmDuplicateFiles = async () => {
-  // Prevent multiple simultaneous uploads
   if (isUploading.value || isProcessingFiles.value) {
     return
   }
@@ -2582,27 +2272,22 @@ const cancelUpload = () => {
 
 const handleCloseUploadProgress = () => {
   showUploadProgress.value = false
-  // Dismiss the progress toast when modal is closed
   toast.dismiss('upload-progress')
 }
 
-// Remove local definitions - use from workflow instead
-// Local refs that sync with workflow state (for backward compatibility)
 const isUploading = computed(() => isUploadingFromWorkflow.value)
 const showDuplicateFilesModal = ref(false)
 const duplicateFiles = ref([])
 const duplicateFileActions = ref({})
 const duplicateFileActionsObject = ref({})
 const isProcessingFiles = ref(false)
-const justUploaded = ref(false) // Flag to prevent watch from triggering immediately after upload
+const justUploaded = ref(false)
 
-// Watch the reactive object and sync properties - use immediate and deep watch
 watch(
   () => duplicateFileActionsObjectFromWorkflow,
   newVal => {
     if (newVal && typeof newVal === 'object') {
       const updated = { ...newVal }
-      // Remove properties that no longer exist
       Object.keys(duplicateFileActionsObject.value).forEach(key => {
         if (!(key in updated)) {
           delete duplicateFileActionsObject.value[key]
@@ -2618,13 +2303,11 @@ const handleFileSelect = async event => {
   const files = Array.from(event.target.files || [])
   if (files.length === 0) return
 
-  // Prevent multiple simultaneous uploads or file processing
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
     return
   }
 
-  // Reset input immediately to prevent duplicate events
   event.target.value = ''
 
   if (!selectedSetId.value) {
@@ -2639,13 +2322,11 @@ const handleFileSelect = async event => {
     const { hasDuplicates, filesToUpload } = await processFiles(files, selectedSetId.value)
 
     if (hasDuplicates) {
-      // Duplicate modal will be shown by the workflow
       return
     }
 
     if (filesToUpload.length > 0) {
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
-    } else {
     }
   } catch (error) {
   } finally {
@@ -2654,7 +2335,6 @@ const handleFileSelect = async event => {
 }
 
 const handleDragOver = e => {
-  // Only show drag overlay if files are being dragged (not internal drag operations)
   if (e.dataTransfer?.types?.includes('Files')) {
     e.preventDefault()
     if (selectedSetId.value && !isUploading.value && !isProcessingFiles.value) {
@@ -2664,7 +2344,6 @@ const handleDragOver = e => {
 }
 
 const handleDragLeave = e => {
-  // Only hide drag overlay if we're leaving the main element (not just moving to a child)
   if (!e.currentTarget.contains(e.relatedTarget)) {
     isDragging.value = false
   }
@@ -2677,7 +2356,6 @@ const handleDrop = async e => {
   const files = e.dataTransfer?.files
   if (!files || files.length === 0) return
 
-  // Prevent multiple simultaneous uploads or file processing
   if (isUploading.value || isProcessingFiles.value) {
     return
   }
@@ -2695,13 +2373,11 @@ const handleDrop = async e => {
     const { hasDuplicates, filesToUpload } = await processFiles(fileArray, selectedSetId.value)
 
     if (hasDuplicates) {
-      // Duplicate modal will be shown by the workflow
       return
     }
 
     if (filesToUpload.length > 0) {
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
-    } else {
     }
   } catch (error) {
   } finally {
@@ -2717,9 +2393,9 @@ const handleRetryUpload = async (fileId, retryFn) => {
     return
   }
 
-  if (!selection.value?.id || !selectedSetId.value) {
+  if (!proofing.value?.id || !selectedSetId.value) {
     toast.error('Invalid context', {
-      description: 'Selection or set not found.',
+      description: 'Proofing or set not found.',
     })
     return
   }
@@ -2733,20 +2409,14 @@ const handleRetryUpload = async (fileId, retryFn) => {
       }
     }
 
-    // Don't remove from errors array here - let the retry function handle it
-    // This allows multiple retries if the first one fails
-
-    // Call the retry function which will re-upload the file
     await retryFn()
 
-    // Reload media items after successful retry
     await loadMediaItems()
 
     toast.success('Upload retried', {
       description: 'The file upload has been retried successfully.',
     })
   } catch (error) {
-    // The error is already updated in the errors array by the retry function
     toast.error('Retry failed', {
       description:
         error instanceof Error ? error.message : 'An error occurred while retrying the upload.',
@@ -2755,7 +2425,7 @@ const handleRetryUpload = async (fileId, retryFn) => {
 }
 
 const goBack = () => {
-  router.push({ name: 'selections' })
+  router.push({ name: 'proofing' })
 }
 </script>
 

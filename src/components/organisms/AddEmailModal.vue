@@ -6,7 +6,8 @@
           Add Allowed Emails
         </DialogTitle>
         <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
-          At least one email address must be added before publishing this selection.
+          At least one email address must be added before publishing this
+          {{ context === 'proofing' ? 'proofing' : 'selection' }}.
         </DialogDescription>
       </DialogHeader>
 
@@ -83,6 +84,7 @@ import { Plus, X, Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useRouter } from 'vue-router'
 import { useSelectionsApi } from '@/api/selections'
+import { useProofingApi } from '@/api/proofing'
 import { toast } from '@/utils/toast'
 
 const props = defineProps({
@@ -102,6 +104,15 @@ const props = defineProps({
     type: String,
     default: '#10B981',
   },
+  context: {
+    type: String,
+    default: 'selection', // 'selection' or 'proofing'
+    validator: value => ['selection', 'proofing'].includes(value),
+  },
+  projectId: {
+    type: String,
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:open', 'saved', 'save-and-publish'])
@@ -109,6 +120,7 @@ const emit = defineEmits(['update:open', 'saved', 'save-and-publish'])
 const theme = useThemeClasses()
 const router = useRouter()
 const selectionsApi = useSelectionsApi()
+const proofingApi = useProofingApi()
 
 const emails = ref([''])
 const isSaving = ref(false)
@@ -144,11 +156,19 @@ const removeEmail = index => {
 
 const handleGoToSettings = () => {
   emit('update:open', false)
-  router.push({
-    name: 'selectionDetail',
-    params: { id: props.selectionId },
-    query: { tab: 'settings', section: 'general' },
-  })
+  if (props.context === 'proofing') {
+    router.push({
+      name: 'proofingDetail',
+      params: { id: props.selectionId },
+      query: { tab: 'settings', section: 'general' },
+    })
+  } else {
+    router.push({
+      name: 'selectionDetail',
+      params: { id: props.selectionId },
+      query: { tab: 'settings', section: 'general' },
+    })
+  }
 }
 
 const handleSave = async () => {
@@ -180,17 +200,24 @@ const handleSave = async () => {
       return
     }
 
-    // Save emails
-    await selectionsApi.updateSelection(props.selectionId, {
-      allowedEmails: uniqueEmails,
-    })
+    // Save emails using the appropriate API
+    let updatedItem = null
+    if (props.context === 'proofing') {
+      updatedItem = await proofingApi.updateProofing(props.projectId, props.selectionId, {
+        allowedEmails: uniqueEmails,
+      })
+    } else {
+      updatedItem = await selectionsApi.updateSelection(props.selectionId, {
+        allowedEmails: uniqueEmails,
+      })
+    }
 
     toast.success('Emails saved', {
       description: `${uniqueEmails.length} email(s) added successfully.`,
     })
 
     emit('saved', uniqueEmails)
-    emit('save-and-publish', uniqueEmails)
+    emit('save-and-publish', { emails: uniqueEmails, updatedItem })
     emit('update:open', false)
   } catch (error) {
     toast.error('Failed to save emails', {

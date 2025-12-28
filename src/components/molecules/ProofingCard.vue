@@ -1,6 +1,8 @@
 <template>
   <div
+    ref="cardRef"
     :style="{
+      ...tiltStyle,
       '--index': index,
       '--card-color': cardColor,
       '--card-color-light': cardColorLight,
@@ -9,17 +11,20 @@
     }"
     :class="[
       'group relative rounded-xl overflow-hidden cursor-pointer',
-      'transform-gpu transition-all duration-300',
-      'hover:scale-[1.02] hover:-translate-y-1',
-      'border-2 hover:border-opacity-100',
+      'transform-gpu',
+      'hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-black/40',
+      'transition-shadow duration-300 ease-out',
+      'hover:border-opacity-100',
+      'border-2',
       theme.bgCard,
       theme.shadowCard,
     ]"
-    @click="$emit('click', proofing)"
-    @mouseenter="isHovering = true"
-    @mouseleave="isHovering = false"
-    tabindex="0"
     role="button"
+    tabindex="0"
+    @click="$emit('click', proofing)"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+    @mousemove="handleMouseMove"
   >
     <!-- Proofing-specific gradient background (only shown when no cover image) -->
     <div
@@ -88,7 +93,10 @@
 
       <!-- Action buttons -->
       <div
-        class="absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300 opacity-0 group-hover:opacity-100"
+        :class="[
+          'absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300',
+          isDropdownOpen || isHovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ]"
       >
         <Button
           v-if="showStar"
@@ -151,9 +159,8 @@
       <div class="flex items-start gap-2.5 min-h-[24px]">
         <Eye :style="{ color: cardColor }" class="h-4 w-4 mt-0.5 shrink-0" />
         <h3
-          :style="{ color: isHovering ? cardColor : undefined }"
-          class="font-semibold text-base leading-tight line-clamp-2 transition-colors duration-200"
-          :class="[!isHovering && theme.textPrimary]"
+          class="font-semibold text-base leading-tight line-clamp-2"
+          :class="theme.textPrimary"
           :title="proofing.name"
         >
           {{ proofing.name }}
@@ -161,7 +168,7 @@
       </div>
       <div class="flex items-center gap-3 text-sm mt-1" :class="theme.textSecondary">
         <slot name="subtitle">
-          <span class="line-clamp-1">{{ subtitle || getSubtitle(proofing) }}</span>
+          <span class="line-clamp-1">{{ subtitle || getMediaAndSetCount(proofing) }}</span>
         </slot>
       </div>
     </div>
@@ -169,7 +176,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { Eye, Star, MoreVertical } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
@@ -200,6 +207,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  rotateAmplitude: {
+    type: Number,
+    default: 8,
+  },
 })
 
 const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'view-details'])
@@ -208,8 +219,67 @@ const theme = useThemeClasses()
 const isDropdownOpen = ref(false)
 const isHovering = ref(false)
 
+// Tilt effect
+const cardRef = ref(null)
+const rotateX = ref(0)
+const rotateY = ref(0)
+
+const handleMouseMove = e => {
+  if (!cardRef.value) return
+
+  const rect = cardRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+
+  const rotateXValue = ((y - centerY) / centerY) * -props.rotateAmplitude
+  const rotateYValue = ((x - centerX) / centerX) * props.rotateAmplitude
+
+  rotateX.value = rotateXValue
+  rotateY.value = rotateYValue
+}
+
+const handleMouseEnter = () => {
+  isHovering.value = true
+}
+
+const handleMouseLeave = () => {
+  // Keep hover state if dropdown is open
+  if (!isDropdownOpen.value) {
+    isHovering.value = false
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+}
+
+// Watch dropdown state - when it closes, reset hover if mouse is not over card
+watch(isDropdownOpen, isOpen => {
+  if (!isOpen && !isHovering.value) {
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+})
+
+const tiltStyle = computed(() => ({
+  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) translateZ(0)`,
+  transition:
+    isHovering.value || isDropdownOpen.value
+      ? 'none'
+      : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+  willChange: isHovering.value || isDropdownOpen.value ? 'transform' : 'auto',
+}))
+
 const coverImage = computed(() => {
-  return props.proofing?.thumbnail || props.proofing?.image || null
+  // Priority: coverPhotoUrl > cover_photo_url > thumbnail > image
+  return (
+    props.proofing?.coverPhotoUrl ||
+    props.proofing?.cover_photo_url ||
+    props.proofing?.thumbnail ||
+    props.proofing?.image ||
+    null
+  )
 })
 
 const cardColor = computed(() => {
@@ -229,6 +299,7 @@ const handleImageError = event => {
 }
 
 const getSubtitle = proofing => {
+  if (!proofing) return ''
   const parts = []
   // Only show essential info on card - rest in detail sidebar
   if (proofing.mediaCount !== undefined) {
@@ -236,6 +307,34 @@ const getSubtitle = proofing => {
     const labelText = count === 1 ? 'item' : 'items'
     parts.push(`${count} ${labelText}`)
   }
+  return parts.join(' • ')
+}
+
+const getMediaAndSetCount = proofing => {
+  if (!proofing) return ''
+  const parts = []
+
+  // Media count
+  if (proofing.mediaCount !== undefined) {
+    const mediaCount = proofing.mediaCount
+    const mediaLabel = mediaCount === 1 ? 'media' : 'media'
+    parts.push(`${mediaCount} ${mediaLabel}`)
+  }
+
+  // Set count
+  const setCount =
+    proofing.setCount ||
+    proofing.setsCount ||
+    proofing.mediaSetsCount ||
+    proofing.mediaSetCount ||
+    (Array.isArray(proofing.mediaSets) ? proofing.mediaSets.length : 0) ||
+    (Array.isArray(proofing.sets) ? proofing.sets.length : 0) ||
+    0
+  if (setCount > 0 || proofing.mediaSets !== undefined || proofing.sets !== undefined) {
+    const setLabel = setCount === 1 ? 'set' : 'sets'
+    parts.push(`${setCount} ${setLabel}`)
+  }
+
   return parts.join(' • ')
 }
 </script>

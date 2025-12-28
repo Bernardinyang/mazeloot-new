@@ -4,12 +4,68 @@
  */
 
 import { toast } from '@/utils/toast'
-import { useMediaApi } from '@/api/media'
+import { useProofingApi } from '@/api/proofing'
 import { useProofingStore } from '@/stores/proofing'
+import { useMediaUpload } from './useMediaUpload'
+import { getErrorMessage } from '@/utils/errors'
 
-export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
-  const mediaApi = useMediaApi()
+export function useProofingWorkflow({
+  proofingId,
+  loadMediaItems,
+  existingMedia = [],
+  onUploadComplete, // Optional callback for post-upload actions (e.g., reload media sets)
+} = {}) {
+  const proofingApi = useProofingApi()
   const proofingStore = useProofingStore()
+
+  const uploadMediaFn = async (uploadResult, file, { contextId, setId, mediaData }) => {
+    return await proofingApi.uploadMediaToSet(contextId, setId, mediaData)
+  }
+
+  // Supports both signatures: (mediaId) or (proofingId, setId, mediaId)
+  const deleteMediaFn = async (proofingIdOrMediaId, setId, mediaId) => {
+    let proofingIdValue
+    let setIdValue
+    let mediaIdValue
+
+    // Determine which signature is being used
+    if (mediaId !== undefined) {
+      // Signature: (proofingId, setId, mediaId)
+      proofingIdValue = proofingIdOrMediaId
+      setIdValue = setId
+      mediaIdValue = mediaId
+    } else {
+      // Signature: (mediaId) - need to find proofingId and setId from existingMedia
+      mediaIdValue = proofingIdOrMediaId
+      proofingIdValue = getProofingId()
+      if (!proofingIdValue) {
+        throw new Error('Proofing ID is required')
+      }
+      // Try to find the setId from existingMedia
+      const existingMediaList =
+        typeof existingMedia === 'function' ? existingMedia() : existingMedia
+      const media = Array.isArray(existingMediaList)
+        ? existingMediaList.find(m => m.id === mediaIdValue)
+        : null
+      if (media && media.setId) {
+        setIdValue = media.setId
+      } else {
+        throw new Error('Set ID is required to delete media')
+      }
+    }
+
+    return await proofingApi.deleteMedia(proofingIdValue, setIdValue, mediaIdValue)
+  }
+
+  // Use generic media upload composable
+  const mediaUpload = useMediaUpload({
+    uploadMediaFn,
+    contextId: proofingId,
+    existingMedia,
+    loadMediaItems,
+    deleteMediaFn,
+    onUploadComplete, // Pass through for post-upload actions (e.g., reload media sets)
+  })
 
   // Helper to get proofingId value (handles refs, computed, functions, and plain values)
   const getProofingId = () => {
@@ -18,163 +74,6 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
     if (typeof proofingId === 'object' && proofingId !== null && 'value' in proofingId)
       return proofingId.value
     return proofingId
-  }
-
-  /**
-   * Upload edited media to proofing phase
-   * Uses the generic media upload composable for consistency
-   */
-  const uploadEditedMedia = async (files, originalMediaId, setId) => {
-    // For proofing, we use a different upload function that handles revisions
-    // This is a simplified version - in production, you'd use useMediaUpload composable
-    // with a custom uploadMediaFn that handles proofing-specific logic
-
-    try {
-      const proofingIdValue = getProofingId()
-
-      if (!proofingIdValue) {
-        throw new Error('Proofing ID is required')
-      }
-
-      const uploaded = []
-
-      for (const file of files) {
-        // Determine media type
-        const type = file.type.startsWith('image/') ? 'image' : 'video'
-
-        const mediaData = {
-          originalMediaId: originalMediaId,
-          phase: 'proofing',
-          phaseId: proofingIdValue,
-          setId: setId,
-          type: type,
-          title: file.name,
-          url: URL.createObjectURL(file), // In production, upload to server first
-          thumbnail: type === 'image' ? URL.createObjectURL(file) : null,
-          isCompleted: false,
-          order: 0,
-        }
-
-        const revision = await proofingStore.uploadRevision(proofingIdValue, mediaData)
-        uploaded.push(revision)
-      }
-
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-
-      toast.success('Revision uploaded', {
-        description: `${uploaded.length} file(s) uploaded successfully.`,
-      })
-
-      return uploaded
-    } catch (error) {
-      toast.error('Upload failed', {
-        description: error instanceof Error ? error.message : 'Failed to upload revision.',
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Add client feedback
-   */
-  const addFeedback = async (mediaId, type, content, createdBy = 'client') => {
-    try {
-      const feedback = await proofingStore.addFeedback(mediaId, {
-        type,
-        content,
-        createdBy,
-      })
-
-      toast.success('Feedback added', {
-        description: 'Your feedback has been recorded.',
-      })
-
-      return feedback
-    } catch (error) {
-      toast.error('Failed to add feedback', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Mark media as approved/completed
-   */
-  const markMediaApproved = async mediaId => {
-    try {
-      await proofingStore.markCompleted(mediaId)
-
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-
-      toast.success('Media approved', {
-        description: 'This media has been marked as completed.',
-      })
-    } catch (error) {
-      toast.error('Failed to approve media', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
-      })
-      throw error
-    }
-  }
-
-  /**
-   * Upload new revision for existing media
-   */
-  const uploadRevision = async (mediaId, file, setId) => {
-    try {
-      const proofingIdValue = getProofingId()
-
-      if (!proofingIdValue) {
-        throw new Error('Proofing ID is required')
-      }
-
-      const allMedia = await mediaApi.fetchPhaseMedia('proofing', proofingIdValue)
-      const originalMedia = allMedia.find(m => m.id === mediaId)
-
-      if (!originalMedia) {
-        throw new Error('Media not found')
-      }
-
-      const originalMediaId = originalMedia.originalMediaId || mediaId
-
-      // Determine media type
-      const type = file.type.startsWith('image/') ? 'image' : 'video'
-
-      const mediaData = {
-        originalMediaId: originalMediaId,
-        phase: 'proofing',
-        phaseId: proofingIdValue,
-        setId: setId || originalMedia.setId,
-        type: type,
-        title: file.name,
-        url: URL.createObjectURL(file), // In production, upload to server first
-        thumbnail: type === 'image' ? URL.createObjectURL(file) : null,
-        isCompleted: false,
-        order: 0,
-      }
-
-      const revision = await proofingStore.uploadRevision(proofingIdValue, mediaData)
-
-      if (loadMediaItems) {
-        await loadMediaItems()
-      }
-
-      toast.success('Revision uploaded', {
-        description: 'New revision has been uploaded.',
-      })
-
-      return revision
-    } catch (error) {
-      toast.error('Upload failed', {
-        description: error instanceof Error ? error.message : 'Failed to upload revision.',
-      })
-      throw error
-    }
   }
 
   /**
@@ -194,18 +93,18 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         description: 'You can now move approved media to collections.',
       })
     } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to complete proofing')
       toast.error('Failed to complete proofing', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred.',
+        description: errorMessage,
       })
       throw error
     }
   }
 
   /**
-   * Move approved media to collection
-   * If collectionId is null, a new collection will be created
+   * Publish proofing (for creatives - publishes to active status)
    */
-  const moveApprovedToCollection = async (collectionId = null) => {
+  const publishProofing = async () => {
     try {
       const proofingIdValue = getProofingId()
 
@@ -213,31 +112,115 @@ export function useProofingWorkflow({ proofingId, loadMediaItems } = {}) {
         throw new Error('Proofing ID is required')
       }
 
-      const result = await proofingStore.moveToCollection(proofingIdValue, collectionId)
+      await proofingStore.publishProofing(proofingIdValue)
 
-      toast.success('Media moved', {
-        description: `${result.moved.length} file(s) moved to collection. Low-res copies kept in proofing.`,
+      toast.success('Proofing published', {
+        description: 'Proofing has been published to active status.',
       })
+    } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to publish proofing')
+      toast.error('Failed to publish proofing', {
+        description: errorMessage,
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Recover deleted media (within 30 days)
+   */
+  const recoverDeletedMedia = async mediaIds => {
+    try {
+      const proofingIdValue = getProofingId()
+
+      if (!proofingIdValue) {
+        throw new Error('Proofing ID is required')
+      }
+
+      const recovered = await proofingStore.recoverMedia(proofingIdValue, mediaIds)
 
       if (loadMediaItems) {
         await loadMediaItems()
       }
 
-      return result
+      toast.success('Media recovered', {
+        description: `${recovered.recoveredCount || mediaIds.length} file(s) recovered successfully.`,
+      })
+
+      return recovered
     } catch (error) {
-      toast.error('Move failed', {
-        description: error instanceof Error ? error.message : 'Failed to move media to collection.',
+      const errorMessage = getErrorMessage(error, 'Failed to recover media')
+      toast.error('Recovery failed', {
+        description: errorMessage,
+      })
+      throw error
+    }
+  }
+
+  /**
+   * Copy selected filenames for editing
+   */
+  const copySelectedFilenames = async () => {
+    try {
+      const proofingIdValue = getProofingId()
+
+      if (!proofingIdValue) {
+        throw new Error('Proofing ID is required')
+      }
+
+      const filenames = await proofingStore.copyFilenames(proofingIdValue)
+
+      if (filenames.length === 0) {
+        toast.info('No files selected', {
+          description: 'Please select some media first.',
+        })
+        return
+      }
+
+      // Copy to clipboard
+      const text = filenames.join('\n')
+      await navigator.clipboard.writeText(text)
+
+      toast.success('Filenames copied', {
+        description: `${filenames.length} filename(s) copied to clipboard.`,
+      })
+
+      return filenames
+    } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to copy filenames')
+      toast.error('Failed to copy filenames', {
+        description: errorMessage,
       })
       throw error
     }
   }
 
   return {
-    uploadEditedMedia,
-    addFeedback,
-    markMediaApproved,
-    uploadRevision,
+    // Upload functions (from generic composable)
+    uploadMediaToSet: mediaUpload.uploadMediaToSet,
+    processFiles: mediaUpload.processFiles,
+    handleConfirmDuplicateFiles: mediaUpload.handleConfirmDuplicateFiles,
+    handleCancelDuplicateFiles: mediaUpload.handleCancelDuplicateFiles,
+    handleSetDuplicateAction: mediaUpload.handleSetDuplicateAction,
+    handleReplaceAllDuplicates: mediaUpload.handleReplaceAllDuplicates,
+    handleSkipAllDuplicates: mediaUpload.handleSkipAllDuplicates,
+    cancelUpload: mediaUpload.cancelUpload,
+
+    // State (from generic composable)
+    uploadProgress: mediaUpload.uploadProgress,
+    overallProgress: mediaUpload.overallProgress,
+    uploadErrors: mediaUpload.uploadErrors,
+    isUploading: mediaUpload.isUploading,
+    showDuplicateFilesModal: mediaUpload.showDuplicateFilesModal,
+    duplicateFiles: mediaUpload.duplicateFiles,
+    duplicateFileActions: mediaUpload.duplicateFileActions,
+    duplicateFileActionsObject: mediaUpload.duplicateFileActionsObject,
+    duplicateFileActionsKey: mediaUpload.duplicateFileActionsKey,
+
+    // Proofing-specific functions
     completeProofing,
-    moveApprovedToCollection,
+    publishProofing,
+    recoverDeletedMedia,
+    copySelectedFilenames,
   }
 }

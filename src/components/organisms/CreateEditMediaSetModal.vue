@@ -64,6 +64,7 @@
         </div>
 
         <SelectionLimitInput
+          v-if="props.context === 'selection'"
           :model-value="props.selectionLimit"
           :disabled="props.isCreating"
           description="Set the maximum number of media items clients can select from this set. Leave empty for unlimited."
@@ -124,6 +125,11 @@ const props = defineProps({
   selectionLimit: {
     type: Number,
     default: null,
+  },
+  context: {
+    type: String,
+    default: 'selection', // 'selection' or 'proofing'
+    validator: value => ['selection', 'proofing'].includes(value),
   },
 })
 

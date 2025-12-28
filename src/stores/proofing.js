@@ -4,8 +4,15 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useProofingApi } from '@/api/proofing'
+import { storage } from '@/utils/storage'
+
+// Storage keys for view settings
+const VIEW_MODE_STORAGE_KEY = 'mazeloot_proofing_view_mode'
+const GRID_SIZE_STORAGE_KEY = 'mazeloot_proofing_grid_size'
+const SHOW_FILENAME_STORAGE_KEY = 'mazeloot_proofing_show_filename'
+const SORT_ORDER_STORAGE_KEY = 'mazeloot_proofing_sort_order'
 
 export const useProofingStore = defineStore('proofing', () => {
   const proofings = ref([])
@@ -14,6 +21,51 @@ export const useProofingStore = defineStore('proofing', () => {
   const revisions = ref([])
   const isLoading = ref(false)
   const error = ref(null)
+
+  // View settings
+  const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
+  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
+  const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
+  const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
+
+  // Persist view settings
+  watch(viewMode, () => {
+    storage.set(VIEW_MODE_STORAGE_KEY, viewMode.value)
+  })
+  watch(gridSize, () => {
+    storage.set(GRID_SIZE_STORAGE_KEY, gridSize.value)
+  })
+  watch(showFilename, () => {
+    storage.set(SHOW_FILENAME_STORAGE_KEY, showFilename.value)
+  })
+  watch(sortOrder, () => {
+    storage.set(SORT_ORDER_STORAGE_KEY, sortOrder.value)
+  })
+
+  // View setting methods
+  const setViewMode = mode => {
+    if (['grid', 'list'].includes(mode)) {
+      viewMode.value = mode
+    } else {
+      viewMode.value = 'grid'
+    }
+  }
+
+  const setGridSize = size => {
+    if (['small', 'medium', 'large'].includes(size)) {
+      gridSize.value = size
+    } else {
+      gridSize.value = 'small'
+    }
+  }
+
+  const setShowFilename = value => {
+    showFilename.value = Boolean(value)
+  }
+
+  const setSortOrder = order => {
+    sortOrder.value = order
+  }
 
   const proofingApi = useProofingApi()
 
@@ -57,27 +109,79 @@ export const useProofingStore = defineStore('proofing', () => {
   }
 
   /**
-   * Update proofing
+   * Update proofing (standalone or project-based)
    */
-  const updateProofing = async (id, data) => {
+  const updateProofing = async (id, data, projectId = null) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const updated = await proofingApi.updateProofing(id, data)
+      const updated = await proofingApi.updateProofing(projectId, id, data)
 
-      const index = proofings.value.findIndex(p => p.id === id)
+      const index = proofings.value.findIndex(p => p.id === id || p.uuid === id)
       if (index !== -1) {
         proofings.value[index] = updated
       }
 
-      if (currentProofing.value && currentProofing.value.id === id) {
+      if (
+        currentProofing.value &&
+        (currentProofing.value.id === id || currentProofing.value.uuid === id)
+      ) {
         currentProofing.value = updated
       }
 
       return updated
     } catch (err) {
       error.value = err.message || 'Failed to update proofing'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Delete proofing
+   */
+  const deleteProofing = async (id, projectId = null) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      await proofingApi.deleteProofing(projectId, id)
+      return true
+    } catch (err) {
+      error.value = err.message || 'Failed to delete proofing'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Publish proofing
+   */
+  const publishProofing = async (id, projectId = null) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const published = await proofingApi.publishProofing(projectId, id)
+
+      const index = proofings.value.findIndex(p => p.id === id || p.uuid === id)
+      if (index !== -1) {
+        proofings.value[index] = published
+      }
+
+      if (
+        currentProofing.value &&
+        (currentProofing.value.id === id || currentProofing.value.uuid === id)
+      ) {
+        currentProofing.value = published
+      }
+
+      return published
+    } catch (err) {
+      error.value = err.message || 'Failed to publish proofing'
       throw err
     } finally {
       isLoading.value = false
@@ -188,15 +292,23 @@ export const useProofingStore = defineStore('proofing', () => {
 
   /**
    * Fetch all proofing (both standalone and project-linked)
+   * @param {Object} params - Query parameters for pagination, search, sort, filter
+   * @returns {Promise<{data: Array, pagination: Object}>} Paginated response
    */
-  const fetchAllProofing = async () => {
+  const fetchAllProofing = async (params = {}) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const allProofing = await proofingApi.fetchAllProofing()
-      proofings.value = allProofing
-      return allProofing
+      const result = await proofingApi.fetchAllProofing(params)
+      // If result has pagination structure, return it as-is
+      if (result.data && result.pagination) {
+        proofings.value = result.data
+        return result
+      }
+      // Backward compatibility: if it's just an array, wrap it
+      proofings.value = Array.isArray(result) ? result : result.data || []
+      return result
     } catch (err) {
       error.value = err.message || 'Failed to fetch proofing'
       throw err
@@ -208,34 +320,106 @@ export const useProofingStore = defineStore('proofing', () => {
   /**
    * Toggle star status with optimistic update
    */
-  const toggleStar = async proofingId => {
-    const proofing = proofings.value.find(p => p.id === proofingId)
-    if (!proofing) return
+  const toggleStar = async (proofingId, projectId = null) => {
+    const proofing = proofings.value.find(p => p.id === proofingId || p.uuid === proofingId)
+    const isCurrentProofing =
+      currentProofing.value &&
+      (currentProofing.value.id === proofingId || currentProofing.value.uuid === proofingId)
 
-    const wasStarred = proofing.isStarred || proofing.starred || false
+    // Need at least one to update
+    if (!proofing && !isCurrentProofing) return
+
+    // Get the starred state from whichever source is available
+    const sourceProofing = proofing || currentProofing.value
+    const wasStarred = sourceProofing.isStarred || sourceProofing.starred || false
     const newStarredState = !wasStarred
 
     // Optimistic update - update UI immediately
-    proofing.isStarred = newStarredState
-    proofing.starred = newStarredState
+    if (proofing) {
+      proofing.isStarred = newStarredState
+      proofing.starred = newStarredState
+    }
 
-    if (currentProofing.value && currentProofing.value.id === proofingId) {
+    if (isCurrentProofing) {
       currentProofing.value.isStarred = newStarredState
       currentProofing.value.starred = newStarredState
     }
 
     try {
       // Sync with server in background
-      await proofingApi.toggleStar(proofingId, newStarredState)
+      const result = await proofingApi.toggleStar(projectId, proofingId)
+      // Update with server response
+      if (result.starred !== undefined) {
+        if (proofing) {
+          proofing.isStarred = result.starred
+          proofing.starred = result.starred
+        }
+        if (isCurrentProofing) {
+          currentProofing.value.isStarred = result.starred
+          currentProofing.value.starred = result.starred
+        }
+      }
+      return result
     } catch (err) {
       // Revert optimistic update on error
-      proofing.isStarred = wasStarred
-      proofing.starred = wasStarred
-      if (currentProofing.value && currentProofing.value.id === proofingId) {
+      if (proofing) {
+        proofing.isStarred = wasStarred
+        proofing.starred = wasStarred
+      }
+      if (isCurrentProofing) {
         currentProofing.value.isStarred = wasStarred
         currentProofing.value.starred = wasStarred
       }
       throw err
+    }
+  }
+
+  /**
+   * Set cover photo from media
+   */
+  const setCoverPhoto = async (proofingId, mediaUuid, focalPoint = null, projectId = null) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const updated = await proofingApi.setCoverPhoto(projectId, proofingId, mediaUuid, focalPoint)
+
+      const index = proofings.value.findIndex(p => p.id === proofingId || p.uuid === proofingId)
+      if (index !== -1) {
+        proofings.value[index] = updated
+      }
+
+      if (
+        currentProofing.value &&
+        (currentProofing.value.id === proofingId || currentProofing.value.uuid === proofingId)
+      ) {
+        currentProofing.value = updated
+      }
+
+      return updated
+    } catch (err) {
+      error.value = err.message || 'Failed to set cover photo'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Recover deleted media
+   */
+  const recoverMedia = async (proofingId, mediaIds, projectId = null) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const result = await proofingApi.recoverDeletedMedia(projectId, proofingId, mediaIds)
+      return result
+    } catch (err) {
+      error.value = err.message || 'Failed to recover media'
+      throw err
+    } finally {
+      isLoading.value = false
     }
   }
 
@@ -246,15 +430,29 @@ export const useProofingStore = defineStore('proofing', () => {
     revisions,
     isLoading,
     error,
+    // View settings
+    viewMode,
+    gridSize,
+    showFilename,
+    sortOrder,
+    setViewMode,
+    setGridSize,
+    setShowFilename,
+    setSortOrder,
+    // Actions
     fetchProofing,
     fetchAllProofing,
     createProofing,
     updateProofing,
+    deleteProofing,
+    publishProofing,
     uploadRevision,
     addFeedback,
     markCompleted,
     completeProofing,
     moveToCollection,
     toggleStar,
+    setCoverPhoto,
+    recoverMedia,
   }
 })

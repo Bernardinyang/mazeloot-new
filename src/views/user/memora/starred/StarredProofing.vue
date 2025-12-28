@@ -190,17 +190,11 @@ const sortedProofing = computed(() => {
 })
 
 const handleProofingClick = proofingPhase => {
-  if (proofingPhase.projectId) {
+  if (proofingPhase && proofingPhase.id) {
+    // Always route to proofing detail view
     router.push({
-      name: 'projectProofing',
-      params: { id: proofingPhase.projectId },
-      query: { proofingId: proofingPhase.id },
-    })
-  } else {
-    router.push({
-      name: 'projectProofing',
-      params: { id: 'standalone' },
-      query: { proofingId: proofingPhase.id },
+      name: 'proofingDetail',
+      params: { id: proofingPhase.id },
     })
   }
 }
