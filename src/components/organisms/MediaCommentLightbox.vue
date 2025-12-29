@@ -1,236 +1,268 @@
 <template>
-  <Teleport to="body">
-    <Transition name="viewer-fade">
-      <div
-        v-if="isOpen"
-        :class="[
-          'fixed inset-0 z-[100] flex',
-          isMobile ? 'flex-col' : 'flex-row',
-          'bg-black/95 backdrop-blur-sm',
-        ]"
-        @click.self="handleClose"
-      >
-        <!-- Close Button -->
-        <button
-          aria-label="Close viewer"
-          class="absolute top-4 right-4 z-[102] w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
-          @click.stop="handleClose"
-        >
-          <X class="w-5 h-5" />
-        </button>
+  <div>
+    <!-- Delete Confirmation Dialog (rendered outside Teleport to avoid conflicts) -->
+    <Dialog :open="showDeleteConfirm" @update:open="val => (showDeleteConfirm = val)">
+      <DialogContent class="sm:max-w-[425px] !z-[200] overlay-z-[200]">
+        <DialogHeader>
+          <DialogTitle>Delete Comment</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this comment? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            The comment will be permanently removed and cannot be recovered.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="cancelDelete" :disabled="isDeletingComment">
+            Cancel
+          </Button>
+          <Button
+            class="bg-red-500 hover:bg-red-600 text-white"
+            @click="confirmDelete"
+            :disabled="isDeletingComment"
+          >
+            <Loader2 v-if="isDeletingComment" class="w-4 h-4 mr-2 animate-spin" />
+            <span>{{ isDeletingComment ? 'Deleting...' : 'Delete Comment' }}</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-        <!-- Main Content Area (Media + Comments) -->
+    <Teleport to="body">
+      <Transition name="viewer-fade">
         <div
+          v-if="isOpen"
           :class="[
-            'relative flex-1 flex items-center justify-center',
-            isMobile ? 'p-2' : 'p-4 md:p-8',
-            { 'hidden md:flex': isMobile && showComments }, // Hide media on mobile when comments drawer is open
+            'fixed inset-0 z-[100] flex',
+            isMobile ? 'flex-col' : 'flex-row',
+            'bg-black/95 backdrop-blur-sm',
           ]"
+          @click.self="handleClose"
         >
-          <!-- Navigation Buttons (positioned at container edges, outside media) -->
-          <template v-if="items.length > 1">
-            <button
-              v-if="hasPrevious"
-              aria-label="Previous"
-              :class="[
-                'absolute top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10 group',
-                isMobile ? 'left-2' : 'left-4',
-              ]"
-              @click.stop="goToPrevious"
-            >
-              <ChevronLeft class="w-6 h-6 group-hover:translate-x-[-2px] transition-transform" />
-            </button>
-            <button
-              v-if="hasNext"
-              aria-label="Next"
-              :class="[
-                'absolute top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10 group',
-                isMobile ? 'right-2' : 'right-[100px]',
-              ]"
-              @click.stop="goToNext"
-            >
-              <ChevronRight class="w-6 h-6 group-hover:translate-x-[2px] transition-transform" />
-            </button>
-          </template>
-          <Transition mode="out-in" name="viewer-slide">
-            <div
-              :key="currentIndex"
-              :class="[
-                'relative max-w-full max-h-full w-full h-full flex items-center justify-center overflow-hidden',
-                // Add horizontal padding when navigation buttons are present to prevent overlap
-                items.length > 1 ? (isMobile ? 'px-14' : 'px-16') : '',
-              ]"
-              @wheel.prevent="handleWheelZoom"
-            >
-              <!-- Image Container with Zoom -->
-              <div
-                v-if="currentMediaType === 'image' && currentMediaUrl"
-                ref="imageContainerRef"
-                class="relative w-full h-full flex items-center justify-center cursor-move"
-                :style="imageTransformStyle"
-                @mousedown="handleMouseDown"
-                @mousemove="handleMouseMove"
-                @mouseup="handleMouseUp"
-                @mouseleave="handleMouseUp"
-                @touchstart="handleTouchStart"
-                @touchmove="handleTouchMove"
-                @touchend="handleTouchEnd"
-                @dblclick="handleDoubleClick"
+          <!-- Close Button -->
+          <button
+            aria-label="Close viewer"
+            class="absolute top-4 right-4 z-[102] w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+            @click.stop="handleClose"
+          >
+            <X class="w-5 h-5" />
+          </button>
+
+          <!-- Main Content Area (Media + Comments) -->
+          <div
+            :class="[
+              'relative flex-1 flex items-center justify-center',
+              isMobile ? 'p-2' : 'p-4 md:p-8',
+              { 'hidden md:flex': isMobile && showComments }, // Hide media on mobile when comments drawer is open
+            ]"
+          >
+            <!-- Navigation Buttons (positioned at container edges, outside media) -->
+            <template v-if="items.length > 1">
+              <button
+                v-if="hasPrevious"
+                aria-label="Previous"
+                :class="[
+                  'absolute top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10 group',
+                  isMobile ? 'left-2' : 'left-4',
+                ]"
+                @click.stop="goToPrevious"
               >
-                <img
-                  :alt="currentItem?.title || currentItem?.filename || 'Media'"
+                <ChevronLeft class="w-6 h-6 group-hover:translate-x-[-2px] transition-transform" />
+              </button>
+              <button
+                v-if="hasNext"
+                aria-label="Next"
+                :class="[
+                  'absolute top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10 group',
+                  isMobile ? 'right-2' : 'right-[100px]',
+                ]"
+                @click.stop="goToNext"
+              >
+                <ChevronRight class="w-6 h-6 group-hover:translate-x-[2px] transition-transform" />
+              </button>
+            </template>
+            <Transition mode="out-in" name="viewer-slide">
+              <div
+                :key="currentIndex"
+                :class="[
+                  'relative max-w-full max-h-full w-full h-full flex items-center justify-center overflow-hidden',
+                  // Add horizontal padding when navigation buttons are present to prevent overlap
+                  items.length > 1 ? (isMobile ? 'px-14' : 'px-16') : '',
+                ]"
+                @wheel.prevent="handleWheelZoom"
+              >
+                <!-- Image Container with Zoom -->
+                <div
+                  v-if="currentMediaType === 'image' && currentMediaUrl"
+                  ref="imageContainerRef"
+                  class="relative w-full h-full flex items-center justify-center cursor-move"
+                  :style="imageTransformStyle"
+                  @mousedown="handleMouseDown"
+                  @mousemove="handleMouseMove"
+                  @mouseup="handleMouseUp"
+                  @mouseleave="handleMouseUp"
+                  @touchstart="handleTouchStart"
+                  @touchmove="handleTouchMove"
+                  @touchend="handleTouchEnd"
+                  @dblclick="handleDoubleClick"
+                >
+                  <img
+                    :alt="currentItem?.title || currentItem?.filename || 'Media'"
+                    :src="currentMediaUrl"
+                    class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300"
+                    :class="isLoading ? 'opacity-0' : 'opacity-100'"
+                    draggable="false"
+                    :style="imageStyle"
+                    @error="handleImageError"
+                    @load="handleImageLoad"
+                  />
+                </div>
+
+                <!-- Video (no zoom) -->
+
+                <!-- Video -->
+                <CustomVideoPlayer
+                  v-else-if="currentMediaType === 'video' && currentMediaUrl"
+                  ref="videoPlayerRef"
+                  :poster="currentThumbnailUrl || undefined"
                   :src="currentMediaUrl"
-                  class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300"
-                  :class="isLoading ? 'opacity-0' : 'opacity-100'"
-                  draggable="false"
-                  :style="imageStyle"
-                  @error="handleImageError"
-                  @load="handleImageLoad"
+                  :autoplay="true"
+                  @error="handleVideoError"
+                  @play="handleVideoPlay"
+                  @pause="handleVideoPause"
+                  @timeupdate="handleVideoTimeUpdate"
                 />
-              </div>
 
-              <!-- Video (no zoom) -->
-
-              <!-- Video -->
-              <CustomVideoPlayer
-                v-else-if="currentMediaType === 'video' && currentMediaUrl"
-                ref="videoPlayerRef"
-                :poster="currentThumbnailUrl || undefined"
-                :src="currentMediaUrl"
-                :autoplay="true"
-                @error="handleVideoError"
-                @play="handleVideoPlay"
-                @pause="handleVideoPause"
-                @timeupdate="handleVideoTimeUpdate"
-              />
-
-              <!-- Loading State -->
-              <div
-                v-if="isLoading"
-                class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-lg"
-              >
-                <div class="flex flex-col items-center gap-3">
-                  <Loader2 class="w-10 h-10 text-white animate-spin" />
-                  <p class="text-white/80 text-sm font-medium">Loading media...</p>
+                <!-- Loading State -->
+                <div
+                  v-if="isLoading"
+                  class="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-lg"
+                >
+                  <div class="flex flex-col items-center gap-3">
+                    <Loader2 class="w-10 h-10 text-white animate-spin" />
+                    <p class="text-white/80 text-sm font-medium">Loading media...</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Transition>
-        </div>
+            </Transition>
+          </div>
 
-        <!-- Media Info (Bottom) -->
-        <div
-          v-if="currentItem && currentMediaType !== 'video' && !isMobile"
-          class="absolute bottom-0 left-0 right-0 z-50 p-4 md:p-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm"
-        >
-          <div class="max-w-4xl mx-auto flex items-center justify-between text-white">
-            <div class="flex-1 min-w-0">
-              <h3 class="text-lg font-semibold truncate drop-shadow-lg">
-                {{ currentItem?.title || currentItem?.filename || 'Untitled' }}
-              </h3>
-              <p
-                v-if="currentItem?.description"
-                class="text-sm text-gray-200 mt-1 truncate drop-shadow-md"
-              >
-                {{ currentItem.description }}
-              </p>
+          <!-- Media Info (Bottom) -->
+          <div
+            v-if="currentItem && currentMediaType !== 'video' && !isMobile"
+            class="absolute bottom-0 left-0 right-0 z-50 p-4 md:p-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm"
+          >
+            <div class="max-w-4xl mx-auto flex items-center justify-between text-white">
+              <div class="flex-1 min-w-0">
+                <h3 class="text-lg font-semibold truncate drop-shadow-lg">
+                  {{ currentItem?.title || currentItem?.filename || 'Untitled' }}
+                </h3>
+                <p
+                  v-if="currentItem?.description"
+                  class="text-sm text-gray-200 mt-1 truncate drop-shadow-md"
+                >
+                  {{ currentItem.description }}
+                </p>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- Counter (Top Center) -->
-        <div
-          v-if="items.length > 1"
-          class="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md text-white text-sm font-medium shadow-xl border border-white/10"
-        >
-          <span class="font-semibold">{{ currentIndex + 1 }}</span>
-          <span class="mx-1.5 text-white/60">/</span>
-          <span class="text-white/80">{{ items.length }}</span>
-        </div>
+          <!-- Counter (Top Center) -->
+          <div
+            v-if="items.length > 1"
+            class="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md text-white text-sm font-medium shadow-xl border border-white/10"
+          >
+            <span class="font-semibold">{{ currentIndex + 1 }}</span>
+            <span class="mx-1.5 text-white/60">/</span>
+            <span class="text-white/80">{{ items.length }}</span>
+          </div>
 
-        <!-- Zoom Controls (only for images) -->
-        <div
-          v-if="currentMediaType === 'image' && currentMediaUrl"
-          :class="[
-            'absolute z-50 flex flex-col gap-2',
-            isMobile ? 'bottom-20 right-4' : 'bottom-4 right-4',
-          ]"
-        >
-          <button
-            aria-label="Zoom in"
-            class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
-            @click.stop="zoomIn"
+          <!-- Zoom Controls (only for images) -->
+          <div
+            v-if="currentMediaType === 'image' && currentMediaUrl"
+            :class="[
+              'absolute z-50 flex flex-col gap-2',
+              isMobile ? 'bottom-20 right-4' : 'bottom-4 right-4',
+            ]"
           >
-            <ZoomIn class="w-5 h-5" />
-          </button>
-          <button
-            v-if="zoomLevel > 1"
-            aria-label="Reset zoom"
-            class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
-            @click.stop="resetZoom"
-          >
-            <RotateCcw class="w-5 h-5" />
-          </button>
-          <button
-            aria-label="Zoom out"
-            class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
-            @click.stop="zoomOut"
-          >
-            <ZoomOut class="w-5 h-5" />
-          </button>
-        </div>
-
-        <!-- Mobile "Show Comments" Button -->
-        <div
-          v-if="isMobile && !showComments"
-          class="absolute bottom-4 left-1/2 -translate-x-1/2 z-50"
-        >
-          <Button
-            class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white shadow-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95"
-            @click="showComments = true"
-          >
-            <MessageSquare class="h-4 w-4 mr-2" />
-            <span class="font-medium">Comments</span>
-            <span
-              v-if="totalCommentCount > 0"
-              class="ml-2 px-2 py-0.5 rounded-full bg-teal-500 text-white text-xs font-bold shadow-md"
+            <button
+              aria-label="Zoom in"
+              class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+              @click.stop="zoomIn"
             >
-              {{ totalCommentCount }}
-            </span>
-          </Button>
-        </div>
+              <ZoomIn class="w-5 h-5" />
+            </button>
+            <button
+              v-if="zoomLevel > 1"
+              aria-label="Reset zoom"
+              class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+              @click.stop="resetZoom"
+            >
+              <RotateCcw class="w-5 h-5" />
+            </button>
+            <button
+              aria-label="Zoom out"
+              class="w-10 h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+              @click.stop="zoomOut"
+            >
+              <ZoomOut class="w-5 h-5" />
+            </button>
+          </div>
 
-        <!-- Comments Panel (Desktop Sidebar / Mobile Drawer) -->
-        <div
-          :class="[
-            'relative z-[101]',
-            isMobile
-              ? 'fixed inset-x-0 bottom-0 h-3/4 transform translate-y-full transition-transform duration-300 ease-out shadow-2xl'
-              : 'w-full md:w-[450px] flex-shrink-0 border-l border-gray-800/50',
-            { 'translate-y-0': isMobile && showComments },
-          ]"
-        >
-          <CommentsPanel
-            v-if="currentItem"
-            :media-id="currentItem.id"
-            :comments="currentComments"
-            :is-video="currentMediaType === 'video'"
-            :current-video-time="currentVideoTime"
-            :is-loading="isLoadingComments"
-            :allow-reply="true"
-            :guest-email="guestEmail"
-            :creative-email="creativeEmail"
-            :show-close-button="isMobile"
-            @add-comment="handleAddComment"
-            @seek-to-timestamp="handleSeekVideo"
-            @update-comment="handleUpdateComment"
-            @delete-comment="handleDeleteComment"
-            @close="showComments = false"
-          />
+          <!-- Mobile "Show Comments" Button -->
+          <div
+            v-if="isMobile && !showComments"
+            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-50"
+          >
+            <Button
+              class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white shadow-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95"
+              @click="showComments = true"
+            >
+              <MessageSquare class="h-4 w-4 mr-2" />
+              <span class="font-medium">Comments</span>
+              <span
+                v-if="totalCommentCount > 0"
+                class="ml-2 px-2 py-0.5 rounded-full bg-teal-500 text-white text-xs font-bold shadow-md"
+              >
+                {{ totalCommentCount }}
+              </span>
+            </Button>
+          </div>
+
+          <!-- Comments Panel (Desktop Sidebar / Mobile Drawer) -->
+          <div
+            :class="[
+              'relative z-[101]',
+              isMobile
+                ? 'fixed inset-x-0 bottom-0 h-3/4 transform translate-y-full transition-transform duration-300 ease-out shadow-2xl'
+                : 'w-full md:w-[450px] flex-shrink-0 border-l border-gray-800/50',
+              { 'translate-y-0': isMobile && showComments },
+            ]"
+          >
+            <CommentsPanel
+              v-if="currentItem"
+              :media-id="currentMediaId"
+              :comments="currentComments"
+              :is-video="currentMediaType === 'video'"
+              :current-video-time="currentVideoTime"
+              :is-loading="isLoadingComments"
+              :allow-reply="true"
+              :guest-email="guestEmail"
+              :creative-email="creativeEmail"
+              :show-close-button="true"
+              @add-comment="handleAddComment"
+              @seek-to-timestamp="handleSeekVideo"
+              @update-comment="handleUpdateComment"
+              @delete-comment="handleDeleteComment"
+              @close="handleCloseComments"
+            />
+          </div>
         </div>
-      </div>
-    </Transition>
-  </Teleport>
+      </Transition>
+    </Teleport>
+  </div>
 </template>
 
 <script setup>
@@ -248,6 +280,14 @@ import {
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
 import { Button } from '@/components/shadcn/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/shadcn/dialog'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProofingApi } from '@/api/proofing'
 import { useRealtimeComments } from '@/composables/useRealtimeComments'
@@ -294,6 +334,7 @@ const props = defineProps({
 const emit = defineEmits([
   'update:modelValue',
   'close',
+  'back-to-lightbox',
   'comment-added',
   'comment-updated',
   'comment-deleted',
@@ -332,29 +373,51 @@ const currentItem = computed(() => {
   return props.items[currentIndex.value] || props.items[0]
 })
 
+// Computed property to get the correct media ID (handles both 'id' and 'uuid')
+// IMPORTANT: MediaResource returns 'id' as the UUID, so we use that first
+const currentMediaId = computed(() => {
+  if (!currentItem.value) return null
+
+  // Try id first (this is the UUID from MediaResource)
+  // Then try uuid as fallback
+  let mediaId = currentItem.value.id || currentItem.value.uuid || null
+
+  // CRITICAL: If mediaId matches proofingId, something is very wrong with the item structure
+  // Return null to prevent API calls with wrong ID
+  if (mediaId && mediaId === props.proofingId) {
+    console.error('CRITICAL ERROR: mediaId matches proofingId! Item structure is incorrect.', {
+      mediaId,
+      proofingId: props.proofingId,
+      currentItem: currentItem.value,
+      itemKeys: Object.keys(currentItem.value || {}),
+      itemId: currentItem.value.id,
+      itemUuid: currentItem.value.uuid,
+      allItemIds: props.items.slice(0, 3).map(item => ({ id: item.id, uuid: item.uuid })),
+    })
+    // Don't return the proofingId - return null to prevent the API call
+    return null
+  }
+
+  return mediaId
+})
+
 const currentMediaType = computed(() => {
   return currentItem.value?.type || currentItem.value?.file?.type || 'image'
 })
 
-// Count all comments including replies recursively
-// Counts ALL comments: both top-level comments and replies
-// Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
 const countAllComments = commentList => {
   const countedIds = new Set()
 
   const countRecursive = comments => {
     let count = 0
     for (const comment of comments) {
-      // Skip if already counted (to avoid double-counting)
       if (countedIds.has(comment.id)) {
         continue
       }
 
-      // Count this comment
       count++
       countedIds.add(comment.id)
 
-      // Count nested replies recursively
       if (comment.replies && comment.replies.length > 0) {
         count += countRecursive(comment.replies)
       }
@@ -367,12 +430,9 @@ const countAllComments = commentList => {
 
 const currentComments = computed(() => {
   if (!currentItem.value) return []
-  // Load comments from item or from our local state
   return comments.value.length > 0 ? comments.value : currentItem.value.feedback || []
 })
 
-// Total comment count including replies
-// Counts ALL comments (both top-level and replies)
 const totalCommentCount = computed(() => {
   return countAllComments(currentComments.value)
 })
@@ -464,10 +524,8 @@ const updateMediaUrl = async () => {
 
     currentMediaUrl.value = url || ''
     currentThumbnailUrl.value = thumbnail || ''
-
-    // Comments are handled separately by loadComments() to ensure proper scoping
   } catch (error) {
-    console.error('Failed to update media URL:', error)
+    // Silently handle error
   } finally {
     isLoading.value = false
   }
@@ -476,6 +534,11 @@ const updateMediaUrl = async () => {
 const handleClose = () => {
   isOpen.value = false
   emit('close')
+}
+
+const handleCloseComments = () => {
+  // When closing comments, go back to MediaLightbox
+  emit('back-to-lightbox')
 }
 
 const goToPrevious = () => {
@@ -517,7 +580,6 @@ const handleKeyDown = event => {
 }
 
 const handleImageError = () => {
-  console.error('Failed to load image')
   isLoading.value = false
 }
 
@@ -526,7 +588,6 @@ const handleImageLoad = () => {
 }
 
 const handleVideoError = () => {
-  console.error('Failed to load video')
   isLoading.value = false
 }
 
@@ -710,13 +771,20 @@ const handleDoubleClick = event => {
 }
 
 const handleAddComment = async commentData => {
-  if (!currentItem.value) return
+  if (!currentItem.value || !currentMediaId.value) {
+    console.error('Missing currentItem or mediaId:', {
+      currentItem: currentItem.value,
+      mediaId: currentMediaId.value,
+    })
+    return
+  }
 
-  // Optimistically add comment immediately
+  const mediaId = currentMediaId.value
+
   const tempId = `temp-${Date.now()}`
   const optimisticComment = {
     id: tempId,
-    mediaId: currentItem.value.id,
+    mediaId: mediaId,
     type: commentData.type,
     content: commentData.content,
     parentId: commentData.parentId || null,
@@ -733,7 +801,6 @@ const handleAddComment = async commentData => {
     replies: [],
   }
 
-  // Add optimistically
   if (commentData.parentId) {
     const parentIndex = comments.value.findIndex(c => c.id === commentData.parentId)
     if (parentIndex !== -1) {
@@ -742,7 +809,6 @@ const handleAddComment = async commentData => {
       }
       comments.value[parentIndex].replies.push(optimisticComment)
     } else {
-      // Search in nested replies
       const findAndAddReply = (commentList, parentId, reply) => {
         for (const comment of commentList) {
           if (comment.id === parentId) {
@@ -767,30 +833,63 @@ const handleAddComment = async commentData => {
   }
 
   try {
-    // Don't set isLoadingComments to true - we want to append optimistically without showing skeleton
-    // isLoadingComments.value = true
-
     // Get setId from current item or props
-    const setId = currentItem.value.setId || props.setId
+    // Check multiple possible property names for setId
+    const setId =
+      currentItem.value?.setId ||
+      currentItem.value?.media_set_uuid ||
+      currentItem.value?.mediaSet?.id ||
+      currentItem.value?.mediaSet?.uuid ||
+      props.setId
 
     if (!props.proofingId || !setId) {
-      console.error('Missing proofingId or setId:', { proofingId: props.proofingId, setId })
+      console.error('Missing proofingId or setId in handleAddComment', {
+        proofingId: props.proofingId,
+        setId,
+        currentItem: currentItem.value,
+        propsSetId: props.setId,
+      })
+      return
+    }
+
+    // Ensure createdBy is set - use creativeEmail for authenticated users, guestEmail for guests
+    const finalCommentData = {
+      ...commentData,
+      createdBy: commentData.createdBy || props.creativeEmail || props.guestEmail || null,
+    }
+
+    // Validate that mediaId is not the same as proofingId (safety check)
+    if (!mediaId || mediaId === props.proofingId) {
+      console.error('ERROR: Invalid mediaId!', {
+        mediaId,
+        proofingId: props.proofingId,
+        currentItem: currentItem.value,
+        itemKeys: Object.keys(currentItem.value || {}),
+        itemId: currentItem.value?.id,
+        itemUuid: currentItem.value?.uuid,
+      })
+      return
+    }
+
+    // Additional validation - ensure mediaId is a valid UUID format
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(mediaId)) {
+      console.error('ERROR: mediaId is not a valid UUID format!', {
+        mediaId,
+        currentItem: currentItem.value,
+      })
       return
     }
 
     const response = await proofingApi.addMediaFeedback(
       props.proofingId,
       setId,
-      currentItem.value.id,
-      commentData,
+      mediaId,
+      finalCommentData,
       props.projectId,
-      props.guestToken // Pass guest token if available (null for authenticated users)
+      props.guestToken
     )
 
-    console.log('API Response:', response)
-
-    // The API returns response.data which is the comment object
-    // Handle different response structures
     let newComment = null
     if (response?.data?.data) {
       newComment = response.data.data
@@ -800,10 +899,7 @@ const handleAddComment = async commentData => {
       newComment = response
     }
 
-    console.log('Extracted comment:', newComment)
-
     if (!newComment || !newComment.id) {
-      console.error('Invalid comment response - missing id:', { response, newComment })
       // Remove optimistic comment on invalid response
       const removeComment = (commentList, tempId) => {
         const index = commentList.findIndex(c => c.id === tempId)
@@ -821,23 +917,19 @@ const handleAddComment = async commentData => {
         return false
       }
       removeComment(comments.value, tempId)
-      // Force reactivity update
       comments.value = [...comments.value]
       return
     }
 
-    // Replace optimistic comment with real one using a new array to trigger reactivity
     const replaceComment = (commentList, tempId, realComment) => {
       const newList = commentList.map(comment => {
         if (comment.id === tempId) {
-          // Found the optimistic comment, replace it
           return {
             ...realComment,
             replies: realComment.replies || comment.replies || [],
           }
         }
         if (comment.replies && comment.replies.length > 0) {
-          // Recursively check replies
           const updatedReplies = replaceComment(comment.replies, tempId, realComment)
           return {
             ...comment,
@@ -851,7 +943,6 @@ const handleAddComment = async commentData => {
 
     const updatedComments = replaceComment(comments.value, tempId, newComment)
 
-    // Check if replacement actually happened (tempId should not exist in updatedComments)
     const tempCommentStillExists =
       updatedComments.some(c => c.id === tempId) ||
       updatedComments.some(c => c.replies?.some(r => r.id === tempId))
@@ -874,15 +965,12 @@ const handleAddComment = async commentData => {
 
       // Emit event to update parent component's comment count
       emit('comment-added', {
-        mediaId: currentItem.value.id,
+        mediaId: mediaId,
         comment: newComment,
         allComments: comments.value,
       })
     } else {
-      // If the comment wasn't found, add it directly
-      console.warn('Optimistic comment not found, adding new comment directly')
       if (newComment.parentId) {
-        // Find parent and add as reply
         const findAndAddReply = (commentList, parentId, reply) => {
           for (let i = 0; i < commentList.length; i++) {
             if (commentList[i].id === parentId) {
@@ -901,7 +989,6 @@ const handleAddComment = async commentData => {
           return false
         }
         if (findAndAddReply(comments.value, newComment.parentId, newComment)) {
-          // Force reactivity
           comments.value = [...comments.value]
         } else {
           comments.value = [...comments.value, newComment]
@@ -910,15 +997,13 @@ const handleAddComment = async commentData => {
         comments.value = [...comments.value, newComment]
       }
 
-      // Emit event to update parent component's comment count
       emit('comment-added', {
-        mediaId: currentItem.value.id,
+        mediaId: mediaId,
         comment: newComment,
         allComments: comments.value,
       })
     }
   } catch (error) {
-    console.error('Failed to add comment:', error)
     // Remove optimistic comment on error
     const removeComment = (commentList, tempId) => {
       const index = commentList.findIndex(c => c.id === tempId)
@@ -943,15 +1028,9 @@ const handleAddComment = async commentData => {
 
 const handleUpdateComment = async ({ commentId, content }) => {
   if (!currentItem.value || !commentId || !content) {
-    console.error('Missing required parameters for update:', {
-      commentId,
-      content,
-      currentItem: currentItem.value,
-    })
     return
   }
 
-  // Optimistically update
   const updateComment = (commentList, id, newContent) => {
     const index = commentList.findIndex(c => c.id === id)
     if (index !== -1) {
@@ -974,17 +1053,34 @@ const handleUpdateComment = async ({ commentId, content }) => {
     isLoadingComments.value = true
 
     // Get setId from current item or props
-    const setId = currentItem.value.setId || props.setId
+    // Check multiple possible property names for setId
+    const setId =
+      currentItem.value?.setId ||
+      currentItem.value?.media_set_uuid ||
+      currentItem.value?.mediaSet?.id ||
+      currentItem.value?.mediaSet?.uuid ||
+      props.setId
 
     if (!props.proofingId || !setId) {
-      console.error('Missing proofingId or setId:', { proofingId: props.proofingId, setId })
+      console.error('Missing proofingId or setId in handleUpdateComment', {
+        proofingId: props.proofingId,
+        setId,
+        currentItem: currentItem.value,
+        propsSetId: props.setId,
+      })
+      return
+    }
+
+    const mediaId = currentMediaId.value
+    if (!mediaId) {
+      console.error('Missing mediaId in handleUpdateComment')
       return
     }
 
     const updatedFeedback = await proofingApi.updateMediaFeedback(
       props.proofingId,
       setId,
-      currentItem.value.id,
+      mediaId,
       commentId,
       content,
       props.projectId,
@@ -993,13 +1089,12 @@ const handleUpdateComment = async ({ commentId, content }) => {
 
     // Emit event to update parent component
     emit('comment-updated', {
-      mediaId: currentItem.value.id,
+      mediaId: mediaId,
       commentId,
       comment: updatedFeedback?.data || updatedFeedback,
       allComments: comments.value,
     })
   } catch (error) {
-    console.error('Failed to update comment:', error)
     // Revert optimistic update on error
     await loadComments()
     throw error
@@ -1008,16 +1103,37 @@ const handleUpdateComment = async ({ commentId, content }) => {
   }
 }
 
-const handleDeleteComment = async commentId => {
+const showDeleteConfirm = ref(false)
+const commentToDelete = ref(null)
+const isDeletingComment = ref(false)
+
+const handleDeleteComment = commentId => {
   if (!currentItem.value || !commentId) {
-    console.error('Missing required parameters for delete:', {
-      commentId,
+    console.warn('handleDeleteComment: Missing currentItem or commentId', {
       currentItem: currentItem.value,
+      commentId,
     })
     return
   }
 
-  // Optimistically remove
+  // Store the comment ID to delete and show confirmation dialog
+  commentToDelete.value = commentId
+  showDeleteConfirm.value = true
+  console.log('Delete confirmation dialog opened', {
+    commentId,
+    showDeleteConfirm: showDeleteConfirm.value,
+  })
+}
+
+const confirmDelete = async () => {
+  if (!commentToDelete.value || isDeletingComment.value) {
+    return
+  }
+
+  const commentId = commentToDelete.value
+  commentToDelete.value = null
+  isDeletingComment.value = true
+
   const removeComment = (commentList, id) => {
     const index = commentList.findIndex(c => c.id === id)
     if (index !== -1) {
@@ -1039,20 +1155,59 @@ const handleDeleteComment = async commentId => {
   try {
     isLoadingComments.value = true
 
-    // Get setId from current item or props
-    const setId = currentItem.value.setId || props.setId
+    // Get setId - prioritize props.setId since it's explicitly passed
+    // Fallback to media item properties if props.setId is not available
+    const setId =
+      props.setId ||
+      currentItem.value?.setId ||
+      currentItem.value?.media_set_uuid ||
+      currentItem.value?.mediaSet?.id ||
+      currentItem.value?.mediaSet?.uuid
+
+    console.log('Delete comment - Parameters:', {
+      proofingId: props.proofingId,
+      setId,
+      propsSetId: props.setId,
+      mediaId: currentMediaId.value,
+      commentId,
+      currentItemKeys: currentItem.value ? Object.keys(currentItem.value) : [],
+      currentItemSetId: currentItem.value?.setId,
+      currentItemMediaSetUuid: currentItem.value?.media_set_uuid,
+      currentItemMediaSet: currentItem.value?.mediaSet,
+      currentItemFull: currentItem.value,
+    })
+
+    // Validate setId format (should be UUID)
+    if (setId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(setId)) {
+      console.error('Invalid setId format (not a UUID):', setId)
+    }
 
     if (!props.proofingId || !setId) {
-      console.error('Missing proofingId or setId:', { proofingId: props.proofingId, setId })
-      // Revert optimistic delete
+      console.error('Missing proofingId or setId in handleDeleteComment', {
+        proofingId: props.proofingId,
+        setId,
+        currentItem: currentItem.value,
+        propsSetId: props.setId,
+      })
       comments.value = originalComments
+      showDeleteConfirm.value = false
+      isDeletingComment.value = false
+      return
+    }
+
+    const mediaId = currentMediaId.value
+    if (!mediaId) {
+      console.error('Missing mediaId in handleDeleteComment')
+      comments.value = originalComments
+      showDeleteConfirm.value = false
+      isDeletingComment.value = false
       return
     }
 
     await proofingApi.deleteMediaFeedback(
       props.proofingId,
       setId,
-      currentItem.value.id,
+      mediaId,
       commentId,
       props.projectId,
       props.guestToken
@@ -1060,54 +1215,57 @@ const handleDeleteComment = async commentId => {
 
     // Emit event to update parent component
     emit('comment-deleted', {
-      mediaId: currentItem.value.id,
+      mediaId: mediaId,
       commentId,
       allComments: comments.value,
     })
   } catch (error) {
-    console.error('Failed to delete comment:', error)
     // Revert optimistic delete on error
     comments.value = originalComments
     throw error
   } finally {
     isLoadingComments.value = false
+    isDeletingComment.value = false
+    showDeleteConfirm.value = false
   }
 }
 
+const cancelDelete = () => {
+  if (isDeletingComment.value) {
+    return // Prevent canceling while deleting
+  }
+  commentToDelete.value = null
+  showDeleteConfirm.value = false
+}
+
 const loadComments = async () => {
-  if (!currentItem.value) {
+  if (!currentItem.value || !currentMediaId.value) {
     comments.value = []
     return
   }
 
-  const currentMediaId = currentItem.value.id || currentItem.value.uuid
+  const mediaId = currentMediaId.value
 
-  // Remove comments from previous media items (keep only comments for current media)
   comments.value = comments.value.filter(comment => {
     const commentMediaId = comment.mediaId || comment.media_uuid
-    return commentMediaId === currentMediaId
+    return commentMediaId === mediaId
   })
 
-  // Load comments from current item's feedback
   if (currentItem.value.feedback && Array.isArray(currentItem.value.feedback)) {
-    // Merge with existing comments for this media (avoid duplicates)
     const existingIds = new Set(comments.value.map(c => c.id))
     const newComments = currentItem.value.feedback.filter(c => {
       const commentMediaId = c.mediaId || c.media_uuid
-      return commentMediaId === currentMediaId && !existingIds.has(c.id)
+      return commentMediaId === mediaId && !existingIds.has(c.id)
     })
 
     if (newComments.length > 0) {
       comments.value = [...comments.value, ...newComments]
     } else if (comments.value.length === 0) {
-      // No existing comments and no new comments, use feedback from item
       comments.value = currentItem.value.feedback
     }
   } else if (comments.value.length === 0) {
-    // If feedback not loaded and no local comments, set to empty
     comments.value = []
   }
-  // If we have local comments but no item feedback, keep local comments
 }
 
 // Initialize real-time comments
@@ -1115,18 +1273,15 @@ const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtime
   computed(() => currentItem.value?.id || ''),
   {
     onCommentCreated: newComment => {
-      if (newComment.mediaId === currentItem.value?.id) {
-        // Check if comment already exists (to avoid duplicates from real-time updates)
+      if (newComment.mediaId === currentMediaId.value) {
         const commentExists =
           comments.value.some(c => c.id === newComment.id) ||
           comments.value.some(c => c.replies?.some(r => r.id === newComment.id))
 
         if (commentExists) {
-          // Comment already exists (probably from optimistic update), skip adding
           return
         }
 
-        // If it's a reply, add it to the parent comment's replies array
         if (newComment.parentId) {
           const parentIndex = comments.value.findIndex(c => c.id === newComment.parentId)
           if (parentIndex !== -1) {
@@ -1137,10 +1292,8 @@ const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtime
               ...comments.value[parentIndex].replies,
               newComment,
             ]
-            // Force reactivity
             comments.value = [...comments.value]
           } else {
-            // Parent not found in top-level, search in replies
             const findAndAddReply = (commentList, parentId, reply) => {
               for (let i = 0; i < commentList.length; i++) {
                 if (commentList[i].id === parentId) {
@@ -1159,33 +1312,27 @@ const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtime
               return false
             }
             if (findAndAddReply(comments.value, newComment.parentId, newComment)) {
-              // Force reactivity
               comments.value = [...comments.value]
             } else {
-              // If parent not found, add as top-level comment
               comments.value = [...comments.value, newComment]
             }
           }
         } else {
-          // Top-level comment
           comments.value = [...comments.value, newComment]
         }
 
-        // Emit event to update parent component's comment count
         emit('comment-added', {
-          mediaId: currentItem.value?.id,
+          mediaId: currentMediaId.value,
           comment: newComment,
           allComments: comments.value,
         })
       }
     },
     onCommentUpdated: updatedComment => {
-      const currentMediaId = currentItem.value?.id || currentItem.value?.uuid
+      const mediaId = currentMediaId.value
       const commentMediaId = updatedComment.mediaId || updatedComment.media_uuid
 
-      // Only update comments for the current media item
-      if (commentMediaId === currentMediaId) {
-        // Update comment in the list (including nested replies)
+      if (commentMediaId === mediaId) {
         const updateComment = (commentList, updated) => {
           const index = commentList.findIndex(c => c.id === updated.id)
           if (index !== -1) {
@@ -1204,9 +1351,8 @@ const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtime
         }
         updateComment(comments.value, updatedComment)
 
-        // Emit event to update parent component
         emit('comment-updated', {
-          mediaId: currentItem.value?.id,
+          mediaId: mediaId,
           commentId: updatedComment.id,
           comment: updatedComment,
           allComments: comments.value,
@@ -1246,22 +1392,18 @@ watch(isOpen, open => {
 watch(
   currentItem,
   (newItem, oldItem) => {
-    // Clear comments when switching to a different media item
     if (oldItem && newItem) {
       const oldMediaId = oldItem.id || oldItem.uuid
       const newMediaId = newItem.id || newItem.uuid
 
       if (oldMediaId !== newMediaId) {
-        // Clear comments from previous media to ensure correct scoping
         comments.value = []
       }
     }
 
     updateMediaUrl()
     loadComments()
-    // Reset zoom when changing media
     resetZoom()
-    // Reconnect real-time for new media
     if (isOpen.value) {
       disconnectRealtime()
       connectRealtime()
@@ -1277,10 +1419,35 @@ watch(
       const safeIndex = Math.max(0, Math.min(currentIndex.value, newItems.length - 1))
       currentIndex.value = safeIndex
       updateMediaUrl()
+
+      // Debug: Log item structure when items change
+      if (newItems.length > 0) {
+        console.log('MediaCommentLightbox items updated:', {
+          itemsCount: newItems.length,
+          firstItem: {
+            id: newItems[0].id,
+            uuid: newItems[0].uuid,
+            keys: Object.keys(newItems[0]),
+          },
+          proofingId: props.proofingId,
+        })
+      }
     }
   },
   { deep: true }
 )
+
+// Watch currentMediaId to debug when it changes
+watch(currentMediaId, (newMediaId, oldMediaId) => {
+  if (newMediaId && newMediaId === props.proofingId) {
+    console.error('CRITICAL: currentMediaId changed to proofingId!', {
+      newMediaId,
+      oldMediaId,
+      proofingId: props.proofingId,
+      currentItem: currentItem.value,
+    })
+  }
+})
 
 watch(showComments, newValue => {
   if (isMobile) {

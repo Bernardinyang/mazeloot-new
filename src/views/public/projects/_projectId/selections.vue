@@ -1152,6 +1152,33 @@ const loadSelection = async () => {
 
     selection.value = selectionData
 
+    // Validate guest email against allowed emails list (skip for authenticated owners and preview mode)
+    if (
+      !isAuthenticatedOwner.value &&
+      !isPreviewMode.value &&
+      userEmail.value &&
+      selectionData.allowedEmails &&
+      Array.isArray(selectionData.allowedEmails) &&
+      selectionData.allowedEmails.length > 0
+    ) {
+      const emailLower = userEmail.value.toLowerCase()
+      const isEmailAllowed = selectionData.allowedEmails.some(
+        allowedEmail => allowedEmail && allowedEmail.toLowerCase() === emailLower
+      )
+
+      if (!isEmailAllowed) {
+        // Guest email is no longer in allowed emails list - remove from storage
+        localStorage.removeItem(`guest_email_${selectionId}`)
+        localStorage.removeItem(`guest_token_${selectionId}`)
+        userEmail.value = ''
+        guestToken.value = null
+        // Show email modal to re-authenticate
+        showEmailModal.value = true
+        isLoading.value = false
+        return
+      }
+    }
+
     // Check password - skip for authenticated owners and preview mode
     if (selectionData.hasPassword && !isPasswordVerified.value) {
       // If authenticated owner or in preview mode, auto-verify password

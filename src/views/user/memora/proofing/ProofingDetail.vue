@@ -399,9 +399,14 @@
         :initial-index="commentLightboxIndex"
         :items="commentLightboxItems"
         :proofing-id="proofing?.id || proofing?.uuid"
+        :set-id="selectedSetId || null"
         :project-id="route.params.projectId || null"
         :creative-email="userStore.user?.email || null"
         @close="handleCloseCommentLightbox"
+        @back-to-lightbox="handleCloseCommentLightbox"
+        @comment-added="handleCommentAdded"
+        @comment-updated="handleCommentUpdated"
+        @comment-deleted="handleCommentDeleted"
       />
 
       <MediaDetailSidebar
@@ -1013,17 +1018,34 @@ const closeMediaViewer = () => {
   currentViewIndex.value = 0
 }
 
+// Store MediaLightbox state before opening comments
+const mediaLightboxStateBeforeComments = ref({
+  items: [],
+  index: 0,
+})
+
 const handleOpenCommentsFromLightbox = ({ item, index }) => {
+  // Store the current MediaLightbox state before closing
+  const items =
+    selectedMediaForView.value.length > 0 ? selectedMediaForView.value : sortedMediaItems.value
+
+  mediaLightboxStateBeforeComments.value = {
+    items: [...items],
+    index: index,
+  }
+
   // Close the regular lightbox
   closeMediaViewer()
 
   // Get all media items (or use the items that were in the viewer)
-  const items =
-    selectedMediaForView.value.length > 0 ? selectedMediaForView.value : sortedMediaItems.value
+  const itemsWithSetId = items.map(m => ({
+    ...m,
+    setId: m.setId || selectedSetId.value,
+  }))
 
   // Filter to only items with feedback, or use all items if none have feedback
-  const itemsWithFeedback = items.filter(m => m.feedback && m.feedback.length > 0)
-  commentLightboxItems.value = itemsWithFeedback.length > 0 ? itemsWithFeedback : items
+  const itemsWithFeedback = itemsWithSetId.filter(m => m.feedback && m.feedback.length > 0)
+  commentLightboxItems.value = itemsWithFeedback.length > 0 ? itemsWithFeedback : itemsWithSetId
 
   // Find the index of the current item in the comment lightbox items
   const commentIndex = commentLightboxItems.value.findIndex(m => m.id === item.id)
@@ -1035,6 +1057,17 @@ const handleOpenCommentsFromLightbox = ({ item, index }) => {
 
 const handleCloseCommentLightbox = async () => {
   showCommentLightbox.value = false
+
+  // Reopen MediaLightbox with the stored state
+  if (mediaLightboxStateBeforeComments.value.items.length > 0) {
+    selectedMediaForView.value = mediaLightboxStateBeforeComments.value.items
+    currentViewIndex.value = mediaLightboxStateBeforeComments.value.index
+    showMediaViewer.value = true
+
+    // Clear the stored state
+    mediaLightboxStateBeforeComments.value = { items: [], index: 0 }
+  }
+
   // No need to reload - comment counts are updated via events
 }
 

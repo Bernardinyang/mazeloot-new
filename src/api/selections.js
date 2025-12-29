@@ -706,25 +706,6 @@ export function useSelectionsApi() {
     }
   }
 
-  /**
-   * Add feedback to media
-   */
-  const addMediaFeedback = async (selectionId, setId, mediaId, data) => {
-    try {
-      const response = await apiClient.post(
-        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/feedback`,
-        {
-          type: data.type,
-          content: data.content,
-          createdBy: data.createdBy || null,
-        }
-      )
-      return response.data
-    } catch (error) {
-      throw parseError(error)
-    }
-  }
-
   // ==================== Guest Access ====================
 
   /**
@@ -919,7 +900,6 @@ export function useSelectionsApi() {
     replaceMedia,
     moveMediaToSet,
     copyMediaToSet,
-    addMediaFeedback,
     starMedia,
     downloadMedia,
 

@@ -40,12 +40,25 @@
     <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
       <!-- Cover Image -->
       <img
-        v-if="coverImage"
+        v-if="coverImage && !isVideoCover"
         :src="coverImage"
         :alt="proofing.name"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
         @error="handleImageError"
+      />
+
+      <!-- Cover Video -->
+      <video
+        v-if="coverImage && isVideoCover"
+        :src="coverImage"
+        :poster="coverVideoPoster"
+        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        muted
+        loop
+        autoplay
+        playsinline
+        @error="handleVideoError"
       />
 
       <!-- Gradient overlay when image is present for better contrast -->
@@ -282,6 +295,19 @@ const coverImage = computed(() => {
   )
 })
 
+const isVideoCover = computed(() => {
+  if (!coverImage.value) return false
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv', '.m4v']
+  const lowerUrl = coverImage.value.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+})
+
+const coverVideoPoster = computed(() => {
+  if (!isVideoCover.value) return null
+  // Try to get thumbnail from proofing if available
+  return props.proofing?.thumbnail || null
+})
+
 const cardColor = computed(() => {
   return props.proofing?.color || generateRandomColorFromPalette()
 })
@@ -295,6 +321,10 @@ const cardColorDark = computed(() => {
 })
 
 const handleImageError = event => {
+  event.target.style.display = 'none'
+}
+
+const handleVideoError = event => {
   event.target.style.display = 'none'
 }
 

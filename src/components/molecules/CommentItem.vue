@@ -1,126 +1,195 @@
 <template>
-  <div :class="['comment-item', { 'is-reply': isReply, 'has-replies': hasReplies }]">
-    <div class="flex gap-3">
-      <!-- Avatar -->
-      <div class="flex-shrink-0">
-        <div
-          class="w-8 h-8 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center text-sm font-semibold text-gray-600 dark:text-gray-300"
-        >
-          {{ getInitials(comment.createdBy) }}
-        </div>
-      </div>
-
-      <!-- Comment Content -->
-      <div class="flex-1 min-w-0">
-        <!-- Header: Name + Timestamp + Video Timestamp Badge -->
-        <div class="flex items-center gap-2 mb-1 flex-wrap">
-          <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">
-            {{ getAuthorName(comment.createdBy) }}
-          </span>
-
-          <!-- Video Timestamp Badge -->
-          <button
-            v-if="comment.timestamp !== null && comment.timestamp !== undefined && isVideo"
+  <div>
+    <div
+      :class="[
+        'comment-item',
+        {
+          'is-reply': isReply,
+          'has-replies': hasReplies,
+          [`depth-${props.depth}`]: true,
+        },
+      ]"
+    >
+      <div class="flex gap-3">
+        <!-- Avatar with size based on depth -->
+        <div class="flex-shrink-0">
+          <div
             :class="[
-              'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all duration-200',
-              'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
-              'hover:bg-blue-200 dark:hover:bg-blue-900/50',
+              'rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center font-semibold text-gray-600 dark:text-gray-300 transition-all duration-200',
+              avatarSizeClass,
             ]"
-            @click="handleTimestampClick"
           >
-            <Play class="w-3 h-3" />
-            {{ formatTimestamp(comment.timestamp) }}
-          </button>
-
-          <span class="text-xs text-gray-500 dark:text-gray-400">
-            {{ formatRelativeTime(comment.createdAt) }}
-          </span>
-        </div>
-
-        <!-- Comment Text -->
-        <div
-          v-if="!isEditing"
-          class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mb-2"
-        >
-          <span v-html="formatCommentContent(comment.content, comment.mentions)"></span>
-        </div>
-
-        <!-- Edit Input -->
-        <div v-else class="mb-2">
-          <Input
-            v-model="editContent"
-            :class="[
-              'w-full text-sm',
-              'bg-white dark:bg-gray-800',
-              'border-gray-300 dark:border-gray-600',
-              'text-gray-900 dark:text-gray-100',
-            ]"
-            @keydown.enter.exact="handleSaveEdit"
-            @keydown.escape="cancelEdit"
-          />
-          <div class="flex gap-2 mt-2">
-            <Button size="sm" variant="outline" @click="cancelEdit">Cancel</Button>
-            <Button size="sm" :disabled="!editContent.trim()" @click="handleSaveEdit">Save</Button>
+            {{ getInitials(comment.createdBy) }}
           </div>
         </div>
 
-        <!-- Actions -->
-        <div class="flex items-center gap-4">
-          <button
-            v-if="allowReply"
-            :class="[
-              'text-xs font-medium transition-colors duration-200',
-              'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
-            ]"
-            @click="$emit('reply', comment)"
-          >
-            Reply
-          </button>
+        <!-- Comment Content -->
+        <div :class="['flex-1 min-w-0', depthOpacity]">
+          <!-- Header: Name + Timestamp + Video Timestamp Badge -->
+          <div class="flex items-center gap-2 mb-1 flex-wrap">
+            <span
+              :class="[
+                'font-semibold text-gray-900 dark:text-gray-100',
+                props.depth >= 4 ? 'text-xs' : props.depth >= 2 ? 'text-sm' : 'text-sm',
+              ]"
+            >
+              {{ getAuthorName(comment.createdBy) }}
+            </span>
 
-          <!-- Edit Button (only if comment is mine and within 2 minutes) -->
-          <button
-            v-if="canEdit && !isEditing"
-            :class="[
-              'text-xs font-medium transition-colors duration-200',
-              'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
-            ]"
-            @click.stop="startEdit"
-          >
-            Edit
-          </button>
+            <!-- Video Timestamp Badge -->
+            <button
+              v-if="comment.timestamp !== null && comment.timestamp !== undefined && isVideo"
+              :class="[
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium transition-all duration-200',
+                'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300',
+                'hover:bg-blue-200 dark:hover:bg-blue-900/50',
+              ]"
+              @click="handleTimestampClick"
+            >
+              <Play class="w-3 h-3" />
+              {{ formatTimestamp(comment.timestamp) }}
+            </button>
 
-          <!-- Delete Button (only if comment is mine, no replies, and within 2 minutes) -->
-          <button
-            v-if="canDelete && !isEditing"
-            :class="[
-              'text-xs font-medium transition-colors duration-200',
-              'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300',
-            ]"
-            @click.stop="handleDelete"
-          >
-            Delete
-          </button>
-        </div>
+            <!-- Edited Badge -->
+            <span
+              v-if="isEdited"
+              :class="[
+                'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium',
+                'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300',
+                'border border-amber-200 dark:border-amber-800/50',
+              ]"
+              title="This comment was edited"
+            >
+              <Pencil class="w-3 h-3" />
+              Edited
+            </span>
 
-        <!-- Nested Replies -->
-        <div
-          v-if="hasReplies"
-          class="mt-4 space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-700"
-        >
-          <CommentItem
-            v-for="reply in comment.replies"
-            :key="reply.id"
-            :comment="reply"
-            :is-reply="true"
-            :is-video="isVideo"
-            :allow-reply="allowReply"
-            :guest-email="guestEmail"
-            :creative-email="creativeEmail"
-            @reply="$emit('reply', $event)"
-            @seek-to-timestamp="$emit('seek-to-timestamp', $event)"
-            @update="$emit('update', $event)"
-            @delete="$emit('delete', $event)"
-          />
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ formatRelativeTime(comment.createdAt) }}
+            </span>
+          </div>
+
+          <!-- Comment Text -->
+          <div
+            v-if="!isEditing"
+            :class="[
+              'text-gray-900 dark:text-gray-100 leading-relaxed mb-2',
+              props.depth >= 4 ? 'text-xs' : props.depth >= 2 ? 'text-sm' : 'text-sm',
+            ]"
+          >
+            <span v-html="formatCommentContent(comment.content, comment.mentions)"></span>
+          </div>
+
+          <!-- Edit Input -->
+          <div v-else class="mb-2">
+            <Input
+              v-model="editContent"
+              :class="[
+                'w-full text-sm',
+                'bg-white dark:bg-gray-800',
+                'border-gray-300 dark:border-gray-600',
+                'text-gray-900 dark:text-gray-100',
+              ]"
+              @keydown.enter.exact="handleSaveEdit"
+              @keydown.escape="cancelEdit"
+            />
+            <div class="flex gap-2 mt-2">
+              <Button size="sm" variant="outline" @click="cancelEdit">Cancel</Button>
+              <Button size="sm" :disabled="!editContent.trim()" @click="handleSaveEdit"
+                >Save</Button
+              >
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div :class="['flex items-center gap-3', props.depth >= 4 ? 'gap-2' : 'gap-4']">
+            <button
+              v-if="allowReply && props.depth < 6"
+              :class="[
+                'font-medium transition-colors duration-200',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                props.depth >= 4 ? 'text-[10px]' : 'text-xs',
+              ]"
+              @click="$emit('reply', comment)"
+            >
+              Reply
+            </button>
+
+            <!-- Edit Button (only if comment is mine and within 2 minutes) -->
+            <button
+              v-if="canEdit && !isEditing"
+              :class="[
+                'font-medium transition-colors duration-200',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                props.depth >= 4 ? 'text-[10px]' : 'text-xs',
+              ]"
+              @click.stop="startEdit"
+            >
+              Edit
+            </button>
+
+            <!-- Delete Button (only if comment is mine, no replies, and within 2 minutes) -->
+            <button
+              v-if="canDelete && !isEditing"
+              :class="[
+                'font-medium transition-colors duration-200',
+                'text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300',
+                props.depth >= 4 ? 'text-[10px]' : 'text-xs',
+              ]"
+              @click.stop="handleDelete"
+            >
+              Delete
+            </button>
+          </div>
+
+          <!-- Nested Replies -->
+          <div v-if="hasReplies" class="mt-3">
+            <!-- Collapsible button for deep nesting (levels 4-6) -->
+            <button
+              v-if="props.depth >= 3 && !isExpanded"
+              :class="[
+                'flex items-center gap-1.5 text-xs font-medium transition-colors duration-200 mb-2',
+                'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+              ]"
+              @click="isExpanded = true"
+            >
+              <ChevronDown class="w-3.5 h-3.5" />
+              <span
+                >{{ comment.replies.length }}
+                {{ comment.replies.length === 1 ? 'reply' : 'replies' }}</span
+              >
+            </button>
+
+            <!-- Replies Container -->
+            <div
+              v-if="props.depth < 3 || isExpanded"
+              :class="[
+                'space-y-3',
+                props.depth >= 6 ? 'pl-2' : props.depth >= 4 ? 'pl-3' : 'pl-4',
+                props.depth >= 6
+                  ? 'border-l border-gray-200/50 dark:border-gray-700/50'
+                  : props.depth >= 4
+                    ? 'border-l border-gray-200 dark:border-gray-700'
+                    : 'border-l-2 border-gray-200 dark:border-gray-700',
+              ]"
+            >
+              <CommentItem
+                v-for="reply in comment.replies"
+                :key="reply.id"
+                :comment="reply"
+                :is-reply="true"
+                :depth="props.depth + 1"
+                :is-video="isVideo"
+                :allow-reply="allowReply && props.depth < 5"
+                :guest-email="guestEmail"
+                :creative-email="creativeEmail"
+                @reply="$emit('reply', $event)"
+                @seek-to-timestamp="$emit('seek-to-timestamp', $event)"
+                @update="$emit('update', $event)"
+                @delete="$emit('delete', $event)"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -129,7 +198,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { Play } from 'lucide-vue-next'
+import { Play, ChevronDown, Pencil } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/input'
 import { Button } from '@/components/shadcn/button'
 import CommentItem from './CommentItem.vue'
@@ -142,6 +211,10 @@ const props = defineProps({
   isReply: {
     type: Boolean,
     default: false,
+  },
+  depth: {
+    type: Number,
+    default: 0,
   },
   isVideo: {
     type: Boolean,
@@ -165,9 +238,28 @@ const emit = defineEmits(['reply', 'seek-to-timestamp', 'update', 'delete'])
 
 const isEditing = ref(false)
 const editContent = ref('')
+const isExpanded = ref(props.depth < 3) // Auto-expand for levels 0-2, collapse for 3+
 
 const hasReplies = computed(() => {
   return props.comment.replies && props.comment.replies.length > 0
+})
+
+// Avatar size based on depth
+const avatarSizeClass = computed(() => {
+  if (props.depth >= 5) return 'w-6 h-6 text-xs'
+  if (props.depth >= 3) return 'w-7 h-7 text-xs'
+  return 'w-8 h-8 text-sm'
+})
+
+// Opacity based on depth for visual hierarchy
+const depthOpacity = computed(() => {
+  if (props.depth === 0) return 'opacity-100'
+  if (props.depth === 1) return 'opacity-100'
+  if (props.depth === 2) return 'opacity-95'
+  if (props.depth === 3) return 'opacity-90'
+  if (props.depth === 4) return 'opacity-85'
+  if (props.depth >= 5) return 'opacity-80'
+  return 'opacity-100'
 })
 
 const getAuthorName = createdBy => {
@@ -252,6 +344,17 @@ const canDelete = computed(() => {
   return isMyComment.value && !hasReplies.value && isWithin2Minutes.value
 })
 
+// Check if comment has been edited (updatedAt exists and is different from createdAt)
+const isEdited = computed(() => {
+  if (!props.comment.updatedAt || !props.comment.createdAt) {
+    return false
+  }
+  const createdAt = new Date(props.comment.createdAt)
+  const updatedAt = new Date(props.comment.updatedAt)
+  // Consider edited if updatedAt is at least 1 second after createdAt
+  return updatedAt.getTime() > createdAt.getTime() + 1000
+})
+
 const startEdit = () => {
   editContent.value = props.comment.content
   isEditing.value = true
@@ -273,9 +376,7 @@ const handleSaveEdit = () => {
 }
 
 const handleDelete = () => {
-  if (confirm('Are you sure you want to delete this comment?')) {
-    emit('delete', props.comment.id)
-  }
+  emit('delete', props.comment.id)
 }
 
 const getInitials = createdBy => {
@@ -365,10 +466,49 @@ const escapeHtml = text => {
 
 <style scoped>
 .comment-item {
-  @apply py-2;
+  @apply py-2 transition-all duration-200;
 }
 
 .comment-item.is-reply {
-  @apply opacity-95;
+  @apply py-1.5;
+}
+
+/* Visual hierarchy for different depths */
+.comment-item.depth-0 {
+  @apply py-3;
+}
+
+.comment-item.depth-1 {
+  @apply py-2;
+}
+
+.comment-item.depth-2 {
+  @apply py-1.5;
+}
+
+.comment-item.depth-3 {
+  @apply py-1;
+}
+
+.comment-item.depth-4,
+.comment-item.depth-5,
+.comment-item.depth-6 {
+  @apply py-0.5;
+}
+
+/* Smooth transitions for nested replies */
+.comment-item.is-reply {
+  animation: fadeIn 0.2s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 </style>

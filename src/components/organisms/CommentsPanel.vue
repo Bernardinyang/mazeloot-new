@@ -20,7 +20,7 @@
       <button
         v-if="showCloseButton"
         class="p-1.5 rounded-lg text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-        @click="$emit('close')"
+        @click.stop="$emit('close')"
       >
         <X class="w-5 h-5" />
       </button>
@@ -165,7 +165,7 @@
 
       <!-- Input with Mention Dropdown -->
       <div class="relative flex gap-2">
-        <div class="flex-1 relative">
+        <div class="flex-1 relative" ref="inputWrapperRef">
           <Input
             ref="commentInputRef"
             v-model="newComment"
@@ -296,29 +296,24 @@ const mentionedEmails = ref([]) // Store mentioned emails
 const isSubmitting = ref(false)
 const commentsListRef = ref(null)
 const commentInputRef = ref(null)
+const inputWrapperRef = ref(null)
 const showMentionDropdown = ref(false)
 const mentionQuery = ref('')
 const selectedMentionIndex = ref(0)
 
-// Count all comments including replies recursively
-// Counts ALL comments: both top-level comments and replies
-// Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
 const totalCommentCount = computed(() => {
   const countedIds = new Set()
 
   const countComments = commentList => {
     let count = 0
     for (const comment of commentList) {
-      // Skip if already counted (to avoid double-counting)
       if (countedIds.has(comment.id)) {
         continue
       }
 
-      // Count this comment
       count++
       countedIds.add(comment.id)
 
-      // Count nested replies recursively
       if (comment.replies && comment.replies.length > 0) {
         count += countComments(comment.replies)
       }
@@ -326,7 +321,6 @@ const totalCommentCount = computed(() => {
     return count
   }
 
-  // Count all comments in the array (both top-level and replies)
   return countComments(props.comments)
 })
 
@@ -334,10 +328,8 @@ const topLevelComments = computed(() => {
   return props.comments.filter(comment => !comment.parentId)
 })
 
-// Scroll to bottom of comments list
 const scrollToBottom = () => {
   if (commentsListRef.value) {
-    // Use setTimeout to ensure DOM is updated after Vue's reactivity
     setTimeout(() => {
       commentsListRef.value.scrollTop = commentsListRef.value.scrollHeight
     }, 100)
@@ -351,26 +343,20 @@ const canSubmit = computed(() => {
 const getAuthorName = createdBy => {
   if (!createdBy) return 'Anonymous'
 
-  // Handle JSON string (if createdBy is stored as JSON string)
   let parsed = createdBy
   if (typeof createdBy === 'string') {
-    // Check if it's a JSON string
     if (createdBy.startsWith('{') || createdBy.startsWith('[')) {
       try {
         parsed = JSON.parse(createdBy)
       } catch (e) {
-        // If parsing fails, treat as regular email string
         return createdBy
       }
     } else {
-      // Regular email string
       return createdBy
     }
   }
 
-  // Now handle as object
   if (typeof parsed === 'object' && parsed !== null) {
-    // Always show email if available, otherwise fall back to name
     return parsed.email || parsed.name || 'Anonymous'
   }
 
@@ -384,7 +370,6 @@ const formatTimestamp = seconds => {
   return `${mins}:${secs.toString().padStart(2, '0')}`
 }
 
-// Extract all unique emails from comments
 const availableEmails = computed(() => {
   const emails = new Set()
 
@@ -406,7 +391,6 @@ const availableEmails = computed(() => {
   return Array.from(emails).sort()
 })
 
-// Filter emails based on mention query
 const filteredEmails = computed(() => {
   if (!mentionQuery.value) return availableEmails.value
   const query = mentionQuery.value.toLowerCase()
@@ -415,7 +399,6 @@ const filteredEmails = computed(() => {
   )
 })
 
-// Get email from createdBy object
 const getAuthorEmail = createdBy => {
   if (!createdBy) return null
 
@@ -439,23 +422,18 @@ const getAuthorEmail = createdBy => {
   return null
 }
 
-// Handle input changes to detect @ mentions
 const handleInput = event => {
   const value = event.target.value
   const cursorPos = event.target.selectionStart
-
-  // Check if @ was just typed
   const textBeforeCursor = value.substring(0, cursorPos)
   const lastAtIndex = textBeforeCursor.lastIndexOf('@')
 
   if (lastAtIndex !== -1) {
     const textAfterAt = textBeforeCursor.substring(lastAtIndex + 1)
-    // Check if there's a space or newline after @ (meaning @ is complete)
     if (textAfterAt.includes(' ') || textAfterAt.includes('\n')) {
       showMentionDropdown.value = false
       mentionQuery.value = ''
     } else {
-      // Show dropdown and set query
       mentionQuery.value = textAfterAt
       showMentionDropdown.value = true
       selectedMentionIndex.value = 0
@@ -466,7 +444,6 @@ const handleInput = event => {
   }
 }
 
-// Handle keyboard navigation in mention dropdown
 const handleKeyDown = event => {
   if (showMentionDropdown.value && filteredEmails.value.length > 0) {
     if (event.key === 'ArrowDown') {
@@ -485,7 +462,6 @@ const handleKeyDown = event => {
       showMentionDropdown.value = false
       mentionQuery.value = ''
     } else if (event.key === 'Enter' && !event.shiftKey) {
-      // Only submit if not in mention mode
       if (!showMentionDropdown.value) {
         handleSubmit()
       }
@@ -494,7 +470,6 @@ const handleKeyDown = event => {
       newComment.value += '\n'
     }
   } else {
-    // Normal enter handling
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault()
       handleSubmit()
@@ -502,13 +477,11 @@ const handleKeyDown = event => {
   }
 }
 
-// Select an email mention
 const selectMention = email => {
   if (!mentionedEmails.value.includes(email)) {
     mentionedEmails.value.push(email)
   }
 
-  // Replace @query with @email in the input
   const value = newComment.value
   const cursorPos = commentInputRef.value?.selectionStart || value.length
   const textBeforeCursor = value.substring(0, cursorPos)
@@ -520,7 +493,6 @@ const selectMention = email => {
 
     newComment.value = newValue
 
-    // Move cursor after the inserted email
     nextTick(() => {
       if (commentInputRef.value) {
         const newCursorPos = lastAtIndex + 1 + email.length + 1
@@ -534,14 +506,11 @@ const selectMention = email => {
   mentionQuery.value = ''
 }
 
-// Toggle timestamp capture
 const toggleTimestamp = () => {
   if (selectedTimestamp.value !== null) {
-    // Remove timestamp
     selectedTimestamp.value = null
     useCurrentTimestamp.value = false
   } else {
-    // Capture current timestamp (freeze it at this moment)
     if (props.currentVideoTime !== null) {
       selectedTimestamp.value = props.currentVideoTime
       useCurrentTimestamp.value = true
@@ -549,24 +518,35 @@ const toggleTimestamp = () => {
   }
 }
 
-// Remove timestamp reference
 const removeTimestamp = () => {
   selectedTimestamp.value = null
   useCurrentTimestamp.value = false
 }
 
-// Remove email mention
 const removeMention = email => {
   mentionedEmails.value = mentionedEmails.value.filter(e => e !== email)
-
-  // Also remove from comment text
   const regex = new RegExp(`@${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*`, 'g')
   newComment.value = newComment.value.replace(regex, '')
 }
 
 const handleReply = comment => {
   replyingTo.value = comment
-  // Focus input (will be handled by parent if needed)
+  // Focus input after DOM update
+  nextTick(() => {
+    // Try to focus the native input element within the Input component
+    if (inputWrapperRef.value) {
+      const nativeInput = inputWrapperRef.value.querySelector('input')
+      if (nativeInput && typeof nativeInput.focus === 'function') {
+        nativeInput.focus()
+        return
+      }
+    }
+
+    // Fallback: Try focusing the component directly if it exposes focus method
+    if (commentInputRef.value && typeof commentInputRef.value.focus === 'function') {
+      commentInputRef.value.focus()
+    }
+  })
 }
 
 const cancelReply = () => {
@@ -590,7 +570,6 @@ const handleSubmit = async () => {
 
     await emit('add-comment', commentData)
 
-    // Reset form
     newComment.value = ''
     replyingTo.value = null
     useCurrentTimestamp.value = false
@@ -599,10 +578,9 @@ const handleSubmit = async () => {
     showMentionDropdown.value = false
     mentionQuery.value = ''
 
-    // Scroll to bottom to show new comment
     scrollToBottom()
   } catch (error) {
-    console.error('Failed to add comment:', error)
+    // Silently handle error
   } finally {
     isSubmitting.value = false
   }
@@ -616,16 +594,13 @@ const handleDeleteComment = commentId => {
   emit('delete-comment', commentId)
 }
 
-// Track previous comment count to detect new additions
 const previousCommentCount = ref(0)
 
-// Watch for new comments and scroll to bottom
 watch(
   () => props.comments,
   newComments => {
     const currentCount = totalCommentCount.value
     if (currentCount > previousCommentCount.value) {
-      // New comment(s) added, scroll to bottom after a short delay
       setTimeout(() => {
         scrollToBottom()
       }, 200)
@@ -638,9 +613,6 @@ watch(
 const handleSeekToTimestamp = timestamp => {
   emit('seek-to-timestamp', timestamp)
 }
-
-// Don't watch currentVideoTime to update selectedTimestamp - once captured, it should stay frozen
-// The timestamp is only captured when user clicks "Comment at this time"
 </script>
 
 <style scoped>

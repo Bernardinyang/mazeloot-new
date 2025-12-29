@@ -18,13 +18,15 @@
 
       <!-- Section 2: Title and Status Row -->
       <div class="flex flex-col min-w-0">
-        <div
-          v-if="!isLoading"
-          class="flex items-center gap-3 mb-1 group"
-          style="min-height: 1.5rem"
-        >
+        <div class="flex items-center gap-3 mb-1 group" style="min-height: 1.5rem">
           <div class="flex items-center gap-2 min-w-0">
-            <Transition mode="out-in" name="fade">
+            <!-- Loading State -->
+            <div
+              v-if="isLoading"
+              class="h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"
+            ></div>
+            <!-- Title Content -->
+            <Transition v-else mode="out-in" name="fade">
               <h1
                 v-if="!isEditingName"
                 key="title"
@@ -86,16 +88,24 @@
         </div>
 
         <!-- Status Badge Row -->
-        <div v-if="!isLoading" class="flex items-center gap-2 flex-wrap">
-          <StatusBadge :status="proofingStatus || 'draft'" />
-          <!-- Proofing Progress (when completed) -->
-          <span
-            v-if="proofing?.status === 'completed' && overallProgress"
-            :class="theme.textSecondary"
-            class="text-xs font-medium"
-          >
-            {{ overallProgress.completed || 0 }} of {{ overallProgress.total || 0 }} approved
-          </span>
+        <div class="flex items-center gap-2 flex-wrap">
+          <!-- Loading State -->
+          <div
+            v-if="isLoading"
+            class="h-5 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"
+          ></div>
+          <!-- Status Content -->
+          <template v-else>
+            <StatusBadge :status="proofingStatus || 'draft'" />
+            <!-- Proofing Progress (when completed) -->
+            <span
+              v-if="proofing?.status === 'completed' && overallProgress"
+              :class="theme.textSecondary"
+              class="text-xs font-medium"
+            >
+              {{ overallProgress.completed || 0 }} of {{ overallProgress.total || 0 }} approved
+            </span>
+          </template>
         </div>
       </div>
     </div>

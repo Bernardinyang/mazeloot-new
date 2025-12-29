@@ -50,6 +50,7 @@
         <div v-else class="w-20 h-20 relative rounded-lg overflow-hidden">
           <img
             v-if="imageSrc && imageSrc !== placeholderImage"
+            ref="videoThumbnailRef"
             :alt="props.item?.filename || 'Video'"
             :class="[
               'w-full h-full object-cover transition-all duration-300 will-change-transform',
@@ -259,7 +260,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   getMediaDisplayUrl,
   getMediaDisplayUrlSync,
@@ -339,6 +340,8 @@ const props = defineProps({
 const imageSrc = ref(props.placeholderImage)
 const isImageLoaded = ref(false)
 const isDropdownOpen = ref(false)
+const imageElementRef = ref(null)
+const videoThumbnailRef = ref(null)
 
 // Compute comment count from item feedback if not provided as prop
 const commentCount = computed(() => {
@@ -429,13 +432,27 @@ const updateImageSrc = async () => {
   }
 }
 
+// Helper to check if image is already loaded (for cached images)
+const checkImageLoaded = () => {
+  // Use nextTick to ensure DOM is updated
+  nextTick(() => {
+    const img = imageElementRef.value || videoThumbnailRef.value
+    if (img && img.complete && img.naturalHeight !== 0) {
+      isImageLoaded.value = true
+    }
+  })
+}
+
 onMounted(() => {
   const url = getThumbnailUrl()
   if (url) {
     imageSrc.value = getMediaDisplayUrlSync(url, props.placeholderImage)
-    updateImageSrc()
+    updateImageSrc().then(() => {
+      checkImageLoaded()
+    })
   } else {
     imageSrc.value = props.placeholderImage
+    checkImageLoaded()
   }
 })
 
@@ -443,9 +460,18 @@ watch(
   () => [props.item?.thumbnailUrl, props.item?.file?.url, props.item?.url, props.item?.type],
   () => {
     isImageLoaded.value = false
-    updateImageSrc()
+    updateImageSrc().then(() => {
+      checkImageLoaded()
+    })
   }
 )
+
+// Watch imageSrc changes to check if image is already loaded (for cached images)
+watch(imageSrc, () => {
+  if (imageSrc.value && imageSrc.value !== props.placeholderImage) {
+    checkImageLoaded()
+  }
+})
 
 onUnmounted(() => {
   if (imageSrc.value && imageSrc.value.startsWith('blob:')) {

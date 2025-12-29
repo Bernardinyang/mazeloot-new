@@ -520,9 +520,6 @@ const currentMediaItems = computed(() => {
   return mediaItems.value.filter(item => item.setId === selectedSetId.value)
 })
 
-// Helper to get comment count for a media item (including replies)
-// Counts ALL comments: both top-level comments and replies
-// Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
 const getItemCommentCount = item => {
   if (!item.feedback || !Array.isArray(item.feedback)) return 0
 
@@ -531,16 +528,13 @@ const getItemCommentCount = item => {
   const countComments = commentList => {
     let count = 0
     for (const comment of commentList) {
-      // Skip if already counted (to avoid double-counting)
       if (countedIds.has(comment.id)) {
         continue
       }
 
-      // Count this comment (whether it's top-level or a reply)
       count++
       countedIds.add(comment.id)
 
-      // Count nested replies recursively
       if (comment.replies && comment.replies.length > 0) {
         count += countComments(comment.replies)
       }
@@ -548,22 +542,17 @@ const getItemCommentCount = item => {
     return count
   }
 
-  // Count all comments in the array (both top-level and replies)
   return countComments(item.feedback)
 }
 
-// Helper to get comment count for a set
 const getSetCommentCount = setId => {
   const setItems = mediaItems.value.filter(item => item.setId === setId)
   return setItems.reduce((total, item) => total + getItemCommentCount(item), 0)
 }
 
-// Helper to get total comment count across all media
 const getTotalCommentCount = () => {
   return mediaItems.value.reduce((total, item) => total + getItemCommentCount(item), 0)
 }
-
-// Handle comment added event - update media item's feedback silently
 const handleCommentAdded = ({ mediaId, comment, allComments }) => {
   updateMediaItemFeedback(mediaId, allComments)
 }
@@ -779,9 +768,7 @@ const loadProofing = async () => {
         }
         // If not owner, fall through to normal flow
       } catch (previewError) {
-        // If fetch fails in preview mode, it might not be owner or proofing doesn't exist
         // Fall through to normal status check flow
-        console.warn('Preview mode fetch failed, trying status check:', previewError)
       }
     }
 
@@ -876,8 +863,7 @@ const loadProofing = async () => {
             return
           }
         } catch (fallbackError) {
-          // If fallback also fails, continue with error handling
-          console.warn('Preview mode fallback also failed:', fallbackError)
+          // Continue with error handling
         }
       }
 
@@ -899,7 +885,6 @@ const loadProofing = async () => {
       }
 
       // Other error - try to continue (might be network issue)
-      console.warn('Status check failed, continuing with fallback:', statusError)
     }
 
     let token = null
@@ -928,7 +913,7 @@ const loadProofing = async () => {
         proofingData = await proofingApi.fetchProofing(proofingId)
       }
     } catch (error) {
-      console.error('Failed to fetch proofing:', error)
+      // Silently handle error
 
       const errorMessage = error?.message || ''
       const errorCode = error?.code || ''
@@ -957,6 +942,33 @@ const loadProofing = async () => {
     }
 
     proofing.value = proofingData
+
+    // Validate guest email against allowed emails list (skip for authenticated owners and preview mode)
+    if (
+      !isAuthenticatedOwner.value &&
+      !isPreviewMode.value &&
+      userEmail.value &&
+      proofingData.allowedEmails &&
+      Array.isArray(proofingData.allowedEmails) &&
+      proofingData.allowedEmails.length > 0
+    ) {
+      const emailLower = userEmail.value.toLowerCase()
+      const isEmailAllowed = proofingData.allowedEmails.some(
+        allowedEmail => allowedEmail && allowedEmail.toLowerCase() === emailLower
+      )
+
+      if (!isEmailAllowed) {
+        // Guest email is no longer in allowed emails list - remove from storage
+        localStorage.removeItem(`guest_email_proofing_${proofingId}`)
+        localStorage.removeItem(`guest_token_proofing_${proofingId}`)
+        userEmail.value = ''
+        guestToken.value = null
+        // Show email modal to re-authenticate
+        showEmailModal.value = true
+        isLoading.value = false
+        return
+      }
+    }
 
     // Check password - skip for authenticated owners and preview mode
     if (proofingData.hasPassword && !isPasswordVerified.value) {
@@ -1003,7 +1015,7 @@ const loadProofing = async () => {
           }
         }
       } catch (error) {
-        console.warn('Failed to fetch media sets:', error)
+        // Silently handle error
       }
     }
 
@@ -1060,8 +1072,6 @@ const loadMediaItems = async () => {
       if (token) {
         guestToken.value = token
       } else {
-        // No token available - cannot load media without token for active/completed proofing
-        console.warn('No guest token available for loading media')
         return
       }
     }
@@ -1105,8 +1115,6 @@ const loadMediaItems = async () => {
               throw new Error('No token available')
             }
           } catch (error) {
-            // If authenticated endpoint fails, try getting stored guest token
-            console.warn(`Failed to fetch media for draft set ${set.id} via auth:`, error)
             const token = getStoredGuestToken(proofing.value.id)
             if (token) {
               guestToken.value = token
@@ -1141,23 +1149,13 @@ const loadMediaItems = async () => {
           if (setMedia.data && Array.isArray(setMedia.data)) {
             mediaArray = setMedia.data
           } else {
-            console.warn(`Unexpected media response format for set ${set.id}:`, setMedia)
             continue
           }
         }
 
-        // Ensure it's an array
         if (!Array.isArray(mediaArray)) {
-          console.warn(
-            `Media for set ${set.id} is not an array:`,
-            mediaArray,
-            'Type:',
-            typeof mediaArray
-          )
           continue
         }
-
-        console.log(`Loaded ${mediaArray.length} media items for set ${set.id} (${set.name})`)
 
         // Add setId to each media item (if not already present)
         const mediaWithSetId = mediaArray.map(item => ({
@@ -1170,8 +1168,6 @@ const loadMediaItems = async () => {
         }))
         allMedia.push(...mediaWithSetId)
       } catch (error) {
-        console.error(`Failed to load media for set ${set.id}:`, error)
-
         // Check if proofing is not active
         const errorMessage = error?.message || ''
         const errorCode = error?.code || ''
@@ -1192,13 +1188,7 @@ const loadMediaItems = async () => {
       }
     }
     mediaItems.value = allMedia
-
-    if (allMedia.length === 0 && mediaSets.value.length > 0) {
-      console.warn('No media loaded for any sets. Sets:', mediaSets.value)
-    }
   } catch (error) {
-    console.error('Error loading media items:', error)
-
     // Check if proofing is not active
     const errorMessage = error?.message || ''
     const errorCode = error?.code || ''
@@ -1304,10 +1294,8 @@ const getProofingCoverStyle = () => {
   return style
 }
 
-// Handle cover image error
 const handleCoverImageError = () => {
-  // Silently handle error - fallback to no cover photo
-  console.warn('Cover photo failed to load')
+  // Silently handle error
 }
 
 // Format date for display
