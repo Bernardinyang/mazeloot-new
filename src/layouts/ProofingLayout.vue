@@ -52,6 +52,14 @@
       @cancel="mediaSetsSidebar.handleCancelCreateSet"
       @confirm="mediaSetsSidebar.handleCreateSet"
     />
+
+    <!-- Share Modal -->
+    <ProofingShareModal
+      v-model="headerStore.showShareModal"
+      :proofing-id="proofing?.id || ''"
+      :proofing-name="proofing?.name || 'Proofing'"
+      :project-id="proofing?.projectId || proofing?.project_uuid || null"
+    />
   </div>
 </template>
 
@@ -59,6 +67,7 @@
 import ProofingSidebar from '../components/organisms/ProofingSidebar.vue'
 import ProofingTopNav from '../components/organisms/ProofingTopNav.vue'
 import ProofingSidebarPanels from '../components/organisms/ProofingSidebarPanels.vue'
+import ProofingShareModal from '../components/organisms/ProofingShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'

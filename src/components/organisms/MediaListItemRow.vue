@@ -80,7 +80,20 @@
             <Star class="h-3 w-3 fill-white text-white" />
           </div>
         </div>
-        <!-- Was Selected on Completion Badge (bottom right, like star badge) -->
+        <!-- Comment Count Badge (bottom-right) -->
+        <div
+          v-if="commentCount > 0"
+          :class="[
+            'absolute z-30 px-1.5 py-0.5 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1',
+            props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
+              ? 'bottom-8 right-1'
+              : 'bottom-1 right-1',
+          ]"
+        >
+          <MessageSquare class="w-2.5 h-2.5" />
+          {{ commentCount }}
+        </div>
+        <!-- Was Selected on Completion Badge (bottom right) -->
         <div
           v-if="props.wasSelectedOnCompletion && props.selectionStatus === 'completed'"
           class="absolute bottom-1 right-1 z-30"
@@ -246,7 +259,7 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   getMediaDisplayUrl,
   getMediaDisplayUrlSync,
@@ -260,6 +273,7 @@ import {
   ExternalLink,
   Eye,
   FileImage,
+  MessageSquare,
   MoreVertical,
   Move,
   Pencil,
@@ -316,11 +330,54 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  commentCount: {
+    type: Number,
+    default: 0,
+  },
 })
 
 const imageSrc = ref(props.placeholderImage)
 const isImageLoaded = ref(false)
 const isDropdownOpen = ref(false)
+
+// Compute comment count from item feedback if not provided as prop
+const commentCount = computed(() => {
+  if (props.commentCount > 0) {
+    return props.commentCount
+  }
+
+  // Fallback: count from item.feedback if available
+  // Counts ALL comments: both top-level comments and replies
+  // Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
+  if (props.item?.feedback && Array.isArray(props.item.feedback)) {
+    const countedIds = new Set()
+
+    const countComments = commentList => {
+      let count = 0
+      for (const comment of commentList) {
+        // Skip if already counted (to avoid double-counting)
+        if (countedIds.has(comment.id)) {
+          continue
+        }
+
+        // Count this comment (whether it's top-level or a reply)
+        count++
+        countedIds.add(comment.id)
+
+        // Count nested replies recursively
+        if (comment.replies && comment.replies.length > 0) {
+          count += countComments(comment.replies)
+        }
+      }
+      return count
+    }
+
+    // Count all comments in the array (both top-level and replies)
+    return countComments(props.item.feedback)
+  }
+
+  return 0
+})
 
 const getThumbnailUrl = () => {
   const item = props.item

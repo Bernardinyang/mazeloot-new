@@ -15,6 +15,22 @@
           <X class="w-6 h-6" />
         </button>
 
+        <!-- Toggle Comments Button -->
+        <button
+          v-if="currentItem && currentItem.feedback !== undefined"
+          aria-label="Toggle comments"
+          class="absolute top-4 right-20 z-50 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
+          @click="handleCommentClick"
+        >
+          <MessageSquare class="w-6 h-6" />
+          <span
+            v-if="currentComments.length > 0"
+            class="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center font-bold"
+          >
+            {{ currentComments.length }}
+          </span>
+        </button>
+
         <!-- Navigation Buttons -->
         <template v-if="items.length > 1">
           <button
@@ -35,45 +51,79 @@
           </button>
         </template>
 
-        <!-- Media Container -->
-        <div class="relative w-full h-full flex items-center justify-center p-4 md:p-8">
-          <Transition mode="out-in" name="lightbox-slide">
-            <div
-              :key="currentIndex"
-              class="relative max-w-full max-h-full w-full h-full flex items-center justify-center"
-            >
-              <!-- Image -->
-              <img
-                v-if="currentMediaType === 'image' && currentMediaUrl"
-                :alt="currentItem?.title || currentItem?.filename || 'Media'"
-                :src="currentMediaUrl"
-                class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
-                @error="handleImageError"
-                @load="handleImageLoad"
-              />
-
-              <!-- Video -->
-              <CustomVideoPlayer
-                v-else-if="currentMediaType === 'video' && currentMediaUrl"
-                :poster="
-                  currentThumbnailUrl && currentThumbnailUrl !== placeholderImage
-                    ? currentThumbnailUrl
-                    : undefined
-                "
-                :src="currentMediaUrl"
-                :autoplay="true"
-                @error="handleVideoError"
-                @play="handleVideoPlay"
-                @pause="handleVideoPause"
-              />
-
-              <!-- Loading State -->
+        <!-- Main Container: Side-by-side on desktop, stacked on mobile -->
+        <div class="relative w-full h-full flex flex-col md:flex-row">
+          <!-- Media Section (Left on desktop, full on mobile) -->
+          <div
+            class="relative flex-1 flex items-center justify-center p-4 md:p-8 bg-black/95"
+            :class="showComments ? 'md:w-[60%]' : 'w-full'"
+          >
+            <Transition mode="out-in" name="lightbox-slide">
               <div
-                v-if="isLoading"
-                class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg"
+                :key="currentIndex"
+                class="relative max-w-full max-h-full w-full h-full flex items-center justify-center"
               >
-                <Loader2 class="w-8 h-8 text-white animate-spin" />
+                <!-- Image -->
+                <img
+                  v-if="currentMediaType === 'image' && currentMediaUrl"
+                  :alt="currentItem?.title || currentItem?.filename || 'Media'"
+                  :src="currentMediaUrl"
+                  class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl"
+                  @error="handleImageError"
+                  @load="handleImageLoad"
+                />
+
+                <!-- Video -->
+                <CustomVideoPlayer
+                  v-else-if="currentMediaType === 'video' && currentMediaUrl"
+                  ref="videoPlayerRef"
+                  :poster="
+                    currentThumbnailUrl && currentThumbnailUrl !== placeholderImage
+                      ? currentThumbnailUrl
+                      : undefined
+                  "
+                  :src="currentMediaUrl"
+                  :autoplay="true"
+                  @error="handleVideoError"
+                  @play="handleVideoPlay"
+                  @pause="handleVideoPause"
+                  @timeupdate="handleVideoTimeUpdate"
+                />
+
+                <!-- Loading State -->
+                <div
+                  v-if="isLoading"
+                  class="absolute inset-0 flex items-center justify-center bg-black/50 rounded-lg"
+                >
+                  <Loader2 class="w-8 h-8 text-white animate-spin" />
+                </div>
               </div>
+            </Transition>
+          </div>
+
+          <!-- Comments Panel (Right on desktop, drawer on mobile) -->
+          <Transition name="comments-slide">
+            <div
+              v-if="showComments"
+              class="absolute md:relative md:flex md:w-[40%] md:h-full bottom-0 left-0 right-0 md:top-0 h-[60vh] md:h-full bg-white dark:bg-gray-900 border-t md:border-t-0 md:border-l border-gray-200 dark:border-gray-700 shadow-lg md:shadow-none z-50"
+            >
+              <!-- Mobile Drawer Handle -->
+              <div
+                class="md:hidden flex items-center justify-center py-2 border-b border-gray-200 dark:border-gray-700"
+              >
+                <div class="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+              </div>
+
+              <CommentsPanel
+                :media-id="currentItem?.id || ''"
+                :comments="currentComments"
+                :is-video="currentMediaType === 'video'"
+                :current-video-time="currentVideoTime"
+                :is-loading="isLoadingComments"
+                :allow-reply="allowComments"
+                @add-comment="handleAddComment"
+                @seek-to-timestamp="handleSeekToTimestamp"
+              />
             </div>
           </Transition>
         </div>
@@ -132,9 +182,12 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight, Download, Loader2, X } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare } from 'lucide-vue-next'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
+import CommentsPanel from './CommentsPanel.vue'
+import { useRealtimeComments } from '@/composables/useRealtimeComments'
+import { useProofingApi } from '@/api/proofing'
 
 const props = defineProps({
   modelValue: {
@@ -153,9 +206,29 @@ const props = defineProps({
     type: String,
     default: '/placeholder-image.png',
   },
+  allowComments: {
+    type: Boolean,
+    default: true,
+  },
+  proofingId: {
+    type: String,
+    default: null,
+  },
+  setId: {
+    type: String,
+    default: null,
+  },
+  projectId: {
+    type: String,
+    default: null,
+  },
+  guestToken: {
+    type: String,
+    default: null,
+  },
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error'])
+const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -166,6 +239,13 @@ const currentIndex = ref(props.initialIndex)
 const isLoading = ref(false)
 const currentMediaUrl = ref('')
 const currentThumbnailUrl = ref('')
+const showComments = ref(false)
+const videoPlayerRef = ref(null)
+const currentVideoTime = ref(null)
+const isLoadingComments = ref(false)
+const comments = ref([])
+
+const proofingApi = useProofingApi()
 
 const currentItem = computed(() => {
   if (props.items.length === 0) return null
@@ -174,6 +254,12 @@ const currentItem = computed(() => {
 
 const currentMediaType = computed(() => {
   return currentItem.value?.type || currentItem.value?.file?.type || 'image'
+})
+
+const currentComments = computed(() => {
+  if (!currentItem.value) return []
+  // Load comments from item or from our local state
+  return comments.value.length > 0 ? comments.value : currentItem.value.feedback || []
 })
 
 const hasPrevious = computed(() => {
@@ -309,6 +395,14 @@ const handleClose = () => {
   emit('close')
 }
 
+const handleCommentClick = () => {
+  // Emit event to open comments in MediaCommentLightbox
+  emit('open-comments', {
+    item: currentItem.value,
+    index: currentIndex.value,
+  })
+}
+
 const handleImageLoad = () => {
   isLoading.value = false
 }
@@ -334,6 +428,123 @@ const handleVideoPlay = () => {
 const handleVideoPause = () => {
   // Keep loading state as is when paused
 }
+
+const handleVideoTimeUpdate = event => {
+  currentVideoTime.value = event.currentTime
+}
+
+const handleSeekToTimestamp = timestamp => {
+  if (videoPlayerRef.value && videoPlayerRef.value.seekTo) {
+    videoPlayerRef.value.seekTo(timestamp)
+  }
+}
+
+const handleAddComment = async commentData => {
+  if (!currentItem.value || !props.allowComments) return
+
+  try {
+    isLoadingComments.value = true
+
+    if (props.proofingId && props.setId) {
+      await proofingApi.addMediaFeedback(
+        props.proofingId,
+        props.setId,
+        currentItem.value.id,
+        commentData,
+        props.projectId,
+        props.guestToken // Pass guest token if available
+      )
+    }
+
+    // Reload comments
+    await loadComments()
+  } catch (error) {
+    console.error('Failed to add comment:', error)
+    throw error
+  } finally {
+    isLoadingComments.value = false
+  }
+}
+
+const loadComments = async () => {
+  if (!currentItem.value) return
+
+  // Comments should be loaded with media items
+  // Use feedback from item if available
+  if (currentItem.value.feedback) {
+    comments.value = currentItem.value.feedback
+  } else {
+    // If feedback not loaded, try to fetch it
+    // This is a fallback - normally feedback comes with media items
+    comments.value = []
+  }
+}
+
+// Initialize real-time comments
+const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtimeComments(
+  computed(() => currentItem.value?.id || ''),
+  {
+    onCommentCreated: newComment => {
+      if (newComment.mediaId === currentItem.value?.id) {
+        // If it's a reply, add it to the parent comment's replies array
+        if (newComment.parentId) {
+          const parentIndex = comments.value.findIndex(c => c.id === newComment.parentId)
+          if (parentIndex !== -1) {
+            if (!comments.value[parentIndex].replies) {
+              comments.value[parentIndex].replies = []
+            }
+            comments.value[parentIndex].replies.push(newComment)
+          } else {
+            // Parent not found in top-level, search in replies
+            const findAndAddReply = (commentList, parentId, reply) => {
+              for (const comment of commentList) {
+                if (comment.id === parentId) {
+                  if (!comment.replies) comment.replies = []
+                  comment.replies.push(reply)
+                  return true
+                }
+                if (comment.replies && comment.replies.length > 0) {
+                  if (findAndAddReply(comment.replies, parentId, reply)) {
+                    return true
+                  }
+                }
+              }
+              return false
+            }
+            if (!findAndAddReply(comments.value, newComment.parentId, newComment)) {
+              // If parent not found, add as top-level comment
+              comments.value = [...comments.value, newComment]
+            }
+          }
+        } else {
+          // Top-level comment
+          comments.value = [...comments.value, newComment]
+        }
+      }
+    },
+    onCommentUpdated: updatedComment => {
+      // Update comment in the list (including nested replies)
+      const updateComment = (commentList, updated) => {
+        const index = commentList.findIndex(c => c.id === updated.id)
+        if (index !== -1) {
+          commentList[index] = updated
+          return true
+        }
+        // Search in replies
+        for (const comment of commentList) {
+          if (comment.replies && comment.replies.length > 0) {
+            if (updateComment(comment.replies, updated)) {
+              return true
+            }
+          }
+        }
+        return false
+      }
+      updateComment(comments.value, updatedComment)
+    },
+    fetchComments: loadComments,
+  }
+)
 
 const handleDownload = () => {
   if (!currentItem.value) return
@@ -385,13 +596,31 @@ watch(isOpen, open => {
     const safeIndex = Math.max(0, Math.min(props.initialIndex, props.items.length - 1))
     currentIndex.value = safeIndex
     updateMediaUrl()
+    loadComments()
+    connectRealtime()
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
   } else {
+    disconnectRealtime()
+    showComments.value = false
     document.removeEventListener('keydown', handleKeyDown)
     document.body.style.overflow = ''
   }
 })
+
+watch(
+  currentItem,
+  () => {
+    updateMediaUrl()
+    loadComments()
+    // Reconnect real-time for new media
+    if (isOpen.value) {
+      disconnectRealtime()
+      connectRealtime()
+    }
+  },
+  { immediate: false }
+)
 
 // Watch for items changes to update when bulk view sets new items
 watch(
@@ -443,5 +672,28 @@ onUnmounted(() => {
 .lightbox-slide-leave-to {
   opacity: 0;
   transform: scale(1.05);
+}
+
+.comments-slide-enter-active,
+.comments-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.comments-slide-enter-from {
+  transform: translateY(100%);
+}
+
+.comments-slide-leave-to {
+  transform: translateY(100%);
+}
+
+@media (min-width: 768px) {
+  .comments-slide-enter-from {
+    transform: translateX(100%);
+  }
+
+  .comments-slide-leave-to {
+    transform: translateX(100%);
+  }
 }
 </style>

@@ -211,9 +211,7 @@
                     class="text-xs"
                   >
                     <span class="font-medium text-teal-600 dark:text-teal-400">
-                      {{ validEmailsCount }} email{{
-                        validEmailsCount !== 1 ? 's' : ''
-                      }}
+                      {{ validEmailsCount }} email{{ validEmailsCount !== 1 ? 's' : '' }}
                       configured.
                     </span>
                   </p>

@@ -146,6 +146,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="proofing?.status"
+                :comment-count="getItemCommentCount(item)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -176,6 +177,7 @@
                 :show-filename="showFilename"
                 :selection-status="proofing?.status"
                 :subtitle="formatMediaDate(item.createdAt)"
+                :comment-count="getItemCommentCount(item)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -388,6 +390,18 @@
         @close="closeMediaViewer"
         @download="handleDownloadMedia"
         @image-error="handleImageError"
+        @open-comments="handleOpenCommentsFromLightbox"
+      />
+
+      <!-- Media Comment Lightbox -->
+      <MediaCommentLightbox
+        v-model="showCommentLightbox"
+        :initial-index="commentLightboxIndex"
+        :items="commentLightboxItems"
+        :proofing-id="proofing?.id || proofing?.uuid"
+        :project-id="route.params.projectId || null"
+        :creative-email="userStore.user?.email || null"
+        @close="handleCloseCommentLightbox"
       />
 
       <MediaDetailSidebar
@@ -455,6 +469,7 @@ import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
 import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
@@ -470,12 +485,14 @@ import { toast } from '@/utils/toast'
 import { useActionHistoryStore } from '@/stores/actionHistory'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
+import { useUserStore } from '@/stores/user'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const proofingStore = useProofingStore()
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
+const userStore = useUserStore()
 
 // Get proofing color from parent (provided by ProofingLayout)
 const proofingColor = inject(
@@ -533,6 +550,9 @@ const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
 const showMediaViewer = ref(false)
 const showMediaDetailSidebar = ref(false)
+const showCommentLightbox = ref(false)
+const commentLightboxIndex = ref(0)
+const commentLightboxItems = ref([])
 
 // Focal point modal state
 const showFocalPointModal = ref(false)
@@ -993,6 +1013,67 @@ const closeMediaViewer = () => {
   currentViewIndex.value = 0
 }
 
+const handleOpenCommentsFromLightbox = ({ item, index }) => {
+  // Close the regular lightbox
+  closeMediaViewer()
+
+  // Get all media items (or use the items that were in the viewer)
+  const items =
+    selectedMediaForView.value.length > 0 ? selectedMediaForView.value : sortedMediaItems.value
+
+  // Filter to only items with feedback, or use all items if none have feedback
+  const itemsWithFeedback = items.filter(m => m.feedback && m.feedback.length > 0)
+  commentLightboxItems.value = itemsWithFeedback.length > 0 ? itemsWithFeedback : items
+
+  // Find the index of the current item in the comment lightbox items
+  const commentIndex = commentLightboxItems.value.findIndex(m => m.id === item.id)
+  commentLightboxIndex.value = commentIndex >= 0 ? commentIndex : 0
+
+  // Open the comment lightbox
+  showCommentLightbox.value = true
+}
+
+const handleCloseCommentLightbox = async () => {
+  showCommentLightbox.value = false
+  // No need to reload - comment counts are updated via events
+}
+
+// Handle comment added event - update media item's feedback silently
+const handleCommentAdded = ({ mediaId, comment, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Handle comment updated event
+const handleCommentUpdated = ({ mediaId, commentId, comment, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Handle comment deleted event
+const handleCommentDeleted = ({ mediaId, commentId, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Helper to update media item's feedback array
+const updateMediaItemFeedback = (mediaId, feedback) => {
+  // Update in sortedMediaItems
+  const mediaIndex = sortedMediaItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
+  if (mediaIndex !== -1) {
+    sortedMediaItems.value[mediaIndex] = {
+      ...sortedMediaItems.value[mediaIndex],
+      feedback: feedback || [],
+    }
+  }
+
+  // Update in commentLightboxItems if it exists there
+  const lightboxIndex = commentLightboxItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
+  if (lightboxIndex !== -1) {
+    commentLightboxItems.value[lightboxIndex] = {
+      ...commentLightboxItems.value[lightboxIndex],
+      feedback: feedback || [],
+    }
+  }
+}
+
 const handleViewDetails = item => {
   selectedMediaForDetails.value = item
   showMediaDetailSidebar.value = true
@@ -1359,6 +1440,38 @@ const handleToggleMediaSelection = id => {
     newSet.add(normalizedId)
   }
   selectedMediaIds.value = newSet
+}
+
+// Helper to get comment count for a media item (including replies)
+// Counts ALL comments: both top-level comments and replies
+// Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
+const getItemCommentCount = item => {
+  if (!item.feedback || !Array.isArray(item.feedback)) return 0
+
+  const countedIds = new Set()
+
+  const countComments = commentList => {
+    let count = 0
+    for (const comment of commentList) {
+      // Skip if already counted (to avoid double-counting)
+      if (countedIds.has(comment.id)) {
+        continue
+      }
+
+      // Count this comment (whether it's top-level or a reply)
+      count++
+      countedIds.add(comment.id)
+
+      // Count nested replies recursively
+      if (comment.replies && comment.replies.length > 0) {
+        count += countComments(comment.replies)
+      }
+    }
+    return count
+  }
+
+  // Count all comments in the array (both top-level and replies)
+  return countComments(item.feedback)
 }
 
 const getItemId = item => {

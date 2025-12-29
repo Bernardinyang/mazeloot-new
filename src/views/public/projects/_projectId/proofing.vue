@@ -260,7 +260,8 @@
             class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6"
           >
             <p class="text-sm text-blue-800 dark:text-blue-200">
-              Click on media items to select them. Selected items will be marked with a checkmark.
+              Click on media items to view and provide feedback. You can add comments and reply to
+              existing feedback.
             </p>
           </div>
         </template>
@@ -301,9 +302,9 @@
               @click="handleSelectSet(set.id)"
             >
               {{ set.name }}
-              <!-- Selection count badge -->
+              <!-- Comment count badge -->
               <span
-                v-if="getSetSelectedCount(set.id) > 0"
+                v-if="getSetCommentCount(set.id) > 0"
                 :class="[
                   'ml-2 px-2 py-0.5 rounded-full text-xs font-bold',
                   selectedSetId === set.id
@@ -319,17 +320,8 @@
                     : {}
                 "
               >
-                {{ getSetSelectedCount(set.id) }}
+                {{ getSetCommentCount(set.id) }} comments
               </span>
-              <!-- Checkmark indicator -->
-              <CheckCircle2
-                v-if="getSetSelectedCount(set.id) > 0"
-                :class="[
-                  'ml-1.5 h-4 w-4 inline',
-                  selectedSetId === set.id ? '' : 'text-gray-500 dark:text-gray-400',
-                ]"
-                :style="selectedSetId === set.id ? { color: proofingColor } : {}"
-              />
             </button>
           </div>
         </div>
@@ -339,59 +331,16 @@
           <div class="flex items-center justify-between flex-wrap gap-4">
             <div class="flex items-center gap-4 flex-wrap">
               <p class="text-gray-700 dark:text-gray-300 font-medium">
-                <span>{{ currentSelectedCount }} of {{ currentMediaItems.length }} selected</span>
-                <span v-if="getEffectiveLimit !== null" class="text-gray-500 dark:text-gray-400">
-                  <span class="mx-2">•</span>
-                  Maximum: {{ getEffectiveLimit }} items
-                </span>
                 <span
-                  v-if="
-                    getRemainingSelections(currentMediaItems) !== null &&
-                    getRemainingSelections(currentMediaItems) > 0
-                  "
-                  :style="{ color: proofingColor }"
+                  >{{ currentMediaItems.length }} media item{{
+                    currentMediaItems.length !== 1 ? 's' : ''
+                  }}</span
                 >
+                <span v-if="getTotalCommentCount() > 0" class="text-gray-500 dark:text-gray-400">
                   <span class="mx-2">•</span>
-                  {{ getRemainingSelections(currentMediaItems) }} remaining
+                  {{ getTotalCommentCount() }} comment{{ getTotalCommentCount() !== 1 ? 's' : '' }}
                 </span>
               </p>
-              <!-- Limit Warning -->
-              <div
-                v-if="isAtLimit(currentMediaItems)"
-                class="px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
-              >
-                <p class="text-xs font-medium text-yellow-800 dark:text-yellow-200">
-                  Selection limit reached
-                </p>
-              </div>
-            </div>
-            <div class="flex items-center gap-2">
-              <Button
-                v-if="proofing.status === 'completed' && !isAuthenticatedOwner && !isPreviewMode"
-                variant="outline"
-                size="sm"
-                :class="[theme.borderSecondary, theme.textPrimary]"
-                :disabled="getSetSelectedCount(selectedSetId) === 0"
-                @click="handleCopySelectedFilenamesInSet"
-              >
-                <Copy class="h-4 w-4 mr-2" />
-                Copy Selected ({{ getSetSelectedCount(selectedSetId) }})
-              </Button>
-              <Button
-                v-if="proofing.status !== 'completed' && !isAuthenticatedOwner && !isPreviewMode"
-                :disabled="isCompleting || currentSelectedCount === 0"
-                :style="{
-                  backgroundColor: proofingColor,
-                }"
-                class="text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                @click="handleComplete"
-                @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
-                @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
-              >
-                <Loader2 v-if="isCompleting" class="h-4 w-4 mr-2 animate-spin" />
-                <CheckCircle2 v-else class="h-4 w-4 mr-2" />
-                {{ isCompleting ? 'Completing...' : 'Complete Proofing' }}
-              </Button>
             </div>
           </div>
 
@@ -404,28 +353,7 @@
                 'relative rounded-lg overflow-hidden transition-all group',
                 isAuthenticatedOwner || isPreviewMode
                   ? 'opacity-75 cursor-not-allowed'
-                  : item.isSelected
-                    ? 'opacity-100'
-                    : proofing.status === 'completed' && item.isSelected === true
-                      ? 'opacity-100' // Selected on completion, full opacity
-                      : proofing.status === 'completed'
-                        ? 'opacity-50 grayscale' // Unselected in completed, dimmed & grayscale
-                        : isAtLimit(currentMediaItems) && !item.isSelected
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'opacity-60 hover:opacity-100 hover:scale-105 hover:shadow-lg cursor-pointer',
-                proofing.status === 'completed' && item.isSelected === true
-                  ? 'ring-1 ring-green-500/50' // Subtle green ring for items selected on completion
-                  : '',
-              ]"
-              :style="[
-                item.isSelected || (proofing.status === 'completed' && item.isSelected === true)
-                  ? { opacity: 1 }
-                  : {},
-                item.isSelected
-                  ? {
-                      boxShadow: `0 0 0 2px ${proofingColor}, 0 0 0 4px ${proofingColor}40`,
-                    }
-                  : {},
+                  : 'opacity-90 hover:opacity-100 hover:scale-105 hover:shadow-lg cursor-pointer',
               ]"
             >
               <img
@@ -440,16 +368,9 @@
                 "
                 :class="[
                   'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode && proofing.status !== 'completed'
-                    ? 'cursor-pointer'
-                    : 'cursor-default',
+                  !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
                 ]"
-                @click="
-                  !isAuthenticatedOwner &&
-                  !isPreviewMode &&
-                  proofing.status !== 'completed' &&
-                  handleViewMedia(item)
-                "
+                @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item)"
               />
               <video
                 v-else
@@ -457,20 +378,23 @@
                 :src="(item.file && item.file.url) || item.url"
                 :class="[
                   'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode && proofing.status !== 'completed'
-                    ? 'cursor-pointer'
-                    : 'cursor-default',
+                  !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
                 ]"
-                @click="
-                  !isAuthenticatedOwner &&
-                  !isPreviewMode &&
-                  proofing.status !== 'completed' &&
-                  handleViewMedia(item)
-                "
+                @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item)"
               />
 
+              <!-- Comment Count Badge -->
               <div
-                v-if="!isAuthenticatedOwner && proofing.status !== 'completed'"
+                v-if="getItemCommentCount(item) > 0"
+                class="absolute top-2 right-2 px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+              >
+                <MessageSquare class="w-3 h-3" />
+                {{ getItemCommentCount(item) }}
+              </div>
+
+              <!-- View/Feedback Button Overlay -->
+              <div
+                v-if="!isAuthenticatedOwner && !isPreviewMode"
                 class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
               >
                 <Button
@@ -479,63 +403,9 @@
                   variant="secondary"
                   @click.stop="handleViewMedia(item)"
                 >
-                  <Eye class="h-4 w-4 mr-1" />
-                  View
+                  <MessageSquare class="h-4 w-4 mr-2" />
+                  View & Comment
                 </Button>
-                <Button
-                  v-if="!item.isSelected"
-                  :disabled="
-                    (isAtLimit(currentMediaItems) && !item.isSelected) ||
-                    togglingMediaIds.has(item.id)
-                  "
-                  :style="{
-                    backgroundColor: proofingColor,
-                  }"
-                  class="text-white disabled:opacity-50"
-                  size="sm"
-                  variant="secondary"
-                  @mouseenter="
-                    e =>
-                      !e.target.disabled &&
-                      (e.target.style.backgroundColor = getProofingHoverColor())
-                  "
-                  @mouseleave="
-                    e => !e.target.disabled && (e.target.style.backgroundColor = proofingColor)
-                  "
-                  @click.stop="handleToggleSelection(item.id)"
-                >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 mr-1 animate-spin" />
-                  <CheckCircle2 v-else class="h-4 w-4 mr-1" />
-                  Select
-                </Button>
-                <Button
-                  v-else
-                  :disabled="togglingMediaIds.has(item.id)"
-                  class="bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
-                  size="sm"
-                  variant="secondary"
-                  @click.stop="handleToggleSelection(item.id)"
-                >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 mr-1 animate-spin" />
-                  <X v-else class="h-4 w-4 mr-1" />
-                  Deselect
-                </Button>
-              </div>
-
-              <!-- Currently Selected Badge (top right) -->
-              <div
-                v-if="item.isSelected"
-                :style="{ backgroundColor: proofingColor }"
-                class="absolute top-2 right-2 text-white rounded-full p-1 z-10"
-              >
-                <CheckCircle2 class="h-5 w-5" />
-              </div>
-              <!-- Loading indicator -->
-              <div
-                v-if="togglingMediaIds.has(item.id)"
-                class="absolute inset-0 bg-black/50 flex items-center justify-center z-20"
-              >
-                <Loader2 class="h-6 w-6 animate-spin text-white" />
               </div>
             </div>
           </div>
@@ -554,144 +424,19 @@
       </div>
     </div>
 
-    <!-- Completion Confirmation Dialog -->
-    <Dialog :open="showCompletionDialog" @update:open="showCompletionDialog = $event">
-      <DialogContent :class="[theme.bgCard, theme.borderSecondary]" class="sm:max-w-[520px]">
-        <DialogHeader>
-          <DialogTitle :class="theme.textPrimary" class="text-xl font-bold">
-            Complete Proofing
-          </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
-            Are you sure you want to complete this proofing? This action cannot be undone.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div class="space-y-4 mt-6">
-          <!-- Proofing Summary -->
-          <div class="space-y-4">
-            <p :class="theme.textPrimary" class="text-sm font-semibold">Proofing Summary</p>
-
-            <!-- Summary by Set -->
-            <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-              <div v-for="set in sortedMediaSets" :key="set.id" class="space-y-2">
-                <div class="flex items-center justify-between text-sm font-medium">
-                  <span :class="theme.textPrimary">{{ set.name }}</span>
-                  <span :class="theme.textSecondary">
-                    {{ getSetSelectedCount(set.id) }} selected
-                  </span>
-                </div>
-
-                <!-- Selected Items in this Set -->
-                <div v-if="getSetSelectedCount(set.id) > 0" class="grid grid-cols-4 gap-2 ml-2">
-                  <div
-                    v-for="item in getSelectedItemsForSet(set.id)"
-                    :key="item.id"
-                    class="relative rounded-lg overflow-hidden aspect-square bg-gray-100 dark:bg-gray-800"
-                  >
-                    <img
-                      v-if="item.type === 'image'"
-                      :alt="item.title || 'Selected media'"
-                      :src="item.thumbnail || item.url"
-                      class="w-full h-full object-cover"
-                    />
-                    <video v-else :src="item.url" class="w-full h-full object-cover" />
-                    <div
-                      :style="{ backgroundColor: proofingColor }"
-                      class="absolute top-1 right-1 text-white rounded-full p-0.5"
-                    >
-                      <CheckCircle2 class="h-3 w-3" />
-                    </div>
-                  </div>
-                </div>
-
-                <div v-else :class="theme.textTertiary" class="text-xs italic ml-2">
-                  No items selected in this set
-                </div>
-              </div>
-            </div>
-
-            <!-- Total Summary -->
-            <div :class="theme.borderSecondary" class="pt-3 border-t">
-              <div class="flex items-center justify-between text-sm font-semibold">
-                <span :class="theme.textPrimary">Total Selected:</span>
-                <span :class="theme.textPrimary"
-                  >{{ totalSelectedCount }} item{{ totalSelectedCount !== 1 ? 's' : '' }}</span
-                >
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <DialogFooter class="mt-6">
-          <Button
-            :class="[theme.textSecondary, theme.bgButtonHover]"
-            :disabled="isCompleting"
-            variant="ghost"
-            @click="showCompletionDialog = false"
-          >
-            Cancel
-          </Button>
-          <Button
-            :disabled="isCompleting"
-            :style="{
-              backgroundColor: proofingColor,
-            }"
-            class="text-white"
-            @click="confirmComplete"
-            @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
-            @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
-          >
-            <Loader2 v-if="isCompleting" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isCompleting ? 'Completing...' : 'Complete Proofing' }}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-
-    <!-- Media Lightbox Preview with Select Button -->
-    <Teleport to="body">
-      <div
-        v-if="
-          showMediaLightbox &&
-          !isAuthenticatedOwner &&
-          !isPreviewMode &&
-          previewCurrentItem &&
-          proofing.status !== 'completed'
-        "
-        class="fixed bottom-20 left-1/2 -translate-x-1/2 z-[101] flex gap-3"
-      >
-        <Button
-          v-if="!previewCurrentItem.isSelected"
-          :disabled="isAtLimit(currentMediaItems) && !previewCurrentItem.isSelected"
-          :style="{
-            backgroundColor: proofingColor,
-          }"
-          class="text-white disabled:opacity-50 shadow-lg"
-          @mouseenter="
-            e => !e.target.disabled && (e.target.style.backgroundColor = getProofingHoverColor())
-          "
-          @mouseleave="e => !e.target.disabled && (e.target.style.backgroundColor = proofingColor)"
-          @click="handleSelectFromPreview(previewCurrentItem.id)"
-        >
-          <CheckCircle2 class="h-4 w-4 mr-2" />
-          Select This Item
-        </Button>
-        <Button
-          v-else
-          class="bg-red-500 hover:bg-red-600 text-white shadow-lg"
-          variant="destructive"
-          @click="handleSelectFromPreview(previewCurrentItem.id)"
-        >
-          <X class="h-4 w-4 mr-2" />
-          Deselect This Item
-        </Button>
-      </div>
-    </Teleport>
-    <MediaLightbox
+    <MediaCommentLightbox
       v-model="showMediaLightbox"
       :initial-index="previewMediaIndex"
       :items="currentMediaItems"
+      :proofing-id="proofing?.id || proofing?.uuid"
+      :set-id="selectedSetId"
+      :project-id="route.params.projectId || null"
+      :guest-token="guestToken"
+      :guest-email="userEmail"
       @close="showMediaLightbox = false"
+      @comment-added="handleCommentAdded"
+      @comment-updated="handleCommentUpdated"
+      @comment-deleted="handleCommentDeleted"
     />
   </div>
 </template>
@@ -700,10 +445,10 @@
 import { computed, onMounted, ref } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
-import { CheckCircle2, Copy, Eye, Loader2, X } from 'lucide-vue-next'
+import { MessageSquare, Eye, Loader2, X } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
-import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
 import {
   Dialog,
   DialogContent,
@@ -742,9 +487,6 @@ const isPasswordVerified = ref(false)
 const passwordInput = ref('')
 const isVerifyingPassword = ref(false)
 const passwordError = ref('')
-const isCompleting = ref(false)
-const showCompletionDialog = ref(false)
-const togglingMediaIds = ref(new Set())
 const guestToken = ref(null)
 const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
@@ -778,32 +520,89 @@ const currentMediaItems = computed(() => {
   return mediaItems.value.filter(item => item.setId === selectedSetId.value)
 })
 
-const currentSelectedCount = computed(() => {
-  return currentMediaItems.value.filter(item => item.isSelected).length
-})
+// Helper to get comment count for a media item (including replies)
+// Counts ALL comments: both top-level comments and replies
+// Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
+const getItemCommentCount = item => {
+  if (!item.feedback || !Array.isArray(item.feedback)) return 0
 
-const totalSelectedCount = computed(() => {
-  return mediaItems.value.filter(item => item.isSelected).length
-})
+  const countedIds = new Set()
 
-// Selection limits composable
-const {
-  getEffectiveLimit,
-  getCurrentSelectedCount: getSetSelectedCountForLimit,
-  getRemainingSelections,
-  canSelectMore,
-  isAtLimit,
-  getTotalSelectedCount,
-} = useSelectionLimits(proofing, currentSet)
+  const countComments = commentList => {
+    let count = 0
+    for (const comment of commentList) {
+      // Skip if already counted (to avoid double-counting)
+      if (countedIds.has(comment.id)) {
+        continue
+      }
 
-// Helper to get selected count for a set
-const getSetSelectedCount = setId => {
-  return mediaItems.value.filter(item => item.setId === setId && item.isSelected).length
+      // Count this comment (whether it's top-level or a reply)
+      count++
+      countedIds.add(comment.id)
+
+      // Count nested replies recursively
+      if (comment.replies && comment.replies.length > 0) {
+        count += countComments(comment.replies)
+      }
+    }
+    return count
+  }
+
+  // Count all comments in the array (both top-level and replies)
+  return countComments(item.feedback)
 }
 
-// Helper to get selected items for a set
-const getSelectedItemsForSet = setId => {
-  return mediaItems.value.filter(item => item.setId === setId && item.isSelected)
+// Helper to get comment count for a set
+const getSetCommentCount = setId => {
+  const setItems = mediaItems.value.filter(item => item.setId === setId)
+  return setItems.reduce((total, item) => total + getItemCommentCount(item), 0)
+}
+
+// Helper to get total comment count across all media
+const getTotalCommentCount = () => {
+  return mediaItems.value.reduce((total, item) => total + getItemCommentCount(item), 0)
+}
+
+// Handle comment added event - update media item's feedback silently
+const handleCommentAdded = ({ mediaId, comment, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Handle comment updated event
+const handleCommentUpdated = ({ mediaId, commentId, comment, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Handle comment deleted event
+const handleCommentDeleted = ({ mediaId, commentId, allComments }) => {
+  updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Helper to update media item's feedback array
+const updateMediaItemFeedback = (mediaId, feedback) => {
+  // Update in mediaItems
+  const mediaIndex = mediaItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
+  if (mediaIndex !== -1) {
+    mediaItems.value[mediaIndex] = {
+      ...mediaItems.value[mediaIndex],
+      feedback: feedback || [],
+    }
+  }
+
+  // Update in sets if media is in a set
+  if (proofing.value?.sets) {
+    proofing.value.sets.forEach(set => {
+      if (set.media) {
+        const setMediaIndex = set.media.findIndex(m => (m.id || m.uuid) === mediaId)
+        if (setMediaIndex !== -1) {
+          set.media[setMediaIndex] = {
+            ...set.media[setMediaIndex],
+            feedback: feedback || [],
+          }
+        }
+      }
+    })
+  }
 }
 
 // Check if current user is the owner of the proofing
@@ -1433,7 +1232,8 @@ const handleVerifyPassword = async () => {
 
   try {
     // Verify password with backend
-    await proofingApi.verifyProofingPassword(proofing.value.id, passwordInput.value)
+    const proofingId = route.query.proofingId
+    await proofingApi.verifyProofingPassword(proofingId, passwordInput.value)
 
     // Password verified successfully
     verifiedPassword.value = passwordInput.value
@@ -1561,194 +1361,6 @@ const scrollToGallery = () => {
   const gallerySection = document.getElementById('gallery-section')
   if (gallerySection) {
     gallerySection.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-}
-
-// Select/deselect from preview
-const handleSelectFromPreview = async mediaId => {
-  await handleToggleSelection(mediaId)
-  // Keep lightbox open so user can continue viewing
-}
-
-const handleToggleSelection = async mediaId => {
-  if (isAuthenticatedOwner.value || isPreviewMode.value || proofing.value?.status === 'completed')
-    return
-
-  const item = currentMediaItems.value.find(m => m.id === mediaId)
-  if (!item) return
-
-  if (!item.isSelected && !canSelectMore(currentMediaItems.value)) {
-    toast.warning('Selection limit reached', {
-      description: 'You have reached the maximum number of selections for this set.',
-    })
-    return
-  }
-
-  if (togglingMediaIds.value.has(mediaId)) return
-
-  togglingMediaIds.value.add(mediaId)
-  try {
-    if (!guestToken.value || !proofing.value?.id) {
-      throw new Error('Guest token is required for public proofing')
-    }
-
-    await proofingApi.toggleProofingMediaSelected(proofing.value.id, mediaId, guestToken.value)
-    const mediaItem = mediaItems.value.find(m => m.id === mediaId)
-    if (mediaItem) {
-      mediaItem.isSelected = !mediaItem.isSelected
-    }
-  } catch (error) {
-    const errorMessage = error?.message || ''
-    if (errorMessage.toLowerCase().includes('limit reached')) {
-      toast.error('Selection limit reached', {
-        description: 'You have reached the maximum number of selections allowed.',
-      })
-    } else {
-      toast.error('Failed to toggle selection', {
-        description: error?.message || 'An unknown error occurred',
-      })
-    }
-  } finally {
-    togglingMediaIds.value.delete(mediaId)
-  }
-}
-
-// Handle complete
-const handleComplete = () => {
-  // Disable for authenticated owners and preview mode
-  if (isAuthenticatedOwner.value || isPreviewMode.value) {
-    return
-  }
-
-  if (totalSelectedCount.value === 0) {
-    toast.info('No items selected', {
-      description: 'Please select at least one item before completing.',
-    })
-    return
-  }
-  showCompletionDialog.value = true
-}
-
-const confirmComplete = async () => {
-  if (!proofing.value?.id) return
-
-  if (!guestToken.value) {
-    toast.error('Access token required', {
-      description: 'Please provide your email to access this proofing.',
-    })
-    return
-  }
-
-  isCompleting.value = true
-  try {
-    const completedProofing = await proofingApi.completePublicProofing(
-      proofing.value.id,
-      guestToken.value
-    )
-
-    if (completedProofing) {
-      proofing.value = completedProofing
-      if (completedProofing.mediaSets && completedProofing.mediaSets.length > 0) {
-        mediaSets.value = completedProofing.mediaSets
-        if (!selectedSetId.value) {
-          selectedSetId.value = mediaSets.value[0].id
-        }
-      }
-      await loadMediaItems()
-    } else {
-      try {
-        const refreshedProofing = await proofingApi.fetchPublicProofing(
-          proofing.value.id,
-          guestToken.value
-        )
-        if (refreshedProofing) {
-          proofing.value = refreshedProofing
-          if (refreshedProofing.mediaSets && refreshedProofing.mediaSets.length > 0) {
-            mediaSets.value = refreshedProofing.mediaSets
-            if (!selectedSetId.value) {
-              selectedSetId.value = mediaSets.value[0].id
-            }
-          }
-          await loadMediaItems()
-        }
-      } catch (reloadError) {
-        console.warn('Failed to reload proofing after completion:', reloadError)
-      }
-    }
-
-    toast.success('Proofing completed', {
-      description: 'Thank you for completing your proofing!',
-    })
-
-    showCompletionDialog.value = false
-  } catch (error) {
-    toast.error('Failed to complete proofing', {
-      description: error?.message || 'An unknown error occurred',
-    })
-  } finally {
-    isCompleting.value = false
-  }
-}
-
-// Copy selected filenames in current set
-const handleCopySelectedFilenamesInSet = async () => {
-  if (!selectedSetId.value || !proofing.value?.id) return
-
-  if (!guestToken.value) {
-    toast.error('Access token required', {
-      description: 'Please ensure you have access to this proofing.',
-    })
-    return
-  }
-
-  if (proofing.value?.status === 'completed') {
-    try {
-      const result = await proofingApi.getProofingSelectedFilenames(
-        proofing.value.id,
-        guestToken.value,
-        selectedSetId.value
-      )
-      const filenames = result.filenames || []
-      if (filenames.length === 0) {
-        toast.info('No selected items', {
-          description: 'No items with selected status in this set.',
-        })
-        return
-      }
-      const filenamesText = filenames.join(', ')
-      await navigator.clipboard.writeText(filenamesText)
-      toast.success('Filenames copied', {
-        description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
-      })
-    } catch (error) {
-      toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
-    }
-    return
-  }
-
-  // For active selections, use loaded media items
-  const setItems = mediaItems.value.filter(item => item.setId === selectedSetId.value)
-  const selectedItems = setItems.filter(item => item.isSelected === true)
-  if (selectedItems.length === 0) {
-    toast.info('No selected items', {
-      description: 'No items selected in this set.',
-    })
-    return
-  }
-
-  const filenames = selectedItems.map(item => item.filename || item.title || 'Untitled')
-  const filenamesText = filenames.join(', ')
-  try {
-    await navigator.clipboard.writeText(filenamesText)
-    toast.success('Filenames copied', {
-      description: `${filenames.length} selected filename(s) from this set copied to clipboard.`,
-    })
-  } catch (error) {
-    toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
   }
 }
 

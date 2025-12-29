@@ -293,6 +293,36 @@ const handleTimeUpdate = () => {
   })
 }
 
+/**
+ * Seek video to a specific timestamp
+ * @param {number} timestamp - Time in seconds
+ */
+const seekTo = timestamp => {
+  if (!videoRef.value || !isFinite(timestamp) || timestamp < 0) return
+
+  // Ensure timestamp doesn't exceed duration
+  const targetTime = Math.min(timestamp, duration.value || timestamp)
+  videoRef.value.currentTime = targetTime
+  currentTime.value = targetTime
+  progressPercent.value = duration.value > 0 ? (targetTime / duration.value) * 100 : 0
+
+  // Play if paused
+  if (!isPlaying.value) {
+    videoRef.value.play().catch(() => {
+      // Ignore autoplay errors
+    })
+  }
+}
+
+// Expose methods for parent components
+defineExpose({
+  seekTo,
+  play: () => videoRef.value?.play(),
+  pause: () => videoRef.value?.pause(),
+  currentTime: () => currentTime.value,
+  duration: () => duration.value,
+})
+
 const handleEnded = () => {
   isPlaying.value = false
   currentTime.value = 0

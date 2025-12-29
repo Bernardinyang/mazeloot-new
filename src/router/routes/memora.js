@@ -39,6 +39,7 @@ import SelectionsListView from '@/views/user/memora/selections/Selections.vue'
 import SelectionDetailView from '@/views/user/memora/selections/SelectionDetail.vue'
 import ProofingListView from '@/views/user/memora/proofing/Proofing.vue'
 import ProofingDetailView from '@/views/user/memora/proofing/ProofingDetail.vue'
+import ProofingCommentsView from '@/views/user/memora/proofing/Comments.vue'
 
 export const memoraRoutes = [
   {
@@ -412,6 +413,14 @@ export const memoraRoutes = [
     path: '/memora/proofing/:id',
     name: 'proofingDetail',
     component: ProofingDetailView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/proofing/:id/comments',
+    name: 'proofingComments',
+    component: ProofingCommentsView,
     meta: {
       requiresAuth: true,
     },

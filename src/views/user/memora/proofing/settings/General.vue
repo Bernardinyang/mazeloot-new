@@ -198,9 +198,7 @@
                     class="text-xs"
                   >
                     <span class="font-medium text-teal-600 dark:text-teal-400">
-                      {{ validEmailsCount }} email{{
-                        validEmailsCount !== 1 ? 's' : ''
-                      }}
+                      {{ validEmailsCount }} email{{ validEmailsCount !== 1 ? 's' : '' }}
                       configured.
                     </span>
                     {{ validEmailsCount === 0 ? 'At least one email is required to publish.' : '' }}
@@ -721,10 +719,18 @@ const handlePasswordToggle = async value => {
     // Removing password
     try {
       const projectId = proofing.value.projectId || proofing.value.project_uuid || null
-      await proofingApi.updateProofing(projectId, proofing.value.id, {
+      const updatedProofing = await proofingApi.updateProofing(projectId, proofing.value.id, {
         password: null,
       })
       currentPassword.value = ''
+      // Update proofing object to keep state in sync
+      if (updatedProofing) {
+        proofing.value = updatedProofing
+      } else {
+        // Fallback: update local properties
+        proofing.value.password = null
+        proofing.value.hasPassword = false
+      }
       toast.success('Password removed', {
         description: 'Password protection has been removed.',
       })
@@ -743,12 +749,20 @@ const handlePasswordChange = async () => {
   isSavingPassword.value = true
   try {
     const projectId = proofing.value.projectId || proofing.value.project_uuid || null
-    await proofingApi.updateProofing(projectId, proofing.value.id, {
+    const updatedProofing = await proofingApi.updateProofing(projectId, proofing.value.id, {
       password: newPassword.value,
     })
     currentPassword.value = newPassword.value
     newPassword.value = ''
     isChangingPassword.value = false
+    // Update proofing object to keep state in sync
+    if (updatedProofing) {
+      proofing.value = updatedProofing
+    } else {
+      // Fallback: update local properties
+      proofing.value.password = newPassword.value
+      proofing.value.hasPassword = true
+    }
     toast.success('Password updated', {
       description: 'Password has been updated successfully.',
     })

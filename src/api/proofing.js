@@ -156,6 +156,7 @@ export function useProofingApi() {
       if (data.color !== undefined) payload.color = data.color
       if (data.status !== undefined) payload.status = data.status
       if (data.allowedEmails !== undefined) payload.allowedEmails = data.allowedEmails
+      if (data.password !== undefined) payload.password = data.password
 
       const response = await apiClient.patch(endpoint, payload)
       return response.data
@@ -239,6 +240,8 @@ export function useProofingApi() {
     const newFeedback = {
       id: generateUUID(),
       mediaId,
+      parentId: feedbackData.parentId || null,
+      timestamp: feedbackData.timestamp || null,
       type: feedbackData.type, // 'text' | 'video' | 'audio'
       content: feedbackData.content, // string | URL
       createdAt: new Date().toISOString(),
@@ -1057,15 +1060,101 @@ export function useProofingApi() {
   /**
    * Add feedback to media
    */
-  const addMediaFeedback = async (proofingId, setId, mediaId, feedbackData, projectId = null) => {
+  const addMediaFeedback = async (
+    proofingId,
+    setId,
+    mediaId,
+    feedbackData,
+    projectId = null,
+    guestToken = null
+  ) => {
     try {
       let endpoint
-      if (projectId) {
+      let headers = {}
+
+      // Use public endpoint if guest token is provided
+      if (guestToken) {
+        endpoint = `/v1/public/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
+        headers = {
+          Authorization: `Bearer ${guestToken}`,
+        }
+      } else if (projectId) {
         endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
       } else {
         endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
       }
-      const response = await apiClient.post(endpoint, feedbackData)
+
+      const response = await apiClient.post(endpoint, feedbackData, {
+        headers,
+        skipAuth: !!guestToken, // Skip auth for guest token requests
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Update feedback for media
+   */
+  const updateMediaFeedback = async (
+    proofingId,
+    setId,
+    mediaId,
+    feedbackId,
+    content,
+    projectId = null,
+    guestToken = null
+  ) => {
+    try {
+      let endpoint
+      let headers = {}
+      let skipAuth = false
+
+      if (guestToken) {
+        endpoint = `/v1/public/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        headers.Authorization = `Bearer ${guestToken}`
+        skipAuth = true
+      } else if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+      }
+
+      const response = await apiClient.patch(endpoint, { content }, { headers, skipAuth })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete feedback for media
+   */
+  const deleteMediaFeedback = async (
+    proofingId,
+    setId,
+    mediaId,
+    feedbackId,
+    projectId = null,
+    guestToken = null
+  ) => {
+    try {
+      let endpoint
+      let headers = {}
+      let skipAuth = false
+
+      if (guestToken) {
+        endpoint = `/v1/public/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        headers.Authorization = `Bearer ${guestToken}`
+        skipAuth = true
+      } else if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+      }
+
+      const response = await apiClient.delete(endpoint, { headers, skipAuth })
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -1141,6 +1230,8 @@ export function useProofingApi() {
     copyMediaToSet,
     starMedia,
     addMediaFeedback,
+    updateMediaFeedback,
+    deleteMediaFeedback,
     downloadMedia,
     getApprovedFilenames,
     // Public/Guest Access
