@@ -402,6 +402,7 @@
         :set-id="selectedSetId || null"
         :project-id="route.params.projectId || null"
         :creative-email="userStore.user?.email || null"
+        :allowed-emails="proofing?.allowedEmails || proofing?.allowed_emails || []"
         @close="handleCloseCommentLightbox"
         @back-to-lightbox="handleCloseCommentLightbox"
         @comment-added="handleCommentAdded"

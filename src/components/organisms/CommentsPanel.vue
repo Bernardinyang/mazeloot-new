@@ -278,6 +278,10 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  allowedEmails: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits([
@@ -373,12 +377,22 @@ const formatTimestamp = seconds => {
 const availableEmails = computed(() => {
   const emails = new Set()
 
+  // Add allowed emails from proofing
+  if (props.allowedEmails && Array.isArray(props.allowedEmails)) {
+    props.allowedEmails.forEach(email => {
+      if (email && typeof email === 'string' && email.trim() && email.includes('@')) {
+        emails.add(email.trim().toLowerCase())
+      }
+    })
+  }
+
+  // Extract emails from existing comments
   const extractEmails = commentList => {
     commentList.forEach(comment => {
       if (comment.createdBy) {
         const email = getAuthorEmail(comment.createdBy)
         if (email && email !== 'Anonymous') {
-          emails.add(email)
+          emails.add(email.toLowerCase())
         }
       }
       if (comment.replies && comment.replies.length > 0) {

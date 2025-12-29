@@ -433,6 +433,7 @@
       :project-id="route.params.projectId || null"
       :guest-token="guestToken"
       :guest-email="userEmail"
+      :allowed-emails="proofing?.allowedEmails || proofing?.allowed_emails || []"
       @close="showMediaLightbox = false"
       @comment-added="handleCommentAdded"
       @comment-updated="handleCommentUpdated"

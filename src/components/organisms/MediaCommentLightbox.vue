@@ -252,6 +252,7 @@
               :guest-email="guestEmail"
               :creative-email="creativeEmail"
               :show-close-button="true"
+              :allowed-emails="props.allowedEmails"
               @add-comment="handleAddComment"
               @seek-to-timestamp="handleSeekVideo"
               @update-comment="handleUpdateComment"
@@ -328,6 +329,10 @@ const props = defineProps({
   creativeEmail: {
     type: String,
     default: null,
+  },
+  allowedEmails: {
+    type: Array,
+    default: () => [],
   },
 })
 
