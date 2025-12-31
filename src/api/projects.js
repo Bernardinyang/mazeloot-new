@@ -199,9 +199,9 @@ export function useProjectsApi() {
 
     return {
       ...project,
-      selections,
-      proofing,
-      collections: projectCollections,
+      selection: selections[0] || null,
+      proofing: proofing[0] || null,
+      collection: projectCollections[0] || null,
     }
   }
 
@@ -423,6 +423,33 @@ export function useProjectsApi() {
             description: set.description || null,
             order: set.order || 0,
           }))
+        }
+
+        // Include phase flags and settings if provided
+        if (data.hasSelections !== undefined) payload.hasSelections = data.hasSelections
+        if (data.hasProofing !== undefined) payload.hasProofing = data.hasProofing
+        if (data.hasCollections !== undefined) payload.hasCollections = data.hasCollections
+        
+        if (data.selectionSettings !== undefined) {
+          payload.selectionSettings = {
+            name: data.selectionSettings.name,
+            description: data.selectionSettings.description || null,
+            selectionLimit: data.selectionSettings.selectionLimit || 0,
+          }
+        }
+        
+        if (data.proofingSettings !== undefined) {
+          payload.proofingSettings = {
+            name: data.proofingSettings.name,
+            maxRevisions: data.proofingSettings.maxRevisions || 5,
+          }
+        }
+        
+        if (data.collectionSettings !== undefined) {
+          payload.collectionSettings = {
+            name: data.collectionSettings.name,
+            description: data.collectionSettings.description || null,
+          }
         }
 
         const response = await apiClient.patch(`/v1/projects/${id}`, payload)

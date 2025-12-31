@@ -212,6 +212,12 @@
               </span>
             </DetailField>
 
+            <DetailField label="Media Sets" layout="horizontal">
+              <span :class="theme.textPrimary" class="text-sm font-medium">
+                {{ proofingSetCount }} set{{ proofingSetCount !== 1 ? 's' : '' }}
+              </span>
+            </DetailField>
+
             <DetailField
               v-if="proofing?.maxRevisions !== undefined"
               label="Max Revisions"
@@ -440,18 +446,29 @@ const isLoading = ref(false)
 
 // Extract phase data from project
 const selection = computed(() => {
-  if (!project.value?.selections || !Array.isArray(project.value.selections)) return null
-  return project.value.selections[0] || null
+  return project.value?.selection || null
 })
 
 const proofing = computed(() => {
-  if (!project.value?.proofing || !Array.isArray(project.value.proofing)) return null
-  return project.value.proofing[0] || null
+  return project.value?.proofing || null
+})
+
+const proofingSetCount = computed(() => {
+  if (!proofing.value) return 0
+  return (
+    proofing.value.setCount ||
+    proofing.value.setsCount ||
+    proofing.value.mediaSetsCount ||
+    proofing.value.mediaSetCount ||
+    (Array.isArray(proofing.value.mediaSets) ? proofing.value.mediaSets.length : 0) ||
+    (Array.isArray(proofing.value.sets) ? proofing.value.sets.length : 0) ||
+    0
+  )
 })
 
 const projectCollections = computed(() => {
-  if (!project.value?.collections || !Array.isArray(project.value.collections)) return []
-  return project.value.collections
+  if (!project.value?.collection) return []
+  return [project.value.collection]
 })
 
 const excludedKeys = [

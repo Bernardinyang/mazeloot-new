@@ -24,7 +24,10 @@ export const useProjectStore = defineStore('project', () => {
 
     try {
       const fetchedProjects = await projectsApi.fetchProjects(params)
-      projects.value = fetchedProjects
+      // Handle paginated response (has data property) or direct array
+      projects.value = Array.isArray(fetchedProjects) 
+        ? fetchedProjects 
+        : (fetchedProjects?.data || [])
       return fetchedProjects
     } catch (err) {
       error.value = err.message || 'Failed to fetch projects'
@@ -62,6 +65,10 @@ export const useProjectStore = defineStore('project', () => {
 
     try {
       const newProject = await projectsApi.createProject(data)
+      // Ensure projects.value is an array before pushing
+      if (!Array.isArray(projects.value)) {
+        projects.value = []
+      }
       projects.value.push(newProject)
       return newProject
     } catch (err) {

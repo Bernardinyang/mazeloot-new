@@ -246,19 +246,19 @@ export const useProofingStore = defineStore('proofing', () => {
   /**
    * Complete proofing
    */
-  const completeProofing = async id => {
+  const completeProofing = async (id, projectId = null) => {
     isLoading.value = true
     error.value = null
 
     try {
-      const completed = await proofingApi.completeProofing(id)
+      const completed = await proofingApi.completeProofing(projectId, id)
 
-      const index = proofings.value.findIndex(p => p.id === id)
+      const index = proofings.value.findIndex(p => p.id === id || p.uuid === id)
       if (index !== -1) {
         proofings.value[index] = completed
       }
 
-      if (currentProofing.value && currentProofing.value.id === id) {
+      if (currentProofing.value && (currentProofing.value.id === id || currentProofing.value.uuid === id)) {
         currentProofing.value = completed
       }
 

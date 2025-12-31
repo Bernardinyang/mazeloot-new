@@ -260,27 +260,20 @@ export function useProofingApi() {
   }
 
   /**
-   * Complete proofing phase
+   * Complete proofing phase (standalone or project-based)
    */
-  const completeProofing = async id => {
-    await delay(500)
+  const completeProofing = async (projectId, id) => {
+    try {
+      let endpoint = `/v1/proofing/${id}/complete`
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${id}/complete`
+      }
 
-    const proofing = getAllProofing()
-    const index = proofing.findIndex(p => p.id === id)
-
-    if (index === -1) {
-      throw new Error('Proofing not found')
+      const response = await apiClient.post(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    proofing[index] = {
-      ...proofing[index],
-      status: 'completed',
-      updatedAt: new Date().toISOString(),
-    }
-
-    saveProofing(proofing)
-
-    return proofing[index]
   }
 
   /**

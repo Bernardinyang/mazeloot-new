@@ -87,7 +87,12 @@ export function useProofingWorkflow({
         throw new Error('Proofing ID is required')
       }
 
-      await proofingStore.completeProofing(proofingIdValue)
+      // Get projectId from current proofing if available
+      const projectId = proofingStore.currentProofing?.projectId || 
+                        proofingStore.currentProofing?.project_uuid || 
+                        null
+
+      await proofingStore.completeProofing(proofingIdValue, projectId)
 
       toast.success('Proofing completed', {
         description: 'You can now move approved media to collections.',

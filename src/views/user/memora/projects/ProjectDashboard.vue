@@ -159,13 +159,24 @@
                 {{ proofing?.currentRevision ?? 0 }}/{{ proofing.maxRevisions }}
               </span>
             </div>
-            <div
-              v-if="proofing?.mediaCount !== undefined"
-              class="flex items-center justify-between text-sm"
-            >
+            <div class="flex items-center justify-between text-sm">
               <span :class="theme.textSecondary">Media Items</span>
               <span :class="['font-semibold', theme.textPrimary]">
-                {{ proofing.mediaCount }}
+                {{ proofing?.mediaCount ?? 0 }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span :class="theme.textSecondary">Media Sets</span>
+              <span :class="['font-semibold', theme.textPrimary]">
+                {{
+                  proofing?.setCount ||
+                  proofing?.setsCount ||
+                  proofing?.mediaSetsCount ||
+                  proofing?.mediaSetCount ||
+                  (Array.isArray(proofing?.mediaSets) ? proofing.mediaSets.length : 0) ||
+                  (Array.isArray(proofing?.sets) ? proofing.sets.length : 0) ||
+                  0
+                }}
               </span>
             </div>
           </div>
@@ -391,8 +402,8 @@ const loadProject = async () => {
     project.value = projectData
 
     // Load phases from project data (already included in backend response)
-    if (projectData.selections && projectData.selections.length > 0) {
-      selection.value = projectData.selections[0]
+    if (projectData.selection) {
+      selection.value = projectData.selection
       // Use mediaCount from selection if available, otherwise fetch it
       if (selection.value.mediaCount !== undefined) {
         selectionMediaCount.value = selection.value.mediaCount
@@ -407,12 +418,12 @@ const loadProject = async () => {
       }
     }
 
-    if (projectData.proofing && projectData.proofing.length > 0) {
-      proofing.value = projectData.proofing[0]
+    if (projectData.proofing) {
+      proofing.value = projectData.proofing
     }
 
-    if (projectData.collections) {
-      projectCollections.value = projectData.collections
+    if (projectData.collection) {
+      projectCollections.value = [projectData.collection]
     }
   } catch (error) {
     // Check if it's a 404 error (project not found)
@@ -444,6 +455,16 @@ const navigateToPhase = phase => {
     router.push({
       name: 'projectCollections',
       params: { id: projectId },
+    })
+  } else if (phase === 'selections' && selection.value?.id) {
+    router.push({
+      name: 'selectionDetail',
+      params: { id: selection.value.id },
+    })
+  } else if (phase === 'proofing' && proofing.value?.id) {
+    router.push({
+      name: 'proofingDetail',
+      params: { id: proofing.value.id },
     })
   } else {
     router.push({

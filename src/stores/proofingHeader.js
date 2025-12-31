@@ -140,7 +140,8 @@ export const useProofingHeaderStore = defineStore('proofingHeader', () => {
     isSavingStatus.value = true
     try {
       const projectId = proofing.value.projectId || proofing.value.project_uuid || null
-      await proofingStore.completeProofing(proofing.value.id, projectId)
+      const proofingId = proofing.value.id || proofing.value.uuid
+      await proofingStore.completeProofing(proofingId, projectId)
       proofingStatus.value = 'completed'
       if (proofing.value) {
         proofing.value.status = 'completed'
@@ -150,7 +151,7 @@ export const useProofingHeaderStore = defineStore('proofingHeader', () => {
       })
     } catch (error) {
       toast.error('Failed to complete proofing', {
-        description: 'An unknown error occurred',
+        description: error.message || 'An unknown error occurred',
       })
     } finally {
       isSavingStatus.value = false
