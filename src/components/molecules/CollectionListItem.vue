@@ -75,7 +75,7 @@
         </h3>
         <Star v-if="isStarred" class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400" />
         <Lock
-          v-if="password && showPasswordAndPin"
+          v-if="password && showPassword"
           class="h-3.5 w-3.5 shrink-0"
           :class="theme.textSecondary"
         />
@@ -87,7 +87,7 @@
     </div>
 
     <!-- Password -->
-    <div v-if="showPasswordAndPin" class="w-40 flex items-center">
+    <div v-if="showPassword" class="w-40 flex items-center">
       <div v-if="password" class="flex items-center gap-1.5">
         <span class="text-xs font-mono leading-none" :class="theme.textSecondary">
           {{ showPassword ? password : '••••••••' }}
@@ -116,7 +116,7 @@
     </div>
 
     <!-- Download PIN -->
-    <div v-if="showPasswordAndPin" class="w-40 flex items-center">
+    <div v-if="showDownloadPin" class="w-40 flex items-center">
       <div v-if="downloadPin" class="flex items-center gap-1.5">
         <span class="text-xs font-mono leading-none" :class="theme.textSecondary">
           {{ showPin ? downloadPin : '••••' }}
@@ -346,9 +346,17 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  showPasswordAndPin: {
+  showPassword: {
     type: Boolean,
     default: true,
+  },
+  showDownloadPin: {
+    type: Boolean,
+    default: true,
+  },
+  showPasswordAndPin: {
+    type: Boolean,
+    default: undefined,
   },
   showCheckbox: {
     type: Boolean,

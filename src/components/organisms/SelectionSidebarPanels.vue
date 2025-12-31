@@ -14,6 +14,7 @@
       :selected-set-id="selectedSetId"
       :sorted-media-sets="sortedMediaSets"
       :selection-status="selectionActions.selectionStatus"
+      :disable-add-set="selectionActions.selectionStatus === 'completed'"
       :is-copying-filenames="selectionActions.isCopyingFilenames"
       :set-progress="selectionActions.setProgress"
       :on-copy-selected-filenames-in-set="selectionActions.onCopySelectedFilenamesInSet"

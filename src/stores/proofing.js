@@ -13,6 +13,7 @@ const VIEW_MODE_STORAGE_KEY = 'mazeloot_proofing_view_mode'
 const GRID_SIZE_STORAGE_KEY = 'mazeloot_proofing_grid_size'
 const SHOW_FILENAME_STORAGE_KEY = 'mazeloot_proofing_show_filename'
 const SORT_ORDER_STORAGE_KEY = 'mazeloot_proofing_sort_order'
+const SORT_BY_STORAGE_KEY = 'mazeloot_proofing_sort_by'
 
 export const useProofingStore = defineStore('proofing', () => {
   const proofings = ref([])
@@ -27,6 +28,7 @@ export const useProofingStore = defineStore('proofing', () => {
   const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
   const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
   const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
+  const sortBy = ref(storage.get(SORT_BY_STORAGE_KEY) || 'created-new-old')
 
   // Persist view settings
   watch(viewMode, () => {
@@ -40,6 +42,9 @@ export const useProofingStore = defineStore('proofing', () => {
   })
   watch(sortOrder, () => {
     storage.set(SORT_ORDER_STORAGE_KEY, sortOrder.value)
+  })
+  watch(sortBy, () => {
+    storage.set(SORT_BY_STORAGE_KEY, sortBy.value)
   })
 
   // View setting methods
@@ -65,6 +70,10 @@ export const useProofingStore = defineStore('proofing', () => {
 
   const setSortOrder = order => {
     sortOrder.value = order
+  }
+
+  const setSortBy = value => {
+    sortBy.value = value
   }
 
   const proofingApi = useProofingApi()
@@ -435,10 +444,12 @@ export const useProofingStore = defineStore('proofing', () => {
     gridSize,
     showFilename,
     sortOrder,
+    sortBy,
     setViewMode,
     setGridSize,
     setShowFilename,
     setSortOrder,
+    setSortBy,
     // Actions
     fetchProofing,
     fetchAllProofing,

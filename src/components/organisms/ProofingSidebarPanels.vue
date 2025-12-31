@@ -14,6 +14,7 @@
       :selected-set-id="selectedSetId"
       :sorted-media-sets="sortedMediaSets"
       :selection-status="null"
+      :disable-add-set="props.disableAddSet"
       :is-copying-filenames="false"
       :set-progress="{}"
       :on-copy-selected-filenames-in-set="null"
@@ -63,6 +64,7 @@ const props = defineProps({
   activeTab: { type: String, required: true },
   isSidebarCollapsed: { type: Boolean, required: true },
   isLoading: { type: Boolean, default: false },
+  disableAddSet: { type: Boolean, default: false },
 })
 
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()

@@ -96,15 +96,6 @@
             </div>
           </div>
         </div>
-        <!-- Starred Badge (always visible when starred) -->
-        <div v-if="props.item?.isStarred" class="absolute bottom-1 left-1 z-30">
-          <div
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
-            title="Starred"
-          >
-            <Star class="h-3 w-3 fill-white text-white" />
-          </div>
-        </div>
         <!-- Comment Count Badge (bottom-right) -->
         <div
           v-if="commentCount > 0"
@@ -132,58 +123,67 @@
         </div>
       </div>
       <div class="flex-1 min-w-0">
-        <p
-          v-if="props.showFilename && props.item?.filename"
-          :class="theme.textPrimary"
-          class="text-sm font-medium truncate"
-        >
-          {{ props.item.filename }}
-        </p>
-        <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">Media Item</p>
+        <div class="flex items-center gap-2">
+          <p
+            v-if="props.showFilename && props.item?.filename"
+            :class="theme.textPrimary"
+            class="text-sm font-medium truncate"
+          >
+            {{ props.item.filename }}
+          </p>
+          <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">Media Item</p>
+          <Star
+            v-if="props.item?.isStarred"
+            class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400"
+          />
+        </div>
         <p :class="theme.textTertiary" class="text-xs mt-1">
           {{ props.subtitle }}
         </p>
-        <!-- Draft/Revision Badge (under date) -->
-        <div
-          v-if="!(props.item?.isCompleted || props.item?.is_completed)"
-          class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm border"
-          :class="
-            hasRevisions && (props.item?.revisionNumber || props.item?.revision_number)
-              ? 'bg-purple-500/90 dark:bg-purple-600/90 border-purple-400/50'
-              : 'bg-amber-500/90 dark:bg-amber-600/90 border-amber-400/50'
-          "
-          :title="
-            hasRevisions && (props.item?.revisionNumber || props.item?.revision_number)
-              ? `Revision ${props.item?.revisionNumber || props.item?.revision_number}`
-              : 'Draft'
-          "
-        >
-          <span class="text-[10px] font-semibold text-white">
-            {{
+        <!-- Proofing Badges (only show when NOT in selection context) -->
+        <template v-if="!props.selectionStatus">
+          <!-- Draft/Revision Badge (under date) -->
+          <div
+            v-if="!(props.item?.isCompleted || props.item?.is_completed)"
+            class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full backdrop-blur-sm shadow-sm border"
+            :class="
               hasRevisions && (props.item?.revisionNumber || props.item?.revision_number)
-                ? `Rev ${props.item?.revisionNumber || props.item?.revision_number}`
+                ? 'bg-purple-500/90 dark:bg-purple-600/90 border-purple-400/50'
+                : 'bg-amber-500/90 dark:bg-amber-600/90 border-amber-400/50'
+            "
+            :title="
+              hasRevisions && (props.item?.revisionNumber || props.item?.revision_number)
+                ? `Revision ${props.item?.revisionNumber || props.item?.revision_number}`
                 : 'Draft'
-            }}
-          </span>
-        </div>
-        <!-- Approved Badge (under date) -->
-        <div
-          v-if="props.item?.isCompleted || props.item?.is_completed"
-          class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/90 dark:bg-green-600/90 backdrop-blur-sm shadow-sm border border-green-400/50"
-          title="Approved"
-        >
-          <CheckCircle2 class="h-3 w-3 fill-white text-white" />
-          <span class="text-[10px] font-semibold text-white">Approved</span>
-        </div>
-        <!-- Rejected Badge (under date) -->
-        <div
-          v-if="isRejected"
-          class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/90 dark:bg-red-600/90 backdrop-blur-sm shadow-sm border border-red-600"
-          title="Rejected"
-        >
-          <X class="h-3 w-3 fill-white text-white" />
-          <span class="text-[10px] font-semibold text-white">Rejected</span>
-        </div>
+            "
+          >
+            <span class="text-[10px] font-semibold text-white">
+              {{
+                hasRevisions && (props.item?.revisionNumber || props.item?.revision_number)
+                  ? `Rev ${props.item?.revisionNumber || props.item?.revision_number}`
+                  : 'Draft'
+              }}
+            </span>
+          </div>
+          <!-- Approved Badge (under date) -->
+          <div
+            v-if="props.item?.isCompleted || props.item?.is_completed"
+            class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/90 dark:bg-green-600/90 backdrop-blur-sm shadow-sm border border-green-400/50"
+            title="Approved"
+          >
+            <CheckCircle2 class="h-3 w-3 fill-white text-white" />
+            <span class="text-[10px] font-semibold text-white">Approved</span>
+          </div>
+          <!-- Rejected Badge (under date) -->
+          <div
+            v-if="isRejected"
+            class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-500/90 dark:bg-red-600/90 backdrop-blur-sm shadow-sm border border-red-600"
+            title="Rejected"
+          >
+            <X class="h-3 w-3 fill-white text-white" />
+            <span class="text-[10px] font-semibold text-white">Rejected</span>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -191,6 +191,7 @@
     <button
       class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
       @click.stop="emit('star-click')"
+      :title="props.item?.isStarred ? 'Unstar' : 'Star'"
     >
       <Star
         :class="[
@@ -200,57 +201,59 @@
       />
     </button>
 
-    <!-- Closure Request Indicators -->
-    <!-- Pending Closure Request Indicator -->
-    <TooltipProvider v-if="hasPendingClosureRequest">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            class="flex-shrink-0 p-2 rounded-lg bg-amber-500/90 hover:bg-amber-600/90 transition-all duration-200 hover:scale-110 animate-pulse"
-            @click.stop="handlePendingClosureClick"
-          >
-            <Clock class="h-4 w-4 text-white" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Closure request pending - Click to view</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    <!-- Approved Closure Request Indicator -->
-    <TooltipProvider v-if="hasApprovedClosureRequest">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            class="flex-shrink-0 p-2 rounded-lg bg-green-500/90 hover:bg-green-600/90 transition-all duration-200 hover:scale-110"
-            @click.stop="emit('view-closure-history')"
-          >
-            <Clock class="h-4 w-4 text-white animate-pulse" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Closure request approved - Click to view</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    <!-- Rejected Closure Request Indicator -->
-    <TooltipProvider v-if="hasRejectedClosureRequest">
-      <Tooltip>
-        <TooltipTrigger as-child>
-          <button
-            class="flex-shrink-0 p-2 rounded-lg bg-red-500/90 hover:bg-red-600/90 transition-all duration-200 hover:scale-110"
-            @click.stop="emit('view-closure-history')"
-          >
-            <Clock class="h-4 w-4 text-white" />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>Closure request rejected - Click to view</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-    <!-- Revision Indicator -->
-    <TooltipProvider v-if="hasRevisions">
+    <!-- Closure Request Indicators (only show when NOT in selection context) -->
+    <template v-if="!props.selectionStatus">
+      <!-- Pending Closure Request Indicator -->
+      <TooltipProvider v-if="hasPendingClosureRequest">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button
+              class="flex-shrink-0 p-2 rounded-lg bg-amber-500/90 hover:bg-amber-600/90 transition-all duration-200 hover:scale-110 animate-pulse"
+              @click.stop="handlePendingClosureClick"
+            >
+              <Clock class="h-4 w-4 text-white" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Closure request pending - Click to view</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <!-- Approved Closure Request Indicator -->
+      <TooltipProvider v-if="hasApprovedClosureRequest">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button
+              class="flex-shrink-0 p-2 rounded-lg bg-green-500/90 hover:bg-green-600/90 transition-all duration-200 hover:scale-110"
+              @click.stop="emit('view-closure-history')"
+            >
+              <Clock class="h-4 w-4 text-white animate-pulse" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Closure request approved - Click to view</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <!-- Rejected Closure Request Indicator -->
+      <TooltipProvider v-if="hasRejectedClosureRequest">
+        <Tooltip>
+          <TooltipTrigger as-child>
+            <button
+              class="flex-shrink-0 p-2 rounded-lg bg-red-500/90 hover:bg-red-600/90 transition-all duration-200 hover:scale-110"
+              @click.stop="emit('view-closure-history')"
+            >
+              <Clock class="h-4 w-4 text-white" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Closure request rejected - Click to view</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    </template>
+    <!-- Revision Indicator (only show when NOT in selection context) -->
+    <TooltipProvider v-if="!props.selectionStatus && hasRevisions">
       <Tooltip>
         <TooltipTrigger as-child>
           <div
@@ -379,16 +382,17 @@
             </DropdownMenuItem>
           </template>
 
-          <!-- Closure Actions -->
+          <!-- Closure Actions (only show when NOT in selection context) -->
           <template
             v-if="
-              (!props.item?.isCompleted && !props.item?.is_completed) ||
-              props.item?.originalMediaUuid ||
-              props.item?.original_media_uuid ||
-              props.item?.revisionNumber ||
-              props.item?.revision_number ||
-              hasPendingClosureRequest ||
-              (closureRequests && closureRequests.length > 0)
+              !props.selectionStatus &&
+              ((!props.item?.isCompleted && !props.item?.is_completed) ||
+                props.item?.originalMediaUuid ||
+                props.item?.original_media_uuid ||
+                props.item?.revisionNumber ||
+                props.item?.revision_number ||
+                hasPendingClosureRequest ||
+                (closureRequests && closureRequests.length > 0))
             "
           >
             <DropdownMenuSeparator />
@@ -441,13 +445,14 @@
             </DropdownMenuItem>
           </template>
 
-          <!-- Revision History -->
+          <!-- Revision History (only show when NOT in selection context) -->
           <template
             v-if="
-              props.item?.originalMediaId ||
-              props.item?.original_media_uuid ||
-              props.item?.revisionNumber ||
-              props.item?.revision_number
+              !props.selectionStatus &&
+              (props.item?.originalMediaId ||
+                props.item?.original_media_uuid ||
+                props.item?.revisionNumber ||
+                props.item?.revision_number)
             "
           >
             <DropdownMenuSeparator />
@@ -460,8 +465,13 @@
             </DropdownMenuItem>
           </template>
 
-          <!-- Upload Revision - Only when media is ready for revision -->
-          <template v-if="props.item?.isReadyForRevision || props.item?.is_ready_for_revision">
+          <!-- Upload Revision - Only when media is ready for revision (only show when NOT in selection context) -->
+          <template
+            v-if="
+              !props.selectionStatus &&
+              (props.item?.isReadyForRevision || props.item?.is_ready_for_revision)
+            "
+          >
             <DropdownMenuSeparator />
             <DropdownMenuItem
               :class="[
@@ -477,8 +487,8 @@
             </DropdownMenuItem>
           </template>
 
-          <!-- Approval Request -->
-          <template v-if="hasAnyApprovalRequest">
+          <!-- Approval Request (only show when NOT in selection context) -->
+          <template v-if="!props.selectionStatus && hasAnyApprovalRequest">
             <DropdownMenuSeparator />
             <DropdownMenuItem
               v-if="hasPendingApprovalRequest"
@@ -501,7 +511,8 @@
               View Approval Request
             </DropdownMenuItem>
           </template>
-          <template v-else-if="props.isRevisionLimitExceeded">
+          <!-- Request Approval (only show when NOT in selection context) -->
+          <template v-else-if="!props.selectionStatus && props.isRevisionLimitExceeded">
             <DropdownMenuSeparator />
             <DropdownMenuItem
               :class="[

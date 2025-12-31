@@ -134,18 +134,17 @@ const formData = reactive({
 const errors = ref({})
 const isSubmitting = ref(false)
 
-// Populate form only when dialog opens (not when proofing changes while open)
+// Populate form when dialog opens or when proofing changes
 watch(
-  () => props.open,
-  newValue => {
-    if (newValue && props.proofing) {
-      // Only populate when dialog opens, not when it's already open
-      formData.name = props.proofing.name || ''
-      formData.description = props.proofing.description || ''
-      formData.maxRevisions = props.proofing.maxRevisions || props.proofing.max_revisions || 5
-      formData.color = props.proofing.color || generateRandomColorFromPalette()
+  () => [props.open, props.proofing],
+  ([isOpen, proofing]) => {
+    if (isOpen && proofing) {
+      formData.name = proofing.name || ''
+      formData.description = proofing.description ?? ''
+      formData.maxRevisions = proofing.maxRevisions || proofing.max_revisions || 5
+      formData.color = proofing.color || generateRandomColorFromPalette()
       errors.value = {}
-    } else if (!newValue) {
+    } else if (!isOpen) {
       // Reset form when dialog closes
       formData.name = ''
       formData.description = ''
@@ -153,7 +152,8 @@ watch(
       formData.color = generateRandomColorFromPalette()
       errors.value = {}
     }
-  }
+  },
+  { immediate: true }
 )
 
 const handleCancel = () => {

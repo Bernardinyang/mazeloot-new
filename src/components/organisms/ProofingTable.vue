@@ -60,7 +60,7 @@
           class="w-full h-full flex items-center justify-center"
         >
           <component
-            :is="getItemIcon(item) || CheckSquare"
+            :is="getItemIcon(item) || Eye"
             :class="theme.textTertiary"
             class="h-5 w-5"
           />
@@ -187,10 +187,7 @@
 <script setup>
 import { computed, reactive } from 'vue'
 import {
-  CheckSquare,
-  Copy,
   Eye,
-  EyeOff,
   Info,
   Lock,
   MoreVertical,
@@ -240,7 +237,7 @@ const props = defineProps({
   },
   emptyMessage: {
     type: String,
-    default: 'No selections found',
+    default: 'No proofing found',
   },
   emptyActionLabel: {
     type: String,
@@ -248,7 +245,7 @@ const props = defineProps({
   },
   emptyIcon: {
     type: Object,
-    default: () => CheckSquare,
+    default: () => Eye,
   },
   getId: {
     type: Function,
@@ -265,9 +262,6 @@ const props = defineProps({
       if (item.mediaCount !== undefined) {
         parts.push(`${item.mediaCount} media`)
       }
-      if (item.selectedCount !== undefined && item.selectedCount > 0) {
-        parts.push(`${item.selectedCount} selected`)
-      }
       const status = item.status || 'draft'
       parts.push(status)
       return parts.join(' • ')
@@ -275,7 +269,7 @@ const props = defineProps({
   },
   getImage: {
     type: Function,
-    default: item => item.coverPhotoUrl || item.cover_photo_url || null,
+    default: item => item.coverPhotoUrl || item.cover_photo_url || item.thumbnail || item.image || null,
   },
   getPreviewImages: {
     type: Function,
@@ -283,7 +277,7 @@ const props = defineProps({
   },
   getIcon: {
     type: Function,
-    default: () => CheckSquare,
+    default: () => Eye,
   },
   getStatus: {
     type: Function,
@@ -291,11 +285,7 @@ const props = defineProps({
   },
   getPassword: {
     type: Function,
-    default: item => (item.hasPassword ? '••••••••' : null),
-  },
-  getMediaCount: {
-    type: Function,
-    default: item => item.mediaCount || item.media_count || 0,
+    default: item => (item.hasPassword ? '••••••••' : item.password || null),
   },
   getDateCreated: {
     type: Function,
@@ -410,3 +400,4 @@ const handleImageError = event => {
   }
 }
 </script>
+

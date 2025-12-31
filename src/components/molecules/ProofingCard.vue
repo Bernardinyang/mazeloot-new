@@ -104,6 +104,37 @@
         </div>
       </div>
 
+      <!-- Project Badge -->
+      <div
+        v-if="proofing?.project?.name || proofing?.projectId"
+        class="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+      >
+        <div class="flex items-center gap-1.5">
+          <FolderKanban class="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-1 max-w-[120px]">
+            {{ proofing?.project?.name || 'Project' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Starred Badge and Lock Icon -->
+      <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
+        <div
+          v-if="proofing?.isStarred || proofing?.starred"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+        <div
+          v-if="proofing?.hasPassword || proofing?.password"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          title="Password protected"
+        >
+          <Lock class="h-4 w-4 text-white" />
+        </div>
+      </div>
+
       <!-- Action buttons -->
       <div
         :class="[
@@ -190,7 +221,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Eye, Star, MoreVertical } from 'lucide-vue-next'
+import { Eye, Star, MoreVertical, FolderKanban, Lock } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,

@@ -216,7 +216,7 @@
             <!-- Action Button (Bottom Right) -->
             <div class="flex-shrink-0">
               <Button
-                v-if="!isAuthenticatedOwner && selection.status !== 'completed'"
+                v-if="!isAuthenticatedOwner && !isPreviewMode"
                 :class="[
                   selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20'

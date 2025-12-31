@@ -107,11 +107,9 @@ const loadMedia = async () => {
       try {
         // Use the API client directly to fetch media for each set
         const { apiClient } = await import('@/api/client')
-        let endpoint
+        let endpoint = `/v1/proofing/${proofingId.value}/sets/${set.id}/media`
         if (projectId.value) {
-          endpoint = `/v1/projects/${projectId.value}/proofing/${proofingId.value}/sets/${set.id}/media`
-        } else {
-          endpoint = `/v1/proofing/${proofingId.value}/sets/${set.id}/media`
+          endpoint += `?projectId=${projectId.value}`
         }
 
         const response = await apiClient.get(endpoint)

@@ -82,7 +82,7 @@
       </div>
 
       <!-- Projects List View -->
-      <CollectionsTable
+      <ProjectsTable
         v-else
         :items="sortedProjects"
         :loading="isLoading"
@@ -92,9 +92,8 @@
         :empty-icon="Folder"
         :get-subtitle="getSubtitle"
         :get-icon="() => Folder"
-        :show-move-to="false"
-        :show-password-and-pin="false"
-        :show-checkbox="false"
+        :get-starred="item => item.isStarred || item.starred || false"
+        :show-view-details="true"
         @select="handleSelectProject"
         @star-click="toggleStar"
         @item-click="handleProjectClick"
@@ -162,7 +161,7 @@ import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import ProjectCard from '@/components/molecules/ProjectCard.vue'
-import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import ProjectsTable from '@/components/organisms/ProjectsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import CreateProjectDialog from '@/components/organisms/CreateProjectDialog.vue'
 import EditProjectDialog from '@/components/organisms/EditProjectDialog.vue'

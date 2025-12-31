@@ -83,7 +83,7 @@
         </TooltipProvider>
 
         <!-- Watermark -->
-        <TooltipProvider>
+        <TooltipProvider v-if="!props.disableActions">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -101,7 +101,7 @@
         </TooltipProvider>
 
         <!-- Move (Arrow into box) -->
-        <TooltipProvider>
+        <TooltipProvider v-if="!props.disableActions">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -119,7 +119,7 @@
         </TooltipProvider>
 
         <!-- Delete (Arrow out of box) -->
-        <TooltipProvider>
+        <TooltipProvider v-if="!props.disableActions">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -137,7 +137,7 @@
         </TooltipProvider>
 
         <!-- Edit (Pencil) -->
-        <TooltipProvider>
+        <TooltipProvider v-if="!props.disableActions">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -215,6 +215,10 @@ const props = defineProps({
     required: true,
   },
   isFavoriteLoading: {
+    type: Boolean,
+    default: false,
+  },
+  disableActions: {
     type: Boolean,
     default: false,
   },

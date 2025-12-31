@@ -15,10 +15,13 @@
         :sort-by="sortBy"
         :view-mode="viewMode"
         :sort-options="sortOptions"
+        :is-searching="isSearching"
         sort-label="Sort proofing by"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
+        @search="handleSearch"
+        @clear="handleClearSearch"
       />
 
       <!-- Loading State -->
@@ -57,7 +60,7 @@
       </div>
 
       <!-- Proofing List View -->
-      <CollectionsTable
+      <ProofingTable
         v-else
         :items="sortedProofing"
         :loading="isLoading"
@@ -68,7 +71,6 @@
         :get-subtitle="getSubtitle"
         :get-icon="() => Eye"
         :get-status="item => item.status"
-        :show-move-to="false"
         :show-view-details="true"
         @select="handleSelectProofing"
         @star-click="toggleStar"
@@ -92,12 +94,13 @@ import { Eye, ArrowRight } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import ProofingCard from '@/components/molecules/ProofingCard.vue'
-import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import ProofingTable from '@/components/organisms/ProofingTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProofingStore } from '@/stores/proofing'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useAsyncPagination } from '@/composables/useAsyncPagination'
 import ProofingDetailSidebar from '@/components/organisms/ProofingDetailSidebar.vue'
 import { toast } from '@/utils/toast'
 
@@ -110,6 +113,7 @@ const { handleError } = useErrorHandler()
 const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
   { label: 'Created (Old → New)', value: 'created-old-new' },
@@ -119,11 +123,46 @@ const sortOptions = [
 ]
 
 const selectedProofing = ref([])
-const isLoading = computed(() => proofingStore.isLoading)
 
-const proofing = computed(() => {
-  // Filter only starred proofing
-  return proofingStore.proofings.filter(p => p.starred || p.isStarred)
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+    status: 'status-asc',
+  }
+  return mapping[frontendSort] || 'created-desc'
+}
+
+const fetchStarredProofing = async params => {
+  const fetchParams = {
+    starred: true,
+    ...params,
+  }
+
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  if (sortBy.value) {
+    fetchParams.sortBy = mapSortToBackend(sortBy.value)
+  }
+
+  const result = await proofingStore.fetchAllProofing(fetchParams)
+  return Array.isArray(result) ? result : result?.data || []
+}
+
+const {
+  data: proofing,
+  isLoading,
+  fetch,
+  resetToFirstPage,
+} = useAsyncPagination(fetchStarredProofing, {
+  initialPage: 1,
+  initialPerPage: 1000,
+  autoFetch: false,
+  watchForReset: [sortBy],
 })
 
 const getSubtitle = proofingPhase => {
@@ -155,38 +194,8 @@ const getSubtitle = proofingPhase => {
   return parts.join(' • ')
 }
 
-// Filter and sort proofing
-const filteredProofing = computed(() => {
-  let filtered = [...proofing.value]
-
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(proofingPhase => {
-      const name = (proofingPhase.name || '').toLowerCase()
-      return name.includes(query)
-    })
-  }
-
-  return filtered
-})
-
 const sortedProofing = computed(() => {
-  const sorted = [...filteredProofing.value]
-
-  switch (sortBy.value) {
-    case 'created-new-old':
-      return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    case 'created-old-new':
-      return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    case 'name-a-z':
-      return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-    case 'name-z-a':
-      return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
-    case 'status':
-      return sorted.sort((a, b) => (a.status || '').localeCompare(b.status || ''))
-    default:
-      return sorted
-  }
+  return [...proofing.value]
 })
 
 const handleProofingClick = proofingPhase => {
@@ -241,9 +250,40 @@ const handleBrowseProofing = () => {
   router.push({ name: 'proofing' })
 }
 
+const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
+  }
+  isSearching.value = true
+  try {
+    await resetToFirstPage()
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to search proofing.',
+    })
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  isSearching.value = true
+  try {
+    await resetToFirstPage()
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to clear search.',
+    })
+  } finally {
+    isSearching.value = false
+  }
+}
+
 onMounted(async () => {
   try {
-    await proofingStore.fetchAllProofing()
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to load starred proofing.',

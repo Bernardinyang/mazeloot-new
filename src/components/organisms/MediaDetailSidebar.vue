@@ -3,6 +3,7 @@
     v-model="isOpen"
     title="Media Details"
     :description="media?.title || media?.filename || 'Media information'"
+    content-class="sm:!max-w-lg"
   >
     <!-- Loading State -->
     <div v-if="!media" class="flex items-center justify-center py-12">
@@ -153,8 +154,9 @@
       <!-- Status Section - Enhanced with Badges -->
       <DetailSection v-if="hasStatus" title="Status" container-class="pt-4 border-t">
         <div class="grid grid-cols-2 gap-3">
+          <!-- Selection Status -->
           <div
-            v-if="media.isSelected !== undefined"
+            v-if="isSelectionContext && media.isSelected !== undefined"
             :class="[
               'p-4 rounded-lg border-2 transition-all duration-200',
               media.isSelected
@@ -179,8 +181,9 @@
               {{ media.isSelected ? 'Yes' : 'No' }}
             </div>
           </div>
+          <!-- Proofing Status -->
           <div
-            v-if="media.isCompleted !== undefined"
+            v-if="isProofingContext && media.isCompleted !== undefined"
             :class="[
               'p-4 rounded-lg border-2 transition-all duration-200',
               media.isCompleted
@@ -196,7 +199,7 @@
                 ]"
               ></div>
               <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
-                Completed
+                Approved
               </div>
             </div>
             <div
@@ -207,18 +210,272 @@
             >
               {{ media.isCompleted ? 'Yes' : 'No' }}
             </div>
+            <div
+              v-if="media.completedAt"
+              :class="['text-xs mt-1', theme.textSecondary]"
+            >
+              {{ formatDate(media.completedAt) }}
+            </div>
+          </div>
+          <div
+            v-if="isProofingContext && media.isRejected !== undefined"
+            :class="[
+              'p-4 rounded-lg border-2 transition-all duration-200',
+              media.isRejected
+                ? 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                : theme.bgCardSolid + ' ' + theme.borderSecondary,
+            ]"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <div
+                :class="[
+                  'w-2 h-2 rounded-full',
+                  media.isRejected ? 'bg-red-500' : 'bg-gray-400',
+                ]"
+              ></div>
+              <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
+                Rejected
+              </div>
+            </div>
+            <div
+              :class="[
+                'text-lg font-bold',
+                media.isRejected ? 'text-red-600 dark:text-red-400' : theme.textPrimary,
+              ]"
+            >
+              {{ media.isRejected ? 'Yes' : 'No' }}
+            </div>
+            <div
+              v-if="media.rejectedAt"
+              :class="['text-xs mt-1', theme.textSecondary]"
+            >
+              {{ formatDate(media.rejectedAt) }}
+            </div>
+          </div>
+          <div
+            v-if="isProofingContext && media.isReadyForRevision !== undefined"
+            :class="[
+              'p-4 rounded-lg border-2 transition-all duration-200',
+              media.isReadyForRevision
+                ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800'
+                : theme.bgCardSolid + ' ' + theme.borderSecondary,
+            ]"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <div
+                :class="[
+                  'w-2 h-2 rounded-full',
+                  media.isReadyForRevision ? 'bg-blue-500' : 'bg-gray-400',
+                ]"
+              ></div>
+              <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
+                Ready for Revision
+              </div>
+            </div>
+            <div
+              :class="[
+                'text-lg font-bold',
+                media.isReadyForRevision ? 'text-blue-600 dark:text-blue-400' : theme.textPrimary,
+              ]"
+            >
+              {{ media.isReadyForRevision ? 'Yes' : 'No' }}
+            </div>
+          </div>
+          <div
+            v-if="isProofingContext && media.isRevised !== undefined"
+            :class="[
+              'p-4 rounded-lg border-2 transition-all duration-200',
+              media.isRevised
+                ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800'
+                : theme.bgCardSolid + ' ' + theme.borderSecondary,
+            ]"
+          >
+            <div class="flex items-center gap-2 mb-2">
+              <div
+                :class="[
+                  'w-2 h-2 rounded-full',
+                  media.isRevised ? 'bg-purple-500' : 'bg-gray-400',
+                ]"
+              ></div>
+              <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
+                Revised
+              </div>
+            </div>
+            <div
+              :class="[
+                'text-lg font-bold',
+                media.isRevised ? 'text-purple-600 dark:text-purple-400' : theme.textPrimary,
+              ]"
+            >
+              {{ media.isRevised ? 'Yes' : 'No' }}
+            </div>
           </div>
         </div>
         <DetailField
-          v-if="media.revisionNumber"
+          v-if="isProofingContext && media.revisionNumber !== null && media.revisionNumber !== undefined"
           label="Revision Number"
-          :value="media.revisionNumber"
-          format="number"
+          :value="media.revisionNumber === 0 ? 'Original' : `Revision ${media.revisionNumber}`"
         />
+      </DetailSection>
+
+      <!-- Proofing Revision Information -->
+      <DetailSection v-if="isProofingContext && hasProofingRevisions" title="Revision Information" container-class="pt-4 border-t">
+        <DetailField
+          v-if="media.originalMediaId"
+          label="Original Media ID"
+          format="mono"
+        >
+          <div class="flex items-center gap-2">
+            <code
+              :class="[
+                'text-xs px-2 py-1 rounded',
+                theme.bgCardSolid,
+                theme.textPrimary,
+                'font-mono',
+              ]"
+            >
+              {{ media.originalMediaId }}
+            </code>
+            <button
+              class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              :class="theme.textSecondary"
+              @click="copyToClipboard(media.originalMediaId, 'Original Media ID')"
+              title="Copy Original Media ID"
+            >
+              <Copy class="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </DetailField>
+        <DetailField
+          v-if="media.revisionDescription"
+          label="Revision Description"
+        >
+          <p :class="theme.textPrimary" class="text-sm leading-relaxed">{{ media.revisionDescription }}</p>
+        </DetailField>
+        <DetailField
+          v-if="media.revisionTodos && Array.isArray(media.revisionTodos) && media.revisionTodos.length > 0"
+          label="Revision Todos"
+        >
+          <ul class="space-y-1">
+            <li
+              v-for="(todo, index) in media.revisionTodos"
+              :key="index"
+              :class="['text-sm', theme.textPrimary]"
+              class="flex items-start gap-2"
+            >
+              <span class="text-green-500 mt-0.5">✓</span>
+              <span>{{ todo }}</span>
+            </li>
+          </ul>
+        </DetailField>
+      </DetailSection>
+
+
+      <!-- Proofing Feedback/Comments -->
+      <DetailSection v-if="isProofingContext && hasFeedback" title="Feedback & Comments" container-class="pt-4 border-t">
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span :class="['text-sm font-medium', theme.textPrimary]">
+              Total Comments: {{ feedbackCount }}
+            </span>
+          </div>
+          <div
+            v-if="media.feedback && Array.isArray(media.feedback) && media.feedback.length > 0"
+            class="space-y-2 max-h-64 overflow-y-auto"
+          >
+            <div
+              v-for="(comment, index) in media.feedback"
+              :key="comment.id || index"
+              class="p-3 rounded-lg border"
+              :class="[theme.bgCardSolid, theme.borderSecondary]"
+            >
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span
+                      v-if="comment.createdBy?.name"
+                      :class="['text-xs font-medium', theme.textPrimary]"
+                    >
+                      {{ comment.createdBy.name }}
+                    </span>
+                    <span
+                      v-else-if="comment.createdBy?.email"
+                      :class="['text-xs font-medium', theme.textPrimary]"
+                    >
+                      {{ comment.createdBy.email }}
+                    </span>
+                    <span :class="['text-xs', theme.textSecondary]">
+                      {{ formatDate(comment.createdAt) }}
+                    </span>
+                  </div>
+                  <p :class="['text-sm', theme.textPrimary]">{{ comment.content }}</p>
+                  <div
+                    v-if="comment.replies && Array.isArray(comment.replies) && comment.replies.length > 0"
+                    class="mt-2 ml-4 pl-3 border-l-2"
+                    :class="theme.borderSecondary"
+                  >
+                    <div
+                      v-for="(reply, replyIndex) in comment.replies"
+                      :key="reply.id || replyIndex"
+                      class="py-1"
+                    >
+                      <div class="flex items-center gap-2 mb-1">
+                        <span
+                          v-if="reply.createdBy?.name"
+                          :class="['text-xs font-medium', theme.textPrimary]"
+                        >
+                          {{ reply.createdBy.name }}
+                        </span>
+                        <span
+                          v-else-if="reply.createdBy?.email"
+                          :class="['text-xs font-medium', theme.textPrimary]"
+                        >
+                          {{ reply.createdBy.email }}
+                        </span>
+                        <span :class="['text-xs', theme.textSecondary]">
+                          {{ formatDate(reply.createdAt) }}
+                        </span>
+                      </div>
+                      <p :class="['text-xs', theme.textPrimary]">{{ reply.content }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            v-else
+            class="text-center py-4"
+          >
+            <p :class="['text-sm', theme.textSecondary]">No comments yet</p>
+          </div>
+        </div>
       </DetailSection>
 
       <!-- Relationships Section - Enhanced -->
       <DetailSection v-if="hasRelationships" title="Relationships" container-class="pt-4 border-t">
+        <DetailField v-if="media.setId" label="Media Set ID" format="mono">
+          <div class="flex items-center gap-2">
+            <code
+              :class="[
+                'text-xs px-2 py-1 rounded',
+                theme.bgCardSolid,
+                theme.textPrimary,
+                'font-mono',
+              ]"
+            >
+              {{ media.setId }}
+            </code>
+            <button
+              class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              :class="theme.textSecondary"
+              @click="copyToClipboard(media.setId, 'Media Set ID')"
+              title="Copy Media Set ID"
+            >
+              <Copy class="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </DetailField>
         <DetailField v-if="media.collectionId" label="Collection ID" format="mono">
           <div class="flex items-center gap-2">
             <code
@@ -380,15 +637,14 @@
 
       <!-- Additional Properties Section -->
       <DetailSection
-        v-if="hasAdditionalFields"
+        v-if="additionalFields.length > 0"
         title="Additional Properties"
         container-class="pt-4 border-t"
       >
         <div class="space-y-2">
           <div
-            v-for="(value, key) in media"
+            v-for="(value, key) in additionalFields"
             :key="key"
-            v-if="!excludedKeys.includes(key) && value !== null && value !== undefined"
             class="py-2 border-b last:border-b-0"
             :class="theme.borderSecondary"
           >
@@ -481,7 +737,19 @@ const excludedKeys = [
   'phaseId',
   'isSelected',
   'isCompleted',
+  'completedAt',
+  'isRejected',
+  'rejectedAt',
+  'isReadyForRevision',
+  'isRevised',
   'revisionNumber',
+  'originalMediaId',
+  'original_media_uuid',
+  'revisionDescription',
+  'revisionTodos',
+  'feedback',
+  'order',
+  'selectedAt',
   'createdAt',
   'updatedAt',
   'url',
@@ -491,22 +759,91 @@ const excludedKeys = [
   'largeImageUrl',
   'thumbnailUrl',
   'file',
+  'setId',
+  'mediaSet',
 ]
 
 const hasRelationships = computed(() => {
   if (!props.media) return false
   return (
-    props.media.collectionId || props.media.projectId || props.media.phase || props.media.phaseId
+    props.media.setId ||
+    props.media.collectionId ||
+    props.media.projectId ||
+    props.media.phase ||
+    props.media.phaseId
+  )
+})
+
+const isSelectionContext = computed(() => {
+  if (!props.media) return false
+  // Check if we're in selection context - prioritize this over proofing
+  return props.media.isSelected !== undefined
+})
+
+const isProofingContext = computed(() => {
+  if (!props.media) return false
+  // Only show proofing context if NOT in selection context
+  if (isSelectionContext.value) return false
+  return (
+    props.media.isCompleted !== undefined ||
+    props.media.isRejected !== undefined ||
+    props.media.isReadyForRevision !== undefined ||
+    props.media.isRevised !== undefined ||
+    (props.media.revisionNumber !== null && props.media.revisionNumber !== undefined) ||
+    props.media.originalMediaId ||
+    props.media.feedback !== undefined
   )
 })
 
 const hasStatus = computed(() => {
   if (!props.media) return false
+  if (isSelectionContext.value) {
+    return props.media.isSelected !== undefined
+  }
+  if (isProofingContext.value) {
+    return (
+      props.media.isCompleted !== undefined ||
+      props.media.isRejected !== undefined ||
+      props.media.isReadyForRevision !== undefined ||
+      props.media.isRevised !== undefined ||
+      (props.media.revisionNumber !== null && props.media.revisionNumber !== undefined)
+    )
+  }
   return (
     props.media.isSelected !== undefined ||
     props.media.isCompleted !== undefined ||
-    props.media.revisionNumber
+    props.media.isRejected !== undefined ||
+    props.media.isReadyForRevision !== undefined ||
+    props.media.isRevised !== undefined ||
+    (props.media.revisionNumber !== null && props.media.revisionNumber !== undefined)
   )
+})
+
+const hasProofingRevisions = computed(() => {
+  if (!props.media) return false
+  return (
+    props.media.originalMediaId ||
+    props.media.original_media_uuid ||
+    props.media.revisionDescription ||
+    (props.media.revisionTodos && Array.isArray(props.media.revisionTodos) && props.media.revisionTodos.length > 0)
+  )
+})
+
+
+const hasFeedback = computed(() => {
+  if (!props.media) return false
+  return props.media.feedback !== undefined
+})
+
+const feedbackCount = computed(() => {
+  if (!props.media?.feedback || !Array.isArray(props.media.feedback)) return 0
+  let count = props.media.feedback.length
+  props.media.feedback.forEach(comment => {
+    if (comment.replies && Array.isArray(comment.replies)) {
+      count += comment.replies.length
+    }
+  })
+  return count
 })
 
 const hasUrls = computed(() => {
@@ -520,12 +857,22 @@ const hasUrls = computed(() => {
   )
 })
 
-const hasAdditionalFields = computed(() => {
-  if (!props.media) return false
-  return Object.keys(props.media).some(
-    key =>
-      !excludedKeys.includes(key) && props.media[key] !== null && props.media[key] !== undefined
-  )
+const additionalFields = computed(() => {
+  if (!props.media) return {}
+  const fields = {}
+  Object.keys(props.media).forEach(key => {
+    if (
+      !excludedKeys.includes(key) &&
+      props.media[key] !== null &&
+      props.media[key] !== undefined &&
+      typeof props.media[key] !== 'function' &&
+      !(Array.isArray(props.media[key]) && props.media[key].length === 0) &&
+      !(typeof props.media[key] === 'object' && Object.keys(props.media[key]).length === 0)
+    ) {
+      fields[key] = props.media[key]
+    }
+  })
+  return fields
 })
 
 const isOpen = computed({

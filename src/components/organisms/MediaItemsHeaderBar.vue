@@ -165,6 +165,7 @@
       </Button>
 
       <Button
+        v-if="!props.disableUpload"
         :disabled="props.isUploading"
         size="sm"
         class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
@@ -172,7 +173,7 @@
       >
         <Loader2 v-if="props.isUploading" class="h-4 w-4 mr-2 animate-spin" />
         <ImagePlus v-else class="h-4 w-4 mr-2" />
-        {{ props.isUploading ? 'Uploading...' : 'Upload Photos' }}
+        {{ props.isUploading ? 'Uploading...' : 'Upload Media' }}
       </Button>
     </div>
   </div>
@@ -219,6 +220,10 @@ const props = defineProps({
     type: String,
     default: 'selection', // 'selection' or 'proofing'
     validator: value => ['selection', 'proofing'].includes(value),
+  },
+  disableUpload: {
+    type: Boolean,
+    default: false,
   },
 })
 

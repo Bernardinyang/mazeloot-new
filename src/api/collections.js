@@ -1044,6 +1044,10 @@ export function useCollectionsApi() {
       try {
         const queryParams = new URLSearchParams()
 
+        if (projectId) {
+          queryParams.append('projectId', projectId)
+        }
+
         if (params.page) {
           queryParams.append('page', params.page.toString())
         }
@@ -1052,7 +1056,7 @@ export function useCollectionsApi() {
           queryParams.append('per_page', params.perPage.toString())
         }
 
-        const endpoint = `/v1/projects/${projectId}/collections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const endpoint = `/v1/collections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
         const response = await apiClient.get(endpoint)
 
         // The backend returns { data: { data: [...], pagination: {...} }, status: 200 }

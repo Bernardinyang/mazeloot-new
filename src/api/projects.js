@@ -441,6 +441,7 @@ export function useProjectsApi() {
         if (data.proofingSettings !== undefined) {
           payload.proofingSettings = {
             name: data.proofingSettings.name,
+            description: data.proofingSettings.description ?? null,
             maxRevisions: data.proofingSettings.maxRevisions || 5,
           }
         }

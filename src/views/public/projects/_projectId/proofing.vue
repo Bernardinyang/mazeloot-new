@@ -214,7 +214,7 @@
             <!-- Action Button (Bottom Right) -->
             <div class="flex-shrink-0">
               <Button
-                v-if="!isAuthenticatedOwner && proofing.status !== 'completed'"
+                v-if="!isAuthenticatedOwner && !isPreviewMode"
                 :class="[
                   proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                     ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20 shadow-lg hover:shadow-xl'
@@ -280,9 +280,34 @@
           <div
             class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6"
           >
-            <p class="text-sm text-green-800 dark:text-green-200">
-              Proofing has been completed. Thank you!
-            </p>
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <svg
+                  class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div>
+                  <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                    Proofing has been completed. Thank you!
+                  </p>
+                  <p
+                    v-if="getTotalMediaCount() > 0"
+                    class="text-xs text-green-700 dark:text-green-300 mt-1"
+                  >
+                    {{ getTotalApprovedCount() }} of {{ getTotalMediaCount() }} media items approved
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </template>
 
@@ -310,27 +335,75 @@
               "
               @click="handleSelectSet(set.id)"
             >
-              {{ set.name }}
-              <!-- Comment count badge -->
-              <span
-                v-if="getSetCommentCount(set.id) > 0"
-                :class="[
-                  'ml-2 px-2 py-0.5 rounded-full text-xs font-bold',
-                  selectedSetId === set.id
-                    ? ''
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
-                ]"
-                :style="
-                  selectedSetId === set.id
-                    ? {
-                        backgroundColor: `${proofingColor}20`,
-                        color: proofingColor,
-                      }
-                    : {}
-                "
-              >
-                {{ getSetCommentCount(set.id) }} comments
-              </span>
+              <div class="flex items-center gap-2">
+                <span>{{ set.name }}</span>
+                <!-- Combined stats badge -->
+                <span
+                  v-if="getSetApprovedCount(set.id) > 0 || getSetCommentCount(set.id) > 0"
+                  :class="[
+                    'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium',
+                    selectedSetId === set.id
+                      ? 'bg-opacity-20'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400',
+                  ]"
+                  :style="
+                    selectedSetId === set.id
+                      ? {
+                          backgroundColor: `${proofingColor}20`,
+                          color: proofingColor,
+                        }
+                      : {}
+                  "
+                >
+                  <!-- Approved count -->
+                  <span
+                    v-if="getSetApprovedCount(set.id) > 0"
+                    class="inline-flex items-center gap-1"
+                  >
+                    <svg
+                      class="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span>{{ getSetApprovedCount(set.id) }} of {{ getSetMediaCount(set.id) }}</span>
+                  </span>
+                  <!-- Separator -->
+                  <span
+                    v-if="getSetApprovedCount(set.id) > 0 && getSetCommentCount(set.id) > 0"
+                    class="opacity-50"
+                  >
+                    •
+                  </span>
+                  <!-- Comment count -->
+                  <span
+                    v-if="getSetCommentCount(set.id) > 0"
+                    class="inline-flex items-center gap-1"
+                  >
+                    <svg
+                      class="w-3.5 h-3.5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    <span>{{ getSetCommentCount(set.id) }}</span>
+                  </span>
+                </span>
+              </div>
             </button>
           </div>
         </div>
@@ -339,17 +412,132 @@
         <div v-if="currentMediaItems.length > 0" class="space-y-6">
           <div class="flex items-center justify-between flex-wrap gap-4">
             <div class="flex items-center gap-4 flex-wrap">
-              <p class="text-gray-700 dark:text-gray-300 font-medium">
-                <span
-                  >{{ currentMediaItems.length }} media item{{
+              <div class="flex items-center gap-4 flex-wrap">
+                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                  {{ currentMediaItems.length }} media item{{
                     currentMediaItems.length !== 1 ? 's' : ''
-                  }}</span
+                  }}
+                </p>
+                <!-- Combined stats -->
+                <div
+                  v-if="getTotalApprovedCount() > 0 || getTotalCommentCount() > 0"
+                  class="flex items-center gap-3 text-sm"
                 >
-                <span v-if="getTotalCommentCount() > 0" class="text-gray-500 dark:text-gray-400">
-                  <span class="mx-2">•</span>
-                  {{ getTotalCommentCount() }} comment{{ getTotalCommentCount() !== 1 ? 's' : '' }}
-                </span>
-              </p>
+                  <!-- Approved count -->
+                  <span
+                    v-if="getTotalApprovedCount() > 0"
+                    class="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    <span>{{ getTotalApprovedCount() }} of {{ getTotalMediaCount() }} approved</span>
+                  </span>
+                  <!-- Comment count -->
+                  <span
+                    v-if="getTotalCommentCount() > 0"
+                    class="inline-flex items-center gap-1.5 text-gray-600 dark:text-gray-400"
+                  >
+                    <svg
+                      class="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                      />
+                    </svg>
+                    <span>{{ getTotalCommentCount() }} comment{{ getTotalCommentCount() !== 1 ? 's' : '' }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Complete Proofing Button -->
+          <div
+            v-if="
+              allMediaApproved &&
+              proofing?.status !== 'completed' &&
+              !isAuthenticatedOwner &&
+              !isPreviewMode &&
+              guestToken
+            "
+            class="mb-6"
+          >
+            <div
+              class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
+            >
+              <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                  <div class="flex-shrink-0">
+                    <svg
+                      class="w-6 h-6 text-green-600 dark:text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                      All media items approved!
+                    </p>
+                    <p class="text-xs text-green-700 dark:text-green-300 mt-0.5">
+                      You can now complete this proofing.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  :disabled="isCompletingProofing"
+                  class="bg-green-600 hover:bg-green-700 text-white border-green-700"
+                  @click="handleCompleteProofing"
+                >
+                  <span v-if="!isCompletingProofing">Complete Proofing</span>
+                  <span v-else class="flex items-center gap-2">
+                    <svg
+                      class="animate-spin h-4 w-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      />
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
+                    </svg>
+                    Completing...
+                  </span>
+                </Button>
+              </div>
             </div>
           </div>
 
@@ -786,6 +974,7 @@ const passwordInput = ref('')
 const isVerifyingPassword = ref(false)
 const passwordError = ref('')
 const guestToken = ref(null)
+const isCompletingProofing = ref(false)
 const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
 const openWithComments = ref(false)
@@ -878,7 +1067,9 @@ const filteredMediaItems = computed(() => {
 
 const currentMediaItems = computed(() => {
   if (!selectedSetId.value) return []
-  return filteredMediaItems.value.filter(item => item.setId === selectedSetId.value)
+  return filteredMediaItems.value.filter(
+    item => (item.setId || item.media_set_uuid) === selectedSetId.value
+  )
 })
 
 const getItemCommentCount = item => {
@@ -907,13 +1098,58 @@ const getItemCommentCount = item => {
 }
 
 const getSetCommentCount = setId => {
-  const setItems = mediaItems.value.filter(item => item.setId === setId)
+  const setItems = mediaItems.value.filter(
+    item => (item.setId || item.media_set_uuid) === setId
+  )
   return setItems.reduce((total, item) => total + getItemCommentCount(item), 0)
+}
+
+// Get approved count for a set
+const getSetApprovedCount = setId => {
+  const setItems = filteredMediaItems.value.filter(
+    item => (item.setId || item.media_set_uuid) === setId
+  )
+  return setItems.filter(item => {
+    const isCompleted = item.isCompleted || item.is_completed
+    return isCompleted === true || isCompleted === 1 || isCompleted === '1'
+  }).length
+}
+
+// Get total media count for a set
+const getSetMediaCount = setId => {
+  const setItems = filteredMediaItems.value.filter(
+    item => (item.setId || item.media_set_uuid) === setId
+  )
+  return setItems.length
 }
 
 const getTotalCommentCount = () => {
   return mediaItems.value.reduce((total, item) => total + getItemCommentCount(item), 0)
 }
+
+// Get total approved count from media items
+const getTotalApprovedCount = () => {
+  return filteredMediaItems.value.filter(item => {
+    const isCompleted = item.isCompleted || item.is_completed
+    return isCompleted === true || isCompleted === 1 || isCompleted === '1'
+  }).length
+}
+
+// Get total media count
+const getTotalMediaCount = () => {
+  return filteredMediaItems.value.length
+}
+
+// Check if all media items are approved
+const allMediaApproved = computed(() => {
+  // Use filteredMediaItems to only count visible media (latest revisions)
+  const items = filteredMediaItems.value
+  if (!items || items.length === 0) return false
+  return items.every(item => {
+    const isCompleted = item.isCompleted || item.is_completed
+    return isCompleted === true || isCompleted === 1 || isCompleted === '1'
+  })
+})
 const handleCommentAdded = ({ mediaId, comment, allComments }) => {
   updateMediaItemFeedback(mediaId, allComments)
 }
@@ -933,23 +1169,53 @@ const handleMediaApproved = updatedMedia => {
   if (!updatedMedia || !updatedMedia.id) return
 
   const mediaId = updatedMedia.id || updatedMedia.uuid
+  const mediaItem = mediaItems.value.find(m => (m.id || m.uuid) === mediaId)
+  if (!mediaItem) return
+
+  const setId = mediaItem.setId || mediaItem.media_set_uuid
 
   // Update in mediaItems
   const mediaIndex = mediaItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
   if (mediaIndex !== -1) {
+    const wasCompleted = mediaItems.value[mediaIndex].isCompleted || mediaItems.value[mediaIndex].is_completed
     mediaItems.value[mediaIndex] = {
       ...mediaItems.value[mediaIndex],
       isCompleted: true,
       is_completed: true,
     }
+
+    // Only update counts if media wasn't already completed
+    if (!wasCompleted) {
+      // Update set's approvedCount
+      if (setId) {
+        const setIndex = mediaSets.value.findIndex(s => s.id === setId)
+        if (setIndex !== -1) {
+          const currentApprovedCount = mediaSets.value[setIndex].approvedCount || 0
+          mediaSets.value[setIndex] = {
+            ...mediaSets.value[setIndex],
+            approvedCount: currentApprovedCount + 1,
+          }
+        }
+      }
+
+      // Update proofing's completedCount
+      if (proofing.value) {
+        const currentCompletedCount = proofing.value.completedCount || 0
+        proofing.value = {
+          ...proofing.value,
+          completedCount: currentCompletedCount + 1,
+        }
+      }
+    }
   }
 
-  // Update in sets if media is in a set
+  // Update in sets if media is in a set (for nested structure)
   if (proofing.value?.sets) {
     for (const set of proofing.value.sets) {
       if (set.media && Array.isArray(set.media)) {
         const setMediaIndex = set.media.findIndex(m => (m.id || m.uuid) === mediaId)
         if (setMediaIndex !== -1) {
+          const wasCompleted = set.media[setMediaIndex].isCompleted || set.media[setMediaIndex].is_completed
           set.media[setMediaIndex] = {
             ...set.media[setMediaIndex],
             isCompleted: true,
@@ -958,6 +1224,44 @@ const handleMediaApproved = updatedMedia => {
         }
       }
     }
+  }
+}
+
+// Handle complete proofing
+const handleCompleteProofing = async () => {
+  if (!proofing.value || !guestToken.value || isCompletingProofing.value) return
+
+  const proofingId = proofing.value.id || proofing.value.uuid
+  if (!proofingId) {
+    toast.error('Missing proofing information', {
+      description: 'Unable to complete proofing. Please try again.',
+    })
+    return
+  }
+
+  isCompletingProofing.value = true
+
+  try {
+    const completedProofing = await proofingApi.completePublicProofing(proofingId, guestToken.value)
+
+    if (completedProofing) {
+      proofing.value = {
+        ...proofing.value,
+        ...completedProofing,
+        status: 'completed',
+      }
+
+      toast.success('Proofing completed', {
+        description: 'Thank you for completing the proofing!',
+      })
+    }
+  } catch (error) {
+    console.error('Failed to complete proofing', error)
+    toast.error('Failed to complete proofing', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isCompletingProofing.value = false
   }
 }
 

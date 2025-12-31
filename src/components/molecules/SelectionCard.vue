@@ -38,8 +38,21 @@
 
     <!-- Image/Icon Container -->
     <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
+      <!-- Project Badge -->
+      <div
+        v-if="selection?.project?.name || selection?.projectId"
+        class="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+      >
+        <div class="flex items-center gap-1.5">
+          <FolderKanban class="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-1 max-w-[120px]">
+            {{ selection?.project?.name || 'Project' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Starred Badge and Lock Icon -->
-      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+      <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
         <div
           v-if="selection?.isStarred || selection?.starred"
           class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
@@ -213,7 +226,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { CheckSquare, Lock, MoreVertical, Star } from 'lucide-vue-next'
+import { CheckSquare, Lock, MoreVertical, Star, FolderKanban } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,

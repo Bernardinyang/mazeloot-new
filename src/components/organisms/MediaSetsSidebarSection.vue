@@ -7,7 +7,7 @@
           'bg-teal-500 hover:bg-teal-600 text-white border-teal-600',
           'hover:shadow-md hover:scale-105 active:scale-95',
         ]"
-        :disabled="props.isSavingSets"
+        :disabled="props.isSavingSets || props.disableAddSet"
         class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 shadow-sm border disabled:opacity-50 disabled:cursor-not-allowed"
         @click="emit('add-set')"
       >
@@ -274,6 +274,10 @@ const props = defineProps({
   selectionStatus: {
     type: String,
     default: null,
+  },
+  disableAddSet: {
+    type: Boolean,
+    default: false,
   },
   isCopyingFilenames: {
     type: Boolean,

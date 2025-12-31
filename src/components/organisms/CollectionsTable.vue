@@ -1,120 +1,297 @@
 <template>
-  <div class="border rounded-lg overflow-hidden" :class="[theme.bgCard, theme.borderCard]">
-    <!-- Table Header -->
-    <div
-      v-if="!loading && items.length > 0"
-      class="flex items-center gap-4 px-4 py-3 border-b font-semibold text-xs uppercase tracking-wider"
-      :class="[theme.borderSecondary, theme.textTertiary, theme.bgCardSolid]"
-    >
-      <div v-if="showCheckbox" class="w-4"></div>
-      <!-- Checkbox column -->
-      <div v-if="showCheckbox" class="w-10"></div>
-      <!-- Icon column -->
-      <div class="flex-1">NAME</div>
-      <div v-if="showPasswordAndPin" class="w-40 flex items-center gap-1">
+  <DataTable
+    :columns="columns"
+    :empty-action-label="emptyActionLabel"
+    :empty-icon="emptyIcon"
+    :empty-message="emptyMessage"
+    :getId="getId"
+    :items="items"
+    :loading="loading"
+    :selected-items="selectedItems"
+    @empty-action="$emit('empty-action')"
+    @row-click="handleRowClick"
+  >
+    <!-- Checkbox Column -->
+    <template v-if="showCheckbox" #cell-checkbox="{ item }">
+      <input
+        type="checkbox"
+        :checked="selectedItems.includes(getItemId(item))"
+        :disabled="getItemIsFolder(item)"
+        :class="[
+          'h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500',
+          getItemIsFolder(item) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+        ]"
+        @change="handleSelectItem(getItemId(item), $event.target?.checked ?? false)"
+        @click.stop
+      />
+    </template>
+
+    <!-- Icon Column -->
+    <template #cell-icon="{ item }">
+      <div :class="theme.bgCardSolid" class="w-10 h-10 rounded overflow-hidden">
+        <!-- Preview Grid -->
+        <div
+          v-if="getItemPreviewImages(item) && getItemPreviewImages(item).length > 0"
+          class="w-full h-full grid grid-cols-2 grid-rows-2 gap-px bg-gray-300 dark:bg-gray-600"
+        >
+          <div
+            v-for="(preview, index) in getPreviewGrid(getItemPreviewImages(item))"
+            :key="index"
+            class="relative bg-gray-200 dark:bg-gray-700 overflow-hidden"
+          >
+            <img
+              v-if="preview"
+              :alt="`Preview ${index + 1}`"
+              :src="preview"
+              class="w-full h-full object-cover"
+              loading="lazy"
+              @error="handleImageError($event)"
+            />
+          </div>
+        </div>
+        <!-- Single Image -->
+        <img
+          v-else-if="getItemImage(item)"
+          :alt="getItemTitle(item)"
+          :src="getItemImage(item)"
+          class="w-full h-full object-cover"
+          loading="lazy"
+          @error="handleImageError($event)"
+        />
+        <!-- Icon -->
+        <div
+          v-else
+          :class="theme.bgCardSolid"
+          class="w-full h-full flex items-center justify-center"
+        >
+          <component
+            :is="getItemIcon(item) || Folder"
+            :class="theme.textTertiary"
+            class="h-5 w-5"
+          />
+        </div>
+      </div>
+    </template>
+
+    <!-- Name Column -->
+    <template #cell-name="{ item }">
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <component
+            v-if="getItemIsFolder(item)"
+            :is="getItemIcon(item) || Folder"
+            class="h-4 w-4 shrink-0"
+            :class="theme.textSecondary"
+          />
+          <h3 :class="theme.textPrimary" class="font-medium text-sm truncate cursor-pointer">
+            {{ getItemTitle(item) }}
+          </h3>
+          <Star
+            v-if="getItemStarred(item) && getItemShowStar(item)"
+            class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400"
+          />
+          <Lock
+            v-if="getItemPassword(item) && showPasswordComputed"
+            :class="theme.textSecondary"
+            class="h-3.5 w-3.5 shrink-0"
+          />
+          <StatusBadge v-if="getItemStatus(item)" :status="getItemStatus(item)" />
+        </div>
+        <p
+          v-if="getItemSubtitle(item)"
+          :class="theme.textSecondary"
+          class="text-xs mt-0.5 truncate"
+        >
+          {{ getItemSubtitle(item) }}
+        </p>
+      </div>
+    </template>
+
+    <!-- Password Column -->
+    <template v-if="showPasswordComputed" #cell-password="{ item }">
+      <PasswordCell v-if="getItemPassword(item)" :password="getItemPassword(item)" />
+      <span v-else :class="theme.textTertiary" class="text-xs leading-none">-</span>
+    </template>
+
+    <!-- Download PIN Column -->
+    <template v-if="showDownloadPinComputed" #cell-downloadPin="{ item }">
+      <DownloadPinCell v-if="getItemDownloadPin(item)" :pin="getItemDownloadPin(item)" />
+      <span v-else :class="theme.textTertiary" class="text-xs leading-none">-</span>
+    </template>
+
+    <!-- Date Created Column -->
+    <template #cell-dateCreated="{ value }">
+      <span :class="theme.textSecondary" class="text-xs leading-none">{{ value }}</span>
+    </template>
+
+    <!-- Actions Column -->
+    <template #cell-actions="{ item }">
+      <div class="flex items-center gap-1">
+        <button
+          v-if="showLink"
+          class="h-8 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          title="Copy link"
+          type="button"
+          @click.stop="handleCopyLink(item)"
+        >
+          <Link :class="theme.textSecondary" class="h-4 w-4" />
+        </button>
+        <button
+          v-if="getItemShowStar(item)"
+          :title="getItemStarred(item) ? 'Unstar' : 'Star'"
+          class="h-8 w-8 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          type="button"
+          @click.stop="$emit('star-click', item)"
+        >
+          <Star
+            :class="[
+              'h-4 w-4',
+              getItemStarred(item) ? 'fill-yellow-400 text-yellow-400' : theme.textSecondary,
+            ]"
+          />
+        </button>
+        <div
+          :class="[
+            'transition-opacity duration-200',
+            getDropdownOpenState(item) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+          ]"
+          @click.stop
+        >
+          <DropdownMenu
+            :open="getDropdownOpenState(item)"
+            @update:open="setDropdownOpenState(item, $event)"
+          >
+            <DropdownMenuTrigger as-child>
+              <button
+                class="h-8 w-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+                type="button"
+                @click.stop
+              >
+                <MoreVertical :class="theme.textSecondary" class="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
+              <DropdownMenuItem
+                v-if="showViewDetails"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('view-details', item)"
+              >
+                <Info class="mr-2 h-4 w-4" />
+                View Details
+              </DropdownMenuItem>
+              <DropdownMenuSeparator v-if="showViewDetails" :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('publish', item)"
+              >
+                <Globe class="mr-2 h-4 w-4" />
+                Publish
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('preview', item)"
+              >
+                <Eye class="mr-2 h-4 w-4" />
+                Preview
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('edit', item)"
+              >
+                <Pencil class="mr-2 h-4 w-4" />
+                Quick edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                v-if="showMoveTo"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('move-to', item)"
+              >
+                <ArrowRightToLine class="mr-2 h-4 w-4" />
+                Move to
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('duplicate', item)"
+              >
+                <Copy class="mr-2 h-4 w-4" />
+                Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+              <DropdownMenuItem
+                :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+                @click.stop="$emit('delete', item)"
+              >
+                <Trash2 class="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+    </template>
+
+    <!-- Password Header -->
+    <template v-if="showPasswordComputed" #header-password>
+      <div class="flex items-center gap-1">
         <span>PASSWORD</span>
-        <Info class="h-3 w-3" :class="theme.textTertiary" />
+        <Info :class="theme.textTertiary" class="h-3 w-3" />
       </div>
-      <div v-if="showPasswordAndPin" class="w-40 flex items-center gap-1">
+    </template>
+
+    <!-- Download PIN Header -->
+    <template v-if="showDownloadPinComputed" #header-downloadPin>
+      <div class="flex items-center gap-1">
         <span>DOWNLOAD PIN</span>
-        <Info class="h-3 w-3" :class="theme.textTertiary" />
+        <Info :class="theme.textTertiary" class="h-3 w-3" />
       </div>
-      <div class="w-32">DATE CREATED</div>
-      <div class="w-24"></div>
-      <!-- Actions column -->
-    </div>
-
-    <!-- Loading State -->
-    <div v-if="loading" class="divide-y" :class="theme.borderSecondary">
-      <div v-for="i in 8" :key="i" class="flex items-center gap-4 px-4 py-3 animate-pulse">
-        <!-- Checkbox skeleton -->
-        <div v-if="showCheckbox" :class="['h-4 w-4 rounded', theme.bgSkeleton]"></div>
-        <!-- Icon skeleton -->
-        <div :class="['h-10 w-10 rounded', theme.bgSkeleton]"></div>
-        <!-- Name skeleton -->
-        <div class="flex-1 space-y-2">
-          <div :class="['h-4 w-48 rounded', theme.bgSkeleton]"></div>
-          <div :class="['h-3 w-32 rounded', theme.bgSkeleton]"></div>
-        </div>
-        <!-- Password skeleton -->
-        <div v-if="showPasswordAndPin" class="w-32 flex items-center gap-1">
-          <div :class="['h-3 w-20 rounded', theme.bgSkeleton]"></div>
-        </div>
-        <!-- Download PIN skeleton -->
-        <div v-if="showPasswordAndPin" class="w-32 flex items-center gap-1">
-          <div :class="['h-3 w-16 rounded', theme.bgSkeleton]"></div>
-        </div>
-        <!-- Date skeleton -->
-        <div class="w-32">
-          <div :class="['h-3 w-24 rounded', theme.bgSkeleton]"></div>
-        </div>
-        <!-- Actions skeleton -->
-        <div class="w-24 flex items-center justify-end gap-1">
-          <div :class="['h-8 w-8 rounded', theme.bgSkeleton]"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Empty State -->
-    <div v-else-if="items.length === 0" class="flex items-center justify-center py-16">
-      <slot name="empty">
-        <EmptyState
-          :message="emptyMessage"
-          :action-label="emptyActionLabel"
-          :icon="emptyIcon"
-          @action="$emit('empty-action')"
-        />
-      </slot>
-    </div>
-
-    <!-- List Items -->
-    <div v-else>
-      <slot name="items" :items="items">
-        <CollectionListItem
-          v-for="item in items"
-          :key="getItemId(item)"
-          :caption-text="getItemTitle(item)"
-          :subtitle="getItemSubtitle(item)"
-          :image-src="getItemImage(item)"
-          :preview-images="getItemPreviewImages(item)"
-          :folder-icon="getItemIcon(item)"
-          :status="getItemStatus(item)"
-          :password="showPasswordAndPin ? getItemPassword(item) : null"
-          :download-pin="showPasswordAndPin ? getItemDownloadPin(item) : null"
-          :date-created="getItemDateCreated(item)"
-          :show-password-and-pin="showPasswordAndPin"
-          :show-checkbox="showCheckbox"
-          :is-selected="selectedItems.includes(getItemId(item))"
-          :is-starred="getItemStarred(item)"
-          :show-star="getItemShowStar(item)"
-          :is-folder="getItemIsFolder(item)"
-          :show-move-to="showMoveTo"
-          :show-view-details="showViewDetails"
-          @select="handleSelectItem(getItemId(item), $event)"
-          @star-click="$emit('star-click', item)"
-          @link-click="$emit('link-click', item)"
-          @copy-pin="$emit('copy-pin', item)"
-          @click="$emit('item-click', item)"
-          @edit="$emit('edit', item)"
-          @duplicate="$emit('duplicate', item)"
-          @delete="$emit('delete', item)"
-          @publish="$emit('publish', item)"
-          @preview="$emit('preview', item)"
-          @view-details="$emit('view-details', item)"
-          @move-to="$emit('move-to', item)"
-        />
-      </slot>
-    </div>
-  </div>
+    </template>
+  </DataTable>
 </template>
 
 <script setup>
+import { computed, reactive } from 'vue'
+import {
+  ArrowRightToLine,
+  Copy,
+  Eye,
+  Folder,
+  Globe,
+  Info,
+  Link,
+  Lock,
+  MoreVertical,
+  Pencil,
+  Star,
+  Trash2,
+} from 'lucide-vue-next'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/shadcn/dropdown-menu'
+import DataTable from '@/components/organisms/DataTable.vue'
+import StatusBadge from '@/components/atoms/StatusBadge.vue'
+import PasswordCell from '@/components/molecules/PasswordCell.vue'
+import DownloadPinCell from '@/components/molecules/DownloadPinCell.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import CollectionListItem from '@/components/molecules/CollectionListItem.vue'
-import EmptyState from '@/components/molecules/EmptyState.vue'
-import { Folder, Info } from 'lucide-vue-next'
+import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
+
+// Track dropdown open state per item
+const dropdownOpenStates = reactive({})
+
+const getDropdownOpenState = item => {
+  const id = getId(item)
+  return dropdownOpenStates[id] || false
+}
+
+const setDropdownOpenState = (item, value) => {
+  const id = getId(item)
+  dropdownOpenStates[id] = value
+}
 
 const props = defineProps({
   items: {
@@ -159,7 +336,6 @@ const props = defineProps({
       const parts = []
       if (item.itemCount !== undefined) {
         const count = item.itemCount
-        // Folders count collections, regular collections count items
         if (item.isFolder) {
           const labelText = count === 1 ? 'collection' : 'collections'
           parts.push(`${count} ${labelText}`)
@@ -234,11 +410,23 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  showPasswordAndPin: {
+  showPassword: {
     type: Boolean,
     default: true,
   },
+  showDownloadPin: {
+    type: Boolean,
+    default: true,
+  },
+  showPasswordAndPin: {
+    type: Boolean,
+    default: undefined,
+  },
   showCheckbox: {
+    type: Boolean,
+    default: true,
+  },
+  showLink: {
     type: Boolean,
     default: true,
   },
@@ -260,14 +448,52 @@ const emit = defineEmits([
   'move-to',
 ])
 
+const handleRowClick = (item, index) => {
+  emit('item-click', item)
+}
+
 const handleSelectItem = (id, checked) => {
   emit('select', id, checked)
 }
 
+const handleCopyLink = async item => {
+  const link = `${window.location.origin}/collections/${getItemTitle(item)
+    .toLowerCase()
+    .replace(/\s+/g, '-')}`
+
+  try {
+    await navigator.clipboard.writeText(link)
+    toast.success('Link copied', {
+      description: 'Collection link has been copied to clipboard.',
+      duration: 3000,
+    })
+    emit('link-click', item)
+  } catch (error) {
+    toast.error('Failed to copy', {
+      description: 'Could not copy link to clipboard. Please try again.',
+      duration: 3000,
+    })
+  }
+}
+
+// Computed properties for backward compatibility
+const showPasswordComputed = computed(() => {
+  if (props.showPasswordAndPin !== undefined) {
+    return props.showPasswordAndPin
+  }
+  return props.showPassword
+})
+
+const showDownloadPinComputed = computed(() => {
+  if (props.showPasswordAndPin !== undefined) {
+    return props.showPasswordAndPin
+  }
+  return props.showDownloadPin
+})
+
 // Helper function to get subtitle with separator
 const getItemSubtitle = item => {
   const subtitle = props.getSubtitle(item)
-  // Replace the default separator with the prop separator if different
   const defaultSeparator = ' • '
   const customSeparator = ` ${props.subtitleSeparator} `
   if (props.subtitleSeparator !== '•' && subtitle.includes(defaultSeparator)) {
@@ -277,6 +503,7 @@ const getItemSubtitle = item => {
 }
 
 // Helper functions using props or defaults
+const getId = item => props.getId(item)
 const getItemId = item => props.getId(item)
 const getItemTitle = item => props.getTitle(item)
 const getItemImage = item => props.getImage(item)
@@ -289,4 +516,87 @@ const getItemDateCreated = item => props.getDateCreated(item)
 const getItemStarred = item => props.getStarred(item)
 const getItemShowStar = item => props.getShowStar(item)
 const getItemIsFolder = item => props.getIsFolder(item)
+
+// Define columns
+const columns = computed(() => {
+  const cols = []
+  if (props.showCheckbox) {
+    cols.push({
+      key: 'checkbox',
+      label: '',
+      width: 'w-4',
+      slot: 'checkbox',
+    })
+  }
+  cols.push(
+    {
+      key: 'icon',
+      label: '',
+      width: 'w-10',
+      slot: 'icon',
+    },
+    {
+      key: 'name',
+      label: 'NAME',
+      width: 'flex-1',
+      slot: 'name',
+    }
+  )
+  if (showPasswordComputed.value) {
+    cols.push({
+      key: 'password',
+      label: 'PASSWORD',
+      width: 'w-40',
+      slot: 'password',
+      dataSelector: item => props.getPassword(item),
+    })
+  }
+  if (showDownloadPinComputed.value) {
+    cols.push({
+      key: 'downloadPin',
+      label: 'DOWNLOAD PIN',
+      width: 'w-40',
+      slot: 'downloadPin',
+      dataSelector: item => props.getDownloadPin(item),
+    })
+  }
+  cols.push({
+    key: 'dateCreated',
+    label: 'DATE CREATED',
+    width: 'w-32',
+    slot: 'dateCreated',
+    format: 'date',
+    dataSelector: item => props.getDateCreated(item),
+  })
+  cols.push({
+    key: 'actions',
+    label: '',
+    width: 'w-24',
+    slot: 'actions',
+  })
+  return cols
+})
+
+// Generate preview grid (always 4 cells)
+const getPreviewGrid = previewImages => {
+  if (!previewImages || previewImages.length === 0) {
+    return [null, null, null, null]
+  }
+  const grid = [...previewImages]
+  while (grid.length < 4) {
+    grid.push(null)
+  }
+  return grid.slice(0, 4)
+}
+
+// Fallback placeholder image (SVG data URL)
+const placeholderImage =
+  'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
+
+const handleImageError = event => {
+  const img = event.target
+  if (img.src !== placeholderImage) {
+    img.src = placeholderImage
+  }
+}
 </script>

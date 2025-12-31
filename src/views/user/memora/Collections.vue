@@ -15,6 +15,7 @@
         :sort-by="sortBy"
         :view-mode="viewMode"
         :sort-options="sortOptions"
+        :is-searching="isSearching"
         sort-label="Sort collections by"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
@@ -445,6 +446,7 @@ const { handleError } = useErrorHandler()
 const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
 const sortOptions = COLLECTION_SORT_OPTIONS
 
 // Subtitle separator (can be customized)
@@ -943,11 +945,16 @@ const handleCancelMove = () => {
 }
 
 const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
+  }
+  isSearching.value = true
   try {
     await galleryStore.fetchCollections({
-      search: searchQuery.value,
+      search: searchQuery.value.trim(),
       sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      parentId: null,
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
@@ -955,16 +962,19 @@ const handleSearch = async () => {
         fallbackMessage: 'Failed to search collections.',
       })
     }
+  } finally {
+    isSearching.value = false
   }
 }
 
 const handleClearSearch = async () => {
   searchQuery.value = ''
+  isSearching.value = true
   try {
     await galleryStore.fetchCollections({
       search: '',
       sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
+      parentId: null,
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
@@ -972,6 +982,8 @@ const handleClearSearch = async () => {
         fallbackMessage: 'Failed to load collections.',
       })
     }
+  } finally {
+    isSearching.value = false
   }
 }
 

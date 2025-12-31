@@ -19,6 +19,7 @@
             :is-sidebar-collapsed="isSidebarCollapsed"
             :proofing-id="proofing?.id || ''"
             :project-id="proofing?.projectId || null"
+            :disable-add-set="proofing?.status === 'completed'"
           />
         </ProofingSidebar>
 

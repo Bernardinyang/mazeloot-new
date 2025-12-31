@@ -27,6 +27,7 @@
         class="hidden"
         multiple
         type="file"
+        :disabled="selection?.status === 'completed'"
         @change="handleFileSelect"
       />
 
@@ -79,6 +80,7 @@
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
             :selection-status="selection?.status"
+            :disable-upload="selection?.status === 'completed'"
             :on-copy-selected-filenames-in-set="
               () => handleCopySelectedFilenamesInSet(selectedSetId)
             "
@@ -92,6 +94,7 @@
             :is-all-selected="selectedMediaIds.size === sortedMediaItems.length"
             :is-favorite-loading="isBulkFavoriteLoading"
             :selected-count="selectedMediaIds.size"
+            :disable-actions="selection?.status === 'completed'"
             @delete="handleBulkDelete"
             @edit="handleBulkEdit"
             @favorite="handleBulkFavorite"
@@ -156,6 +159,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="selection?.status"
+                :show-management-actions="selection?.status !== 'completed'"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -185,6 +189,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="selection?.status"
+                :show-management-actions="selection?.status !== 'completed'"
                 :subtitle="formatMediaDate(item.createdAt)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
@@ -2537,10 +2542,22 @@ const getDeleteModalWarning = () => {
 }
 
 const handleAddMedia = () => {
+  if (selection.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed selection.',
+    })
+    return
+  }
   triggerFileInputClick(fileInputRef.value)
 }
 
 const handleBrowseFiles = () => {
+  if (selection.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed selection.',
+    })
+    return
+  }
   triggerFileInputClick(fileInputRef.value)
 }
 
@@ -2618,6 +2635,14 @@ const handleFileSelect = async event => {
   const files = Array.from(event.target.files || [])
   if (files.length === 0) return
 
+  if (selection.value?.status === 'completed') {
+    event.target.value = ''
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed selection.',
+    })
+    return
+  }
+
   // Prevent multiple simultaneous uploads or file processing
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
@@ -2654,6 +2679,9 @@ const handleFileSelect = async event => {
 }
 
 const handleDragOver = e => {
+  if (selection.value?.status === 'completed') {
+    return
+  }
   // Only show drag overlay if files are being dragged (not internal drag operations)
   if (e.dataTransfer?.types?.includes('Files')) {
     e.preventDefault()
@@ -2673,6 +2701,13 @@ const handleDragLeave = e => {
 const handleDrop = async e => {
   e.preventDefault()
   isDragging.value = false
+
+  if (selection.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed selection.',
+    })
+    return
+  }
 
   const files = e.dataTransfer?.files
   if (!files || files.length === 0) return

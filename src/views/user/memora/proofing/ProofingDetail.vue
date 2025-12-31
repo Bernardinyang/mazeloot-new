@@ -19,6 +19,7 @@
         class="hidden"
         multiple
         type="file"
+        :disabled="proofing?.status === 'completed'"
         @change="handleFileSelect"
       />
 
@@ -72,6 +73,7 @@
             :total-items="sortedMediaItems.length"
             :selection-status="proofing?.status"
             store-type="proofing"
+            :disable-upload="proofing?.status === 'completed'"
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
@@ -82,6 +84,7 @@
             :is-all-selected="selectedMediaIds.size === sortedMediaItems.length"
             :is-favorite-loading="isBulkFavoriteLoading"
             :selected-count="selectedMediaIds.size"
+            :disable-actions="proofing?.status === 'completed'"
             @delete="handleBulkDelete"
             @edit="handleBulkEdit"
             @favorite="handleBulkFavorite"
@@ -146,6 +149,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="proofing?.status"
+                :show-management-actions="proofing?.status !== 'completed'"
                 :comment-count="getItemCommentCount(item)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
@@ -185,6 +189,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="proofing?.status"
+                :show-management-actions="proofing?.status !== 'completed'"
                 :subtitle="formatMediaDate(item.createdAt)"
                 :comment-count="getItemCommentCount(item)"
                 @delete="handleDeleteMedia(item)"
@@ -2832,10 +2837,22 @@ const getDeleteModalWarning = () => {
 }
 
 const handleAddMedia = () => {
+  if (proofing.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed proofing.',
+    })
+    return
+  }
   triggerFileInputClick(fileInputRef.value)
 }
 
 const handleBrowseFiles = () => {
+  if (proofing.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed proofing.',
+    })
+    return
+  }
   triggerFileInputClick(fileInputRef.value)
 }
 
@@ -2907,6 +2924,14 @@ const handleFileSelect = async event => {
   const files = Array.from(event.target.files || [])
   if (files.length === 0) return
 
+  if (proofing.value?.status === 'completed') {
+    event.target.value = ''
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed proofing.',
+    })
+    return
+  }
+
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
     return
@@ -2939,6 +2964,9 @@ const handleFileSelect = async event => {
 }
 
 const handleDragOver = e => {
+  if (proofing.value?.status === 'completed') {
+    return
+  }
   if (e.dataTransfer?.types?.includes('Files')) {
     e.preventDefault()
     if (selectedSetId.value && !isUploading.value && !isProcessingFiles.value) {
@@ -2956,6 +2984,13 @@ const handleDragLeave = e => {
 const handleDrop = async e => {
   e.preventDefault()
   isDragging.value = false
+
+  if (proofing.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed proofing.',
+    })
+    return
+  }
 
   const files = e.dataTransfer?.files
   if (!files || files.length === 0) return

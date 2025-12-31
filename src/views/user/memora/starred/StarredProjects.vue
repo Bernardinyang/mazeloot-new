@@ -15,10 +15,13 @@
         :sort-by="sortBy"
         :view-mode="viewMode"
         :sort-options="sortOptions"
+        :is-searching="isSearching"
         sort-label="Sort projects by"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
+        @search="handleSearch"
+        @clear="handleClearSearch"
       />
 
       <!-- Loading State -->
@@ -57,7 +60,7 @@
       </div>
 
       <!-- Projects List View -->
-      <CollectionsTable
+      <ProjectsTable
         v-else
         :items="sortedProjects"
         :loading="isLoading"
@@ -67,15 +70,24 @@
         :empty-icon="Folder"
         :get-subtitle="getSubtitle"
         :get-icon="() => Folder"
-        :show-move-to="false"
+        :get-starred="item => item.isStarred || item.starred || false"
+        :show-view-details="true"
         @select="handleSelectProject"
         @star-click="toggleStar"
         @item-click="handleProjectClick"
         @empty-action="handleBrowseProjects"
         @edit="handleEditProject"
         @delete="handleDeleteProject"
+        @view-details="handleViewDetails"
       />
     </div>
+
+    <!-- Project Detail Sidebar -->
+    <ProjectDetailSidebar
+      v-model="showDetailSidebar"
+      :project-id="selectedProjectId"
+      @edit="handleEditProject"
+    />
   </DashboardLayout>
 </template>
 
@@ -86,24 +98,28 @@ import { Folder, ArrowRight } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import ProjectCard from '@/components/molecules/ProjectCard.vue'
-import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import ProjectsTable from '@/components/organisms/ProjectsTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
+import { useProjectsApi } from '@/api/projects'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { useAsyncPagination } from '@/composables/useAsyncPagination'
 import ProjectDetailSidebar from '@/components/organisms/ProjectDetailSidebar.vue'
 import { toast } from '@/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const projectStore = useProjectStore()
+const projectsApi = useProjectsApi()
 const { handleError } = useErrorHandler()
 
 // View mode and sorting
 const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
   { label: 'Created (Old → New)', value: 'created-old-new' },
@@ -112,11 +128,46 @@ const sortOptions = [
 ]
 
 const selectedProjects = ref([])
-const isLoading = computed(() => projectStore.isLoading)
 
-const projects = computed(() => {
-  // Filter only starred projects
-  return projectStore.projects.filter(p => p.starred || p.isStarred)
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+  }
+  return mapping[frontendSort] || 'created-desc'
+}
+
+const fetchStarredProjects = async params => {
+  const fetchParams = {
+    parentId: null,
+    starred: true,
+    ...params,
+  }
+
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  if (sortBy.value) {
+    fetchParams.sortBy = mapSortToBackend(sortBy.value)
+  }
+
+  const result = await projectsApi.fetchProjects(fetchParams)
+  return Array.isArray(result) ? result : result?.data || []
+}
+
+const {
+  data: projects,
+  isLoading,
+  fetch,
+  resetToFirstPage,
+} = useAsyncPagination(fetchStarredProjects, {
+  initialPage: 1,
+  initialPerPage: 1000,
+  autoFetch: false,
+  watchForReset: [sortBy],
 })
 
 const getSubtitle = project => {
@@ -141,38 +192,8 @@ const getSubtitle = project => {
   return parts.join(' • ')
 }
 
-// Filter and sort projects
-const filteredProjects = computed(() => {
-  let filtered = [...projects.value]
-
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(project => {
-      const name = (project.name || '').toLowerCase()
-      const desc = (project.description || '').toLowerCase()
-      return name.includes(query) || desc.includes(query)
-    })
-  }
-
-  return filtered
-})
-
 const sortedProjects = computed(() => {
-  const sorted = [...filteredProjects.value]
-
-  switch (sortBy.value) {
-    case 'created-new-old':
-      return sorted.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    case 'created-old-new':
-      return sorted.sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
-    case 'name-a-z':
-      return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-    case 'name-z-a':
-      return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''))
-    default:
-      return sorted
-  }
+  return [...projects.value]
 })
 
 const handleProjectClick = project => {
@@ -183,9 +204,41 @@ const handleProjectClick = project => {
 }
 
 const toggleStar = async project => {
+  const wasStarred = project.isStarred || project.starred || false
+  const newStarredState = !wasStarred
+  const projectIndex = projects.value.findIndex(p => p.id === project.id)
+
   try {
-    await projectStore.toggleStar(project.id)
+    // Optimistic update - update UI immediately
+    if (projectIndex !== -1) {
+      projects.value[projectIndex] = {
+        ...projects.value[projectIndex],
+        isStarred: newStarredState,
+        starred: newStarredState,
+      }
+    }
+
+    // Sync with server
+    const result = await projectStore.toggleStar(project.id)
+
+    // Update with server response if available
+    const serverStarredState = result?.starred ?? result?.data?.starred ?? newStarredState
+    if (projectIndex !== -1) {
+      projects.value[projectIndex] = {
+        ...projects.value[projectIndex],
+        isStarred: serverStarredState,
+        starred: serverStarredState,
+      }
+    }
   } catch (error) {
+    // Revert on error
+    if (projectIndex !== -1) {
+      projects.value[projectIndex] = {
+        ...projects.value[projectIndex],
+        isStarred: wasStarred,
+        starred: wasStarred,
+      }
+    }
     handleError(error, {
       fallbackMessage: 'Failed to update star status.',
     })
@@ -212,13 +265,52 @@ const handleSelectProject = (id, checked) => {
   }
 }
 
+const showDetailSidebar = ref(false)
+const selectedProjectId = ref(null)
+
+const handleViewDetails = project => {
+  selectedProjectId.value = project?.id || project?.uuid || null
+  showDetailSidebar.value = true
+}
+
 const handleBrowseProjects = () => {
   router.push({ name: 'projects' })
 }
 
+const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
+  }
+  isSearching.value = true
+  try {
+    await resetToFirstPage()
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to search projects.',
+    })
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  isSearching.value = true
+  try {
+    await resetToFirstPage()
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to clear search.',
+    })
+  } finally {
+    isSearching.value = false
+  }
+}
+
 onMounted(async () => {
   try {
-    await projectStore.fetchProjects({ parentId: null })
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to load starred projects.',

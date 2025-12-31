@@ -48,6 +48,14 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
   const isSavingSets = ref(false)
 
   const setContext = async (id, sets = null, projId = null) => {
+    const previousProofingId = proofingId.value
+    
+    // If proofing ID changed, clear media sets immediately to prevent carry-over
+    if (previousProofingId && previousProofingId !== id) {
+      mediaSets.value = []
+      selectedSetId.value = null
+    }
+    
     proofingId.value = id || ''
     projectId.value = projId
 
@@ -187,6 +195,13 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
   }, 600)
 
   const handleAddSet = () => {
+    const proofing = proofingStore.proofing
+    if (proofing?.status === 'completed') {
+      toast.info('Set creation disabled', {
+        description: 'Cannot create sets in a completed proofing.',
+      })
+      return
+    }
     showCreateSetModal.value = true
     editingSetIdInModal.value = null
     newSetName.value = ''
@@ -212,6 +227,14 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
 
   const handleCreateSet = async () => {
     if (!ensureProofingId()) return
+    const proofing = proofingStore.proofing
+    if (proofing?.status === 'completed') {
+      toast.info('Set creation disabled', {
+        description: 'Cannot create sets in a completed proofing.',
+      })
+      handleCancelCreateSet()
+      return
+    }
     const trimmedName = newSetName.value.trim()
     if (!trimmedName) {
       toast.error('Name required', {

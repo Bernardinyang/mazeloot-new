@@ -48,6 +48,14 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   const isSavingSets = ref(false)
 
   const setContext = async (id, sets = null) => {
+    const previousSelectionId = selectionId.value
+    
+    // If selection ID changed, clear media sets immediately to prevent carry-over
+    if (previousSelectionId && previousSelectionId !== id) {
+      mediaSets.value = []
+      selectedSetId.value = null
+    }
+    
     selectionId.value = id || ''
 
     // If sets are provided, use them; otherwise fetch from API
@@ -177,6 +185,13 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   }, 600)
 
   const handleAddSet = () => {
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed') {
+      toast.info('Set creation disabled', {
+        description: 'Cannot create sets in a completed selection.',
+      })
+      return
+    }
     showCreateSetModal.value = true
     editingSetIdInModal.value = null
     newSetName.value = ''
@@ -205,6 +220,14 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
   const handleCreateSet = async () => {
     if (!ensureSelectionId()) return
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed') {
+      toast.info('Set creation disabled', {
+        description: 'Cannot create sets in a completed selection.',
+      })
+      handleCancelCreateSet()
+      return
+    }
     const trimmedName = newSetName.value.trim()
     if (!trimmedName) {
       toast.error('Name required', {

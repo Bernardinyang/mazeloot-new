@@ -15,10 +15,13 @@
         :sort-by="sortBy"
         :view-mode="viewMode"
         :sort-options="sortOptions"
+        :is-searching="isSearching"
         sort-label="Sort collections by"
         @update:search-query="searchQuery = $event"
         @update:sort-by="sortBy = $event"
         @update:view-mode="viewMode = $event"
+        @search="handleSearch"
+        @clear="handleClearSearch"
       />
 
       <!-- Filter/Sort Bar -->
@@ -266,6 +269,7 @@ const isLoadingCollections = computed(() => galleryStore.isLoading)
 const viewMode = ref('grid')
 const sortBy = ref('created-new-old')
 const searchQuery = ref('')
+const isSearching = ref(false)
 const sortOptions = COLLECTION_SORT_OPTIONS
 
 // Filter states
@@ -318,15 +322,7 @@ const starredCollections = computed(() => {
 const filteredCollections = computed(() => {
   let filtered = [...starredCollections.value]
 
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(collection => {
-      const name = (collection.name || collection.title || '').toLowerCase()
-      const desc = (collection.description || '').toLowerCase()
-      return name.includes(query) || desc.includes(query)
-    })
-  }
+  // Search is handled by backend, no client-side filtering
 
   // Status filter
   if (filterStatus.value && filterStatus.value !== 'all') {
@@ -582,12 +578,56 @@ const handleBrowseCollections = () => {
   router.push({ name: 'manageCollections' })
 }
 
+const handleSearch = async () => {
+  if (!searchQuery.value || !searchQuery.value.trim()) {
+    handleClearSearch()
+    return
+  }
+  isSearching.value = true
+  try {
+    await galleryStore.fetchCollections({
+      search: searchQuery.value.trim(),
+      sortBy: sortBy.value,
+      starred: true,
+    })
+  } catch (error) {
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to search collections.',
+      })
+    }
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const handleClearSearch = async () => {
+  searchQuery.value = ''
+  isSearching.value = true
+  try {
+    await galleryStore.fetchCollections({
+      search: '',
+      sortBy: sortBy.value,
+      starred: true,
+    })
+  } catch (error) {
+    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
+      handleError(error, {
+        fallbackMessage: 'Failed to load collections.',
+      })
+    }
+  } finally {
+    isSearching.value = false
+  }
+}
+
 // Fetch collections on mount
 onMounted(async () => {
   try {
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
+      starred: true,
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {

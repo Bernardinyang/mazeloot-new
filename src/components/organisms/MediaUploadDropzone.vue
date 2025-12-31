@@ -29,7 +29,7 @@
       </div>
       <div class="space-y-3">
         <p :class="theme.textPrimary" class="text-xl font-bold">
-          Drag photos and videos here to upload
+          Drag media here to upload
         </p>
         <p :class="theme.textSecondary" class="text-sm">
           or

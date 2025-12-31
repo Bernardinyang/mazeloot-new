@@ -98,13 +98,28 @@
           <template v-else>
             <StatusBadge :status="proofingStatus || 'draft'" />
             <!-- Proofing Progress (when completed) -->
-            <span
-              v-if="proofing?.status === 'completed' && overallProgress"
-              :class="theme.textSecondary"
-              class="text-xs font-medium"
+            <div
+              v-if="proofing?.status === 'completed' && (proofing?.completedCount !== undefined || overallProgress)"
+              class="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
             >
-              {{ overallProgress.completed || 0 }} of {{ overallProgress.total || 0 }} approved
-            </span>
+              <svg
+                class="w-3.5 h-3.5 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              <span>
+                {{ proofing?.completedCount ?? overallProgress?.completed ?? 0 }} of
+                {{ proofing?.mediaCount ?? overallProgress?.total ?? 0 }} approved
+              </span>
+            </div>
           </template>
         </div>
       </div>

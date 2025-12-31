@@ -71,7 +71,7 @@
       </div>
 
       <!-- Proofing List View -->
-      <CollectionsTable
+      <ProofingTable
         v-else
         :empty-icon="Eye"
         :get-icon="() => Eye"
@@ -143,7 +143,7 @@ import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import ProofingCard from '@/components/molecules/ProofingCard.vue'
-import CollectionsTable from '@/components/organisms/CollectionsTable.vue'
+import ProofingTable from '@/components/organisms/ProofingTable.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import ProofingDetailSidebar from '@/components/organisms/ProofingDetailSidebar.vue'
 import Pagination from '@/components/molecules/Pagination.vue'
@@ -161,9 +161,15 @@ const router = useRouter()
 const proofingStore = useProofingStore()
 const { handleError } = useErrorHandler()
 
-// View mode and sorting
-const viewMode = ref('grid')
-const sortBy = ref('created-new-old')
+// View mode and sorting - use store for persistence
+const viewMode = computed({
+  get: () => proofingStore.viewMode,
+  set: value => proofingStore.setViewMode(value),
+})
+const sortBy = computed({
+  get: () => proofingStore.sortBy,
+  set: value => proofingStore.setSortBy(value),
+})
 const searchQuery = ref('')
 const isSearching = ref(false)
 const sortOptions = [
@@ -272,11 +278,11 @@ const toggleStar = async proofingPhase => {
       const proofingId = proofingPhase.id || proofingPhase.uuid
       const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
       await proofingStore.toggleStar(proofingId, projectId)
-      const index = proofings.value.findIndex(p => p.id === proofingId || p.uuid === proofingId)
+      const index = proofing.value.findIndex(p => p.id === proofingId || p.uuid === proofingId)
       if (index !== -1) {
-        proofings.value[index] = {
-          ...proofings.value[index],
-          isStarred: !proofings.value[index].isStarred,
+        proofing.value[index] = {
+          ...proofing.value[index],
+          isStarred: !proofing.value[index].isStarred,
         }
       }
     } catch (error) {

@@ -30,7 +30,7 @@
       >
         <div class="flex items-start justify-between gap-4">
           <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-3 mb-2">
+            <div class="flex items-center gap-3">
               <div
                 class="h-5 w-5 rounded-full flex-shrink-0"
                 :style="{ backgroundColor: project.color || '#3B82F6' }"
@@ -38,7 +38,7 @@
               <h1 :class="theme.textPrimary" class="text-2xl font-bold">{{ project.name }}</h1>
               <StatusBadge v-if="project.status" :status="project.status" />
             </div>
-            <p v-if="project.description" :class="['text-sm leading-relaxed', theme.textSecondary]">
+            <p v-if="project.description" :class="['text-sm leading-relaxed mt-2', theme.textSecondary]">
               {{ project.description }}
             </p>
           </div>
@@ -97,7 +97,7 @@
             <div class="flex items-center justify-between text-sm">
               <span :class="theme.textSecondary">Media Sets</span>
               <span :class="['font-semibold', theme.textPrimary]">
-                {{ selection?.mediaSets?.length ?? 0 }}
+                {{ selection?.setCount ?? selection?.mediaSets?.length ?? 0 }}
               </span>
             </div>
             <div
@@ -350,6 +350,15 @@
         Back to Projects
       </Button>
     </div>
+
+    <!-- Edit Project Dialog -->
+    <EditProjectDialog
+      :open="showEditDialog"
+      :project="project"
+      :is-submitting="isUpdatingProject"
+      @update:open="showEditDialog = $event"
+      @update="handleProjectUpdate"
+    />
   </DashboardLayout>
 </template>
 
@@ -370,6 +379,7 @@ import {
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import StatusBadge from '@/components/molecules/StatusBadge.vue'
+import EditProjectDialog from '@/components/organisms/EditProjectDialog.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useProjectStore } from '@/stores/project'
 import { useSelectionStore } from '@/stores/selection'
@@ -393,6 +403,8 @@ const proofing = ref(null)
 const projectCollections = ref([])
 const selectionMediaCount = ref(0)
 const isLoading = ref(true)
+const showEditDialog = ref(false)
+const isUpdatingProject = ref(false)
 
 const loadProject = async () => {
   isLoading.value = true
@@ -500,9 +512,30 @@ const formatDate = dateString => {
 }
 
 const handleEdit = () => {
-  // Emit edit event or navigate to edit page
-  // For now, we'll just show a toast
-  toast.info('Edit functionality coming soon')
+  showEditDialog.value = true
+}
+
+const handleProjectUpdate = async updateData => {
+  if (!updateData?.id || isUpdatingProject.value) return
+  
+  isUpdatingProject.value = true
+  try {
+    // Update the project via API
+    await projectStore.updateProject(updateData.id, updateData)
+    // Close the modal
+    showEditDialog.value = false
+    // Reload project data to reflect changes
+    await loadProject()
+    toast.success('Project updated', {
+      description: 'Project has been successfully updated.',
+    })
+  } catch (error) {
+    toast.error('Failed to update project', {
+      description: error?.message || 'An error occurred while updating the project.',
+    })
+  } finally {
+    isUpdatingProject.value = false
+  }
 }
 
 onMounted(() => {

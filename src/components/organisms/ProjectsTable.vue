@@ -34,16 +34,6 @@
             />
           </div>
         </div>
-        <!-- Single Video -->
-        <video
-          v-else-if="getItemImage(item) && isVideoUrl(getItemImage(item))"
-          :src="getItemImage(item)"
-          class="w-full h-full object-cover"
-          autoplay
-          loop
-          muted
-          playsinline
-        />
         <!-- Single Image -->
         <img
           v-else-if="getItemImage(item)"
@@ -60,7 +50,7 @@
           class="w-full h-full flex items-center justify-center"
         >
           <component
-            :is="getItemIcon(item) || CheckSquare"
+            :is="getItemIcon(item) || Folder"
             :class="theme.textTertiary"
             class="h-5 w-5"
           />
@@ -94,12 +84,6 @@
           {{ getItemSubtitle(item) }}
         </p>
       </div>
-    </template>
-
-    <!-- Password Column -->
-    <template #cell-password="{ item }">
-      <PasswordCell v-if="getItemPassword(item)" :password="getItemPassword(item)" />
-      <span v-else :class="theme.textTertiary" class="text-xs leading-none">-</span>
     </template>
 
     <!-- Date Created Column -->
@@ -173,24 +157,13 @@
         </div>
       </div>
     </template>
-
-    <!-- Password Header -->
-    <template #header-password>
-      <div class="flex items-center gap-1">
-        <span>PASSWORD</span>
-        <Info :class="theme.textTertiary" class="h-3 w-3" />
-      </div>
-    </template>
   </DataTable>
 </template>
 
 <script setup>
 import { computed, reactive } from 'vue'
 import {
-  CheckSquare,
-  Copy,
-  Eye,
-  EyeOff,
+  Folder,
   Info,
   Lock,
   MoreVertical,
@@ -207,7 +180,6 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import DataTable from '@/components/organisms/DataTable.vue'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
-import PasswordCell from '@/components/molecules/PasswordCell.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()
@@ -240,7 +212,7 @@ const props = defineProps({
   },
   emptyMessage: {
     type: String,
-    default: 'No selections found',
+    default: 'No projects found',
   },
   emptyActionLabel: {
     type: String,
@@ -248,7 +220,7 @@ const props = defineProps({
   },
   emptyIcon: {
     type: Object,
-    default: () => CheckSquare,
+    default: () => Folder,
   },
   getId: {
     type: Function,
@@ -262,20 +234,19 @@ const props = defineProps({
     type: Function,
     default: item => {
       const parts = []
-      if (item.mediaCount !== undefined) {
-        parts.push(`${item.mediaCount} media`)
+      if (item.hasSelections || item.hasProofing || item.hasCollections) {
+        const phases = []
+        if (item.hasSelections) phases.push('Selections')
+        if (item.hasProofing) phases.push('Proofing')
+        if (item.hasCollections) phases.push('Collections')
+        parts.push(phases.join(', '))
       }
-      if (item.selectedCount !== undefined && item.selectedCount > 0) {
-        parts.push(`${item.selectedCount} selected`)
-      }
-      const status = item.status || 'draft'
-      parts.push(status)
       return parts.join(' • ')
     },
   },
   getImage: {
     type: Function,
-    default: item => item.coverPhotoUrl || item.cover_photo_url || null,
+    default: item => item.coverPhotoUrl || item.cover_photo_url || item.thumbnail || item.image || null,
   },
   getPreviewImages: {
     type: Function,
@@ -283,7 +254,7 @@ const props = defineProps({
   },
   getIcon: {
     type: Function,
-    default: () => CheckSquare,
+    default: () => Folder,
   },
   getStatus: {
     type: Function,
@@ -291,11 +262,7 @@ const props = defineProps({
   },
   getPassword: {
     type: Function,
-    default: item => (item.hasPassword ? '••••••••' : null),
-  },
-  getMediaCount: {
-    type: Function,
-    default: item => item.mediaCount || item.media_count || 0,
+    default: item => (item.hasPassword ? '••••••••' : item.password || null),
   },
   getDateCreated: {
     type: Function,
@@ -332,41 +299,46 @@ const handleRowClick = (item, index) => {
 }
 
 // Define columns
-const columns = computed(() => [
-  {
-    key: 'icon',
-    label: '',
-    width: 'w-10',
-    slot: 'icon',
-  },
-  {
-    key: 'name',
-    label: 'NAME',
-    width: 'flex-1',
-    slot: 'name',
-  },
-  {
-    key: 'password',
-    label: 'PASSWORD',
-    width: 'w-52',
-    slot: 'password',
-    dataSelector: item => props.getPassword(item),
-  },
-  {
+const columns = computed(() => {
+  const cols = [
+    {
+      key: 'icon',
+      label: '',
+      width: 'w-10',
+      slot: 'icon',
+    },
+    {
+      key: 'name',
+      label: 'NAME',
+      width: 'flex-1',
+      slot: 'name',
+    },
+  ]
+  if (props.getPassword && props.getPassword({}) !== null) {
+    cols.push({
+      key: 'password',
+      label: 'PASSWORD',
+      width: 'w-52',
+      slot: 'password',
+      dataSelector: item => props.getPassword(item),
+    })
+  }
+  cols.push({
     key: 'dateCreated',
     label: 'DATE CREATED',
     width: 'w-32',
     slot: 'dateCreated',
     format: 'date',
     dataSelector: item => props.getDateCreated(item),
-  },
-  {
+  })
+  cols.push({
     key: 'actions',
     label: '',
     width: 'w-24',
     slot: 'actions',
-  },
-])
+  })
+  return cols
+})
 
 // Helper functions
 const getId = item => props.getId(item)
@@ -396,13 +368,6 @@ const getPreviewGrid = previewImages => {
 const placeholderImage =
   'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgZmlsbD0iI2U1ZTdlYiIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IiM5Y2EzYWYiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj5JbWFnZSBub3QgYXZhaWxhYmxlPC90ZXh0Pjwvc3ZnPg=='
 
-const isVideoUrl = url => {
-  if (!url) return false
-  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
-  const lowerUrl = url.toLowerCase()
-  return videoExtensions.some(ext => lowerUrl.includes(ext))
-}
-
 const handleImageError = event => {
   const img = event.target
   if (img.src !== placeholderImage) {
@@ -410,3 +375,4 @@ const handleImageError = event => {
   }
 }
 </script>
+

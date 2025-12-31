@@ -106,15 +106,11 @@ export function useProofingApi() {
         color: data.color || undefined,
       }
 
-      let response
       if (projectId) {
-        // Project-based proofing
-        response = await apiClient.post(`/v1/projects/${projectId}/proofing`, payload)
-      } else {
-        // Standalone proofing
-        response = await apiClient.post('/v1/proofing', payload)
+        payload.projectId = projectId
       }
 
+      const response = await apiClient.post('/v1/proofing', payload)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -130,7 +126,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.get(endpoint)
@@ -147,7 +143,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+        endpoint += `?projectId=${projectId}`
       }
 
       const payload = {}
@@ -198,11 +194,9 @@ export function useProofingApi() {
         payload.completedTodos = completedTodos
       }
 
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/revisions`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/revisions`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/revisions`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint, payload)
@@ -266,7 +260,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}/complete`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}/complete`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint)
@@ -426,7 +420,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}`
+        endpoint += `?projectId=${projectId}`
       }
 
       await apiClient.delete(endpoint)
@@ -443,7 +437,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}/publish`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}/publish`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint)
@@ -460,7 +454,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${id}/star`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${id}/star`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint)
@@ -477,7 +471,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${proofingId}/cover-photo`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/cover-photo`
+        endpoint += `?projectId=${projectId}`
       }
 
       const payload = {
@@ -501,7 +495,7 @@ export function useProofingApi() {
     try {
       let endpoint = `/v1/proofing/${proofingId}/recover`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/recover`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint, { mediaIds })
@@ -722,6 +716,9 @@ export function useProofingApi() {
   const fetchMediaSets = async (proofingId, projectId = null, params = {}) => {
     try {
       const queryParams = new URLSearchParams()
+      if (projectId) {
+        queryParams.append('projectId', projectId)
+      }
       if (params.page) {
         queryParams.append('page', params.page.toString())
       }
@@ -729,13 +726,7 @@ export function useProofingApi() {
         queryParams.append('per_page', params.perPage.toString())
       }
 
-      let endpoint
-      if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      }
-
+      const endpoint = `/v1/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
       return response.data
     } catch (error) {
@@ -748,11 +739,9 @@ export function useProofingApi() {
    */
   const fetchMediaSet = async (proofingId, setId, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.get(endpoint)
       return response.data
@@ -775,11 +764,9 @@ export function useProofingApi() {
         order: data.order || 0,
       }
 
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint, createData)
@@ -805,11 +792,9 @@ export function useProofingApi() {
       if (data.description !== undefined) updateData.description = data.description
       if (data.order !== undefined) updateData.order = data.order
 
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.patch(endpoint, updateData)
@@ -830,11 +815,9 @@ export function useProofingApi() {
       throw new Error('Set ID is required to delete a media set')
     }
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+        endpoint += `?projectId=${projectId}`
       }
       await apiClient.delete(endpoint)
       return true
@@ -848,11 +831,9 @@ export function useProofingApi() {
    */
   const reorderMediaSets = async (proofingId, setIds, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/reorder`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/reorder`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/reorder`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.post(endpoint, { setIds: setIds })
       return response.data
@@ -875,6 +856,9 @@ export function useProofingApi() {
     }
     try {
       const queryParams = new URLSearchParams()
+      if (projectId) {
+        queryParams.append('projectId', projectId)
+      }
       if (params.page) {
         queryParams.append('page', params.page.toString())
       }
@@ -885,13 +869,7 @@ export function useProofingApi() {
         queryParams.append('sort_by', params.sortBy)
       }
 
-      let endpoint
-      if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
-      }
-
+      const endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
       return response.data
     } catch (error) {
@@ -918,11 +896,9 @@ export function useProofingApi() {
         throw new Error('user_file_uuid is required')
       }
 
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media`
+        endpoint += `?projectId=${projectId}`
       }
 
       const response = await apiClient.post(endpoint, payload)
@@ -946,11 +922,9 @@ export function useProofingApi() {
       throw new Error('Media ID is required to delete media')
     }
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.delete(endpoint)
       return response.data
@@ -964,11 +938,9 @@ export function useProofingApi() {
    */
   const renameMedia = async (proofingId, setId, mediaId, filename, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.patch(endpoint, { filename })
       return response.data
@@ -982,11 +954,9 @@ export function useProofingApi() {
    */
   const replaceMedia = async (proofingId, setId, mediaId, userFileUuid, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.patch(endpoint, { user_file_uuid: userFileUuid })
       return response.data
@@ -1000,11 +970,9 @@ export function useProofingApi() {
    */
   const moveMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/move`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/move`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/move`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.post(endpoint, {
         media_ids: mediaIds,
@@ -1021,11 +989,9 @@ export function useProofingApi() {
    */
   const copyMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/copy`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/copy`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/copy`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.post(endpoint, {
         media_ids: mediaIds,
@@ -1042,11 +1008,9 @@ export function useProofingApi() {
    */
   const starMedia = async (proofingId, setId, mediaId, projectId = null) => {
     try {
-      let endpoint
+      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
       if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
-      } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
+        endpoint += `?projectId=${projectId}`
       }
       const response = await apiClient.post(endpoint)
       return response.data
@@ -1076,10 +1040,11 @@ export function useProofingApi() {
         headers = {
           Authorization: `Bearer ${guestToken}`,
         }
-      } else if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
       } else {
         endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
+        if (projectId) {
+          endpoint += `?projectId=${projectId}`
+        }
       }
 
       const response = await apiClient.post(endpoint, feedbackData, {
@@ -1113,10 +1078,11 @@ export function useProofingApi() {
         endpoint = `/v1/public/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
         headers.Authorization = `Bearer ${guestToken}`
         skipAuth = true
-      } else if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
       } else {
         endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        if (projectId) {
+          endpoint += `?projectId=${projectId}`
+        }
       }
 
       const response = await apiClient.patch(endpoint, { content }, { headers, skipAuth })
@@ -1146,10 +1112,11 @@ export function useProofingApi() {
         endpoint = `/v1/public/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
         headers.Authorization = `Bearer ${guestToken}`
         skipAuth = true
-      } else if (projectId) {
-        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
       } else {
         endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        if (projectId) {
+          endpoint += `?projectId=${projectId}`
+        }
       }
 
       const response = await apiClient.delete(endpoint, { headers, skipAuth })

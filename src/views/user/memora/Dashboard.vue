@@ -162,7 +162,7 @@ const recentActivity = ref([
 
 const quickActions = [
   { route: { name: 'manageCollections' }, label: 'View Collections', icon: Folder },
-  { route: { name: 'collectionPhotos' }, label: 'Upload Photos', icon: Upload },
+  { route: { name: 'collectionPhotos' }, label: 'Upload Media', icon: Upload },
   { route: { name: 'manageCollections' }, label: 'Create Collection', icon: FolderPlus },
   { route: { name: 'manageCollections' }, label: 'Add Client', icon: UserPlus },
 ]
