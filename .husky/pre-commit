@@ -1,1 +1,10 @@
-npx lint-staged
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run frontend tests before commit
+# Skip with: git commit --no-verify
+
+echo "Running frontend tests before commit..."
+
+cd "$(dirname "$0")/.."
+npm run test

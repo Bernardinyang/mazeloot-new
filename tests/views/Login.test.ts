@@ -1,9 +1,22 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi, beforeEach } from 'vitest'
 import Login from '@/views/guest/Login.vue'
 import { createPinia, setActivePinia } from 'pinia'
 
+vi.mock('@/api/auth', () => ({
+  useAuthApi: () => ({
+    login: vi.fn().mockResolvedValue({
+      user: { id: '1', uuid: '1', email: 'bernardinyang.bci@gmail.com', name: 'Test User', first_name: 'Test', last_name: 'User' },
+      token: 'test-token-123',
+    }),
+  }),
+}))
+
 describe('Login view', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('submits the form and logs in the seeded user', async () => {
     setActivePinia(createPinia())
 

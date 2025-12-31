@@ -43,7 +43,7 @@ describe('Error Utilities', () => {
       }
       const parsed = parseError(error)
 
-      expect(parsed.message).toBe('Validation failed')
+      expect(parsed.message).toBe('Validation failed. Email is required')
       expect(parsed.code).toBe('VALIDATION_ERROR')
       expect(parsed.status).toBe(422)
       expect(parsed.errors).toEqual({

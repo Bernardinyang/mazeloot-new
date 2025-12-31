@@ -146,9 +146,7 @@
         >
           <p class="font-semibold text-blue-800 dark:text-blue-300 mb-1">Revision Limit Exceeded</p>
           <p class="text-sm text-blue-700 dark:text-blue-300">
-            The maximum revision limit ({{
-              approvalRequest.proofing?.max_revisions || 5
-            }}
+            The maximum revision limit ({{ approvalRequest.proofing?.max_revisions || 5 }}
             revisions) has been reached. Approval is required to proceed with additional revisions.
           </p>
         </div>

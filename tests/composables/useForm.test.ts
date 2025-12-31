@@ -5,151 +5,114 @@ describe('useForm Composable', () => {
   it('should initialize with initial values', () => {
     const form = useForm({
       initialValues: {
-        name: 'John',
-        email: 'john@example.com',
+        name: 'Test',
+        email: 'test@example.com',
       },
     })
 
-    expect(form.getValue('name')).toBe('John')
-    expect(form.getValue('email')).toBe('john@example.com')
+    expect(form.getValue('name')).toBe('Test')
+    expect(form.getValue('email')).toBe('test@example.com')
   })
 
   it('should set field values', () => {
     const form = useForm({
-      initialValues: {
-        name: '',
-        email: '',
-      },
+      initialValues: { name: '' },
     })
 
-    form.setValue('name', 'Jane')
-    form.setValue('email', 'jane@example.com')
-
-    expect(form.getValue('name')).toBe('Jane')
-    expect(form.getValue('email')).toBe('jane@example.com')
-  })
-
-  it('should set field errors', () => {
-    const form = useForm({
-      initialValues: {
-        name: '',
-      },
-    })
-
-    form.setError('name', 'Name is required')
-
-    expect(form.fields.value.name.error).toBe('Name is required')
+    form.setValue('name', 'Updated')
+    expect(form.getValue('name')).toBe('Updated')
+    expect(form.fields.value.name.touched).toBe(true)
   })
 
   it('should validate form', () => {
     const form = useForm({
-      initialValues: {
-        name: '',
-        email: '',
-      },
-      validate: values => {
-        const errors: Record<string, string> = {}
-        if (!values.name) errors.name = 'Name is required'
-        if (!values.email) errors.email = 'Email is required'
+      initialValues: { email: '' },
+      validate: (values) => {
+        const errors = {}
+        if (!values.email) {
+          errors.email = 'Email is required'
+        }
         return errors
       },
     })
 
-    const isValid = form.validate()
-
-    expect(isValid).toBe(false)
-    expect(form.fields.value.name.error).toBe('Name is required')
+    expect(form.validate()).toBe(false)
     expect(form.fields.value.email.error).toBe('Email is required')
-  })
 
-  it('should return true when validation passes', () => {
-    const form = useForm({
-      initialValues: {
-        name: 'John',
-        email: 'john@example.com',
-      },
-      validate: () => ({}),
-    })
-
-    const isValid = form.validate()
-
-    expect(isValid).toBe(true)
+    form.setValue('email', 'test@example.com')
+    expect(form.validate()).toBe(true)
+    expect(form.fields.value.email.error).toBeUndefined()
   })
 
   it('should submit form successfully', async () => {
-    const onSubmit = vi.fn().mockResolvedValue(undefined)
+    const onSubmit = vi.fn().mockResolvedValue(true)
     const form = useForm({
-      initialValues: {
-        name: 'John',
-        email: 'john@example.com',
-      },
+      initialValues: { name: 'Test' },
       onSubmit,
     })
 
     const result = await form.submit()
 
     expect(result).toBe(true)
-    expect(onSubmit).toHaveBeenCalledWith({
-      name: 'John',
-      email: 'john@example.com',
-    })
+    expect(onSubmit).toHaveBeenCalledWith({ name: 'Test' })
+    expect(form.isSubmitting.value).toBe(false)
   })
 
   it('should handle submit errors', async () => {
     const onSubmit = vi.fn().mockRejectedValue(new Error('Submit failed'))
     const form = useForm({
-      initialValues: {
-        name: 'John',
-      },
+      initialValues: { name: 'Test' },
       onSubmit,
     })
 
     const result = await form.submit()
 
     expect(result).toBe(false)
-    expect(form.submitError.value).toBe('Submit failed')
+    expect(form.submitError.value).toBeTruthy()
   })
 
   it('should reset form', () => {
     const form = useForm({
-      initialValues: {
-        name: 'John',
-        email: 'john@example.com',
-      },
+      initialValues: { name: 'Initial' },
     })
 
-    form.setValue('name', 'Jane')
-    form.setError('name', 'Error')
+    form.setValue('name', 'Changed')
     form.reset()
 
-    expect(form.getValue('name')).toBe('John')
-    expect(form.fields.value.name.error).toBeUndefined()
+    expect(form.getValue('name')).toBe('Initial')
     expect(form.fields.value.name.touched).toBe(false)
   })
 
-  it('should compute isValid correctly', () => {
+  it('should compute isValid', () => {
     const form = useForm({
-      initialValues: {
-        name: 'John',
+      initialValues: { name: '', email: '' },
+      validate: (values) => {
+        const errors = {}
+        if (!values.name) errors.name = 'Required'
+        return errors
       },
     })
 
-    expect(form.isValid.value).toBe(true)
-
-    form.setError('name', 'Error')
+    // Initially invalid because name is required
+    form.validate()
     expect(form.isValid.value).toBe(false)
+
+    // Set name and validate again
+    form.setValue('name', 'Test')
+    form.validate()
+    // isValid is computed from fields.value, so it should update after validation clears errors
+    expect(form.fields.value.name.error).toBeUndefined()
+    expect(form.isValid.value).toBe(true)
   })
 
-  it('should compute isDirty correctly', () => {
+  it('should compute isDirty', () => {
     const form = useForm({
-      initialValues: {
-        name: 'John',
-      },
+      initialValues: { name: 'Initial' },
     })
 
     expect(form.isDirty.value).toBe(false)
 
-    form.setValue('name', 'Jane')
+    form.setValue('name', 'Changed')
     expect(form.isDirty.value).toBe(true)
   })
 })

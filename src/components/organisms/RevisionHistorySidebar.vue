@@ -178,9 +178,7 @@
       <div class="flex items-center justify-between mb-4">
         <h3 :class="theme.textPrimary" class="text-lg font-semibold">
           Revision
-          {{
-            selectedRevision.revisionNumber || selectedRevision.revision_number || 'Original'
-          }}
+          {{ selectedRevision.revisionNumber || selectedRevision.revision_number || 'Original' }}
           Details
         </h3>
         <Button variant="ghost" size="sm" @click="selectedRevision = null">

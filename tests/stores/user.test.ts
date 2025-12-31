@@ -2,6 +2,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useUserStore } from '@/stores/user'
 
+vi.mock('@/api/auth', () => ({
+  useAuthApi: () => ({
+    login: vi.fn().mockResolvedValue({
+      user: { id: '1', uuid: '1', email: 'john@example.com', name: 'John', first_name: 'John', last_name: 'Doe' },
+      token: 'test-token',
+    }),
+    register: vi.fn().mockResolvedValue({
+      user: { id: '1', uuid: '1', email: 'john@example.com', name: 'John Doe', first_name: 'John', last_name: 'Doe' },
+      token: 'test-token',
+    }),
+    logout: vi.fn().mockResolvedValue(undefined),
+  }),
+}))
+
 describe('User Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
@@ -20,8 +34,8 @@ describe('User Store', () => {
     const user = { id: '1', name: 'John', email: 'john@example.com' }
     const token = 'test-token'
 
-    localStorage.setItem('user', JSON.stringify(user))
-    localStorage.setItem('token', token)
+    localStorage.setItem('mazeloot_user', JSON.stringify(user))
+    localStorage.setItem('mazeloot_token', token)
 
     const store = useUserStore()
 

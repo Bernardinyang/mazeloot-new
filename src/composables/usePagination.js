@@ -6,14 +6,15 @@
 import { ref, computed } from 'vue'
 
 export function usePagination(options) {
-  const currentPage = ref(options.initialPage || 1)
-  const itemsPerPage = ref(options.itemsPerPage || 10)
-  const totalItems = ref(options.totalItems)
+  const currentPage = ref(options?.initialPage || 1)
+  const itemsPerPage = ref(options?.itemsPerPage || 10)
+  const totalItems = ref(options?.totalItems || 0)
 
   /**
    * Total pages
    */
   const totalPages = computed(() => {
+    if (!totalItems.value || totalItems.value === 0) return 0
     return Math.ceil(totalItems.value / itemsPerPage.value)
   })
 
