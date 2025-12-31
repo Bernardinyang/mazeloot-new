@@ -95,7 +95,7 @@ import ActionButtonGroup from '@/components/molecules/ActionButtonGroup.vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import SelectionLimitInput from '@/components/molecules/SelectionLimitInput.vue'
 import { Input } from '@/components/shadcn/input'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import { Loader2 } from 'lucide-vue-next'
 import { computed } from 'vue'
 

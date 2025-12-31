@@ -81,7 +81,7 @@
 import { ref, reactive, watch } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import { Button } from '@/components/shadcn/button'
 import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'

@@ -166,7 +166,27 @@
                   {{ currentItem.description }}
                 </p>
               </div>
+              <!-- Approved Badge -->
+              <div
+                v-if="currentItem?.isCompleted || currentItem?.is_completed"
+                class="ml-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-300"
+              >
+                <CheckCircle2 class="h-4 w-4 fill-green-500 text-green-500" />
+                <span class="text-sm font-medium">Approved</span>
+              </div>
             </div>
+          </div>
+
+          <!-- Approved Badge for Mobile/Video -->
+          <div
+            v-else-if="currentItem?.isCompleted || currentItem?.is_completed"
+            :class="[
+              'absolute z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-300 backdrop-blur-md shadow-xl',
+              isMobile ? 'bottom-20 left-4' : 'bottom-4 left-4',
+            ]"
+          >
+            <CheckCircle2 class="h-4 w-4 fill-green-500 text-green-500" />
+            <span class="text-sm font-medium">Approved</span>
           </div>
 
           <!-- Counter (Top Center) -->
@@ -248,7 +268,7 @@
               :is-video="currentMediaType === 'video'"
               :current-video-time="currentVideoTime"
               :is-loading="isLoadingComments"
-              :allow-reply="true"
+              :allow-reply="allowReply"
               :guest-email="guestEmail"
               :creative-email="creativeEmail"
               :show-close-button="true"
@@ -267,7 +287,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
   ChevronLeft,
   ChevronRight,
@@ -277,6 +297,7 @@ import {
   ZoomIn,
   ZoomOut,
   RotateCcw,
+  CheckCircle2,
 } from 'lucide-vue-next'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
@@ -292,6 +313,8 @@ import {
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProofingApi } from '@/api/proofing'
 import { useRealtimeComments } from '@/composables/useRealtimeComments'
+import { toast } from '@/utils/toast'
+import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 
 const props = defineProps({
   modelValue: {
@@ -334,6 +357,18 @@ const props = defineProps({
     type: Array,
     default: () => [],
   },
+  openWithComments: {
+    type: Boolean,
+    default: false,
+  },
+  closureRequestsMap: {
+    type: Object,
+    default: () => ({}),
+  },
+  approvalRequestsMap: {
+    type: Object,
+    default: () => ({}),
+  },
 })
 
 const emit = defineEmits([
@@ -343,6 +378,7 @@ const emit = defineEmits([
   'comment-added',
   'comment-updated',
   'comment-deleted',
+  'media-approved',
 ])
 
 const isOpen = computed({
@@ -376,6 +412,31 @@ const proofingApi = useProofingApi()
 const currentItem = computed(() => {
   if (props.items.length === 0) return null
   return props.items[currentIndex.value] || props.items[0]
+})
+
+// Block comments/feedback if media is approved/completed, rejected, or closure request is pending
+const allowReply = computed(() => {
+  if (!currentItem.value) return false
+
+  // Block if media is completed/approved
+  if (currentItem.value.isCompleted || currentItem.value.is_completed) {
+    return false
+  }
+
+  // Block if media is rejected
+  if (currentItem.value.isRejected || currentItem.value.is_rejected) {
+    return false
+  }
+
+  // Block if closure request is pending
+  const mediaId = currentItem.value.id || currentItem.value.uuid
+  const closureRequests = props.closureRequestsMap[mediaId] || []
+  const hasPendingClosureRequest = closureRequests.some(req => req.status === 'pending')
+  if (hasPendingClosureRequest) {
+    return false
+  }
+
+  return true
 })
 
 // Computed property to get the correct media ID (handles both 'id' and 'uuid')
@@ -518,6 +579,7 @@ const updateMediaUrl = async () => {
   if (!currentItem.value) {
     currentMediaUrl.value = ''
     currentThumbnailUrl.value = ''
+    isLoading.value = false
     return
   }
 
@@ -527,10 +589,60 @@ const updateMediaUrl = async () => {
     const url = getMediaUrl(currentItem.value)
     const thumbnail = getThumbnailUrl(currentItem.value)
 
-    currentMediaUrl.value = url || ''
-    currentThumbnailUrl.value = thumbnail || ''
+    // Handle file:// URLs by converting to blob URLs
+    if (url && url.startsWith('file://')) {
+      try {
+        const blobUrl = await getMediaDisplayUrl(url, '')
+        currentMediaUrl.value = blobUrl || url
+      } catch (error) {
+        console.error('Failed to convert file:// URL to blob:', error)
+        currentMediaUrl.value = url // Fallback to original URL
+      }
+    } else if (
+      url &&
+      (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:'))
+    ) {
+      currentMediaUrl.value = url
+    } else if (url) {
+      currentMediaUrl.value = url
+    } else {
+      // If no URL found, try to get it from the item directly
+      const fallbackUrl =
+        currentItem.value.file?.url || currentItem.value.url || currentItem.value.thumbnailUrl || ''
+      currentMediaUrl.value = fallbackUrl
+
+      if (!fallbackUrl) {
+        console.warn('No media URL found for item:', {
+          id: currentItem.value.id,
+          uuid: currentItem.value.uuid,
+          file: currentItem.value.file,
+          keys: Object.keys(currentItem.value),
+        })
+      }
+    }
+
+    if (thumbnail && thumbnail.startsWith('file://')) {
+      try {
+        const blobUrl = await getMediaDisplayUrl(thumbnail, '')
+        currentThumbnailUrl.value = blobUrl || thumbnail
+      } catch (error) {
+        currentThumbnailUrl.value = thumbnail
+      }
+    } else if (
+      thumbnail &&
+      (thumbnail.startsWith('http://') ||
+        thumbnail.startsWith('https://') ||
+        thumbnail.startsWith('data:'))
+    ) {
+      currentThumbnailUrl.value = thumbnail
+    } else if (thumbnail) {
+      currentThumbnailUrl.value = thumbnail
+    } else {
+      currentThumbnailUrl.value =
+        currentItem.value.file?.thumbnailUrl || currentItem.value.thumbnailUrl || ''
+    }
   } catch (error) {
-    // Silently handle error
+    console.error('Error updating media URL:', error)
   } finally {
     isLoading.value = false
   }
@@ -1377,12 +1489,21 @@ watch(
   }
 )
 
-watch(isOpen, open => {
+watch(isOpen, (open, oldValue) => {
   if (open) {
+    // When opening, set showComments based on prop
+    if (!oldValue) {
+      showComments.value = props.openWithComments
+    }
     const safeIndex = Math.max(0, Math.min(props.initialIndex, props.items.length - 1))
     currentIndex.value = safeIndex
-    updateMediaUrl()
-    loadComments()
+    // Use nextTick to ensure currentItem is set before updating URL
+    nextTick(() => {
+      if (currentItem.value) {
+        updateMediaUrl()
+        loadComments()
+      }
+    })
     connectRealtime()
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
@@ -1397,6 +1518,8 @@ watch(isOpen, open => {
 watch(
   currentItem,
   (newItem, oldItem) => {
+    if (!newItem) return
+
     if (oldItem && newItem) {
       const oldMediaId = oldItem.id || oldItem.uuid
       const newMediaId = newItem.id || newItem.uuid
@@ -1406,6 +1529,7 @@ watch(
       }
     }
 
+    // Always update media URL when currentItem changes
     updateMediaUrl()
     loadComments()
     resetZoom()
@@ -1414,7 +1538,7 @@ watch(
       connectRealtime()
     }
   },
-  { immediate: false }
+  { immediate: true }
 )
 
 watch(

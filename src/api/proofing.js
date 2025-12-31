@@ -101,6 +101,7 @@ export function useProofingApi() {
     try {
       const payload = {
         name: data.name || 'Proofing',
+        description: data.description || undefined,
         maxRevisions: data.maxRevisions || 5,
         color: data.color || undefined,
       }
@@ -156,6 +157,7 @@ export function useProofingApi() {
       if (data.color !== undefined) payload.color = data.color
       if (data.status !== undefined) payload.status = data.status
       if (data.allowedEmails !== undefined) payload.allowedEmails = data.allowedEmails
+      if (data.primaryEmail !== undefined) payload.primaryEmail = data.primaryEmail
       if (data.password !== undefined) payload.password = data.password
 
       const response = await apiClient.patch(endpoint, payload)
@@ -167,66 +169,48 @@ export function useProofingApi() {
 
   /**
    * Upload new revision
+   * @param {string|null} projectId - Project UUID (optional, null for standalone)
+   * @param {string} proofingId - Proofing UUID
+   * @param {string} mediaId - Media UUID
+   * @param {number} revisionNumber - Revision number
+   * @param {string} description - Revision description
+   * @param {string} userFileUuid - User file UUID from upload
    */
-  const uploadRevision = async (proofingId, mediaData) => {
-    await delay(1000)
-
-    const proofing = getAllProofing()
-    const proofingPhase = proofing.find(p => p.id === proofingId)
-
-    if (!proofingPhase) {
-      throw new Error('Proofing not found')
-    }
-
-    const allMedia = getAllMedia()
-
-    // Find existing media or create new
-    let existingMedia = allMedia.find(
-      m =>
-        m.phase === 'proofing' &&
-        m.phaseId === proofingId &&
-        m.originalMediaId === mediaData.originalMediaId
-    )
-
-    const revisionNumber = existingMedia ? (existingMedia.revisionNumber || 0) + 1 : 1
-
-    if (revisionNumber > proofingPhase.maxRevisions) {
-      throw new Error(`Maximum revisions (${proofingPhase.maxRevisions}) exceeded`)
-    }
-
-    if (existingMedia) {
-      existingMedia = {
-        ...existingMedia,
-        ...mediaData,
+  const uploadRevision = async (
+    projectId,
+    proofingId,
+    mediaId,
+    revisionNumber,
+    description,
+    userFileUuid,
+    completedTodos = []
+  ) => {
+    try {
+      const payload = {
+        mediaId,
         revisionNumber,
-        updatedAt: new Date().toISOString(),
+        userFileUuid,
       }
-      const index = allMedia.findIndex(m => m.id === existingMedia.id)
-      allMedia[index] = existingMedia
-    } else {
-      const newMedia = {
-        id: generateUUID(),
-        projectId: proofingPhase.projectId,
-        phase: 'proofing',
-        phaseId: proofingId,
-        originalMediaId: mediaData.originalMediaId,
-        revisionNumber: 1,
-        ...mediaData,
-        isCompleted: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      if (description) {
+        payload.description = description
       }
-      allMedia.push(newMedia)
-      existingMedia = newMedia
+      if (completedTodos && completedTodos.length > 0) {
+        payload.completedTodos = completedTodos
+      }
+
+      let endpoint
+      if (projectId) {
+        endpoint = `/v1/projects/${projectId}/proofing/${proofingId}/revisions`
+      } else {
+        endpoint = `/v1/proofing/${proofingId}/revisions`
+      }
+
+      const response = await apiClient.post(endpoint, payload)
+
+      return response.data
+    } catch (error) {
+      throw parseError(error)
     }
-
-    proofingPhase.currentRevision = Math.max(proofingPhase.currentRevision, revisionNumber)
-    proofingPhase.updatedAt = new Date().toISOString()
-
-    saveMedia(allMedia)
-    saveProofing(proofing)
-
-    return existingMedia
   }
 
   /**
@@ -716,6 +700,27 @@ export function useProofingApi() {
     }
   }
 
+  /**
+   * Approve media for proofing (guest access)
+   */
+  const approveProofingMedia = async (proofingId, mediaId, guestToken) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/proofing/${proofingId}/media/${mediaId}/approve`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   // ==================== Media Sets ====================
 
   /**
@@ -1198,6 +1203,202 @@ export function useProofingApi() {
     }
   }
 
+  /**
+   * Create closure request
+   */
+  const createClosureRequest = async (proofingId, mediaId, todos) => {
+    try {
+      const response = await apiClient.post('/v1/closure-requests', {
+        proofing_id: proofingId,
+        media_id: mediaId,
+        todos: todos,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get closure request by token (public)
+   */
+  const getClosureRequest = async token => {
+    try {
+      const response = await apiClient.get(`/v1/public/closure-requests/${token}`, {
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Approve closure request (public)
+   */
+  const approveClosureRequest = async (token, email) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/closure-requests/${token}/approve`,
+        { email },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Reject closure request (public)
+   */
+  const rejectClosureRequest = async (token, email, reason = null) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/closure-requests/${token}/reject`,
+        { email, reason },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get closure requests for a media item
+   */
+  const getMediaClosureRequests = async (mediaId, guestToken = null) => {
+    try {
+      if (guestToken) {
+        // Use public endpoint with guest token
+        const response = await apiClient.get(`/v1/public/media/${mediaId}/closure-requests`, {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        })
+        return response.data
+      } else {
+        // Use authenticated endpoint
+        const response = await apiClient.get(`/v1/media/${mediaId}/closure-requests`)
+        return response.data
+      }
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get media revisions
+   */
+  const getMediaRevisions = async (mediaId, guestToken = null) => {
+    try {
+      if (guestToken) {
+        // Use public endpoint with guest token
+        const response = await apiClient.get(`/v1/public/media/${mediaId}/revisions`, {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        })
+        return response.data
+      } else {
+        // Use authenticated endpoint
+        const response = await apiClient.get(`/v1/media/${mediaId}/revisions`)
+        return response.data
+      }
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Create an approval request (authenticated - creative only)
+   */
+  const createApprovalRequest = async (proofingId, mediaId, message = null) => {
+    try {
+      const response = await apiClient.post('/v1/approval-requests', {
+        proofing_id: proofingId,
+        media_id: mediaId,
+        message: message,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get approval request by token (public)
+   */
+  const getApprovalRequest = async token => {
+    try {
+      const response = await apiClient.get(`/v1/public/approval-requests/${token}`, {
+        skipAuth: true,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Approve approval request (public)
+   */
+  const approveApprovalRequest = async (token, email) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/approval-requests/${token}/approve`,
+        { email },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Reject approval request (public)
+   */
+  const rejectApprovalRequest = async (token, email, reason = null) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/approval-requests/${token}/reject`,
+        { email, reason },
+        { skipAuth: true }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get approval requests for a media item
+   */
+  const getMediaApprovalRequests = async (mediaId, guestToken = null) => {
+    try {
+      if (guestToken) {
+        // Use public endpoint with guest token
+        const response = await apiClient.get(`/v1/public/media/${mediaId}/approval-requests`, {
+          headers: {
+            Authorization: `Bearer ${guestToken}`,
+          },
+          skipAuth: true,
+        })
+        return response.data
+      } else {
+        // Use authenticated endpoint
+        const response = await apiClient.get(`/v1/media/${mediaId}/approval-requests`)
+        return response.data
+      }
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     createProofing,
     fetchProofing,
@@ -1234,6 +1435,19 @@ export function useProofingApi() {
     deleteMediaFeedback,
     downloadMedia,
     getApprovedFilenames,
+    // Closure Requests
+    createClosureRequest,
+    getClosureRequest,
+    approveClosureRequest,
+    rejectClosureRequest,
+    getMediaClosureRequests,
+    // Approval Requests
+    createApprovalRequest,
+    getApprovalRequest,
+    approveApprovalRequest,
+    rejectApprovalRequest,
+    getMediaApprovalRequests,
+    getMediaRevisions,
     // Public/Guest Access
     checkProofingStatus,
     verifyProofingPassword,
@@ -1245,5 +1459,6 @@ export function useProofingApi() {
     toggleProofingMediaSelected,
     completePublicProofing,
     getProofingSelectedFilenames,
+    approveProofingMedia,
   }
 }

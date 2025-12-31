@@ -88,7 +88,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import { Button } from '@/components/shadcn/button'
 import { Upload, Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'

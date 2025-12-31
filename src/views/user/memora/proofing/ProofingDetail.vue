@@ -162,6 +162,15 @@
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
                 @star-click="handleStarMedia(item)"
+                @request-closure="handleRequestClosure(item)"
+                @view-closure-history="handleViewClosureHistory(item)"
+                @upload-revision="handleUploadRevision(item)"
+                @view-revision-history="handleViewRevisionHistory(item)"
+                @request-approval="handleRequestApproval(item)"
+                :closure-requests="getClosureRequestsForMedia(item)"
+                :approval-requests="getApprovalRequestsForMedia(item)"
+                :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
+                :is-revision-limit-exceeded="isRevisionLimitExceededForMedia(item)"
               />
             </TransitionGroup>
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
@@ -193,6 +202,15 @@
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
                 @star-click="handleStarMedia(item)"
+                @request-closure="handleRequestClosure(item)"
+                @view-closure-history="handleViewClosureHistory(item)"
+                @upload-revision="handleUploadRevision(item)"
+                @view-revision-history="handleViewRevisionHistory(item)"
+                @request-approval="handleRequestApproval(item)"
+                :closure-requests="getClosureRequestsForMedia(item)"
+                :approval-requests="getApprovalRequestsForMedia(item)"
+                :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
+                :is-revision-limit-exceeded="isRevisionLimitExceededForMedia(item)"
               />
             </TransitionGroup>
 
@@ -403,6 +421,8 @@
         :project-id="route.params.projectId || null"
         :creative-email="userStore.user?.email || null"
         :allowed-emails="proofing?.allowedEmails || proofing?.allowed_emails || []"
+        :closure-requests-map="closureRequestsMap"
+        :approval-requests-map="approvalRequestsMap"
         @close="handleCloseCommentLightbox"
         @back-to-lightbox="handleCloseCommentLightbox"
         @comment-added="handleCommentAdded"
@@ -447,6 +467,65 @@
         @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
+
+      <!-- Request Closure Modal -->
+      <RequestClosureModal
+        v-if="requestClosureMediaItem"
+        v-model="showRequestClosureModal"
+        :media-id="requestClosureMediaItem.id || requestClosureMediaItem.uuid"
+        :media-item="requestClosureMediaItem"
+        :comments="requestClosureMediaItem.feedback || []"
+        :is-video="(requestClosureMediaItem.type || requestClosureMediaItem.file?.type) === 'video'"
+        :allow-reply="false"
+        :guest-email="null"
+        :creative-email="userStore.user?.email || null"
+        @request-closure="handleRequestClosureSubmit"
+      />
+
+      <!-- Closure History Modal -->
+      <ClosureHistoryModal
+        v-model="showClosureHistoryModal"
+        :closure-requests="closureHistoryData"
+      />
+
+      <!-- Request Approval Modal -->
+      <RequestApprovalModal
+        v-if="requestApprovalMediaItem"
+        v-model="showRequestApprovalModal"
+        :is-submitting="isSubmittingApprovalRequest"
+        :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || 5"
+        @confirm="handleRequestApprovalSubmit"
+        @cancel="handleRequestApprovalCancel"
+      />
+
+      <!-- Upload Revision Modal -->
+      <UploadRevisionModal
+        v-model="showUploadRevisionModal"
+        :is-uploading="isUploadingRevision"
+        :media-item="mediaForRevision"
+        :current-revision-number="calculatedRevisionNumber"
+        :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || 5"
+        @confirm="handleConfirmUploadRevision"
+        @cancel="handleCancelUploadRevision"
+      />
+
+      <!-- Revision History Sidebar -->
+      <RevisionHistorySidebar
+        v-model="showRevisionHistorySidebar"
+        :media-item="revisionHistoryMediaItem"
+        :placeholder-image="placeholderImage"
+        :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
+        @view="handleViewRevisionFromHistory"
+        @download="handleDownloadRevisionFromHistory"
+        @revision-click="handleRevisionClick"
+      />
+
+      <!-- Revision Details Modal -->
+      <RevisionDetailsModal
+        v-model="showRevisionDetailsModal"
+        :revision="selectedRevision"
+        :media-item="revisionHistoryMediaItem"
+      />
     </template>
   </ProofingLayout>
 </template>
@@ -465,6 +544,12 @@ import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
 import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
 import MediaDetailSidebar from '@/components/organisms/MediaDetailSidebar.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
+import RequestClosureModal from '@/components/organisms/RequestClosureModal.vue'
+import ClosureHistoryModal from '@/components/organisms/ClosureHistoryModal.vue'
+import UploadRevisionModal from '@/components/organisms/UploadRevisionModal.vue'
+import RequestApprovalModal from '@/components/organisms/RequestApprovalModal.vue'
+import RevisionHistorySidebar from '@/components/organisms/RevisionHistorySidebar.vue'
+import RevisionDetailsModal from '@/components/organisms/RevisionDetailsModal.vue'
 import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
 import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
@@ -559,6 +644,25 @@ const showMediaDetailSidebar = ref(false)
 const showCommentLightbox = ref(false)
 const commentLightboxIndex = ref(0)
 const commentLightboxItems = ref([])
+const showRequestClosureModal = ref(false)
+const requestClosureMediaItem = ref(null)
+const closureRequestsMap = ref({}) // Map of mediaId -> closure requests array
+const approvalRequestsMap = ref({}) // Map of mediaId -> approval requests array
+const showClosureHistoryModal = ref(false)
+const closureHistoryMediaItem = ref(null)
+const closureHistoryData = ref([])
+
+// Approval request state
+const showRequestApprovalModal = ref(false)
+const requestApprovalMediaItem = ref(null)
+const isSubmittingApprovalRequest = ref(false)
+const showUploadRevisionModal = ref(false)
+const mediaForRevision = ref(null)
+const isUploadingRevision = ref(false)
+const showRevisionHistorySidebar = ref(false)
+const revisionHistoryMediaItem = ref(null)
+const showRevisionDetailsModal = ref(false)
+const selectedRevision = ref(null)
 
 // Focal point modal state
 const showFocalPointModal = ref(false)
@@ -873,6 +977,11 @@ watch(
   newItems => {
     const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
     mediaItems.value = [...otherMedia, ...newItems]
+    // Load closure requests and approval requests for new items
+    if (newItems.length > 0) {
+      loadClosureRequestsForMedia(newItems)
+      loadApprovalRequestsForMedia(newItems)
+    }
   },
   { immediate: true }
 )
@@ -993,12 +1102,37 @@ watch(
   { immediate: false }
 )
 
-// Filter media items by selected set
+// Filter media items by selected set and show only latest revisions
 const filteredMediaItems = computed(() => {
   if (!selectedSetId.value) {
     return []
   }
-  return mediaItems.value.filter(item => item.setId === selectedSetId.value)
+  const setMedia = mediaItems.value.filter(item => item.setId === selectedSetId.value)
+
+  // Group by original media UUID and keep only the latest revision
+  const mediaMap = new Map()
+
+  setMedia.forEach(item => {
+    // Determine the original media UUID (grouping key)
+    // If item has originalMediaId, it's a revision - group by originalMediaId
+    // If item doesn't have originalMediaId, it's the original - group by its own UUID
+    const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+    const revisionNumber = item.revisionNumber || item.revision_number || 0
+
+    if (!mediaMap.has(originalUuid)) {
+      mediaMap.set(originalUuid, item)
+    } else {
+      const existing = mediaMap.get(originalUuid)
+      const existingRevision = existing.revisionNumber || existing.revision_number || 0
+
+      // Keep the one with higher revision number
+      if (revisionNumber > existingRevision) {
+        mediaMap.set(originalUuid, item)
+      }
+    }
+  })
+
+  return Array.from(mediaMap.values())
 })
 
 // Media items are now sorted/filtered by the backend
@@ -1025,6 +1159,198 @@ const mediaLightboxStateBeforeComments = ref({
   index: 0,
 })
 
+const handleRequestClosure = item => {
+  requestClosureMediaItem.value = item
+  showRequestClosureModal.value = true
+}
+
+const handleViewClosureHistory = async item => {
+  closureHistoryMediaItem.value = item
+  const mediaId = item.id || item.uuid
+  try {
+    const result = await proofingApi.getMediaClosureRequests(mediaId)
+    closureHistoryData.value = result.closure_requests || []
+    showClosureHistoryModal.value = true
+  } catch (error) {
+    console.error('Failed to load closure history:', error)
+    toast.error('Failed to load closure history', {
+      description: error?.message || 'An error occurred while loading closure history.',
+    })
+  }
+}
+
+const getClosureRequestsForMedia = item => {
+  const mediaId = item.id || item.uuid
+  return closureRequestsMap.value[mediaId] || []
+}
+
+const getApprovalRequestsForMedia = item => {
+  const mediaId = item.id || item.uuid
+  return approvalRequestsMap.value[mediaId] || []
+}
+
+const calculatedRevisionNumber = computed(() => {
+  if (!mediaForRevision.value) return 1
+
+  const originalMediaUuid =
+    mediaForRevision.value.originalMediaId ||
+    mediaForRevision.value.original_media_uuid ||
+    mediaForRevision.value.id ||
+    mediaForRevision.value.uuid
+
+  // Find all revisions for this original media
+  const revisions = sortedMediaItems.value.filter(m => {
+    const mOriginalUuid = m.originalMediaId || m.original_media_uuid || m.id || m.uuid
+    return mOriginalUuid === originalMediaUuid && (m.revisionNumber || m.revision_number)
+  })
+
+  // Get max revision number
+  const maxRevision = revisions.reduce((max, m) => {
+    const revNum = m.revisionNumber || m.revision_number || 0
+    return Math.max(max, revNum)
+  }, 0)
+
+  return maxRevision + 1
+})
+
+const handleUploadRevision = item => {
+  if (!item) return
+  mediaForRevision.value = item
+
+  // Check if on second-to-last revision
+  const maxRevisions = proofing.value?.maxRevisions || proofing.value?.max_revisions || 5
+  const nextRevisionNumber = calculatedRevisionNumber.value
+
+  if (nextRevisionNumber === maxRevisions - 1) {
+    toast.warning('Second-to-last revision', {
+      description: `This will be revision ${nextRevisionNumber} of ${maxRevisions}. Only one more revision will be allowed after this.`,
+      duration: 5000,
+    })
+  }
+
+  showUploadRevisionModal.value = true
+}
+
+const handleConfirmUploadRevision = async ({
+  revisionNumber,
+  description,
+  userFileUuid,
+  completedTodos = [],
+}) => {
+  if (!mediaForRevision.value || !userFileUuid || isUploadingRevision.value) return
+
+  const proofingId = proofing.value?.id || proofing.value?.uuid
+  const mediaId = mediaForRevision.value.id || mediaForRevision.value.uuid
+  const projectId = route.params.projectId || null
+
+  if (!proofingId || !mediaId) {
+    toast.error('Missing required information', {
+      description: 'Unable to upload revision. Please try again.',
+    })
+    return
+  }
+
+  isUploadingRevision.value = true
+
+  try {
+    const revisionMedia = await proofingApi.uploadRevision(
+      projectId,
+      proofingId,
+      mediaId,
+      revisionNumber,
+      description || '',
+      userFileUuid,
+      completedTodos
+    )
+
+    // Refresh media items
+    await loadMediaItems()
+
+    showUploadRevisionModal.value = false
+    mediaForRevision.value = null
+
+    toast.success('Revision uploaded', {
+      description: `Revision ${revisionNumber} has been uploaded successfully.`,
+    })
+  } catch (error) {
+    console.error('Failed to upload revision', error)
+    toast.error('Failed to upload revision', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isUploadingRevision.value = false
+  }
+}
+
+const handleCancelUploadRevision = () => {
+  showUploadRevisionModal.value = false
+  mediaForRevision.value = null
+}
+
+const handleViewRevisionHistory = item => {
+  if (!item) return
+
+  revisionHistoryMediaItem.value = item
+
+  // Check if on second-to-last revision
+  const maxRevisions = proofing.value?.maxRevisions || proofing.value?.max_revisions || 5
+  const currentRevisionNumber = item.revisionNumber || item.revision_number || 0
+
+  if (currentRevisionNumber === maxRevisions - 1) {
+    toast.warning('Second-to-last revision', {
+      description: `This is revision ${currentRevisionNumber} of ${maxRevisions}. Only one more revision is allowed.`,
+      duration: 5000,
+    })
+  }
+
+  showRevisionHistorySidebar.value = true
+}
+
+const handleRevisionClick = revision => {
+  selectedRevision.value = revision
+  showRevisionDetailsModal.value = true
+}
+
+const handleViewRevisionFromHistory = revision => {
+  openMediaViewer(revision)
+}
+
+const handleDownloadRevisionFromHistory = async revision => {
+  await handleDownloadMedia(revision)
+}
+
+// Load closure requests for all media items
+const loadClosureRequestsForMedia = async mediaItems => {
+  const requests = {}
+  for (const item of mediaItems) {
+    const mediaId = item.id || item.uuid
+    try {
+      const result = await proofingApi.getMediaClosureRequests(mediaId)
+      requests[mediaId] = result.closure_requests || []
+    } catch (error) {
+      // Silently fail - closure requests are optional
+      requests[mediaId] = []
+    }
+  }
+  closureRequestsMap.value = { ...closureRequestsMap.value, ...requests }
+}
+
+// Load approval requests for all media items
+const loadApprovalRequestsForMedia = async mediaItems => {
+  const requests = {}
+  for (const item of mediaItems) {
+    const mediaId = item.id || item.uuid
+    try {
+      const result = await proofingApi.getMediaApprovalRequests(mediaId)
+      requests[mediaId] = result.approval_requests || []
+    } catch (error) {
+      // Silently fail - approval requests are optional
+      requests[mediaId] = []
+    }
+  }
+  approvalRequestsMap.value = { ...approvalRequestsMap.value, ...requests }
+}
+
 const handleOpenCommentsFromLightbox = ({ item, index }) => {
   // Store the current MediaLightbox state before closing
   const items =
@@ -1039,17 +1365,49 @@ const handleOpenCommentsFromLightbox = ({ item, index }) => {
   closeMediaViewer()
 
   // Get all media items (or use the items that were in the viewer)
+  // Preserve all properties including file, url, etc.
   const itemsWithSetId = items.map(m => ({
     ...m,
     setId: m.setId || selectedSetId.value,
   }))
 
-  // Filter to only items with feedback, or use all items if none have feedback
-  const itemsWithFeedback = itemsWithSetId.filter(m => m.feedback && m.feedback.length > 0)
+  // Ensure the current item is always included, even if it doesn't have feedback
+  // Use the item passed from MediaLightbox directly to preserve its full structure
+  const currentItemId = item.id || item.uuid
+  const currentItemWithSetId = {
+    ...item,
+    setId: item.setId || selectedSetId.value,
+  }
+
+  // Filter to only items with feedback, but always include the current item
+  const itemsWithFeedback = itemsWithSetId.filter(m => {
+    const mediaId = m.id || m.uuid
+    // Always include the current item, or include items with feedback
+    return mediaId === currentItemId || (m.feedback && m.feedback.length > 0)
+  })
+
+  // Ensure current item is at the correct position (replace if exists, or add if not)
+  const existingIndex = itemsWithFeedback.findIndex(m => {
+    const mediaId = m.id || m.uuid
+    return mediaId === currentItemId
+  })
+
+  if (existingIndex >= 0) {
+    // Replace with the item from MediaLightbox to preserve its structure
+    itemsWithFeedback[existingIndex] = currentItemWithSetId
+  } else {
+    // Add current item at the beginning
+    itemsWithFeedback.unshift(currentItemWithSetId)
+  }
+
   commentLightboxItems.value = itemsWithFeedback.length > 0 ? itemsWithFeedback : itemsWithSetId
 
   // Find the index of the current item in the comment lightbox items
-  const commentIndex = commentLightboxItems.value.findIndex(m => m.id === item.id)
+  // Match by both id and uuid to ensure we find the correct item
+  const commentIndex = commentLightboxItems.value.findIndex(m => {
+    const mediaId = m.id || m.uuid
+    return mediaId === currentItemId
+  })
   commentLightboxIndex.value = commentIndex >= 0 ? commentIndex : 0
 
   // Open the comment lightbox
@@ -1085,6 +1443,105 @@ const handleCommentUpdated = ({ mediaId, commentId, comment, allComments }) => {
 // Handle comment deleted event
 const handleCommentDeleted = ({ mediaId, commentId, allComments }) => {
   updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Request Closure handler
+const handleRequestClosureSubmit = async ({ mediaId, todos }) => {
+  try {
+    const proofingId = proofing.value?.id || proofing.value?.uuid
+    const result = await proofingApi.createClosureRequest(proofingId, mediaId, todos)
+
+    toast.success('Closure request sent', {
+      description: 'The closure request has been sent to the primary email.',
+    })
+
+    // Reload closure requests for this media before clearing
+    const currentMediaId = mediaId
+    try {
+      const result = await proofingApi.getMediaClosureRequests(currentMediaId)
+      closureRequestsMap.value[currentMediaId] = result.closure_requests || []
+    } catch (err) {
+      // Silently fail
+    }
+
+    showRequestClosureModal.value = false
+    requestClosureMediaItem.value = null
+  } catch (error) {
+    console.error('Failed to create closure request:', error)
+    toast.error('Failed to send closure request', {
+      description: error?.message || 'An error occurred while sending the closure request.',
+    })
+  }
+}
+
+const isRevisionLimitExceededForMedia = item => {
+  if (!item || !proofing.value) return false
+  const maxRevisions = proofing.value?.maxRevisions || proofing.value?.max_revisions || 5
+  const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+
+  // Find all revisions for this media
+  const allRevisions = sortedMediaItems.value.filter(m => {
+    const mOriginalUuid = m.originalMediaId || m.original_media_uuid || m.id || m.uuid
+    return mOriginalUuid === originalUuid
+  })
+
+  const currentRevisionNumber = item.revisionNumber || item.revision_number || 0
+
+  return currentRevisionNumber >= maxRevisions
+}
+
+const handleRequestApproval = item => {
+  if (!item) return
+  requestApprovalMediaItem.value = item
+  showRequestApprovalModal.value = true
+}
+
+const handleRequestApprovalSubmit = async ({ message }) => {
+  if (!requestApprovalMediaItem.value || isSubmittingApprovalRequest.value) return
+
+  const item = requestApprovalMediaItem.value
+  const proofingId = proofing.value?.id || proofing.value?.uuid
+  const mediaId = item.id || item.uuid
+
+  if (!proofingId || !mediaId) {
+    toast.error('Missing required information', {
+      description: 'Unable to request approval. Please try again.',
+    })
+    return
+  }
+
+  isSubmittingApprovalRequest.value = true
+
+  try {
+    await proofingApi.createApprovalRequest(proofingId, mediaId, message)
+
+    // Reload approval requests for this media
+    try {
+      const result = await proofingApi.getMediaApprovalRequests(mediaId)
+      approvalRequestsMap.value[mediaId] = result.approval_requests || []
+    } catch (err) {
+      // Silently fail
+    }
+
+    toast.success('Approval request sent', {
+      description: 'The approval request has been sent to the primary email.',
+    })
+
+    showRequestApprovalModal.value = false
+    requestApprovalMediaItem.value = null
+  } catch (error) {
+    console.error('Failed to create approval request:', error)
+    toast.error('Failed to send approval request', {
+      description: error?.message || 'An error occurred while sending the approval request.',
+    })
+  } finally {
+    isSubmittingApprovalRequest.value = false
+  }
+}
+
+const handleRequestApprovalCancel = () => {
+  showRequestApprovalModal.value = false
+  requestApprovalMediaItem.value = null
 }
 
 // Helper to update media item's feedback array

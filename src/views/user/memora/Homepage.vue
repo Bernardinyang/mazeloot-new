@@ -437,7 +437,7 @@ import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram } from
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import { Select } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useCollectionSort } from '@/composables/useCollectionSort'

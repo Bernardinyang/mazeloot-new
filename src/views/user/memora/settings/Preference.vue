@@ -296,7 +296,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/shadcn/select'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 

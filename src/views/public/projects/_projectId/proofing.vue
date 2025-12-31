@@ -124,7 +124,9 @@
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
           <MazelootLogo
             :color-class="
-              proofing.coverPhotoUrl || proofing.cover_photo_url ? 'text-white' : undefined
+              proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                ? 'text-white'
+                : undefined
             "
             :show-text="true"
             size="md"
@@ -133,7 +135,9 @@
 
         <!-- Theme Toggle (Top Right) -->
         <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20">
-          <ThemeToggle :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url)" />
+          <ThemeToggle
+            :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText)"
+          />
         </div>
 
         <!-- Cover Photo Background -->
@@ -147,7 +151,7 @@
             :alt="proofing.name || 'Proofing Cover'"
             :src="proofing.coverPhotoUrl || proofing.cover_photo_url"
             :style="getProofingCoverStyle()"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
             @error="handleCoverImageError"
           />
           <!-- Cover Video -->
@@ -156,20 +160,25 @@
             :src="proofing.coverPhotoUrl || proofing.cover_photo_url"
             :style="getProofingCoverStyle()"
             autoplay
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
             loop
             muted
             playsinline
           />
-          <!-- Subtle Gradient Overlay -->
+          <!-- Gradient Overlay for Light Mode -->
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"
+            class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent dark:hidden transition-opacity duration-500"
+          ></div>
+          <!-- Enhanced Gradient Overlay for Dark Mode -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent hidden dark:block transition-opacity duration-500"
           ></div>
         </div>
-        <!-- Fallback Background (warm beige) -->
+        <!-- Fallback Background (color gradient) -->
         <div
           v-else
-          class="absolute inset-0 w-full h-full bg-gradient-to-b from-amber-50 via-amber-50/80 to-amber-100 dark:from-amber-950 dark:via-amber-900/80 dark:to-amber-950"
+          class="absolute inset-0 w-full h-full transition-all duration-500 ease-in-out"
+          :style="getProofingGradientStyle()"
         ></div>
 
         <!-- Content Overlay - Positioned at Bottom -->
@@ -181,9 +190,9 @@
             <div class="flex-1">
               <h1
                 :class="[
-                  proofing.coverPhotoUrl || proofing.cover_photo_url
+                  proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                     ? 'text-white'
-                    : 'text-gray-700 dark:text-gray-300',
+                    : 'text-gray-900 dark:text-gray-100',
                 ]"
                 class="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 drop-shadow-lg"
               >
@@ -192,9 +201,9 @@
               <p
                 v-if="proofing.description"
                 :class="[
-                  proofing.coverPhotoUrl || proofing.cover_photo_url
+                  proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                     ? 'text-white/90'
-                    : 'text-gray-600 dark:text-gray-400',
+                    : 'text-gray-700 dark:text-gray-300',
                 ]"
                 class="text-base md:text-lg font-light tracking-normal drop-shadow-md max-w-2xl"
               >
@@ -207,11 +216,11 @@
               <Button
                 v-if="!isAuthenticatedOwner && proofing.status !== 'completed'"
                 :class="[
-                  proofing.coverPhotoUrl || proofing.cover_photo_url
-                    ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white border-gray-700',
+                  proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                    ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20 shadow-lg hover:shadow-xl'
+                    : 'bg-gray-900 hover:bg-gray-800 text-white border-gray-700 shadow-lg hover:shadow-xl',
                 ]"
-                class="px-6 py-3 text-sm md:text-base font-light tracking-wider uppercase border backdrop-blur-sm"
+                class="px-6 py-3 text-sm md:text-base font-medium tracking-wider uppercase border backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
                 @click="scrollToGallery"
               >
                 View Gallery
@@ -353,59 +362,246 @@
                 'relative rounded-lg overflow-hidden transition-all group',
                 isAuthenticatedOwner || isPreviewMode
                   ? 'opacity-75 cursor-not-allowed'
-                  : 'opacity-90 hover:opacity-100 hover:scale-105 hover:shadow-lg cursor-pointer',
+                  : 'opacity-90 hover:opacity-100 hover:shadow-lg cursor-pointer',
+                hasPendingClosureRequest(item)
+                  ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/20 dark:bg-amber-900/10 animate-pulse'
+                  : '',
+                hasPendingApprovalRequest(item)
+                  ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/20 dark:bg-blue-900/10 animate-pulse'
+                  : '',
+                isRejected(item)
+                  ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/20 dark:bg-red-900/10'
+                  : '',
+                isReadyForRevision(item)
+                  ? 'border-2 border-gray-600 dark:border-gray-700 scale-95'
+                  : '',
+                isRejected(item)
+                  ? 'border border-red-600'
+                  : isReadyForRevision(item)
+                    ? ''
+                    : 'border border-gray-200 dark:border-gray-700',
               ]"
+              :title="
+                hasPendingClosureRequest(item)
+                  ? 'Closure request pending - Click clock icon to view'
+                  : hasPendingApprovalRequest(item)
+                    ? 'Approval request pending'
+                    : ''
+              "
             >
-              <img
-                v-if="item.type === 'image' || (item.file && item.file.type === 'image')"
-                :alt="item.filename || item.title || 'Media'"
-                :src="
-                  item.thumbnailUrl ||
-                  item.thumbnail ||
-                  item.largeImageUrl ||
-                  (item.file && item.file.url) ||
-                  item.url
-                "
-                :class="[
-                  'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
-                ]"
-                @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item)"
-              />
-              <video
-                v-else
-                :poster="item.thumbnailUrl || item.thumbnail"
-                :src="(item.file && item.file.url) || item.url"
-                :class="[
-                  'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
-                ]"
-                @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item)"
-              />
-
-              <!-- Comment Count Badge -->
-              <div
-                v-if="getItemCommentCount(item) > 0"
-                class="absolute top-2 right-2 px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
-              >
-                <MessageSquare class="w-3 h-3" />
-                {{ getItemCommentCount(item) }}
-              </div>
-
-              <!-- View/Feedback Button Overlay -->
+              <!-- Context Menu Button for Clients -->
               <div
                 v-if="!isAuthenticatedOwner && !isPreviewMode"
-                class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
+                :class="[
+                  'absolute top-2 right-2 transition-opacity duration-200 z-10',
+                  getDropdownOpenState(item.id)
+                    ? 'opacity-100'
+                    : 'opacity-0 group-hover:opacity-100',
+                ]"
+                @click.stop
               >
-                <Button
-                  class="bg-white/90 hover:bg-white text-gray-900"
-                  size="sm"
-                  variant="secondary"
-                  @click.stop="handleViewMedia(item)"
+                <DropdownMenu
+                  :open="getDropdownOpenState(item.id)"
+                  @update:open="val => setDropdownOpenState(item.id, val)"
                 >
-                  <MessageSquare class="h-4 w-4 mr-2" />
-                  View & Comment
-                </Button>
+                  <DropdownMenuTrigger as-child>
+                    <button
+                      class="p-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110"
+                      @click.stop
+                    >
+                      <MoreVertical class="h-4 w-4 text-white" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    :class="[theme.bgDropdown, theme.borderSecondary]"
+                    align="end"
+                    class="w-48"
+                    @click.stop
+                  >
+                    <DropdownMenuItem
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      @click.stop="handleViewMedia(item, false)"
+                    >
+                      <Eye class="h-4 w-4 mr-2" />
+                      View
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      @click.stop="handleViewMedia(item, true)"
+                    >
+                      <MessageSquare class="h-4 w-4 mr-2" />
+                      Comment
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      v-if="hasRevisions(item)"
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      @click.stop="handleViewRevisionHistory(item)"
+                    >
+                      <History class="h-4 w-4 mr-2" />
+                      View Revisions
+                    </DropdownMenuItem>
+                    <div
+                      v-if="!item?.isCompleted && !item?.is_completed"
+                      :class="theme.borderSecondary"
+                      class="h-px my-1"
+                    ></div>
+                    <DropdownMenuItem
+                      v-if="!item?.isCompleted && !item?.is_completed && !isRejected(item)"
+                      :class="[
+                        'text-green-600 dark:text-green-400',
+                        'hover:bg-green-50 dark:hover:bg-green-900/20',
+                        'cursor-pointer',
+                      ]"
+                      @click.stop="handleApproveMedia(item)"
+                    >
+                      <CheckCircle2 class="h-4 w-4 mr-2" />
+                      Approve
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      v-if="isRejected(item)"
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      @click.stop="handleViewApprovalRequest(item)"
+                    >
+                      <History class="h-4 w-4 mr-2" />
+                      View Approval Request
+                    </DropdownMenuItem>
+                    <div
+                      v-if="
+                        !item?.isCompleted &&
+                        !item?.is_completed &&
+                        getClosureRequestsForMedia(item) &&
+                        getClosureRequestsForMedia(item).length > 0
+                      "
+                      :class="theme.borderSecondary"
+                      class="h-px my-1"
+                    ></div>
+                    <DropdownMenuItem
+                      v-if="
+                        !item?.isCompleted &&
+                        !item?.is_completed &&
+                        getClosureRequestsForMedia(item) &&
+                        getClosureRequestsForMedia(item).length > 0
+                      "
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      @click.stop="handleViewClosureHistory(item)"
+                    >
+                      <History class="h-4 w-4 mr-2" />
+                      View Closure History
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <!-- Media container with overflow-hidden to prevent scale overflow -->
+              <div
+                :class="[
+                  'w-full aspect-square overflow-hidden rounded-lg',
+                  !isAuthenticatedOwner && !isPreviewMode
+                    ? 'transition-transform duration-300 group-hover:scale-105'
+                    : '',
+                ]"
+              >
+                <img
+                  v-if="item.type === 'image' || (item.file && item.file.type === 'image')"
+                  :alt="item.filename || item.title || 'Media'"
+                  :src="
+                    item.thumbnailUrl ||
+                    item.thumbnail ||
+                    item.largeImageUrl ||
+                    (item.file && item.file.url) ||
+                    item.url
+                  "
+                  :class="[
+                    'w-full h-full object-cover',
+                    !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
+                    isReadyForRevision(item) ? 'opacity-50' : '',
+                    isRejected(item) ? 'grayscale' : '',
+                  ]"
+                  @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item, false)"
+                />
+                <video
+                  v-else
+                  :poster="item.thumbnailUrl || item.thumbnail"
+                  :src="(item.file && item.file.url) || item.url"
+                  :class="[
+                    'w-full h-full object-cover',
+                    !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
+                  ]"
+                  @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item, false)"
+                />
+              </div>
+
+              <!-- Badges Container (bottom-left) -->
+              <div
+                class="absolute bottom-2 left-2 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)] z-30"
+              >
+                <!-- Approved Badge -->
+                <div
+                  v-if="item?.isCompleted || item?.is_completed"
+                  class="px-2 py-1 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+                >
+                  <CheckCircle2 class="w-3 h-3 fill-white" />
+                  Approved
+                </div>
+                <!-- Rejected Badge -->
+                <div
+                  v-if="isRejected(item)"
+                  class="px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg flex items-center gap-1 border border-red-600"
+                >
+                  <X class="w-3 h-3 fill-white" />
+                  Rejected
+                </div>
+                <!-- Revision Number Badge -->
+                <div
+                  v-if="item?.revisionNumber || item?.revision_number"
+                  class="px-2 py-1 rounded-full bg-purple-500/90 dark:bg-purple-600/90 backdrop-blur-sm shadow-lg border border-purple-400/50 flex items-center gap-1"
+                  :title="`Revision ${item?.revisionNumber || item?.revision_number}`"
+                >
+                  <span class="text-xs font-semibold text-white"
+                    >Rev {{ item?.revisionNumber || item?.revision_number }}</span
+                  >
+                </div>
+                <!-- Ready for Revision Indicator -->
+                <div
+                  v-if="isReadyForRevision(item)"
+                  class="p-1.5 rounded-md bg-gray-500/90 dark:bg-gray-600/90 backdrop-blur-sm shadow-lg border border-gray-400/50"
+                  title="Ready for revision"
+                >
+                  <Upload class="h-3.5 w-3.5 text-white" />
+                </div>
+                <!-- Revision Indicator -->
+                <div
+                  v-if="hasRevisions(item)"
+                  class="p-1.5 rounded-md bg-purple-500/90 dark:bg-purple-600/90 backdrop-blur-sm shadow-lg border border-purple-400/50"
+                  title="Has revisions - Click menu to view revision history"
+                >
+                  <History class="h-3.5 w-3.5 text-white" />
+                </div>
+                <!-- Comment Count Badge -->
+                <div
+                  v-if="getItemCommentCount(item) > 0"
+                  class="px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+                >
+                  <MessageSquare class="w-3 h-3" />
+                  {{ getItemCommentCount(item) }}
+                </div>
+                <!-- Pending Closure Request Indicator -->
+                <button
+                  v-if="hasPendingClosureRequest(item)"
+                  class="p-1.5 rounded-md bg-amber-500/90 hover:bg-amber-600/90 backdrop-blur-sm transition-all duration-200 shadow-lg hover:scale-110 animate-pulse"
+                  title="Closure request pending - Click to view"
+                  @click.stop="handlePendingClosureClick(item)"
+                >
+                  <Clock class="h-3.5 w-3.5 text-white" />
+                </button>
+                <!-- Pending Approval Request Indicator -->
+                <button
+                  v-if="hasPendingApprovalRequest(item)"
+                  class="p-1.5 rounded-md bg-blue-500/90 hover:bg-blue-600/90 backdrop-blur-sm transition-all duration-200 shadow-lg hover:scale-110 animate-pulse"
+                  title="Approval request pending - Click to view"
+                  @click.stop="handlePendingApprovalClick(item)"
+                >
+                  <Upload class="h-3.5 w-3.5 text-white" />
+                </button>
               </div>
             </div>
           </div>
@@ -424,7 +620,45 @@
       </div>
     </div>
 
+    <!-- Approve Media Confirmation Dialog -->
+    <Dialog :open="showApproveConfirm" @update:open="val => (showApproveConfirm = val)">
+      <DialogContent class="sm:max-w-[425px] !z-[200] overlay-z-[200]">
+        <DialogHeader>
+          <DialogTitle>Approve Media</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to approve this media? This marks it as good to go.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Once approved, this media will be marked as completed. Comments and feedback will no
+            longer be allowed after approval.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="showApproveConfirm = false"
+            :disabled="isApprovingMedia"
+          >
+            Cancel
+          </Button>
+          <Button
+            class="bg-green-500 hover:bg-green-600 text-white"
+            @click="confirmApproveMedia"
+            :disabled="isApprovingMedia"
+          >
+            <Loader2 v-if="isApprovingMedia" class="w-4 h-4 mr-2 animate-spin" />
+            <CheckCircle2 v-else class="w-4 h-4 mr-2" />
+            <span>{{ isApprovingMedia ? 'Approving...' : 'Approve Media' }}</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- MediaCommentLightbox for commenting -->
     <MediaCommentLightbox
+      v-if="useCommentLightbox"
       v-model="showMediaLightbox"
       :initial-index="previewMediaIndex"
       :items="currentMediaItems"
@@ -434,22 +668,79 @@
       :guest-token="guestToken"
       :guest-email="userEmail"
       :allowed-emails="proofing?.allowedEmails || proofing?.allowed_emails || []"
+      :open-with-comments="openWithComments"
+      :closure-requests-map="closureRequestsMap"
+      :approval-requests-map="approvalRequestsMap"
       @close="showMediaLightbox = false"
       @comment-added="handleCommentAdded"
       @comment-updated="handleCommentUpdated"
       @comment-deleted="handleCommentDeleted"
+      @media-approved="handleMediaApproved"
+    />
+
+    <!-- MediaLightbox for viewing only -->
+    <MediaLightbox
+      v-else
+      v-model="showMediaLightbox"
+      :initial-index="previewMediaIndex"
+      :items="currentMediaItems"
+      :proofing-id="proofing?.id || proofing?.uuid"
+      :set-id="selectedSetId"
+      :project-id="route.params.projectId || null"
+      :guest-token="guestToken"
+      :allow-comments="false"
+      @close="showMediaLightbox = false"
+      @open-comments="handleOpenCommentsFromLightbox"
+    />
+
+    <!-- Closure History Modal -->
+    <ClosureHistoryModal
+      v-model="showClosureHistoryModal"
+      :closure-requests="closureHistoryData"
+      :media-item="closureHistoryMediaItem"
+    />
+
+    <!-- Revision History Sidebar -->
+    <RevisionHistorySidebar
+      v-model="showRevisionHistorySidebar"
+      :media-item="revisionHistoryMediaItem"
+      :guest-token="guestToken"
+      :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
+      @revision-click="handleRevisionClick"
+    />
+
+    <!-- Revision Details Modal -->
+    <RevisionDetailsModal
+      v-model="showRevisionDetailsModal"
+      :revision="selectedRevision"
+      :media-item="revisionHistoryMediaItem"
+      :guest-token="guestToken"
     />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
-import { MessageSquare, Eye, Loader2, X } from 'lucide-vue-next'
+import {
+  MessageSquare,
+  Eye,
+  Loader2,
+  X,
+  CheckCircle2,
+  MoreVertical,
+  History,
+  Clock,
+  Upload,
+} from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import ClosureHistoryModal from '@/components/organisms/ClosureHistoryModal.vue'
+import RevisionHistorySidebar from '@/components/organisms/RevisionHistorySidebar.vue'
+import RevisionDetailsModal from '@/components/organisms/RevisionDetailsModal.vue'
 import {
   Dialog,
   DialogContent,
@@ -458,6 +749,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/shadcn/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/shadcn/dropdown-menu'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionLimits } from '@/composables/useSelectionLimits'
@@ -491,6 +788,37 @@ const passwordError = ref('')
 const guestToken = ref(null)
 const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
+const openWithComments = ref(false)
+const useCommentLightbox = ref(false) // true = MediaCommentLightbox, false = MediaLightbox
+
+// Approval state
+const showApproveConfirm = ref(false)
+const isApprovingMedia = ref(false)
+const mediaToApprove = ref(null)
+
+// Dropdown states for each media item
+const dropdownOpenStates = ref({})
+
+// Closure request history state
+const showClosureHistoryModal = ref(false)
+const closureHistoryMediaItem = ref(null)
+const closureHistoryData = ref([])
+const closureRequestsMap = ref({})
+const approvalRequestsMap = ref({})
+
+// Revision history state
+const showRevisionHistorySidebar = ref(false)
+const revisionHistoryMediaItem = ref(null)
+const showRevisionDetailsModal = ref(false)
+const selectedRevision = ref(null)
+
+const getDropdownOpenState = itemId => {
+  return dropdownOpenStates.value[itemId] || false
+}
+
+const setDropdownOpenState = (itemId, value) => {
+  dropdownOpenStates.value[itemId] = value
+}
 
 const previewCurrentItem = computed(() => {
   if (previewMediaIndex.value >= 0 && previewMediaIndex.value < currentMediaItems.value.length) {
@@ -516,9 +844,41 @@ const currentSet = computed(() => {
   return mediaSets.value.find(set => set.id === selectedSetId.value)
 })
 
+const filteredMediaItems = computed(() => {
+  // For authenticated owners/preview mode, show all media
+  if (isAuthenticatedOwner.value || isPreviewMode.value) {
+    return mediaItems.value
+  }
+
+  // For public users, show only the latest revision for each original media
+  const mediaMap = new Map()
+
+  mediaItems.value.forEach(item => {
+    // Determine the original media UUID (grouping key)
+    // If item has originalMediaId, it's a revision - group by originalMediaId
+    // If item doesn't have originalMediaId, it's the original - group by its own UUID
+    const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+    const revisionNumber = item.revisionNumber || item.revision_number || 0
+
+    if (!mediaMap.has(originalUuid)) {
+      mediaMap.set(originalUuid, item)
+    } else {
+      const existing = mediaMap.get(originalUuid)
+      const existingRevision = existing.revisionNumber || existing.revision_number || 0
+
+      // Keep the one with higher revision number
+      if (revisionNumber > existingRevision) {
+        mediaMap.set(originalUuid, item)
+      }
+    }
+  })
+
+  return Array.from(mediaMap.values())
+})
+
 const currentMediaItems = computed(() => {
   if (!selectedSetId.value) return []
-  return mediaItems.value.filter(item => item.setId === selectedSetId.value)
+  return filteredMediaItems.value.filter(item => item.setId === selectedSetId.value)
 })
 
 const getItemCommentCount = item => {
@@ -566,6 +926,39 @@ const handleCommentUpdated = ({ mediaId, commentId, comment, allComments }) => {
 // Handle comment deleted event
 const handleCommentDeleted = ({ mediaId, commentId, allComments }) => {
   updateMediaItemFeedback(mediaId, allComments)
+}
+
+// Handle media approved event
+const handleMediaApproved = updatedMedia => {
+  if (!updatedMedia || !updatedMedia.id) return
+
+  const mediaId = updatedMedia.id || updatedMedia.uuid
+
+  // Update in mediaItems
+  const mediaIndex = mediaItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
+  if (mediaIndex !== -1) {
+    mediaItems.value[mediaIndex] = {
+      ...mediaItems.value[mediaIndex],
+      isCompleted: true,
+      is_completed: true,
+    }
+  }
+
+  // Update in sets if media is in a set
+  if (proofing.value?.sets) {
+    for (const set of proofing.value.sets) {
+      if (set.media && Array.isArray(set.media)) {
+        const setMediaIndex = set.media.findIndex(m => (m.id || m.uuid) === mediaId)
+        if (setMediaIndex !== -1) {
+          set.media[setMediaIndex] = {
+            ...set.media[setMediaIndex],
+            isCompleted: true,
+            is_completed: true,
+          }
+        }
+      }
+    }
+  }
 }
 
 // Helper to update media item's feedback array
@@ -634,6 +1027,73 @@ const getProofingHoverColor = () => {
   const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 20)
   return `rgb(${r}, ${g}, ${b})`
 }
+
+// Convert hex to RGB
+const hexToRgb = hex => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 245, g: 158, b: 11 } // fallback to amber
+}
+
+// Lighten color
+const lightenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * percent))
+  const g = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * percent))
+  const b = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * percent))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Darken color
+const darkenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.max(0, Math.round(rgb.r * (1 - percent)))
+  const g = Math.max(0, Math.round(rgb.g * (1 - percent)))
+  const b = Math.max(0, Math.round(rgb.b * (1 - percent)))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Calculate brightness to determine text color
+const getColorBrightness = hex => {
+  const rgb = hexToRgb(hex)
+  return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+}
+
+// Get gradient background style for fallback
+const getProofingGradientStyle = () => {
+  const color = proofingColor.value
+  const isDark = themeStore.effectiveTheme === 'dark'
+  if (isDark) {
+    // Dark mode: darker, more saturated gradient
+    const light = darkenColor(color, 0.3)
+    const mid = darkenColor(color, 0.5)
+    const dark = darkenColor(color, 0.7)
+    return {
+      background: `linear-gradient(to bottom, ${light}, ${mid}, ${dark})`,
+    }
+  } else {
+    // Light mode: lighter, softer gradient
+    const light = lightenColor(color, 0.85)
+    const mid = lightenColor(color, 0.5)
+    const dark = darkenColor(color, 0.2)
+    return {
+      background: `linear-gradient(to bottom, ${light}, ${mid}, ${dark})`,
+    }
+  }
+}
+
+// Check if text should be light (for dark backgrounds)
+const shouldUseLightText = computed(() => {
+  if (proofing.value?.coverPhotoUrl || proofing.value?.cover_photo_url) {
+    return true // Always use light text with cover photo
+  }
+  return getColorBrightness(proofingColor.value) < 128
+})
 
 // Email validation
 const isValidEmail = computed(() => {
@@ -1189,6 +1649,10 @@ const loadMediaItems = async () => {
       }
     }
     mediaItems.value = allMedia
+
+    // Load closure requests and approval requests for all media items
+    await loadClosureRequestsForMedia()
+    await loadApprovalRequestsForMedia()
   } catch (error) {
     // Check if proofing is not active
     const errorMessage = error?.message || ''
@@ -1256,14 +1720,297 @@ const handleSelectSet = setId => {
 }
 
 // View media in lightbox
-const handleViewMedia = item => {
+const handleViewMedia = (item, withComments = false) => {
   if (isAuthenticatedOwner.value || isPreviewMode.value) return
   if (proofing.value?.status === 'completed') return // Don't allow viewing in lightbox when completed
 
   const index = currentMediaItems.value.findIndex(m => m.id === item.id)
   if (index !== -1) {
     previewMediaIndex.value = index
+    useCommentLightbox.value = withComments
+    openWithComments.value = withComments
     showMediaLightbox.value = true
+  }
+}
+
+// Switch from MediaLightbox to MediaCommentLightbox when comments are requested
+const handleOpenCommentsFromLightbox = ({ item, index }) => {
+  // Switch to comment lightbox while keeping it open
+  const wasOpen = showMediaLightbox.value
+
+  // Update the index to match the current item in MediaLightbox
+  if (item && index !== undefined) {
+    // Find the item in currentMediaItems to get the correct index
+    const itemIndex = currentMediaItems.value.findIndex(m => {
+      const mediaId = m.id || m.uuid
+      const itemId = item.id || item.uuid
+      return mediaId === itemId
+    })
+
+    if (itemIndex >= 0) {
+      previewMediaIndex.value = itemIndex
+    } else {
+      // If not found, use the index from MediaLightbox
+      previewMediaIndex.value = index
+    }
+
+    // Ensure the item is in currentMediaItems with full structure preserved
+    if (itemIndex < 0 && item) {
+      // Item not found in currentMediaItems, add it temporarily
+      const itemWithSetId = {
+        ...item,
+        setId: item.setId || selectedSetId.value,
+      }
+      currentMediaItems.value.splice(index >= 0 ? index : 0, 0, itemWithSetId)
+      previewMediaIndex.value = index >= 0 ? index : 0
+    } else if (itemIndex >= 0 && item) {
+      // Replace the item in currentMediaItems with the one from MediaLightbox to preserve structure
+      currentMediaItems.value[itemIndex] = {
+        ...item,
+        setId: item.setId || selectedSetId.value,
+      }
+    }
+  }
+
+  useCommentLightbox.value = true
+  openWithComments.value = true
+  // Ensure lightbox stays open
+  if (!wasOpen) {
+    showMediaLightbox.value = true
+  }
+
+  // Force update by toggling showMediaLightbox to trigger watch
+  if (wasOpen) {
+    showMediaLightbox.value = false
+    nextTick(() => {
+      showMediaLightbox.value = true
+    })
+  }
+}
+
+// Handle approve media from card
+const handleApproveMedia = item => {
+  if (!item || !guestToken.value) return
+  mediaToApprove.value = item
+  showApproveConfirm.value = true
+}
+
+const handleViewClosureHistory = async item => {
+  closureHistoryMediaItem.value = item
+  const mediaId = item.id || item.uuid
+  try {
+    const result = await proofingApi.getMediaClosureRequests(mediaId, guestToken.value)
+    closureHistoryData.value = result.closure_requests || []
+    showClosureHistoryModal.value = true
+  } catch (error) {
+    console.error('Failed to load closure history:', error)
+    toast.error('Failed to load closure history', {
+      description: error?.message || 'An error occurred while loading closure history.',
+    })
+  }
+}
+
+const getClosureRequestsForMedia = item => {
+  const mediaId = item?.id || item?.uuid
+  return closureRequestsMap.value[mediaId] || []
+}
+
+const getApprovalRequestsForMedia = item => {
+  const mediaId = item?.id || item?.uuid
+  return approvalRequestsMap.value[mediaId] || []
+}
+
+const hasPendingClosureRequest = item => {
+  const requests = getClosureRequestsForMedia(item)
+  return requests.some(req => req.status === 'pending')
+}
+
+const hasPendingApprovalRequest = item => {
+  const requests = getApprovalRequestsForMedia(item)
+  return requests.some(req => req.status === 'pending')
+}
+
+const isRejected = item => {
+  return !!(item?.isRejected || item?.is_rejected)
+}
+
+const getPendingClosureRequest = item => {
+  const requests = getClosureRequestsForMedia(item)
+  return requests.find(req => req.status === 'pending')
+}
+
+const getPendingApprovalRequest = item => {
+  const requests = getApprovalRequestsForMedia(item)
+  return requests.find(req => req.status === 'pending')
+}
+
+const handlePendingClosureClick = item => {
+  const pendingRequest = getPendingClosureRequest(item)
+  if (pendingRequest?.public_url) {
+    window.open(pendingRequest.public_url, '_blank')
+  } else {
+    handleViewClosureHistory(item)
+  }
+}
+
+const handlePendingApprovalClick = item => {
+  const pendingRequest = getPendingApprovalRequest(item)
+  if (pendingRequest?.public_url) {
+    window.open(pendingRequest.public_url, '_blank')
+  }
+}
+
+const handleViewApprovalRequest = item => {
+  const requests = getApprovalRequestsForMedia(item)
+  if (requests && requests.length > 0) {
+    // Get the latest approval request (should be the rejected one)
+    const sorted = [...requests].sort((a, b) => {
+      const dateA = new Date(a.created_at || a.createdAt || 0)
+      const dateB = new Date(b.created_at || b.createdAt || 0)
+      return dateB - dateA
+    })
+    const latestRequest = sorted[0]
+    if (latestRequest?.public_url) {
+      window.open(latestRequest.public_url, '_blank')
+    } else if (latestRequest?.token) {
+      window.open(`/p/approval-request/${latestRequest.token}`, '_blank')
+    }
+  }
+}
+
+const handleViewRevisionHistory = item => {
+  if (!item) return
+
+  revisionHistoryMediaItem.value = item
+
+  // Check if on second-to-last revision
+  const maxRevisions = proofing.value?.maxRevisions || proofing.value?.max_revisions || 5
+  const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+
+  // Find all revisions for this media
+  const allRevisions = mediaItems.value.filter(m => {
+    const mOriginalUuid = m.originalMediaId || m.original_media_uuid || m.id || m.uuid
+    return mOriginalUuid === originalUuid
+  })
+
+  const currentRevisionNumber = item.revisionNumber || item.revision_number || 0
+
+  if (currentRevisionNumber === maxRevisions - 1) {
+    toast.warning('Second-to-last revision', {
+      description: `This is revision ${currentRevisionNumber} of ${maxRevisions}. Only one more revision is allowed.`,
+      duration: 5000,
+    })
+  }
+
+  showRevisionHistorySidebar.value = true
+}
+
+const handleRevisionClick = revision => {
+  selectedRevision.value = revision
+  showRevisionDetailsModal.value = true
+}
+
+const hasRevisions = item => {
+  if (!item) return false
+  const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+  // Check if there are other media items with the same originalMediaId (revisions)
+  return mediaItems.value.some(m => {
+    const mOriginalUuid = m.originalMediaId || m.original_media_uuid || m.id || m.uuid
+    const mId = m.id || m.uuid
+    const itemId = item.id || item.uuid
+    return mOriginalUuid === originalUuid && mId !== itemId
+  })
+}
+
+const isReadyForRevision = item => {
+  return item?.isReadyForRevision || item?.is_ready_for_revision || false
+}
+
+const loadClosureRequestsForMedia = async () => {
+  if (!currentMediaItems.value || currentMediaItems.value.length === 0 || !guestToken.value) return
+
+  try {
+    const requests = {}
+    for (const item of currentMediaItems.value) {
+      const mediaId = item.id || item.uuid
+      try {
+        const result = await proofingApi.getMediaClosureRequests(mediaId, guestToken.value)
+        requests[mediaId] = result.closure_requests || []
+      } catch (error) {
+        // Silently fail for individual items
+        requests[mediaId] = []
+      }
+    }
+    closureRequestsMap.value = requests
+  } catch (error) {
+    console.error('Failed to load closure requests:', error)
+  }
+}
+
+const loadApprovalRequestsForMedia = async () => {
+  if (!currentMediaItems.value || currentMediaItems.value.length === 0 || !guestToken.value) return
+
+  try {
+    const requests = {}
+    for (const item of currentMediaItems.value) {
+      const mediaId = item.id || item.uuid
+      try {
+        const result = await proofingApi.getMediaApprovalRequests(mediaId, guestToken.value)
+        requests[mediaId] = result.approval_requests || []
+      } catch (error) {
+        // Silently fail for individual items
+        requests[mediaId] = []
+      }
+    }
+    approvalRequestsMap.value = requests
+  } catch (error) {
+    console.error('Failed to load approval requests:', error)
+  }
+}
+
+// Confirm approve media
+const confirmApproveMedia = async () => {
+  if (!mediaToApprove.value || !guestToken.value || isApprovingMedia.value) {
+    return
+  }
+
+  const item = mediaToApprove.value
+  const proofingId = proofing.value?.id || proofing.value?.uuid
+  const mediaId = item.id || item.uuid
+
+  if (!proofingId || !mediaId) {
+    toast.error('Missing required information', {
+      description: 'Unable to approve media. Please try again.',
+    })
+    showApproveConfirm.value = false
+    mediaToApprove.value = null
+    return
+  }
+
+  isApprovingMedia.value = true
+
+  try {
+    const updatedMedia = await proofingApi.approveProofingMedia(
+      proofingId,
+      mediaId,
+      guestToken.value
+    )
+
+    // Update the media item in the list
+    handleMediaApproved(updatedMedia)
+
+    showApproveConfirm.value = false
+    mediaToApprove.value = null
+    toast.success('Media approved', {
+      description: 'This media has been marked as approved.',
+    })
+  } catch (error) {
+    console.error('Failed to approve media', error)
+    toast.error('Failed to approve media', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isApprovingMedia.value = false
   }
 }
 

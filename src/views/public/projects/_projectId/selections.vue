@@ -124,7 +124,9 @@
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
           <MazelootLogo
             :color-class="
-              selection.coverPhotoUrl || selection.cover_photo_url ? 'text-white' : undefined
+              selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
+                ? 'text-white'
+                : undefined
             "
             :show-text="true"
             size="md"
@@ -133,7 +135,11 @@
 
         <!-- Theme Toggle (Top Right) -->
         <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20">
-          <ThemeToggle :contrast="!!(selection.coverPhotoUrl || selection.cover_photo_url)" />
+          <ThemeToggle
+            :contrast="
+              !!(selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText)
+            "
+          />
         </div>
 
         <!-- Cover Photo Background -->
@@ -147,7 +153,7 @@
             :alt="selection.name || 'Selection Cover'"
             :src="selection.coverPhotoUrl || selection.cover_photo_url"
             :style="getSelectionCoverStyle()"
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
             @error="handleCoverImageError"
           />
           <!-- Cover Video -->
@@ -156,20 +162,25 @@
             :src="selection.coverPhotoUrl || selection.cover_photo_url"
             :style="getSelectionCoverStyle()"
             autoplay
-            class="w-full h-full object-cover"
+            class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
             loop
             muted
             playsinline
           />
-          <!-- Subtle Gradient Overlay -->
+          <!-- Gradient Overlay for Light Mode -->
           <div
-            class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent"
+            class="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent dark:hidden transition-opacity duration-500"
+          ></div>
+          <!-- Enhanced Gradient Overlay for Dark Mode -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/20 to-transparent hidden dark:block transition-opacity duration-500"
           ></div>
         </div>
-        <!-- Fallback Background (warm beige) -->
+        <!-- Fallback Background (color gradient) -->
         <div
           v-else
-          class="absolute inset-0 w-full h-full bg-gradient-to-b from-amber-50 via-amber-50/80 to-amber-100 dark:from-amber-950 dark:via-amber-900/80 dark:to-amber-950"
+          class="absolute inset-0 w-full h-full transition-all duration-500 ease-in-out"
+          :style="getSelectionGradientStyle()"
         ></div>
 
         <!-- Content Overlay - Positioned at Bottom -->
@@ -181,9 +192,9 @@
             <div class="flex-1">
               <h1
                 :class="[
-                  selection.coverPhotoUrl || selection.cover_photo_url
+                  selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'text-white'
-                    : 'text-gray-700 dark:text-gray-300',
+                    : 'text-gray-900 dark:text-gray-100',
                 ]"
                 class="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 drop-shadow-lg"
               >
@@ -192,9 +203,9 @@
               <p
                 v-if="selection.description"
                 :class="[
-                  selection.coverPhotoUrl || selection.cover_photo_url
+                  selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'text-white/90'
-                    : 'text-gray-600 dark:text-gray-400',
+                    : 'text-gray-700 dark:text-gray-300',
                 ]"
                 class="text-base md:text-lg font-light tracking-normal drop-shadow-md max-w-2xl"
               >
@@ -207,7 +218,7 @@
               <Button
                 v-if="!isAuthenticatedOwner && selection.status !== 'completed'"
                 :class="[
-                  selection.coverPhotoUrl || selection.cover_photo_url
+                  selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20'
                     : 'bg-gray-900 hover:bg-gray-800 text-white border-gray-700',
                 ]"
@@ -412,7 +423,7 @@
                         ? 'opacity-50 grayscale' // Unselected in completed, dimmed & grayscale
                         : isAtLimit(currentMediaItems) && !item.isSelected
                           ? 'opacity-50 cursor-not-allowed'
-                          : 'opacity-60 hover:opacity-100 hover:scale-105 hover:shadow-lg cursor-pointer',
+                          : 'opacity-60 hover:opacity-100 hover:shadow-lg cursor-pointer',
                 selection.status === 'completed' && item.isSelected === true
                   ? 'ring-1 ring-green-500/50' // Subtle green ring for items selected on completion
                   : '',
@@ -428,46 +439,60 @@
                   : {},
               ]"
             >
-              <img
-                v-if="item.type === 'image' || (item.file && item.file.type === 'image')"
-                :alt="item.filename || item.title || 'Media'"
-                :src="
-                  item.thumbnailUrl ||
-                  item.thumbnail ||
-                  item.largeImageUrl ||
-                  (item.file && item.file.url) ||
-                  item.url
-                "
+              <!-- Media container with overflow-hidden to prevent scale overflow -->
+              <div
                 :class="[
-                  'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
-                    ? 'cursor-pointer'
-                    : 'cursor-default',
-                ]"
-                @click="
+                  'w-full aspect-square overflow-hidden rounded-lg',
                   !isAuthenticatedOwner &&
                   !isPreviewMode &&
                   selection.status !== 'completed' &&
-                  handleViewMedia(item)
-                "
-              />
-              <video
-                v-else
-                :poster="item.thumbnailUrl || item.thumbnail"
-                :src="(item.file && item.file.url) || item.url"
-                :class="[
-                  'w-full aspect-square object-cover',
-                  !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
-                    ? 'cursor-pointer'
-                    : 'cursor-default',
+                  !item.isSelected &&
+                  !isAtLimit(currentMediaItems)
+                    ? 'transition-transform duration-300 group-hover:scale-105'
+                    : '',
                 ]"
-                @click="
-                  !isAuthenticatedOwner &&
-                  !isPreviewMode &&
-                  selection.status !== 'completed' &&
-                  handleViewMedia(item)
-                "
-              />
+              >
+                <img
+                  v-if="item.type === 'image' || (item.file && item.file.type === 'image')"
+                  :alt="item.filename || item.title || 'Media'"
+                  :src="
+                    item.thumbnailUrl ||
+                    item.thumbnail ||
+                    item.largeImageUrl ||
+                    (item.file && item.file.url) ||
+                    item.url
+                  "
+                  :class="[
+                    'w-full h-full object-cover',
+                    !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
+                      ? 'cursor-pointer'
+                      : 'cursor-default',
+                  ]"
+                  @click="
+                    !isAuthenticatedOwner &&
+                    !isPreviewMode &&
+                    selection.status !== 'completed' &&
+                    handleViewMedia(item)
+                  "
+                />
+                <video
+                  v-else
+                  :poster="item.thumbnailUrl || item.thumbnail"
+                  :src="(item.file && item.file.url) || item.url"
+                  :class="[
+                    'w-full h-full object-cover',
+                    !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
+                      ? 'cursor-pointer'
+                      : 'cursor-default',
+                  ]"
+                  @click="
+                    !isAuthenticatedOwner &&
+                    !isPreviewMode &&
+                    selection.status !== 'completed' &&
+                    handleViewMedia(item)
+                  "
+                />
+              </div>
 
               <div
                 v-if="!isAuthenticatedOwner && selection.status !== 'completed'"
@@ -838,6 +863,73 @@ const getSelectionHoverColor = () => {
   const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 20)
   return `rgb(${r}, ${g}, ${b})`
 }
+
+// Convert hex to RGB
+const hexToRgb = hex => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 16, g: 185, b: 129 } // fallback to teal
+}
+
+// Lighten color
+const lightenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * percent))
+  const g = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * percent))
+  const b = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * percent))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Darken color
+const darkenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.max(0, Math.round(rgb.r * (1 - percent)))
+  const g = Math.max(0, Math.round(rgb.g * (1 - percent)))
+  const b = Math.max(0, Math.round(rgb.b * (1 - percent)))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Calculate brightness to determine text color
+const getColorBrightness = hex => {
+  const rgb = hexToRgb(hex)
+  return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+}
+
+// Get gradient background style for fallback
+const getSelectionGradientStyle = () => {
+  const color = selectionColor.value
+  const isDark = themeStore.effectiveTheme === 'dark'
+  if (isDark) {
+    // Dark mode: darker, more saturated gradient
+    const light = darkenColor(color, 0.3)
+    const mid = darkenColor(color, 0.5)
+    const dark = darkenColor(color, 0.7)
+    return {
+      background: `linear-gradient(to bottom, ${light}, ${mid}, ${dark})`,
+    }
+  } else {
+    // Light mode: lighter, softer gradient
+    const light = lightenColor(color, 0.85)
+    const mid = lightenColor(color, 0.5)
+    const dark = darkenColor(color, 0.2)
+    return {
+      background: `linear-gradient(to bottom, ${light}, ${mid}, ${dark})`,
+    }
+  }
+}
+
+// Check if text should be light (for dark backgrounds)
+const shouldUseLightText = computed(() => {
+  if (selection.value?.coverPhotoUrl || selection.value?.cover_photo_url) {
+    return true // Always use light text with cover photo
+  }
+  return getColorBrightness(selectionColor.value) < 128
+})
 
 // Email validation
 const isValidEmail = computed(() => {

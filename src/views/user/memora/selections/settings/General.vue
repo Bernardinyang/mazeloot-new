@@ -69,6 +69,37 @@
               />
             </div>
 
+            <!-- Selection Description -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Description</h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Optional description shown to clients viewing this selection.
+                  </p>
+                </div>
+              </div>
+              <Textarea
+                v-model="selectionDescription"
+                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+                placeholder="Enter a description for this selection..."
+                :maxlength="1000"
+                @keydown.enter.prevent="handleSave"
+              />
+              <div class="flex items-center justify-between max-w-2xl">
+                <p :class="theme.textTertiary" class="text-xs">
+                  Description is shown to clients viewing this selection.
+                </p>
+                <span :class="theme.textTertiary" class="text-xs">
+                  {{ (selectionDescription || '').length }}/1000
+                </span>
+              </div>
+            </div>
+
             <!-- Selection Color -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -697,6 +728,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { Copy, Info, Loader2, X, Plus, Settings, Check } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
+import { Textarea } from '@/components/shadcn/textarea'
 import {
   Select,
   SelectContent,
@@ -727,6 +759,7 @@ const isSaving = ref(false)
 
 // Settings state
 const selectionName = ref('')
+const selectionDescription = ref('')
 const selectionColor = ref('#10B981')
 const hasPassword = ref(false)
 const currentPassword = ref('') // Store the actual password value
@@ -748,6 +781,7 @@ const isSavingSelectionLimit = ref(false)
 // Original values for change tracking
 const originalValues = ref({
   name: '',
+  description: '',
   color: '#10B981',
   autoDeleteEnabled: false,
   autoDeleteDays: 30,
@@ -805,6 +839,7 @@ const autoDeleteDate = computed(() => {
 const hasChanges = computed(() => {
   return (
     selectionName.value !== originalValues.value.name ||
+    selectionDescription.value !== originalValues.value.description ||
     selectionColor.value !== originalValues.value.color ||
     autoDeleteEnabled.value !== originalValues.value.autoDeleteEnabled ||
     autoDeleteDays.value !== originalValues.value.autoDeleteDays ||
@@ -825,6 +860,7 @@ onMounted(async () => {
     const selectionData = await selectionStore.fetchSelection(selectionId)
     selection.value = selectionData
     selectionName.value = selectionData.name || ''
+    selectionDescription.value = selectionData.description || ''
     selectionColor.value = selectionData.color || '#10B981'
     hasPassword.value = !!selectionData.hasPassword || !!selectionData.password
 
@@ -868,6 +904,7 @@ onMounted(async () => {
     // Store original values for change tracking
     originalValues.value = {
       name: selectionName.value,
+      description: selectionDescription.value,
       color: selectionColor.value,
       autoDeleteEnabled: autoDeleteEnabled.value,
       autoDeleteDays: autoDeleteDays.value,
@@ -891,6 +928,7 @@ const goBack = () => {
   // Reset to original values if there are unsaved changes
   if (hasChanges.value) {
     selectionName.value = originalValues.value.name
+    selectionDescription.value = originalValues.value.description
     selectionColor.value = originalValues.value.color
     autoDeleteEnabled.value = originalValues.value.autoDeleteEnabled
     autoDeleteDays.value = originalValues.value.autoDeleteDays
@@ -950,6 +988,13 @@ const handleSave = async () => {
       }, 2000)
     }
 
+    // Update description
+    const normalizedDescription = (selectionDescription.value || '').trim()
+    const normalizedOriginalDescription = (originalValues.value.description || '').trim()
+    if (normalizedDescription !== normalizedOriginalDescription) {
+      updateData.description = normalizedDescription || null
+    }
+
     // Update color
     if (selectionColor.value !== originalValues.value.color) {
       updateData.color = selectionColor.value
@@ -985,6 +1030,7 @@ const handleSave = async () => {
 
       // Update local selection object
       if (updateData.name) selection.value.name = updateData.name
+      if ('description' in updateData) selection.value.description = updateData.description
       if (updateData.color) selection.value.color = updateData.color
       if (updateData.autoDeleteDate !== undefined) {
         selection.value.autoDeleteDate = updateData.autoDeleteDate
@@ -1029,6 +1075,7 @@ const handleSave = async () => {
     // Update original values
     originalValues.value = {
       name: selectionName.value.trim(),
+      description: selectionDescription.value,
       color: selectionColor.value,
       autoDeleteEnabled: autoDeleteEnabled.value,
       autoDeleteDays: autoDeleteDays.value,

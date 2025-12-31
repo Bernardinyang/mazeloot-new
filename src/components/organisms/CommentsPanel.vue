@@ -76,6 +76,22 @@
       </TransitionGroup>
     </div>
 
+    <!-- Comment Disabled Message -->
+    <div
+      v-if="!allowReply"
+      class="px-4 py-4 border-t border-gray-200 dark:border-gray-700 flex-shrink-0"
+    >
+      <div
+        class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 rounded-lg p-3"
+      >
+        <CheckCircle2 class="w-4 h-4 text-green-500" />
+        <span
+          >Comments and feedback are disabled. This media has been approved, rejected, or has a
+          pending closure request.</span
+        >
+      </div>
+    </div>
+
     <!-- Comment Input -->
     <div
       v-if="allowReply"
@@ -236,7 +252,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
-import { MessageSquare, Play, Loader2, X } from 'lucide-vue-next'
+import { MessageSquare, Play, Loader2, X, CheckCircle2 } from 'lucide-vue-next'
 import { Input } from '@/components/shadcn/input'
 import { Button } from '@/components/shadcn/button'
 import CommentItem from '@/components/molecules/CommentItem.vue'
@@ -340,7 +356,9 @@ const scrollToBottom = () => {
   }
 }
 
+// Only allow submission if reply is allowed and there's content
 const canSubmit = computed(() => {
+  if (!props.allowReply) return false
   return newComment.value.trim().length > 0
 })
 

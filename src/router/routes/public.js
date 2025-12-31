@@ -40,6 +40,22 @@ export const publicRoutes = [
     },
   },
   {
+    path: '/closure-request/:token',
+    name: 'closureRequest',
+    component: () => import('@/views/public/ClosureRequest.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/p/approval-request/:token',
+    name: 'approvalRequest',
+    component: () => import('@/views/public/ApprovalRequest.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'notFound',
     component: () => import('@/views/NotFound.vue'),

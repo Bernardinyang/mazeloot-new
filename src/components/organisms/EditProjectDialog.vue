@@ -169,7 +169,7 @@
 import { ref, reactive, watch, onMounted, computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
-import Textarea from '@/components/shadcn/Textarea.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import {
   Select,
   SelectContent,
