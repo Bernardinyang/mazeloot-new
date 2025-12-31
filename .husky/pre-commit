@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 # Run frontend tests before commit
 # Skip with: git commit --no-verify
 
