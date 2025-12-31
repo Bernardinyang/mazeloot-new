@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mount } from '@vue/test-utils'
+import { defineComponent } from 'vue'
 import { useApi } from '@/composables/useApi'
 
 // Mock apiClient
@@ -19,9 +21,17 @@ describe('useApi Composable', () => {
   })
 
   it('should initialize with loading state', () => {
-    const { isLoading } = useApi()
+    const TestComponent = defineComponent({
+      setup() {
+        const { isLoading } = useApi()
+        return { isLoading }
+      },
+      template: '<div></div>',
+    })
 
-    expect(isLoading.value).toBe(false)
+    const wrapper = mount(TestComponent)
+    expect(wrapper.vm.isLoading).toBe(false)
+    wrapper.unmount()
   })
 
   it('should handle successful request', async () => {
@@ -32,36 +42,61 @@ describe('useApi Composable', () => {
       statusText: 'OK',
     })
 
-    const { request, isLoading } = useApi({ key: 'test' })
+    const TestComponent = defineComponent({
+      setup() {
+        const { request, isLoading } = useApi({ key: 'test' })
+        return { request, isLoading }
+      },
+      template: '<div></div>',
+    })
 
-    const promise = request('get', '/test')
+    const wrapper = mount(TestComponent)
+    const promise = wrapper.vm.request('get', '/test')
 
-    expect(isLoading.value).toBe(true)
+    expect(wrapper.vm.isLoading).toBe(true)
 
     const result = await promise
 
-    expect(isLoading.value).toBe(false)
+    expect(wrapper.vm.isLoading).toBe(false)
     expect(result?.data).toEqual({ id: 1, name: 'Test' })
+    wrapper.unmount()
   })
 
   it('should handle request errors', async () => {
     const { apiClient } = await import('@/api/client')
     ;(apiClient.get as any).mockRejectedValueOnce(new Error('Request failed'))
 
-    const { request, error } = useApi({ key: 'test' })
+    const TestComponent = defineComponent({
+      setup() {
+        const { request, error } = useApi({ key: 'test' })
+        return { request, error }
+      },
+      template: '<div></div>',
+    })
+
+    const wrapper = mount(TestComponent)
 
     try {
-      await request('get', '/test')
+      await wrapper.vm.request('get', '/test')
     } catch (e) {
       // Expected to throw
     }
 
-    expect(error.value).toBeTruthy()
+    expect(wrapper.vm.error).toBeTruthy()
+    wrapper.unmount()
   })
 
   it('should cancel request on unmount', () => {
-    const { cancel } = useApi({ key: 'test' })
+    const TestComponent = defineComponent({
+      setup() {
+        const { cancel } = useApi({ key: 'test' })
+        return { cancel }
+      },
+      template: '<div></div>',
+    })
 
-    expect(() => cancel()).not.toThrow()
+    const wrapper = mount(TestComponent)
+    expect(() => wrapper.vm.cancel()).not.toThrow()
+    wrapper.unmount()
   })
 })
