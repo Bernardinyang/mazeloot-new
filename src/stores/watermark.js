@@ -192,7 +192,7 @@ export const useWatermarkStore = defineStore('watermark', () => {
     error.value = null
     try {
       const result = await watermarksApi.uploadWatermarkImage(file)
-      return result.url
+      return result // Return full result with url and uuid
     } catch (err) {
       error.value = err.message || 'Failed to upload image'
       throw err

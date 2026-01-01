@@ -80,6 +80,30 @@
             </p>
           </div>
 
+          <!-- Watermark Templates -->
+          <div class="space-y-3">
+            <h3 :class="theme.textPrimary" class="text-sm font-semibold">Templates</h3>
+            <div class="grid grid-cols-2 gap-2">
+              <button
+                v-for="template in watermarkTemplates"
+                :key="template.id"
+                @click="applyTemplate(template)"
+                class="p-3 rounded-md border-2 text-left transition-all hover:border-teal-500"
+                :class="[
+                  theme.bgCard,
+                  theme.borderSecondary,
+                  theme.textSecondary,
+                  'hover:bg-gray-50 dark:hover:bg-gray-800',
+                ]"
+              >
+                <div class="font-semibold text-xs mb-1" :class="theme.textPrimary">
+                  {{ template.name }}
+                </div>
+                <div class="text-xs opacity-75">{{ template.description }}</div>
+              </button>
+            </div>
+          </div>
+
           <!-- Watermark Type -->
           <div class="space-y-3">
             <h3 :class="theme.textPrimary" class="text-sm font-semibold">Watermark Type</h3>
@@ -277,7 +301,7 @@
                     aria-label="Remove watermark image"
                     class="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
                     title="Remove image"
-                    @click.stop="watermarkImageUrl = null"
+                    @click.stop="handleRemoveImage"
                   >
                     <X class="h-4 w-4" />
                   </button>
@@ -319,7 +343,7 @@
                     :class="[theme.bgCard, theme.textPrimary]"
                     class="text-sm font-bold px-2 py-1 rounded-md"
                   >
-                    {{ lineHeight[0].toFixed(1) }}
+                    {{ Number(lineHeight[0] ?? 1.5).toFixed(1) }}
                   </span>
                 </div>
                 <div class="px-2">
@@ -343,7 +367,7 @@
                     :class="[theme.bgCard, theme.textPrimary]"
                     class="text-sm font-bold px-2 py-1 rounded-md"
                   >
-                    {{ letterSpacing[0] }}px
+                    {{ (letterSpacing[0] ?? 0) }}px
                   </span>
                 </div>
                 <div class="px-2">
@@ -367,7 +391,7 @@
                     :class="[theme.bgCard, theme.textPrimary]"
                     class="text-sm font-bold px-2 py-1 rounded-md"
                   >
-                    {{ padding[0] }}px
+                    {{ (padding[0] ?? 0) }}px
                   </span>
                 </div>
                 <div class="px-2">
@@ -507,7 +531,7 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <h4 :class="theme.textSecondary" class="text-xs font-medium">Scale</h4>
-                  <span :class="theme.textSecondary" class="text-xs" title="Watermark size"
+                  <span :class="theme.textSecondary" class="text-xs" title="Watermark size percentage relative to image dimensions"
                     >🔍</span
                   >
                 </div>
@@ -515,12 +539,15 @@
                   :class="[theme.bgCard, theme.textPrimary]"
                   class="text-sm font-bold px-2 py-1 rounded-md"
                 >
-                  {{ scale[0] }}%
+                  {{ (scale[0] ?? (watermarkType === 'image' ? 100 : 50)) }}%
                 </span>
               </div>
               <div class="px-2">
-                <Slider v-model="scale" :max="100" :min="10" :step="1" class="w-full" />
+                <Slider v-model="scale" :max="100" :min="1" :step="1" class="w-full" />
               </div>
+              <p :class="theme.textSecondary" class="text-xs px-2">
+                {{ watermarkType === 'image' ? '100% = 25% of image size' : '100% = 10% of image size' }}
+              </p>
             </div>
 
             <!-- Opacity -->
@@ -536,7 +563,7 @@
                   :class="[theme.bgCard, theme.textPrimary]"
                   class="text-sm font-bold px-2 py-1 rounded-md"
                 >
-                  {{ opacity[0] }}%
+                  {{ (opacity[0] ?? 80) }}%
                 </span>
               </div>
               <div class="px-2">
@@ -601,7 +628,7 @@
                     :class="[theme.bgCard, theme.textPrimary]"
                     class="text-sm font-bold px-2 py-1 rounded-md"
                   >
-                    {{ borderRadius[0] }}px
+                    {{ (borderRadius[0] ?? 0) }}px
                   </span>
                 </div>
                 <div class="px-2">
@@ -622,7 +649,7 @@
                     :class="[theme.bgCard, theme.textPrimary]"
                     class="text-sm font-bold px-2 py-1 rounded-md"
                   >
-                    {{ borderWidth[0] }}px
+                    {{ (borderWidth[0] ?? 0) }}px
                   </span>
                 </div>
                 <div class="px-2">
@@ -764,6 +791,24 @@
               <Smartphone class="h-4 w-4" />
               Mobile
             </button>
+            <button
+              :class="
+                previewMode === 'grid'
+                  ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
+                  : [
+                      theme.bgCard,
+                      theme.borderSecondary,
+                      'border-2',
+                      theme.textSecondary,
+                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-teal-500/50',
+                    ]
+              "
+              class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
+              @click="previewMode = 'grid'"
+            >
+              <Grid3x3 class="h-4 w-4" />
+              Grid
+            </button>
           </div>
 
           <!-- Desktop Preview - MacBook Air Frame -->
@@ -799,23 +844,24 @@
                           ...getPositionStyle(),
                           fontSize: `${fontSize}rem`,
                           fontFamily,
-                          ...getFontStyleProperties(fontStyle),
-                          color,
-                          backgroundColor,
-                          lineHeight,
-                          letterSpacing,
-                          padding,
-                          textTransform,
-                          borderRadius,
-                          borderWidth,
-                          borderColor,
-                          borderStyle,
-                          opacity,
-                          transform: 'translate(-50%, -50%)',
-                          maxWidth,
-                          wordWrap,
-                          overflowWrap,
-                          whiteSpace,
+                          ...getFontStyleProperties(fontStyle.value),
+                          color: color,
+                          backgroundColor: previewBackgroundColor,
+                          lineHeight: previewLineHeight,
+                          letterSpacing: previewLetterSpacing,
+                          padding: previewPadding,
+                          textTransform: textTransform,
+                          borderRadius: previewBorderRadius,
+                          borderWidth: previewBorderWidth,
+                          borderColor: previewBorderColor,
+                          borderStyle: previewBorderStyle,
+                          opacity: previewOpacity,
+                          maxWidth: maxWidth,
+                          wordWrap: 'break-word',
+                          overflowWrap: 'break-word',
+                          whiteSpace: 'normal',
+                          display: 'inline-block',
+                          textAlign: 'center',
                         }"
                         class="absolute pointer-events-none select-none transition-all duration-300"
                       >
@@ -827,13 +873,12 @@
                         :src="watermarkImageUrl"
                         :style="{
                           ...getPositionStyle(),
-                          width,
-                          height,
-                          maxWidth,
-                          maxHeight,
-                          opacity,
-                          transform: 'translate(-50%, -50%)',
-                          objectFit,
+                          width: width,
+                          height: height,
+                          maxWidth: maxWidth,
+                          maxHeight: maxHeight,
+                          opacity: previewOpacity,
+                          objectFit: 'contain',
                         }"
                         alt="Watermark"
                         class="absolute pointer-events-none select-none will-change-transform"
@@ -894,23 +939,24 @@
                         ...getPositionStyle(),
                         fontSize: `${fontSize * 0.7}rem`,
                         fontFamily,
-                        ...getFontStyleProperties(fontStyle),
-                        color,
-                        backgroundColor,
-                        lineHeight,
-                        letterSpacing,
-                        padding,
-                        textTransform,
-                        borderRadius,
-                        borderWidth,
-                        borderColor,
-                        borderStyle,
-                        opacity,
-                        transform: 'translate(-50%, -50%)',
-                        maxWidth,
-                        wordWrap,
-                        overflowWrap,
-                        whiteSpace,
+                        ...getFontStyleProperties(fontStyle.value),
+                        color: color,
+                        backgroundColor: previewBackgroundColor,
+                        lineHeight: previewLineHeight,
+                        letterSpacing: previewLetterSpacing,
+                        padding: previewPadding,
+                        textTransform: textTransform,
+                        borderRadius: previewBorderRadius,
+                        borderWidth: previewBorderWidth,
+                        borderColor: previewBorderColor,
+                        borderStyle: previewBorderStyle,
+                        opacity: previewOpacity,
+                        maxWidth: maxWidth,
+                        wordWrap: 'break-word',
+                        overflowWrap: 'break-word',
+                        whiteSpace: 'normal',
+                        display: 'inline-block',
+                        textAlign: 'center',
                       }"
                       class="absolute pointer-events-none select-none transition-all duration-300"
                     >
@@ -922,13 +968,12 @@
                       :src="watermarkImageUrl"
                       :style="{
                         ...getPositionStyle(),
-                        width,
-                        height,
-                        maxWidth,
-                        maxHeight,
-                        opacity,
-                        transform: 'translate(-50%, -50%)',
-                        objectFit,
+                        width: width,
+                        height: height,
+                        maxWidth: maxWidth,
+                        maxHeight: maxHeight,
+                        opacity: previewOpacity,
+                        objectFit: 'contain',
                       }"
                       alt="Watermark"
                       class="absolute pointer-events-none select-none will-change-transform"
@@ -943,8 +988,15 @@
             </div>
           </div>
 
+          <!-- Grid Preview -->
+          <WatermarkPreviewGrid
+            v-if="previewMode === 'grid'"
+            :watermark="computedWatermark"
+            :show-preview-on-media="false"
+          />
+
           <!-- Preview Navigation -->
-          <div class="flex items-center justify-center gap-2">
+          <div v-if="previewMode !== 'grid'" class="flex items-center justify-center gap-2">
             <button
               :class="
                 previewMode === 'desktop'
@@ -973,9 +1025,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Monitor, MoreVertical, Plus, Smartphone, X } from 'lucide-vue-next'
+import { Grid3x3, Monitor, MoreVertical, Plus, Smartphone, X } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
 import {
@@ -989,6 +1041,7 @@ import { Slider } from '@/components/shadcn/slider'
 import ColorPicker from '@/components/shadcn/ColorPicker.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
+import WatermarkPreviewGrid from '@/components/organisms/WatermarkPreviewGrid.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { useWatermarkStore } from '@/stores/watermark'
@@ -999,52 +1052,81 @@ const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
-// const themeStore = useThemeStore() // Unused for now
 
 const isEditing = computed(() => !!route.params.id)
 const watermarkId = computed(() => (isEditing.value ? String(route.params.id) : null))
 
-// Form state
 const watermarkName = ref('New Watermark')
 const watermarkType = ref('text')
 const watermarkText = ref('')
 const fontFamilyId = ref('pacifico')
 const fontStyle = ref('normal')
 
-// Map FontFamilySelect IDs to actual font family names
 const fontFamilyMap = {
   sans: 'sans-serif',
   serif: 'serif',
   modern: 'monospace',
-  playfair: 'serif',
-  montserrat: 'sans-serif',
-  lato: 'sans-serif',
-  raleway: 'sans-serif',
-  opensans: 'sans-serif',
-  roboto: 'sans-serif',
-  poppins: 'sans-serif',
-  inter: 'sans-serif',
-  nunito: 'sans-serif',
-  merriweather: 'serif',
-  crimson: 'serif',
-  lora: 'serif',
-  source: 'sans-serif',
-  ubuntu: 'sans-serif',
-  dancing: 'cursive',
-  pacifico: 'cursive',
-  caveat: 'cursive',
+  bebas: "'Bebas Neue', sans-serif",
+  oswald: "'Oswald', sans-serif",
+  abril: "'Abril Fatface', serif",
+  bungee: "'Bungee', sans-serif",
+  righteous: "'Righteous', sans-serif",
+  playfair: "'Playfair Display', serif",
+  montserrat: "'Montserrat', sans-serif",
+  lato: "'Lato', sans-serif",
+  raleway: "'Raleway', sans-serif",
+  opensans: "'Open Sans', sans-serif",
+  roboto: "'Roboto', sans-serif",
+  poppins: "'Poppins', sans-serif",
+  inter: "'Inter', sans-serif",
+  nunito: "'Nunito', sans-serif",
+  barlow: "'Barlow', sans-serif",
+  worksans: "'Work Sans', sans-serif",
+  spacegrotesk: "'Space Grotesk', sans-serif",
+  outfit: "'Outfit', sans-serif",
+  dmsans: "'DM Sans', sans-serif",
+  plusjakarta: "'Plus Jakarta Sans', sans-serif",
+  manrope: "'Manrope', sans-serif",
+  sora: "'Sora', sans-serif",
+  figtree: "'Figtree', sans-serif",
+  syne: "'Syne', sans-serif",
+  source: "'Source Sans Pro', sans-serif",
+  ubuntu: "'Ubuntu', sans-serif",
+  merriweather: "'Merriweather', serif",
+  crimson: "'Crimson Text', serif",
+  lora: "'Lora', serif",
+  spacemono: "'Space Mono', monospace",
+  jetbrains: "'JetBrains Mono', monospace",
+  comfortaa: "'Comfortaa', sans-serif",
+  quicksand: "'Quicksand', sans-serif",
+  rubik: "'Rubik', sans-serif",
+  dancing: "'Dancing Script', cursive",
+  pacifico: "'Pacifico', cursive",
+  caveat: "'Caveat', cursive",
+  kalam: "'Kalam', cursive",
+  satisfy: "'Satisfy', cursive",
+  greatvibes: "'Great Vibes', cursive",
+  amatic: "'Amatic SC', cursive",
+  shadows: "'Shadows Into Light', cursive",
+  permanent: "'Permanent Marker', cursive",
+  indie: "'Indie Flower', cursive",
 }
 
-// Computed fontFamily for CSS (converts ID to actual font name)
 const fontFamily = computed(() => {
   return fontFamilyMap[fontFamilyId.value] || fontFamilyMap.pacifico
 })
 
-// Helper to convert font name to ID (for loading existing watermarks)
 const fontNameToId = fontName => {
-  const entry = Object.entries(fontFamilyMap).find(([_, name]) =>
-    name.toLowerCase().includes(fontName.toLowerCase())
-  )
+  if (!fontName) return 'pacifico'
+  
+  const cleanName = fontName.replace(/['"]/g, '').toLowerCase()
+  
+  const entry = Object.entries(fontFamilyMap).find(([id, name]) => {
+    const cleanMapName = name.replace(/['"]/g, '').toLowerCase()
+    return cleanMapName.includes(cleanName) || cleanName.includes(id) || 
+           cleanName.includes(cleanMapName.split(',')[0].trim())
+  })
+  
   return entry?.[0] || 'pacifico'
 }
 const fontColor = ref('#FFFFFF')
@@ -1058,14 +1140,38 @@ const borderWidth = ref([0])
 const borderColor = ref('#000000')
 const borderStyle = ref('none')
 const watermarkImageUrl = ref(null)
-const scale = ref([70])
+const watermarkImageFileUuid = ref(null)
+const scale = ref([50]) // Default 50%, will be updated based on watermark type
 const opacity = ref([90])
 const position = ref('center')
 const isSaving = ref(false)
 const isLoading = ref(false)
 const previewMode = ref('desktop')
 
-// Preview image
+const computedWatermark = computed(() => {
+  return {
+    type: watermarkType.value,
+    text: watermarkText.value,
+    imageUrl: watermarkImageUrl.value,
+    name: watermarkName.value,
+    scale: scale.value[0] ?? (watermarkType.value === 'image' ? 100 : 50),
+    opacity: opacity.value[0] ?? 80,
+    position: position.value,
+    fontFamily: fontFamily.value,
+    fontStyle: Array.isArray(fontStyle.value) ? fontStyle.value.join('-') : fontStyle.value,
+    fontColor: color.value,
+    backgroundColor: backgroundColor.value,
+    lineHeight: lineHeight.value[0] ?? 1.5,
+    letterSpacing: letterSpacing.value[0] ?? 0,
+    padding: padding.value[0] ?? 0,
+    textTransform: textTransform.value,
+    borderRadius: borderRadius.value[0] ?? 0,
+    borderWidth: borderWidth.value[0] ?? 0,
+    borderColor: borderColor.value,
+    borderStyle: borderStyle.value,
+  }
+})
+
 const previewImageUrl = ref(
   'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&h=600&fit=crop'
 )
@@ -1089,23 +1195,122 @@ const positionOptions = [
   { value: 'bottom-right', label: 'Bottom Right' },
 ]
 
+const watermarkTemplates = [
+  {
+    id: 'subtle',
+    name: 'Subtle',
+    description: 'Low opacity, bottom corner',
+    type: 'text',
+    scale: 50,
+    opacity: 40,
+    position: 'bottom-right',
+    fontColor: '#FFFFFF',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    padding: 8,
+    borderRadius: 4,
+  },
+  {
+    id: 'bold',
+    name: 'Bold',
+    description: 'High opacity, center',
+    type: 'text',
+    scale: 80,
+    opacity: 90,
+    position: 'center',
+    fontColor: '#FFFFFF',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 12,
+    borderRadius: 8,
+    fontStyle: ['bold'],
+  },
+  {
+    id: 'corner',
+    name: 'Corner',
+    description: 'Small, top-left corner',
+    type: 'text',
+    scale: 30,
+    opacity: 70,
+    position: 'top-left',
+    fontColor: '#000000',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    padding: 6,
+    borderRadius: 4,
+  },
+  {
+    id: 'center',
+    name: 'Center',
+    description: 'Medium, centered',
+    type: 'text',
+    scale: 60,
+    opacity: 80,
+    position: 'center',
+    fontColor: '#FFFFFF',
+    backgroundColor: 'transparent',
+    padding: 0,
+    borderRadius: 0,
+  },
+]
+
+const applyTemplate = templateData => {
+  watermarkType.value = templateData.type
+  scale.value = [templateData.scale]
+  opacity.value = [templateData.opacity]
+  position.value = templateData.position
+  if (templateData.fontColor) color.value = templateData.fontColor
+  if (templateData.backgroundColor) backgroundColor.value = templateData.backgroundColor
+  if (templateData.padding !== undefined) padding.value = [templateData.padding]
+  if (templateData.borderRadius !== undefined) borderRadius.value = [templateData.borderRadius]
+  if (templateData.fontStyle) {
+    fontStyle.value = Array.isArray(templateData.fontStyle) ? templateData.fontStyle.join('-') : templateData.fontStyle
+  }
+  toast.success('Template applied', { description: '' })
+}
+
+// Keyboard shortcuts
+const handleKeyDown = event => {
+  if ((event.metaKey || event.ctrlKey) && event.key === 's') {
+    event.preventDefault()
+    if (isFormValid.value && !isSaving.value) {
+      handleSave()
+    }
+  }
+  if (event.key === 'Escape') {
+    router.push({ name: 'watermarkSettings' })
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+})
+
 const getPositionStyle = () => {
   const positions = {
-    'top-left': { top: '10%', left: '10%' },
-    top: { top: '10%', left: '50%' },
-    'top-right': { top: '10%', right: '10%' },
-    left: { top: '50%', left: '10%' },
-    center: { top: '50%', left: '50%' },
-    right: { top: '50%', right: '10%' },
-    'bottom-left': { bottom: '10%', left: '10%' },
-    bottom: { bottom: '10%', left: '50%' },
-    'bottom-right': { bottom: '10%', right: '10%' },
+    'top-left': { top: '10%', left: '10%', transform: 'translate(0, 0)' },
+    top: { top: '10%', left: '50%', transform: 'translate(-50%, 0)' },
+    'top-right': { top: '10%', right: '10%', transform: 'translate(0, 0)' },
+    left: { top: '50%', left: '10%', transform: 'translate(0, -50%)' },
+    center: { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
+    right: { top: '50%', right: '10%', transform: 'translate(0, -50%)' },
+    'bottom-left': { bottom: '10%', left: '10%', transform: 'translate(0, 0)' },
+    bottom: { bottom: '10%', left: '50%', transform: 'translate(-50%, 0)' },
+    'bottom-right': { bottom: '10%', right: '10%', transform: 'translate(0, 0)' },
   }
   return positions[position.value] || positions.center
 }
 
 const getFontStyleProperties = style => {
-  const styles = style.split('-')
+  if (!style) {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+      textDecoration: 'none',
+    }
+  }
+  const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
   return {
     fontWeight: styles.includes('bold') ? 'bold' : 'normal',
     fontStyle: styles.includes('italic') ? 'italic' : 'normal',
@@ -1113,27 +1318,77 @@ const getFontStyleProperties = style => {
   }
 }
 
-// Unused functions (kept for future use)
-// const getFontStylePreview = () => {
-// }
+const fontSize = computed(() => {
+  const baseSize = previewMode.value === 'desktop' ? 2 : 1.4
+  const scaleValue = Number(scale.value[0] ?? 50)
+  return (scaleValue / 100) * baseSize
+})
+
+const width = computed(() => {
+  if (watermarkType.value === 'image') {
+    const scaleValue = Number(scale.value[0] ?? 100)
+    return `${scaleValue}%`
+  }
+  return 'auto'
+})
+
+const height = computed(() => {
+  if (watermarkType.value === 'image') {
+    return 'auto'
+  }
+  return 'auto'
+})
+
+const maxWidth = computed(() => {
+  return previewMode.value === 'desktop' ? '80%' : '90%'
+})
+
+const maxHeight = computed(() => {
+  return previewMode.value === 'desktop' ? '80%' : '90%'
+})
+
+const previewOpacity = computed(() => {
+  return opacity.value[0] / 100
+})
+
+const color = computed(() => fontColor.value)
+
+const previewLineHeight = computed(() => lineHeight.value[0])
+
+const previewLetterSpacing = computed(() => {
+  return letterSpacing.value[0] ? `${letterSpacing.value[0]}px` : '0px'
+})
+
+const previewPadding = computed(() => {
+  return padding.value[0] ? `${padding.value[0]}px` : '0px'
+})
+
+const previewBorderRadius = computed(() => {
+  return borderRadius.value[0] ? `${borderRadius.value[0]}px` : '0px'
+})
+
+const previewBorderWidth = computed(() => {
+  return borderWidth.value[0] ? `${borderWidth.value[0]}px` : '0px'
+})
+
+const previewBorderColor = computed(() => borderColor.value)
+
+const previewBorderStyle = computed(() => borderStyle.value)
+
+const previewBackgroundColor = computed(() => backgroundColor.value || 'transparent')
 
 const getStylePreview = styleValue => {
   return getFontStyleProperties(styleValue)
 }
 
-// const getFontStyleLabel = () => {
-//   const option = fontStyleOptions.find(opt => opt.value === fontStyle.value)
-// }
-
-const handleUploadImage = () => {
+const handleUploadImage = async () => {
   const input = document.createElement('input')
   input.type = 'file'
-  input.accept = 'image/*'
-  input.onchange = e => {
+  input.accept = 'image/*,.svg'
+  input.onchange = async e => {
     const file = e.target.files?.[0]
     if (file) {
-      // Validate file size (10MB max)
-      const maxSize = 10 * 1024 * 1024 // 10MB in bytes
+      const maxSize = 10 * 1024 * 1024
       if (file.size > maxSize) {
         toast.error('File too large', {
           description,
@@ -1141,7 +1396,6 @@ const handleUploadImage = () => {
         return
       }
 
-      // Validate file type
       if (!file.type.startsWith('image/')) {
         toast.error('Invalid file type', {
           description,
@@ -1149,20 +1403,32 @@ const handleUploadImage = () => {
         return
       }
 
-      const reader = new FileReader()
-      reader.onload = event => {
-        watermarkImageUrl.value = event.target?.result
+      try {
+        const reader = new FileReader()
+        reader.onload = event => {
+          watermarkImageUrl.value = event.target?.result
+        }
+        reader.readAsDataURL(file)
+
+        const result = await watermarkStore.uploadWatermarkImage(file)
+        watermarkImageFileUuid.value = result.uuid
+        watermarkImageUrl.value = result.url // Use server URL for preview
         toast.success('Image uploaded successfully')
-      }
-      reader.onerror = () => {
-        toast.error('Failed to read image', {
-          description,
+      } catch (error) {
+        watermarkImageUrl.value = null
+        watermarkImageFileUuid.value = null
+        toast.error('Failed to upload image', {
+          description: error.message || 'An error occurred',
         })
       }
-      reader.readAsDataURL(file)
     }
   }
   input.click()
+}
+
+const handleRemoveImage = () => {
+  watermarkImageUrl.value = null
+  watermarkImageFileUuid.value = null
 }
 
 const handleEscKey = event => {
@@ -1171,7 +1437,6 @@ const handleEscKey = event => {
 }
 
 const handleNameBlur = () => {
-  // Trim whitespace and ensure name is not empty
   if (!watermarkName.value.trim()) {
     watermarkName.value = route.params.id ? `My Watermark ${route.params.id}` : 'My Watermark'
   } else {
@@ -1180,14 +1445,13 @@ const handleNameBlur = () => {
 }
 
 const validateWatermarkText = () => {
-  // Trim whitespace
   watermarkText.value = watermarkText.value.trim()
 }
 
 const isFormValid = computed(() => {
   if (!watermarkName.value.trim()) return false
   if (watermarkType.value === 'text' && !watermarkText.value.trim()) return false
-  if (watermarkType.value === 'image' && !watermarkImageUrl.value) return false
+  if (watermarkType.value === 'image' && !watermarkImageFileUuid.value) return false
   return true
 })
 
@@ -1206,17 +1470,18 @@ onMounted(async () => {
       fontStyle.value = watermark.fontStyle || 'normal'
       fontColor.value = watermark.fontColor || '#FFFFFF'
       backgroundColor.value = watermark.backgroundColor || null
-      lineHeight.value = [watermark.lineHeight || 1.5]
-      letterSpacing.value = [watermark.letterSpacing || 0]
-      padding.value = [watermark.padding || 0]
+      lineHeight.value = [watermark.lineHeight ?? 1.5]
+      letterSpacing.value = [watermark.letterSpacing ?? 0]
+      padding.value = [watermark.padding ?? 0]
       textTransform.value = watermark.textTransform || 'none'
       borderRadius.value = [watermark.borderRadius || 0]
       borderWidth.value = [watermark.borderWidth || 0]
       borderColor.value = watermark.borderColor || '#000000'
       borderStyle.value = watermark.borderStyle || 'none'
       watermarkImageUrl.value = watermark.imageUrl || null
-      scale.value = [watermark.scale]
-      opacity.value = [watermark.opacity]
+      watermarkImageFileUuid.value = watermark.imageFileUuid || null
+      scale.value = [watermark.scale ?? (watermark.type === 'image' ? 100 : 50)]
+      opacity.value = [watermark.opacity ?? 80]
       position.value = watermark.position
     } catch (error) {
       toast.error('Failed to load watermark', {
@@ -1227,6 +1492,12 @@ onMounted(async () => {
       isLoading.value = false
     }
   }
+})
+
+watch(watermarkType, (newType) => {
+  const currentScale = scale.value[0] ?? (newType === 'image' ? 100 : 50)
+  // Both types now use 0-100% scale
+  scale.value = [Math.min(Math.max(currentScale, 1), 100)]
 })
 
 const handleSave = async () => {
@@ -1247,17 +1518,19 @@ const handleSave = async () => {
     const watermarkData = {
       name: watermarkName.value,
       type: watermarkType.value,
-      scale: scale.value,
-      opacity: opacity.value,
+      scale: scale.value[0],
+      opacity: opacity.value[0],
       position: position.value,
     }
 
     if (watermarkType.value === 'text') {
       watermarkData.text = watermarkText.value.trim()
       watermarkData.fontFamily = fontFamily.value
-      watermarkData.fontStyle = fontStyle.value
+      // Ensure fontStyle is a string (handle both string and array formats)
+      watermarkData.fontStyle = Array.isArray(fontStyle.value) ? fontStyle.value.join('-') : fontStyle.value
       watermarkData.fontColor = fontColor.value
-      watermarkData.backgroundColor = backgroundColor.value || undefined
+      // Send backgroundColor as-is (backend accepts various formats)
+      watermarkData.backgroundColor = (backgroundColor.value && backgroundColor.value !== 'transparent') ? backgroundColor.value : undefined
       watermarkData.lineHeight = lineHeight.value[0]
       watermarkData.letterSpacing = letterSpacing.value[0]
       watermarkData.padding = padding.value[0]
@@ -1267,7 +1540,14 @@ const handleSave = async () => {
       watermarkData.borderColor = borderWidth.value[0] > 0 ? borderColor.value : undefined
       watermarkData.borderStyle = borderWidth.value[0] > 0 ? borderStyle.value : undefined
     } else {
-      watermarkData.imageUrl = watermarkImageUrl.value || undefined
+      if (!watermarkImageFileUuid.value) {
+        toast.error('Please upload an image', {
+          description,
+        })
+        isSaving.value = false
+        return
+      }
+      watermarkData.imageFileUuid = watermarkImageFileUuid.value
     }
 
     if (isEditing.value && watermarkId.value) {

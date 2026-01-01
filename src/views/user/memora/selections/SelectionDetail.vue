@@ -333,6 +333,7 @@
         :is-loading="isBulkWatermarkLoading"
         :selected-count="selectedMediaIds.size"
         :watermarks="watermarks"
+        :progress="bulkWatermarkProgress"
         @cancel="handleCancelBulkWatermark"
         @confirm="handleConfirmBulkWatermark"
       />
@@ -379,14 +380,22 @@
       <WatermarkMediaModal
         v-model="showWatermarkMediaModal"
         v-model:selected-watermark="selectedWatermarkForMedia"
-        :confirm-label="
-          selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl ? 'Remove' : 'Add'
-        "
-        :is-editing="!!mediaToWatermark?.originalUrl"
+        :confirm-label="watermarkConfirmLabel"
+        :is-editing="hasWatermarkOnMedia"
         :is-loading="isApplyingWatermark"
+        :is-loading-watermarks="watermarkStore.isLoading"
         :watermarks="watermarks"
         @cancel="handleCancelWatermarkMedia"
         @confirm="handleConfirmWatermarkMedia"
+        @preview="handlePreviewWatermark"
+      />
+
+      <WatermarkPreviewModal
+        v-model="showWatermarkPreviewModal"
+        :media-image-url="previewMediaImageUrl"
+        :watermark="previewWatermark"
+        @apply="handleApplyFromPreview"
+        @cancel="showWatermarkPreviewModal = false"
       />
 
       <!-- Media Lightbox -->
@@ -440,6 +449,23 @@
         :initial-focal-point="currentFocalPoint"
         @confirm="handleFocalPointConfirm"
       />
+
+      <!-- Remove Watermark Loading Modal -->
+      <CenterModal
+        v-model="showRemoveWatermarkLoading"
+        title="Removing Watermark"
+        content-class="sm:max-w-md"
+      >
+        <div class="flex flex-col items-center justify-center py-8">
+          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <p :class="theme.textPrimary" class="text-sm font-medium">
+            Removing watermark from image...
+          </p>
+          <p :class="theme.textSecondary" class="text-xs mt-2">
+            Please wait while we restore the original image.
+          </p>
+        </div>
+      </CenterModal>
     </template>
   </SelectionLayout>
 </template>
@@ -467,9 +493,11 @@ import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
 import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
+import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
 import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CenterModal from '@/components/molecules/CenterModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
@@ -480,18 +508,21 @@ import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { useSelectionActions } from '@/composables/useSelectionActions'
 import { useSelectionProgress } from '@/composables/useSelectionProgress'
 import { useSelectionsApi } from '@/api/selections'
+import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
 import { useActionHistoryStore } from '@/stores/actionHistory'
 import { darkenColor } from '@/utils/colors'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
+import { useWatermarkStore } from '@/stores/watermark'
 
 const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+const watermarkStore = useWatermarkStore()
 
 // Get selection color from parent (provided by SelectionLayout)
 const selectionColor = inject(
@@ -570,6 +601,8 @@ const showBulkWatermarkModal = ref(false)
 const selectedBulkWatermark = ref('none')
 const showUploadProgress = ref(false)
 const isBulkWatermarkLoading = ref(false)
+const bulkWatermarkProgress = ref(null)
+const isBulkWatermarkCancelled = ref(false)
 const editAppendText = ref('')
 const showRenameMediaModal = ref(false)
 const mediaToRename = ref(null)
@@ -579,9 +612,13 @@ const showReplacePhotoModal = ref(false)
 const mediaToReplace = ref(null)
 const isReplacingPhoto = ref(false)
 const showWatermarkMediaModal = ref(false)
+const showWatermarkPreviewModal = ref(false)
 const mediaToWatermark = ref(null)
 const selectedWatermarkForMedia = ref('none')
 const isApplyingWatermark = ref(false)
+const showRemoveWatermarkLoading = ref(false)
+const previewMediaImageUrl = ref('')
+const previewWatermark = ref(null)
 
 // Fallback placeholder image (SVG data URL)
 const placeholderImage =
@@ -744,8 +781,12 @@ watch(
 )
 
 // Initialize selectedSetId from route query on mount
-onMounted(() => {
+onMounted(async () => {
   loadSelection()
+  
+  try {
+    await watermarkStore.fetchWatermarks()
+  } catch (error) {}
 
   // Check if setId is in route query and set it after mediaSets are loaded
   watch(
@@ -1197,6 +1238,30 @@ const handleCopyFilenames = async item => {
 const selectionId = computed(() => selection.value?.id)
 const { copyFilenames, resetSelectionLimit, isCopyingFilenames, isResettingLimit } =
   useSelectionActions(selectionId)
+
+// Use media watermark actions composable
+const {
+  handleWatermarkMedia: handleWatermarkMediaFromComposable,
+  handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
+  handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
+  handleRemoveWatermark: handleRemoveWatermarkFromComposable,
+} = useMediaWatermarkActions({
+  showWatermarkMediaModal,
+  mediaToWatermark,
+  selectedWatermarkForMedia,
+  selectedWatermark: computed(() => selection.value?.watermarkId || 'none'),
+  isApplyingWatermark,
+  watermarkStore,
+  mediaApi: null,
+  selectionsApi,
+  selectionId,
+  setId: selectedSetId,
+  mediaItems,
+  applyWatermarkToImage: null,
+  description: '',
+  reloadMedia: loadMediaItems,
+  showRemoveWatermarkLoading,
+})
 
 // Use selection progress composable
 const {
@@ -2197,14 +2262,112 @@ const handleBulkWatermark = () => {
 }
 
 const handleCancelBulkWatermark = () => {
-  showBulkWatermarkModal.value = false
+  if (isBulkWatermarkLoading.value) {
+    // Cancel operation in progress
+    isBulkWatermarkCancelled.value = true
+  } else {
+    showBulkWatermarkModal.value = false
+    selectedBulkWatermark.value = 'none'
+  }
 }
 
-const handleConfirmBulkWatermark = () => {
-  showBulkWatermarkModal.value = false
+const handleConfirmBulkWatermark = async () => {
+  if (!selectedBulkWatermark.value || selectedBulkWatermark.value === 'none') {
+    toast.error('Please select a watermark', { description: '' })
+    return
+  }
+  
+  isBulkWatermarkLoading.value = true
+  bulkWatermarkProgress.value = { current: 0, total: 0, percentage: 0, currentItem: null }
+  isBulkWatermarkCancelled.value = false
+  
+  try {
+    const ids = Array.from(selectedMediaIds.value)
+    const items = mediaItems.value.filter(m => ids.includes(m.id))
+    const imageItems = items.filter(item => item.type === 'image')
+    
+    if (imageItems.length === 0) {
+      toast.error('No images selected', { description: '' })
+      return
+    }
+    
+    const watermark = await watermarkStore.fetchWatermark(selectedBulkWatermark.value)
+    const totalItems = imageItems.length
+    
+    bulkWatermarkProgress.value = {
+      current: 0,
+      total: totalItems,
+      percentage: 0,
+      currentItem: null,
+    }
+    
+    let successCount = 0
+    let errorCount = 0
+    
+    for (let i = 0; i < imageItems.length; i++) {
+      if (isBulkWatermarkCancelled.value) {
+        break
+      }
+      
+      const item = imageItems[i]
+      bulkWatermarkProgress.value = {
+        current: i,
+        total: totalItems,
+        percentage: Math.round((i / totalItems) * 100),
+        currentItem: item.file?.filename || item.filename || `Item ${i + 1}`,
+      }
+      
+      try {
+        const selectionIdValue = selection.value?.id
+        const setIdValue = selectedSetId.value
+        
+        if (selectionsApi && selectionsApi.applyWatermarkToMedia) {
+          await selectionsApi.applyWatermarkToMedia(selectionIdValue, setIdValue, item.id, selectedBulkWatermark.value)
+          successCount++
+        } else {
+          errorCount++
+        }
+      } catch (error) {
+        errorCount++
+      }
+    }
+    
+    bulkWatermarkProgress.value = {
+      current: totalItems,
+      total: totalItems,
+      percentage: 100,
+      currentItem: null,
+    }
+    
+    showBulkWatermarkModal.value = false
+    selectedBulkWatermark.value = 'none'
+    
+    if (isBulkWatermarkCancelled.value) {
+      toast.info('Watermark operation cancelled', {
+        description: `${successCount} of ${totalItems} items processed.`,
+      })
+    } else if (errorCount > 0) {
+      toast.warning('Watermark applied with errors', {
+        description: `${successCount} succeeded, ${errorCount} failed.`,
+      })
+    } else {
+      toast.success('Watermark applied', {
+        description: `Successfully applied to ${successCount} item${successCount !== 1 ? 's' : ''}.`,
+      })
+    }
+    
+    await loadMediaItems()
+  } catch (error) {
+    toast.error('Failed to apply watermark', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isBulkWatermarkLoading.value = false
+    bulkWatermarkProgress.value = null
+  }
 }
 
-const watermarks = ref([])
+const watermarks = computed(() => watermarkStore.watermarks)
 
 const handleRenameMedia = item => {
   mediaToRename.value = item
@@ -2515,24 +2678,57 @@ const handleReplacePhotoFileSelect = async event => {
   }
 }
 
-const handleWatermarkMedia = item => {
-  mediaToWatermark.value = item
-  showWatermarkMediaModal.value = true
+const handleWatermarkMedia = handleWatermarkMediaFromComposable
+const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
+const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
+const handleRemoveWatermark = handleRemoveWatermarkFromComposable
+
+const handlePreviewWatermark = async () => {
+  if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
+    return
+  }
+  
+  const imageUrl = mediaToWatermark.value.largeImageUrl || mediaToWatermark.value.file?.url || mediaToWatermark.value.thumbnailUrl
+  if (!imageUrl) {
+    toast.error('Image URL not available', { description: '' })
+    return
+  }
+  
+  try {
+    const watermark = await watermarkStore.fetchWatermark(selectedWatermarkForMedia.value)
+    previewWatermark.value = watermark
+    previewMediaImageUrl.value = imageUrl
+    showWatermarkPreviewModal.value = true
+  } catch (error) {
+    toast.error('Failed to load watermark', { description: '' })
+  }
 }
 
-const handleCancelWatermarkMedia = () => {
-  showWatermarkMediaModal.value = false
-  mediaToWatermark.value = null
+const handleApplyFromPreview = () => {
+  showWatermarkPreviewModal.value = false
+  handleConfirmWatermarkMedia()
 }
 
-const handleRemoveWatermark = () => {
-  // UI only
-}
+const hasWatermarkOnMedia = computed(() => {
+  if (!mediaToWatermark.value) return false
+  const uuid = mediaToWatermark.value.watermarkUuid || mediaToWatermark.value.watermark_uuid
+  return !!(uuid && uuid !== null && uuid !== '' && uuid !== undefined)
+})
 
-const handleConfirmWatermarkMedia = () => {
-  showWatermarkMediaModal.value = false
-  mediaToWatermark.value = null
-}
+const watermarkConfirmLabel = computed(() => {
+  if (!mediaToWatermark.value) return 'Add Watermark'
+  
+  const hasWatermark = hasWatermarkOnMedia.value
+  const isRemoving = selectedWatermarkForMedia.value === 'none'
+  
+  if (isRemoving && hasWatermark) {
+    return 'Remove Watermark'
+  } else if (hasWatermark) {
+    return 'Update Watermark'
+  } else {
+    return 'Add Watermark'
+  }
+})
 
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'

@@ -10,6 +10,8 @@ export function useBulkWatermarkFlow({
   mediaItems,
   applyWatermarkToImage,
   description,
+  bulkWatermarkProgress,
+  isBulkWatermarkCancelled,
 } = {}) {
   const handleBulkWatermark = () => {
     if (selectedMediaIds.value.size === 0) return
@@ -55,8 +57,40 @@ export function useBulkWatermarkFlow({
 
       let successCount = 0
       let errorCount = 0
+      const totalItems = imageItems.length
+      
+      // Initialize progress
+      if (bulkWatermarkProgress) {
+        bulkWatermarkProgress.value = {
+          current: 0,
+          total: totalItems,
+          percentage: 0,
+          currentItem: null,
+        }
+      }
+      
+      if (isBulkWatermarkCancelled) {
+        isBulkWatermarkCancelled.value = false
+      }
 
-      for (const item of imageItems) {
+      for (let i = 0; i < imageItems.length; i++) {
+        // Check for cancellation
+        if (isBulkWatermarkCancelled && isBulkWatermarkCancelled.value) {
+          toast.info('Watermark operation cancelled', { description: '' })
+          break
+        }
+        
+        const item = imageItems[i]
+        
+        // Update progress
+        if (bulkWatermarkProgress) {
+          bulkWatermarkProgress.value = {
+            current: i,
+            total: totalItems,
+            percentage: Math.round((i / totalItems) * 100),
+            currentItem: item.file?.filename || item.filename || `Item ${i + 1}`,
+          }
+        }
         try {
           let originalImageUrl = item.originalUrl || item.url
           let imageUrl = originalImageUrl
@@ -137,16 +171,30 @@ export function useBulkWatermarkFlow({
         }
       }
 
+      // Final progress update
+      if (bulkWatermarkProgress) {
+        bulkWatermarkProgress.value = {
+          current: totalItems,
+          total: totalItems,
+          percentage: 100,
+          currentItem: null,
+        }
+      }
+      
       showBulkWatermarkModal.value = false
       selectedBulkWatermark.value = 'none'
 
-      if (errorCount > 0) {
+      if (isBulkWatermarkCancelled && isBulkWatermarkCancelled.value) {
+        toast.info('Watermark operation cancelled', {
+          description: `${successCount} of ${totalItems} items processed.`,
+        })
+      } else if (errorCount > 0) {
         toast.warning('Watermark applied with errors', {
-          description: `${errorCount} failed.`,
+          description: `${successCount} succeeded, ${errorCount} failed.`,
         })
       } else {
         toast.success('Watermark applied', {
-          description,
+          description: `Successfully applied to ${successCount} item${successCount !== 1 ? 's' : ''}.`,
         })
       }
     } catch (error) {

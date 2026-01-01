@@ -1,15 +1,22 @@
 import { applyFontStyle } from './applyFontStyle'
 import { getWatermarkPosition } from './getWatermarkPosition'
 
-// Apply watermark to image
 export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
-  // Guard against null watermark
   if (!watermark) {
     throw new Error('Watermark is required')
   }
 
   return new Promise((resolve, reject) => {
     const img = new Image()
+    // Only set crossOrigin if it's a URL, not a data URL
+    if (imageDataUrl && !imageDataUrl.startsWith('data:')) {
+      img.crossOrigin = 'anonymous'
+    }
+    
+    img.onerror = (error) => {
+      reject(new Error('Failed to load image. This may be due to CORS restrictions.'))
+    }
+    
     img.onload = () => {
       const canvas = document.createElement('canvas')
       canvas.width = img.width
@@ -20,23 +27,49 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
         return
       }
 
-      // Draw the original image
-      ctx.drawImage(img, 0, 0)
+      try {
+        ctx.drawImage(img, 0, 0)
+      } catch (error) {
+        reject(new Error('Failed to draw image on canvas. This may be due to CORS restrictions.'))
+        return
+      }
 
-      // Apply watermark
       ctx.save()
       ctx.globalAlpha = (watermark.opacity || 50) / 100
 
       if (watermark.type === 'text' && watermark.text) {
-        // Text watermark - scale based on smaller dimension to ensure it fits
-        const minDimension = Math.min(img.width, img.height)
-        // Scale is a percentage (0-100), so we use it to determine size relative to image
-        // Max font size should be around 5-10% of the smaller dimension
-        const maxFontSize = minDimension * 0.1 // 10% of smaller dimension
-        const fontSize = Math.min(Math.max((minDimension * watermark.scale) / 100, 12), maxFontSize)
+        // Enhanced scaling: padding-aware with diagonal fallback for extreme aspect ratios
+        const scalePercent = (watermark.scale || 50) / 100 // Convert to 0.0-1.0
+        
+        // Calculate padding (5% of min dimension, minimum 20px)
+        const basePadding = Math.min(img.width, img.height) * 0.05
+        const imagePadding = Math.max(20, basePadding)
+        
+        // Calculate usable dimensions (accounting for padding)
+        const usableWidth = Math.max(img.width - (imagePadding * 2), img.width * 0.9)
+        const usableHeight = Math.max(img.height - (imagePadding * 2), img.height * 0.9)
+        const minDimension = Math.min(usableWidth, usableHeight)
+        
+        // For extreme aspect ratios (panoramic/tall), use diagonal as fallback
+        const aspectRatio = img.width / img.height
+        const isExtremeAspectRatio = aspectRatio > 3.0 || aspectRatio < 0.33
+        
+        let maxFontSize, baseFontSize
+        if (isExtremeAspectRatio) {
+          // Use diagonal-based scaling for extreme aspect ratios
+          const diagonal = Math.sqrt(img.width * img.width + img.height * img.height)
+          const baseSize = diagonal * 0.05 // 5% of diagonal
+          maxFontSize = baseSize * 2 // Max 10% of diagonal
+          baseFontSize = baseSize * scalePercent
+        } else {
+          // Standard min-dimension approach
+          maxFontSize = minDimension * 0.1 // Max 10% of min dimension
+          baseFontSize = minDimension * scalePercent * 0.1 // Scale% of max font size
+        }
+        
+        const fontSize = Math.min(Math.max(baseFontSize, 12), maxFontSize) // Min 12px, enforce max
         const fontFamily = watermark.fontFamily || 'Arial'
 
-        // Apply font style
         if (watermark.fontStyle) {
           applyFontStyle(ctx, watermark.fontStyle, fontSize, fontFamily)
         } else {
@@ -47,7 +80,6 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
 
-        // Apply text transform
         let text = watermark.text
         if (watermark.textTransform === 'uppercase') {
           text = text.toUpperCase()
@@ -57,25 +89,20 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
           text = text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
         }
 
-        // Measure text for positioning
         let metrics = ctx.measureText(text)
         let textWidth = metrics.width
         let actualFontSize = fontSize
         const padding = watermark.padding || 0
 
-        // Ensure text doesn't exceed 80% of canvas width
         const maxTextWidth = canvas.width * 0.8
         if (textWidth > maxTextWidth) {
-          // Scale down font size proportionally if text is too wide
           const scaleFactor = maxTextWidth / textWidth
           actualFontSize = fontSize * scaleFactor
-          // Reapply font with adjusted size
           if (watermark.fontStyle) {
             applyFontStyle(ctx, watermark.fontStyle, actualFontSize, fontFamily)
           } else {
             ctx.font = `${actualFontSize}px ${fontFamily}`
           }
-          // Remeasure with new font size
           metrics = ctx.measureText(text)
           textWidth = metrics.width
         }
@@ -83,7 +110,6 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
         const totalWidth = textWidth + padding * 2
         const totalHeight = actualFontSize * (watermark.lineHeight || 1.2) + padding * 2
 
-        // Draw background if specified
         if (watermark.backgroundColor) {
           const borderRadius = watermark.borderRadius || 0
           const pos = getWatermarkPosition(
@@ -97,11 +123,9 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
           ctx.fillStyle = watermark.backgroundColor
           if (borderRadius > 0) {
             ctx.beginPath()
-            // Use roundRect if available, otherwise use arc
             if (typeof ctx.roundRect === 'function') {
               ctx.roundRect(pos.x, pos.y, totalWidth, totalHeight, borderRadius)
             } else {
-              // Fallback
               const x = pos.x
               const y = pos.y
               const w = totalWidth
@@ -124,7 +148,6 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
           }
         }
 
-        // Draw border if specified
         if (watermark.borderWidth && watermark.borderWidth > 0) {
           const pos = getWatermarkPosition(
             watermark.position,
@@ -145,11 +168,9 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
           const borderRadius = watermark.borderRadius || 0
           if (borderRadius > 0) {
             ctx.beginPath()
-            // Use roundRect if available, otherwise use arc
             if (typeof ctx.roundRect === 'function') {
               ctx.roundRect(pos.x, pos.y, totalWidth, totalHeight, borderRadius)
             } else {
-              // Fallback
               const x = pos.x
               const y = pos.y
               const w = totalWidth
@@ -172,7 +193,6 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
           }
         }
 
-        // Draw text
         ctx.fillStyle = watermark.fontColor || '#FFFFFF'
         const pos = getWatermarkPosition(
           watermark.position,
@@ -183,33 +203,74 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
         )
         ctx.fillText(text, pos.x + totalWidth / 2, pos.y + totalHeight / 2)
       } else if (watermark.type === 'image' && watermark.imageUrl) {
-        // Image watermark - scale based on target image size
         const watermarkImg = new Image()
         watermarkImg.crossOrigin = 'anonymous'
         watermarkImg.onload = () => {
-          // Calculate scale based on target image size, not watermark's original size
-          const minDimension = Math.min(img.width, img.height)
-          // Scale is a percentage (0-100), use it to determine max size relative to image
-          // Max watermark size should be around 20-30% of the smaller dimension
-          const maxWatermarkSize = minDimension * 0.25 // 25% of smaller dimension
-          const scale = watermark.scale / 100
-
-          // Calculate desired size based on scale percentage
-          const desiredWidth = watermarkImg.width * scale
-          const desiredHeight = watermarkImg.height * scale
-
-          // Ensure watermark doesn't exceed max size while maintaining aspect ratio
-          let watermarkWidth = desiredWidth
-          let watermarkHeight = desiredHeight
-
-          if (watermarkWidth > maxWatermarkSize || watermarkHeight > maxWatermarkSize) {
-            const aspectRatio = watermarkImg.width / watermarkImg.height
+          // Enhanced scaling: padding-aware with diagonal fallback for extreme aspect ratios
+          const scalePercent = (watermark.scale || 100) / 100 // Convert to 0.0-1.0
+          
+          // Calculate padding (5% of min dimension, minimum 20px)
+          const basePadding = Math.min(img.width, img.height) * 0.05
+          const imagePadding = Math.max(20, basePadding)
+          
+          // Calculate usable dimensions (accounting for padding)
+          const usableWidth = Math.max(img.width - (imagePadding * 2), img.width * 0.9)
+          const usableHeight = Math.max(img.height - (imagePadding * 2), img.height * 0.9)
+          const minImageDimension = Math.min(usableWidth, usableHeight)
+          
+          // For extreme aspect ratios (panoramic/tall), use diagonal as fallback
+          const aspectRatio = img.width / img.height
+          const isExtremeAspectRatio = aspectRatio > 3.0 || aspectRatio < 0.33
+          
+          let maxWatermarkSize, targetWatermarkSize
+          if (isExtremeAspectRatio) {
+            // Use diagonal-based scaling for extreme aspect ratios
+            const diagonal = Math.sqrt(img.width * img.width + img.height * img.height)
+            const baseSize = diagonal * 0.05 // 5% of diagonal
+            maxWatermarkSize = baseSize * 5 // Max 25% of diagonal
+            targetWatermarkSize = maxWatermarkSize * scalePercent
+          } else {
+            // Standard min-dimension approach
+            maxWatermarkSize = minImageDimension * 0.25 // Max 25% of min dimension
+            targetWatermarkSize = maxWatermarkSize * scalePercent
+          }
+          
+          const watermarkAspectRatio = watermarkImg.width / watermarkImg.height
+          
+          let watermarkWidth = targetWatermarkSize
+          let watermarkHeight = targetWatermarkSize / watermarkAspectRatio
+          
+          // If watermark is wider than tall, use width as base
+          if (watermarkImg.width > watermarkImg.height) {
+            watermarkWidth = targetWatermarkSize
+            watermarkHeight = targetWatermarkSize / watermarkAspectRatio
+          } else {
+            watermarkHeight = targetWatermarkSize
+            watermarkWidth = targetWatermarkSize * watermarkAspectRatio
+          }
+          
+          // Ensure watermark doesn't exceed image bounds (90% max) and enforce minimum size
+          const maxSize = minImageDimension * 0.9
+          const minSize = 20 // Minimum 20px for image watermarks
+          
+          if (watermarkWidth > maxSize || watermarkHeight > maxSize) {
             if (watermarkWidth > watermarkHeight) {
-              watermarkWidth = maxWatermarkSize
-              watermarkHeight = maxWatermarkSize / aspectRatio
+              watermarkWidth = maxSize
+              watermarkHeight = maxSize / watermarkAspectRatio
             } else {
-              watermarkHeight = maxWatermarkSize
-              watermarkWidth = maxWatermarkSize * aspectRatio
+              watermarkHeight = maxSize
+              watermarkWidth = maxSize * watermarkAspectRatio
+            }
+          }
+          
+          // Enforce minimum size
+          if (watermarkWidth < minSize || watermarkHeight < minSize) {
+            if (watermarkWidth < watermarkHeight) {
+              watermarkWidth = minSize
+              watermarkHeight = minSize / watermarkAspectRatio
+            } else {
+              watermarkHeight = minSize
+              watermarkWidth = minSize * watermarkAspectRatio
             }
           }
 
@@ -223,7 +284,16 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
 
           ctx.drawImage(watermarkImg, pos.x, pos.y, watermarkWidth, watermarkHeight)
           ctx.restore()
-          resolve(canvas.toDataURL('image/jpeg', 0.9))
+          try {
+            resolve(canvas.toDataURL('image/jpeg', 0.9))
+          } catch (error) {
+            // Handle tainted canvas error (CORS issue)
+            if (error.name === 'SecurityError' || error.message.includes('tainted')) {
+              reject(new Error('Cannot export canvas due to CORS restrictions. Please ensure images are served with proper CORS headers.'))
+            } else {
+              reject(error)
+            }
+          }
         }
         watermarkImg.onerror = reject
         watermarkImg.src = watermark.imageUrl
@@ -231,7 +301,16 @@ export const applyWatermarkToImage = async (imageDataUrl, watermark) => {
       }
 
       ctx.restore()
-      resolve(canvas.toDataURL('image/jpeg', 0.9))
+      try {
+        resolve(canvas.toDataURL('image/jpeg', 0.9))
+      } catch (error) {
+        // Handle tainted canvas error (CORS issue)
+        if (error.name === 'SecurityError' || error.message.includes('tainted')) {
+          reject(new Error('Cannot export canvas due to CORS restrictions. Please ensure images are served with proper CORS headers.'))
+        } else {
+          reject(error)
+        }
+      }
     }
     img.onerror = reject
     img.src = imageDataUrl

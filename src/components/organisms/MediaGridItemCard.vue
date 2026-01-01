@@ -358,7 +358,7 @@
                 Replace photo
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="props.item?.originalUrl"
+                v-if="props.item?.type === 'image' && hasWatermark"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('remove-watermark')"
               >
@@ -366,11 +366,12 @@
                 Remove Watermark
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="props.item?.type === 'image'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('watermark')"
               >
                 <Eye class="h-4 w-4 mr-2" />
-                {{ props.item?.originalUrl ? 'Change Watermark' : 'Add Watermark' }}
+                {{ hasWatermark ? 'Change Watermark' : 'Add Watermark' }}
               </DropdownMenuItem>
             </template>
 
@@ -704,6 +705,11 @@ const isRejected = computed(() => {
   return !!(props.item?.isRejected || props.item?.is_rejected)
 })
 
+const hasWatermark = computed(() => {
+  const uuid = props.item?.watermarkUuid || props.item?.watermark_uuid
+  return !!(uuid && uuid !== null && uuid !== '')
+})
+
 const hasRevisions = computed(() => {
   return (
     (props.item?.revisionNumber && props.item.revisionNumber > 0) ||
@@ -849,13 +855,21 @@ onMounted(() => {
 })
 
 watch(
-  () => [props.item?.thumbnailUrl, props.item?.file?.url, props.item?.type],
+  () => [
+    props.item?.thumbnailUrl,
+    props.item?.file?.url,
+    props.item?.file?.variants?.thumb,
+    props.item?.largeImageUrl,
+    props.item?.watermarkUuid,
+    props.item?.type,
+  ],
   () => {
     isImageLoaded.value = false
     updateImageSrc().then(() => {
       checkImageLoaded()
     })
-  }
+  },
+  { deep: true }
 )
 
 // Watch imageSrc changes to check if image is already loaded (for cached images)

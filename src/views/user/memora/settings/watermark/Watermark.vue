@@ -24,7 +24,7 @@
             <template v-if="isLoading">
               <div v-for="i in 3" :key="`skeleton-${i}`" class="flex flex-col items-center gap-2">
                 <div
-                  class="w-32 h-32 rounded border-2 animate-pulse"
+                  class="w-40 h-40 rounded border-2 animate-pulse"
                   :class="[theme.borderSecondary, theme.bgSkeleton]"
                 ></div>
                 <div class="h-3 w-20 rounded animate-pulse" :class="theme.bgSkeleton"></div>
@@ -33,64 +33,16 @@
 
             <!-- Existing Watermarks -->
             <template v-else>
-              <div
-                v-for="watermark in watermarks"
+              <WatermarkCard
+                v-for="(watermark, index) in watermarks"
                 :key="watermark.id"
-                class="flex flex-col items-center gap-2 cursor-pointer group relative"
-                @click="handleEditWatermark(watermark.id)"
-              >
-                <div
-                  class="w-32 h-32 rounded border-2 flex items-center justify-center transition-colors hover:border-teal-500 overflow-hidden relative"
-                  :class="[theme.borderSecondary, theme.bgCard]"
-                >
-                  <span
-                    v-if="watermark.type === 'text'"
-                    class="text-lg"
-                    :style="{
-                      fontFamily: watermark.fontFamily || 'Pacifico',
-                      color: watermark.color || getAutoContrastColor(watermark.color),
-                      textShadow: watermark.textShadow || 'none',
-                      backgroundColor: watermark.backgroundColor || 'transparent',
-                      lineHeight: watermark.lineHeight || 1.5,
-                      letterSpacing: watermark.letterSpacing
-                        ? `${watermark.letterSpacing}px`
-                        : '0px',
-                      padding: watermark.padding ? `${watermark.padding}px` : '0px',
-                      textTransform: watermark.textTransform || 'none',
-                      borderRadius: watermark.borderRadius ? `${watermark.borderRadius}px` : '0px',
-                      borderWidth: watermark.borderWidth ? `${watermark.borderWidth}px` : '0px',
-                      borderColor:
-                        watermark.borderWidth && watermark.borderWidth > 0
-                          ? watermark.borderColor || '#000000'
-                          : 'transparent',
-                      borderStyle:
-                        watermark.borderWidth && watermark.borderWidth > 0
-                          ? watermark.borderStyle || 'solid'
-                          : 'none',
-                      ...getFontStyleProperties(watermark.fontStyle),
-                    }"
-                  >
-                    {{ watermark.text }}
-                  </span>
-                  <img
-                    v-else-if="watermark.type === 'image' && watermark.imageUrl"
-                    :src="watermark.imageUrl"
-                    :alt="watermark.name"
-                    class="w-full h-full object-contain p-2"
-                  />
-                  <!-- Delete Button on Hover -->
-                  <button
-                    @click.stop="handleDeleteWatermark(watermark.id)"
-                    class="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 hover:bg-red-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-md"
-                    :class="theme.bgCard"
-                  >
-                    <X class="h-3.5 w-3.5" />
-                  </button>
-                </div>
-                <span class="text-xs font-medium uppercase" :class="theme.textSecondary">
-                  {{ watermark.name }}
-                </span>
-              </div>
+                :watermark="watermark"
+                :usage-count="watermarkUsageCounts[watermark.id]"
+                :sample-image-index="index % 3"
+                @edit="handleEditWatermark"
+                @duplicate="handleDuplicateWatermark"
+                @delete="handleDeleteWatermark"
+              />
             </template>
 
             <!-- Add New Watermark -->
@@ -99,7 +51,7 @@
               @click="handleAddWatermark()"
             >
               <div
-                class="w-32 h-32 rounded border-2 border-dashed flex items-center justify-center transition-colors hover:border-teal-500"
+                class="w-40 h-40 rounded border-2 border-dashed flex items-center justify-center transition-colors hover:border-teal-500"
                 :class="[theme.borderSecondary, theme.bgCard]"
               >
                 <Plus class="h-8 w-8" :class="theme.textTertiary" />
@@ -113,31 +65,6 @@
             through Store.
             <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
           </p>
-        </div>
-
-        <!-- Apply Watermark to Web Size Downloads Section -->
-        <div class="flex items-center justify-between py-4">
-          <div class="flex-1">
-            <h3 class="text-base font-semibold mb-1" :class="theme.textPrimary">
-              Apply watermark to web size downloads
-            </h3>
-            <p class="text-xs" :class="theme.textSecondary">
-              Enable to apply watermark to web size downloads from your collections and web size
-              downloads sold through Store.
-            </p>
-          </div>
-          <label class="relative inline-flex items-center cursor-pointer group">
-            <input type="checkbox" v-model="applyToWebDownloads" class="sr-only peer" />
-            <div
-              class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
-            ></div>
-            <span
-              class="ml-3 text-sm font-medium"
-              :class="applyToWebDownloads ? theme.textPrimary : theme.textSecondary"
-            >
-              {{ applyToWebDownloads ? 'On' : 'Off' }}
-            </span>
-          </label>
         </div>
       </div>
     </div>
@@ -186,18 +113,20 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Plus, X } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Separator } from '@/components/shadcn/separator'
 import { Button } from '@/components/shadcn/button'
 import CenterModal from '@/components/molecules/CenterModal.vue'
+import WatermarkCard from '@/components/organisms/WatermarkCard.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { useRouter } from 'vue-router'
 import { useWatermarkStore } from '@/stores/watermark'
 import { useThemeStore } from '@/stores/theme'
+import { useWatermarksApi } from '@/api/watermarks'
 
 const description = ''
 
@@ -206,12 +135,13 @@ const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
 const themeStore = useThemeStore()
 
-// Form state
-const applyToWebDownloads = ref(true)
-
 const showDeleteModal = ref(false)
 const watermarkToDelete = ref(null)
 const isDeleting = ref(false)
+const watermarkUsageCounts = ref({})
+const isDuplicating = ref(false)
+
+const watermarksApi = useWatermarksApi()
 
 // Use storeToRefs to maintain reactivity
 const { watermarks, isLoading } = storeToRefs(watermarkStore)
@@ -296,16 +226,31 @@ const getTextShadow = () => {
     : '0 2px 8px rgba(255, 255, 255, 0.9), 0 1px 3px rgba(255, 255, 255, 0.7)'
 }
 
-// Fetch watermarks on mount
+// Fetch watermarks and usage counts on mount
 onMounted(async () => {
   try {
     await watermarkStore.fetchWatermarks()
+    // Fetch usage counts for each watermark
+    await fetchUsageCounts()
   } catch (error) {
     toast.error('Failed to load watermarks', {
       description,
     })
   }
 })
+
+const fetchUsageCounts = async () => {
+  const counts = {}
+  for (const watermark of watermarks.value) {
+    try {
+      const response = await watermarksApi.fetchWatermarkUsage?.(watermark.id)
+      counts[watermark.id] = response?.data?.count || 0
+    } catch (error) {
+      counts[watermark.id] = 0
+    }
+  }
+  watermarkUsageCounts.value = counts
+}
 
 const handleEditWatermark = id => {
   router.push({ name: 'editWatermark', params: { id } })
@@ -346,5 +291,27 @@ const handleConfirmDelete = async () => {
 const handleCancelDelete = () => {
   showDeleteModal.value = false
   watermarkToDelete.value = null
+}
+
+const handleDuplicateWatermark = async id => {
+  if (isDuplicating.value) return
+  
+  isDuplicating.value = true
+  try {
+    const duplicated = await watermarksApi.duplicateWatermark?.(id)
+    if (duplicated) {
+      await watermarkStore.fetchWatermarks()
+      await fetchUsageCounts()
+      toast.success('Watermark duplicated successfully', {
+        description,
+      })
+    }
+  } catch (error) {
+    toast.error('Failed to duplicate watermark', {
+      description: error.message || 'An error occurred',
+    })
+  } finally {
+    isDuplicating.value = false
+  }
 }
 </script>

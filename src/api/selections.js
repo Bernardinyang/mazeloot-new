@@ -639,6 +639,35 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Apply watermark to media
+   */
+  const applyWatermarkToMedia = async (selectionId, setId, mediaId, watermarkUuid) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/watermark`,
+        { watermarkUuid }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Remove watermark from media
+   */
+  const removeWatermarkFromMedia = async (selectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.delete(
+        `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/watermark`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Download media file by UUID
    * Returns a blob that can be downloaded
    */
@@ -901,6 +930,8 @@ export function useSelectionsApi() {
     moveMediaToSet,
     copyMediaToSet,
     starMedia,
+    applyWatermarkToMedia,
+    removeWatermarkFromMedia,
     downloadMedia,
 
     // Guest Access

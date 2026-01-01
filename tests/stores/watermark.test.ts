@@ -1,10 +1,22 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useWatermarkStore } from '@/stores/watermark'
+
+const mockApi = {
+  fetchWatermarks: vi.fn(),
+  createWatermark: vi.fn(),
+  updateWatermark: vi.fn(),
+  deleteWatermark: vi.fn(),
+}
+
+vi.mock('@/api/watermarks', () => ({
+  useWatermarksApi: () => mockApi,
+}))
 
 describe('Watermark Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    vi.clearAllMocks()
   })
 
   it('should initialize with empty watermarks', () => {
@@ -16,10 +28,17 @@ describe('Watermark Store', () => {
 
   it('should fetch watermarks', async () => {
     const store = useWatermarkStore()
+    const mockWatermarks = [
+      { id: 1, name: 'Watermark 1', type: 'text' },
+      { id: 2, name: 'Watermark 2', type: 'image' },
+    ]
+
+    mockApi.fetchWatermarks.mockResolvedValue(mockWatermarks)
 
     await store.fetchWatermarks()
 
-    expect(store.watermarks).toBeDefined()
+    expect(store.watermarks).toEqual(mockWatermarks)
+    expect(store.isLoading).toBe(false)
   })
 
   it('should create watermark', async () => {
@@ -34,6 +53,9 @@ describe('Watermark Store', () => {
       opacity: 80,
       position: 'center',
     }
+    const createdWatermark = { id: 1, ...data }
+
+    mockApi.createWatermark.mockResolvedValue(createdWatermark)
 
     const watermark = await store.createWatermark(data)
 
@@ -55,9 +77,13 @@ describe('Watermark Store', () => {
       updatedAt: new Date().toISOString(),
     }
     store.watermarks = [original]
+    const updatedWatermark = { ...original, name: 'Updated' }
 
-    // Mock API will throw, so we expect an error
-    await expect(store.updateWatermark(1, { name: 'Updated' })).rejects.toThrow()
+    mockApi.updateWatermark.mockResolvedValue(updatedWatermark)
+
+    await store.updateWatermark(1, { name: 'Updated' })
+
+    expect(store.watermarks.find(w => w.id === 1)?.name).toBe('Updated')
   })
 
   it('should delete watermark', async () => {
@@ -75,6 +101,8 @@ describe('Watermark Store', () => {
       },
     ]
     store.currentWatermark = store.watermarks[0]
+
+    mockApi.deleteWatermark.mockResolvedValue(undefined)
 
     await store.deleteWatermark(1)
 

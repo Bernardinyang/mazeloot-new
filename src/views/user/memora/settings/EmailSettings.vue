@@ -48,6 +48,9 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 The name that will appear as the sender of your emails.
+                <span v-if="isUsingBrandingName" class="block mt-1 text-teal-500">
+                  Currently using brand name from Branding settings.
+                </span>
               </p>
             </div>
 
@@ -70,6 +73,9 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 The email address that will appear as the sender of your emails.
+                <span v-if="isUsingBrandingEmail" class="block mt-1 text-teal-500">
+                  Currently using support email from Branding settings.
+                </span>
               </p>
             </div>
 
@@ -141,6 +147,8 @@ const { fetchSettings, updateEmailSettings } = useSettingsApi()
 const fromName = ref('')
 const fromAddress = ref('')
 const replyTo = ref('')
+const brandingName = ref('')
+const brandingSupportEmail = ref('')
 
 const isLoading = ref(false)
 const isSaving = ref(false)
@@ -149,6 +157,8 @@ const isSaving = ref(false)
 const originalFromName = ref('')
 const originalFromAddress = ref('')
 const originalReplyTo = ref('')
+const originalEmailFromName = ref(null)
+const originalEmailFromAddress = ref(null)
 
 // Computed to check if there are changes
 const hasChanges = computed(() => {
@@ -159,17 +169,39 @@ const hasChanges = computed(() => {
   )
 })
 
+// Check if using branding defaults
+const isUsingBrandingName = computed(() => {
+  return !originalEmailFromName.value && brandingName.value && fromName.value === brandingName.value
+})
+
+const isUsingBrandingEmail = computed(() => {
+  return !originalEmailFromAddress.value && brandingSupportEmail.value && fromAddress.value === brandingSupportEmail.value
+})
+
 onMounted(async () => {
   isLoading.value = true
   try {
     const response = await fetchSettings()
     const settings = response.data || response
 
-    fromName.value = settings.email?.fromName || ''
-    fromAddress.value = settings.email?.fromAddress || ''
+    brandingName.value = settings.branding?.name || ''
+    brandingSupportEmail.value = settings.branding?.supportEmail || ''
+
+    // Get email values (API returns branding defaults when email values are null)
+    const emailFromName = settings.email?.fromName || ''
+    const emailFromAddress = settings.email?.fromAddress || ''
+
+    // Check if email values match branding values (indicating defaults are being used)
+    // We can't know for sure if email_from_name was null, but if values match branding,
+    // it's likely using defaults
+    originalEmailFromName.value = emailFromName === brandingName.value && brandingName.value ? null : emailFromName
+    originalEmailFromAddress.value = emailFromAddress === brandingSupportEmail.value && brandingSupportEmail.value ? null : emailFromAddress
+
+    fromName.value = emailFromName
+    fromAddress.value = emailFromAddress
     replyTo.value = settings.email?.replyTo || ''
 
-    // Store original values
+    // Store original values for change tracking
     originalFromName.value = fromName.value
     originalFromAddress.value = fromAddress.value
     originalReplyTo.value = replyTo.value

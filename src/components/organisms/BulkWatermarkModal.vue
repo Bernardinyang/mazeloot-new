@@ -44,12 +44,37 @@
           selected images.
         </p>
       </div>
+      
+      <!-- Progress Display -->
+      <div
+        v-if="props.isLoading && props.progress"
+        class="space-y-2 pt-4 border-t"
+        :class="theme.borderSecondary"
+      >
+        <div class="flex items-center justify-between text-sm">
+          <span :class="theme.textSecondary">
+            {{ props.progress.currentItem || 'Processing...' }}
+          </span>
+          <span :class="theme.textPrimary" class="font-semibold">
+            {{ props.progress.current }} / {{ props.progress.total }}
+          </span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
+          <div
+            class="bg-teal-500 h-full transition-all duration-300"
+            :style="{ width: `${props.progress.percentage}%` }"
+          ></div>
+        </div>
+        <p class="text-xs text-center" :class="theme.textSecondary">
+          {{ props.progress.percentage }}% complete
+        </p>
+      </div>
     </div>
     <template #footer>
       <ActionButtonGroup
         :disabled="props.isLoading"
         :loading="props.isLoading"
-        cancel-label="Cancel"
+        :cancel-label="props.isLoading ? 'Cancel Operation' : 'Cancel'"
         confirm-label="Apply"
         loading-label="Applying watermark..."
         @cancel="emit('cancel')"
@@ -79,6 +104,7 @@ const props = defineProps({
   selectedWatermark: { type: String, required: true },
   watermarks: { type: Array, required: true },
   isLoading: { type: Boolean, required: true },
+  progress: { type: Object, default: null },
 })
 
 const emit = defineEmits(['update:modelValue', 'update:selectedWatermark', 'cancel', 'confirm'])

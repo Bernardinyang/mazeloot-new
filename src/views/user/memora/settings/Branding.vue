@@ -19,6 +19,323 @@
 
       <!-- Content -->
       <div v-else class="space-y-6">
+        <!-- Brand Details Card -->
+        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+          <div>
+            <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Brand Details</h2>
+            <p class="text-sm" :class="theme.textSecondary">
+              Add information about your brand for display on your galleries
+            </p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <!-- Brand Name -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Brand Name</label>
+              <Input
+                v-model="brandName"
+                type="text"
+                placeholder="Your Brand Name"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Support Email -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Support Email</label>
+              <Input
+                v-model="supportEmail"
+                type="email"
+                placeholder="support@example.com"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Support Phone -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Support Phone</label>
+              <Input
+                v-model="supportPhone"
+                type="tel"
+                placeholder="+1 (555) 123-4567"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Website -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Website</label>
+              <Input
+                v-model="website"
+                type="url"
+                placeholder="https://www.example.com"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Location -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Location</label>
+              <Input
+                v-model="location"
+                type="text"
+                placeholder="City, State or Address"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Tagline -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Tagline</label>
+              <Input
+                v-model="tagline"
+                type="text"
+                placeholder="Your brand tagline or slogan"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Description -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Description</label>
+              <Textarea
+                v-model="description"
+                placeholder="Tell us about your brand..."
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  'min-h-[100px]',
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Address Section -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Address</label>
+            </div>
+
+            <!-- Street Address -->
+            <div class="space-y-2 md:col-span-2">
+              <Input
+                v-model="addressStreet"
+                type="text"
+                placeholder="Street Address"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- City, State, Zip -->
+            <div class="space-y-2">
+              <Input
+                v-model="addressCity"
+                type="text"
+                placeholder="City"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <Input
+                v-model="addressState"
+                type="text"
+                placeholder="State/Province"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <Input
+                v-model="addressZip"
+                type="text"
+                placeholder="ZIP/Postal Code"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <div class="space-y-2">
+              <Input
+                v-model="addressCountry"
+                type="text"
+                placeholder="Country"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Business Hours -->
+            <div class="space-y-2 md:col-span-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Business Hours</label>
+              <Textarea
+                v-model="businessHours"
+                placeholder="e.g., Monday-Friday: 9am-5pm"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  'min-h-[80px]',
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Contact Name -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Contact Name</label>
+              <Input
+                v-model="contactName"
+                type="text"
+                placeholder="Primary contact person"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Tax/VAT ID -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Tax/VAT ID</label>
+              <Input
+                v-model="taxVatId"
+                type="text"
+                placeholder="Tax or VAT identification number"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Founded Year -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Founded Year</label>
+              <Input
+                v-model="foundedYear"
+                type="number"
+                placeholder="YYYY"
+                :min="1800"
+                :max="new Date().getFullYear()"
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+
+            <!-- Industry -->
+            <div class="space-y-2">
+              <label class="text-sm font-medium" :class="theme.textPrimary">Industry</label>
+              <Input
+                v-model="industry"
+                type="text"
+                placeholder="e.g., Photography, Design, etc."
+                :disabled="isLoading"
+                :class="[
+                  theme.bgInput,
+                  theme.borderInput,
+                  theme.textInput,
+                  theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
+                ]"
+              />
+            </div>
+          </div>
+        </div>
+
         <!-- Domain Settings Card -->
         <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
@@ -236,6 +553,7 @@ import { ref, onMounted, computed } from 'vue'
 import { Plus, Loader2, Check } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import Input from '@/components/shadcn/input/Input.vue'
+import { Textarea } from '@/components/shadcn/textarea'
 import { Separator } from '@/components/shadcn/separator'
 import { Button } from '@/components/shadcn/button'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
@@ -255,6 +573,23 @@ const faviconPreview = ref(null)
 const logoUuid = ref(null)
 const faviconUuid = ref(null)
 const showMazelootBranding = ref(true)
+const brandName = ref('')
+const supportEmail = ref('')
+const supportPhone = ref('')
+const website = ref('')
+const location = ref('')
+const tagline = ref('')
+const description = ref('')
+const addressStreet = ref('')
+const addressCity = ref('')
+const addressState = ref('')
+const addressZip = ref('')
+const addressCountry = ref('')
+const businessHours = ref('')
+const contactName = ref('')
+const taxVatId = ref('')
+const foundedYear = ref(null)
+const industry = ref('')
 const showCustomDomainPopover = ref(false)
 const showBrandControlPopover = ref(false)
 const isDisabled = ref(false)
@@ -270,6 +605,23 @@ const originalCustomDomain = ref('')
 const originalShowMazelootBranding = ref(true)
 const originalLogoUuid = ref(null)
 const originalFaviconUuid = ref(null)
+const originalBrandName = ref('')
+const originalSupportEmail = ref('')
+const originalSupportPhone = ref('')
+const originalWebsite = ref('')
+const originalLocation = ref('')
+const originalTagline = ref('')
+const originalDescription = ref('')
+const originalAddressStreet = ref('')
+const originalAddressCity = ref('')
+const originalAddressState = ref('')
+const originalAddressZip = ref('')
+const originalAddressCountry = ref('')
+const originalBusinessHours = ref('')
+const originalContactName = ref('')
+const originalTaxVatId = ref('')
+const originalFoundedYear = ref(null)
+const originalIndustry = ref('')
 
 // Computed to check if there are changes
 const hasChanges = computed(() => {
@@ -277,7 +629,24 @@ const hasChanges = computed(() => {
     customDomain.value !== originalCustomDomain.value ||
     showMazelootBranding.value !== originalShowMazelootBranding.value ||
     logoUuid.value !== originalLogoUuid.value ||
-    faviconUuid.value !== originalFaviconUuid.value
+    faviconUuid.value !== originalFaviconUuid.value ||
+    brandName.value !== originalBrandName.value ||
+    supportEmail.value !== originalSupportEmail.value ||
+    supportPhone.value !== originalSupportPhone.value ||
+    website.value !== originalWebsite.value ||
+    location.value !== originalLocation.value ||
+    tagline.value !== originalTagline.value ||
+    description.value !== originalDescription.value ||
+    addressStreet.value !== originalAddressStreet.value ||
+    addressCity.value !== originalAddressCity.value ||
+    addressState.value !== originalAddressState.value ||
+    addressZip.value !== originalAddressZip.value ||
+    addressCountry.value !== originalAddressCountry.value ||
+    businessHours.value !== originalBusinessHours.value ||
+    contactName.value !== originalContactName.value ||
+    taxVatId.value !== originalTaxVatId.value ||
+    foundedYear.value !== originalFoundedYear.value ||
+    industry.value !== originalIndustry.value
   )
 })
 
@@ -295,12 +664,46 @@ onMounted(async () => {
     logoUuid.value = settings.branding?.logoUuid || null
     faviconUuid.value = settings.branding?.faviconUuid || null
     showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
+    brandName.value = settings.branding?.name || ''
+    supportEmail.value = settings.branding?.supportEmail || ''
+    supportPhone.value = settings.branding?.supportPhone || ''
+    website.value = settings.branding?.website || ''
+    location.value = settings.branding?.location || ''
+    tagline.value = settings.branding?.tagline || ''
+    description.value = settings.branding?.description || ''
+    addressStreet.value = settings.branding?.addressStreet || ''
+    addressCity.value = settings.branding?.addressCity || ''
+    addressState.value = settings.branding?.addressState || ''
+    addressZip.value = settings.branding?.addressZip || ''
+    addressCountry.value = settings.branding?.addressCountry || ''
+    businessHours.value = settings.branding?.businessHours || ''
+    contactName.value = settings.branding?.contactName || ''
+    taxVatId.value = settings.branding?.taxVatId || ''
+    foundedYear.value = settings.branding?.foundedYear || null
+    industry.value = settings.branding?.industry || ''
 
     // Store original values
     originalCustomDomain.value = customDomain.value
     originalShowMazelootBranding.value = showMazelootBranding.value
     originalLogoUuid.value = logoUuid.value
     originalFaviconUuid.value = faviconUuid.value
+    originalBrandName.value = brandName.value
+    originalSupportEmail.value = supportEmail.value
+    originalSupportPhone.value = supportPhone.value
+    originalWebsite.value = website.value
+    originalLocation.value = location.value
+    originalTagline.value = tagline.value
+    originalDescription.value = description.value
+    originalAddressStreet.value = addressStreet.value
+    originalAddressCity.value = addressCity.value
+    originalAddressState.value = addressState.value
+    originalAddressZip.value = addressZip.value
+    originalAddressCountry.value = addressCountry.value
+    originalBusinessHours.value = businessHours.value
+    originalContactName.value = contactName.value
+    originalTaxVatId.value = taxVatId.value
+    originalFoundedYear.value = foundedYear.value
+    originalIndustry.value = industry.value
   } catch (error) {
     toast.error('Failed to load settings', {
       description: error.message || 'Please try again',
@@ -321,6 +724,23 @@ const handleSave = async () => {
       showMazelootBranding: showMazelootBranding.value,
       logoUuid: logoUuid.value,
       faviconUuid: faviconUuid.value,
+      name: brandName.value,
+      supportEmail: supportEmail.value,
+      supportPhone: supportPhone.value,
+      website: website.value,
+      location: location.value,
+      tagline: tagline.value,
+      description: description.value,
+      addressStreet: addressStreet.value,
+      addressCity: addressCity.value,
+      addressState: addressState.value,
+      addressZip: addressZip.value,
+      addressCountry: addressCountry.value,
+      businessHours: businessHours.value,
+      contactName: contactName.value,
+      taxVatId: taxVatId.value,
+      foundedYear: foundedYear.value ? parseInt(foundedYear.value) : null,
+      industry: industry.value,
     })
 
     // Update original values after successful save
@@ -328,6 +748,23 @@ const handleSave = async () => {
     originalShowMazelootBranding.value = showMazelootBranding.value
     originalLogoUuid.value = logoUuid.value
     originalFaviconUuid.value = faviconUuid.value
+    originalBrandName.value = brandName.value
+    originalSupportEmail.value = supportEmail.value
+    originalSupportPhone.value = supportPhone.value
+    originalWebsite.value = website.value
+    originalLocation.value = location.value
+    originalTagline.value = tagline.value
+    originalDescription.value = description.value
+    originalAddressStreet.value = addressStreet.value
+    originalAddressCity.value = addressCity.value
+    originalAddressState.value = addressState.value
+    originalAddressZip.value = addressZip.value
+    originalAddressCountry.value = addressCountry.value
+    originalBusinessHours.value = businessHours.value
+    originalContactName.value = contactName.value
+    originalTaxVatId.value = taxVatId.value
+    originalFoundedYear.value = foundedYear.value
+    originalIndustry.value = industry.value
 
     toast.success('Settings saved successfully')
   } catch (error) {

@@ -387,10 +387,15 @@
         :model-value="showWatermarkMediaModal"
         :selected-watermark="selectedWatermarkForMedia"
         :confirm-label="
-          selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl ? 'Remove' : 'Add'
+          selectedWatermarkForMedia === 'none' && (mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid)
+            ? 'Remove Watermark'
+            : mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid
+            ? 'Update Watermark'
+            : 'Add Watermark'
         "
-        :is-editing="!!mediaToWatermark?.originalUrl"
+        :is-editing="!!(mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid)"
         :is-loading="isApplyingWatermark"
+        :is-loading-watermarks="watermarkStore.isLoading"
         :watermarks="watermarks"
         @update:model-value="showWatermarkMediaModal = $event"
         @update:selected-watermark="selectedWatermarkForMedia = $event"
@@ -531,6 +536,23 @@
         :revision="selectedRevision"
         :media-item="revisionHistoryMediaItem"
       />
+
+      <!-- Remove Watermark Loading Modal -->
+      <CenterModal
+        v-model="showRemoveWatermarkLoading"
+        title="Removing Watermark"
+        content-class="sm:max-w-md"
+      >
+        <div class="flex flex-col items-center justify-center py-8">
+          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <p :class="theme.textPrimary" class="text-sm font-medium">
+            Removing watermark from image...
+          </p>
+          <p :class="theme.textSecondary" class="text-xs mt-2">
+            Please wait while we restore the original image.
+          </p>
+        </div>
+      </CenterModal>
     </template>
   </ProofingLayout>
 </template>
@@ -568,6 +590,7 @@ import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
 import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CenterModal from '@/components/molecules/CenterModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useProofingStore } from '@/stores/proofing'
 import { useProofingMediaSetsSidebarStore } from '@/stores/proofingMediaSetsSidebar'
@@ -582,6 +605,8 @@ import { useActionHistoryStore } from '@/stores/actionHistory'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useUserStore } from '@/stores/user'
+import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
+import { useWatermarkStore } from '@/stores/watermark'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -589,6 +614,7 @@ const router = useRouter()
 const proofingStore = useProofingStore()
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 const userStore = useUserStore()
+const watermarkStore = useWatermarkStore()
 
 // Get proofing color from parent (provided by ProofingLayout)
 const proofingColor = inject(
@@ -693,6 +719,7 @@ const showWatermarkMediaModal = ref(false)
 const mediaToWatermark = ref(null)
 const selectedWatermarkForMedia = ref('none')
 const isApplyingWatermark = ref(false)
+const showRemoveWatermarkLoading = ref(false)
 
 // Fallback placeholder image (SVG data URL)
 const placeholderImage =
@@ -847,8 +874,12 @@ watch(
 )
 
 // Initialize selectedSetId from route query on mount
-onMounted(() => {
+onMounted(async () => {
   loadProofing()
+  
+  try {
+    await watermarkStore.fetchWatermarks()
+  } catch (error) {}
 
   watch(
     () => mediaSetsSidebar.mediaSets.length,
@@ -2521,7 +2552,7 @@ const handleConfirmBulkWatermark = () => {
   showBulkWatermarkModal.value = false
 }
 
-const watermarks = ref([])
+const watermarks = computed(() => watermarkStore.watermarks)
 
 const handleRenameMedia = item => {
   mediaToRename.value = item
@@ -2818,24 +2849,36 @@ const handleReplacePhotoFileSelect = async event => {
   }
 }
 
-const handleWatermarkMedia = item => {
-  mediaToWatermark.value = item
-  showWatermarkMediaModal.value = true
-}
+const proofingId = computed(() => proofing.value?.id)
 
-const handleCancelWatermarkMedia = () => {
-  showWatermarkMediaModal.value = false
-  mediaToWatermark.value = null
-}
+const {
+  handleWatermarkMedia: handleWatermarkMediaFromComposable,
+  handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
+  handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
+  handleRemoveWatermark: handleRemoveWatermarkFromComposable,
+} = useMediaWatermarkActions({
+  showWatermarkMediaModal,
+  mediaToWatermark,
+  selectedWatermarkForMedia,
+  selectedWatermark: computed(() => proofing.value?.watermarkId || 'none'),
+  isApplyingWatermark,
+  watermarkStore,
+  mediaApi: null,
+  selectionsApi: null,
+  proofingApi,
+  selectionId: proofingId,
+  setId: selectedSetId,
+  mediaItems,
+  applyWatermarkToImage: null,
+  description: '',
+  reloadMedia: loadMediaItems,
+  showRemoveWatermarkLoading,
+})
 
-const handleRemoveWatermark = () => {
-  // UI only
-}
-
-const handleConfirmWatermarkMedia = () => {
-  showWatermarkMediaModal.value = false
-  mediaToWatermark.value = null
-}
+const handleWatermarkMedia = handleWatermarkMediaFromComposable
+const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
+const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
+const handleRemoveWatermark = handleRemoveWatermarkFromComposable
 
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
