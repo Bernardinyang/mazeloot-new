@@ -148,7 +148,7 @@
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
-                :selection-status="proofing?.status"
+                :selection-status="null"
                 :show-management-actions="proofing?.status !== 'completed'"
                 :comment-count="getItemCommentCount(item)"
                 @delete="handleDeleteMedia(item)"
@@ -188,7 +188,7 @@
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
-                :selection-status="proofing?.status"
+                :selection-status="null"
                 :show-management-actions="proofing?.status !== 'completed'"
                 :subtitle="formatMediaDate(item.createdAt)"
                 :comment-count="getItemCommentCount(item)"
@@ -718,19 +718,34 @@ const loadProofing = async () => {
     const proofingData = await proofingStore.fetchProofing(proofingId)
     proofing.value = proofingData
 
+    // Set context and load media sets
+    await mediaSetsSidebar.setContext(
+      proofingId,
+      proofingData.mediaSets || null,
+      proofingData.projectId || null
+    )
+    
+    // Load sets if not provided in proofing data
+    if (!proofingData.mediaSets || proofingData.mediaSets.length === 0) {
+      await mediaSetsSidebar.loadMediaSets()
+    }
+
     // Check if setId is in route query and set it first
     if (route.query.setId) {
       const setIdFromRoute = route.query.setId
-      if (proofingData.mediaSets && proofingData.mediaSets.some(s => s.id === setIdFromRoute)) {
+      if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
         mediaSetsSidebar.handleSelectSet(setIdFromRoute)
       }
+    }
+
+    // Auto-select first set if none selected and sets exist
+    if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
+      mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
     }
 
     // Load media items for the selected set (if one is selected)
     if (selectedSetId.value) {
       await loadMediaItems()
-    } else if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
-      mediaSetsSidebar.handleSelectSet(proofingData.mediaSets[0].id)
     }
   } catch (error) {
     // Optionally redirect back or show error message

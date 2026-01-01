@@ -110,7 +110,7 @@ export function useProofingApi() {
         payload.projectId = projectId
       }
 
-      const response = await apiClient.post('/v1/proofing', payload)
+      const response = await apiClient.post('/v1/memora/proofing', payload)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -124,7 +124,7 @@ export function useProofingApi() {
    */
   const fetchProofing = async (id, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${id}`
+      let endpoint = `/v1/memora/proofing/${id}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -141,7 +141,7 @@ export function useProofingApi() {
    */
   const updateProofing = async (projectId, id, data) => {
     try {
-      let endpoint = `/v1/proofing/${id}`
+      let endpoint = `/v1/memora/proofing/${id}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -194,7 +194,7 @@ export function useProofingApi() {
         payload.completedTodos = completedTodos
       }
 
-      let endpoint = `/v1/proofing/${proofingId}/revisions`
+      let endpoint = `/v1/memora/proofing/${proofingId}/revisions`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -258,7 +258,7 @@ export function useProofingApi() {
    */
   const completeProofing = async (projectId, id) => {
     try {
-      let endpoint = `/v1/proofing/${id}/complete`
+      let endpoint = `/v1/memora/proofing/${id}/complete`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -404,7 +404,7 @@ export function useProofingApi() {
         queryParams.append('per_page', params.perPage.toString())
       }
 
-      const endpoint = `/v1/proofing${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const endpoint = `/v1/memora/proofing${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
 
       return response.data
@@ -418,7 +418,7 @@ export function useProofingApi() {
    */
   const deleteProofing = async (projectId, id) => {
     try {
-      let endpoint = `/v1/proofing/${id}`
+      let endpoint = `/v1/memora/proofing/${id}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -435,7 +435,7 @@ export function useProofingApi() {
    */
   const publishProofing = async (projectId, id) => {
     try {
-      let endpoint = `/v1/proofing/${id}/publish`
+      let endpoint = `/v1/memora/proofing/${id}/publish`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -452,7 +452,7 @@ export function useProofingApi() {
    */
   const toggleStar = async (projectId, id) => {
     try {
-      let endpoint = `/v1/proofing/${id}/star`
+      let endpoint = `/v1/memora/proofing/${id}/star`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -469,7 +469,7 @@ export function useProofingApi() {
    */
   const setCoverPhoto = async (projectId, proofingId, mediaUuid, focalPoint = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/cover-photo`
+      let endpoint = `/v1/memora/proofing/${proofingId}/cover-photo`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -493,7 +493,7 @@ export function useProofingApi() {
    */
   const recoverDeletedMedia = async (projectId, proofingId, mediaIds) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/recover`
+      let endpoint = `/v1/memora/proofing/${proofingId}/recover`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -726,7 +726,7 @@ export function useProofingApi() {
         queryParams.append('per_page', params.perPage.toString())
       }
 
-      const endpoint = `/v1/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const endpoint = `/v1/memora/proofing/${proofingId}/sets${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
       return response.data
     } catch (error) {
@@ -739,7 +739,7 @@ export function useProofingApi() {
    */
   const fetchMediaSet = async (proofingId, setId, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -764,7 +764,7 @@ export function useProofingApi() {
         order: data.order || 0,
       }
 
-      let endpoint = `/v1/proofing/${proofingId}/sets`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -792,7 +792,7 @@ export function useProofingApi() {
       if (data.description !== undefined) updateData.description = data.description
       if (data.order !== undefined) updateData.order = data.order
 
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -815,7 +815,7 @@ export function useProofingApi() {
       throw new Error('Set ID is required to delete a media set')
     }
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -831,7 +831,7 @@ export function useProofingApi() {
    */
   const reorderMediaSets = async (proofingId, setIds, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/reorder`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/reorder`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -869,7 +869,7 @@ export function useProofingApi() {
         queryParams.append('sort_by', params.sortBy)
       }
 
-      const endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(endpoint)
       return response.data
     } catch (error) {
@@ -896,7 +896,7 @@ export function useProofingApi() {
         throw new Error('user_file_uuid is required')
       }
 
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -922,7 +922,7 @@ export function useProofingApi() {
       throw new Error('Media ID is required to delete media')
     }
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -938,7 +938,7 @@ export function useProofingApi() {
    */
   const renameMedia = async (proofingId, setId, mediaId, filename, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/rename`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -954,7 +954,7 @@ export function useProofingApi() {
    */
   const replaceMedia = async (proofingId, setId, mediaId, userFileUuid, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/replace`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -970,7 +970,7 @@ export function useProofingApi() {
    */
   const moveMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/move`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/move`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -989,7 +989,7 @@ export function useProofingApi() {
    */
   const copyMediaToSet = async (proofingId, setId, mediaIds, targetSetId, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/copy`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/copy`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -1008,7 +1008,7 @@ export function useProofingApi() {
    */
   const starMedia = async (proofingId, setId, mediaId, projectId = null) => {
     try {
-      let endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
+      let endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/star`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -1041,7 +1041,7 @@ export function useProofingApi() {
           Authorization: `Bearer ${guestToken}`,
         }
       } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
+        endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback`
         if (projectId) {
           endpoint += `?projectId=${projectId}`
         }
@@ -1079,7 +1079,7 @@ export function useProofingApi() {
         headers.Authorization = `Bearer ${guestToken}`
         skipAuth = true
       } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
         if (projectId) {
           endpoint += `?projectId=${projectId}`
         }
@@ -1113,7 +1113,7 @@ export function useProofingApi() {
         headers.Authorization = `Bearer ${guestToken}`
         skipAuth = true
       } else {
-        endpoint = `/v1/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
+        endpoint = `/v1/memora/proofing/${proofingId}/sets/${setId}/media/${mediaId}/feedback/${feedbackId}`
         if (projectId) {
           endpoint += `?projectId=${projectId}`
         }
@@ -1131,7 +1131,7 @@ export function useProofingApi() {
    */
   const downloadMedia = async mediaId => {
     try {
-      const response = await apiClient.get(`/v1/media/${mediaId}/download`, {
+      const response = await apiClient.get(`/v1/selections/media/${mediaId}/download`, {
         responseType: 'blob',
       })
       const blob = response.data
@@ -1155,7 +1155,7 @@ export function useProofingApi() {
       if (setId) {
         queryParams.append('setId', setId)
       }
-      const url = `/v1/proofing/${id}/approved-filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const url = `/v1/memora/proofing/${id}/approved-filenames${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
       const response = await apiClient.get(url)
       return response.data
     } catch (error) {
@@ -1168,7 +1168,7 @@ export function useProofingApi() {
    */
   const createClosureRequest = async (proofingId, mediaId, todos) => {
     try {
-      const response = await apiClient.post('/v1/closure-requests', {
+      const response = await apiClient.post('/v1/memora/closure-requests', {
         proofing_id: proofingId,
         media_id: mediaId,
         todos: todos,
@@ -1241,7 +1241,7 @@ export function useProofingApi() {
         return response.data
       } else {
         // Use authenticated endpoint
-        const response = await apiClient.get(`/v1/media/${mediaId}/closure-requests`)
+        const response = await apiClient.get(`/v1/memora/media/${mediaId}/closure-requests`)
         return response.data
       }
     } catch (error) {
@@ -1265,7 +1265,7 @@ export function useProofingApi() {
         return response.data
       } else {
         // Use authenticated endpoint
-        const response = await apiClient.get(`/v1/media/${mediaId}/revisions`)
+        const response = await apiClient.get(`/v1/memora/media/${mediaId}/revisions`)
         return response.data
       }
     } catch (error) {
@@ -1278,7 +1278,7 @@ export function useProofingApi() {
    */
   const createApprovalRequest = async (proofingId, mediaId, message = null) => {
     try {
-      const response = await apiClient.post('/v1/approval-requests', {
+      const response = await apiClient.post('/v1/memora/approval-requests', {
         proofing_id: proofingId,
         media_id: mediaId,
         message: message,
@@ -1351,7 +1351,7 @@ export function useProofingApi() {
         return response.data
       } else {
         // Use authenticated endpoint
-        const response = await apiClient.get(`/v1/media/${mediaId}/approval-requests`)
+        const response = await apiClient.get(`/v1/memora/media/${mediaId}/approval-requests`)
         return response.data
       }
     } catch (error) {

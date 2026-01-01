@@ -20,6 +20,9 @@ import {
   FolderKanban,
   CheckSquare,
   Eye,
+  Bell,
+  AtSign,
+  Link as LinkIcon,
 } from 'lucide-vue-next'
 
 /**
@@ -96,33 +99,42 @@ export const MEMORA_NAVIGATION = [
     icon: Globe,
   },
   {
+    title: 'Watermark',
+    name: 'watermarkSettings',
+    icon: ImageIcon,
+  },
+  {
+    title: 'Preset',
+    name: 'presetSettings',
+    icon: Palette,
+  },
+  {
     title: 'Settings',
     icon: Settings,
     items: [
       {
         title: 'Branding',
         name: 'brandingSettings',
-        icon: Palette,
-      },
-      {
-        title: 'Watermark',
-        name: 'watermarkSettings',
-        icon: ImageIcon,
-      },
-      {
-        title: 'Preset',
-        name: 'presetSettings',
-        icon: Sliders,
       },
       {
         title: 'Email Template',
         name: 'emailTemplateSettings',
-        icon: Mail,
+      },
+      {
+        title: 'Email Notifications',
+        name: 'emailNotificationsSettings',
+      },
+      {
+        title: 'Email Settings',
+        name: 'emailSettings',
+      },
+      {
+        title: 'Social Links',
+        name: 'socialLinksSettings',
       },
       {
         title: 'Preference',
         name: 'preferenceSettings',
-        icon: Settings,
       },
     ],
   },

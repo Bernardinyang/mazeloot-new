@@ -117,6 +117,14 @@
         </div>
       </div>
 
+      <!-- Status Badge (when cover image exists) -->
+      <div
+        v-if="coverImage && proofing.status"
+        class="absolute bottom-3 right-3 z-30"
+      >
+        <StatusBadge :status="proofing.status" />
+      </div>
+
       <!-- Starred Badge and Lock Icon -->
       <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
         <div
@@ -233,6 +241,7 @@ import {
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
 import { capitalize } from '@/lib/utils'
+import StatusBadge from '@/components/atoms/StatusBadge.vue'
 
 const props = defineProps({
   proofing: {

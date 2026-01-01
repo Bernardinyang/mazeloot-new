@@ -111,7 +111,7 @@ export function useProjectsApi() {
           queryParams.append('per_page', params.perPage.toString())
         }
 
-        const endpoint = `/v1/projects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const endpoint = `/v1/memora/projects${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
         const response = await apiClient.get(endpoint)
 
         return response.data
@@ -175,7 +175,7 @@ export function useProjectsApi() {
     // Use real API if configured
     if (API_CONFIG.USE_REAL_API) {
       try {
-        const response = await apiClient.get(`/v1/projects/${id}`)
+        const response = await apiClient.get(`/v1/memora/projects/${id}`)
         return response.data
       } catch (error) {
         throw parseError(error)
@@ -240,7 +240,7 @@ export function useProjectsApi() {
           }))
         }
 
-        const response = await apiClient.post('/v1/projects', payload)
+        const response = await apiClient.post('/v1/memora/projects', payload)
         return response.data
       } catch (error) {
         throw parseError(error)
@@ -453,7 +453,7 @@ export function useProjectsApi() {
           }
         }
 
-        const response = await apiClient.patch(`/v1/projects/${id}`, payload)
+        const response = await apiClient.patch(`/v1/memora/projects/${id}`, payload)
         return response.data
       } catch (error) {
         throw parseError(error)
@@ -503,7 +503,7 @@ export function useProjectsApi() {
     // Use real API if configured
     if (API_CONFIG.USE_REAL_API) {
       try {
-        await apiClient.delete(`/v1/projects/${id}`)
+        await apiClient.delete(`/v1/memora/projects/${id}`)
         return
       } catch (error) {
         throw parseError(error)
@@ -538,7 +538,7 @@ export function useProjectsApi() {
     // Use real API if configured
     if (API_CONFIG.USE_REAL_API) {
       try {
-        const response = await apiClient.get(`/v1/projects/${projectId}/phases`)
+        const response = await apiClient.get(`/v1/memora/projects/${projectId}/phases`)
         // Backend returns { selection, proofing, collection } format
         // Convert to frontend expected format
         const phases = response.data
@@ -574,7 +574,7 @@ export function useProjectsApi() {
     // Use real API if configured
     if (API_CONFIG.USE_REAL_API) {
       try {
-        const response = await apiClient.post(`/v1/projects/${id}/star`)
+        const response = await apiClient.post(`/v1/memora/projects/${id}/star`)
         // Return the starred status from the response
         return response.data?.data || response.data
       } catch (error) {

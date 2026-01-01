@@ -607,26 +607,33 @@ const loadSelection = async () => {
     const selectionData = await selectionStore.fetchSelection(selectionId)
     selection.value = selectionData
 
-    // Media sets are automatically initialized by SelectionLayout via the store
-    // No need to manually set them here
+    // Set context and load media sets
+    await mediaSetsSidebar.setContext(
+      selectionId,
+      selectionData.mediaSets || null
+    )
+    
+    // Load sets if not provided in selection data
+    if (!selectionData.mediaSets || selectionData.mediaSets.length === 0) {
+      await mediaSetsSidebar.loadMediaSets()
+    }
 
     // Check if setId is in route query and set it first
     if (route.query.setId) {
       const setIdFromRoute = route.query.setId
-      // Verify the set exists in mediaSets before selecting
-      if (selectionData.mediaSets && selectionData.mediaSets.some(s => s.id === setIdFromRoute)) {
+      if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
         mediaSetsSidebar.handleSelectSet(setIdFromRoute)
       }
     }
 
+    // Auto-select first set if none selected and sets exist
+    if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
+      mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
+    }
+
     // Load media items for the selected set (if one is selected)
-    // Note: If no set is selected, handleSelectSet will trigger the watcher to load media
     if (selectedSetId.value) {
       await loadMediaItems()
-    } else if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
-      // If no set is selected but sets exist, select the first one
-      // The watcher on selectedSetId will automatically load media
-      mediaSetsSidebar.handleSelectSet(selectionData.mediaSets[0].id)
     }
   } catch (error) {
     // Optionally redirect back or show error message

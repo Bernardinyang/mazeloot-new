@@ -38,6 +38,10 @@ const statusConfig = {
     variant: 'default',
     classes: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-500/30',
   },
+  COMPLETED: {
+    variant: 'success',
+    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+  },
 
   // Collection statuses (title case)
   Published: {
@@ -56,6 +60,10 @@ const statusConfig = {
     variant: 'default',
     classes: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-500/30',
   },
+  Completed: {
+    variant: 'success',
+    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+  },
 
   // Collection statuses (lowercase)
   published: {
@@ -73,6 +81,10 @@ const statusConfig = {
   archived: {
     variant: 'default',
     classes: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-500/30',
+  },
+  completed: {
+    variant: 'success',
+    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
   },
 
   // Other statuses

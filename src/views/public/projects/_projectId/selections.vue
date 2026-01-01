@@ -1291,10 +1291,6 @@ const loadSelection = async () => {
     // Load media sets
     if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
       mediaSets.value = selectionData.mediaSets
-      // Select first set by default
-      if (!selectedSetId.value) {
-        selectedSetId.value = mediaSets.value[0].id
-      }
     } else {
       // If no media sets in response, try to fetch them
       try {
@@ -1309,13 +1305,15 @@ const loadSelection = async () => {
         }
         if (sets && sets.length > 0) {
           mediaSets.value = sets
-          if (!selectedSetId.value) {
-            selectedSetId.value = mediaSets.value[0].id
-          }
         }
       } catch (error) {
         console.warn('Failed to fetch media sets:', error)
       }
+    }
+    
+    // Auto-select first set if none selected and sets exist
+    if (!selectedSetId.value && mediaSets.value.length > 0) {
+      selectedSetId.value = mediaSets.value[0].id
     }
 
     // Load media items if password is not required, or verified, or in preview mode, or authenticated owner

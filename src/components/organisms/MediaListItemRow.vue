@@ -386,13 +386,13 @@
           <template
             v-if="
               !props.selectionStatus &&
-              ((!props.item?.isCompleted && !props.item?.is_completed) ||
+              (hasPendingClosureRequest ||
+                (closureRequests && closureRequests.length > 0) ||
+                (!props.item?.isCompleted && !props.item?.is_completed) ||
                 props.item?.originalMediaUuid ||
                 props.item?.original_media_uuid ||
                 props.item?.revisionNumber ||
-                props.item?.revision_number ||
-                hasPendingClosureRequest ||
-                (closureRequests && closureRequests.length > 0))
+                props.item?.revision_number)
             "
           >
             <DropdownMenuSeparator />
@@ -404,6 +404,7 @@
             </DropdownMenuLabel>
             <DropdownMenuItem
               v-if="
+                props.showManagementActions &&
                 ((!props.item?.isCompleted && !props.item?.is_completed) ||
                   props.item?.originalMediaUuid ||
                   props.item?.original_media_uuid ||

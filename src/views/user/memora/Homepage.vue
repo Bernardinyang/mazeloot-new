@@ -41,8 +41,8 @@
                   Enable or disable your public homepage
                 </p>
               </div>
-              <label class="relative inline-flex items-center cursor-pointer group">
-                <input type="checkbox" v-model="homepageStatus" class="sr-only peer" />
+              <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+                <input type="checkbox" v-model="homepageStatus" :disabled="isLoading" class="sr-only peer" />
                 <div
                   class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
                 ></div>
@@ -71,11 +71,13 @@
               <Input
                 v-model="homepageUrl"
                 readonly
+                :disabled="isLoading"
                 :class="[
                   'flex-1 font-mono text-sm',
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
                 ]"
               />
               <Button
@@ -105,18 +107,33 @@
               </p>
             </div>
             <div class="flex items-center gap-2">
-              <Input
+              <PasswordInput
                 v-model="homepagePassword"
-                type="password"
                 placeholder="Add a password"
-                :class="[
-                  'flex-1',
+                :disabled="isLoading"
+                :input-class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
                   theme.placeholderInput,
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
                 ]"
+                class="flex-1"
               />
+              <Button
+                variant="outline"
+                size="sm"
+                :class="[
+                  theme.borderSecondary,
+                  theme.textSecondary,
+                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                ]"
+                @click="handleCopyPassword"
+                :disabled="!homepagePassword || isLoading"
+              >
+                <Copy class="h-4 w-4 mr-2" />
+                Copy
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -147,12 +164,14 @@
                 @input="handleBiographyInput"
                 :maxlength="200"
                 rows="5"
+                :disabled="isLoading"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
                   theme.placeholderInput,
                   'pr-16 resize-none',
+                  isLoading ? 'cursor-not-allowed opacity-50' : '',
                 ]"
                 placeholder="Tell us about yourself..."
               />
@@ -183,8 +202,12 @@
                   type="checkbox"
                   v-model="homepageInfo"
                   :value="info.key"
-                  class="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 cursor-pointer transition-all"
-                  :class="theme.borderSecondary"
+                  :disabled="isLoading"
+                  class="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all"
+                  :class="[
+                    theme.borderSecondary,
+                    isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
+                  ]"
                 />
                 <span class="text-sm flex-1" :class="theme.textSecondary">{{ info.label }}</span>
               </label>
@@ -202,29 +225,6 @@
             </p>
           </div>
 
-          <!-- Collection Sort Order Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
-            <div>
-              <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
-                Collection Sort Order
-              </h3>
-              <p class="text-sm" :class="theme.textSecondary">
-                Select the order you wish your collections to appear
-              </p>
-            </div>
-            <Select
-              v-model="collectionSortOrder"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-            >
-              <option
-                v-for="option in HOMEPAGE_SORT_OPTIONS"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </option>
-            </Select>
-          </div>
         </div>
 
         <!-- Right Section -->
@@ -254,28 +254,44 @@
                   <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
                 </div>
                 <div class="flex items-center gap-2 sm:gap-3">
-                  <Facebook
-                    v-if="homepageInfo.includes('socialLinks')"
-                    :class="[
-                      'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-blue-600 transition-colors cursor-pointer',
-                      theme.textTertiary,
-                    ]"
-                  />
-                  <Instagram
-                    v-if="homepageInfo.includes('socialLinks')"
-                    :class="[
-                      'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:text-pink-600 transition-colors cursor-pointer',
-                      theme.textTertiary,
-                    ]"
-                  />
-                  <div
-                    v-if="homepageInfo.includes('socialLinks')"
-                    :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
-                  ></div>
-                  <div
-                    v-if="homepageInfo.includes('socialLinks')"
-                    :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
-                  ></div>
+                  <template v-if="homepageInfo.includes('socialLinks') && isLoadingSocialLinks">
+                    <div
+                      v-for="i in 4"
+                      :key="i"
+                      :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded animate-pulse', theme.bgSkeleton]"
+                    ></div>
+                  </template>
+                  <template v-else-if="homepageInfo.includes('socialLinks') && socialLinks.length > 0">
+                    <a
+                      v-for="link in socialLinks.filter(l => l.isActive).slice(0, 4)"
+                      :key="link.id"
+                      :href="link.url"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      :class="[
+                        'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:opacity-80 transition-opacity',
+                        theme.textTertiary,
+                      ]"
+                    >
+                      <Globe v-if="!link.platform" class="h-full w-full" />
+                      <component
+                        v-else-if="link.platform.slug === 'facebook'"
+                        :is="Facebook"
+                        class="h-full w-full"
+                      />
+                      <component
+                        v-else-if="link.platform.slug === 'instagram'"
+                        :is="Instagram"
+                        class="h-full w-full"
+                      />
+                      <Globe v-else class="h-full w-full" />
+                    </a>
+                  </template>
+                  <template v-else-if="homepageInfo.includes('socialLinks')">
+                    <div
+                      :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
+                    ></div>
+                  </template>
                 </div>
               </div>
 
@@ -287,13 +303,17 @@
                     {{ displayName }}
                   </h2>
                   <p
-                    v-if="biography"
+                    v-if="homepageInfo.includes('biography') && biography"
                     class="text-xs sm:text-sm leading-relaxed max-w-full sm:max-w-md mx-auto px-2"
                     :class="theme.textSecondary"
                   >
                     {{ biography }}
                   </p>
-                  <p v-else class="text-xs italic" :class="theme.textTertiary">
+                  <p
+                    v-else-if="homepageInfo.includes('biography') && !biography"
+                    class="text-xs italic"
+                    :class="theme.textTertiary"
+                  >
                     Add a biography to see it here
                   </p>
                 </div>
@@ -327,7 +347,7 @@
                     <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
                       <Mail class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
                     </div>
-                    <span class="text-xs sm:text-sm">email@pixieset.com</span>
+                    <span class="text-xs sm:text-sm">email@mazeloot.com</span>
                   </div>
                   <div
                     v-if="homepageInfo.includes('address')"
@@ -427,43 +447,88 @@
           </div>
         </div>
       </div>
+
+      <!-- Save Button -->
+      <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
+        <div class="flex items-center justify-between gap-3">
+          <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
+            <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+            <span :class="theme.textSecondary">You have unsaved changes</span>
+          </div>
+          <div v-else class="flex items-center gap-2 text-sm">
+            <Check class="h-4 w-4 text-teal-500" />
+            <span :class="theme.textSecondary">All changes saved</span>
+          </div>
+          <Button
+            :disabled="!hasChanges || isSaving || isLoading"
+            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            @click="handleSave"
+          >
+            <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
+            <span v-if="isSaving">Saving...</span>
+            <span v-else>Save Changes</span>
+          </Button>
+        </div>
+      </div>
     </div>
   </DashboardLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram } from 'lucide-vue-next'
+import { ref, computed, onMounted } from 'vue'
+import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
+import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import { Textarea } from '@/components/shadcn/textarea'
-import { Select } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useCollectionSort } from '@/composables/useCollectionSort'
-import { HOMEPAGE_SORT_OPTIONS } from '@/constants/sortOptions'
 import { toast } from '@/utils/toast'
+import { useSettingsApi } from '@/api/settings'
+import { useSocialLinksApi } from '@/api/socialLinks'
 
 const description = ''
 
 const theme = useThemeClasses()
+const { fetchSettings, updateHomepage } = useSettingsApi()
+const { fetchSocialLinks } = useSocialLinksApi()
 
 // Form state
 const homepageStatus = ref(true)
-const homepageUrl = ref('https://bernode.pixieset.com')
+const homepageUrl = ref('')
 const homepagePassword = ref('')
 const biography = ref('')
-const homepageInfo = ref(['biography', 'socialLinks', 'website', 'email', 'phone', 'address'])
-const collectionSortOrder = ref('date-new-old')
+const homepageInfo = ref(['biography', 'socialLinks'])
+
+// Social links
+const socialLinks = ref([])
+
+// Loading states
+const isLoading = ref(false)
+const isSaving = ref(false)
+const isLoadingSocialLinks = ref(false)
+
+// Original values for change tracking
+const originalHomepageStatus = ref(true)
+const originalHomepagePassword = ref('')
+const originalBiography = ref('')
+const originalHomepageInfo = ref(['biography', 'socialLinks'])
+
+// Computed to check if there are changes
+const hasChanges = computed(() => {
+  return (
+    homepageStatus.value !== originalHomepageStatus.value ||
+    homepagePassword.value !== originalHomepagePassword.value ||
+    biography.value !== originalBiography.value ||
+    JSON.stringify(homepageInfo.value) !== JSON.stringify(originalHomepageInfo.value)
+  )
+})
 
 // Sample collections data for preview
 const sampleCollections = ref([])
 
 // Computed
-const { sortedItems: previewCollections } = useCollectionSort(
-  computed(() => sampleCollections.value),
-  collectionSortOrder
-)
+const previewCollections = computed(() => sampleCollections.value)
 
 // Computed, defaulting to BERNODE)
 const displayName = computed(() => {
@@ -476,7 +541,83 @@ const showPreviewContent = computed(() => {
   return homepageStatus.value
 })
 
-const homepageInfoOptions = []
+const homepageInfoOptions = [
+  { key: 'biography', label: 'Biography' },
+  { key: 'socialLinks', label: 'Social Links' },
+  { key: 'website', label: 'Website' },
+  { key: 'email', label: 'Email' },
+  { key: 'phone', label: 'Phone' },
+  { key: 'address', label: 'Address' },
+]
+
+// Fetch settings and social links on mount
+onMounted(async () => {
+  isLoading.value = true
+  isLoadingSocialLinks.value = true
+  
+  try {
+    // Fetch settings
+    const response = await fetchSettings()
+    const settings = response.data || response
+    
+    homepageStatus.value = settings.homepage?.status ?? true
+    homepageUrl.value = settings.branding?.domain || 'https://bernode.mazeloot.com'
+    homepagePassword.value = settings.homepage?.password || ''
+    biography.value = settings.homepage?.biography || ''
+    homepageInfo.value = Array.isArray(settings.homepage?.info) ? settings.homepage.info : ['biography', 'socialLinks']
+    
+    // Fetch social links
+    try {
+      const linksResponse = await fetchSocialLinks()
+      socialLinks.value = linksResponse.data || linksResponse || []
+    } catch (error) {
+      console.error('Failed to load social links:', error)
+      socialLinks.value = []
+    }
+
+    // Store original values after successful load
+    originalHomepageStatus.value = homepageStatus.value
+    originalHomepagePassword.value = homepagePassword.value
+    originalBiography.value = biography.value
+    originalHomepageInfo.value = [...homepageInfo.value]
+  } catch (error) {
+    toast.error('Failed to load settings', {
+      description: error.message || 'Please try again',
+    })
+  } finally {
+    isLoading.value = false
+    isLoadingSocialLinks.value = false
+  }
+})
+
+// Manual save function
+const handleSave = async () => {
+  if (!hasChanges.value) return
+
+  isSaving.value = true
+  try {
+    await updateHomepage({
+      status: homepageStatus.value,
+      password: homepagePassword.value,
+      biography: biography.value,
+      info: Array.isArray(homepageInfo.value) ? homepageInfo.value : [],
+    })
+
+    // Update original values after successful save
+    originalHomepageStatus.value = homepageStatus.value
+    originalHomepagePassword.value = homepagePassword.value
+    originalBiography.value = biography.value
+    originalHomepageInfo.value = [...homepageInfo.value]
+
+    toast.success('Settings saved successfully')
+  } catch (error) {
+    toast.error('Failed to save settings', {
+      description: error.message || 'Please try again',
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
 
 const handleCopyUrl = async () => {
   try {
@@ -486,6 +627,25 @@ const handleCopyUrl = async () => {
     })
   } catch (error) {
     toast.error('Failed to copy', {
+      description,
+    })
+  }
+}
+
+const handleCopyPassword = async () => {
+  if (!homepagePassword.value) {
+    toast.error('No password to copy', {
+      description: 'Please generate or enter a password first',
+    })
+    return
+  }
+  try {
+    await navigator.clipboard.writeText(homepagePassword.value)
+    toast.success('Password copied', {
+      description,
+    })
+  } catch (error) {
+    toast.error('Failed to copy password', {
       description,
     })
   }

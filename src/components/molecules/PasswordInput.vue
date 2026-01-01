@@ -1,5 +1,5 @@
 <template>
-  <div class="relative">
+  <div class="relative w-full">
     <input
       :type="showPassword ? 'text' : 'password'"
       :value="inputValue"

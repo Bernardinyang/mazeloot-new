@@ -12,7 +12,7 @@
 
     <!-- Revision Limit Alert -->
     <div
-      v-if="revisions.length > 0 && maxRevisions && currentRevisionNumber"
+      v-if="(revisions.length > 0 && maxRevisions && currentRevisionNumber) && (isRevisionLimitExceeded || isSecondToLastRevision)"
       class="mb-4 p-3 rounded-lg border"
       :class="[
         isRevisionLimitExceeded

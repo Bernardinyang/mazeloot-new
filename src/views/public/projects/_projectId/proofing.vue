@@ -1755,10 +1755,6 @@ const loadProofing = async () => {
     // Load media sets
     if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
       mediaSets.value = proofingData.mediaSets
-      // Select first set by default
-      if (!selectedSetId.value) {
-        selectedSetId.value = mediaSets.value[0].id
-      }
     } else {
       // If no media sets in response, try to fetch them
       try {
@@ -1775,13 +1771,15 @@ const loadProofing = async () => {
         }
         if (sets && sets.length > 0) {
           mediaSets.value = sets
-          if (!selectedSetId.value) {
-            selectedSetId.value = mediaSets.value[0].id
-          }
         }
       } catch (error) {
         // Silently handle error
       }
+    }
+    
+    // Auto-select first set if none selected and sets exist
+    if (!selectedSetId.value && mediaSets.value.length > 0) {
+      selectedSetId.value = mediaSets.value[0].id
     }
 
     // Load media items if password is not required, or verified, or in preview mode, or authenticated owner
