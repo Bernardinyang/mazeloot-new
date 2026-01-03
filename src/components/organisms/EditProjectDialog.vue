@@ -496,12 +496,24 @@ const hasChanges = computed(() => {
   )
 })
 
-// Load watermarks on mount
-onMounted(async () => {
-  try {
-    await watermarkStore.fetchWatermarks()
-  } catch (error) {}
-})
+// Load presets and watermarks when dialog opens
+watch(
+  () => props.open,
+  async newValue => {
+    if (newValue) {
+      try {
+        if (presetStore.presets.length === 0) {
+          await presetStore.loadPresets()
+        }
+      } catch (error) {}
+      try {
+        if (watermarkStore.watermarks.length === 0) {
+          await watermarkStore.fetchWatermarks()
+        }
+      } catch (error) {}
+    }
+  }
+)
 
 // Load full project data with phases when dialog opens
 const loadProjectData = async () => {

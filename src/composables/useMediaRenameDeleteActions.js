@@ -8,6 +8,7 @@ export function useMediaRenameDeleteActions({
   itemToDelete,
   openDeleteModal,
   closeDeleteModal,
+  isDeleting, // Loading state for delete operation
   // data
   mediaItems,
   selectedMediaIds,
@@ -59,30 +60,38 @@ export function useMediaRenameDeleteActions({
 
   const handleDeleteMedia = item => {
     if (!item) return
-    openDeleteModal({ id: item.id })
+    // Pass the full item so it has id, setId, collectionId, etc.
+    openDeleteModal(item)
   }
 
   const handleConfirmDeleteItem = async () => {
     if (!itemToDelete.value) return
+    
+    // Check if already deleting
+    if (isDeleting?.value) return
 
     const item = itemToDelete.value
 
     if (item.collectionId || item.setId) {
       // It's a MediaItem
+      if (isDeleting) {
+        isDeleting.value = true
+      }
       try {
-        // Use custom delete function if provided (for selections), otherwise use mediaApi
+        // Use custom delete function if provided (for selections/collections), otherwise use mediaApi
         if (deleteMediaFn) {
           await deleteMediaFn(item.id)
+          // Custom delete function should handle reloading media and updating counts
         } else {
           await mediaApi.deleteMedia(item.id)
+          // Remove from local array
+          const index = mediaItems.value.findIndex(m => m.id === item.id)
+          if (index !== -1) {
+            mediaItems.value.splice(index, 1)
+            await updateSetCounts()
+          }
         }
 
-        // Remove from local array
-        const index = mediaItems.value.findIndex(m => m.id === item.id)
-        if (index !== -1) {
-          mediaItems.value.splice(index, 1)
-          await updateSetCounts()
-        }
         // Remove from selection if selected
         selectedMediaIds.value.delete(item.id)
         closeDeleteModal()
@@ -93,6 +102,10 @@ export function useMediaRenameDeleteActions({
         toast.error('Failed to delete media', {
           description,
         })
+      } finally {
+        if (isDeleting) {
+          isDeleting.value = false
+        }
       }
     } else {
       // It's a MediaSet - call the existing handler

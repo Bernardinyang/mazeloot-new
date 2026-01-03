@@ -4,12 +4,12 @@ export const description = 'A two column auth page with a cover image slider.'
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { GalleryVerticalEnd } from 'lucide-vue-next'
 import { RouterLink } from 'vue-router'
 import IconMail from '@/icons/IconMail.vue'
 import IconChevronLeft from '@/icons/IconChevronLeft.vue'
 import IconChevronRight from '@/icons/IconChevronRight.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 defineProps({
@@ -134,15 +134,10 @@ onUnmounted(() => {
             :class="[
               theme.textPrimary,
               theme.transitionColors,
-              'flex items-center gap-2 font-medium hover:opacity-80',
+              'flex items-center font-medium hover:opacity-80',
             ]"
           >
-            <div
-              class="bg-primary text-primary-foreground flex size-6 items-center justify-center rounded-md"
-            >
-              <GalleryVerticalEnd class="size-4" />
-            </div>
-            Mazeloot
+            <MazelootLogo :show-text="false" size="sm" />
           </RouterLink>
         </div>
         <ThemeToggle />
@@ -170,7 +165,7 @@ onUnmounted(() => {
           'mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm',
         ]"
       >
-        <div>© MazeLoot 2025</div>
+        <div>© MazeLoot {{ new Date().getFullYear() }}</div>
         <div class="flex items-center gap-2 mt-2 md:mt-0">
           <IconMail class="w-4 h-4" :size="16" />
           <a

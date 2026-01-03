@@ -49,6 +49,10 @@ const props = defineProps({
     type: [Number, String, null],
     default: null,
   },
+  focalPoint: {
+    type: [String, Object, null],
+    default: null,
+  },
 })
 
 const emit = defineEmits(['error'])
@@ -142,8 +146,18 @@ const imageStyles = computed(() => {
     styles.objectFit = 'fill'
   }
 
-  // Object position for better image centering
-  styles.objectPosition = 'center'
+  // Object position based on focal point or center
+  if (props.focalPoint) {
+    if (typeof props.focalPoint === 'string') {
+      styles.objectPosition = props.focalPoint
+    } else if (typeof props.focalPoint === 'object' && props.focalPoint !== null && 'x' in props.focalPoint && 'y' in props.focalPoint) {
+      styles.objectPosition = `${props.focalPoint.x}% ${props.focalPoint.y}%`
+    } else {
+      styles.objectPosition = 'center'
+    }
+  } else {
+    styles.objectPosition = 'center'
+  }
 
   return styles
 })

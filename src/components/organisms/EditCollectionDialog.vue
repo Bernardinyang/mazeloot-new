@@ -1,17 +1,16 @@
 <template>
   <SidebarModal
     :model-value="open"
-    title="New Collection"
     content-class="sm:max-w-md"
+    title="Edit Collection"
     @update:model-value="$emit('update:open', $event)"
   >
-    <form id="collection-form" @submit.prevent="handleSubmit" class="space-y-5">
+    <form id="edit-collection-form" class="space-y-5" @submit.prevent="handleSubmit">
       <!-- Collection Name -->
       <div class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Collection Name </label>
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Collection Name </label>
         <Input
           v-model="formData.name"
-          placeholder="e.g. Jessie & Ryan"
           :class="[
             theme.bgInput,
             theme.borderInput,
@@ -19,19 +18,20 @@
             errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
           ]"
           autofocus
+          placeholder="e.g. Jessie & Ryan"
         />
         <p v-if="errors.name" class="text-xs text-red-500 mt-1">{{ errors.name }}</p>
       </div>
 
       <!-- Event Date -->
       <div class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Event Date </label>
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Event Date </label>
         <DatePicker v-model="formData.eventDate" placeholder="Event Date" format="MMM dd, yyyy" />
       </div>
 
       <!-- Preset -->
       <div class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Preset </label>
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Preset </label>
         <Select v-model="formData.presetId">
           <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
             <SelectValue placeholder="Select preset" />
@@ -59,7 +59,7 @@
 
       <!-- Watermark -->
       <div class="space-y-2">
-        <label class="text-sm font-medium" :class="theme.textPrimary"> Watermark </label>
+        <label :class="theme.textPrimary" class="text-sm font-medium"> Watermark </label>
         <Select v-model="formData.watermarkId">
           <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
             <SelectValue placeholder="Select watermark" />
@@ -92,30 +92,27 @@
     <template #footer>
       <div class="flex items-center justify-end gap-3">
         <Button
-          type="button"
-          variant="ghost"
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
             'hover:text-teal-600 dark:hover:text-teal-400',
           ]"
+          :disabled="isSubmitting"
+          type="button"
+          variant="ghost"
           @click="handleCancel"
-          :disabled="props.isSubmitting || isLocalSubmitting"
         >
           Cancel
         </Button>
         <Button
+          :disabled="!formData.name.trim() || isSubmitting"
+          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           @click="handleSubmit"
-          :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Loader2
-            v-if="props.isSubmitting || isLocalSubmitting"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
-          <span v-else>Create Collection</span>
+          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
+          <span v-if="isSubmitting">Updating...</span>
+          <span v-else>Update Collection</span>
         </Button>
       </div>
     </template>
@@ -123,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, computed } from 'vue'
+import { reactive, ref, watch, computed } from 'vue'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -137,38 +134,43 @@ import { Button } from '@/components/shadcn/button'
 import DatePicker from '@/components/shadcn/DatePicker.vue'
 import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { usePresetStore } from '@/stores/preset'
-import { useWatermarkStore } from '@/stores/watermark'
 import ColorSelector from '@/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/utils/colors'
+import { useGalleryStore } from '@/stores/gallery'
+import { usePresetStore } from '@/stores/preset'
+import { useWatermarkStore } from '@/stores/watermark'
+import { toast } from '@/utils/toast'
+import { useErrorHandler } from '@/composables/useErrorHandler'
 
 const props = defineProps({
   open: {
     type: Boolean,
     required: true,
   },
-  isSubmitting: {
-    type: Boolean,
-    default: false,
+  collection: {
+    type: Object,
+    default: null,
   },
 })
 
-const emit = defineEmits(['update:open', 'create'])
+const emit = defineEmits(['update:open', 'success'])
 
 const theme = useThemeClasses()
+const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
+const { handleError } = useErrorHandler()
 
 const formData = reactive({
   name: '',
   eventDate: null,
   presetId: 'none',
   watermarkId: 'none',
-  color: generateRandomColorFromPalette(), // Random color from palette
+  color: generateRandomColorFromPalette(),
 })
 
 const errors = ref({})
-const isLocalSubmitting = ref(false)
+const isSubmitting = ref(false)
 
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => watermarkStore.watermarks)
@@ -182,10 +184,6 @@ watch(
         if (presetStore.presets.length === 0) {
           await presetStore.loadPresets()
         }
-        // Set default preset if none selected
-        if (formData.presetId === 'none' && presetStore.defaultPreset) {
-          formData.presetId = presetStore.defaultPreset.id
-        }
       } catch (error) {}
       try {
         if (watermarkStore.watermarks.length === 0) {
@@ -196,12 +194,20 @@ watch(
   }
 )
 
-// Reset form when dialog opens/closes
+// Populate form only when dialog opens
 watch(
   () => props.open,
   newValue => {
-    if (!newValue) {
-      // Reset form when dialog closes
+    if (newValue && props.collection) {
+      formData.name = props.collection.name || props.collection.title || ''
+      formData.eventDate = props.collection.eventDate
+        ? new Date(props.collection.eventDate)
+        : null
+      formData.presetId = props.collection.presetId || 'none'
+      formData.watermarkId = props.collection.watermarkId || 'none'
+      formData.color = props.collection.color || generateRandomColorFromPalette()
+      errors.value = {}
+    } else if (!newValue) {
       formData.name = ''
       formData.eventDate = null
       formData.presetId = 'none'
@@ -213,12 +219,6 @@ watch(
 )
 
 const handleCancel = () => {
-  formData.name = ''
-  formData.eventDate = null
-  formData.presetId = 'none'
-  formData.watermarkId = 'none'
-  formData.color = generateRandomColorFromPalette()
-  errors.value = {}
   emit('update:open', false)
 }
 
@@ -230,27 +230,64 @@ const handleSubmit = async () => {
     return
   }
 
+  if (!props.collection) return
+
+  // Check if anything changed
+  const formName = formData.name.trim()
+  const originalName = (props.collection.name || props.collection.title || '').trim()
+  const formEventDate = formData.eventDate
+    ? formData.eventDate instanceof Date
+      ? formData.eventDate.toISOString()
+      : formData.eventDate
+    : null
+  const originalEventDate = props.collection.eventDate || null
+  const formPresetId = formData.presetId === 'none' ? null : formData.presetId
+  const originalPresetId = props.collection.presetId || null
+  const formWatermarkId = formData.watermarkId === 'none' ? null : formData.watermarkId
+  const originalWatermarkId = props.collection.watermarkId || null
+  const formColor = formData.color
+  const originalColor = props.collection.color
+
+  if (
+    formName === originalName &&
+    formEventDate === originalEventDate &&
+    formPresetId === originalPresetId &&
+    formWatermarkId === originalWatermarkId &&
+    formColor === originalColor
+  ) {
+    emit('update:open', false)
+    return
+  }
+
+  isSubmitting.value = true
   try {
-    // keep a local guard to prevent double-submits even if parent is slow to flip prop
-    if (isLocalSubmitting.value || props.isSubmitting) return
-    isLocalSubmitting.value = true
-
-    // Convert date to ISO string if it's a Date object
-    const eventDateString =
-      formData.eventDate instanceof Date
+    const eventDateString = formData.eventDate
+      ? formData.eventDate instanceof Date
         ? formData.eventDate.toISOString()
-        : formData.eventDate || undefined
+        : formData.eventDate
+      : null
 
-    emit('create', {
+    const updated = await galleryStore.updateCollection(String(props.collection.id), {
       name: formData.name.trim(),
       eventDate: eventDateString,
-      presetId: formData.presetId === 'none' ? undefined : formData.presetId,
-      watermarkId: formData.watermarkId === 'none' ? undefined : formData.watermarkId,
+      presetId: formPresetId,
+      watermarkId: formWatermarkId,
       color: formData.color,
     })
+
+    toast.success('Collection updated', {
+      description: 'The collection has been successfully updated.',
+    })
+
+    emit('update:open', false)
+    emit('success', updated)
   } catch (error) {
+    await handleError(error, {
+      fallbackMessage: 'Failed to update collection.',
+    })
   } finally {
-    isLocalSubmitting.value = false
+    isSubmitting.value = false
   }
 }
 </script>
+

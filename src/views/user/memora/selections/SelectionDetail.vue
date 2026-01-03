@@ -410,9 +410,12 @@
         "
         :initial-index="currentViewIndex"
         :placeholder-image="placeholderImage"
+        :selection-id="selection?.id || selection?.uuid"
+        :set-id="selectedSetId || null"
         @close="closeMediaViewer"
         @download="handleDownloadMedia"
         @image-error="handleImageError"
+        @favorite="handleStarMediaFromLightbox"
       />
 
       <MediaDetailSidebar
@@ -780,6 +783,14 @@ watch(
   }
 )
 
+// Watch route params to reload when selection ID changes
+watch(
+  () => route.params.id,
+  () => {
+    loadSelection()
+  }
+)
+
 // Initialize selectedSetId from route query on mount
 onMounted(async () => {
   loadSelection()
@@ -1113,6 +1124,12 @@ const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
+const handleStarMediaFromLightbox = async ({ item }) => {
+  // Handle star from MediaLightbox - just call the existing handler
+  // The item already has the updated state from MediaLightbox's optimistic update
+  await handleStarMedia(item)
+}
+
 const handleStarMedia = async item => {
   if (!item?.id || !selection.value?.id || !selectedSetId.value) {
     return
@@ -1129,6 +1146,12 @@ const handleStarMedia = async item => {
     const mediaItem = mediaItems.value.find(m => m.id === item.id)
     if (mediaItem) {
       mediaItem.isStarred = newStarredStatus
+    }
+
+    // Update in selectedMediaForView if it's there
+    const viewItem = selectedMediaForView.value.find(m => m.id === item.id)
+    if (viewItem) {
+      viewItem.isStarred = newStarredStatus
     }
 
     // Also update the item prop directly (it's the same reference from sortedMediaItems)
@@ -2795,9 +2818,10 @@ const handleSkipAllDuplicates = () => {
   skipAllDuplicates()
 }
 
-const cancelUpload = () => {
-  cancelUploadFromWorkflow()
+const cancelUpload = async () => {
+  await cancelUploadFromWorkflow()
   showUploadProgress.value = false
+  // Media will be reloaded by cancelUploadFromWorkflow if loadMediaItems is provided
 }
 
 const handleCloseUploadProgress = () => {

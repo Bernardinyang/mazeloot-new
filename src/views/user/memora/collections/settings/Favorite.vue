@@ -271,36 +271,28 @@
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- Preset Favorite Lists -->
-            <div
-              :class="theme.borderSecondary"
-              class="p-6 rounded-2xl border-2 bg-teal-50/50 dark:bg-teal-900/10 transition-all duration-300"
-            >
-              <div class="flex items-start gap-4">
-                <div
-                  class="w-10 h-10 rounded-lg flex items-center justify-center bg-teal-100 dark:bg-teal-900/30 flex-shrink-0"
-                >
-                  <Heart class="h-5 w-5 text-teal-600 dark:text-teal-400" />
-                </div>
-                <div class="flex-1">
-                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">
-                    Preset Favorite Lists
-                  </h3>
-                  <p :class="theme.textSecondary" class="text-sm mb-4 leading-relaxed">
-                    Create Favorite lists and set selection limits for your clients to make
-                    selections for albums, free downloads, retouching and more.
-                  </p>
-                  <Button
-                    :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
-                    size="sm"
-                    variant="outline"
-                  >
-                    Create Favorite List
-                  </Button>
-                </div>
+          <!-- Save Button -->
+          <div :class="theme.borderSecondary" class="mt-10 pt-6 border-t">
+            <div class="flex items-center justify-between gap-3">
+              <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
+                <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <span :class="theme.textSecondary">You have unsaved changes</span>
               </div>
+              <div v-else class="flex items-center gap-2 text-sm">
+                <Check class="h-4 w-4 text-teal-500" />
+                <span :class="theme.textSecondary">All changes saved</span>
+              </div>
+              <Button
+                :disabled="!hasChanges || isSaving"
+                class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="handleSave"
+              >
+                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
+                <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
+                {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+              </Button>
             </div>
           </div>
         </div>
@@ -310,9 +302,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Info, Loader2, Lock, Settings } from 'lucide-vue-next'
+import { Check, Download, Heart, Info, Loader2, Lock, Settings } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   Tooltip,
@@ -366,10 +358,35 @@ const favoriteNotes = ref(true)
 const downloadEnabled = ref(true)
 const favoriteEnabled = ref(true)
 
+// Save state
+const isSaving = ref(false)
+const originalData = ref(null)
+
 // Load collection data
 onMounted(async () => {
   const collectionId = route.params.uuid
   if (!collectionId) return
+
+  // Check if collection is already in store
+  const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
+  if (existingCollection) {
+    collection.value = existingCollection
+    collectionStatus.value = existingCollection.status === 'active' ? 'published' : 'draft'
+    eventDate.value = existingCollection.eventDate ? new Date(existingCollection.eventDate) : null
+    selectedPresetId.value = existingCollection.presetId || 'none'
+    selectedWatermark.value = existingCollection.watermarkId || 'none'
+    favoritePhotos.value = existingCollection.favoritePhotos !== false
+    favoriteNotes.value = existingCollection.favoriteNotes !== false
+    downloadEnabled.value = existingCollection.downloadEnabled !== false
+    favoriteEnabled.value = existingCollection.favoriteEnabled !== false
+    
+    // Store original data
+    originalData.value = {
+      favoritePhotos: existingCollection.favoritePhotos !== false,
+      favoriteNotes: existingCollection.favoriteNotes !== false,
+    }
+    return
+  }
 
   isLoading.value = true
   try {
@@ -383,6 +400,12 @@ onMounted(async () => {
     favoriteNotes.value = collectionData.favoriteNotes !== false
     downloadEnabled.value = collectionData.downloadEnabled !== false
     favoriteEnabled.value = collectionData.favoriteEnabled !== false
+    
+    // Store original data
+    originalData.value = {
+      favoritePhotos: collectionData.favoritePhotos !== false,
+      favoriteNotes: collectionData.favoriteNotes !== false,
+    }
   } catch (error) {
     toast.error('Failed to load collection', {
       description,
@@ -391,6 +414,42 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Check for unsaved changes
+const hasChanges = computed(() => {
+  if (!originalData.value) return false
+  return (
+    favoritePhotos.value !== originalData.value.favoritePhotos ||
+    favoriteNotes.value !== originalData.value.favoriteNotes
+  )
+})
+
+// Save all changes
+const handleSave = async () => {
+  if (!collection.value || !hasChanges.value || isSaving.value) return
+
+  isSaving.value = true
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      favoritePhotos: favoritePhotos.value,
+      favoriteNotes: favoriteNotes.value,
+    })
+
+    // Update original data
+    originalData.value = {
+      favoritePhotos: favoritePhotos.value,
+      favoriteNotes: favoriteNotes.value,
+    }
+
+    toast.success('Settings saved successfully')
+  } catch (error) {
+    toast.error('Failed to save settings', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
 
 // Navigation
 const goBack = () => {
@@ -443,28 +502,4 @@ const handleWatermarkChange = async watermarkId => {
   selectedWatermark.value = watermarkId
 }
 
-// Watch and save favorite settings changes
-watch(favoritePhotos, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      favoritePhotos,
-      favoriteEnabled,
-    })
-  } catch (error) {
-    toast.error('Failed to update favorite photos')
-  }
-})
-
-watch(favoriteNotes, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      favoriteNotes,
-      favoriteEnabled,
-    })
-  } catch (error) {
-    toast.error('Failed to update favorite notes')
-  }
-})
 </script>

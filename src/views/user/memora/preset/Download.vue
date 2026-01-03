@@ -29,7 +29,18 @@
         </p>
       </div>
 
-      <div class="space-y-8 max-w-3xl">
+      <!-- Loading State -->
+      <div v-if="presetStore.isLoading || isLoadingData || !currentPreset" class="space-y-8">
+        <div v-for="i in 5" :key="i" :class="[theme.borderSecondary, theme.bgCard]" class="space-y-4 p-6 rounded-2xl border-2">
+          <div class="space-y-2">
+            <Skeleton class="h-5 w-32" />
+            <Skeleton class="h-4 w-64" />
+          </div>
+          <Skeleton class="h-12 w-full" />
+        </div>
+      </div>
+
+      <div v-else class="space-y-8 max-w-3xl">
         <!-- Upgrade Banner -->
         <div
           :class="[
@@ -77,9 +88,11 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.photoDownload ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.photoDownload
+              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -298,7 +311,7 @@
                   <p :class="theme.textSecondary" class="text-xs mt-4 leading-relaxed pl-1">
                     Allow photos to be downloaded in select sizes.
                     <a
-                      class="text-teal-500 hover:text-teal-600 dark:hover:text-teal-400 underline transition-colors font-medium"
+                      class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
                       href="#"
                     >
                       Learn more
@@ -315,16 +328,21 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.videoDownload ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.videoDownload
+              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Video Download</h3>
               <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 Allow videos to be downloaded for offline viewing.
-                <a class="text-teal-500 hover:text-teal-600 underline transition-colors" href="#">
+                <a
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  href="#"
+                >
                   Learn more
                 </a>
               </p>
@@ -353,13 +371,37 @@
             <div class="flex-1">
               <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Download PIN</h3>
               <p :class="theme.textSecondary" class="text-sm leading-relaxed">
-                If enabled, all collections created from this collection preset will have a download
-                PIN set automatically at the time of their creation.
+                Set a 4-digit PIN that will be used for all collections created from this preset.
               </p>
             </div>
-            <div class="flex-shrink-0 pt-1">
-              <ToggleSwitch v-model="formData.downloadPin" label="" off-label="Off" on-label="On" />
-            </div>
+          </div>
+          <div class="flex items-center gap-3 max-w-md">
+            <input
+              v-model="formData.downloadPin"
+              :class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+                'flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all px-3 py-2 rounded-lg border',
+              ]"
+              type="text"
+              maxlength="4"
+              pattern="[0-9]{4}"
+              placeholder="1234"
+              @input="formData.downloadPin = $event.target.value.replace(/\D/g, '').slice(0, 4)"
+            />
+            <Button
+              :class="[theme.borderSecondary, theme.textPrimary]"
+              class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+              size="sm"
+              variant="outline"
+              @click="handleGeneratePin"
+            >
+              <RefreshCw
+                class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+              />
+              Generate
+            </Button>
           </div>
         </div>
 
@@ -464,7 +506,7 @@
 import { computed, inject, onMounted, onUnmounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { ArrowLeft, ArrowRight, Check, ChevronDown, Info, Loader2 } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight, Check, ChevronDown, Info, Loader2, RefreshCw } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
@@ -473,6 +515,8 @@ import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
+import { Skeleton } from '@/components/shadcn/skeleton'
+import { generatePin } from '@/utils/generatePin'
 
 const route = useRoute()
 const router = useRouter()
@@ -483,9 +527,9 @@ const presetStore = usePresetStore()
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return undefined
 })
@@ -507,7 +551,7 @@ const defaultHighResolutionSize = '3600px'
 const defaultWebSizeEnabled = false
 const defaultWebSize = '1024px'
 const defaultVideoDownload = false
-const defaultDownloadPin = false
+const defaultDownloadPin = null
 const defaultRestrictToContacts = false
 
 // Download form data
@@ -543,24 +587,27 @@ const hasUnsavedChanges = computed(() => {
 
 // Load preset data
 const loadPresetData = () => {
-  if (currentPreset.value) {
+  if (currentPreset.value && !isLoadingData.value) {
     isLoadingData.value = true
     const downloadData = currentPreset.value.download || {}
+    const highResolution = downloadData.highResolution || {}
+    const webSize = downloadData.webSize || {}
+    
     const loadedData = {
       photoDownload:
         downloadData.photoDownload !== undefined
           ? downloadData.photoDownload
           : defaultPhotoDownload,
       highResolutionEnabled:
-        downloadData.highResolutionEnabled !== undefined
-          ? downloadData.highResolutionEnabled
+        highResolution.enabled !== undefined
+          ? highResolution.enabled
           : defaultHighResolutionEnabled,
-      highResolutionSize: downloadData.highResolutionSize || defaultHighResolutionSize,
+      highResolutionSize: highResolution.size || defaultHighResolutionSize,
       webSizeEnabled:
-        downloadData.webSizeEnabled !== undefined
-          ? downloadData.webSizeEnabled
+        webSize.enabled !== undefined
+          ? webSize.enabled
           : defaultWebSizeEnabled,
-      webSize: downloadData.webSize || defaultWebSize,
+      webSize: webSize.size || defaultWebSize,
       videoDownload:
         downloadData.videoDownload !== undefined
           ? downloadData.videoDownload
@@ -581,11 +628,29 @@ const loadPresetData = () => {
   }
 }
 
-// Watch for route changes to reload preset data
+// Watch for route changes to load preset and reload data
 watch(
-  () => route.params.name,
-  () => {
-    loadPresetData()
+  () => route.params.id,
+  async (idParam) => {
+    if (idParam) {
+      // Check if preset exists in store
+      let preset = presetStore.getPresetById(idParam)
+      
+      // If not found, fetch only this single preset
+      if (!preset) {
+        try {
+          preset = await presetStore.loadPreset(idParam)
+        } catch (error) {
+          // Silently fail
+          console.error('Failed to load preset:', error)
+        }
+      }
+      
+      // Load preset data once we have it
+      if (preset) {
+        loadPresetData()
+      }
+    }
   },
   { immediate: true }
 )
@@ -604,9 +669,7 @@ watch(
 let keyDownHandler = null
 
 // Initialize on mount
-onMounted(() => {
-  loadPresetData()
-
+onMounted(async () => {
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -627,6 +690,11 @@ onUnmounted(() => {
   }
 })
 
+const handleGeneratePin = () => {
+  formData.downloadPin = generatePin(4)
+  toast.success('PIN generated')
+}
+
 // Helper function to save preset download
 const savePresetDownload = async () => {
   if (!presetId.value) {
@@ -635,8 +703,22 @@ const savePresetDownload = async () => {
   }
 
   try {
+    // Map form data to backend structure
     await presetStore.updatePreset(presetId.value, {
-      download: formData,
+      download: {
+        photoDownload: formData.photoDownload,
+        highResolution: {
+          enabled: formData.highResolutionEnabled,
+          size: formData.highResolutionSize,
+        },
+        webSize: {
+          enabled: formData.webSizeEnabled,
+          size: formData.webSize,
+        },
+        videoDownload: formData.videoDownload,
+        downloadPin: formData.downloadPin,
+        restrictToContacts: formData.restrictToContacts,
+      },
     })
     if (originalData.value) {
       originalData.value = { ...formData }
@@ -662,15 +744,11 @@ const handlePrevious = async () => {
   isSubmitting.value = true
   try {
     const success = await savePresetDownload()
-    if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
-        router.push({
-          name: 'presetPrivacy',
-          params: { name: urlFriendlyName },
-        })
-      }
+    if (success && presetId.value) {
+      router.push({
+        name: 'presetPrivacy',
+        params: { id: presetId.value },
+      })
     }
   } finally {
     isSubmitting.value = false
@@ -681,15 +759,11 @@ const handleNext = async () => {
   isSubmitting.value = true
   try {
     const success = await savePresetDownload()
-    if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
-        router.push({
-          name: 'presetFavorite',
-          params: { name: urlFriendlyName },
-        })
-      }
+    if (success && presetId.value) {
+      router.push({
+        name: 'presetFavorite',
+        params: { id: presetId.value },
+      })
     }
   } finally {
     isSubmitting.value = false

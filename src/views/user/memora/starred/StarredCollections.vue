@@ -183,9 +183,6 @@
             @delete="handleDeleteCollection(collection)"
             @share="handleCopyLink(collection)"
           >
-            <template #subtitle>
-              {{ getSubtitle(collection) }}
-            </template>
           </CollectionCard>
         </div>
       </div>
@@ -212,6 +209,20 @@
         @delete="handleDeleteCollection"
         @publish="handlePublishCollection"
         @preview="handlePreviewCollection"
+      />
+
+      <!-- Pagination -->
+      <Pagination
+        v-if="pagination.totalPages > 1 || pagination.total > 0"
+        :current-page="pagination.page"
+        :total-pages="pagination.totalPages"
+        :total="pagination.total"
+        :limit="pagination.limit"
+        :show-page-size="true"
+        :show-go-to-page="true"
+        :show-first-last="true"
+        @page-change="handlePageChange"
+        @page-size-change="handlePageSizeChange"
       />
     </div>
 
@@ -253,6 +264,8 @@ import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useGalleryStore } from '@/stores/gallery'
 import { useErrorHandler } from '@/composables/useErrorHandler'
 import { toast } from '@/utils/toast'
+import { useAsyncPagination } from '@/composables/useAsyncPagination'
+import Pagination from '@/components/molecules/Pagination.vue'
 
 const description = ''
 
@@ -260,10 +273,6 @@ const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 const { handleError } = useErrorHandler()
-
-// Computed collections from store
-const collections = computed(() => galleryStore.collections)
-const isLoadingCollections = computed(() => galleryStore.isLoading)
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -286,7 +295,7 @@ const selectedCollections = ref([])
 
 const {
   showDeleteModal,
-  itemToDelete,
+  itemToDelete: collectionToDelete,
   isDeleting,
   openDeleteModal,
   closeDeleteModal,
@@ -309,97 +318,86 @@ const getSubtitle = (collection, separator = '•') => {
   return parts.join(` ${separator} `)
 }
 
-// Filter collections to only show starred collections (no folders) at root level
-const starredCollections = computed(() => {
-  return collections.value.filter(
-    collection =>
-      (collection.starred === true || collection.isStarred === true) &&
-      collection.isFolder !== true && // Exclude folders - only show collections
-      collection.parentId === null // Only show root-level items
-  )
+/**
+ * Map frontend sort values to backend sort values
+ */
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+    status: 'status-asc',
+  }
+  return mapping[frontendSort] || 'created-desc'
+}
+
+/**
+ * Fetch function for pagination
+ */
+const fetchStarredCollections = async params => {
+  const fetchParams = {
+    starred: true, // Always filter by starred
+    ...params,
+  }
+
+  // Add search parameter
+  if (searchQuery.value && searchQuery.value.trim()) {
+    fetchParams.search = searchQuery.value.trim()
+  }
+
+  // Add sort parameter
+  if (sortBy.value) {
+    fetchParams.sortBy = mapSortToBackend(sortBy.value)
+  }
+
+  return await galleryStore.fetchCollections(fetchParams)
+}
+
+// Use async pagination composable
+const {
+  data: sortedCollections,
+  pagination,
+  isLoading: isLoadingCollections,
+  fetch,
+  goToPage,
+  resetToFirstPage,
+  setPerPage,
+} = useAsyncPagination(fetchStarredCollections, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually in onMounted
+  watchForReset: [sortBy], // Reset to page 1 when sort changes (search only on button click)
 })
-
-const filteredCollections = computed(() => {
-  let filtered = [...starredCollections.value]
-
-  // Search is handled by backend, no client-side filtering
-
-  // Status filter
-  if (filterStatus.value && filterStatus.value !== 'all') {
-    filtered = filtered.filter(collection => {
-      const status = (collection.status || '').toLowerCase()
-      return status === filterStatus.value.toLowerCase()
-    })
-  }
-
-  // Category filter
-  if (filterCategory.value && filterCategory.value !== 'all') {
-    filtered = filtered.filter(collection => {
-      const category = (collection.category || '').toLowerCase()
-      return category === filterCategory.value.toLowerCase()
-    })
-  }
-
-  // Event Date filter
-  if (filterEventDate.value && filterEventDate.value !== 'all') {
-    const now = new Date()
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-
-    filtered = filtered.filter(collection => {
-      const dateStr = collection.date || collection.dateCreated || collection.createdAt
-      if (!dateStr) return false
-      const eventDate = new Date(dateStr)
-
-      if (filterEventDate.value === 'recent') {
-        return eventDate >= thirtyDaysAgo
-      }
-      if (filterEventDate.value === 'oldest') {
-        return eventDate < thirtyDaysAgo
-      }
-      return true
-    })
-  }
-
-  // Expiry Date filter
-  if (filterExpiryDate.value && filterExpiryDate.value !== 'all') {
-    const now = new Date()
-    const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
-
-    filtered = filtered.filter(collection => {
-      if (!collection.expiryDate) return false
-      const expiryDate = new Date(collection.expiryDate)
-
-      if (filterExpiryDate.value === 'soon') {
-        return expiryDate > now && expiryDate <= sevenDaysFromNow
-      }
-      if (filterExpiryDate.value === 'expired') {
-        return expiryDate < now
-      }
-      return true
-    })
-  }
-
-  return filtered
-})
-
-// Only sort when not loading to prevent sorting before data is ready
-const { sortedItems: sortedCollections } = useCollectionSort(
-  computed(() => (isLoadingCollections.value ? [] : filteredCollections.value)),
-  sortBy
-)
 
 const toggleStar = async collection => {
-  try {
-    // Store already handles optimistic update, no need to manually update
-    await galleryStore.toggleStar(String(collection.id))
-  } catch (error) {
-    handleError(error, {
-      fallbackMessage: 'Failed to update star status.',
-    })
+  if (collection && collection.id) {
+    try {
+      await galleryStore.toggleStar(String(collection.id))
+      const index = sortedCollections.value.findIndex(c => c.id === collection.id)
+      if (index !== -1) {
+        const newStarredState = !sortedCollections.value[index].isStarred
+        sortedCollections.value[index] = {
+          ...sortedCollections.value[index],
+          isStarred: newStarredState,
+        }
+        // If unstarred in starred view, remove from list
+        if (!newStarredState) {
+          sortedCollections.value.splice(index, 1)
+          if (pagination.value.total > 0) {
+            pagination.value.total -= 1
+          }
+        }
+      }
+    } catch (error) {
+      handleError(error, {
+        fallbackMessage: 'Failed to update star status.',
+      })
+    }
   }
 }
 
-const handleSelectCollection = id => {
+const handleSelectCollection = (id, checked) => {
   if (checked) {
     selectedCollections.value.push(id)
   } else {
@@ -458,22 +456,16 @@ const handleCopyPin = async collection => {
 }
 
 const handleEditCollection = collection => {
-  toast.info('Edit collection', {
-    description,
-  })
+  router.push({ name: 'collectionSettingsGeneral', params: { uuid: collection.id } })
 }
 
 const handleDuplicateCollection = async collection => {
   try {
     await galleryStore.duplicateCollection(String(collection.id))
     toast.success('Collection duplicated', {
-      description,
+      description: 'The collection has been duplicated.',
     })
-    await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId, // Only fetch root-level collections
-    })
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to duplicate collection.',
@@ -482,7 +474,9 @@ const handleDuplicateCollection = async collection => {
 }
 
 const handleDeleteCollection = collection => {
-  openDeleteModal(collection)
+  if (collection && collection.id) {
+    openDeleteModal(collection)
+  }
 }
 
 const handleConfirmDelete = async () => {
@@ -492,14 +486,10 @@ const handleConfirmDelete = async () => {
   try {
     await galleryStore.deleteCollection(String(collectionToDelete.value.id))
     toast.success('Collection deleted', {
-      description,
-    })
-    await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId, // Only fetch root-level collections
+      description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
     })
     closeDeleteModal()
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to delete collection.',
@@ -524,11 +514,7 @@ const handlePublishCollection = async collection => {
           ? 'Your collection is now live and accessible.'
           : 'Your collection has been unpublished.',
     })
-    await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      parentId: null, // Only fetch root-level collections
-    })
+    await fetch()
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to update collection status. Please try again.',
@@ -578,64 +564,32 @@ const handleBrowseCollections = () => {
   router.push({ name: 'manageCollections' })
 }
 
+const handlePageChange = page => {
+  goToPage(page)
+}
+
+const handlePageSizeChange = async newSize => {
+  await setPerPage(newSize)
+}
+
 const handleSearch = async () => {
   if (!searchQuery.value || !searchQuery.value.trim()) {
     handleClearSearch()
     return
   }
   isSearching.value = true
-  try {
-    await galleryStore.fetchCollections({
-      search: searchQuery.value.trim(),
-      sortBy: sortBy.value,
-      starred: true,
-    })
-  } catch (error) {
-    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
-      handleError(error, {
-        fallbackMessage: 'Failed to search collections.',
-      })
-    }
-  } finally {
-    isSearching.value = false
-  }
+  await resetToFirstPage()
+  isSearching.value = false
 }
 
 const handleClearSearch = async () => {
   searchQuery.value = ''
-  isSearching.value = true
-  try {
-    await galleryStore.fetchCollections({
-      search: '',
-      sortBy: sortBy.value,
-      starred: true,
-    })
-  } catch (error) {
-    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
-      handleError(error, {
-        fallbackMessage: 'Failed to load collections.',
-      })
-    }
-  } finally {
-    isSearching.value = false
-  }
+  await resetToFirstPage()
 }
 
-// Fetch collections on mount
+// Initial load
 onMounted(async () => {
-  try {
-    await galleryStore.fetchCollections({
-      search: searchQuery.value,
-      sortBy: sortBy.value,
-      starred: true,
-    })
-  } catch (error) {
-    if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
-      handleError(error, {
-        fallbackMessage: 'Failed to load starred collections.',
-      })
-    }
-  }
+  await fetch()
 })
 
 // Sample collections data (fallback - remove when API is ready) - Currently unused

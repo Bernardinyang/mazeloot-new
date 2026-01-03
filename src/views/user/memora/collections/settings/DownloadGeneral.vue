@@ -16,16 +16,16 @@
           <ToggleSwitch v-model="photoDownload" label="" />
         </div>
       </div>
-    </div>
 
-    <!-- Photo Download Sizes -->
-    <div
-      v-if="photoDownload"
-      :class="[theme.borderSecondary, theme.bgCard]"
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
-    >
+      <!-- Photo Download Sizes (Nested) -->
+      <Transition>
+        <div
+          v-if="photoDownload"
+          :class="theme.borderSecondary"
+          class="mt-4 pt-4 border-t space-y-4"
+        >
       <div>
-        <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Photo Download Sizes</h3>
+        <h4 :class="theme.textPrimary" class="text-base font-semibold mb-1.5">Photo Download Sizes</h4>
         <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-4">
           Allow photos to be downloaded in select sizes.
           <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
@@ -133,6 +133,8 @@
           </div>
         </div>
       </div>
+        </div>
+      </Transition>
     </div>
 
     <!-- Download PIN -->
@@ -151,13 +153,19 @@
           <ToggleSwitch v-model="downloadPinEnabled" label="" />
         </div>
       </div>
-      <div v-if="downloadPinEnabled" class="flex items-center gap-3">
-        <div
-          :class="[theme.borderSecondary, theme.textPrimary]"
-          class="px-4 py-2.5 rounded-lg border-2 font-mono text-lg font-semibold bg-gray-50 dark:bg-gray-800/50"
-        >
-          {{ downloadPin }}
-        </div>
+      <div v-if="downloadPinEnabled" class="flex items-center gap-3 max-w-md">
+        <PasswordInput
+          :model-value="downloadPin"
+          :input-class="cn(
+            theme.bgInput,
+            theme.borderInput,
+            theme.textInput,
+            'flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all'
+          )"
+          :maxlength="4"
+          readonly
+          @update:model-value="downloadPin = $event.slice(0, 10)"
+        />
         <Button
           :class="[theme.borderSecondary, theme.textPrimary]"
           class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
@@ -170,20 +178,56 @@
           />
           Reset PIN
         </Button>
+        <Button
+          v-if="downloadPin"
+          :class="[theme.borderSecondary, theme.textPrimary]"
+          class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+          size="sm"
+          variant="outline"
+          @click="copyPin"
+        >
+          <Copy class="h-4 w-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+        </Button>
+      </div>
+    </div>
+
+    <!-- Save Button -->
+    <div :class="theme.borderSecondary" class="mt-10 pt-6 border-t">
+      <div class="flex items-center justify-between gap-3">
+        <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
+          <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+          <span :class="theme.textSecondary">You have unsaved changes</span>
+        </div>
+        <div v-else class="flex items-center gap-2 text-sm">
+          <Check class="h-4 w-4 text-teal-500" />
+          <span :class="theme.textSecondary">All changes saved</span>
+        </div>
+        <Button
+          :disabled="!hasChanges || isSaving"
+          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          @click="handleSave"
+        >
+          <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
+          <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
+          {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+        </Button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button } from '@/components/shadcn/button'
+import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { RefreshCw } from 'lucide-vue-next'
+import { Check, Copy, Loader2, RefreshCw } from 'lucide-vue-next'
 import { toast } from '@/utils/toast'
 import { useGalleryStore } from '@/stores/gallery'
+import { cn } from '@/lib/utils'
+import { generatePin } from '@/utils/generatePin'
 
 const route = useRoute()
 const theme = useThemeClasses()
@@ -198,10 +242,37 @@ const webSize = ref('1024px')
 const downloadPinEnabled = ref(true)
 const downloadPin = ref('2434')
 
+// Save state
+const isSaving = ref(false)
+const originalData = ref(null)
+
 // Load collection data
 onMounted(async () => {
   const collectionId = route.params.uuid
   if (!collectionId) return
+
+  // Check if collection is already in store (from parent component)
+  const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
+  if (existingCollection) {
+    collection.value = existingCollection
+    photoDownload.value = existingCollection.photoDownload !== false
+    highResolutionEnabled.value = existingCollection.highResolutionEnabled !== false
+    webSizeEnabled.value = existingCollection.webSizeEnabled !== false
+    webSize.value = existingCollection.webSize || '1024px'
+    downloadPinEnabled.value = existingCollection.downloadPinEnabled || false
+    downloadPin.value = existingCollection.downloadPin || '2434'
+    
+    // Store original data
+    originalData.value = {
+      photoDownload: existingCollection.photoDownload !== false,
+      highResolutionEnabled: existingCollection.highResolutionEnabled !== false,
+      webSizeEnabled: existingCollection.webSizeEnabled !== false,
+      webSize: existingCollection.webSize || '1024px',
+      downloadPinEnabled: existingCollection.downloadPinEnabled || false,
+      downloadPin: existingCollection.downloadPin || '2434',
+    }
+    return
+  }
 
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
@@ -212,82 +283,95 @@ onMounted(async () => {
     webSize.value = collectionData.webSize || '1024px'
     downloadPinEnabled.value = collectionData.downloadPinEnabled || false
     downloadPin.value = collectionData.downloadPin || '2434'
+    
+    // Store original data
+    originalData.value = {
+      photoDownload: collectionData.photoDownload !== false,
+      highResolutionEnabled: collectionData.highResolutionEnabled !== false,
+      webSizeEnabled: collectionData.webSizeEnabled !== false,
+      webSize: collectionData.webSize || '1024px',
+      downloadPinEnabled: collectionData.downloadPinEnabled || false,
+      downloadPin: collectionData.downloadPin || '2434',
+    }
   } catch (error) {
     toast.error('Failed to load collection')
   }
 })
 
-const resetPin = async () => {
-  const newPin = Math.floor(1000 + Math.random() * 9000).toString()
-  downloadPin.value = newPin
-  if (collection.value) {
-    try {
-      await galleryStore.updateCollection(collection.value.id, {
-        downloadPin,
-        downloadPinEnabled,
-      })
-      toast.success('PIN reset successfully')
-    } catch (error) {
-      toast.error('Failed to reset PIN')
+// Check for unsaved changes
+const hasChanges = computed(() => {
+  if (!originalData.value) return false
+  return (
+    photoDownload.value !== originalData.value.photoDownload ||
+    highResolutionEnabled.value !== originalData.value.highResolutionEnabled ||
+    webSizeEnabled.value !== originalData.value.webSizeEnabled ||
+    webSize.value !== originalData.value.webSize ||
+    downloadPinEnabled.value !== originalData.value.downloadPinEnabled ||
+    downloadPin.value !== originalData.value.downloadPin
+  )
+})
+
+// Save all changes
+const handleSave = async () => {
+  if (!collection.value || !hasChanges.value || isSaving.value) return
+
+  isSaving.value = true
+  try {
+    // Ensure downloadPin is exactly 4 numeric characters
+    let pin = null
+    if (downloadPinEnabled.value) {
+      if (downloadPin.value && /^\d{4}$/.test(downloadPin.value)) {
+        pin = downloadPin.value
+      } else {
+        // Generate a new 4-digit PIN if invalid or empty
+        pin = generatePin(4)
+        downloadPin.value = pin
+      }
     }
+    
+    await galleryStore.updateCollection(collection.value.id, {
+      photoDownload: photoDownload.value,
+      highResolutionEnabled: highResolutionEnabled.value,
+      webSizeEnabled: webSizeEnabled.value,
+      webSize: webSize.value,
+      downloadPinEnabled: downloadPinEnabled.value,
+      downloadPin: pin,
+    })
+
+    // Update original data
+    originalData.value = {
+      photoDownload: photoDownload.value,
+      highResolutionEnabled: highResolutionEnabled.value,
+      webSizeEnabled: webSizeEnabled.value,
+      webSize: webSize.value,
+      downloadPinEnabled: downloadPinEnabled.value,
+      downloadPin: downloadPin.value,
+    }
+
+    toast.success('Settings saved successfully')
+  } catch (error) {
+    toast.error('Failed to save settings', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isSaving.value = false
   }
 }
 
-// Watch and save download settings changes
-watch(photoDownload, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      photoDownload,
-      downloadEnabled,
-    })
-  } catch (error) {
-    toast.error('Failed to update photo download')
-  }
-})
+const resetPin = () => {
+  // Generate a 4-digit numeric PIN
+  downloadPin.value = generatePin(4)
+  toast.success('PIN reset. Click "Save Changes" to apply.')
+}
 
-watch(highResolutionEnabled, async newValue => {
-  if (!collection.value) return
+const copyPin = async () => {
+  if (!downloadPin.value) return
   try {
-    await galleryStore.updateCollection(collection.value.id, {
-      highResolutionEnabled,
-    })
+    await navigator.clipboard.writeText(downloadPin.value)
+    toast.success('PIN copied to clipboard')
   } catch (error) {
-    toast.error('Failed to update high resolution')
+    toast.error('Failed to copy PIN')
   }
-})
+}
 
-watch(webSizeEnabled, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      webSizeEnabled,
-    })
-  } catch (error) {
-    toast.error('Failed to update web size')
-  }
-})
-
-watch(webSize, async newSize => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { webSize: newSize })
-  } catch (error) {
-    toast.error('Failed to update web size option', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(downloadPinEnabled, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      downloadPinEnabled: newValue,
-      downloadPin: downloadPin.value,
-    })
-  } catch (error) {
-    toast.error('Failed to update download PIN')
-  }
-})
 </script>

@@ -331,13 +331,12 @@
       />
 
       <BulkWatermarkModal
-        :model-value="showBulkWatermarkModal"
-        :selected-watermark="selectedBulkWatermark"
+        v-model="showBulkWatermarkModal"
+        v-model:selected-watermark="selectedBulkWatermark"
         :is-loading="isBulkWatermarkLoading"
         :selected-count="selectedMediaIds.size"
         :watermarks="watermarks"
-        @update:model-value="showBulkWatermarkModal = $event"
-        @update:selected-watermark="selectedBulkWatermark = $event"
+        :progress="bulkWatermarkProgress"
         @cancel="handleCancelBulkWatermark"
         @confirm="handleConfirmBulkWatermark"
       />
@@ -384,23 +383,24 @@
       />
 
       <WatermarkMediaModal
-        :model-value="showWatermarkMediaModal"
-        :selected-watermark="selectedWatermarkForMedia"
-        :confirm-label="
-          selectedWatermarkForMedia === 'none' && (mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid)
-            ? 'Remove Watermark'
-            : mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid
-            ? 'Update Watermark'
-            : 'Add Watermark'
-        "
-        :is-editing="!!(mediaToWatermark?.watermarkUuid || mediaToWatermark?.watermark_uuid)"
+        v-model="showWatermarkMediaModal"
+        v-model:selected-watermark="selectedWatermarkForMedia"
+        :confirm-label="watermarkConfirmLabel"
+        :is-editing="hasWatermarkOnMedia"
         :is-loading="isApplyingWatermark"
         :is-loading-watermarks="watermarkStore.isLoading"
         :watermarks="watermarks"
-        @update:model-value="showWatermarkMediaModal = $event"
-        @update:selected-watermark="selectedWatermarkForMedia = $event"
         @cancel="handleCancelWatermarkMedia"
         @confirm="handleConfirmWatermarkMedia"
+        @preview="handlePreviewWatermark"
+      />
+
+      <WatermarkPreviewModal
+        v-model="showWatermarkPreviewModal"
+        :media-image-url="previewMediaImageUrl"
+        :watermark="previewWatermark"
+        @apply="handleApplyFromPreview"
+        @cancel="showWatermarkPreviewModal = false"
       />
 
       <!-- Media Lightbox -->
@@ -415,10 +415,14 @@
         "
         :initial-index="currentViewIndex"
         :placeholder-image="placeholderImage"
+        :proofing-id="proofing?.id || proofing?.uuid"
+        :set-id="selectedSetId || null"
+        :project-id="route.params.projectId || proofing?.projectId || null"
         @close="closeMediaViewer"
         @download="handleDownloadMedia"
         @image-error="handleImageError"
         @open-comments="handleOpenCommentsFromLightbox"
+        @favorite="handleStarMediaFromLightbox"
       />
 
       <!-- Media Comment Lightbox -->
@@ -586,6 +590,7 @@ import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
 import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
+import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
@@ -707,6 +712,8 @@ const showBulkWatermarkModal = ref(false)
 const selectedBulkWatermark = ref('none')
 const showUploadProgress = ref(false)
 const isBulkWatermarkLoading = ref(false)
+const bulkWatermarkProgress = ref(null)
+const isBulkWatermarkCancelled = ref(false)
 const editAppendText = ref('')
 const showRenameMediaModal = ref(false)
 const mediaToRename = ref(null)
@@ -716,10 +723,13 @@ const showReplacePhotoModal = ref(false)
 const mediaToReplace = ref(null)
 const isReplacingPhoto = ref(false)
 const showWatermarkMediaModal = ref(false)
+const showWatermarkPreviewModal = ref(false)
 const mediaToWatermark = ref(null)
 const selectedWatermarkForMedia = ref('none')
 const isApplyingWatermark = ref(false)
 const showRemoveWatermarkLoading = ref(false)
+const previewMediaImageUrl = ref('')
+const previewWatermark = ref(null)
 
 // Fallback placeholder image (SVG data URL)
 const placeholderImage =
@@ -870,6 +880,14 @@ watch(
       mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
       isUpdatingFromRoute = false
     }
+  }
+)
+
+// Watch route params to reload when proofing ID changes
+watch(
+  () => route.params.id,
+  () => {
+    loadProofing()
   }
 )
 
@@ -1625,6 +1643,12 @@ const handleOpenMedia = item => {
   openMediaViewer(item)
 }
 
+const handleStarMediaFromLightbox = async ({ item }) => {
+  // Handle star from MediaLightbox - just call the existing handler
+  // The item already has the updated state from MediaLightbox's optimistic update
+  await handleStarMedia(item)
+}
+
 const handleStarMedia = async item => {
   if (!item?.id || !proofing.value?.id || !selectedSetId.value) {
     return
@@ -1644,6 +1668,12 @@ const handleStarMedia = async item => {
     const mediaItem = mediaItems.value.find(m => m.id === item.id)
     if (mediaItem) {
       mediaItem.isStarred = newStarredStatus
+    }
+
+    // Update in selectedMediaForView if it's there
+    const viewItem = selectedMediaForView.value.find(m => m.id === item.id)
+    if (viewItem) {
+      viewItem.isStarred = newStarredStatus
     }
 
     if (item) {
@@ -2545,11 +2575,109 @@ const handleBulkWatermark = () => {
 }
 
 const handleCancelBulkWatermark = () => {
-  showBulkWatermarkModal.value = false
+  if (isBulkWatermarkLoading.value) {
+    isBulkWatermarkCancelled.value = true
+  } else {
+    showBulkWatermarkModal.value = false
+    selectedBulkWatermark.value = 'none'
+  }
 }
 
-const handleConfirmBulkWatermark = () => {
-  showBulkWatermarkModal.value = false
+const handleConfirmBulkWatermark = async () => {
+  if (!selectedBulkWatermark.value || selectedBulkWatermark.value === 'none') {
+    toast.error('Please select a watermark', { description: '' })
+    return
+  }
+  
+  isBulkWatermarkLoading.value = true
+  bulkWatermarkProgress.value = { current: 0, total: 0, percentage: 0, currentItem: null }
+  isBulkWatermarkCancelled.value = false
+  
+  try {
+    const ids = Array.from(selectedMediaIds.value)
+    const items = mediaItems.value.filter(m => ids.includes(m.id))
+    const imageItems = items.filter(item => item.type === 'image')
+    
+    if (imageItems.length === 0) {
+      toast.error('No images selected', { description: '' })
+      return
+    }
+    
+    const watermark = await watermarkStore.fetchWatermark(selectedBulkWatermark.value)
+    const totalItems = imageItems.length
+    
+    bulkWatermarkProgress.value = {
+      current: 0,
+      total: totalItems,
+      percentage: 0,
+      currentItem: null,
+    }
+    
+    let successCount = 0
+    let errorCount = 0
+    
+    for (let i = 0; i < imageItems.length; i++) {
+      if (isBulkWatermarkCancelled.value) {
+        break
+      }
+      
+      const item = imageItems[i]
+      bulkWatermarkProgress.value = {
+        current: i,
+        total: totalItems,
+        percentage: Math.round((i / totalItems) * 100),
+        currentItem: item.file?.filename || item.filename || `Item ${i + 1}`,
+      }
+      
+      try {
+        const proofingIdValue = proofing.value?.id
+        const setIdValue = selectedSetId.value
+        const projectIdValue = proofing.value?.projectId || null
+        
+        if (proofingApi && proofingApi.applyWatermarkToMedia) {
+          await proofingApi.applyWatermarkToMedia(proofingIdValue, setIdValue, item.id, selectedBulkWatermark.value, projectIdValue)
+          successCount++
+        } else {
+          errorCount++
+        }
+      } catch (error) {
+        errorCount++
+      }
+    }
+    
+    bulkWatermarkProgress.value = {
+      current: totalItems,
+      total: totalItems,
+      percentage: 100,
+      currentItem: null,
+    }
+    
+    showBulkWatermarkModal.value = false
+    selectedBulkWatermark.value = 'none'
+    
+    if (isBulkWatermarkCancelled.value) {
+      toast.info('Watermark operation cancelled', {
+        description: `${successCount} of ${totalItems} items processed.`,
+      })
+    } else if (errorCount > 0) {
+      toast.warning('Watermark applied with errors', {
+        description: `${successCount} succeeded, ${errorCount} failed.`,
+      })
+    } else {
+      toast.success('Watermark applied', {
+        description: `Successfully applied to ${successCount} item${successCount !== 1 ? 's' : ''}.`,
+      })
+    }
+    
+    await loadMediaItems()
+  } catch (error) {
+    toast.error('Failed to apply watermark', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isBulkWatermarkLoading.value = false
+    bulkWatermarkProgress.value = null
+  }
 }
 
 const watermarks = computed(() => watermarkStore.watermarks)
@@ -2880,6 +3008,53 @@ const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
 const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
 const handleRemoveWatermark = handleRemoveWatermarkFromComposable
 
+const handlePreviewWatermark = async () => {
+  if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
+    return
+  }
+  
+  const imageUrl = mediaToWatermark.value.largeImageUrl || mediaToWatermark.value.file?.url || mediaToWatermark.value.thumbnailUrl
+  if (!imageUrl) {
+    toast.error('Image URL not available', { description: '' })
+    return
+  }
+  
+  try {
+    const watermark = await watermarkStore.fetchWatermark(selectedWatermarkForMedia.value)
+    previewWatermark.value = watermark
+    previewMediaImageUrl.value = imageUrl
+    showWatermarkPreviewModal.value = true
+  } catch (error) {
+    toast.error('Failed to load watermark', { description: '' })
+  }
+}
+
+const handleApplyFromPreview = () => {
+  showWatermarkPreviewModal.value = false
+  handleConfirmWatermarkMedia()
+}
+
+const hasWatermarkOnMedia = computed(() => {
+  if (!mediaToWatermark.value) return false
+  const uuid = mediaToWatermark.value.watermarkUuid || mediaToWatermark.value.watermark_uuid
+  return !!(uuid && uuid !== null && uuid !== '' && uuid !== undefined)
+})
+
+const watermarkConfirmLabel = computed(() => {
+  if (!mediaToWatermark.value) return 'Add Watermark'
+  
+  const hasWatermark = hasWatermarkOnMedia.value
+  const isRemoving = selectedWatermarkForMedia.value === 'none'
+  
+  if (isRemoving && hasWatermark) {
+    return 'Remove Watermark'
+  } else if (hasWatermark) {
+    return 'Update Watermark'
+  } else {
+    return 'Add Watermark'
+  }
+})
+
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
   const item = itemToDelete.value
@@ -2944,9 +3119,10 @@ const handleSkipAllDuplicates = () => {
   skipAllDuplicates()
 }
 
-const cancelUpload = () => {
-  cancelUploadFromWorkflow()
+const cancelUpload = async () => {
+  await cancelUploadFromWorkflow()
   showUploadProgress.value = false
+  // Media will be reloaded by cancelUploadFromWorkflow if loadMediaItems is provided
 }
 
 const handleCloseUploadProgress = () => {

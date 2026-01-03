@@ -9,9 +9,12 @@ const router = createRouter({
     // Always scroll to top on navigation/reload
     if (savedPosition) {
       return savedPosition
-    } else {
-      return { top: 0 }
     }
+    // Skip scrolling if only query parameters changed (same path)
+    if (from.path === to.path && from.name === to.name) {
+      return false
+    }
+    return { top: 0 }
   },
 })
 

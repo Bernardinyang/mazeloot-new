@@ -83,7 +83,7 @@
                         class="p-2.5 rounded-lg transition-all duration-300"
                       >
                         <component
-                          :is="style.id === 'masonry' ? LayoutGrid : Grid3x3"
+                          :is="getGridStyleIcon(style.id)"
                           :class="
                             formData.gridStyle === style.id
                               ? 'text-teal-600 dark:text-teal-400'
@@ -173,10 +173,10 @@
               >
                 <div class="mb-2">
                   <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
-                    Thumbnail Size
+                    Thumbnail Orientation
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                    Control the size of gallery thumbnails
+                    Choose the aspect ratio for gallery thumbnails
                   </p>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -236,7 +236,7 @@
                     v-if="formData.gridStyle === 'masonry'"
                     class="text-xs mt-2 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-amber-700 dark:text-amber-400"
                   >
-                    Large thumbnail size is not available for masonry layout
+                    Landscape orientation is not available for masonry layout
                   </p>
                 </Transition>
               </div>
@@ -271,17 +271,17 @@
                 </div>
               </div>
 
-              <!-- Navigation Style Section -->
+              <!-- Tab Icons Section -->
               <div
                 :class="[theme.borderSecondary, theme.bgCard]"
                 class="space-y-6 p-6 rounded-2xl border-2 transition-shadow duration-300"
               >
                 <div class="mb-2">
                   <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
-                    Navigation Style
+                    Tab Icons
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                    Choose how navigation elements are displayed
+                    Choose how tab icons are displayed
                   </p>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
@@ -314,26 +314,15 @@
                         ]"
                         class="w-9 h-9 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
                       >
-                        <span
-                          v-if="nav.id === 'icon-text'"
+                        <component
+                          :is="getNavigationStyleIcon(nav.id)"
                           :class="
                             formData.navigationStyle === nav.id
                               ? 'text-teal-600 dark:text-teal-400'
-                              : ''
+                              : theme.textSecondary
                           "
-                          class="text-xs font-bold transition-colors duration-200"
-                        >
-                          A
-                        </span>
-                        <div
-                          v-else
-                          :class="
-                            formData.navigationStyle === nav.id
-                              ? 'border-teal-500 bg-teal-500/20'
-                              : 'border-gray-300 dark:border-gray-700'
-                          "
-                          class="w-3.5 h-3.5 rounded border-2 transition-colors duration-200"
-                        ></div>
+                          class="h-5 w-5 transition-colors duration-200"
+                        />
                       </div>
                       <span
                         :class="
@@ -501,7 +490,15 @@
 import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
+import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2, Type, Image as ImageIcon } from 'lucide-vue-next'
+import {
+  gridStyles,
+  gridColumnsOptions,
+  thumbnailSizes,
+  navigationStyles,
+  getGridStyleIcon,
+  getNavigationStyleIcon,
+} from '@/utils/designConstants'
 import { Button } from '@/components/shadcn/button'
 import { Slider } from '@/components/shadcn/slider'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
@@ -595,40 +592,11 @@ const previewDesignConfig = computed(() => {
     }
   }
 
-  const coverDesign =
-    collectionInStore.coverDesign ||
-    (collectionInStore.design
-      ? {
-          cover: collectionInStore.design.cover,
-          coverFocalPoint: collectionInStore.design.coverFocalPoint,
-        }
-      : {})
-  const typographyDesign =
-    collectionInStore.typographyDesign ||
-    (collectionInStore.design
-      ? {
-          fontFamily: collectionInStore.design.fontFamily,
-          fontStyle: collectionInStore.design.fontStyle,
-        }
-      : {})
-  const colorDesign =
-    collectionInStore.colorDesign ||
-    (collectionInStore.design
-      ? {
-          colorPalette: collectionInStore.design.colorPalette,
-        }
-      : {})
-  const gridDesign =
-    collectionInStore.gridDesign ||
-    (collectionInStore.design
-      ? {
-          gridStyle: collectionInStore.design.gridStyle,
-          gridColumns: collectionInStore.design.gridColumns,
-          thumbnailSize: collectionInStore.design.thumbnailSize,
-          gridSpacing: collectionInStore.design.gridSpacing,
-          navigationStyle: collectionInStore.design.navigationStyle,
-        }
-      : {})
+  // Use organized design structure from API response
+  const coverDesign = collectionInStore.design?.cover || collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.design?.typography || collectionInStore.typographyDesign || {}
+  const colorDesign = collectionInStore.design?.color || collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.design?.grid || collectionInStore.gridDesign || {}
 
   return {
     cover: coverDesign.cover || 'none',
@@ -636,11 +604,11 @@ const previewDesignConfig = computed(() => {
     fontFamily: typographyDesign.fontFamily || 'sans',
     fontStyle: typographyDesign.fontStyle || 'bold',
     colorPalette: colorDesign.colorPalette || 'light',
-    gridStyle: gridDesign.gridStyle || formData.gridStyle,
-    gridColumns: gridDesign.gridColumns || formData.gridColumns,
-    thumbnailSize: gridDesign.thumbnailSize || formData.thumbnailSize,
-    gridSpacing: gridDesign.gridSpacing || formData.gridSpacing,
-    navigationStyle: gridDesign.navigationStyle || formData.navigationStyle,
+    gridStyle: formData.gridStyle ?? gridDesign.gridStyle ?? 'vertical',
+    gridColumns: formData.gridColumns ?? gridDesign.gridColumns ?? 3,
+    thumbnailSize: formData.thumbnailSize ?? gridDesign.thumbnailOrientation ?? gridDesign.thumbnailSize ?? 'medium',
+    gridSpacing: formData.gridSpacing ?? gridDesign.gridSpacing ?? 16,
+    navigationStyle: formData.navigationStyle ?? gridDesign.tabStyle ?? gridDesign.navigationStyle ?? 'icon-text',
   }
 })
 
@@ -654,41 +622,16 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      collectionInStore.gridDesign = { ...newData }
+      if (!collectionInStore.design) {
+        collectionInStore.design = {}
+      }
+      collectionInStore.design.grid = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
   },
   { deep: true }
 )
-
-// Grid styles
-const gridStyles = [
-  { id: 'grid', label: 'Grid' },
-  { id: 'masonry', label: 'Masonry' },
-  { id: 'carousel', label: 'Carousel' },
-]
-
-// Grid columns options
-const gridColumnsOptions = [
-  { value: 2, label: '2 Columns' },
-  { value: 3, label: '3 Columns' },
-  { value: 4, label: '4 Columns' },
-  { value: 5, label: '5 Columns' },
-]
-
-// Thumbnail sizes
-const thumbnailSizes = [
-  { id: 'small', label: 'Small' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'large', label: 'Large' },
-]
-
-// Navigation styles
-const navigationStyles = [
-  { id: 'icon-text', label: 'Icon & Text' },
-  { id: 'icon-only', label: 'Icon Only' },
-]
 
 // Computed property to convert gridSpacing number to array for Slider component
 const gridSpacingSlider = computed({
@@ -719,16 +662,17 @@ const loadCollectionData = async () => {
 
     collection.value = collectionData
 
-    // Load grid design data
+    // Load grid design data - use organized design.grid structure from API
     const gridDesign =
+      collectionData.design?.grid ||
       collectionData.gridDesign ||
       (collectionData.design
         ? {
             gridStyle: collectionData.design.gridStyle,
             gridColumns: collectionData.design.gridColumns,
-            thumbnailSize: collectionData.design.thumbnailSize,
+            thumbnailSize: collectionData.design.thumbnailOrientation || collectionData.design.thumbnailSize,
             gridSpacing: collectionData.design.gridSpacing,
-            navigationStyle: collectionData.design.navigationStyle,
+            navigationStyle: collectionData.design.tabStyle || collectionData.design.navigationStyle,
           }
         : {})
     // Calculate gridSpacing based on thumbnailSize if not provided (matching preset behavior)
@@ -754,9 +698,9 @@ const loadCollectionData = async () => {
     const loadedData = {
       gridStyle: gridDesign.gridStyle || gridStyle,
       gridColumns: gridDesign.gridColumns || gridColumns,
-      thumbnailSize: finalThumbnailSize,
+      thumbnailSize: gridDesign.thumbnailOrientation || gridDesign.thumbnailSize || finalThumbnailSize,
       gridSpacing: calculatedGridSpacing,
-      navigationStyle: gridDesign.navigationStyle || navigationStyle,
+      navigationStyle: gridDesign.tabStyle || gridDesign.navigationStyle || navigationStyle,
     }
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
@@ -799,7 +743,13 @@ const saveGridDesign = async () => {
   try {
     isSaving.value = true
     await galleryStore.updateCollection(collection.value.id, {
-      gridDesign: formData,
+      gridDesign: {
+        ...formData,
+        tabStyle: formData.navigationStyle,
+        thumbnailOrientation: formData.thumbnailSize,
+        navigationStyle: undefined, // Remove old field
+        thumbnailSize: undefined, // Remove old field
+      },
     })
 
     if (originalData.value) {

@@ -224,6 +224,28 @@
           <p :class="['text-sm mb-4', theme.textSecondary]">Final approved media for sharing</p>
           <div class="space-y-2 mb-4">
             <div class="flex items-center justify-between text-sm">
+              <span :class="theme.textSecondary">Media Items</span>
+              <span :class="['font-semibold', theme.textPrimary]">
+                {{
+                  projectCollections.reduce(
+                    (sum, c) => sum + (c.mediaCount ?? c.media_count ?? 0),
+                    0
+                  )
+                }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span :class="theme.textSecondary">Media Sets</span>
+              <span :class="['font-semibold', theme.textPrimary]">
+                {{
+                  projectCollections.reduce(
+                    (sum, c) => sum + (c.setCount ?? c.set_count ?? 0),
+                    0
+                  )
+                }}
+              </span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
               <span :class="theme.textSecondary">Total Collections</span>
               <span :class="['font-semibold', theme.textPrimary]">
                 {{ projectCollections.length }}
@@ -256,22 +278,85 @@
               Configuration
             </h3>
           </div>
-          <div class="space-y-3.5">
-            <div class="flex items-center justify-between">
+          <div class="space-y-4">
+            <!-- Preset Card -->
+            <div
+              v-if="project.preset || project.presetId"
+              :class="[
+                theme.bgCard,
+                theme.borderSecondary,
+                'border rounded-lg p-3 transition-all hover:shadow-md',
+              ]"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="h-8 w-8 rounded-md bg-teal-500/10 flex items-center justify-center flex-shrink-0"
+                  >
+                    <Settings class="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
+                      Preset
+                    </p>
+                    <p
+                      :class="['text-sm font-semibold truncate', theme.textPrimary]"
+                      :title="project.preset?.name || 'Preset'"
+                    >
+                      {{ project.preset?.name || 'Preset' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              v-else
+              class="flex items-center justify-between py-2"
+            >
               <span :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
                 Preset
               </span>
-              <span :class="['text-sm font-medium', theme.textPrimary]">
-                {{ project.preset?.name || project.presetId || 'None' }}
-              </span>
+              <span :class="['text-sm font-medium', theme.textSecondary]">None</span>
             </div>
-            <div class="flex items-center justify-between">
+
+            <!-- Watermark Card -->
+            <div
+              v-if="project.watermark || project.watermarkId"
+              :class="[
+                theme.bgCard,
+                theme.borderSecondary,
+                'border rounded-lg p-3 transition-all hover:shadow-md',
+              ]"
+            >
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="h-8 w-8 rounded-md bg-blue-500/10 flex items-center justify-center flex-shrink-0"
+                  >
+                    <Image class="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <p :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
+                      Watermark
+                    </p>
+                    <p
+                      :class="['text-sm font-semibold truncate', theme.textPrimary]"
+                      :title="project.watermark?.name || 'Watermark'"
+                    >
+                      {{ project.watermark?.name || 'Watermark' }}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              v-else
+              class="flex items-center justify-between py-2"
+            >
               <span :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
                 Watermark
               </span>
-              <span :class="['text-sm font-medium', theme.textPrimary]">
-                {{ project.watermark?.name || project.watermarkId || 'None' }}
-              </span>
+              <span :class="['text-sm font-medium', theme.textSecondary]">None</span>
             </div>
             <div v-if="project.color" class="flex items-center justify-between">
               <span :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
@@ -375,6 +460,7 @@ import {
   Clock,
   Pencil,
   AlertCircle,
+  Image,
 } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
@@ -385,6 +471,7 @@ import { useProjectStore } from '@/stores/project'
 import { useSelectionStore } from '@/stores/selection'
 import { useProofingStore } from '@/stores/proofing'
 import { useMediaApi } from '@/api/media'
+import { useCollectionsApi } from '@/api/collections'
 import { capitalize } from '@/lib/utils'
 import { toast } from '@/utils/toast'
 
@@ -396,6 +483,7 @@ const projectStore = useProjectStore()
 const selectionStore = useSelectionStore()
 const proofingStore = useProofingStore()
 const mediaApi = useMediaApi()
+const collectionsApi = useCollectionsApi()
 
 const project = ref(null)
 const selection = ref(null)
@@ -434,7 +522,20 @@ const loadProject = async () => {
       proofing.value = projectData.proofing
     }
 
-    if (projectData.collection) {
+    // Load all project collections to get accurate counts
+    if (projectData.hasCollections) {
+      try {
+        const result = await collectionsApi.fetchProjectCollections(projectId, { page: 1, perPage: 100 })
+        projectCollections.value = result?.data || []
+      } catch (error) {
+        // Fallback to single collection if available
+        if (projectData.collection) {
+          projectCollections.value = [projectData.collection]
+        } else {
+          projectCollections.value = []
+        }
+      }
+    } else if (projectData.collection) {
       projectCollections.value = [projectData.collection]
     }
   } catch (error) {
@@ -461,13 +562,34 @@ const loadProject = async () => {
   }
 }
 
-const navigateToPhase = phase => {
+const navigateToPhase = async phase => {
   const projectId = route.params.id
   if (phase === 'collections') {
-    router.push({
-      name: 'projectCollections',
-      params: { id: projectId },
-    })
+    try {
+      // Fetch collections to check if there's only one
+      const result = await collectionsApi.fetchProjectCollections(projectId, { page: 1, perPage: 2 })
+      const collections = result?.data || []
+      
+      // If there's exactly one collection, navigate directly to its photos page
+      if (collections.length === 1) {
+        router.push({
+          name: 'collectionPhotos',
+          params: { uuid: collections[0].id },
+        })
+      } else {
+        // Multiple collections or none - go to collections list
+        router.push({
+          name: 'projectCollections',
+          params: { id: projectId },
+        })
+      }
+    } catch (error) {
+      // On error, fallback to collections list
+      router.push({
+        name: 'projectCollections',
+        params: { id: projectId },
+      })
+    }
   } else if (phase === 'selections' && selection.value?.id) {
     router.push({
       name: 'selectionDetail',

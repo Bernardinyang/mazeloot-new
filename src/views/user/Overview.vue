@@ -10,7 +10,7 @@
       ]"
     >
       <!-- Left -->
-      <MazelootLogo :show-text="true" size="md" />
+      <MazelootLogo :show-text="true" size="sm" />
 
       <!-- Right -->
       <div class="flex items-center gap-2">
@@ -705,8 +705,8 @@
       <div class="max-w-7xl mx-auto px-6 py-6">
         <div class="flex flex-col md:flex-row items-center justify-between gap-4">
           <div class="flex items-center gap-2">
-            <MazelootLogo :show-text="true" size="sm" />
-            <span :class="['text-xs', theme.textTertiary]">© 2024</span>
+            <MazelootLogo :show-text="true" size="sm" container-class="h-8" />
+            <span :class="['text-xs', theme.textTertiary]">© {{ new Date().getFullYear() }}</span>
           </div>
           <div
             :class="[

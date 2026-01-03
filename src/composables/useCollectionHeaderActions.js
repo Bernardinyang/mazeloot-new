@@ -25,11 +25,21 @@ export function useCollectionHeaderActions({
   description,
 } = {}) {
   const handlePreview = () => {
-    const uuid = route.params.uuid
-    router.push({
+    // Get collection ID from route params (could be uuid or id)
+    const collectionId = route.params.uuid || route.params.id || collection.value?.id
+    
+    if (!collectionId) {
+      console.error('No collection ID found for preview')
+      return
+    }
+    
+    // The preview route uses :id parameter
+    const previewUrl = router.resolve({
       name: 'collectionPreview',
-      params: { uuid: uuid },
-    })
+      params: { id: collectionId },
+    }).href
+    
+    window.open(previewUrl, '_blank')
   }
 
   const handlePublish = async () => {
@@ -95,7 +105,7 @@ export function useCollectionHeaderActions({
 
       if (updatedCollection) {
         collection.value = updatedCollection
-        const dateFromCollection = updatedCollection.date
+        const dateFromCollection = updatedCollection.eventDate || updatedCollection.date
         if (dateFromCollection) {
           const parsedDate =
             typeof dateFromCollection === 'string'
@@ -119,7 +129,7 @@ export function useCollectionHeaderActions({
         description,
       })
       // Revert to original date on error
-      const originalDate = collection.value.date
+      const originalDate = collection.value?.eventDate || collection.value?.date
       if (originalDate) {
         eventDate.value = typeof originalDate === 'string' ? new Date(originalDate) : originalDate
       } else {
@@ -165,7 +175,7 @@ export function useCollectionHeaderActions({
       // Auto-save
     } catch (error) {
       toast.error('Failed to update preset', {
-        description,
+        description: error instanceof Error ? error.message : (description || 'An unknown error occurred'),
       })
       // Revert on error
       const errorPresetId = collection.value?.presetId

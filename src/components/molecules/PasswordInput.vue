@@ -1,7 +1,7 @@
 <template>
   <div class="relative w-full">
     <input
-      :type="showPassword ? 'text' : 'password'"
+      :type="showPassword ? input : 'password'"
       :value="inputValue"
       :id="id"
       :placeholder="placeholder"
@@ -62,6 +62,10 @@ const props = defineProps({
   inputClass: {
     type: String,
     default: undefined,
+  },
+  input: {
+    type: String,
+    default: "text",
   },
 })
 

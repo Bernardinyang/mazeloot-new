@@ -47,11 +47,12 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
   const setContext = (id, sets = []) => {
     collectionId.value = id || ''
     mediaSets.value = Array.isArray(sets) ? sets : []
-    // Keep selection stable if possible
+    // Keep selection stable if possible - only clear if the set no longer exists
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
     }
-    // Keep selected set sane too
+    // Only auto-select first set if no set is currently selected AND there are sets available
+    // Do NOT auto-select if current set is empty - user might want to upload to it
     if (!selectedSetId.value && mediaSets.value.length > 0) {
       selectedSetId.value = mediaSets.value[0].id
     }
@@ -70,11 +71,56 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
     return true
   }
 
+  const loadMediaSets = async () => {
+    if (!collectionId.value) return
+    try {
+      const fetchedCollection = await galleryStore.fetchCollection(collectionId.value)
+      if (fetchedCollection?.mediaSets && Array.isArray(fetchedCollection.mediaSets)) {
+        const mappedMediaSets = fetchedCollection.mediaSets.map(set => ({
+          id: set.id,
+          name: set.name,
+          description: set.description,
+          order: set.order ?? 0,
+          count: set.count ?? 0,
+        }))
+        mediaSets.value = mappedMediaSets
+
+        // Only auto-select first set if no set is currently selected
+        // Do NOT change selection if current set exists (even if empty) - user might want to upload to it
+        if (!selectedSetId.value && mediaSets.value.length > 0) {
+          selectedSetId.value = mediaSets.value[0].id
+        }
+      }
+    } catch (error) {
+      toast.error('Failed to load media sets', {
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+      })
+    }
+  }
+
   const saveMediaSets = async () => {
     if (!ensureCollectionId()) return
     isSavingSets.value = true
     try {
-      await galleryStore.updateCollection(collectionId.value, { mediaSets: mediaSets.value })
+      // Format sets for API - only include id if it's a valid UUID (not a temporary ID)
+      const setsToSave = mediaSets.value.map(set => {
+        const setId = set.id
+        // Check if ID is a temporary ID (starts with 'set_') or is a valid UUID
+        const isTemporaryId = typeof setId === 'string' && setId.startsWith('set_')
+        
+        return {
+          ...(isTemporaryId ? {} : { id: setId }), // Only include id if it's not temporary
+          name: set.name || '',
+          description: set.description || null,
+          order: set.order ?? 0,
+        }
+      })
+      
+      const updatedCollection = await galleryStore.updateCollection(collectionId.value, { mediaSets: setsToSave })
+      // Update local mediaSets with the response from the API
+      if (updatedCollection?.mediaSets && Array.isArray(updatedCollection.mediaSets)) {
+        mediaSets.value = updatedCollection.mediaSets
+      }
     } catch (error) {
       toast.error('Failed to save media sets', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
@@ -296,5 +342,6 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
 
     // persistence
     saveMediaSets,
+    loadMediaSets,
   }
 })

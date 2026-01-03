@@ -1,11 +1,23 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useGalleryStore } from '@/stores/gallery'
+
+const mockApi = {
+  toggleStar: vi.fn(),
+  createCollection: vi.fn(),
+  deleteCollection: vi.fn(),
+}
+
+vi.mock('@/api/collections', () => ({
+  useCollectionsApi: () => mockApi,
+  addDefaultSettings: (collection) => collection,
+}))
 
 describe('Gallery Store', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     localStorage.clear()
+    vi.clearAllMocks()
   })
 
   it('should initialize with empty collections', () => {
@@ -30,15 +42,20 @@ describe('Gallery Store', () => {
       {
         id: '1',
         name: 'Collection 1',
+        projectId: 'project-1',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
     ]
 
+    mockApi.toggleStar.mockResolvedValue({ starred: true })
+
     await store.toggleStar('1')
 
     expect(store.starredCollectionIds.has('1')).toBe(true)
     expect(store.collections[0].isStarred).toBe(true)
+
+    mockApi.toggleStar.mockResolvedValue({ starred: false })
 
     await store.toggleStar('1')
 
@@ -48,6 +65,17 @@ describe('Gallery Store', () => {
 
   it('should create collection', async () => {
     const store = useGalleryStore()
+    const mockCollection = {
+      id: 'new-1',
+      name: 'New Collection',
+      description: 'Description',
+      status: 'draft',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      mediaSets: [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }],
+    }
+
+    mockApi.createCollection.mockResolvedValue(mockCollection)
 
     const collection = await store.createCollection('New Collection', 'Description')
 
@@ -67,6 +95,8 @@ describe('Gallery Store', () => {
       },
     ]
     store.starredCollectionIds.add('1')
+
+    mockApi.deleteCollection.mockResolvedValue(undefined)
 
     await store.deleteCollection('1')
 

@@ -12,14 +12,6 @@
         : 'scrollbar-width: thin; scrollbar-color: rgba(156, 163, 175, 0.5) transparent;'
     "
   >
-    <!-- Hidden file input for cover upload -->
-    <input
-      ref="coverFileInputRef"
-      accept="image/*"
-      class="hidden"
-      type="file"
-      @change="handleCoverFileChange"
-    />
 
     <!-- Collapse Button (Bottom Left) - When Expanded -->
     <button
@@ -46,8 +38,8 @@
       <div
         v-else-if="props.collection?.thumbnail || props.collection?.image"
         :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 group cursor-pointer relative"
-        @click="isVideoCover ? toggleVideoPlay() : triggerCoverFilePicker()"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 group relative"
+        @click="isVideoCover ? toggleVideoPlay() : null"
       >
         <!-- Video Cover -->
         <template v-if="isVideoCover">
@@ -88,7 +80,7 @@
           <div
             class="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           >
-            <p class="text-white text-xs font-medium">Click to change cover</p>
+            <p class="text-white text-xs font-medium">Set cover from media items</p>
           </div>
         </template>
       </div>
@@ -97,7 +89,6 @@
         v-else
         :class="theme.borderSecondary"
         class="w-full aspect-square rounded-2xl bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 flex items-center justify-center border-2 shadow-md border-dashed"
-        @click="triggerCoverFilePicker"
       >
         <div class="text-center px-4">
           <div
@@ -106,7 +97,7 @@
             <ImageIcon :class="theme.textTertiary" class="h-10 w-10 opacity-50" />
           </div>
           <p :class="theme.textPrimary" class="text-sm font-semibold mb-1">No cover image</p>
-          <p :class="theme.textTertiary" class="text-xs">Upload a cover to make it stand out</p>
+          <p :class="theme.textTertiary" class="text-xs">Set a cover from media items</p>
         </div>
       </div>
     </div>
@@ -340,7 +331,6 @@ const props = defineProps({
 const emit = defineEmits([
   'update:activeTab',
   'update:isSidebarCollapsed',
-  'handle-cover-image-upload',
 ])
 
 const theme = useThemeClasses()
@@ -391,30 +381,6 @@ watch(
   }
 )
 
-// Cover upload (sidebar cover tile click)
-const coverFileInputRef = ref(null)
-const triggerCoverFilePicker = () => {
-  coverFileInputRef.value?.click?.()
-}
-const handleCoverFileChange = async event => {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-
-  try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(reader.error)
-      reader.readAsDataURL(file)
-    })
-
-    if (typeof dataUrl === 'string') {
-      emit('handle-cover-image-upload', dataUrl)
-    }
-  } finally {
-    if (event?.target) event.target.value = ''
-  }
-}
 
 const handleTabClick = tab => {
   if (props.collection?.id) {
@@ -453,7 +419,7 @@ watch(
         name: 'design',
         icon: Paintbrush,
         route: {
-          name: 'collectionCover',
+          name: col.image || col.thumbnail ? 'collectionCover' : 'collectionTypography',
           params: { uuid: col.id },
         },
       },

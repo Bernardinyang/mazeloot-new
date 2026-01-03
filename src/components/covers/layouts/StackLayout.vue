@@ -8,6 +8,7 @@
       :fit="config.media?.fit || 'cover'"
       :bleed="config.media?.bleed || 'full'"
       :max-width="config.media?.max_width || config.media?.maxWidth"
+      :focal-point="media.focalPoint"
     />
 
     <!-- Overlay Layer (above media, below content) -->

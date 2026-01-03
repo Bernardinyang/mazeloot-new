@@ -208,7 +208,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/preset/:name/general',
+    path: '/memora/preset/:id/general',
     name: 'presetGeneral',
     component: PresetGeneralView,
     meta: {
@@ -217,7 +217,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/preset/:name/design',
+    path: '/memora/preset/:id/design',
     name: 'presetDesign',
     component: PresetDesignView,
     meta: {
@@ -226,7 +226,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/preset/:name/privacy',
+    path: '/memora/preset/:id/privacy',
     name: 'presetPrivacy',
     component: PresetPrivacyView,
     meta: {
@@ -235,7 +235,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/preset/:name/download',
+    path: '/memora/preset/:id/download',
     name: 'presetDownload',
     component: PresetDownloadView,
     meta: {
@@ -244,7 +244,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/preset/:name/favorite',
+    path: '/memora/preset/:id/favorite',
     name: 'presetFavorite',
     component: PresetFavoriteView,
     meta: {
@@ -283,6 +283,34 @@ export const memoraRoutes = [
     component: CollectionCoverView,
     meta: {
       requiresAuth: true,
+    },
+    beforeEnter: async (to, from, next) => {
+      // Dynamically import store to avoid circular dependencies
+      const { useGalleryStore } = await import('@/stores/gallery')
+      const galleryStore = useGalleryStore()
+      
+      // Try to get collection from store
+      let collection = galleryStore.collections.find(c => c.id === to.params.uuid)
+      
+      // If not in store, try to fetch it
+      if (!collection) {
+        try {
+          collection = await galleryStore.fetchCollection(to.params.uuid)
+        } catch (error) {
+          // If fetch fails, allow navigation (component will handle error)
+          return next()
+        }
+      }
+      
+      // Redirect to Typography if no cover photo
+      if (!collection?.image && !collection?.thumbnail) {
+        return next({
+          name: 'collectionTypography',
+          params: { uuid: to.params.uuid },
+        })
+      }
+      
+      next()
     },
   },
   {

@@ -356,17 +356,26 @@ const isLocalSubmitting = ref(false)
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => watermarkStore.watermarks)
 
-// Load watermarks on mount
-onMounted(async () => {
-  try {
-    await watermarkStore.fetchWatermarks()
-  } catch (error) {}
-})
-
-// Reset form when dialog opens/closes
+// Reset form when dialog opens/closes and load presets/watermarks
 watch(
   () => props.open,
-  newValue => {
+  async newValue => {
+    if (newValue) {
+      try {
+        if (presetStore.presets.length === 0) {
+          await presetStore.loadPresets()
+        }
+        // Set default preset if none selected
+        if (formData.presetId === 'none' && presetStore.defaultPreset) {
+          formData.presetId = presetStore.defaultPreset.id
+        }
+      } catch (error) {}
+      try {
+        if (watermarkStore.watermarks.length === 0) {
+          await watermarkStore.fetchWatermarks()
+        }
+      } catch (error) {}
+    }
     if (!newValue) {
       // Reset form when dialog closes
       formData.name = ''

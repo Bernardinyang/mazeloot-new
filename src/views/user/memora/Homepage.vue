@@ -484,6 +484,7 @@ import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import { Textarea } from '@/components/shadcn/textarea'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
+import { generatePassword } from '@/utils/generatePassword'
 import { useSettingsApi } from '@/api/settings'
 import { useSocialLinksApi } from '@/api/socialLinks'
 
@@ -657,14 +658,9 @@ const handleBiographyInput = e => {
 }
 
 const handleGeneratePassword = () => {
-  // Generate a random password
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
-  const length = 12
-  let password = ''
-  for (let i = 0; i < length; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length))
-  }
-  homepagePassword.value = password
+  // Generate a random password with special characters for homepage
+  const specialChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
+  homepagePassword.value = generatePassword(12, specialChars)
   toast.success('Password generated', {
     description,
   })

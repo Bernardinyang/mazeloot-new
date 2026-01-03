@@ -16,6 +16,7 @@
           </button>
           <div v-if="!isEditingTitle" class="flex items-center gap-2 flex-1 min-w-0 group">
             <h2
+              v-if="!presetStore.isLoading && currentPreset"
               @click="startEditingTitle"
               class="text-lg font-semibold truncate cursor-text hover:opacity-80 transition-opacity px-1 -mx-1 rounded hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
               :class="theme.textPrimary"
@@ -23,6 +24,10 @@
             >
               {{ presetName }}
             </h2>
+            <div
+              v-else
+              class="h-6 w-32 rounded-md bg-primary/10 animate-pulse"
+            />
             <button
               @click.stop="startEditingTitle"
               class="p-1.5 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all shrink-0 opacity-0 group-hover:opacity-100"
@@ -158,7 +163,7 @@
 </template>
 
 <script setup>
-import { computed, ref, provide, nextTick, watch } from 'vue'
+import { computed, ref, provide, nextTick, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   X,
@@ -183,6 +188,8 @@ const router = useRouter()
 const theme = useThemeClasses()
 const presetStore = usePresetStore()
 
+// Preset loading is handled by individual pages, not here
+
 // Sidebar collapse state
 const isSidebarCollapsed = ref(false)
 
@@ -190,9 +197,9 @@ const isSidebarCollapsed = ref(false)
 provide('isSidebarCollapsed', isSidebarCollapsed)
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return null
 })
@@ -275,14 +282,7 @@ const saveTitle = async () => {
   try {
     await presetStore.updatePreset(currentPreset.value.id, { name: editingTitle.value })
 
-    if (oldName !== newName) {
-      // Convert name to URL-friendly format
-      const urlFriendlyName = newName.toLowerCase().replace(/\s+/g, '-')
-      router.replace({
-        name: route.name,
-        params: { name: urlFriendlyName },
-      })
-    }
+    // No need to update route params when name changes, UUID stays the same
 
     toast.success('Preset name updated')
     isEditingTitle.value = false
@@ -322,15 +322,11 @@ const handleClose = () => {
 
 const handleNavClick = tabId => {
   const targetRoute = navigationItems.find(item => item.id === tabId)?.route
-  if (targetRoute && targetRoute !== route.name) {
-    const presetName = currentPreset.value?.name
-    if (presetName) {
-      const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
-      router.push({
-        name: targetRoute,
-        params: { name: urlFriendlyName },
-      })
-    }
+  if (targetRoute && targetRoute !== route.name && currentPreset.value?.id) {
+    router.push({
+      name: targetRoute,
+      params: { id: currentPreset.value.id },
+    })
   }
 }
 </script>

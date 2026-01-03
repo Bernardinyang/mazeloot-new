@@ -9,6 +9,7 @@
         :fit="config.media?.fit || 'cover'"
         :bleed="config.media?.bleed || 'contained'"
         :max-width="config.media?.max_width || config.media?.maxWidth"
+        :focal-point="media.focalPoint"
       />
     </div>
 

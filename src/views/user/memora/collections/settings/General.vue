@@ -26,41 +26,13 @@
               </button>
             </div>
             <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
-              Configure general settings for your collection including contact information, URL,
+              Configure general settings for your collection including URL,
               tags, and display preferences.
             </p>
           </div>
 
           <!-- Settings Sections -->
           <div class="space-y-6">
-            <!-- Collection Contact -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
-            >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
-                  Collection Contact
-                </h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                  Link this collection to one or more contacts and view in Studio Manager.
-                  <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
-                    >Learn more</a
-                  >
-                </p>
-              </div>
-              <Button
-                :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
-                variant="outline"
-              >
-                <Plus
-                  class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
-                />
-                Add Contact
-              </Button>
-            </div>
-
             <!-- Collection URL -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -102,6 +74,68 @@
                 placeholder="Select or enter tags"
                 @update:model-value="categoryTags = $event"
               />
+            </div>
+
+            <!-- Preset -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+            >
+              <div>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Preset</h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                  Apply a preset configuration to this collection. This will update all settings from the preset.
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <Select
+                  :model-value="selectedPresetId"
+                  @update:model-value="handlePresetChange($event)"
+                >
+                  <SelectTrigger
+                    :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                    class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                  >
+                    <SelectValue :placeholder="selectedPresetName || 'No preset'" />
+                  </SelectTrigger>
+                  <SelectContent :class="[theme.bgCard, theme.borderCard]">
+                    <SelectItem
+                      :class="[
+                        theme.textPrimary,
+                        theme.bgButtonHover,
+                        'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      ]"
+                      value="none"
+                      >No preset
+                    </SelectItem>
+                    <SelectItem
+                      v-for="preset in presets"
+                      :key="preset.id"
+                      :class="[
+                        theme.textPrimary,
+                        theme.bgButtonHover,
+                        'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      ]"
+                      :value="preset.id"
+                    >
+                      {{ preset.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  v-if="selectedPresetId !== 'none'"
+                  :disabled="isApplyingPreset"
+                  class="bg-teal-500 hover:bg-teal-600 text-white"
+                  @click="handleApplyPreset"
+                >
+                  <Loader2
+                    v-if="isApplyingPreset"
+                    class="mr-2 h-4 w-4 animate-spin"
+                  />
+                  <Sparkles v-else class="mr-2 h-4 w-4" />
+                  Apply Preset
+                </Button>
+              </div>
             </div>
 
             <!-- Default Watermark -->
@@ -161,35 +195,45 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
-              <div>
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Auto Expiry</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Automatically set your collection to hidden on a specific date
-                  <span v-if="autoExpiryDate" class="font-medium"
-                    >({{ formatDate(autoExpiryDate) }} at 11:59pm GMT+1)</span
-                  >
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
+                    Automatically set your collection to hidden after a specified number of days
+                    <span v-if="autoExpiryEnabled && autoExpiryDays" class="font-medium block mt-1 text-teal-600 dark:text-teal-400">
+                      ({{ autoExpiryDays }} {{ autoExpiryDays === 1 ? 'day' : 'days' }} until expiry)
+                    </span>
                 </p>
               </div>
-              <div class="flex items-center gap-3 max-w-md">
-                <Input
-                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  :model-value="autoExpiryDate"
-                  class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all"
-                  type="date"
-                  @update:model-value="autoExpiryDate = $event"
-                />
-                <Button
-                  :class="[theme.borderSecondary, theme.textPrimary]"
-                  class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
-                  size="sm"
-                  variant="outline"
-                >
-                  <Plus
-                    class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
-                  />
-                  Add expiry reminder email
-                </Button>
+                <div class="flex-shrink-0 pt-1">
+                  <ToggleSwitch v-model="autoExpiryEnabled" label="" />
+                </div>
               </div>
+              <Transition>
+                <div v-if="autoExpiryEnabled" class="space-y-4 max-w-md">
+                  <div>
+                    <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
+                      Days Until Expiry
+                    </label>
+                    <div class="flex items-center gap-3">
+                <Input
+                        v-model.number="autoExpiryDays"
+                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                        class="max-w-xs focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        max="365"
+                        min="1"
+                        placeholder="30"
+                        type="number"
+                        @keydown.enter="handleSave"
+                      />
+                      <span :class="theme.textSecondary" class="text-sm">days</span>
+              </div>
+                    <p :class="theme.textSecondary" class="text-xs mt-2">
+                      Collection will be hidden this many days after creation.
+                    </p>
+                  </div>
+                </div>
+              </Transition>
             </div>
 
             <!-- Email Registration -->
@@ -247,57 +291,188 @@
                 <div class="flex-1">
                   <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Slideshow</h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                    Allow visitors to view the images in their collection slideshow.
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    Allow visitors to view the images in their collection as a slideshow.
+                    <a
+                      href="#"
+                      class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
                       >Learn more</a
                     >
                   </p>
                 </div>
                 <div class="flex-shrink-0 pt-1">
-                  <ToggleSwitch v-model="slideshow" label="" />
+                  <div class="flex items-center gap-3">
+                    <span
+                      class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                      :class="slideshow ? theme.textPrimary : theme.textSecondary"
+                    >
+                      {{ slideshow ? 'On' : 'Off' }}
+                    </span>
+                    <label class="relative inline-flex items-center group cursor-pointer">
+                      <input type="checkbox" v-model="slideshow" class="sr-only peer" />
+                      <div
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-500"
+                        :class="
+                          slideshow
+                            ? 'bg-teal-500'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        "
+                      ></div>
+                    </label>
                 </div>
               </div>
-              <Select
+              </div>
+
+              <!-- Additional Options (Expandable) -->
+              <div
                 v-if="slideshow"
-                :model-value="slideshowOptions"
-                @update:model-value="slideshowOptions = $event"
+                class="pt-4 border-t space-y-5"
+                :class="theme.borderSecondary"
               >
-                <SelectTrigger
-                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                <button
+                  @click="showSlideshowOptions = !showSlideshowOptions"
+                  class="flex items-center gap-2 text-sm font-semibold transition-colors group"
+                    :class="[
+                    showSlideshowOptions
+                      ? 'text-teal-600 dark:text-teal-400'
+                      : theme.textPrimary,
+                    'hover:text-teal-600 dark:hover:text-teal-400',
+                  ]"
                 >
-                  <SelectValue placeholder="Additional options" />
-                </SelectTrigger>
-                <SelectContent :class="[theme.bgCard, theme.borderCard]">
-                  <SelectItem
-                    :class="[
-                      theme.textPrimary,
-                      theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                    ]"
-                    value="autoplay"
-                    >Autoplay
-                  </SelectItem>
-                  <SelectItem
-                    :class="[
-                      theme.textPrimary,
-                      theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                    ]"
-                    value="loop"
-                    >Loop
-                  </SelectItem>
-                  <SelectItem
-                    :class="[
-                      theme.textPrimary,
-                      theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
-                    ]"
-                    value="fullscreen"
-                    >Fullscreen
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+                  <ChevronDown
+                    class="h-4 w-4 transition-transform duration-200"
+                    :class="showSlideshowOptions ? 'rotate-180' : ''"
+                  />
+                  Additional options
+                </button>
+
+                <Transition
+                  enter-active-class="transition-all duration-300 ease-out"
+                  enter-from-class="opacity-0 max-h-0"
+                  enter-to-class="opacity-100 max-h-[500px]"
+                  leave-active-class="transition-all duration-200 ease-in"
+                  leave-from-class="opacity-100 max-h-[500px]"
+                  leave-to-class="opacity-0 max-h-0"
+                >
+                  <div v-if="showSlideshowOptions" class="space-y-5 pl-6 overflow-hidden">
+                    <!-- Slideshow Speed -->
+                    <div class="space-y-3">
+                      <label class="text-sm font-semibold block" :class="theme.textPrimary">
+                        Slideshow Speed
+                      </label>
+                      <div class="flex items-center gap-6">
+                        <label
+                          class="flex items-center gap-2.5 cursor-pointer group"
+                          :class="slideshowSpeed === 'slow' ? '' : 'opacity-60 hover:opacity-100'"
+                        >
+                          <input
+                            type="radio"
+                            v-model="slideshowSpeed"
+                            value="slow"
+                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            :checked="slideshowSpeed === 'slow'"
+                          />
+                          <span
+                            class="text-sm font-medium transition-colors"
+                            :class="
+                              slideshowSpeed === 'slow'
+                                ? theme.textPrimary
+                                : theme.textSecondary
+                            "
+                          >
+                            Slow
+                          </span>
+                        </label>
+                        <label
+                          class="flex items-center gap-2.5 cursor-pointer group"
+                          :class="
+                            slideshowSpeed === 'regular' ? '' : 'opacity-60 hover:opacity-100'
+                          "
+                        >
+                          <input
+                            type="radio"
+                            v-model="slideshowSpeed"
+                            value="regular"
+                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            :checked="slideshowSpeed === 'regular'"
+                          />
+                          <span
+                            class="text-sm font-medium transition-colors"
+                            :class="
+                              slideshowSpeed === 'regular'
+                                ? theme.textPrimary
+                                : theme.textSecondary
+                            "
+                          >
+                            Regular
+                          </span>
+                        </label>
+                        <label
+                          class="flex items-center gap-2.5 cursor-pointer group"
+                          :class="slideshowSpeed === 'fast' ? '' : 'opacity-60 hover:opacity-100'"
+                        >
+                          <input
+                            type="radio"
+                            v-model="slideshowSpeed"
+                            value="fast"
+                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            :checked="slideshowSpeed === 'fast'"
+                          />
+                          <span
+                            class="text-sm font-medium transition-colors"
+                            :class="
+                              slideshowSpeed === 'fast'
+                                ? theme.textPrimary
+                                : theme.textSecondary
+                            "
+                          >
+                            Fast
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <!-- Auto Loop -->
+                    <div
+                      class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-teal-500/50"
+                      :class="[theme.borderSecondary, theme.bgCard]"
+                    >
+                      <div class="flex-1">
+                        <h4 class="text-sm font-semibold mb-1" :class="theme.textPrimary">
+                          Auto Loop
+                        </h4>
+                        <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                          Automatically loop the slideshow when it reaches the end.
+                        </p>
+                      </div>
+                      <div class="flex items-center gap-3 flex-shrink-0">
+                        <span
+                          class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                          :class="
+                            slideshowAutoLoop ? theme.textPrimary : theme.textSecondary
+                          "
+                        >
+                          {{ slideshowAutoLoop ? 'On' : 'Off' }}
+                        </span>
+                        <label class="relative inline-flex items-center group cursor-pointer">
+                          <input
+                            type="checkbox"
+                            v-model="slideshowAutoLoop"
+                            class="sr-only peer"
+                          />
+                          <div
+                            class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-500"
+                            :class="
+                              slideshowAutoLoop
+                                ? 'bg-teal-500'
+                                : 'bg-gray-300 dark:bg-gray-600'
+                            "
+                          ></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </Transition>
+              </div>
             </div>
 
             <!-- Social Sharing -->
@@ -379,6 +554,29 @@
               </Select>
             </div>
           </div>
+
+          <!-- Save Button -->
+          <div :class="theme.borderSecondary" class="mt-10 pt-6 border-t">
+            <div class="flex items-center justify-between gap-3">
+              <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
+                <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+                <span :class="theme.textSecondary">You have unsaved changes</span>
+              </div>
+              <div v-else class="flex items-center gap-2 text-sm">
+                <Check class="h-4 w-4 text-teal-500" />
+                <span :class="theme.textSecondary">All changes saved</span>
+              </div>
+              <Button
+                :disabled="!hasChanges || isSaving"
+                class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                @click="handleSave"
+              >
+                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
+                <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
+                {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+              </Button>
+            </div>
+          </div>
         </div>
       </div>
     </template>
@@ -386,9 +584,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Info, Loader2, Lock, Plus, Settings } from 'lucide-vue-next'
+import { Check, ChevronDown, Download, Heart, Info, Loader2, Lock, Settings, Sparkles } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -410,6 +608,8 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { usePresetStore } from '@/stores/preset'
+import { useWatermarkStore } from '@/stores/watermark'
+import { usePresetsApi } from '@/api/presets'
 import { toast } from '@/utils/toast'
 
 const route = useRoute()
@@ -417,6 +617,8 @@ const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 const presetStore = usePresetStore()
+const watermarkStore = useWatermarkStore()
+const presetsApi = usePresetsApi()
 
 // Collection data
 const collection = ref(null)
@@ -424,6 +626,7 @@ const isLoading = ref(false)
 const collectionStatus = ref('draft')
 const eventDate = ref(null)
 const selectedPresetId = ref('none')
+const isApplyingPreset = ref(false)
 const selectedPresetName = computed(() => {
   if (selectedPresetId.value === 'none') return null
   const preset = presets.value.find(p => p.id === selectedPresetId.value)
@@ -436,7 +639,7 @@ const selectedWatermarkName = computed(() => {
   return watermark?.name || null
 })
 const presets = computed(() => presetStore.presets)
-const watermarks = computed(() => galleryStore.watermarks || [])
+const watermarks = computed(() => watermarkStore.watermarks || [])
 
 // UI State
 const { isSidebarCollapsed } = useSidebarCollapse()
@@ -444,20 +647,97 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 // Settings state
 const collectionUrl = ref('')
 const categoryTags = ref('')
-const autoExpiryDate = ref(null)
+const autoExpiryEnabled = ref(false)
+const autoExpiryDays = ref(30)
 const emailRegistration = ref(false)
 const galleryAssist = ref(false)
 const slideshow = ref(true)
-const slideshowOptions = ref('')
+const showSlideshowOptions = ref(true)
+const slideshowSpeed = ref('regular')
+const slideshowAutoLoop = ref(true)
 const socialSharing = ref(true)
 const language = ref('en')
 const downloadEnabled = ref(true)
 const favoriteEnabled = ref(true)
 
+// Save state
+const isSaving = ref(false)
+const originalData = ref(null)
+
 // Load collection data
 onMounted(async () => {
   const collectionId = route.params.uuid
   if (!collectionId) return
+
+  // Load presets and watermarks
+  try {
+    if (presetStore.presets.length === 0) {
+      await presetStore.loadPresets()
+    }
+  } catch (error) {
+    console.error('Failed to load presets:', error)
+  }
+  
+  try {
+    if (watermarkStore.watermarks.length === 0) {
+      await watermarkStore.fetchWatermarks()
+    }
+  } catch (error) {
+    console.error('Failed to load watermarks:', error)
+  }
+
+  // Check if collection is already in store
+  const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
+  if (existingCollection) {
+    collection.value = existingCollection
+    collectionStatus.value = existingCollection.status === 'active' ? 'published' : 'draft'
+    eventDate.value = existingCollection.eventDate ? new Date(existingCollection.eventDate) : null
+    selectedPresetId.value = existingCollection.presetId || 'none'
+    selectedWatermark.value = existingCollection.watermarkId || 'none'
+    collectionUrl.value = existingCollection.url || ''
+    categoryTags.value = existingCollection.tags?.join(', ') || ''
+    // Use expiryDays from backend if available, otherwise calculate from expiryDate
+    if (existingCollection.expiryDays) {
+      autoExpiryEnabled.value = true
+      autoExpiryDays.value = existingCollection.expiryDays
+    } else if (existingCollection.expiryDate && existingCollection.createdAt) {
+      const expiryDate = new Date(existingCollection.expiryDate)
+      const createdDate = new Date(existingCollection.createdAt)
+      const diffTime = expiryDate - createdDate
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      autoExpiryEnabled.value = diffDays > 0
+      autoExpiryDays.value = diffDays > 0 ? diffDays : 30
+    } else {
+      autoExpiryEnabled.value = false
+      autoExpiryDays.value = 30
+    }
+    emailRegistration.value = existingCollection.emailRegistration || false
+    galleryAssist.value = existingCollection.galleryAssist || false
+    slideshow.value = existingCollection.slideshow !== false
+    slideshowSpeed.value = existingCollection.slideshowSpeed || 'regular'
+    slideshowAutoLoop.value = existingCollection.slideshowAutoLoop ?? true
+    socialSharing.value = existingCollection.socialSharing !== false
+    language.value = existingCollection.language || 'en'
+    downloadEnabled.value = existingCollection.downloadEnabled !== false
+    favoriteEnabled.value = existingCollection.favoriteEnabled !== false
+    
+    // Store original data for change detection
+    originalData.value = {
+      url: existingCollection.url || '',
+      tags: existingCollection.tags?.join(', ') || '',
+      expiryDate: existingCollection.expiryDate || null,
+      autoExpiryEnabled: autoExpiryEnabled.value,
+      autoExpiryDays: autoExpiryDays.value,
+      emailRegistration: existingCollection.emailRegistration || false,
+      galleryAssist: existingCollection.galleryAssist || false,
+      slideshow: existingCollection.slideshow !== false,
+      slideshowSpeed: existingCollection.slideshowSpeed || 'regular',
+      slideshowAutoLoop: existingCollection.slideshowAutoLoop ?? true,
+      socialSharing: existingCollection.socialSharing !== false,
+      language: existingCollection.language || 'en',
+    }
+    return
+  }
 
   isLoading.value = true
   try {
@@ -469,17 +749,46 @@ onMounted(async () => {
     selectedWatermark.value = collectionData.watermarkId || 'none'
     collectionUrl.value = collectionData.url || ''
     categoryTags.value = collectionData.tags?.join(', ') || ''
-    autoExpiryDate.value = collectionData.expiryDate || null
+    // Use expiryDays from backend if available, otherwise calculate from expiryDate
+    if (collectionData.expiryDays) {
+      autoExpiryEnabled.value = true
+      autoExpiryDays.value = collectionData.expiryDays
+    } else if (collectionData.expiryDate && collectionData.createdAt) {
+      const expiryDate = new Date(collectionData.expiryDate)
+      const createdDate = new Date(collectionData.createdAt)
+      const diffTime = expiryDate - createdDate
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      autoExpiryEnabled.value = diffDays > 0
+      autoExpiryDays.value = diffDays > 0 ? diffDays : 30
+    } else {
+      autoExpiryEnabled.value = false
+      autoExpiryDays.value = 30
+    }
     emailRegistration.value = collectionData.emailRegistration || false
     galleryAssist.value = collectionData.galleryAssist || false
     slideshow.value = collectionData.slideshow !== false
-    slideshowOptions.value = Array.isArray(collectionData.slideshowOptions)
-      ? collectionData.slideshowOptions[0] || ''
-      : ''
+    slideshowSpeed.value = collectionData.slideshowSpeed || 'regular'
+    slideshowAutoLoop.value = collectionData.slideshowAutoLoop ?? true
     socialSharing.value = collectionData.socialSharing !== false
     language.value = collectionData.language || 'en'
     downloadEnabled.value = collectionData.downloadEnabled !== false
     favoriteEnabled.value = collectionData.favoriteEnabled !== false
+    
+    // Store original data for change detection
+    originalData.value = {
+      url: collectionData.url || '',
+      tags: collectionData.tags?.join(', ') || '',
+      expiryDate: collectionData.expiryDate || null,
+      autoExpiryEnabled: autoExpiryEnabled.value,
+      autoExpiryDays: autoExpiryDays.value,
+      emailRegistration: collectionData.emailRegistration || false,
+      galleryAssist: collectionData.galleryAssist || false,
+      slideshow: collectionData.slideshow !== false,
+      slideshowSpeed: collectionData.slideshowSpeed || 'regular',
+      slideshowAutoLoop: collectionData.slideshowAutoLoop ?? true,
+      socialSharing: collectionData.socialSharing !== false,
+      language: collectionData.language || 'en',
+    }
   } catch (error) {
     toast.error('Failed to load collection', {
       description: error instanceof Error ? error.message : 'An unknown error occurred',
@@ -488,6 +797,98 @@ onMounted(async () => {
     isLoading.value = false
   }
 })
+
+// Calculate expiry date from days
+const calculateExpiryDate = () => {
+  if (!autoExpiryEnabled.value || !autoExpiryDays.value || !collection.value?.createdAt) {
+    return null
+  }
+  const createdDate = new Date(collection.value.createdAt)
+  const expiryDate = new Date(createdDate)
+  expiryDate.setDate(expiryDate.getDate() + autoExpiryDays.value)
+  return expiryDate.toISOString()
+}
+
+// Format expiry date for display
+const formatExpiryDate = () => {
+  const expiryDate = calculateExpiryDate()
+  if (!expiryDate) return ''
+  const date = new Date(expiryDate)
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
+// Check for unsaved changes
+const hasChanges = computed(() => {
+  if (!originalData.value) return false
+  const currentExpiryDate = calculateExpiryDate()
+  return (
+    collectionUrl.value !== originalData.value.url ||
+    categoryTags.value !== originalData.value.tags ||
+    autoExpiryEnabled.value !== originalData.value.autoExpiryEnabled ||
+    autoExpiryDays.value !== originalData.value.autoExpiryDays ||
+    currentExpiryDate !== originalData.value.expiryDate ||
+    emailRegistration.value !== originalData.value.emailRegistration ||
+    galleryAssist.value !== originalData.value.galleryAssist ||
+    slideshow.value !== originalData.value.slideshow ||
+    slideshowSpeed.value !== originalData.value.slideshowSpeed ||
+    slideshowAutoLoop.value !== originalData.value.slideshowAutoLoop ||
+    socialSharing.value !== originalData.value.socialSharing ||
+    language.value !== originalData.value.language
+  )
+})
+
+// Save all changes
+const handleSave = async () => {
+  if (!collection.value || !hasChanges.value || isSaving.value) return
+
+  isSaving.value = true
+  try {
+    const tagsArray = categoryTags.value
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(tag => tag.length > 0)
+
+    const expiryDate = calculateExpiryDate()
+    
+    await galleryStore.updateCollection(collection.value.id, {
+      url: collectionUrl.value,
+      tags: tagsArray,
+      expiryDate: expiryDate,
+      expiryDays: autoExpiryEnabled.value ? autoExpiryDays.value : null,
+      emailRegistration: emailRegistration.value,
+      galleryAssist: galleryAssist.value,
+      slideshow: slideshow.value,
+      slideshowSpeed: slideshowSpeed.value,
+      slideshowAutoLoop: slideshowAutoLoop.value,
+      socialSharing: socialSharing.value,
+      language: language.value,
+    })
+
+    // Update original data
+    originalData.value = {
+      url: collectionUrl.value,
+      tags: categoryTags.value,
+      expiryDate: expiryDate,
+      autoExpiryEnabled: autoExpiryEnabled.value,
+      autoExpiryDays: autoExpiryDays.value,
+      emailRegistration: emailRegistration.value,
+      galleryAssist: galleryAssist.value,
+      slideshow: slideshow.value,
+      slideshowSpeed: slideshowSpeed.value,
+      slideshowAutoLoop: slideshowAutoLoop.value,
+      socialSharing: socialSharing.value,
+      language: language.value,
+    }
+
+    toast.success('Settings saved successfully')
+  } catch (error) {
+    toast.error('Failed to save settings', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
 
 // Navigation
 const goBack = () => {
@@ -536,6 +937,129 @@ const handlePresetChange = async presetId => {
   // Auto-save preset change
 }
 
+const handleApplyPreset = async () => {
+  if (!collection.value || selectedPresetId.value === 'none') return
+
+  // Check if there are media in any set
+  const hasMedia = collection.value.mediaCount > 0 || 
+    (collection.value.mediaSets && collection.value.mediaSets.some(set => (set.media_count || set.count || 0) > 0))
+  
+  if (hasMedia) {
+    const confirmed = confirm('This collection contains media. Applying preset settings may affect existing content. Do you want to continue?')
+    if (!confirmed) {
+      return
+    }
+  }
+
+  isApplyingPreset.value = true
+  try {
+    // Get preset from store, or fetch it if not loaded
+    let preset = presetStore.getPresetById(selectedPresetId.value)
+    if (!preset) {
+      preset = await presetStore.loadPreset(selectedPresetId.value)
+    }
+    if (!preset) {
+      toast.error('Preset not found')
+      return
+    }
+
+    // Copy preset settings to collection form fields
+    emailRegistration.value = preset.emailRegistration ?? false
+    galleryAssist.value = preset.galleryAssist ?? false
+    slideshow.value = preset.slideshow ?? true
+    slideshowSpeed.value = preset.slideshowSpeed || 'regular'
+    slideshowAutoLoop.value = preset.slideshowAutoLoop ?? true
+    socialSharing.value = preset.socialSharing ?? true
+    language.value = preset.language || 'en'
+    
+    // Handle collection tags - convert to comma-separated string
+    if (preset.collectionTags) {
+      if (Array.isArray(preset.collectionTags)) {
+        categoryTags.value = preset.collectionTags.join(', ')
+      } else if (typeof preset.collectionTags === 'string') {
+        categoryTags.value = preset.collectionTags
+      }
+    }
+    
+    // Handle watermark
+    if (preset.defaultWatermarkId) {
+      selectedWatermark.value = preset.defaultWatermarkId
+    }
+
+    // Apply preset to collection via backend API
+    await presetsApi.applyPresetToCollection(selectedPresetId.value, collection.value.id)
+    
+    // Force reload collection from backend to get all updated settings (bypass cache)
+    const updatedCollection = await galleryStore.fetchCollection(collection.value.id, true)
+    if (updatedCollection) {
+      // Update collection reference (create new object to trigger reactivity)
+      collection.value = { ...updatedCollection }
+      
+      // Update all form fields with new values from backend
+      collectionStatus.value = updatedCollection.status === 'active' ? 'published' : 'draft'
+      eventDate.value = updatedCollection.eventDate ? new Date(updatedCollection.eventDate) : null
+      selectedPresetId.value = updatedCollection.presetId || 'none'
+      selectedWatermark.value = updatedCollection.watermarkId || 'none'
+      collectionUrl.value = updatedCollection.url || ''
+      categoryTags.value = updatedCollection.tags?.join(', ') || ''
+      // Update expiry days from backend
+      if (updatedCollection.expiryDays) {
+        autoExpiryEnabled.value = true
+        autoExpiryDays.value = updatedCollection.expiryDays
+      } else if (updatedCollection.expiryDate && updatedCollection.createdAt) {
+        const expiryDate = new Date(updatedCollection.expiryDate)
+        const createdDate = new Date(updatedCollection.createdAt)
+        const diffTime = expiryDate - createdDate
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+        autoExpiryEnabled.value = diffDays > 0
+        autoExpiryDays.value = diffDays > 0 ? diffDays : 30
+      } else {
+        autoExpiryEnabled.value = false
+        autoExpiryDays.value = 30
+      }
+      emailRegistration.value = updatedCollection.emailRegistration ?? false
+      galleryAssist.value = updatedCollection.galleryAssist ?? false
+      slideshow.value = updatedCollection.slideshow !== false
+      slideshowSpeed.value = updatedCollection.slideshowSpeed || 'regular'
+      slideshowAutoLoop.value = updatedCollection.slideshowAutoLoop ?? true
+      socialSharing.value = updatedCollection.socialSharing !== false
+      language.value = updatedCollection.language || 'en'
+      downloadEnabled.value = updatedCollection.downloadEnabled !== false
+      favoriteEnabled.value = updatedCollection.favoriteEnabled !== false
+      
+      // Update originalData to reflect saved state (no unsaved changes)
+      const currentExpiryDate = calculateExpiryDate()
+      originalData.value = {
+        url: updatedCollection.url || '',
+        tags: updatedCollection.tags?.join(', ') || '',
+        expiryDate: currentExpiryDate,
+        autoExpiryEnabled: autoExpiryEnabled.value,
+        autoExpiryDays: autoExpiryDays.value,
+        emailRegistration: updatedCollection.emailRegistration ?? false,
+        galleryAssist: updatedCollection.galleryAssist ?? false,
+        slideshow: updatedCollection.slideshow !== false,
+        slideshowSpeed: updatedCollection.slideshowSpeed || 'regular',
+        slideshowAutoLoop: updatedCollection.slideshowAutoLoop ?? true,
+        socialSharing: updatedCollection.socialSharing !== false,
+        language: updatedCollection.language || 'en',
+      }
+      
+      // Wait for next tick to ensure UI updates
+      await nextTick()
+    }
+
+    toast.success('Preset applied successfully', {
+      description: 'All collection settings have been updated from the preset.',
+    })
+  } catch (error) {
+    toast.error('Failed to apply preset', {
+      description: error instanceof Error ? error.message : 'An unknown error occurred',
+    })
+  } finally {
+    isApplyingPreset.value = false
+  }
+}
+
 const handleWatermarkChange = async watermarkId => {
   if (!collection.value) return
   selectedWatermark.value = watermarkId
@@ -551,109 +1075,6 @@ const handleWatermarkChange = async watermarkId => {
   }
 }
 
-// Watch and save settings changes
-watch(collectionUrl, async newUrl => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { url: newUrl })
-  } catch (error) {
-    toast.error('Failed to update URL', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(categoryTags, async newTags => {
-  if (!collection.value) return
-  try {
-    const tagsArray = newTags
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-    await galleryStore.updateCollection(collection.value.id, { tags: tagsArray })
-  } catch (error) {
-    toast.error('Failed to update tags', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(autoExpiryDate, async newDate => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      expiryDate,
-    })
-  } catch (error) {
-    toast.error('Failed to update expiry date')
-  }
-})
-
-watch(emailRegistration, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      emailRegistration,
-    })
-  } catch (error) {
-    toast.error('Failed to update email registration')
-  }
-})
-
-watch(galleryAssist, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { galleryAssist: newValue })
-  } catch (error) {
-    toast.error('Failed to update gallery assist', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(slideshow, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { slideshow: newValue })
-  } catch (error) {
-    toast.error('Failed to update slideshow', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(slideshowOptions, async newOption => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, {
-      slideshowOptions: Array.isArray(newOption) ? newOption : [newOption],
-    })
-  } catch (error) {
-    toast.error('Failed to update slideshow options')
-  }
-})
-
-watch(socialSharing, async newValue => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { socialSharing: newValue })
-  } catch (error) {
-    toast.error('Failed to update social sharing', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
-
-watch(language, async newLanguage => {
-  if (!collection.value) return
-  try {
-    await galleryStore.updateCollection(collection.value.id, { language: newLanguage })
-  } catch (error) {
-    toast.error('Failed to update language', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-})
 
 // Format date helper
 const formatDate = dateString => {

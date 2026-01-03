@@ -6,66 +6,118 @@
         class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm"
         @click.self="handleClose"
       >
-        <!-- Top Action Buttons Group -->
-        <div class="absolute top-4 right-4 z-[110] flex items-center gap-3">
-          <!-- Toggle Comments Button -->
-          <button
-            v-if="currentItem && currentItem.feedback !== undefined"
-            aria-label="Toggle comments"
-            class="relative w-11 h-11 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
-            @click="handleCommentClick"
+        <!-- Top Center Container -->
+        <div 
+          v-if="!(isSlideshowPlaying && isFullscreen)"
+          class="absolute top-4 sm:top-2 md:top-4 left-1/2 -translate-x-1/2 z-[110] w-full max-w-4xl px-8 sm:px-4 flex items-center justify-between gap-3 sm:gap-2 md:gap-3"
+        >
+          <!-- Counter -->
+          <div
+            v-if="items.length > 1"
+            class="px-4 sm:px-3 py-2 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md text-white text-sm sm:text-xs font-semibold shadow-xl border border-white/10"
           >
-            <MessageSquare
-              class="w-5 h-5 transition-transform duration-300 group-hover:scale-110"
-            />
-            <span
-              v-if="totalCommentCount > 0"
-              class="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 rounded-full bg-teal-500 text-white text-[10px] font-bold flex items-center justify-center z-[111] shadow-lg ring-2 ring-black/20 animate-pulse"
-            >
-              {{ totalCommentCount }}
-            </span>
-          </button>
+            <span class="text-white/90">{{ currentIndex + 1 }}</span>
+            <span class="mx-1.5 sm:mx-1 text-white/50">/</span>
+            <span class="text-white/70">{{ items.length }}</span>
+          </div>
 
-          <!-- Close Button -->
-          <button
-            aria-label="Close lightbox"
-            class="w-11 h-11 rounded-full bg-black/70 hover:bg-red-500/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
-            @click="handleClose"
-          >
-            <X class="w-5 h-5" />
-          </button>
+          <!-- Action Buttons Group -->
+          <div class="flex items-center gap-3 sm:gap-1.5 md:gap-3">
+            <!-- Share Button -->
+            <button
+              aria-label="Share"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              @click.stop="handleShare"
+            >
+              <Share2 class="w-5 h-5 sm:w-4 sm:h-4" />
+            </button>
+
+            <!-- Star/Favorite Button -->
+            <button
+              aria-label="Favorite"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              :class="isFavorite ? 'text-yellow-400' : ''"
+              @click.stop="handleFavorite"
+            >
+              <Star class="w-5 h-5 sm:w-4 sm:h-4" :class="isFavorite ? 'fill-current' : ''" />
+            </button>
+
+            <!-- Play Slideshow Button -->
+            <button
+              v-if="items.length > 1"
+              aria-label="Play slideshow"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              @click.stop="toggleSlideshow"
+            >
+              <Play v-if="!isSlideshowPlaying" class="w-5 h-5 sm:w-4 sm:h-4" />
+              <Pause v-else class="w-5 h-5 sm:w-4 sm:h-4" />
+            </button>
+
+            <!-- Toggle Comments Button (only in proofing phase) -->
+            <button
+              v-if="proofingId && currentItem && currentItem.feedback !== undefined"
+              aria-label="Toggle comments"
+              class="relative w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              @click.stop="handleCommentClick"
+            >
+              <MessageSquare
+                class="w-5 h-5 sm:w-4 sm:h-4 transition-transform duration-300 group-hover:scale-110"
+              />
+              <span
+                v-if="totalCommentCount > 0"
+                class="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5 min-w-[20px] sm:min-w-[16px] h-5 sm:h-4 px-1.5 sm:px-1 rounded-full bg-teal-500 text-white text-[10px] sm:text-[9px] font-bold flex items-center justify-center z-[111] shadow-lg ring-2 ring-black/20 animate-pulse"
+              >
+                {{ totalCommentCount }}
+              </span>
+            </button>
+
+            <!-- Close Button -->
+            <button
+              aria-label="Close lightbox"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-red-500/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              @click.stop="handleClose"
+            >
+              <X class="w-5 h-5 sm:w-4 sm:h-4" />
+            </button>
+          </div>
         </div>
 
         <!-- Navigation Buttons -->
-        <template v-if="items.length > 1">
+        <template v-if="items.length > 1 && !(isSlideshowPlaying && isFullscreen)">
           <button
             v-if="hasPrevious"
             aria-label="Previous"
-            class="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 z-[105] w-14 h-14 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 group focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+            class="absolute left-8 sm:left-2 md:left-8 top-1/2 -translate-y-1/2 z-[105] w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 group focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
             @click.stop="goToPrevious"
           >
             <ChevronLeft
-              class="w-7 h-7 transition-transform duration-300 group-hover:-translate-x-1"
+              class="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:-translate-x-1"
             />
           </button>
           <button
             v-if="hasNext"
             aria-label="Next"
-            class="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 z-[105] w-14 h-14 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 group focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+            class="absolute right-8 sm:right-2 md:right-8 top-1/2 -translate-y-1/2 z-[105] w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 group focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
             @click.stop="goToNext"
           >
             <ChevronRight
-              class="w-7 h-7 transition-transform duration-300 group-hover:translate-x-1"
+              class="w-6 h-6 sm:w-5 sm:h-5 transition-transform duration-300 group-hover:translate-x-1"
             />
           </button>
         </template>
 
         <!-- Main Container: Side-by-side on desktop, stacked on mobile -->
-        <div class="relative w-full h-full flex flex-col md:flex-row">
+        <div 
+          class="relative w-full h-full flex flex-col md:flex-row"
+          :class="isSlideshowPlaying && isFullscreen ? 'slideshow-fullscreen' : ''"
+        >
           <!-- Media Section (Left on desktop, full on mobile) -->
           <div
-            class="relative flex-1 flex items-center justify-center p-4 md:p-8 bg-black/95"
-            :class="showComments ? 'md:w-[60%]' : 'w-full'"
+            class="relative flex-1 flex items-center justify-center bg-black/95 transition-all duration-300"
+            :class="[
+              showComments ? 'md:w-[60%]' : 'w-full',
+              isSlideshowPlaying && isFullscreen ? 'p-0' : 'p-8 sm:p-3'
+            ]"
           >
             <Transition mode="out-in" name="lightbox-slide">
               <div
@@ -77,8 +129,13 @@
                   v-if="currentMediaType === 'image' && currentMediaUrl"
                   :alt="currentItem?.title || currentItem?.filename || 'Media'"
                   :src="currentMediaUrl"
-                  class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl transition-opacity duration-300"
-                  :class="isLoading ? 'opacity-0' : 'opacity-100'"
+                  class="w-auto h-auto object-contain shadow-2xl transition-all duration-300"
+                  :class="[
+                    isLoading ? 'opacity-0' : 'opacity-100',
+                    isSlideshowPlaying && isFullscreen 
+                      ? 'max-w-full max-h-full rounded-none' 
+                      : 'max-w-full max-h-[90vh] sm:max-h-[88vh] md:max-h-[90vh] rounded-lg'
+                  ]"
                   @error="handleImageError"
                   @load="handleImageLoad"
                 />
@@ -104,10 +161,10 @@
                 <Transition name="fade">
                   <div
                     v-if="isLoading"
-                    class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-lg gap-3"
+                    class="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm rounded-lg gap-2 sm:gap-3"
                   >
-                    <Loader2 class="w-10 h-10 text-white animate-spin" />
-                    <p class="text-white/80 text-sm font-medium">Loading media...</p>
+                    <Loader2 class="w-10 h-10 sm:w-8 sm:h-8 text-white animate-spin" />
+                    <p class="text-white/80 text-sm sm:text-xs font-medium">Loading media...</p>
                   </div>
                 </Transition>
               </div>
@@ -144,12 +201,12 @@
         <!-- Media Info (Bottom) -->
         <Transition name="slide-up">
           <div
-            v-if="currentItem && currentMediaType !== 'video'"
-            class="absolute bottom-0 left-0 right-0 z-[107] p-4 md:p-6 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm"
+            v-if="currentItem && currentMediaType !== 'video' && !(isSlideshowPlaying && isFullscreen)"
+            class="absolute bottom-0 left-0 right-0 z-[107] p-6 sm:p-4 bg-gradient-to-t from-black/95 via-black/80 to-transparent backdrop-blur-sm"
           >
-            <div class="max-w-4xl mx-auto flex items-center justify-between text-white gap-4">
+            <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between text-white gap-4 sm:gap-3">
               <div class="flex-1 min-w-0">
-                <h3 class="font-semibold text-lg md:text-xl truncate drop-shadow-lg">
+                <h3 class="font-semibold text-lg sm:text-base truncate drop-shadow-lg">
                   {{
                     currentItem?.file?.filename ||
                     currentItem.title ||
@@ -158,11 +215,11 @@
                   }}
                 </h3>
                 <div
-                  class="flex items-center gap-3 md:gap-4 mt-2 text-xs md:text-sm text-white/80 flex-wrap"
+                  class="flex items-center gap-4 sm:gap-3 mt-2 text-sm sm:text-xs text-white/80 flex-wrap"
                 >
                   <span
                     v-if="currentItem?.file?.type"
-                    class="px-2 py-0.5 rounded-md bg-white/10 backdrop-blur-sm"
+                    class="px-2 sm:px-1.5 py-0.5 rounded-md bg-white/10 backdrop-blur-sm"
                   >
                     {{ currentItem?.file?.type === 'image' ? 'Image' : 'Video' }}
                   </span>
@@ -177,32 +234,41 @@
                   </span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
+              <div class="flex items-center gap-2 sm:gap-1.5 flex-shrink-0 self-end sm:self-auto">
                 <button
                   aria-label="Download"
-                  class="p-2.5 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
+                  class="p-2.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
                   title="Download"
                   @click="handleDownload"
                 >
-                  <Download class="w-5 h-5" />
+                  <Download class="w-5 h-5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
           </div>
         </Transition>
 
-        <!-- Counter (Top Center) -->
-        <div
-          v-if="items.length > 1"
-          class="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md text-white text-sm font-semibold z-[108] shadow-xl border border-white/10"
-          :class="
-            currentItem && currentItem.feedback !== undefined ? 'md:left-[calc(50%-100px)]' : ''
-          "
-        >
-          <span class="text-white/90">{{ currentIndex + 1 }}</span>
-          <span class="mx-1.5 text-white/50">/</span>
-          <span class="text-white/70">{{ items.length }}</span>
-        </div>
+        
+        <!-- Slideshow Controls (only visible in fullscreen slideshow) -->
+        <Transition name="fade">
+          <div
+            v-if="isSlideshowPlaying && isFullscreen"
+            class="absolute bottom-8 sm:bottom-6 left-1/2 -translate-x-1/2 z-[108] flex items-center gap-4 px-6 sm:px-5 py-3 sm:py-2.5 rounded-full bg-black/70 backdrop-blur-md text-white shadow-xl border border-white/10"
+          >
+            <button
+              aria-label="Pause slideshow"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 flex items-center justify-center"
+              @click.stop="stopSlideshow"
+            >
+              <Pause class="w-5 h-5 sm:w-[18px] sm:h-[18px]" />
+            </button>
+            <div class="text-sm sm:text-xs font-medium">
+              <span class="text-white/90">{{ currentIndex + 1 }}</span>
+              <span class="mx-1.5 sm:mx-1 text-white/50">/</span>
+              <span class="text-white/70">{{ items.length }}</span>
+            </div>
+          </div>
+        </Transition>
       </div>
     </Transition>
   </Teleport>
@@ -210,12 +276,15 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause } from 'lucide-vue-next'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
 import { useRealtimeComments } from '@/composables/useRealtimeComments'
 import { useProofingApi } from '@/api/proofing'
+import { useCollectionsApi } from '@/api/collections'
+import { useSelectionsApi } from '@/api/selections'
+import { useMediaApi } from '@/api/media'
 
 const props = defineProps({
   modelValue: {
@@ -230,6 +299,10 @@ const props = defineProps({
     type: Number,
     default: 0,
   },
+  autoStartSlideshow: {
+    type: Boolean,
+    default: false,
+  },
   placeholderImage: {
     type: String,
     default: '/placeholder-image.png',
@@ -239,6 +312,14 @@ const props = defineProps({
     default: true,
   },
   proofingId: {
+    type: String,
+    default: null,
+  },
+  collectionId: {
+    type: String,
+    default: null,
+  },
+  selectionId: {
     type: String,
     default: null,
   },
@@ -256,7 +337,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments'])
+const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -272,12 +353,23 @@ const videoPlayerRef = ref(null)
 const currentVideoTime = ref(null)
 const isLoadingComments = ref(false)
 const comments = ref([])
+const isFavorite = ref(false)
+const isSlideshowPlaying = ref(false)
+const slideshowInterval = ref(null)
+const slideshowDelay = 3000 // 3 seconds
+const isFullscreen = ref(false)
+const fullscreenElement = ref(null)
 
 const proofingApi = useProofingApi()
+const collectionsApi = useCollectionsApi()
+const selectionsApi = useSelectionsApi()
+const mediaApi = useMediaApi()
 
 const currentItem = computed(() => {
   if (props.items.length === 0) return null
-  return props.items[currentIndex.value] || props.items[0]
+  const item = props.items[currentIndex.value] || props.items[0]
+  // Ensure we return a reactive reference
+  return item
 })
 
 const currentMediaType = computed(() => {
@@ -434,6 +526,10 @@ const updateMediaUrl = async () => {
 
 const goToPrevious = () => {
   if (hasPrevious.value) {
+    // Stop slideshow on manual navigation
+    if (isSlideshowPlaying.value) {
+      stopSlideshow()
+    }
     currentIndex.value--
     isLoading.value = true
   }
@@ -441,6 +537,10 @@ const goToPrevious = () => {
 
 const goToNext = () => {
   if (hasNext.value) {
+    // Stop slideshow on manual navigation
+    if (isSlideshowPlaying.value) {
+      stopSlideshow()
+    }
     currentIndex.value++
     isLoading.value = true
   }
@@ -607,6 +707,148 @@ const handleDownload = () => {
   emit('download', currentItem.value)
 }
 
+const handleShare = async () => {
+  if (!currentItem.value) return
+  
+  const shareData = {
+    title: currentItem.value.title || currentItem.value.filename || 'Media',
+    url: currentMediaUrl.value,
+  }
+
+  try {
+    if (navigator.share) {
+      await navigator.share(shareData)
+    } else {
+      await navigator.clipboard.writeText(currentMediaUrl.value)
+      // Could show a toast here
+    }
+  } catch (error) {
+    if (error.name !== 'AbortError') {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(currentMediaUrl.value)
+      } catch (clipboardError) {
+        console.error('Failed to share:', clipboardError)
+      }
+    }
+  }
+  
+  emit('share', currentItem.value)
+}
+
+const handleFavorite = () => {
+  if (!currentItem.value || !currentItem.value.id) return
+  
+  // Optimistically update UI
+  const newFavoriteState = !isFavorite.value
+  isFavorite.value = newFavoriteState
+  
+  // Just emit the event - let the parent handle the API call
+  // This prevents double API calls since parent views already have handlers
+  emit('favorite', { item: currentItem.value, isFavorite: newFavoriteState })
+}
+
+const toggleSlideshow = () => {
+  if (isSlideshowPlaying.value) {
+    stopSlideshow()
+  } else {
+    startSlideshow()
+  }
+}
+
+const enterFullscreen = async () => {
+  try {
+    const element = document.documentElement
+    if (element.requestFullscreen) {
+      await element.requestFullscreen()
+    } else if (element.webkitRequestFullscreen) {
+      await element.webkitRequestFullscreen()
+    } else if (element.mozRequestFullScreen) {
+      await element.mozRequestFullScreen()
+    } else if (element.msRequestFullscreen) {
+      await element.msRequestFullscreen()
+    }
+    isFullscreen.value = true
+    fullscreenElement.value = element
+  } catch (error) {
+    console.error('Failed to enter fullscreen:', error)
+  }
+}
+
+const exitFullscreen = async () => {
+  try {
+    if (document.exitFullscreen) {
+      await document.exitFullscreen()
+    } else if (document.webkitExitFullscreen) {
+      await document.webkitExitFullscreen()
+    } else if (document.mozCancelFullScreen) {
+      await document.mozCancelFullScreen()
+    } else if (document.msExitFullscreen) {
+      await document.msExitFullscreen()
+    }
+    isFullscreen.value = false
+    fullscreenElement.value = null
+  } catch (error) {
+    console.error('Failed to exit fullscreen:', error)
+  }
+}
+
+const handleFullscreenChange = () => {
+  const isCurrentlyFullscreen = !!(
+    document.fullscreenElement ||
+    document.webkitFullscreenElement ||
+    document.mozFullScreenElement ||
+    document.msFullscreenElement
+  )
+  
+  if (!isCurrentlyFullscreen && isFullscreen.value) {
+    // User exited fullscreen manually, stop slideshow
+    stopSlideshow()
+  }
+  isFullscreen.value = isCurrentlyFullscreen
+}
+
+const slideshowNext = () => {
+  if (hasNext.value) {
+    currentIndex.value++
+    isLoading.value = true
+  } else {
+    // Loop back to start
+    currentIndex.value = 0
+    isLoading.value = true
+    updateMediaUrl()
+  }
+}
+
+const startSlideshow = async () => {
+  if (props.items.length <= 1) return
+  
+  // Enter fullscreen first
+  await enterFullscreen()
+  
+  isSlideshowPlaying.value = true
+  emit('slideshow', { playing: true })
+  
+  slideshowInterval.value = setInterval(() => {
+    slideshowNext()
+  }, slideshowDelay)
+}
+
+const stopSlideshow = async () => {
+  isSlideshowPlaying.value = false
+  emit('slideshow', { playing: false })
+  
+  if (slideshowInterval.value) {
+    clearInterval(slideshowInterval.value)
+    slideshowInterval.value = null
+  }
+  
+  // Exit fullscreen when slideshow stops
+  if (isFullscreen.value) {
+    await exitFullscreen()
+  }
+}
+
 const formatFileSize = bytes => {
   if (!bytes) return ''
   if (bytes < 1024) return bytes + ' B'
@@ -625,7 +867,26 @@ const handleKeyDown = e => {
     goToNext()
   } else if (e.key === 'Escape') {
     e.preventDefault()
-    handleClose()
+    // If in fullscreen slideshow, stop it first
+    if (isSlideshowPlaying.value) {
+      stopSlideshow()
+    } else {
+      handleClose()
+    }
+  } else if (e.key === ' ' || e.key === 'Spacebar') {
+    // Spacebar toggles slideshow
+    e.preventDefault()
+    if (props.items.length > 1) {
+      toggleSlideshow()
+    }
+  } else if (e.key === 'f' || e.key === 'F') {
+    // F key toggles fullscreen
+    e.preventDefault()
+    if (isFullscreen.value) {
+      exitFullscreen()
+    } else {
+      enterFullscreen()
+    }
   }
 }
 
@@ -652,14 +913,33 @@ watch(isOpen, open => {
     const safeIndex = Math.max(0, Math.min(props.initialIndex, props.items.length - 1))
     currentIndex.value = safeIndex
     updateMediaUrl()
+    
+    // Auto-start slideshow if prop is set
+    if (props.autoStartSlideshow && props.items.length > 1) {
+      // Small delay to ensure lightbox is fully rendered
+      setTimeout(() => {
+        startSlideshow()
+      }, 500)
+    }
     loadComments()
     connectRealtime()
     document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.addEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.addEventListener('MSFullscreenChange', handleFullscreenChange)
     document.body.style.overflow = 'hidden'
+    // Initialize favorite state from item
+    isFavorite.value = currentItem.value?.isStarred || currentItem.value?.starred || false
   } else {
+    stopSlideshow()
     disconnectRealtime()
     showComments.value = false
     document.removeEventListener('keydown', handleKeyDown)
+    document.removeEventListener('fullscreenchange', handleFullscreenChange)
+    document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+    document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+    document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
     document.body.style.overflow = ''
   }
 })
@@ -669,6 +949,8 @@ watch(
   () => {
     updateMediaUrl()
     loadComments()
+    // Update favorite state for new item
+    isFavorite.value = currentItem.value?.isStarred || currentItem.value?.starred || false
     // Reconnect real-time for new media
     if (isOpen.value) {
       disconnectRealtime()
@@ -676,6 +958,18 @@ watch(
     }
   },
   { immediate: false }
+)
+
+// Watch for changes to item's starred state from parent updates
+watch(
+  () => currentItem.value,
+  (item) => {
+    if (item) {
+      const starred = item.isStarred ?? item.starred ?? false
+      isFavorite.value = !!starred
+    }
+  },
+  { immediate: false, deep: true }
 )
 
 // Watch for items changes to update when bulk view sets new items
@@ -700,7 +994,12 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  stopSlideshow()
   document.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('fullscreenchange', handleFullscreenChange)
+  document.removeEventListener('webkitfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('mozfullscreenchange', handleFullscreenChange)
+  document.removeEventListener('MSFullscreenChange', handleFullscreenChange)
   document.body.style.overflow = ''
 })
 </script>

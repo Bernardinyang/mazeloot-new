@@ -12,7 +12,12 @@
       />
 
       <!-- Main Content Area -->
-      <main class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300">
+      <main
+        class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
+        @dragover.prevent="handleDragOver"
+        @dragleave="handleDragLeave"
+        @drop="handleDrop"
+      >
         <ContentLoader v-if="isLoading" message="Loading collection..." />
 
         <div v-else class="p-8">
@@ -25,32 +30,26 @@
             ></div>
           </div>
           <MediaItemsHeaderBar
-            v-else
+            v-else-if="selectedSetId"
             v-model:is-sort-menu-open="isSortMenuOpen"
             v-model:is-view-menu-open="isViewMenuOpen"
-            :grid-size="gridSize"
+            store-type="collection"
             :grid-size-options="gridSizeOptions"
             :is-all-selected="
               selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
             "
             :is-uploading="isUploading"
             :selected-count="selectedMediaIds.size"
-            :show-filename="showFilename"
             :sort-options="sortOptions"
-            :sort-order="sortOrder"
             :title="selectedSet?.name || 'Highlights'"
             :total-items="sortedMediaItems.length"
-            :view-mode="viewMode"
-            @sort-change="handleSortChange"
-            @grid-size-change="handleGridSizeChange"
-            @filename-toggle="handleFilenameToggle"
-            @set-view-mode="viewMode = $event"
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
+            v-if="selectedSetId"
             :is-all-selected="selectedMediaIds.size === sortedMediaItems.length"
             :is-favorite-loading="isBulkFavoriteLoading"
             :selected-count="selectedMediaIds.size"
@@ -66,7 +65,7 @@
           />
 
           <!-- Media Grid/List View -->
-          <div v-if="isLoadingMedia" class="mb-8">
+          <div v-if="selectedSetId && isLoadingMedia" class="mb-8">
             <!-- Skeletons while switching sets -->
             <div
               v-if="viewMode === 'grid'"
@@ -93,7 +92,7 @@
               ></div>
             </div>
           </div>
-          <div v-else-if="sortedMediaItems.length > 0" class="mb-8">
+          <div v-else-if="selectedSetId && sortedMediaItems.length > 0" class="mb-8">
             <TransitionGroup
               v-if="viewMode === 'grid'"
               name="media-grid"
@@ -114,6 +113,7 @@
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
+                :selection-status="'collection'"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -128,6 +128,7 @@
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
+                @star-click="handleStarMedia(item)"
               />
             </TransitionGroup>
             <TransitionGroup v-else name="media-list" tag="div" class="space-y-2">
@@ -138,6 +139,7 @@
                 :item="item"
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
+                :selection-status="'collection'"
                 :subtitle="formatMediaDate(item.createdAt)"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
@@ -153,18 +155,65 @@
                 @copy-filenames="handleCopyFilenames(item)"
                 @set-as-cover="handleSetAsCover(item)"
                 @remove-watermark="handleRemoveWatermark(item)"
+                @star-click="handleStarMedia(item)"
               />
             </TransitionGroup>
+
+            <!-- Pagination -->
+            <Pagination
+              v-if="mediaPagination.totalPages > 1 || mediaPagination.total > 0"
+              :current-page="mediaPagination.page"
+              :limit="mediaPagination.limit"
+              :total="mediaPagination.total"
+              :total-pages="mediaPagination.totalPages"
+              :show-page-size="true"
+              @page-change="goToMediaPage"
+              @page-size-change="setMediaPerPage"
+            />
           </div>
 
           <!-- Empty State / Upload Zone -->
+          <!-- Show empty state when no sets exist -->
+          <div
+            v-if="
+              !isLoadingMedia &&
+              collection &&
+              sortedMediaSets.length === 0
+            "
+            class="flex items-center justify-center py-16"
+          >
+            <EmptyState
+              :action-icon="Plus"
+              :action-class="'text-white transition-colors'"
+              :icon="FolderPlus"
+              action-label="Create Set"
+              description="Create a set to organize and upload your media files."
+              message="No sets in this collection"
+              @action="mediaSetsSidebar.handleAddSet"
+            />
+          </div>
+          <!-- Show upload zone when sets exist but no media -->
           <MediaUploadDropzone
-            v-if="!isLoadingMedia"
+            v-else-if="
+              !isLoadingMedia &&
+              collection &&
+              sortedMediaSets.length > 0
+            "
             v-model:is-dragging="isDragging"
             :is-empty="sortedMediaItems.length === 0"
             @browse="handleBrowseFiles"
             @drop="handleDrop"
           />
+          <!-- Show empty state for when no media -->
+          <div
+            v-else-if="sortedMediaItems.length === 0 && !isLoadingMedia"
+            class="text-center py-16"
+          >
+            <p :class="theme.textSecondary" class="text-lg mb-4">No media in this set yet</p>
+            <p :class="theme.textTertiary" class="text-sm">
+              Select a set from the sidebar or upload media to get started.
+            </p>
+          </div>
         </div>
       </main>
 
@@ -235,17 +284,27 @@
       />
 
       <DuplicateFilesModal
+        :key="duplicateFileActionsKeyFromWorkflow"
         v-model="showDuplicateFilesModal"
-        :duplicate-file-actions="duplicateFileActions"
+        :duplicate-file-actions="duplicateFileActionsObject"
         :duplicate-files="duplicateFiles"
         :is-uploading="isUploading"
         @cancel="handleCancelDuplicateFiles"
         @confirm="handleConfirmDuplicateFiles"
-        @set-action="duplicateFileActions.set($event[0], $event[1])"
-        @replace-all="
-          duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'replace'))
-        "
-        @skip-all="duplicateFiles.forEach(item => duplicateFileActions.set(item.file.name, 'skip'))"
+        @set-action="handleSetDuplicateAction"
+        @replace-all="handleReplaceAllDuplicates"
+        @skip-all="handleSkipAllDuplicates"
+      />
+
+      <UploadProgressBar
+        v-model="showUploadProgress"
+        :is-uploading="isUploadingFromWorkflow"
+        :overall-progress="overallProgressFromWorkflow"
+        :upload-errors="uploadErrorsFromWorkflow"
+        :upload-progress="uploadProgressFromWorkflow"
+        @cancel="cancelUpload"
+        @close="handleCloseUploadProgress"
+        @retry="handleRetryUpload"
       />
 
       <RenameMediaModal
@@ -305,9 +364,12 @@
         "
         :initial-index="currentViewIndex"
         :placeholder-image="placeholderImage"
+        :collection-id="collection?.id || collection?.uuid"
+        :set-id="selectedSetId || null"
         @close="closeMediaViewer"
         @download="handleDownloadMedia"
         @image-error="handleImageError"
+        @favorite="handleStarMediaFromLightbox"
       />
     </template>
   </CollectionLayout>
@@ -316,7 +378,7 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
@@ -334,6 +396,7 @@ import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
 import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import DuplicateFilesModal from '@/components/organisms/DuplicateFilesModal.vue'
+import UploadProgressBar from '@/components/organisms/UploadProgressBar.vue'
 import RenameMediaModal from '@/components/organisms/RenameMediaModal.vue'
 import TagModal from '@/components/organisms/TagModal.vue'
 import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
@@ -356,7 +419,7 @@ import { fetchDownloadBlob } from '@/utils/media/fetchDownloadBlob'
 import { triggerBrowserDownload } from '@/utils/media/triggerBrowserDownload'
 import { triggerFallbackDownloadLink } from '@/utils/media/triggerFallbackDownloadLink'
 import { copyTextToClipboard } from '@/utils/clipboard/copyTextToClipboard'
-import { useMediaUploadFlow } from '@/composables/useMediaUploadFlow'
+import { useCollectionWorkflow } from '@/composables/useCollectionWorkflow'
 // Media Sets sidebar is store-driven (Option B)
 import { useBulkDeleteFlow } from '@/composables/useBulkDeleteFlow'
 import { useBulkMoveToSetFlow } from '@/composables/useBulkMoveToSetFlow'
@@ -373,8 +436,10 @@ import { useCollectionCoverActions } from '@/composables/useCollectionCoverActio
 import { useMediaViewerFlow } from '@/composables/useMediaViewerFlow'
 import { useMediaSelectionFlow } from '@/composables/useMediaSelectionFlow'
 import { useCollectionLoadFlow } from '@/composables/useCollectionLoadFlow'
-import { useCollectionMediaItemsFlow } from '@/composables/useCollectionMediaItemsFlow'
-import { useMediaListUiPrefs } from '@/composables/useMediaListUiPrefs'
+import { useAsyncPagination } from '@/composables/useAsyncPagination'
+import { useCollectionsApi } from '@/api/collections'
+import Pagination from '@/components/molecules/Pagination.vue'
+import EmptyState from '@/components/molecules/EmptyState.vue'
 import { getMediaFilename } from '@/utils/media/getMediaFilename'
 import { createThumbnailFromDataURL } from '@/utils/media/createThumbnailFromDataURL'
 import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
@@ -417,9 +482,8 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 const selectedWatermark = ref('none')
 const selectedPresetId = ref('none')
 const isDragging = ref(false)
-const viewMode = ref('grid')
-const gridSize = ref('small')
-const showFilename = ref(true)
+// Use gallery store for view settings
+const { viewMode, gridSize, showFilename, sortOrder } = storeToRefs(galleryStore)
 const selectedMediaIds = ref(new Set())
 const showMoveCopyModal = ref(false)
 const moveCopyAction = ref('move')
@@ -436,11 +500,9 @@ const isBulkTagLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
 const isUpdatingSetCounts = ref(false)
-const sortOrder = ref('uploaded-new-old')
 const isSortMenuOpen = ref(false)
 const isViewMenuOpen = ref(false)
 const mediaItems = ref([])
-const isLoadingMedia = ref(false)
 const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
@@ -515,54 +577,16 @@ const gridSizeOptions = [
   { label: 'Large', value: 'large' },
 ]
 
-// Sorted media items based on sort order
-const sortedMediaItems = computed(() => {
-  const items = [...mediaItems.value]
-
-  switch (sortOrder.value) {
-    case 'uploaded-new-old':
-      return items.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    case 'uploaded-old-new':
-      return items.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-    case 'date-taken-new-old':
-      // Assuming dateTaken is stored in description or we use createdAt
-      return items.sort((a, b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0
-        const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0
-        return dateB - dateA
-      })
-    case 'date-taken-old-new':
-      return items.sort((a, b) => {
-        const dateA = a.dateTaken ? new Date(a.dateTaken).getTime() : 0
-        const dateB = b.dateTaken ? new Date(b.dateTaken).getTime() : 0
-        return dateA - dateB
-      })
-    case 'name-a-z':
-      return items.sort((a, b) => {
-        const nameA = (a.title || '').toLowerCase()
-        const nameB = (b.title || '').toLowerCase()
-        return nameA.localeCompare(nameB)
-      })
-    case 'name-z-a':
-      return items.sort((a, b) => {
-        const nameA = (a.title || '').toLowerCase()
-        const nameB = (b.title || '').toLowerCase()
-        return nameB.localeCompare(nameA)
-      })
-    case 'random':
-      return items.sort(() => Math.random() - 0.5)
-    default:
-      return items
+// Filter media items by selected set
+const filteredMediaItems = computed(() => {
+  if (!selectedSetId.value) {
+    return []
   }
+  return mediaItems.value.filter(item => item.setId === selectedSetId.value)
 })
 
-const { handleSortChange, handleGridSizeChange, handleFilenameToggle } = useMediaListUiPrefs({
-  sortOrder,
-  isSortMenuOpen,
-  gridSize,
-  isViewMenuOpen,
-  showFilename,
-})
+// Media items are now sorted/filtered by the backend
+const sortedMediaItems = computed(() => filteredMediaItems.value)
 
 const { closeMediaViewer } = useMediaViewerFlow({
   selectedMedia,
@@ -581,33 +605,254 @@ const openMediaViewer = item => {
   showMediaViewer.value = true
 }
 
-const { updateSetCounts, loadMediaItems } = useCollectionMediaItemsFlow({
-  collection,
-  selectedSetId,
-  mediaItems,
-  isLoadingMedia,
-  isUpdatingSetCounts,
-  mediaApi,
-  galleryStore,
-  mediaSetsSidebar,
-  mediaSets,
-  description,
+// Load media items for the selected set with pagination
+const collectionsApi = useCollectionsApi()
+
+// Convert frontend sort format to backend format
+const convertSortOrder = sortValue => {
+  if (!sortValue) return null
+
+  if (sortValue === 'random') return 'random'
+
+  // Map frontend format to backend format
+  const mapping = {
+    'uploaded-new-old': 'uploaded-desc',
+    'uploaded-old-new': 'uploaded-asc',
+    'date-taken-new-old': 'date-taken-desc',
+    'date-taken-old-new': 'date-taken-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+  }
+
+  return mapping[sortValue] || sortValue
+}
+
+/**
+ * Fetch function for pagination
+ */
+const fetchSetMedia = async params => {
+  if (!collection.value?.id || !selectedSetId.value) {
+    return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
+  }
+
+  const backendSortBy = convertSortOrder(sortOrder.value)
+  const fetchParams = {
+    ...params,
+  }
+
+  if (backendSortBy) {
+    fetchParams.sortBy = backendSortBy
+  }
+
+  const response = await collectionsApi.fetchSetMedia(
+    collection.value.id,
+    selectedSetId.value,
+    fetchParams
+  )
+
+  // Handle both paginated and non-paginated responses
+  if (response && typeof response === 'object' && 'data' in response && 'pagination' in response) {
+    // Paginated response - map items to include setId
+    return {
+      data: Array.isArray(response.data)
+        ? response.data.map(m => ({ ...m, setId: selectedSetId.value }))
+        : [],
+      pagination: response.pagination,
+    }
+  } else if (Array.isArray(response)) {
+    // Non-paginated array response (backward compatibility)
+    const mapped = response.map(m => ({ ...m, setId: selectedSetId.value }))
+    return {
+      data: mapped,
+      pagination: {
+        page: 1,
+        limit: mapped.length,
+        total: mapped.length,
+        totalPages: 1,
+      },
+    }
+  }
+
+  return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
+}
+
+// Use async pagination composable
+const {
+  data: paginatedMediaItems,
+  pagination: mediaPagination,
+  isLoading: isLoadingMediaPagination,
+  fetch: fetchMedia,
+  goToPage: goToMediaPage,
+  resetToFirstPage: resetMediaToFirstPage,
+  setPerPage: setMediaPerPage,
+} = useAsyncPagination(fetchSetMedia, {
+  initialPage: 1,
+  initialPerPage: 10,
+  autoFetch: false, // We'll call fetch manually when collection/set changes
+  watchForReset: [sortOrder], // Reset to page 1 when sort changes
 })
 
-// When user selects a different set, reload the media list to reflect that set.
+// Keep mediaItems in sync with paginated data
+watch(
+  paginatedMediaItems,
+  newItems => {
+    // Only update mediaItems for the current set
+    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
+    mediaItems.value = [...otherMedia, ...newItems]
+  },
+  { immediate: true }
+)
+
+// Load media items for the selected set
+const loadMediaItems = async () => {
+  if (!collection.value?.id || !selectedSetId.value) {
+    return
+  }
+
+  // Use pagination fetch
+  await fetchMedia()
+}
+
+// Update isLoadingMedia to use pagination loading state
+const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
+
+// Update set counts by reloading collection and updating sidebar context
+const updateSetCounts = async () => {
+  if (collection.value?.id) {
+    // Reload collection to get updated media set counts
+    const updatedCollection = await galleryStore.fetchCollection(collection.value.id)
+    if (updatedCollection) {
+      // Update sidebar context with refreshed media sets
+      const mappedMediaSets = updatedCollection.mediaSets?.map(set => ({
+        id: set.id,
+        name: set.name,
+        description: set.description,
+        count: set.count,
+        order: set.order,
+      })) || []
+      mediaSetsSidebar.setContext(collection.value.id, mappedMediaSets)
+    }
+  }
+}
+
+// Sync selectedSetId with route query parameter (like SelectionDetail)
+let isUpdatingFromRoute = false
+watch(selectedSetId, newSetId => {
+  // Don't update route if we're updating from route (to avoid loops)
+  if (isUpdatingFromRoute) return
+
+  if (newSetId) {
+    router.replace({
+      query: {
+        ...route.query,
+        setId: newSetId,
+      },
+    })
+    // Reset pagination to first page and load media for the newly selected set
+    resetMediaToFirstPage()
+  } else {
+    // Remove setId from query if no set is selected
+    const query = { ...route.query }
+    delete query.setId
+    router.replace({ query })
+  }
+})
+
+// Watch for route query changes (browser back/forward, direct URL)
+watch(
+  () => route.query.setId,
+  setIdFromRoute => {
+    if (!setIdFromRoute) {
+      // If setId is removed from route, clear selection
+      if (selectedSetId.value) {
+        isUpdatingFromRoute = true
+        mediaSetsSidebar.handleSelectSet(null)
+        isUpdatingFromRoute = false
+      }
+      return
+    }
+
+    // Only update if different from current selection
+    if (setIdFromRoute !== selectedSetId.value) {
+      // Verify the set exists in mediaSets before selecting
+      if (mediaSets.value.some(s => s.id === setIdFromRoute)) {
+        isUpdatingFromRoute = true
+        mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+        isUpdatingFromRoute = false
+      }
+    }
+  }
+)
+
+// Load media when selectedSetId changes (separate from route sync)
 watch(
   () => selectedSetId.value,
-  async () => {
-    // Clear the previous set's media immediately to avoid showing stale items.
-    mediaItems.value = []
-    await loadMediaItems()
+  async (newSetId) => {
+    if (collection.value?.id && newSetId) {
+      await loadMediaItems()
+    } else {
+      mediaItems.value = []
+    }
   }
+)
+
+// Watch for sortOrder changes to reload media with new sorting
+watch(
+  sortOrder,
+  () => {
+    if (collection.value?.id && selectedSetId.value && !isUploading.value && !isLoadingMedia.value) {
+      loadMediaItems()
+    }
+  },
+  { immediate: false }
 )
 
 // Media item context menu handlers
 const handleOpenMedia = item => {
   // Show in media viewer instead of opening in new tab
   openMediaViewer(item)
+}
+
+const handleStarMediaFromLightbox = async ({ item }) => {
+  // Handle star from MediaLightbox - just call the existing handler
+  // The item already has the updated state from MediaLightbox's optimistic update
+  await handleStarMedia(item)
+}
+
+const handleStarMedia = async item => {
+  if (!item?.id || !collection.value?.id || !selectedSetId.value) {
+    return
+  }
+
+  try {
+    const oldStarredStatus = item.isStarred
+    const result = await collectionsApi.starMedia(collection.value.id, selectedSetId.value, item.id)
+
+    // ApiResponse wraps data in { data: { starred: bool } }
+    const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
+
+    // Directly mutate the property to preserve the object reference
+    const mediaItem = mediaItems.value.find(m => m.id === item.id)
+    if (mediaItem) {
+      mediaItem.isStarred = newStarredStatus
+    }
+
+    // Update in selectedMediaForView if it's there
+    const viewItem = selectedMediaForView.value.find(m => m.id === item.id)
+    if (viewItem) {
+      viewItem.isStarred = newStarredStatus
+    }
+
+    // Also update the item prop directly (it's the same reference from sortedMediaItems)
+    if (item) {
+      item.isStarred = newStarredStatus
+    }
+  } catch (error) {
+    toast.error('Failed to star media', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while starring the media.',
+    })
+  }
 }
 
 const { handleQuickShare, handleDownloadMedia, handleCopyFilenames, handleCopyLink } =
@@ -639,7 +884,7 @@ const handleMoveCopy = item => {
 
 // (moved to useMediaShareDownloadActions)
 
-const { handleSetAsCover, handleCoverImageUpload } = useCollectionCoverActions({
+const { handleSetAsCover } = useCollectionCoverActions({
   collection,
   galleryStore,
   createThumbnailFromDataURL,
@@ -705,16 +950,6 @@ const { handleToggleMediaSelection, handleToggleSelectAll } = useMediaSelectionF
 })
 
 // Bulk action handlers
-const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
-  selectedMediaIds,
-  showBulkDeleteModal,
-  isBulkDeleteLoading,
-  mediaApi,
-  mediaItems,
-  updateSetCounts,
-  description,
-})
-
 const { handleBulkMoveToSet } = useBulkMoveToSetFlow({
   selectedMediaIds,
   collection,
@@ -835,6 +1070,106 @@ const { loadCollection } = useCollectionLoadFlow({
   watermarkStore,
   updateSetCounts,
   loadMediaItems,
+  mediaSetsSidebar,
+})
+
+// Bulk delete handlers (must be defined after loadCollection)
+const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
+  selectedMediaIds,
+  showBulkDeleteModal,
+  isBulkDeleteLoading,
+  mediaApi,
+  deleteMediaFn: async mediaId => {
+    if (!collection.value?.id || !selectedSetId.value) {
+      throw new Error('Collection ID and Set ID are required')
+    }
+    // Delete via collections API
+    await collectionsApi.deleteMedia(collection.value.id, selectedSetId.value, mediaId)
+    // Remove from local array immediately
+    const index = mediaItems.value.findIndex(m => m.id === mediaId)
+    if (index !== -1) {
+      mediaItems.value.splice(index, 1)
+    }
+    // Note: Don't reload collection here during bulk delete - it will be reloaded after all deletions
+  },
+  mediaItems,
+  loadMediaItems,
+  loadCollection,
+  pagination: mediaPagination,
+  goToPage: goToMediaPage,
+  resetToFirstPage: resetMediaToFirstPage,
+  updateSetCounts,
+  description,
+})
+
+// Track if we're loading display settings to prevent saves during load
+const isLoadingDisplaySettings = ref(false)
+
+// Load display settings from collection when it loads (sync with store)
+watch(
+  () => collection.value?.display_settings,
+  displaySettings => {
+    isLoadingDisplaySettings.value = true
+    if (displaySettings) {
+      if (displaySettings.view_mode) {
+        galleryStore.setViewMode(displaySettings.view_mode)
+      }
+      if (displaySettings.grid_size) {
+        galleryStore.setGridSize(displaySettings.grid_size)
+      }
+      if (displaySettings.show_filename !== undefined) {
+        galleryStore.setShowFilename(displaySettings.show_filename)
+      }
+      if (displaySettings.sort_order) {
+        galleryStore.setSortOrder(displaySettings.sort_order)
+      }
+    }
+    // Delay to allow reactive updates to complete
+    setTimeout(() => {
+      isLoadingDisplaySettings.value = false
+    }, 100)
+  },
+  { immediate: true }
+)
+
+// Save display settings to backend when they change
+const isSavingDisplaySettings = ref(false)
+const saveDisplaySettings = async () => {
+  if (!collection.value?.id || isSavingDisplaySettings.value || isLoadingDisplaySettings.value) return
+
+  isSavingDisplaySettings.value = true
+  try {
+    await galleryStore.updateCollection(collection.value.id, {
+      display_settings: {
+        view_mode: galleryStore.viewMode,
+        grid_size: galleryStore.gridSize,
+        show_filename: galleryStore.showFilename,
+        sort_order: galleryStore.sortOrder,
+      },
+    })
+  } catch (error) {
+    // Silently fail - settings will be saved on next change
+  } finally {
+    isSavingDisplaySettings.value = false
+  }
+}
+
+// Debounce saves to avoid too many API calls
+let saveDisplaySettingsTimeout = null
+const debouncedSaveDisplaySettings = () => {
+  if (saveDisplaySettingsTimeout) {
+    clearTimeout(saveDisplaySettingsTimeout)
+  }
+  saveDisplaySettingsTimeout = setTimeout(() => {
+    saveDisplaySettings()
+  }, 500)
+}
+
+watch([viewMode, gridSize, showFilename, sortOrder], () => {
+  // Only save if collection is loaded and we're not loading display settings
+  if (collection.value?.id && !isLoading.value && !isLoadingDisplaySettings.value) {
+    debouncedSaveDisplaySettings()
+  }
 })
 
 const goBack = () => {
@@ -856,9 +1191,26 @@ const {
   itemToDelete,
   openDeleteModal,
   closeDeleteModal,
+  isDeleting,
   mediaItems,
   selectedMediaIds,
   mediaApi,
+  deleteMediaFn: async mediaId => {
+    if (!collection.value?.id || !selectedSetId.value) {
+      throw new Error('Collection ID and Set ID are required')
+    }
+    // Delete via collections API
+    await collectionsApi.deleteMedia(collection.value.id, selectedSetId.value, mediaId)
+    // Remove from local array immediately
+    const index = mediaItems.value.findIndex(m => m.id === mediaId)
+    if (index !== -1) {
+      mediaItems.value.splice(index, 1)
+    }
+    // Reload media after deletion to sync with backend
+    await loadMediaItems()
+    // Reload collection to update media set counts
+    await loadCollection()
+  },
   updateSetCounts,
   handleConfirmDeleteSet: mediaSetsSidebar.confirmDeleteSet,
   description,
@@ -872,29 +1224,284 @@ const handleBrowseFiles = () => {
   triggerFileInputClick(fileInputRef.value)
 }
 
+const isProcessingFiles = ref(false)
+
 const {
-  isUploading,
-  showDuplicateFilesModal,
-  duplicateFiles,
-  filesToUpload,
-  duplicateFileActions,
   processFiles,
-  handleConfirmDuplicateFiles,
-  handleCancelDuplicateFiles,
-  uploadFiles,
-  handleFileSelect,
-  handleDrop,
-} = useMediaUploadFlow({
-  collection,
-  selectedSetId,
-  mediaItems,
-  selectedWatermark,
-  watermarkStore,
-  mediaApi,
-  updateSetCounts,
-  isDragging,
-  description,
+  uploadMediaToSet,
+  handleConfirmDuplicateFiles: confirmDuplicateFiles,
+  handleCancelDuplicateFiles: cancelDuplicateFiles,
+  handleSetDuplicateAction: setDuplicateAction,
+  handleReplaceAllDuplicates: replaceAllDuplicates,
+  handleSkipAllDuplicates: skipAllDuplicates,
+  cancelUpload: cancelUploadFromWorkflow,
+  isUploading: isUploadingFromWorkflow,
+  uploadProgress: uploadProgressFromWorkflow,
+  overallProgress: overallProgressFromWorkflow,
+  uploadErrors: uploadErrorsFromWorkflow,
+  showDuplicateFilesModal: showDuplicateModal,
+  duplicateFiles: duplicateFilesFromWorkflow,
+  duplicateFileActions: duplicateFileActionsFromWorkflow,
+  duplicateFileActionsObject: duplicateFileActionsObjectFromWorkflow,
+  duplicateFileActionsKey: duplicateFileActionsKeyFromWorkflow,
+} = useCollectionWorkflow({
+  collectionId: () => collection.value?.id,
+  loadMediaItems,
+  existingMedia: () => mediaItems.value,
+  onUploadComplete: async results => {
+    if (results?.successful?.length > 0) {
+      try {
+        // Reload media items to show the newly uploaded media
+        await loadMediaItems()
+        // Reload media sets to update counts
+        await mediaSetsSidebar.loadMediaSets()
+      } catch (error) {
+        console.error('Error reloading media after upload:', error)
+      }
+    }
+  },
 })
+
+// Local refs that sync with workflow state (for backward compatibility)
+const isUploading = computed(() => isUploadingFromWorkflow.value)
+const showDuplicateFilesModal = ref(false)
+const duplicateFiles = ref([])
+const duplicateFileActions = ref({})
+const duplicateFileActionsObject = ref({})
+const showUploadProgress = ref(false)
+
+// Watch the reactive object and sync properties - use immediate and deep watch
+watch(
+  () => duplicateFileActionsObjectFromWorkflow,
+  newVal => {
+    if (newVal && typeof newVal === 'object') {
+      const updated = { ...newVal }
+      // Remove properties that no longer exist
+      Object.keys(duplicateFileActionsObject.value).forEach(key => {
+        if (!(key in updated)) {
+          delete duplicateFileActionsObject.value[key]
+        }
+      })
+      Object.assign(duplicateFileActionsObject.value, updated)
+    }
+  },
+  { deep: true, immediate: true }
+)
+
+// Watch upload state to control progress modal
+watch(isUploadingFromWorkflow, async (val, oldVal) => {
+  // Show upload progress modal when upload starts
+  if (val) {
+    showUploadProgress.value = true
+  }
+  if (!val && oldVal) {
+    // Keep modal open if there are failed uploads to allow retry
+    const hasFailedUploads = Object.values(uploadProgressFromWorkflow.value || {}).some(
+      p => p.status === 'failed'
+    )
+    if (!hasFailedUploads) {
+      // Close modal after a delay if no failed uploads
+      setTimeout(() => {
+        showUploadProgress.value = false
+      }, 1000)
+    }
+  }
+})
+
+// Also watch for failed uploads to keep modal open
+watch(
+  () => uploadErrorsFromWorkflow.value?.length || 0,
+  errorCount => {
+    if (errorCount > 0 && !isUploadingFromWorkflow.value) {
+      // Keep modal open if there are errors
+      showUploadProgress.value = true
+    }
+  }
+)
+
+watch(showDuplicateModal, val => {
+  showDuplicateFilesModal.value = val
+})
+
+watch(duplicateFilesFromWorkflow, val => {
+  duplicateFiles.value = val
+})
+
+watch(duplicateFileActionsFromWorkflow, val => {
+  duplicateFileActions.value = val
+})
+
+const handleFileSelect = async event => {
+  const files = Array.from(event.target.files || [])
+  if (files.length === 0) return
+
+  // Prevent multiple simultaneous uploads or file processing
+  if (isUploading.value || isProcessingFiles.value) {
+    event.target.value = ''
+    return
+  }
+
+  // Reset input immediately to prevent duplicate events
+  event.target.value = ''
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+
+  isProcessingFiles.value = true
+  try {
+    const { hasDuplicates, filesToUpload } = await processFiles(files, selectedSetId.value)
+
+    if (hasDuplicates) {
+      // Duplicate modal will be shown by the workflow
+      return
+    }
+
+    if (filesToUpload.length > 0) {
+      await uploadMediaToSet(filesToUpload, selectedSetId.value)
+    }
+  } catch (error) {
+  } finally {
+    isProcessingFiles.value = false
+  }
+}
+
+const handleDragOver = e => {
+  // Only show drag overlay if files are being dragged (not internal drag operations)
+  if (e.dataTransfer?.types?.includes('Files')) {
+    e.preventDefault()
+    if (selectedSetId.value && !isUploading.value && !isProcessingFiles.value) {
+      isDragging.value = true
+    }
+  }
+}
+
+const handleDragLeave = e => {
+  // Only hide drag overlay if we're leaving the main element (not just moving to a child)
+  if (!e.currentTarget.contains(e.relatedTarget)) {
+    isDragging.value = false
+  }
+}
+
+const handleDrop = async e => {
+  e.preventDefault()
+  isDragging.value = false
+
+  const files = e.dataTransfer?.files
+  if (!files || files.length === 0) return
+
+  // Prevent multiple simultaneous uploads or file processing
+  if (isUploading.value || isProcessingFiles.value) {
+    return
+  }
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+
+  isProcessingFiles.value = true
+  try {
+    const fileArray = Array.from(files)
+    const { hasDuplicates, filesToUpload } = await processFiles(fileArray, selectedSetId.value)
+
+    if (hasDuplicates) {
+      // Duplicate modal will be shown by the workflow
+      return
+    }
+
+    if (filesToUpload.length > 0) {
+      await uploadMediaToSet(filesToUpload, selectedSetId.value)
+    }
+  } catch (error) {
+    toast.error('File processing failed', {
+      description: getErrorMessage(error, 'An error occurred while processing files.'),
+    })
+  } finally {
+    isProcessingFiles.value = false
+  }
+}
+
+const handleConfirmDuplicateFiles = async () => {
+  // Prevent multiple simultaneous uploads
+  if (isUploading.value || isProcessingFiles.value) {
+    return
+  }
+
+  if (!selectedSetId.value) {
+    toast.error('No set selected', {
+      description: 'Please select a set from the sidebar first.',
+    })
+    return
+  }
+  await confirmDuplicateFiles(selectedSetId.value)
+}
+
+const handleCancelDuplicateFiles = () => {
+  cancelDuplicateFiles()
+}
+
+const handleSetDuplicateAction = (fileName, action) => {
+  setDuplicateAction(fileName, action)
+}
+
+const handleReplaceAllDuplicates = () => {
+  replaceAllDuplicates()
+}
+
+const handleSkipAllDuplicates = () => {
+  skipAllDuplicates()
+}
+
+const cancelUpload = async () => {
+  await cancelUploadFromWorkflow()
+  showUploadProgress.value = false
+  // Media will be reloaded by cancelUploadFromWorkflow if loadMediaItems is provided
+}
+
+const handleCloseUploadProgress = () => {
+  showUploadProgress.value = false
+  // Dismiss the progress toast when modal is closed
+  toast.dismiss('upload-progress')
+}
+
+const handleRetryUpload = async (fileId, retryFn) => {
+  if (!retryFn || typeof retryFn !== 'function') {
+    toast.error('Retry failed', {
+      description: 'Invalid retry function.',
+    })
+    return
+  }
+
+  if (!collection.value?.id || !selectedSetId.value) {
+    toast.error('Invalid context', {
+      description: 'Collection or set not found.',
+    })
+    return
+  }
+
+  try {
+    if (uploadProgressFromWorkflow.value[fileId]) {
+      uploadProgressFromWorkflow.value[fileId] = {
+        ...uploadProgressFromWorkflow.value[fileId],
+        status: 'uploading',
+        error: null,
+      }
+    }
+
+    // Call the retry function which will re-upload the file
+    await retryFn()
+  } catch (error) {
+    toast.error('Retry failed', {
+      description: error?.message || 'Failed to retry upload.',
+    })
+  }
+}
 
 // (moved to useMediaShareDownloadActions)
 

@@ -29,22 +29,35 @@
         </p>
       </div>
 
-      <div class="space-y-8 max-w-3xl">
+      <!-- Loading State -->
+      <div v-if="presetStore.isLoading || isLoadingData || !currentPreset" class="space-y-8">
+        <div v-for="i in 3" :key="i" :class="[theme.borderSecondary, theme.bgCard]" class="space-y-4 p-6 rounded-2xl border-2">
+          <div class="space-y-2">
+            <Skeleton class="h-5 w-32" />
+            <Skeleton class="h-4 w-64" />
+          </div>
+          <Skeleton class="h-12 w-full" />
+        </div>
+      </div>
+
+      <div v-else class="space-y-8 max-w-3xl">
         <!-- Collection Password Section -->
         <div
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.collectionPassword ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.collectionPassword
+              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Collection Password</h3>
               <p :class="theme.textSecondary" class="text-sm leading-relaxed">
-                If enabled, all collections created from this collection preset will have a secure
-                password set automatically at the time of their creation.
+                If enabled, all collections created from this preset will have password protection enabled.
+                The actual password will be set when creating each collection.
               </p>
             </div>
             <div class="flex-shrink-0 pt-1">
@@ -63,9 +76,11 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.showOnHomepage ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.showOnHomepage
+              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -74,7 +89,7 @@
                 Show your collections on your Homepage. Manage Homepage in
                 <router-link
                   :to="{ name: 'homepageConfig' }"
-                  class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
                 >
                   Settings
                 </router-link>
@@ -159,6 +174,7 @@ import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
+import { Skeleton } from '@/components/shadcn/skeleton'
 
 const route = useRoute()
 const router = useRouter()
@@ -169,9 +185,9 @@ const presetStore = usePresetStore()
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return undefined
 })
@@ -185,7 +201,7 @@ const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
 
 // Default privacy values - declare these first
-const defaultCollectionPassword = ''
+const defaultCollectionPassword = false
 const defaultShowOnHomepage = false
 
 // Privacy form data
@@ -209,12 +225,12 @@ const hasUnsavedChanges = computed(() => {
 
 // Load preset data
 const loadPresetData = () => {
-  if (currentPreset.value) {
+  if (currentPreset.value && !isLoadingData.value) {
     isLoadingData.value = true
     const privacyData = currentPreset.value.privacy || {}
     const loadedData = {
       collectionPassword:
-        privacyData.collectionPassword !== undefined ? privacyData.collectionPassword : '',
+        privacyData.collectionPassword !== undefined ? privacyData.collectionPassword : false,
       showOnHomepage: privacyData.showOnHomepage !== undefined ? privacyData.showOnHomepage : false,
     }
     Object.assign(formData, loadedData)
@@ -224,11 +240,29 @@ const loadPresetData = () => {
   }
 }
 
-// Watch for route changes to reload preset data
+// Watch for route changes to load preset and reload data
 watch(
-  () => route.params.name,
-  () => {
-    loadPresetData()
+  () => route.params.id,
+  async (idParam) => {
+    if (idParam) {
+      // Check if preset exists in store
+      let preset = presetStore.getPresetById(idParam)
+      
+      // If not found, fetch only this single preset
+      if (!preset) {
+        try {
+          preset = await presetStore.loadPreset(idParam)
+        } catch (error) {
+          // Silently fail
+          console.error('Failed to load preset:', error)
+        }
+      }
+      
+      // Load preset data once we have it
+      if (preset) {
+        loadPresetData()
+      }
+    }
   },
   { immediate: true }
 )
@@ -237,9 +271,7 @@ watch(
 let keyDownHandler = null
 
 // Initialize on mount
-onMounted(() => {
-  loadPresetData()
-
+onMounted(async () => {
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -296,12 +328,10 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetPrivacy()
     if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+      if (presetId.value) {
         router.push({
           name: 'presetDesign',
-          params: { name: urlFriendlyName },
+          params: { id: presetId.value },
         })
       }
     }
@@ -315,12 +345,10 @@ const handleNext = async () => {
   try {
     const success = await savePresetPrivacy()
     if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+      if (presetId.value) {
         router.push({
           name: 'presetDownload',
-          params: { name: urlFriendlyName },
+          params: { id: presetId.value },
         })
       }
     }

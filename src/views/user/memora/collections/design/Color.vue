@@ -279,6 +279,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { toast } from '@/utils/toast'
+import { getColorPalettesArray } from '@/utils/colors'
 
 const description = ''
 
@@ -344,40 +345,11 @@ const previewDesignConfig = computed(() => {
     }
   }
 
-  const coverDesign =
-    collectionInStore.coverDesign ||
-    (collectionInStore.design
-      ? {
-          cover: collectionInStore.design.cover,
-          coverFocalPoint: collectionInStore.design.coverFocalPoint,
-        }
-      : {})
-  const typographyDesign =
-    collectionInStore.typographyDesign ||
-    (collectionInStore.design
-      ? {
-          fontFamily: collectionInStore.design.fontFamily,
-          fontStyle: collectionInStore.design.fontStyle,
-        }
-      : {})
-  const colorDesign =
-    collectionInStore.colorDesign ||
-    (collectionInStore.design
-      ? {
-          colorPalette: collectionInStore.design.colorPalette,
-        }
-      : {})
-  const gridDesign =
-    collectionInStore.gridDesign ||
-    (collectionInStore.design
-      ? {
-          gridStyle: collectionInStore.design.gridStyle,
-          gridColumns: collectionInStore.design.gridColumns,
-          thumbnailSize: collectionInStore.design.thumbnailSize,
-          gridSpacing: collectionInStore.design.gridSpacing,
-          navigationStyle: collectionInStore.design.navigationStyle,
-        }
-      : {})
+  // Use organized design structure from API response
+  const coverDesign = collectionInStore.design?.cover || collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.design?.typography || collectionInStore.typographyDesign || {}
+  const colorDesign = collectionInStore.design?.color || collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.design?.grid || collectionInStore.gridDesign || {}
 
   return {
     ...defaults,
@@ -399,7 +371,10 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      collectionInStore.colorDesign = { ...newData }
+      if (!collectionInStore.design) {
+        collectionInStore.design = {}
+      }
+      collectionInStore.design.color = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -408,26 +383,7 @@ watch(
 )
 
 // Color palettes
-const colorPalettes = [
-  { id: 'light', label: 'Light', colors: ['#E5E7EB', '#1F2937', '#000000'] },
-  { id: 'gold', label: 'Gold', colors: ['#F59E0B', '#78350F', '#000000'] },
-  { id: 'rose', label: 'Rose', colors: ['#EC4899', '#831843', '#000000'] },
-  { id: 'terracotta', label: 'Terracotta', colors: ['#EA580C', '#7C2D12', '#000000'] },
-  { id: 'lavender', label: 'Lavender', colors: ['#A855F7', '#581C87', '#FFFFFF'] },
-  { id: 'olive', label: 'Olive', colors: ['#84CC16', '#365314', '#000000'] },
-  { id: 'agave', label: 'Agave', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
-  { id: 'sea', label: 'Sea', colors: ['#0EA5E9', '#0C4A6E', '#FFFFFF'] },
-  { id: 'coral', label: 'Coral', colors: ['#F43F5E', '#9F1239', '#FFFFFF'] },
-  { id: 'sage', label: 'Sage', colors: ['#22C55E', '#14532D', '#000000'] },
-  { id: 'peach', label: 'Peach', colors: ['#FB923C', '#7C2D12', '#000000'] },
-  { id: 'mint', label: 'Mint', colors: ['#14B8A6', '#134E4A', '#FFFFFF'] },
-  { id: 'slate', label: 'Slate', colors: ['#64748B', '#0F172A', '#FFFFFF'] },
-  { id: 'indigo', label: 'Indigo', colors: ['#6366F1', '#312E81', '#FFFFFF'] },
-  { id: 'emerald', label: 'Emerald', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
-  { id: 'cyan', label: 'Cyan', colors: ['#06B6D4', '#164E63', '#FFFFFF'] },
-  { id: 'violet', label: 'Violet', colors: ['#8B5CF6', '#4C1D95', '#FFFFFF'] },
-  { id: 'dark', label: 'Dark', colors: ['#374151', '#F9FAFB', '#FFFFFF'] },
-]
+const colorPalettes = getColorPalettesArray()
 
 // Load collection data
 const loadCollectionData = async () => {
@@ -446,8 +402,9 @@ const loadCollectionData = async () => {
 
     collection.value = collectionData
 
-    // Load color design data
+    // Load color design data - use organized design.color structure from API
     const colorDesign =
+      collectionData.design?.color ||
       collectionData.colorDesign ||
       (collectionData.design
         ? {
@@ -639,3 +596,5 @@ const mockPreviewMedia = computed(() => {
   background: rgba(85, 85, 105, 0.6);
 }
 </style>
+
+

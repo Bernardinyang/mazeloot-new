@@ -4,94 +4,48 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed, watch } from 'vue'
-import { storage } from '@/utils/storage'
-import { generateUUID } from '@/utils/uuid'
-
-const PRESETS_STORAGE_KEY = 'mazeloot_presets'
-
-/**
- * Initialize mock presets in localStorage if not exists
- */
-const initializeMockPresets = () => {
-  const stored = storage.get(PRESETS_STORAGE_KEY)
-  if (stored && stored.length > 0) {
-    return stored
-  }
-
-  const defaultPresets = [
-    {
-      id: generateUUID(),
-      name: 'Wedding preset',
-      isSelected: false,
-      collectionTags: 'wedding, ceremony',
-      photoSets: ['Highlights', 'Ceremony', 'Reception'],
-      defaultWatermark: 'none',
-      emailRegistration: false,
-      galleryAssist: false,
-      slideshow: true,
-      socialSharing: true,
-      language: 'en',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: generateUUID(),
-      name: 'Demo',
-      isSelected: true,
-      collectionTags: '',
-      photoSets: ['Highlights'],
-      defaultWatermark: 'none',
-      emailRegistration: false,
-      galleryAssist: false,
-      slideshow: true,
-      socialSharing: true,
-      language: 'en',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-    {
-      id: generateUUID(),
-      name: 'test',
-      isSelected: false,
-      collectionTags: '',
-      photoSets: [],
-      defaultWatermark: 'none',
-      emailRegistration: false,
-      galleryAssist: false,
-      slideshow: false,
-      socialSharing: false,
-      language: 'en',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    },
-  ]
-
-  storage.set(PRESETS_STORAGE_KEY, defaultPresets)
-  return defaultPresets
-}
+import { ref, computed } from 'vue'
+import { usePresetsApi } from '@/api/presets'
 
 export const usePresetStore = defineStore('preset', () => {
-  const presets = ref(initializeMockPresets())
+  const presets = ref([])
   const isLoading = ref(false)
   const error = ref(null)
   const currentPresetId = ref(null)
+  const presetsApi = usePresetsApi()
 
   /**
-   * Persist presets to localStorage
+   * Load presets from API
    */
-  const persistPresets = () => {
-    storage.set(PRESETS_STORAGE_KEY, presets.value)
-  }
+  const loadPresets = async (params = {}) => {
+    isLoading.value = true
+    error.value = null
 
-  // Watch presets and persist to localStorage
-  watch(
-    presets,
-    () => {
-      persistPresets()
-    },
-    { deep: true }
-  )
+    try {
+      // fetchPresets returns response.data
+      // Laravel's JsonResource::collection() wraps data in a 'data' key
+      // ApiResponse wraps it again, so we need to extract nested data
+      const response = await presetsApi.fetchPresets(params)
+      let data = response
+      
+      // Handle nested data structure from Laravel resource collection
+      if (data && typeof data === 'object' && !Array.isArray(data) && data.data) {
+        data = data.data
+      }
+      
+      // Ensure it's an array and filter out invalid entries
+      const validPresets = Array.isArray(data) ? data.filter(p => p != null && (p.id || p.uuid)) : []
+      presets.value = validPresets
+      return validPresets
+    } catch (err) {
+      error.value = err.message || 'Failed to load presets'
+      console.error('Failed to load presets:', err)
+      presets.value = []
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
 
   /**
    * Get current preset
@@ -112,8 +66,46 @@ export const usePresetStore = defineStore('preset', () => {
    * Get preset by name (URL-friendly)
    */
   const getPresetByName = name => {
+    if (!name) return null
     const normalizedName = name.toLowerCase().replace(/\s+/g, '-')
-    return presets.value.find(p => p.name.toLowerCase().replace(/\s+/g, '-') === normalizedName)
+    return presets.value.find(p => p && p.name && p.name.toLowerCase().replace(/\s+/g, '-') === normalizedName) || null
+  }
+
+  /**
+   * Load a single preset by ID or name
+   */
+  const loadPreset = async (idOrName) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await presetsApi.fetchPreset(idOrName)
+      let preset = response
+      
+      // Handle nested data structure from Laravel resource
+      if (preset && typeof preset === 'object' && !Array.isArray(preset) && preset.data) {
+        preset = preset.data
+      }
+      
+      // Ensure it's a valid preset object
+      if (preset && (preset.id || preset.uuid)) {
+        // Update or add preset to the array
+        const presetIndex = presets.value.findIndex(p => p && (p.id === preset.id || p.id === preset.uuid || p.uuid === preset.id || p.uuid === preset.uuid))
+        if (presetIndex !== -1) {
+          presets.value[presetIndex] = preset
+        } else {
+          presets.value.push(preset)
+        }
+        return preset
+      }
+      return null
+    } catch (err) {
+      error.value = err.message || 'Failed to load preset'
+      console.error('Failed to load preset:', err)
+      throw err
+    } finally {
+      isLoading.value = false
+    }
   }
 
   /**
@@ -124,25 +116,13 @@ export const usePresetStore = defineStore('preset', () => {
     error.value = null
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API call
-
-      const newPreset = {
-        id: generateUUID(),
-        name: data.name,
-        isSelected: false,
-        collectionTags: data.collectionTags || '',
-        photoSets: data.photoSets || [],
-        defaultWatermark: data.defaultWatermark || 'none',
-        emailRegistration: data.emailRegistration ?? false,
-        galleryAssist: data.galleryAssist ?? false,
-        slideshow: data.slideshow ?? true,
-        socialSharing: data.socialSharing ?? true,
-        language: data.language || 'en',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+      const response = await presetsApi.createPreset(data)
+      // API returns the preset directly (already extracted by fetchPreset)
+      const newPreset = response.data || response
+      // Ensure it's a valid preset object
+      if (newPreset && (newPreset.id || newPreset.uuid)) {
+        presets.value.push(newPreset)
       }
-
-      presets.value.push(newPreset)
       return newPreset
     } catch (err) {
       error.value = err.message || 'Failed to create preset'
@@ -160,23 +140,24 @@ export const usePresetStore = defineStore('preset', () => {
     error.value = null
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 500)) // Simulate API call
-
-      const presetIndex = presets.value.findIndex(p => p.id === id)
-      if (presetIndex === -1) {
-        throw new Error('Preset not found')
+      const response = await presetsApi.updatePreset(id, data)
+      // Handle nested data structure from Laravel resource
+      let updatedPreset = response
+      if (updatedPreset && typeof updatedPreset === 'object' && !Array.isArray(updatedPreset) && updatedPreset.data) {
+        updatedPreset = updatedPreset.data
       }
-
-      const updatedPreset = {
-        ...presets.value[presetIndex],
-        ...data,
-        updatedAt: new Date().toISOString(),
+      
+      const presetIndex = presets.value.findIndex(p => p && (p.id === id || p.uuid === id))
+      if (presetIndex !== -1 && updatedPreset) {
+        presets.value[presetIndex] = updatedPreset
+      } else if (updatedPreset) {
+        // If not found in array, add it
+        presets.value.push(updatedPreset)
       }
-
-      presets.value[presetIndex] = updatedPreset
       return updatedPreset
     } catch (err) {
       error.value = err.message || 'Failed to update preset'
+      console.error('Failed to update preset:', err)
       throw err
     } finally {
       isLoading.value = false
@@ -191,14 +172,11 @@ export const usePresetStore = defineStore('preset', () => {
     error.value = null
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 300)) // Simulate API call
-
+      await presetsApi.deletePreset(id)
       const index = presets.value.findIndex(p => p.id === id)
-      if (index === -1) {
-        throw new Error('Preset not found')
+      if (index !== -1) {
+        presets.value.splice(index, 1)
       }
-
-      presets.value.splice(index, 1)
 
       // Clear current preset if it was deleted
       if (currentPresetId.value === id) {
@@ -220,22 +198,8 @@ export const usePresetStore = defineStore('preset', () => {
     error.value = null
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 300)) // Simulate API call
-
-      const preset = presets.value.find(p => p.id === id)
-      if (!preset) {
-        throw new Error('Preset not found')
-      }
-
-      const duplicatedPreset = {
-        ...preset,
-        id: generateUUID(),
-        name: `${preset.name} (Copy)`,
-        isSelected: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
+      const response = await presetsApi.duplicatePreset(id)
+      const duplicatedPreset = response.data
       presets.value.push(duplicatedPreset)
       return duplicatedPreset
     } catch (err) {
@@ -262,12 +226,69 @@ export const usePresetStore = defineStore('preset', () => {
     })
   }
 
+  /**
+   * Set preset as default
+   */
+  const setDefaultPreset = async id => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const response = await presetsApi.setDefaultPreset(id)
+      const updatedPreset = response.data
+
+      // Update all presets: unset others, set this one
+      presets.value.forEach(p => {
+        p.isSelected = p.id === id
+      })
+
+      // Update the preset in the array
+      const presetIndex = presets.value.findIndex(p => p.id === id)
+      if (presetIndex !== -1) {
+        presets.value[presetIndex] = updatedPreset
+      }
+
+      return updatedPreset
+    } catch (err) {
+      error.value = err.message || 'Failed to set default preset'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
+   * Get default preset
+   */
+  const defaultPreset = computed(() => {
+    return presets.value.find(p => p.isSelected) || null
+  })
+
+  /**
+   * Reorder presets
+   */
+  const reorderPresets = async presetIds => {
+    isLoading.value = true
+    error.value = null
+    try {
+      await presetsApi.reorderPresets(presetIds)
+    } catch (err) {
+      error.value = err.message || 'Failed to reorder presets'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     presets,
     currentPreset,
+    defaultPreset,
     isLoading,
     error,
     currentPresetId,
+    loadPresets,
+    loadPreset,
     getPresetById,
     getPresetByName,
     createPreset,
@@ -276,5 +297,7 @@ export const usePresetStore = defineStore('preset', () => {
     duplicatePreset,
     setCurrentPreset,
     setSelectedPreset,
+    setDefaultPreset,
+    reorderPresets,
   }
 })

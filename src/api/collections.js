@@ -69,47 +69,70 @@ const getImageUrl = (source, index) => {
 }
 
 /**
- * Add default settings to a collection
+ * Add default settings to a collection and normalize from organized structure
  */
-const addDefaultSettings = collection => {
+export const addDefaultSettings = collection => {
   // Only add settings to non-folder collections
   if (collection.isFolder) {
     return collection
   }
 
+  const settings = collection.settings || {}
+  const general = settings.general || {}
+  const privacy = settings.privacy || {}
+  const download = settings.download || {}
+  const favorite = settings.favorite || {}
+  const design = settings.design || {}
+
   return {
     ...collection,
+    // Keep the organized design structure
+    design: design,
+    // Extract design settings from organized structure for backward compatibility
+    coverDesign: design.cover || collection.coverDesign || {},
+    gridDesign: design.grid || collection.gridDesign || {},
+    typographyDesign: design.typography || collection.typographyDesign || {},
+    colorDesign: design.color || collection.colorDesign || {},
+    // Extract settings from organized structure for backward compatibility
     // Settings - General
-    url: collection.url || '',
-    tags: collection.tags || [],
-    emailRegistration: collection.emailRegistration ?? false,
-    galleryAssist: collection.galleryAssist ?? false,
-    slideshow: collection.slideshow ?? true,
-    slideshowOptions: collection.slideshowOptions || [],
-    socialSharing: collection.socialSharing ?? true,
-    language: collection.language || 'en',
-    // Settings - Privacy
-    showOnHomepage: collection.showOnHomepage ?? true,
-    clientExclusiveAccess: collection.clientExclusiveAccess ?? false,
-    clientPrivatePassword: collection.clientPrivatePassword || null,
-    allowClientsMarkPrivate: collection.allowClientsMarkPrivate ?? false,
-    clientOnlySets: collection.clientOnlySets || [],
+    url: general.url || collection.url || '',
+    tags: general.tags || collection.tags || [],
+    emailRegistration: general.emailRegistration ?? collection.emailRegistration ?? false,
+    galleryAssist: general.galleryAssist ?? collection.galleryAssist ?? false,
+    slideshow: general.slideshow ?? collection.slideshow ?? true,
+    slideshowSpeed: general.slideshowSpeed || collection.slideshowSpeed || 'regular',
+    slideshowAutoLoop: general.slideshowAutoLoop ?? collection.slideshowAutoLoop ?? true,
+    socialSharing: general.socialSharing ?? collection.socialSharing ?? true,
+    language: general.language || collection.language || 'en',
+    autoExpiryDate: general.autoExpiryDate ?? collection.autoExpiryDate ?? null,
+    expiryDate: general.expiryDate ?? collection.expiryDate ?? null,
+    expiryDays: general.expiryDays ?? collection.expiryDays ?? null,
+    // Settings - Privacy (collectionPassword is boolean, password is string)
+    password: privacy.password ?? (privacy.collectionPassword ? (collection.password ?? '') : null) ?? collection.password ?? null,
+    showOnHomepage: privacy.showOnHomepage ?? collection.showOnHomepage ?? true,
+    clientExclusiveAccess: privacy.clientExclusiveAccess ?? collection.clientExclusiveAccess ?? false,
+    clientPrivatePassword: privacy.clientPrivatePassword ?? collection.clientPrivatePassword ?? null,
+    allowClientsMarkPrivate: privacy.allowClientsMarkPrivate ?? collection.allowClientsMarkPrivate ?? false,
+    clientOnlySets: privacy.clientOnlySets ?? collection.clientOnlySets ?? [],
     // Settings - Download
-    downloadEnabled: collection.downloadEnabled ?? true,
-    photoDownload: collection.photoDownload ?? true,
-    highResolutionEnabled: collection.highResolutionEnabled ?? true,
-    highResolutionSize: collection.highResolutionSize || '3600px',
-    webSizeEnabled: collection.webSizeEnabled ?? true,
-    webSize: collection.webSize || '1024px',
-    downloadPinEnabled: collection.downloadPinEnabled ?? false,
-    limitDownloads: collection.limitDownloads ?? false,
-    downloadLimit: collection.downloadLimit || 1,
-    restrictToContacts: collection.restrictToContacts ?? false,
-    downloadableSets: collection.downloadableSets || [],
+    downloadEnabled: favorite.enabled ?? collection.downloadEnabled ?? true,
+    photoDownload: download.photoDownload ?? collection.photoDownload ?? true,
+    highResolutionEnabled: download.highResolution?.enabled ?? collection.highResolutionEnabled ?? true,
+    highResolutionSize: download.highResolution?.size || collection.highResolutionSize || '3600px',
+    webSizeEnabled: download.webSize?.enabled ?? collection.webSizeEnabled ?? true,
+    webSize: download.webSize?.size || collection.webSize || '1024px',
+    videoDownload: download.videoDownload ?? collection.videoDownload ?? false,
+    downloadPin: typeof download.downloadPin === 'string' ? download.downloadPin : (download.downloadPin ? collection.downloadPin : null),
+    downloadPinEnabled: download.downloadPinEnabled ?? collection.downloadPinEnabled ?? false,
+    limitDownloads: download.limitDownloads ?? collection.limitDownloads ?? false,
+    downloadLimit: download.downloadLimit ?? collection.downloadLimit ?? 1,
+    restrictToContacts: download.restrictToContacts ?? collection.restrictToContacts ?? false,
+    allowedDownloadEmails: download.allowedDownloadEmails ?? collection.allowedDownloadEmails ?? null,
+    downloadableSets: download.downloadableSets ?? collection.downloadableSets ?? [],
     // Settings - Favorite
-    favoriteEnabled: collection.favoriteEnabled ?? true,
-    favoritePhotos: collection.favoritePhotos ?? true,
-    favoriteNotes: collection.favoriteNotes ?? true,
+    favoriteEnabled: favorite.enabled ?? collection.favoriteEnabled ?? true,
+    favoritePhotos: favorite.photos ?? collection.favoritePhotos ?? true,
+    favoriteNotes: favorite.notes ?? collection.favoriteNotes ?? true,
   }
 }
 
@@ -117,7 +140,7 @@ const addDefaultSettings = collection => {
  * Initialize mock data in localStorage if not exists
  * This data structure matches what the backend will send
  */
-const initializeMockData = () => {
+const initializeMockData = async () => {
   const existing = storage.get(COLLECTIONS_STORAGE_KEY)
   if (existing && existing.length > 0) {
     // Add default settings to existing collections that don't have them
@@ -134,9 +157,18 @@ const initializeMockData = () => {
   const expiringSoon = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000) // 5 days from now
   const expiredDate = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000) // 10 days ago
 
-  const PRESETS_STORAGE_KEY = 'mazeloot_presets'
-  const presets = storage.get(PRESETS_STORAGE_KEY) || []
-  const presetIds = presets.length > 0 ? presets.map(p => p.id) : []
+  // Get presets from store instead of localStorage
+  const { usePresetStore } = await import('@/stores/preset')
+  const presetStore = usePresetStore()
+  // Ensure presets are loaded
+  if (presetStore.presets.length === 0) {
+    try {
+      await presetStore.loadPresets()
+    } catch (error) {
+      // Silently fail - will use empty array
+    }
+  }
+  const presetIds = presetStore.presets.length > 0 ? presetStore.presets.map(p => p.id) : []
   const firstPresetId = presetIds.length > 0 ? presetIds[0] : undefined
   const secondPresetId = presetIds.length > 1 ? presetIds[1] : undefined
 
@@ -504,13 +536,13 @@ const initializeMockData = () => {
 /**
  * Get all collections from localStorage
  */
-const getAllCollections = () => {
-  const collections = storage.get(COLLECTIONS_STORAGE_KEY)
-  if (!collections || collections.length === 0) {
-    return initializeMockData()
+  const getAllCollections = async () => {
+    const collections = storage.get(COLLECTIONS_STORAGE_KEY)
+    if (!collections || collections.length === 0) {
+      return await initializeMockData()
+    }
+    return collections
   }
-  return collections
-}
 
 /**
  * Save collections to localStorage
@@ -536,18 +568,50 @@ export function useCollectionsApi() {
    * Fetch all collections
    */
   const fetchCollections = async params => {
-    // Simulate API delay
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+
+        if (params?.status && params.status !== 'all') {
+          queryParams.append('status', params.status)
+        }
+
+        if (params?.search && params.search.trim()) {
+          queryParams.append('search', params.search.trim())
+        }
+
+        if (params?.starred !== undefined && params.starred !== null) {
+          queryParams.append('starred', params.starred.toString())
+        }
+
+        if (params?.page) {
+          queryParams.append('page', params.page.toString())
+        }
+
+        if (params?.perPage) {
+          queryParams.append('per_page', params.perPage.toString())
+        }
+
+        const endpoint = `/v1/memora/collections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.get(endpoint)
+
+        // Backend returns { data: { data: [...], pagination: {...} }, status: 200 }
+        // API client extracts data.data, so response.data is { data: [...], pagination: {...} }
+        const result = response.data
+        if (result?.data && Array.isArray(result.data)) {
+          result.data = result.data.map(collection => addDefaultSettings(collection))
+        }
+        return result
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
-    let collections = getAllCollections()
-
-    // Filter by parentId first
-    if (params?.parentId !== undefined) {
-      collections = collections.filter(c => c.parentId === params.parentId)
-    } else {
-      // If no parentId specified, show only root-level items
-      collections = collections.filter(c => c.parentId === null)
-    }
+    let collections = await getAllCollections()
 
     // Apply other filters if provided
     if (params?.status && params.status !== 'all') {
@@ -574,35 +638,75 @@ export function useCollectionsApi() {
    * Fetch single collection by ID
    */
   const fetchCollection = async id => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const response = await apiClient.get(`/v1/memora/collections/${id}`)
+        return addDefaultSettings(response.data)
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const collection = collections.find(c => c.id === id)
 
     if (!collection) {
       throw new Error(`Collection not found: ${id}`)
     }
 
-    return collection
+    return addDefaultSettings(collection)
   }
 
   /**
    * Create new collection
    */
   const createCollection = async data => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+        if (data.projectId) {
+          queryParams.append('projectId', data.projectId)
+        }
+
+        const payload = {
+          name: data.name,
+          description: data.description || null,
+          status: data.status || 'draft',
+          presetId: data.presetId || null,
+          watermarkId: data.watermarkId || null,
+          settings: data.settings || null,
+          color: data.color || null,
+          eventDate: data.eventDate
+            ? typeof data.eventDate === 'string'
+              ? data.eventDate
+              : data.eventDate.toISOString()
+            : null,
+        }
+
+        const endpoint = `/v1/memora/collections${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.post(endpoint, payload)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(1000)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
 
     let preset = null
     if (data.presetId) {
-      const PRESETS_STORAGE_KEY = 'mazeloot_presets'
-      const presets = storage.get(PRESETS_STORAGE_KEY) || []
-      preset = presets.find(p => p.id === data.presetId)
-
-      // Apply preset to collection
-      if (preset) {
-      }
+      // Use preset store to get preset
+      const { usePresetStore } = await import('@/stores/preset')
+      const presetStore = usePresetStore()
+      preset = presetStore.getPresetById(data.presetId)
     }
 
     // If projectId is provided, inherit mediaSets from project
@@ -633,10 +737,10 @@ export function useCollectionsApi() {
       }
     }
 
-    // Determine watermarkId: use provided one, or preset's defaultWatermark, or undefined
+    // Determine watermarkId: use provided one, or preset's defaultWatermarkId, or undefined
     let watermarkId = data.watermarkId
-    if (!watermarkId && preset && preset.defaultWatermark && preset.defaultWatermark !== 'none') {
-      watermarkId = preset.defaultWatermark
+    if (!watermarkId && preset && preset.defaultWatermarkId && preset.defaultWatermarkId !== 'none') {
+      watermarkId = preset.defaultWatermarkId
     }
 
     // Parse collection tags from preset
@@ -691,10 +795,10 @@ export function useCollectionsApi() {
         projectSettings = project.settings
         // Inherit presetId and watermarkId from project if not provided
         if (!data.presetId && projectSettings.presetId) {
-          preset = null // Will be fetched below
-          const PRESETS_STORAGE_KEY = 'mazeloot_presets'
-          const presets = storage.get(PRESETS_STORAGE_KEY) || []
-          preset = presets.find(p => p.id === projectSettings.presetId)
+          // Use preset store to get preset
+          const { usePresetStore } = await import('@/stores/preset')
+          const presetStore = usePresetStore()
+          preset = presetStore.getPresetById(projectSettings.presetId)
         }
         if (!watermarkId && projectSettings.watermarkId) {
           watermarkId = projectSettings.watermarkId
@@ -733,15 +837,13 @@ export function useCollectionsApi() {
           design: { ...preset.design },
           // Split design into separate properties
           coverDesign: {
-            cover: preset.design.cover,
-            coverFocalPoint: preset.design.coverFocalPoint,
-            joyCoverTitle: preset.design.joyCoverTitle,
-            joyCoverAvatar: preset.design.joyCoverAvatar,
-            joyCoverShowDate: preset.design.joyCoverShowDate,
-            joyCoverShowName: preset.design.joyCoverShowName,
-            joyCoverButtonText: preset.design.joyCoverButtonText,
-            joyCoverShowButton: preset.design.joyCoverShowButton,
-            joyCoverBackgroundPattern: preset.design.joyCoverBackgroundPattern,
+            joyCoverTitle: preset.design.joyCover?.title,
+            joyCoverAvatar: preset.design.joyCover?.avatar,
+            joyCoverShowDate: preset.design.joyCover?.showDate,
+            joyCoverShowName: preset.design.joyCover?.showName,
+            joyCoverButtonText: preset.design.joyCover?.buttonText,
+            joyCoverShowButton: preset.design.joyCover?.showButton,
+            joyCoverBackgroundPattern: preset.design.joyCover?.backgroundPattern,
           },
           colorDesign: {
             colorPalette: preset.design.colorPalette,
@@ -844,9 +946,92 @@ export function useCollectionsApi() {
    * Update collection
    */
   const updateCollection = async (id, data) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+        if (data.projectId) {
+          queryParams.append('projectId', data.projectId)
+        }
+
+        const payload = {}
+        if (data.name !== undefined) payload.name = data.name
+        if (data.description !== undefined) payload.description = data.description
+        if (data.status !== undefined) payload.status = data.status
+        if (data.presetId !== undefined) payload.presetId = data.presetId
+        if (data.watermarkId !== undefined) payload.watermarkId = data.watermarkId
+        if (data.settings !== undefined) payload.settings = data.settings
+        if (data.color !== undefined) payload.color = data.color
+        if (data.eventDate !== undefined) {
+          payload.eventDate = data.eventDate
+            ? typeof data.eventDate === 'string'
+              ? data.eventDate
+              : data.eventDate.toISOString()
+            : null
+        }
+        if (data.thumbnail !== undefined) payload.thumbnail = data.thumbnail
+        if (data.image !== undefined) payload.image = data.image
+        if (data.coverDesign !== undefined) payload.coverDesign = data.coverDesign
+        if (data.typographyDesign !== undefined) payload.typographyDesign = data.typographyDesign
+        if (data.colorDesign !== undefined) payload.colorDesign = data.colorDesign
+        if (data.gridDesign !== undefined) payload.gridDesign = data.gridDesign
+        if (data.mediaSets !== undefined) payload.mediaSets = data.mediaSets
+        // General settings
+        if (data.url !== undefined) payload.url = data.url
+        if (data.tags !== undefined) payload.tags = data.tags
+        if (data.emailRegistration !== undefined) payload.emailRegistration = data.emailRegistration
+        if (data.galleryAssist !== undefined) payload.galleryAssist = data.galleryAssist
+        if (data.slideshow !== undefined) payload.slideshow = data.slideshow
+        if (data.slideshowSpeed !== undefined) payload.slideshowSpeed = data.slideshowSpeed
+        if (data.slideshowAutoLoop !== undefined) payload.slideshowAutoLoop = data.slideshowAutoLoop
+        if (data.socialSharing !== undefined) payload.socialSharing = data.socialSharing
+        if (data.language !== undefined) payload.language = data.language
+        if (data.autoExpiryDate !== undefined) payload.autoExpiryDate = data.autoExpiryDate
+        if (data.expiryDate !== undefined) {
+          payload.expiryDate = data.expiryDate
+            ? typeof data.expiryDate === 'string'
+              ? data.expiryDate
+              : data.expiryDate.toISOString()
+            : null
+        }
+        if (data.expiryDays !== undefined) payload.expiryDays = data.expiryDays
+        // Privacy settings
+        if (data.password !== undefined) payload.password = data.password
+        if (data.showOnHomepage !== undefined) payload.showOnHomepage = data.showOnHomepage
+        if (data.clientExclusiveAccess !== undefined) payload.clientExclusiveAccess = data.clientExclusiveAccess
+        if (data.clientPrivatePassword !== undefined) payload.clientPrivatePassword = data.clientPrivatePassword
+        if (data.allowClientsMarkPrivate !== undefined) payload.allowClientsMarkPrivate = data.allowClientsMarkPrivate
+        if (data.clientOnlySets !== undefined) payload.clientOnlySets = data.clientOnlySets
+        // Download settings
+        if (data.photoDownload !== undefined) payload.photoDownload = data.photoDownload
+        if (data.highResolutionEnabled !== undefined) payload.highResolutionEnabled = data.highResolutionEnabled
+        if (data.webSizeEnabled !== undefined) payload.webSizeEnabled = data.webSizeEnabled
+        if (data.webSize !== undefined) payload.webSize = data.webSize
+        if (data.downloadPin !== undefined) payload.downloadPin = data.downloadPin
+        if (data.downloadPinEnabled !== undefined) payload.downloadPinEnabled = data.downloadPinEnabled
+        if (data.limitDownloads !== undefined) payload.limitDownloads = data.limitDownloads
+        if (data.downloadLimit !== undefined) payload.downloadLimit = data.downloadLimit
+        if (data.restrictToContacts !== undefined) payload.restrictToContacts = data.restrictToContacts
+        if (data.allowedDownloadEmails !== undefined) payload.allowedDownloadEmails = data.allowedDownloadEmails
+        if (data.downloadableSets !== undefined) payload.downloadableSets = data.downloadableSets
+        // Favorite settings
+        if (data.favoritePhotos !== undefined) payload.favoritePhotos = data.favoritePhotos
+        if (data.favoriteNotes !== undefined) payload.favoriteNotes = data.favoriteNotes
+        if (data.downloadEnabled !== undefined) payload.downloadEnabled = data.downloadEnabled
+        if (data.favoriteEnabled !== undefined) payload.favoriteEnabled = data.favoriteEnabled
+
+        const endpoint = `/v1/memora/collections/${id}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.patch(endpoint, payload)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const index = collections.findIndex(c => c.id === id)
 
     if (index === -1) {
@@ -884,10 +1069,27 @@ export function useCollectionsApi() {
   /**
    * Delete collection
    */
-  const deleteCollection = async id => {
+  const deleteCollection = async (id, projectId = null) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+        if (projectId) {
+          queryParams.append('projectId', projectId)
+        }
+
+        const endpoint = `/v1/memora/collections/${id}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        await apiClient.delete(endpoint)
+        return true
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(500)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const filtered = collections.filter(c => c.id !== id)
 
     // Also remove any children if this is a folder
@@ -905,16 +1107,37 @@ export function useCollectionsApi() {
   /**
    * Toggle star status
    */
-  const toggleStar = async (id, isStarred) => {
+  const toggleStar = async (id, projectId = null) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+        if (projectId) {
+          queryParams.append('projectId', projectId)
+        }
+
+        const endpoint = `/v1/memora/collections/${id}/star${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.post(endpoint)
+        return response.data
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(300)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const index = collections.findIndex(c => c.id === id)
 
     if (index !== -1) {
-      collections[index].isStarred = isStarred
+      const wasStarred = collections[index].isStarred || false
+      collections[index].isStarred = !wasStarred
       saveCollections(collections)
+      return { starred: !wasStarred }
     }
+
+    return { starred: false }
   }
 
   /**
@@ -923,7 +1146,7 @@ export function useCollectionsApi() {
   const moveCollection = async (collectionId, targetFolderId) => {
     await delay(500)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const collectionIndex = collections.findIndex(c => c.id === collectionId)
 
     if (collectionIndex === -1) {
@@ -1008,7 +1231,7 @@ export function useCollectionsApi() {
   const duplicateCollection = async id => {
     await delay(1000)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     const original = collections.find(c => c.id === id)
 
     if (!original) {
@@ -1071,7 +1294,7 @@ export function useCollectionsApi() {
     // Fallback to localStorage implementation with pagination support
     await delay(500)
 
-    const collections = getAllCollections()
+    const collections = await getAllCollections()
     let projectCollections = collections.filter(c => c.projectId === projectId)
 
     // Apply pagination
@@ -1095,6 +1318,97 @@ export function useCollectionsApi() {
     }
   }
 
+  /**
+   * Get media in a set with optional sorting and pagination
+   * @param {string} collectionId - Collection ID
+   * @param {string} setId - Set ID
+   * @param {Object} params - Query parameters
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'uploaded-desc', 'name-asc', 'date-taken-desc')
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}|Array>}
+   */
+  const fetchSetMedia = async (collectionId, setId, params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      const endpoint = `/v1/memora/collections/${collectionId}/sets/${setId}/media${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+
+      // The backend returns { data: { data: [...], pagination: {...} }, status: 200 }
+      // The API client extracts data.data, so response.data is { data: [...], pagination: {...} }
+      // Return it directly as the composable expects this format
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Upload media to a collection set
+   * Only requires user_file_uuid - all metadata comes from UserFile relationship
+   */
+  const uploadMediaToSet = async (collectionId, setId, data) => {
+    try {
+      // Only send user_file_uuid - backend will get all metadata from UserFile
+      const payload = {
+        user_file_uuid: data.userFileUuid || data.user_file_uuid,
+      }
+
+      if (!payload.user_file_uuid) {
+        throw new Error('user_file_uuid is required')
+      }
+
+      const response = await apiClient.post(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media`,
+        payload
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete media from a collection set
+   */
+  const deleteMedia = async (collectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.delete(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media/${mediaId}`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle star status for media in a collection set
+   */
+  const starMedia = async (collectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media/${mediaId}/star`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     fetchCollections,
     fetchCollection,
@@ -1105,5 +1419,9 @@ export function useCollectionsApi() {
     toggleStar,
     moveCollection,
     duplicateCollection,
+    fetchSetMedia,
+    uploadMediaToSet,
+    deleteMedia,
+    starMedia,
   }
 }

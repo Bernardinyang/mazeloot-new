@@ -4,6 +4,7 @@
     <!-- Cover Sub-Navigation -->
     <div class="space-y-1">
       <router-link
+        v-if="hasCoverPhoto"
         :class="[
           route.name === 'collectionCover'
             ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
@@ -63,7 +64,7 @@
 
   <!-- DESIGN Section - Collapsed (Icon Only) -->
   <div v-else class="flex flex-col items-center gap-2 pt-4">
-    <TooltipProvider>
+    <TooltipProvider v-if="hasCoverPhoto">
       <Tooltip>
         <TooltipTrigger as-child>
           <router-link
@@ -163,6 +164,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { Grid3x3, ImageIcon } from 'lucide-vue-next'
 import {
@@ -172,6 +174,7 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useGalleryStore } from '@/stores/gallery'
 
 const props = defineProps({
   collectionId: { type: String, default: '' },
@@ -180,4 +183,11 @@ const props = defineProps({
 
 const theme = useThemeClasses()
 const route = useRoute()
+const galleryStore = useGalleryStore()
+
+const hasCoverPhoto = computed(() => {
+  const collectionId = props.collectionId || route.params.uuid
+  const collection = galleryStore.collections.find(c => c.id === collectionId)
+  return !!(collection?.image || collection?.thumbnail)
+})
 </script>

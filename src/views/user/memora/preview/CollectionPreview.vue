@@ -1,23 +1,37 @@
 <template>
   <div :style="{ backgroundColor: backgroundColor }">
+    <!-- Full Page Loading State (only on initial load when collection is not loaded) -->
+    <Transition name="fade">
+      <div
+        v-if="isLoading && !collection && isInitialLoad"
+        class="fixed inset-0 z-50 flex items-center justify-center"
+        :style="{ backgroundColor: backgroundColor }"
+      >
+        <div class="text-center">
+          <Loader2 class="h-12 w-12 animate-spin mx-auto mb-4" :style="{ color: textColor }" />
+          <p :style="{ color: textColor, opacity: 0.8 }" class="text-sm font-medium">
+            Loading collection...
+          </p>
+        </div>
+      </div>
+    </Transition>
+
     <!-- Navbar Style (when cover is 'none') -->
     <div
-      v-if="
-        coverLayoutConfig && (coverLayoutConfig.layout === 'none' || designConfig.cover === 'none')
-      "
+      v-if="designConfig.cover === 'none'"
       :style="{
         backgroundColor: backgroundColor,
         borderColor: borderColor,
       }"
       class="sticky top-0 z-50 w-full border-b backdrop-blur-md"
     >
-      <div class="container mx-auto px-4 py-4">
-        <div class="flex items-center justify-between">
-          <div>
+      <div class="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+          <div class="flex-1 min-w-0">
             <h1
               :class="[fontFamilyClass, fontStyleClass]"
               :style="{ color: textColor }"
-              class="text-xl md:text-2xl font-bold"
+              class="text-lg sm:text-xl md:text-2xl font-bold break-words"
             >
               {{ collectionName }}
             </h1>
@@ -25,12 +39,47 @@
               v-if="eventDate"
               :class="[fontFamilyClass, fontStyleClass]"
               :style="{ color: textColor, opacity: 0.8 }"
-              class="text-xs md:text-sm mt-1 uppercase tracking-wide"
+              class="text-[10px] xs:text-xs sm:text-xs md:text-sm mt-1 uppercase tracking-wide"
             >
               {{ formattedDate }}
             </p>
           </div>
-          <div class="flex gap-4">
+          <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
+            <div class="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto w-full sm:w-auto scrollbar-hide">
+              <template
+                v-for="tab in tabs"
+                :key="tab"
+              >
+                <Tooltip>
+                  <TooltipTrigger as-child>
+                    <button
+                      :class="[fontFamilyClass, activeTab === tab ? 'font-bold' : 'font-normal']"
+                      :style="{
+                        color: activeTab === tab ? accentColor : textColor,
+                        borderBottom: activeTab === tab ? `3px solid ${accentColor}` : 'none',
+                        paddingBottom: '6px',
+                        opacity: activeTab === tab ? 1 : 0.7,
+                      }"
+                      class="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm uppercase tracking-wide transition-all duration-200 font-medium whitespace-nowrap"
+                      @click="handleTabClick(tab)"
+                    >
+                      <component
+                        :is="getTabIcon(tab)"
+                        class="h-5 w-5 sm:h-6 sm:w-6"
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{{ tab }}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </template>
+            </div>
+          </TooltipProvider>
+          <div
+            v-else
+            class="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto w-full sm:w-auto scrollbar-hide"
+          >
             <button
               v-for="tab in tabs"
               :key="tab"
@@ -38,22 +87,19 @@
               :style="{
                 color: activeTab === tab ? accentColor : textColor,
                 borderBottom: activeTab === tab ? `3px solid ${accentColor}` : 'none',
-                paddingBottom: '8px',
+                paddingBottom: '6px',
                 opacity: activeTab === tab ? 1 : 0.7,
               }"
-              class="flex items-center gap-2 text-sm uppercase tracking-wide transition-all duration-200 font-medium"
-              @click="activeTab = tab"
+              class="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm uppercase tracking-wide transition-all duration-200 font-medium whitespace-nowrap"
+              @click="handleTabClick(tab)"
             >
               <component
                 :is="getTabIcon(tab)"
-                v-if="
-                  designConfig.navigationStyle === 'icon-only' ||
-                  designConfig.navigationStyle === 'icon-text'
-                "
-                class="h-4 w-4"
+                v-if="designConfig.navigationStyle === 'icon-text'"
+                class="h-4 w-4 sm:h-4 sm:w-4"
               />
               <span
-                v-if="!designConfig.navigationStyle || designConfig.navigationStyle === 'icon-text'"
+                v-if="designConfig.navigationStyle === 'icon-text' || designConfig.navigationStyle === 'text-only' || !designConfig.navigationStyle"
               >
                 {{ tab }}
               </span>
@@ -64,318 +110,108 @@
     </div>
 
     <!-- Cover Section (when cover is not 'none') -->
-    <div v-else :style="{ backgroundColor: backgroundColor }" class="relative w-full min-h-screen">
-      <!-- Use Dynamic Cover Renderer -->
-      <DynamicCoverRenderer
-        v-if="coverLayoutConfig && coverLayoutConfig.layout !== 'none'"
-        :config="coverLayoutConfig"
-        :content="{
-          title: collectionName,
-          date: formattedDate,
-        }"
-        :media="{
-          url: coverImageWithFallback,
-          src: coverImageWithFallback,
-          alt: collectionName,
-        }"
-      >
-        <template #content="{ content: slotContent }">
-          <div
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{
-              color: textColor,
-              textShadow: coverImageWithFallback
-                ? '0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)'
-                : 'none',
-            }"
-          >
-            <div v-if="slotContent.title" class="text-3xl md:text-5xl font-bold mb-4">
-              {{ slotContent.title }}
-            </div>
-            <div
-              v-if="slotContent.date"
-              :style="{ opacity: 0.9 }"
-              class="text-base md:text-lg uppercase tracking-wide"
-            >
-              {{ slotContent.date }}
-            </div>
-            <!-- View Gallery Button -->
-            <button
-              :style="{
-                backgroundColor: accentColor,
-                boxShadow: `0 4px 12px rgba(0,0,0,0.2)`,
-                marginTop: '2rem',
-              }"
-              class="px-8 py-3.5 rounded-lg text-sm font-bold uppercase tracking-wider text-white shadow-2xl transition-all duration-300 hover:shadow-3xl hover:scale-110 hover:-translate-y-0.5"
-              @click="scrollToGallery"
-            >
-              View Gallery
-            </button>
-          </div>
-        </template>
-      </DynamicCoverRenderer>
-
-      <!-- Cover Decorations (kept for backward compatibility, can be removed later) -->
-      <CoverDecorations :config="coverConfig" :palette-colors="paletteColors" />
-      <!-- Top Branding -->
-      <div
-        v-if="showBranding"
-        :class="[fontFamilyClass, fontStyleClass]"
-        :style="{
-          color: textColor,
-          textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-          opacity: 0.8,
-        }"
-        class="text-xs uppercase tracking-wider mb-4 font-semibold"
-      >
-        {{ brandingText }}
-      </div>
-
-      <!-- Cover Type, avatar in O, date, name, button -->
-      <div
-        v-if="coverConfig.specialLayout === 'joy'"
-        :style="{ backgroundColor: backgroundColor }"
-        class="flex flex-col items-center justify-center h-full relative"
-      >
-        <!-- Background pattern (subtle stars/plus signs) -->
+    <div v-else :style="{ backgroundColor: backgroundColor }" class="relative w-full">
+      <!-- Hero Section -->
+      <div class="relative w-full h-screen min-h-[500px] sm:min-h-[600px] md:min-h-[700px] overflow-hidden">
         <div
-          v-if="joyCoverBackgroundPattern === 'crosses' || !joyCoverBackgroundPattern"
-          class="absolute inset-0 opacity-20"
+          v-if="isLoading && !coverImageWithFallback"
+          class="absolute inset-0 w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-800 dark:to-gray-900"
         >
-          <!-- Scattered star/plus patterns -->
-          <div
-            v-for="i in 25"
-            :key="i"
-            :style="{
-              top: `${Math.random() * 80}%`,
-              left: `${Math.random() * 80}%`,
-              width: `${Math.random() * 4 + 2}px`,
-              height: `${Math.random() * 4 + 2}px`,
-              transform: `rotate(${Math.random() * 360}deg)`,
-              backgroundColor:
-                Math.random() > 0.5 ? 'rgba(220, 38, 38, 0.15)' : 'rgba(220, 38, 38, 0.1)',
-              border: Math.random() > 0.5 ? '1px solid rgba(220, 38, 38, 0.2)' : 'none',
-              filter: 'blur(0.5px)',
-            }"
-            class="absolute"
-          ></div>
+          <Loader2 class="h-12 w-12 animate-spin text-white" />
         </div>
-
-        <!-- Top Branding -->
-        <div
-          :class="[fontFamilyClass, fontStyleClass]"
+        <img
+          v-else-if="coverImageWithFallback && !isVideoCover"
+          :src="coverImageWithFallback"
+          :alt="collectionName"
           :style="{
-            color: textColor,
-            letterSpacing: '0.2em',
+            objectPosition: coverFocalPoint,
           }"
-          class="text-xs uppercase tracking-[0.2em] mb-8 z-10"
+          class="absolute inset-0 w-full h-full object-cover"
+        />
+        <video
+          v-else-if="coverImageWithFallback && isVideoCover"
+          ref="coverVideoRef"
+          :src="coverVideoUrl"
+          :style="{
+            objectPosition: coverFocalPoint,
+          }"
+          class="absolute inset-0 w-full h-full object-cover"
+          autoplay
+          loop
+          muted
+          playsinline
+          @click.stop="toggleCoverVideoPlay"
+        />
+        <div
+          v-else
+          class="absolute inset-0 w-full h-full transition-all duration-500 ease-in-out"
+          :style="getCollectionGradientStyle()"
+        ></div>
+        
+        <!-- Top Left Branding Logo -->
+        <div
+          v-if="!isLoading || coverImageWithFallback"
+          class="absolute top-4 left-4 sm:top-6 sm:left-6 md:top-8 md:left-8 lg:top-12 lg:left-12 z-10"
         >
-          BERNODE
+          <img
+            v-if="brandingLogoUrl"
+            :src="brandingLogoUrl"
+            alt="Brand Logo"
+            class="h-6 sm:h-7 md:h-8 lg:h-10 xl:h-12 w-auto object-contain max-w-[120px] sm:max-w-[140px] md:max-w-none"
+          />
+          <MazelootLogo
+            v-else
+            size="sm"
+            :color-class="'brightness-0 invert'"
+          />
         </div>
-
-        <!-- Title with avatar in O -->
-        <div class="flex items-center gap-4 md:gap-6 mb-6 md:mb-8 z-10">
-          <template v-for="(char, index) in joyCoverTitle.split('')" :key="`char-${index}`">
-            <span
-              v-if="char.toUpperCase() !== 'O'"
+        
+        <!-- Bottom Content Container -->
+        <div
+          v-if="!isLoading || coverImageWithFallback"
+          class="absolute bottom-4 left-4 right-4 sm:bottom-6 sm:left-6 sm:right-6 md:bottom-12 md:left-8 md:right-8 lg:bottom-16 lg:left-12 lg:right-12 xl:bottom-20 xl:left-16 xl:right-16 z-10 flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6"
+        >
+          <!-- Left Side Text Content -->
+          <div class="flex flex-col flex-1 min-w-0">
+            <!-- Collection Title -->
+            <h1 
               :class="[fontFamilyClass, fontStyleClass]"
-              :style="{
-                color: textColor,
-                textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+              :style="{ 
+                color: 'white',
+                textShadow: '0 4px 20px rgba(0,0,0,0.5), 0 2px 8px rgba(0,0,0,0.3)',
               }"
-              class="text-7xl md:text-8xl lg:text-9xl leading-none"
+              class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-normal tracking-tight leading-tight break-words"
             >
-              {{ char }}
-            </span>
-            <div v-else class="relative">
-              <div
-                v-if="joyCoverAvatar || coverImageWithFallback"
-                :style="{
-                  border,
-                }"
-                class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full overflow-hidden bg-gradient-to-br from-amber-50 to-amber-100"
-              >
-                <img
-                  :src="joyCoverAvatar || coverImageWithFallback"
-                  alt="Avatar"
-                  class="w-full h-full object-cover"
-                  @error="handleCoverImageError"
-                />
-              </div>
-              <div
-                v-else
-                class="w-24 h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-gradient-to-br from-amber-50 to-amber-100"
-              ></div>
-            </div>
-          </template>
-        </div>
+              {{ collectionName }}
+            </h1>
+            <!-- Date -->
+            <p
+              v-if="eventDate"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ 
+                color: 'white',
+                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                opacity: 0.9,
+              }"
+              class="text-[10px] xs:text-xs sm:text-xs md:text-sm uppercase tracking-widest font-medium  mt-2 sm:mt-3 md:mt-4 lg:mt-6"
+            >
+              {{ formattedDate }}
+            </p>
+          </div>
 
-        <!-- Date -->
-        <div
-          v-if="joyCoverShowDate !== false && eventDate"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-            letterSpacing: '0.2em',
-          }"
-          class="text-sm md:text-base uppercase tracking-[0.15em] mb-4 z-10"
-        >
-          {{ formattedDate }}
-        </div>
-
-        <!-- Collection Title (Name) -->
-        <div
-          v-if="joyCoverShowName !== false"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-          }"
-          class="text-xl md:text-2xl lg:text-3xl italic mb-6 md:mb-8 z-10"
-        >
-          {{ collectionName }}
-        </div>
-
-        <!-- Button -->
-        <button
-          v-if="joyCoverShowButton !== false"
-          :style="{
-            backgroundColor: accentColor,
-            borderRadius: '8px',
-          }"
-          class="px-8 md:px-10 py-3 md:py-3.5 text-sm md:text-base font-semibold uppercase tracking-wider text-white transition-all duration-200 hover:opacity-90 z-10"
-          @click="scrollToGallery"
-        >
-          {{ joyCoverButtonText || 'VIEW GALLERY' }}
-        </button>
-      </div>
-
-      <!-- Cover Type) -->
-      <div
-        v-else-if="
-          coverConfig.textPosition === 'center' &&
-          coverConfig.textAlignment === 'center' &&
-          !coverConfig.specialLayout
-        "
-        class="text-center"
-      >
-        <!-- Decorative elements -->
-        <div
-          :style="{ backgroundColor: backgroundColor }"
-          class="absolute top-1/4 left-1/4 w-2 h-2 rounded-full opacity-20"
-        ></div>
-        <div
-          :style="{ backgroundColor: backgroundColor }"
-          class="absolute top-1/3 right-1/4 w-1.5 h-1.5 rounded-full opacity-30"
-        ></div>
-        <div
-          :style="{ backgroundColor: backgroundColor }"
-          class="absolute bottom-1/4 left-1/3 w-1 h-1 rounded-full opacity-25"
-        ></div>
-
-        <div
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-            textShadow: `0 2px 4px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15)`,
-          }"
-          class="text-5xl md:text-7xl font-black mb-6 leading-tight"
-        >
-          {{ collectionName }}
-        </div>
-        <div
-          v-if="eventDate"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-            opacity: 0.9,
-            letterSpacing: '0.05em',
-          }"
-          class="text-base md:text-xl uppercase tracking-widest font-medium"
-        >
-          {{ formattedDate }}
-        </div>
-      </div>
-
-      <!-- Cover Type) -->
-      <div
-        v-else-if="
-          coverConfig.textPosition === 'bottom' &&
-          coverConfig.textAlignment === 'left' &&
-          !coverConfig.specialLayout
-        "
-        class="absolute bottom-12 left-8 md:left-12 text-left max-w-2xl"
-      >
-        <!-- Decorative line -->
-        <div
-          :style="{ backgroundColor: backgroundColor, opacity: 0.8 }"
-          class="w-16 h-0.5 mb-4"
-        ></div>
-
-        <div
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color,
-            textShadow: `0 2px 4px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)`,
-          }"
-          class="text-4xl md:text-6xl font-black mb-3 leading-tight"
-        >
-          {{ collectionName }}
-        </div>
-        <div
-          v-if="eventDate"
-          :class="[fontFamilyClass, fontStyleClass]"
-          :style="{
-            color: textColor,
-            opacity: 0.9,
-            letterSpacing: '0.05em',
-          }"
-          class="text-sm md:text-lg uppercase tracking-widest font-medium"
-        >
-          {{ formattedDate }}
-        </div>
-      </div>
-
-      <!-- Dynamic Cover - Based on config -->
-      <div v-else class="w-full">
-        <div
-          :class="[
-            fontFamilyClass,
-            fontStyleClass,
-            coverConfig.textAlignment === 'center'
-              ? 'text-center'
-              : coverConfig.textAlignment === 'right'
-                ? 'text-right'
-                : 'text-left',
-          ]"
-          :style="{
-            color: textColor,
-            textShadow: coverImageWithFallback
-              ? '0 4px 20px rgba(0,0,0,0.3), 0 2px 8px rgba(0,0,0,0.2)'
-              : 'none',
-          }"
-          class="text-3xl md:text-5xl font-bold mb-4"
-        >
-          {{ collectionName }}
-        </div>
-        <div
-          v-if="eventDate"
-          :class="[
-            fontFamilyClass,
-            fontStyleClass,
-            coverConfig.textAlignment === 'center'
-              ? 'text-center'
-              : coverConfig.textAlignment === 'right'
-                ? 'text-right'
-                : 'text-left',
-          ]"
-          :style="{
-            color: textColor,
-            opacity: 0.9,
-            textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-          }"
-          class="text-base md:text-lg uppercase tracking-wide"
-        >
-          {{ formattedDate }}
+          <!-- Bottom Right Button -->
+          <div class="flex-shrink-0 w-full sm:w-auto">
+          <button
+            :style="{
+              backgroundColor: accentColor,
+              color: accentTextColor,
+            }"
+            class="w-full sm:w-auto px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium uppercase tracking-wider rounded-lg transition-all duration-300 hover:opacity-90 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap"
+            @click="scrollToGallery"
+          >
+            VIEW GALLERY
+          </button>
+          </div>
         </div>
       </div>
     </div>
@@ -384,285 +220,361 @@
     <div
       id="gallery"
       :style="{ backgroundColor: backgroundColor }"
-      class="container mx-auto px-4 py-8 md:py-12"
+      class="w-full"
     >
-      <!-- Navigation Tabs (only show if cover is not 'none', handles it) -->
+      <!-- Separator Bar -->
       <div
-        v-if="coverLayoutConfig.layout !== 'none' && designConfig.cover !== 'none'"
-        :style="{ borderColor: borderColor }"
-        class="mb-8 flex items-center justify-between pb-4"
+        v-if="designConfig.cover !== 'none'"
+        :style="{ 
+          borderColor: borderColor,
+          backgroundColor: `${backgroundColor}E6`, // 90% opacity
+        }"
+        class="sticky top-0 z-40 border-t border-b backdrop-blur-md py-4 sm:py-5 md:py-6 mb-8 sm:mb-10 md:mb-12 px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-300"
       >
+        <!-- Top Row: Title and Actions -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-5 md:mb-6">
         <!-- Left -->
-        <div class="flex flex-col">
-          <div
+        <div class="flex flex-col flex-1 min-w-0">
+            <h2
             :class="[fontFamilyClass, fontStyleClass]"
             :style="{ color: textColor }"
-            class="text-base md:text-lg uppercase tracking-wide"
+              class="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight leading-tight break-words"
           >
             {{ collectionName.toUpperCase() }}
-          </div>
-          <div
+            </h2>
+            <div class="flex flex-wrap items-center gap-2 sm:gap-3 mt-1 sm:mt-2">
+              <p
+                v-if="brandingText"
             :class="[fontFamilyClass, fontStyleClass]"
-            :style="{ color: textColor, opacity: 0.8 }"
-            class="text-xs md:text-sm uppercase tracking-wide mt-0.5"
+                :style="{ color: textColor, opacity: 0.7 }"
+                class="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium"
           >
             {{ brandingText }}
+              </p>
+              <span
+                v-if="eventDate"
+                :class="[fontFamilyClass, fontStyleClass]"
+                :style="{ color: textColor, opacity: 0.6 }"
+                class="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium"
+              >
+                • {{ formattedDate }}
+              </span>
           </div>
         </div>
 
-        <!-- Center -->
-        <div class="flex items-center gap-6">
+          <!-- Right - Action Icons -->
+          <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
+          <button
+            :style="{
+                color: textColor,
+                backgroundColor: 'transparent',
+            }"
+              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
+              title="Like"
+              aria-label="Like collection"
+          >
+              <Heart class="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          <button
+              v-if="filteredMedia.length > 0"
+              :style="{ 
+                color: textColor,
+                backgroundColor: 'transparent',
+              }"
+              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
+              title="Download"
+              aria-label="Download collection"
+            >
+              <Download class="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+          <button
+              :style="{ 
+                color: textColor,
+                backgroundColor: 'transparent',
+              }"
+              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
+            title="Share"
+              aria-label="Share collection"
+          >
+            <Share2 class="h-4 w-4 sm:h-5 sm:w-5" />
+          </button>
+              <button
+               v-if="filteredMedia.length > 0"
+               :style="{ 
+                 color: accentTextColor,
+                 backgroundColor: accentColor,
+               }"
+               class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:scale-110 active:scale-95 shadow-md hover:shadow-lg"
+               title="Play slideshow"
+               aria-label="Play slideshow"
+               @click="handlePlaySlideshow"
+             >
+               <Play class="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+        </div>
+      </div>
+
+        <!-- Bottom Row: Tabs -->
+        <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
+          <div class="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12">
+            <template
+              v-for="tab in tabs"
+              :key="tab"
+            >
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <button
+                    :class="[fontFamilyClass, activeTab === tab ? 'font-semibold' : 'font-medium']"
+                    :style="{
+                      color: activeTab === tab ? accentColor : textColor,
+                      backgroundColor: activeTab === tab ? `${accentColor}15` : 'transparent',
+                    }"
+                    class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wide transition-all duration-200 whitespace-nowrap hover:bg-black/5 dark:hover:bg-white/5"
+                    @click="handleTabClick(tab)"
+                  >
+                    <component
+                      :is="getTabIcon(tab)"
+                      class="h-5 w-5 sm:h-6 sm:w-6"
+                    />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{{ tab }}</p>
+                </TooltipContent>
+              </Tooltip>
+            </template>
+          </div>
+        </TooltipProvider>
+        <div
+          v-else
+          class="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12"
+        >
           <button
             v-for="tab in tabs"
             :key="tab"
-            :class="[fontFamilyClass, fontStyleClass]"
+            :class="[fontFamilyClass, activeTab === tab ? 'font-semibold' : 'font-medium']"
             :style="{
               color: activeTab === tab ? accentColor : textColor,
-              opacity: activeTab === tab ? 1 : 0.7,
+              backgroundColor: activeTab === tab ? `${accentColor}15` : 'transparent',
             }"
-            class="text-sm transition-all duration-200"
-            @click="activeTab = tab"
+            class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm uppercase tracking-wide transition-all duration-200 whitespace-nowrap hover:bg-black/5 dark:hover:bg-white/5"
+            @click="handleTabClick(tab)"
           >
-            {{ tab }}
-          </button>
-        </div>
-
-        <!-- Right -->
-        <div class="flex items-center gap-4">
-          <button
-            :style="{ color: textColor }"
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
-            title="Like"
-          >
-            <Heart class="h-5 w-5" />
-          </button>
-          <button
-            :style="{ color: textColor }"
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
-            title="Share"
-          >
-            <Share2 class="h-5 w-5" />
-          </button>
-          <button
-            :style="{ color: textColor }"
-            class="p-2 transition-opacity duration-200 hover:opacity-70"
-            title="More"
-          >
-            <MoreVertical class="h-5 w-5" />
+            <component
+              :is="getTabIcon(tab)"
+              v-if="designConfig.navigationStyle === 'icon-text'"
+              class="h-3.5 w-3.5 sm:h-4 sm:w-4"
+            />
+            <span
+              v-if="designConfig.navigationStyle === 'icon-text' || designConfig.navigationStyle === 'text-only' || !designConfig.navigationStyle"
+            >
+              {{ tab }}
+            </span>
           </button>
         </div>
       </div>
 
-      <!-- Media Grid -->
+      <!-- Media Grid Container -->
+      <div class="px-3 sm:px-4 md:px-8 lg:px-12 pb-8 sm:pb-10 md:pb-12">
+        <!-- Media Grid Skeleton (show when loading and collection is loaded) -->
       <div
-        v-if="isLoading"
-        :class="[gridClasses, 'overflow-hidden']"
-        :style="
-          designConfig.gridStyle === 'masonry'
-            ? { columnGap: `${designConfig.gridSpacing * 0.5}rem` }
-            : {}
-        "
+        v-if="isLoading && collection"
+          :class="gridClasses"
+          :style="gridStyles"
       >
         <div
-          v-for="i in 6"
-          :key="i"
-          :class="[
-            designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
-            designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
-          ]"
-          :style="
-            designConfig.gridStyle === 'masonry'
-              ? { marginBottom: '1rem', height: 'auto' }
-              : { aspectRatio: designConfig.thumbnailSize === 'vertical' ? '3/4' : '4/3' }
-          "
-          class="overflow-hidden rounded-lg"
-        >
-          <div class="w-full h-full bg-gray-200 dark:bg-gray-700 animate-pulse rounded-lg"></div>
+            v-for="(i, index) in 12"
+          :key="`skeleton-${i}`"
+            :class="[
+              'relative overflow-hidden rounded-lg',
+              normalizedGridStyle === 'masonry' ? thumbnailSizeClasses : '',
+            ]"
+            :style="getGridItemStyle(index)"
+          >
+            <Skeleton class="w-full h-full" />
         </div>
       </div>
 
-      <div
-        v-else-if="filteredMedia.length > 0"
-        :class="[gridClasses, 'overflow-hidden']"
-        :style="
-          designConfig.gridStyle === 'masonry'
-            ? { columnGap: `${designConfig.gridSpacing * 0.5}rem` }
-            : {}
-        "
+        <!-- Media Grid -->
+      <TransitionGroup
+        v-else-if="!isLoading && filteredMedia.length > 0"
+        name="fade-in"
+        tag="div"
+        :class="gridClasses"
+        :style="gridStyles"
       >
         <div
-          v-for="item in paginatedMedia"
+          v-for="(item, index) in paginatedMedia"
           :key="item.id"
           :class="[
-            designConfig.gridStyle === 'masonry' ? 'break-inside-avoid' : '',
-            designConfig.gridStyle === 'masonry' ? thumbnailSizeClasses : '',
+            'group relative overflow-hidden rounded-lg cursor-pointer',
+            normalizedGridStyle === 'masonry' ? thumbnailSizeClasses : '',
           ]"
-          :style="
-            designConfig.gridStyle === 'masonry'
-              ? { marginBottom: '1rem' }
-              : {
-                  aspectRatio: designConfig.thumbnailSize === 'vertical' ? '3/4' : '4/3',
-                }
-          "
-          class="overflow-hidden rounded-xl"
+          :style="getGridItemStyle(index)"
+          @click="openMediaViewer(item)"
         >
-          <div
-            class="group relative w-full h-full cursor-pointer transition-all duration-300 hover:scale-105 hover:shadow-xl"
-            @click="openMediaViewer(item)"
-          >
+          <div class="relative w-full h-full overflow-hidden bg-gray-100 dark:bg-gray-800">
             <img
+              v-if="item.type === 'image' || (item.file && item.file.type === 'image') || !isVideoItem(item)"
               :alt="item.title || 'Media'"
-              :class="['w-full object-cover', designConfig.gridStyle === 'masonry' ? 'h-auto' : '']"
-              :src="item.thumbnail || item.url"
+                class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
+              :src="item.thumbnail || item.thumbnailUrl || item.url || item.largeImageUrl"
               loading="lazy"
+              @error="handleImageError"
             />
+            <video
+              v-else
+              :poster="item.thumbnail || item.thumbnailUrl"
+              :src="(item.file && item.file.url) || item.url || item.largeImageUrl"
+              class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
+              muted
+              playsinline
+            />
+            <!-- Video Play Icon Overlay -->
             <div
-              class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"
-            ></div>
+              v-if="isVideoItem(item)"
+              class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors pointer-events-none"
+            >
+              <div
+                class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
+              >
+                <Play class="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-teal-600 dark:text-teal-400 ml-0.5 sm:ml-1" />
+              </div>
+            </div>
+              <!-- Hover Overlay -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <!-- Image Info on Hover -->
+              <div class="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                <p
+                  v-if="item.title"
+                  class="text-white text-sm font-semibold truncate drop-shadow-lg"
+                >
+                  {{ item.title }}
+                </p>
+                <p
+                  v-if="item.filename && item.filename !== item.title"
+                  class="text-white/80 text-xs mt-0.5 truncate"
+                >
+                  {{ item.filename }}
+                </p>
+              </div>
+              <!-- Loading indicator -->
+              <div class="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 opacity-0 group-hover:opacity-0 transition-opacity duration-300">
+                <Loader2 class="h-6 w-6 animate-spin text-gray-400" />
+              </div>
           </div>
         </div>
-      </div>
+      </TransitionGroup>
 
-      <div v-else class="text-center py-12">
+        <!-- Empty State -->
+        <div v-else class="flex flex-col items-center justify-center py-12 sm:py-16 md:py-24 px-4">
+          <div
+            :style="{ color: textColor, opacity: 0.4 }"
+            class="mb-3 sm:mb-4"
+          >
+            <Grid3x3 class="h-12 w-12 sm:h-16 sm:w-16" />
+          </div>
         <p
           :style="{
             color: textColor,
             opacity: 0.8,
           }"
-          class="text-lg font-medium"
-        >
-          No media found in this collection.
-        </p>
-      </div>
-
-      <!-- Pagination Controls -->
-      <div
-        v-if="filteredMedia.length > 0 && pagination.totalPages.value > 1"
-        :style="{ borderColor: borderColor }"
-        class="flex items-center justify-center gap-2 mt-8 pt-6 border-t"
-      >
-        <button
-          :class="[!pagination.hasPrev.value ? 'cursor-not-allowed' : '']"
-          :disabled="!pagination.hasPrev.value"
-          :style="{
-            borderColor: borderColor,
-            color: textColor,
-            backgroundColor: backgroundColor,
-          }"
-          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="pagination.prev()"
-        >
-          <ChevronLeft class="h-4 w-4" />
-        </button>
-
-        <!-- Page Numbers -->
-        <div class="flex items-center gap-1">
-          <button
-            v-for="page in visiblePages"
-            :key="page"
-            :class="pagination.currentPage.value === page ? 'shadow-md' : ''"
-            :style="
-              pagination.currentPage.value === page
-                ? {
-                    backgroundColor: accentColor,
-                    borderColor: accentColor,
-                    color: textColor,
-                  }
-                : {
-                    borderColor: borderColor,
-                    color: textColor,
-                    backgroundColor: backgroundColor,
-                  }
-            "
-            class="min-w-[2.5rem] px-3 py-2 rounded-lg border-2 transition-all duration-200 text-sm font-medium"
-            @click="pagination.goTo(page)"
+            class="text-base sm:text-lg font-medium mb-2 text-center"
           >
-            {{ page }}
-          </button>
-        </div>
-
-        <button
-          :class="[!pagination.hasNext.value ? 'cursor-not-allowed' : '']"
-          :disabled="!pagination.hasNext.value"
-          :style="{
-            borderColor: borderColor,
-            color: textColor,
-            backgroundColor: backgroundColor,
-          }"
-          class="px-4 py-2 rounded-lg border-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-          @click="pagination.next()"
-        >
-          <ChevronRight class="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-
-    <!-- Media Viewer Modal -->
-    <div
-      v-if="selectedMedia"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4 backdrop-blur-sm"
-      @click="closeMediaViewer"
-    >
-      <div class="relative max-w-7xl max-h-full">
-        <img
-          :alt="selectedMedia.title || 'Media'"
-          :src="selectedMedia.url"
-          class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
-        />
-        <button
-          class="absolute top-4 right-4 w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
-          @click.stop="closeMediaViewer"
-        >
-          <X class="w-6 h-6" />
-        </button>
-        <!-- Media Info -->
-        <div
-          v-if="selectedMedia.title"
-          class="absolute bottom-4 left-1/2 -translate-x-1/2 px-6 py-3 rounded-lg bg-black/70 backdrop-blur-md text-white max-w-md text-center"
-        >
-          <p class="font-semibold">{{ selectedMedia.title }}</p>
-          <p v-if="selectedMedia.description" class="text-sm opacity-90 mt-1">
-            {{ selectedMedia.description }}
+            No media found
+          </p>
+          <p
+            :style="{
+              color: textColor,
+              opacity: 0.6,
+            }"
+            class="text-xs sm:text-sm text-center max-w-md px-4"
+          >
+            This collection doesn't have any media yet. Add photos or videos to get started.
           </p>
         </div>
       </div>
+
+      <!-- Back to Top Button -->
+      <Transition name="fade">
+         <button
+           v-if="filteredMedia.length > 0 && showBackToTop"
+           :style="{
+             backgroundColor: accentColor,
+             color: accentTextColor,
+           }"
+           class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-30 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold uppercase tracking-wide shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 hover:shadow-xl"
+           @click="scrollToTop"
+           aria-label="Back to top"
+         >
+           <ChevronLeft class="h-3 w-3 sm:h-4 sm:w-4 inline-block mr-1 rotate-90" />
+           Top
+         </button>
+      </Transition>
+
+      <!-- Loading More Indicator -->
+      <div
+        v-if="hasMoreItems && filteredMedia.length > 0"
+        class="flex items-center justify-center py-6 sm:py-8"
+      >
+        <div
+          v-if="isLoadingMore"
+          class="flex items-center gap-2 sm:gap-3"
+          :style="{ color: textColor }"
+        >
+          <Loader2 class="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
+          <span class="text-xs sm:text-sm font-medium">Loading more...</span>
+        </div>
+      </div>
     </div>
 
-    <!-- Preview Controls Footer -->
-    <div
-      :style="{ borderColor: borderColor }"
-      class="sticky bottom-0 w-full border-t bg-gray-100 dark:bg-gray-900 px-4 py-2 flex items-center justify-center gap-4 z-50"
+    <!-- Copyright Footer -->
+    <footer
+      :style="{
+        borderColor: borderColor,
+      }"
+      class="border-t bg-gray-900 dark:bg-black py-4 sm:py-5 md:py-6 px-3 sm:px-4"
     >
-      <button
-        :style="{ color: textColor }"
-        class="p-2 transition-opacity duration-200 hover:opacity-70"
-        title="Desktop View"
-      >
-        <Monitor class="h-4 w-4" />
-      </button>
-      <button
-        :style="{ color: textColor }"
-        class="p-2 transition-opacity duration-200 hover:opacity-70 opacity-60"
-        title="Mobile View"
-      >
-        <Smartphone class="h-4 w-4" />
-      </button>
-    </div>
+      <div class="container mx-auto text-center">
+        <p class="text-xs sm:text-sm text-white">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+    </footer>
+
+    <!-- Media Lightbox -->
+    <MediaLightbox
+      v-model="showMediaViewer"
+      :items="filteredMedia"
+      :initial-index="currentMediaIndex"
+      :allow-comments="false"
+      :collection-id="collection?.id || collectionId"
+      :set-id="getSetIdForTab(activeTab)"
+      :auto-start-slideshow="autoStartSlideshow"
+      @close="closeMediaViewer"
+      @download="handleDownloadMedia"
+      @share="handleShareMedia"
+      @favorite="handleFavoriteMedia"
+      @slideshow="handleSlideshow"
+    />
+
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import {
   ChevronLeft,
+  Download,
+  Play,
+  Pause,
   ChevronRight,
   Grid3x3,
   Heart,
-  Monitor,
+  Loader2,
   MoreVertical,
   Share2,
-  Smartphone,
   Sparkles,
   X,
 } from 'lucide-vue-next'
@@ -672,10 +584,19 @@ import { usePresetStore } from '@/stores/preset'
 import { useGalleryStore } from '@/stores/gallery'
 import { format } from 'date-fns'
 import { getCoverStyleConfig } from '@/composables/useCoverStyles'
-import { getDefaultLayoutConfig } from '@/composables/useCoverLayouts'
-import CoverDecorations from '@/components/organisms/CoverDecorations.vue'
-import DynamicCoverRenderer from '@/components/covers/DynamicCoverRenderer.vue'
 import { usePagination } from '@/composables/usePagination'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import { Skeleton } from '@/components/shadcn/skeleton'
+import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
+import { useSettingsApi } from '@/api/settings'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/shadcn/tooltip'
+import { useSetIconMatcher } from '@/composables/useSetIconMatcher'
+import { getColorPalettes, getTextColorFromBackground, getTextColorForAccent } from '@/utils/colors'
 
 // Props for preview mode
 const props = defineProps({
@@ -686,20 +607,32 @@ const props = defineProps({
 })
 
 const route = useRoute()
+const router = useRouter()
 const collectionsApi = useCollectionsApi()
 const mediaApi = useMediaApi()
 const presetStore = usePresetStore()
 const galleryStore = useGalleryStore()
+const { getIcon: getSetIcon } = useSetIconMatcher()
+const { fetchSettings } = useSettingsApi()
 
 // Collection data
 const collection = ref(null)
 const media = ref([])
 const isLoading = ref(true)
+const brandingLogoUrl = ref(null)
+const brandingName = ref(null)
 const selectedMedia = ref(null)
-const activeTab = ref('Highlights')
+const showMediaViewer = ref(false)
+const currentMediaIndex = ref(0)
+const activeTab = ref(null)
+const autoStartSlideshow = ref(false)
+const showBackToTop = ref(false)
+const coverVideoRef = ref(null)
+const isCoverVideoPlaying = ref(true)
 
 // Track if we're in initial load to prevent store updates from overwriting API data
 let isInitialLoad = true
+let isUpdatingFromRoute = false
 
 const collectionId = computed(() => {
   if (props.previewMode) return ''
@@ -713,15 +646,8 @@ const designConfig = computed(() => {
 
   // If in preview mode with provided config, use it
   if (previewConfig) {
-    // Access coverLayoutConfig to ensure it's tracked as a dependency
-    const previewCoverLayoutConfig = previewConfig.coverLayoutConfig
-
-    const coverLayoutConfig = previewCoverLayoutConfig ? { ...previewCoverLayoutConfig } : undefined
-
     return {
       ...previewConfig,
-      // Explicitly include coverLayoutConfig to ensure it's reactive
-      coverLayoutConfig,
     }
   }
 
@@ -748,16 +674,16 @@ const designConfig = computed(() => {
     preset = presetStore.currentPreset
   }
 
-  // First, check if collection has coverDesign - this takes priority over everything
-  const collectionCoverDesign = collection.value?.coverDesign
+  // Get collection design configs (standardized from backend)
+  const collectionCoverDesign = collection.value?.coverDesign || {}
+  const collectionTypographyDesign = collection.value?.typographyDesign || {}
+  const collectionColorDesign = collection.value?.colorDesign || {}
+  const collectionGridDesign = collection.value?.gridDesign || {}
 
-  // If collection has coverDesign with layout config, use it directly
-  if (
-    collectionCoverDesign &&
-    (collectionCoverDesign.coverLayoutConfig || collectionCoverDesign.coverLayoutUuid)
-  ) {
+  // Build base design from preset or defaults
     const presetDesign = preset?.design || {}
     const baseDesign = {
+    cover: presetDesign.cover || 'center',
       coverFocalPoint: presetDesign.coverFocalPoint || { x: 50, y: 50 },
       fontFamily: presetDesign.fontFamily || 'sans',
       fontStyle: presetDesign.fontStyle || 'normal',
@@ -769,239 +695,136 @@ const designConfig = computed(() => {
       navigationStyle: presetDesign.navigationStyle || 'icon-text',
     }
 
-    // Merge base design with collection's coverDesign
-    // coverDesign contains: { coverLayoutUuid, coverLayoutConfig, coverFocalPoint }
+  // Merge collection configs (takes priority over preset)
     return {
       ...baseDesign,
-      ...collectionCoverDesign,
-      // Explicitly preserve layout config properties
-      coverLayoutConfig: collectionCoverDesign.coverLayoutConfig,
+    // Cover design
       coverLayoutUuid: collectionCoverDesign.coverLayoutUuid || null,
-      // Don't include old 'cover' field - use layout config instead
-      cover: undefined,
-    }
+    coverFocalPoint: (collectionCoverDesign.coverFocalPoint && typeof collectionCoverDesign.coverFocalPoint === 'object' && 'x' in collectionCoverDesign.coverFocalPoint && 'y' in collectionCoverDesign.coverFocalPoint) 
+      ? collectionCoverDesign.coverFocalPoint 
+      : baseDesign.coverFocalPoint,
+    // Typography design
+    fontFamily: collectionTypographyDesign.fontFamily || baseDesign.fontFamily,
+    fontStyle: collectionTypographyDesign.fontStyle || baseDesign.fontStyle,
+    // Color design
+    colorPalette: collectionColorDesign.colorPalette || baseDesign.colorPalette,
+    // Grid design
+    gridStyle: collectionGridDesign.gridStyle || baseDesign.gridStyle,
+    gridColumns: collectionGridDesign.gridColumns || baseDesign.gridColumns,
+    thumbnailSize: collectionGridDesign.thumbnailSize || baseDesign.thumbnailSize,
+    gridSpacing: collectionGridDesign.gridSpacing || baseDesign.gridSpacing,
+    navigationStyle: collectionGridDesign.navigationStyle || baseDesign.navigationStyle,
   }
-
-  // If no collection coverDesign, build base design from preset or defaults
-  const baseDesign = preset?.design || {
-    cover: 'center',
-    coverFocalPoint: { x: 50, y: 50 },
-    fontFamily: 'sans',
-    fontStyle: 'normal',
-    colorPalette: 'light',
-    gridStyle: 'vertical',
-    gridColumns: 3,
-    thumbnailSize: 'medium',
-    gridSpacing: 16,
-    navigationStyle: 'icon-text',
-  }
-
-  // Also check collection.design.coverDesign for backward compatibility
-  if (collection.value?.design?.coverDesign) {
-    const designCoverDesign = collection.value.design.coverDesign
-    if (designCoverDesign.coverLayoutConfig || designCoverDesign.coverLayoutUuid) {
-      return {
-        ...baseDesign,
-        ...designCoverDesign,
-        coverLayoutConfig: designCoverDesign.coverLayoutConfig || baseDesign.coverLayoutConfig,
-        coverLayoutUuid: designCoverDesign.coverLayoutUuid || baseDesign.coverLayoutUuid,
-      }
-    }
-  }
-
-  if (collection.value?.design?.coverLayoutConfig || collection.value?.design?.coverLayoutUuid) {
-    return {
-      ...baseDesign,
-      ...collection.value.design,
-      coverLayoutConfig: collection.value.design.coverLayoutConfig || baseDesign.coverLayoutConfig,
-      coverLayoutUuid: collection.value.design.coverLayoutUuid || baseDesign.coverLayoutUuid,
-    }
-  }
-
-  return baseDesign
 })
 
-// Color palette mapping with improved contrast - no duplicates
-// Format: [background, accent, text] - ensuring WCAG AA contrast ratios
-const colorPalettes = {
-  light: ['#E5E7EB', '#1F2937', '#000000'],
-  gold: ['#F59E0B', '#78350F', '#000000'],
-  rose: ['#EC4899', '#831843', '#000000'],
-  terracotta: ['#EA580C', '#7C2D12', '#000000'],
-  lavender: ['#A855F7', '#581C87', '#FFFFFF'],
-  olive: ['#84CC16', '#365314', '#000000'],
-  agave: ['#10B981', '#064E3B', '#FFFFFF'],
-  sea: ['#0EA5E9', '#0C4A6E', '#FFFFFF'],
-  coral: ['#F43F5E', '#9F1239', '#FFFFFF'],
-  sage: ['#22C55E', '#14532D', '#000000'],
-  peach: ['#FB923C', '#7C2D12', '#000000'],
-  mint: ['#14B8A6', '#134E4A', '#FFFFFF'],
-  slate: ['#64748B', '#0F172A', '#FFFFFF'],
-  amber: ['#F59E0B', '#78350F', '#000000'],
-  indigo: ['#6366F1', '#312E81', '#FFFFFF'],
-  emerald: ['#10B981', '#064E3B', '#FFFFFF'],
-  cyan: ['#06B6D4', '#164E63', '#FFFFFF'],
-  violet: ['#8B5CF6', '#4C1D95', '#FFFFFF'],
-  dark: ['#374151', '#F9FAFB', '#FFFFFF'],
-}
+// Color palette mapping
+// Format: [primary, secondary, background] where background is mostly light
+const colorPalettes = getColorPalettes()
 
 const paletteColors = computed(() => {
   return colorPalettes[designConfig.value.colorPalette || 'light'] || colorPalettes.light
 })
 
-// Style computed properties with improved contrast
-const backgroundColor = computed(() => paletteColors.value[0])
-const contentBackgroundColor = computed(() => paletteColors.value[0])
-// Use the text color from palette (already optimized for contrast)
-const textColor = computed(() => paletteColors.value[2])
-const accentColor = computed(() => paletteColors.value[1])
+// Style computed properties
+// Format: [primary, secondary, background]
+const backgroundColor = computed(() => paletteColors.value[2])
+const contentBackgroundColor = computed(() => paletteColors.value[2])
+const accentColor = computed(() => paletteColors.value[0])
 const primaryColor = computed(() => paletteColors.value[0])
+const secondaryColor = computed(() => paletteColors.value[1])
+const textColor = computed(() => getTextColorFromBackground(paletteColors.value[2]))
+
+// Text color for accent backgrounds (buttons, active states)
+const accentTextColor = computed(() => getTextColorForAccent(paletteColors.value[0]))
+
 // Tab text color - ensures good contrast with background
 const tabTextColor = computed(() => {
-  const bg = paletteColors.value[0]
-  const text = paletteColors.value[2]
-
-  // For dark backgrounds, use light text; for light backgrounds, use dark text
-  // This ensures tabs always contrast well with the background
-  const isDarkBg = bg === '#1F2937' || bg === '#2C2C2C' || bg === '#1C1C1C'
-
-  if (isDarkBg) {
-    // Dark background - use light text with good contrast
-    return '#E5E7EB' // Light gray that contrasts well with dark backgrounds
-  } else {
-    // Light background - use dark text with good contrast
-    return text || '#1F2937' // Use palette text color or fallback to dark gray
-  }
+  const bg = paletteColors.value[2]
+  return getTextColorFromBackground(bg)
 })
 
 const borderColor = computed(() => {
-  const bg = paletteColors.value[0]
-  // Determine if we're on a light or dark background
-  const isDarkBg = bg === '#1F2937' || bg === '#2C2C2C' || bg === '#1C1C1C'
-  // For dark backgrounds, use lighter borders; for light, use darker
-  return isDarkBg ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.1)'
+  const bg = paletteColors.value[2]
+  const textColor = getTextColorFromBackground(bg)
+  return textColor === '#000000' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'
 })
 
 const coverType = computed(() => designConfig.value.cover || 'center')
 const coverConfig = computed(() => getCoverStyleConfig(coverType.value))
 
-/**
- * Transform old cover config to new layout config format
- * Supports backward compatibility by converting old style configs to layout configs
- */
-const coverLayoutConfig = computed(() => {
-  // Access designConfig.value to ensure this computed tracks it
-  const config = designConfig.value
-
-  // Access config.coverLayoutConfig to ensure it's tracked
-  const configCoverLayoutConfig = config.coverLayoutConfig
-
-  if (config.cover === 'none' && !configCoverLayoutConfig && !config.coverLayoutUuid) {
-    return {
-      layout: 'none',
-      media: { type: 'image', aspect_ratio: '16:9', fit: 'cover', bleed: 'none', max_width: null },
-      content: { placement: 'below', alignment: 'center' },
-      overlay: { enabled: false, gradient: 'none', opacity: 0 },
-      spacing: { padding_x: 0, padding_y: 0 },
-    }
-  }
-
-  // If new layout config exists, use it (this is the primary path)
-  if (configCoverLayoutConfig && typeof configCoverLayoutConfig === 'object') {
-    // Ensure it has a layout property, if not add default
-    // Always create a new object reference to ensure reactivity
-    const layoutConfig = configCoverLayoutConfig.layout
-      ? { ...configCoverLayoutConfig } // Create new reference
-      : { ...getDefaultLayoutConfig(), ...configCoverLayoutConfig }
-
-    return layoutConfig
-  }
-
-  // If we have a coverLayoutUuid but no config, use default
-  // The config should be included when saving, but as a fallback use default
-  if (config.coverLayoutUuid && !configCoverLayoutConfig) {
-    return getDefaultLayoutConfig()
-  }
-
-  // Otherwise, transform old cover config to new format
-  const oldConfig = coverConfig.value
-  const defaultLayout = getDefaultLayoutConfig()
-
-  // Map old textPosition/textAlignment to new content placement/alignment
-  let placement = 'overlay'
-  let alignment = 'bottom-left'
-
-  if (oldConfig.textPosition === 'bottom' && oldConfig.textAlignment === 'left') {
-    placement = 'overlay'
-    alignment = 'bottom-left'
-  } else if (oldConfig.textPosition === 'center' && oldConfig.textAlignment === 'center') {
-    placement = 'overlay'
-    alignment = 'middle-center'
-  } else if (oldConfig.textPosition === 'top') {
-    placement = 'overlay'
-    alignment = 'top-center'
-  }
-
-  if (oldConfig.specialLayout === 'none') {
-    // For 'none', we still use the layout engine but with minimal styling
-    return {
-      ...defaultLayout,
-      layout: 'none',
-      media: {
-        ...defaultLayout.media,
-        bleed: 'none',
-      },
-      overlay: {
-        ...defaultLayout.overlay,
-        enabled: false,
-      },
-    }
-  }
-
-  // Default transformation
-  return {
-    ...defaultLayout,
-    layout: 'stack', // Most old covers were stack-based
-    content: {
-      placement,
-      alignment,
-    },
-    overlay: {
-      enabled: true,
-      gradient: 'bottom',
-      opacity: 0.55,
-    },
-  }
-})
-// Fallback image URL for broken images
-const fallbackImageUrl =
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
-
 const coverImage = computed(() => {
-  const mediaToUse = props.previewMode && props.previewMedia ? props.previewMedia : null
   const collectionToUse =
-    props.previewMode && props.previewCollection ? props.previewCollection : null
+    props.previewMode && props.previewCollection ? props.previewCollection : collection.value
 
-  // Use first media item photo
-  if (mediaToUse && mediaToUse.length > 0) {
-    return mediaToUse[0].url
+  // Priority 1: Collection cover image (from settings.image)
+  if (collectionToUse?.image) {
+    return collectionToUse.image
   }
 
-  // Fallback to collection thumbnail
+  // Priority 2: Collection thumbnail (from settings.thumbnail)
   if (collectionToUse?.thumbnail) {
     return collectionToUse.thumbnail
   }
 
+  // Priority 3: First media item (preview mode only)
+  if (props.previewMode && props.previewMedia && props.previewMedia.length > 0) {
+    return props.previewMedia[0].url
+  }
+
+  // Priority 4: First media item from loaded collection
+  if (media.value && media.value.length > 0) {
+    return media.value[0].url
+  }
+
   // Final fallback
-  return fallbackImageUrl
+  return null
 })
 
 const coverImageWithFallback = computed(() => {
-  return coverImage.value || fallbackImageUrl
+  return coverImage.value || null
 })
 
 const handleCoverImageError = () => {
   // Error handling is now done at the component level
+}
+
+// Check if an item is a video
+const isVideoItem = (item) => {
+  if (item.type === 'video') return true
+  if (item.file && item.file.type === 'video') return true
+  
+  const url = item.url || item.largeImageUrl || (item.file && item.file.url) || item.thumbnail || item.thumbnailUrl
+  if (!url) return false
+  
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext))
+}
+
+// Check if cover is a video
+const isVideoCover = computed(() => {
+  const imageUrl = coverImage.value
+  if (!imageUrl) return false
+
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  const lowerUrl = imageUrl.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+})
+
+const coverVideoUrl = computed(() => {
+  if (!isVideoCover.value) return null
+  return coverImage.value || null
+})
+
+const toggleCoverVideoPlay = () => {
+  if (!coverVideoRef.value) return
+
+  if (isCoverVideoPlaying.value) {
+    coverVideoRef.value.pause()
+    isCoverVideoPlaying.value = false
+  } else {
+    coverVideoRef.value.play()
+    isCoverVideoPlaying.value = true
+  }
 }
 
 const coverFocalPoint = computed(() => {
@@ -1063,35 +886,91 @@ const fontFamilyClass = computed(() => {
   const fontMap = {
     sans: 'font-sans',
     serif: 'font-serif',
-    modern: 'font-serif',
-    playfair: 'font-serif',
-    montserrat: 'font-sans',
-    lato: 'font-sans',
-    raleway: 'font-sans',
-    opensans: 'font-sans',
-    roboto: 'font-sans',
-    poppins: 'font-sans',
-    inter: 'font-sans',
-    nunito: 'font-sans',
-    merriweather: 'font-serif',
-    crimson: 'font-serif',
-    lora: 'font-serif',
-    source: 'font-sans',
-    ubuntu: 'font-sans',
-    dancing: 'font-serif',
-    pacifico: 'font-serif',
-    caveat: 'font-serif',
+    modern: 'font-mono',
+    // Display & Bold
+    bebas: 'font-bebas',
+    oswald: 'font-oswald',
+    abril: 'font-abril',
+    bungee: 'font-bungee',
+    righteous: 'font-righteous',
+    // Modern Sans
+    playfair: 'font-playfair',
+    montserrat: 'font-montserrat',
+    lato: 'font-lato',
+    raleway: 'font-raleway',
+    opensans: 'font-opensans',
+    roboto: 'font-roboto',
+    poppins: 'font-poppins',
+    inter: 'font-inter',
+    nunito: 'font-nunito',
+    barlow: 'font-barlow',
+    worksans: 'font-worksans',
+    spacegrotesk: 'font-spacegrotesk',
+    outfit: 'font-outfit',
+    dmsans: 'font-dmsans',
+    plusjakarta: 'font-plusjakarta',
+    manrope: 'font-manrope',
+    sora: 'font-sora',
+    figtree: 'font-figtree',
+    syne: 'font-syne',
+    source: 'font-source',
+    ubuntu: 'font-ubuntu',
+    // Serif
+    merriweather: 'font-merriweather',
+    crimson: 'font-crimson',
+    lora: 'font-lora',
+    // Monospace
+    spacemono: 'font-spacemono',
+    jetbrains: 'font-jetbrains',
+    // Rounded & Friendly
+    comfortaa: 'font-comfortaa',
+    quicksand: 'font-quicksand',
+    rubik: 'font-rubik',
+    // Script & Handwriting
+    dancing: 'font-dancing',
+    pacifico: 'font-pacifico',
+    caveat: 'font-caveat',
+    kalam: 'font-kalam',
+    satisfy: 'font-satisfy',
+    greatvibes: 'font-greatvibes',
+    amatic: 'font-amatic',
+    shadows: 'font-shadows',
+    permanent: 'font-permanent',
+    indie: 'font-indie',
   }
   return fontMap[designConfig.value.fontFamily || 'sans'] || 'font-sans'
 })
 
 const fontStyleClass = computed(() => {
-  const styleMap = {
-    timeless: 'font-serif',
+  const style = designConfig.value.fontStyle || 'normal'
+  
+  // Handle watermark-style font styles (normal, italic, bold, bold italic)
+  if (typeof style === 'string') {
+    const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
+    const classes = []
+    
+    if (styles.includes('bold')) {
+      classes.push('font-bold')
+    } else {
+      classes.push('font-normal')
+    }
+    
+    if (styles.includes('italic')) {
+      classes.push('italic')
+    }
+    
+    return classes.join(' ') || 'font-normal'
+  }
+  
+  // Legacy support for old style values
+  const legacyStyleMap = {
+    normal: 'font-normal',
     bold: 'font-bold',
+    italic: 'italic',
+    timeless: 'font-serif',
     subtle: 'font-light',
   }
-  return styleMap[designConfig.value.fontStyle || 'bold'] || 'font-bold'
+  return legacyStyleMap[style] || 'font-normal'
 })
 
 const gridSpacingValue = computed(() => {
@@ -1101,29 +980,62 @@ const gridSpacingValue = computed(() => {
   }
   // Backward compatibility with string values
   if (spacing === 'large') return 24
-  if (spacing === 'regular') return 16
+  if (spacing === 'regular' || spacing === 'normal') return 16
+  if (spacing === 'tight') return 8
+  if (spacing === 'wide' || spacing === 'loose') return 32
   return 16
 })
 
+// Dynamic grid spacing styles
+const gridStyles = computed(() => {
+  const spacing = gridSpacingValue.value
+  const gridStyle = normalizedGridStyle.value
+  
+  // Masonry uses CSS columns, so use column-gap for horizontal spacing
+  // Vertical spacing is handled via margin-bottom on items
+  if (gridStyle === 'masonry') {
+    // Reduce column gap on mobile for better appearance
+    const mobileSpacing = Math.max(8, Math.floor(spacing * 0.75))
+    return {
+      columnGap: `${mobileSpacing}px`,
+    }
+  }
+  
+  return {
+    gap: `${spacing}px`,
+  }
+})
+
+// Normalize grid style: only map legacy 'rows' to 'vertical', keep 'grid' as separate option
+const normalizedGridStyle = computed(() => {
+  const style = designConfig.value.gridStyle
+  if (style === 'rows') {
+    return 'vertical'
+  }
+  return style || 'vertical'
+})
+
 const gridClasses = computed(() => {
-  const gridStyle = designConfig.value.gridStyle
+  const gridStyle = normalizedGridStyle.value
   const gridColumns = adjustedGridColumns.value
 
   // Masonry layout uses CSS columns
   if (gridStyle === 'masonry') {
+    // Single column on mobile, 2 columns on sm, then responsive
     const columns =
       gridColumns === 2
-        ? 'md:columns-2'
+        ? 'sm:columns-2 md:columns-2'
         : gridColumns === 4
-          ? 'md:columns-4'
+          ? 'sm:columns-2 md:columns-4'
           : gridColumns === 5
-            ? 'md:columns-5'
-            : 'md:columns-3'
-    return `columns-2 ${columns}`
+            ? 'sm:columns-2 md:columns-5'
+            : gridColumns === 6
+              ? 'sm:columns-2 md:columns-6'
+              : 'sm:columns-2 md:columns-3'
+    return `columns-1 ${columns}`
   }
 
-  // Regular grid layouts
-  const isVertical = gridStyle === 'vertical'
+  // Regular grid layouts (vertical and grid both use CSS grid)
   const colsClass =
     gridColumns === 2
       ? 'md:grid-cols-2'
@@ -1131,38 +1043,60 @@ const gridClasses = computed(() => {
         ? 'md:grid-cols-4'
         : gridColumns === 5
           ? 'md:grid-cols-5'
-          : 'md:grid-cols-3'
+          : gridColumns === 6
+            ? 'md:grid-cols-6'
+            : 'md:grid-cols-3'
 
-  if (isVertical) {
-    return `grid grid-cols-2 ${colsClass}`
-  }
   return `grid grid-cols-2 ${colsClass}`
 })
 
 // Thumbnail size classes - affects the minimum size of grid items (only for masonry)
 const thumbnailSizeClasses = computed(() => {
-  const size = designConfig.value.thumbnailSize || 'regular'
+  const size = designConfig.value.thumbnailSize || 'medium'
   if (size === 'large') {
     // For large thumbnails in masonry layout, increase minimum height
-    return 'min-h-[250px] md:min-h-[350px]'
+    return 'min-h-[200px] sm:min-h-[250px] md:min-h-[350px]'
   }
-  // regular size - default, no additional classes needed
-  return ''
+  if (size === 'small') {
+    // For small thumbnails in masonry layout, decrease minimum height
+    return 'min-h-[120px] sm:min-h-[150px] md:min-h-[200px]'
+  }
+  // medium/regular size - default minimum height for mobile
+  return 'min-h-[150px] sm:min-h-[180px] md:min-h-[220px]'
 })
 
-// Adjust grid columns based on thumbnail size for regular grids
+// Use base columns - thumbnail size only affects aspect ratio, not column count
 const adjustedGridColumns = computed(() => {
-  const baseColumns = designConfig.value.gridColumns || 3
-  const thumbnailSize = designConfig.value.thumbnailSize || 'regular'
-
-  // For large thumbnails, reduce columns to make items appear larger
-  if (thumbnailSize === 'large' && designConfig.value.gridStyle !== 'masonry') {
-    // Reduce by 1 column, but not below 2
-    return Math.max(2, baseColumns - 1)
-  }
-
-  return baseColumns
+  return designConfig.value.gridColumns || 3
 })
+
+// Get grid item style based on grid style and thumbnail size
+const getGridItemStyle = (index = 0) => {
+  const gridStyle = normalizedGridStyle.value
+  const thumbnailSize = designConfig.value.thumbnailSize || 'medium'
+  
+  // For masonry, break inside avoid, width 100%, and margin-bottom for vertical spacing
+  if (gridStyle === 'masonry') {
+    const spacing = gridSpacingValue.value
+    // Reduce spacing on mobile for better appearance
+    const mobileSpacing = Math.max(8, Math.floor(spacing * 0.75))
+    return {
+      breakInside: 'avoid',
+      width: '100%',
+      marginBottom: `${mobileSpacing}px`,
+    }
+  }
+  
+  // For regular grid, use aspect ratio based on thumbnail size
+  if (thumbnailSize === 'large') {
+    return { aspectRatio: '4/3' }
+  }
+  if (thumbnailSize === 'small') {
+    return { aspectRatio: '3/4' }
+  }
+  // medium/default
+  return { aspectRatio: '1/1' }
+}
 
 const coverContentClasses = computed(() => {
   const config = coverConfig.value
@@ -1212,7 +1146,7 @@ const formattedDate = computed(() => {
 })
 
 const showBranding = computed(() => true) // Can be made configurable
-const brandingText = computed(() => 'BERNODE') // Can come from branding settings
+const brandingText = computed(() => brandingName.value || null)
 
 // Joy cover config computed properties
 const joyCoverTitle = computed(() => designConfig.value.joyCoverTitle || 'JOY')
@@ -1224,9 +1158,14 @@ const joyCoverShowButton = computed(() => designConfig.value.joyCoverShowButton)
 const joyCoverButtonText = computed(() => designConfig.value.joyCoverButtonText)
 
 const tabs = computed(() => {
+  // Use actual sets from collection if available
+  if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
+    return collection.value.mediaSets.map(set => set.name)
+  }
+
+  // Fallback to preset photoSets for preset preview
   let preset = presetStore.currentPreset
 
-  // If this is a preset preview route, get the preset by name
   if (route.name === 'presetPreview') {
     const presetName = route.params.name
     if (presetName) {
@@ -1237,7 +1176,11 @@ const tabs = computed(() => {
     }
   }
 
-  return preset?.photoSets && preset.photoSets.length > 0 ? preset.photoSets : []
+  if (preset?.photoSets && preset.photoSets.length > 0) {
+    return preset.photoSets
+  }
+  
+  return []
 })
 
 // Generate placeholder media items for empty sets
@@ -1287,126 +1230,377 @@ const filteredMedia = computed(() => {
     return item.url !== coverImageUrl && item.thumbnail !== coverImageUrl
   })
 
-  // Filter by set if activeTab is not 'Highlights'
-  if (activeTab.value !== 'Highlights') {
-    // Find the set ID for the active tab name
-    const collectionSets = collection.value?.mediaSets || []
-    const matchingSet = collectionSets.find(set => set.name === activeTab.value)
-
-    if (matchingSet) {
-      // Filter by set ID - only show items that belong to this set
-      filtered = filtered.filter(item => item.setId === matchingSet.id)
-    } else {
-      // If no matching set found in collection, try to match by setName if available
-      // In preview mode with mock data, items might not have setId
-      // So we check if any items have a setName matching the active tab
-      const itemsWithMatchingSetName = filtered.filter(item => item.setName === activeTab.value)
-
-      if (itemsWithMatchingSetName.length > 0) {
-        // Use items that match the set name
-        filtered = itemsWithMatchingSetName
-      } else {
-        // No items match this set - will generate placeholders below
-        filtered = []
-      }
-    }
-  } else {
-    // For Highlights, limit to 12 items
-    filtered = filtered.slice(0, Math.min(filtered.length, 12))
-  }
-
-  // If no media found for the current set, generate placeholder items
-  // Generate at least 10 items per set (12 for Highlights)
-  const minItems = activeTab.value === 'Highlights' ? 12 : 10
-  if (filtered.length === 0) {
-    return generatePlaceholderMedia(minItems)
-  }
-
+  // No need to filter by set - we only load the active set's media
+  // Return all filtered media
   return filtered
 })
 
-// Pagination setup
-const itemsPerPage = 12 // Show 12 items per page
-const totalItems = computed(() => filteredMedia.value.length)
-const initialPage = 1
-const pagination = usePagination({
-  totalItems,
-  itemsPerPage,
-  initialPage,
-})
+// Scroll-to-load pagination setup
+const itemsPerLoad = 12 // Load 12 items at a time
+const displayedItemsCount = ref(itemsPerLoad)
+const isLoadingMore = ref(false)
+let scrollTimeout = null
 
+// Reset displayed items when filtered media changes
 watch(
   () => filteredMedia.value.length,
-  newLength => {
-    pagination.updateTotal(newLength)
+  () => {
+    displayedItemsCount.value = itemsPerLoad
   }
 )
 
-// Paginated media
+// Displayed media (scroll-to-load)
 const paginatedMedia = computed(() => {
-  const { start, end } = pagination.range.value
-  return filteredMedia.value.slice(start, end)
+  return filteredMedia.value.slice(0, displayedItemsCount.value)
 })
 
-// Visible page numbers (show max 5 pages)
-const visiblePages = computed(() => {
-  const total = pagination.totalPages.value
-  const current = pagination.currentPage.value
-  const pages = []
+// Check if there are more items to load
+const hasMoreItems = computed(() => {
+  return displayedItemsCount.value < filteredMedia.value.length
+})
 
-  if (total <= 5) {
-    // Show all pages if 5 or fewer
-    for (let i = 1; i <= total; i++) {
-      pages.push(i)
-    }
-  } else {
-    // Show pages around current page
-    if (current <= 3) {
-      // Near the start
-      for (let i = 1; i <= 5; i++) {
-        pages.push(i)
-      }
-    } else if (current >= total - 2) {
-      // Near the end
-      for (let i = total - 4; i <= total; i++) {
-        pages.push(i)
-      }
-    } else {
-      // In the middle
-      for (let i = current - 2; i <= current + 2; i++) {
-        pages.push(i)
-      }
-    }
+// Load more items on scroll
+const loadMoreItems = () => {
+  if (isLoadingMore.value || !hasMoreItems.value) return
+  
+  isLoadingMore.value = true
+  
+  // Smooth animation delay
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      displayedItemsCount.value = Math.min(
+        displayedItemsCount.value + itemsPerLoad,
+        filteredMedia.value.length
+      )
+      isLoadingMore.value = false
+    }, 300)
+  })
+}
+
+// Throttled scroll handler for infinite scroll
+const handleScroll = () => {
+  // Update back to top button visibility
+  showBackToTop.value = window.scrollY > 400
+  
+  // Throttle scroll events for better performance
+  if (scrollTimeout) return
+  scrollTimeout = setTimeout(() => {
+    scrollTimeout = null
+  }, 100)
+  
+  // Check if near bottom (within 500px)
+  const scrollTop = window.scrollY || document.documentElement.scrollTop
+  const windowHeight = window.innerHeight
+  const documentHeight = document.documentElement.scrollHeight
+  
+  if (scrollTop + windowHeight >= documentHeight - 500) {
+    loadMoreItems()
+  }
+}
+
+// Fetch media for active set when tab changes
+const fetchMediaForActiveSet = async () => {
+  if (props.previewMode) return // Don't fetch in preview mode
+  
+  if (!activeTab.value || !collectionId.value) {
+    media.value = []
+    isLoading.value = false
+    return
   }
 
-  return pages
-})
+  try {
+    isLoading.value = true
 
-// Reset pagination when tab changes
-watch(activeTab, () => {
-  pagination.reset()
-})
+    // Load media for the specific set
+    const collectionSets = collection.value?.mediaSets || []
+    console.log('fetchMediaForActiveSet: Looking for set', { 
+      activeTab: activeTab.value, 
+      availableSets: collectionSets.map(s => ({ name: s.name, id: s.id }))
+    })
+    const matchingSet = collectionSets.find(set => set.name === activeTab.value)
+    
+    if (!matchingSet) {
+      console.warn('fetchMediaForActiveSet: No matching set found', { 
+        activeTab: activeTab.value, 
+        availableSets: collectionSets.map(s => s.name) 
+      })
+      media.value = []
+      isLoading.value = false
+      return
+    }
+
+    const setMediaData = await collectionsApi.fetchSetMedia(collectionId.value, matchingSet.id, {
+      perPage: 100,
+    })
+    console.log('fetchMediaForActiveSet: API response', { 
+      setMediaData, 
+      hasData: !!setMediaData?.data,
+      dataType: Array.isArray(setMediaData?.data) ? 'array' : typeof setMediaData?.data,
+      dataLength: Array.isArray(setMediaData?.data) ? setMediaData.data.length : 'N/A'
+    })
+    // Handle both paginated response { data: [...], pagination: {...} } and direct array
+    const mediaItems = Array.isArray(setMediaData?.data) 
+      ? setMediaData.data 
+      : (Array.isArray(setMediaData) ? setMediaData : [])
+    console.log('fetchMediaForActiveSet: Loaded media items', { count: mediaItems.length, setName: matchingSet.name })
+    
+    // Set media for this set - normalize URL properties
+    media.value = mediaItems.map(item => ({
+      ...item,
+      setId: matchingSet.id,
+      setName: matchingSet.name,
+      mediaSet: item.mediaSet || { id: matchingSet.id, name: matchingSet.name },
+      // Normalize thumbnail and url properties for template
+      thumbnail: item.thumbnailUrl || item.thumbnail || item.file?.thumbnailUrl || item.file?.url,
+      url: item.largeImageUrl || item.url || item.file?.url || item.thumbnailUrl,
+    }))
+    console.log('fetchMediaForActiveSet: Set media.value', { count: media.value.length })
+  } catch (error) {
+    console.error(`Error loading media for ${activeTab.value}:`, error)
+    media.value = []
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Reset displayed items and load media when tab changes
+watch(activeTab, async (newTab, oldTab) => {
+  // Skip during initial load - onMounted handles initial fetch
+  if (isInitialLoad) return
+  if (!newTab || newTab === oldTab) return
+  if (!collectionId.value) return // Don't fetch if collection not loaded yet
+  displayedItemsCount.value = itemsPerLoad
+  await fetchMediaForActiveSet()
+}, { immediate: false })
+
+// Reset activeTab to first available tab if current tab is no longer available
+watch(tabs, async (newTabs) => {
+  // Skip during initial load - onMounted handles initial setup
+  if (isInitialLoad) return
+  
+  if (newTabs.length > 0 && activeTab.value && !newTabs.includes(activeTab.value)) {
+    // Set to first set if current tab is no longer available
+    activeTab.value = newTabs[0]
+    if (!props.previewMode) {
+      const collectionSets = collection.value?.mediaSets || []
+      const matchingSet = collectionSets.find(s => s.name === newTabs[0])
+      router.replace({
+        query: {
+          ...route.query,
+          setId: matchingSet?.id || undefined,
+          set: newTabs[0],
+        },
+      })
+    }
+    // Fetch media for the new active tab
+    if (collectionId.value && !props.previewMode) {
+      await fetchMediaForActiveSet()
+    }
+  }
+}, { immediate: false })
+
+// Watch route query for setId changes (browser back/forward)
+watch(
+  () => route.query.setId,
+  async (setIdFromQuery) => {
+    if (isInitialLoad || props.previewMode) return
+    if (!setIdFromQuery) return
+    
+    const collectionSets = collection.value?.mediaSets || []
+    const matchingSet = collectionSets.find(s => s.id === setIdFromQuery)
+    if (matchingSet && activeTab.value !== matchingSet.name) {
+      isUpdatingFromRoute = true
+      activeTab.value = matchingSet.name
+      await fetchMediaForActiveSet()
+      isUpdatingFromRoute = false
+    }
+  }
+)
+
+// Watch route query for set name changes (browser back/forward)
+watch(
+  () => route.query.set,
+  async (setFromQuery) => {
+    if (isInitialLoad || props.previewMode) return
+    if (!setFromQuery) return
+    
+    const collectionSets = collection.value?.mediaSets || []
+    if (collectionSets.some(s => s.name === setFromQuery) && activeTab.value !== setFromQuery) {
+      isUpdatingFromRoute = true
+      activeTab.value = setFromQuery
+      await fetchMediaForActiveSet()
+      isUpdatingFromRoute = false
+    }
+  }
+)
 
 // Methods
+const handleTabClick = (tab) => {
+  if (isUpdatingFromRoute) return
+  activeTab.value = tab
+  if (!props.previewMode && collectionId.value) {
+    const collectionSets = collection.value?.mediaSets || []
+    const matchingSet = collectionSets.find(s => s.name === tab)
+    router.replace({
+      query: {
+        ...route.query,
+        setId: matchingSet?.id || undefined,
+        set: tab,
+      },
+    })
+  }
+}
+
 const scrollToGallery = () => {
   document.getElementById('gallery')?.scrollIntoView({ behavior: 'smooth' })
 }
 
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 const openMediaViewer = item => {
   selectedMedia.value = item
+  const index = filteredMedia.value.findIndex(m => m.id === item.id)
+  currentMediaIndex.value = index >= 0 ? index : 0
+  autoStartSlideshow.value = false
+  showMediaViewer.value = true
 }
 
 const closeMediaViewer = () => {
+  showMediaViewer.value = false
   selectedMedia.value = null
+  autoStartSlideshow.value = false
+}
+
+const handlePlaySlideshow = () => {
+  if (filteredMedia.value.length === 0) return
+  
+  // Open lightbox with first item and auto-start slideshow
+  currentMediaIndex.value = 0
+  autoStartSlideshow.value = true
+  showMediaViewer.value = true
+}
+
+const handleDownloadMedia = item => {
+  if (item?.url) {
+    const link = document.createElement('a')
+    link.href = item.url
+    link.download = item.title || item.filename || 'media'
+    link.click()
+  }
+}
+
+const handleShareMedia = item => {
+  // Share functionality is handled by MediaLightbox
+  console.log('Share media:', item)
+}
+
+// Get collection theme color (prioritize collection color, then use palette primary)
+const collectionColor = computed(() => {
+  return collection.value?.color || primaryColor.value || '#3B82F6' // Default blue-500
+})
+
+// Convert hex to RGB
+const hexToRgb = hex => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result
+    ? {
+        r: parseInt(result[1], 16),
+        g: parseInt(result[2], 16),
+        b: parseInt(result[3], 16),
+      }
+    : { r: 59, g: 130, b: 246 } // fallback to blue
+}
+
+// Lighten color
+const lightenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.min(255, Math.round(rgb.r + (255 - rgb.r) * percent))
+  const g = Math.min(255, Math.round(rgb.g + (255 - rgb.g) * percent))
+  const b = Math.min(255, Math.round(rgb.b + (255 - rgb.b) * percent))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Darken color
+const darkenColor = (hex, percent) => {
+  const rgb = hexToRgb(hex)
+  const r = Math.max(0, Math.round(rgb.r * (1 - percent)))
+  const g = Math.max(0, Math.round(rgb.g * (1 - percent)))
+  const b = Math.max(0, Math.round(rgb.b * (1 - percent)))
+  return `rgb(${r}, ${g}, ${b})`
+}
+
+// Calculate brightness to determine if dark mode
+const getColorBrightness = hex => {
+  const rgb = hexToRgb(hex)
+  return (rgb.r * 299 + rgb.g * 587 + rgb.b * 114) / 1000
+}
+
+// Get gradient background style for fallback (when no cover photo)
+// Uses color palette for richer, more sophisticated gradients
+const getCollectionGradientStyle = () => {
+  const primary = primaryColor.value
+  const secondary = secondaryColor.value
+  const bgColor = backgroundColor.value
+  const isDark = getColorBrightness(bgColor) < 128
+  
+  if (isDark) {
+    // Dark mode: use primary and secondary colors for richer gradient
+    const top = darkenColor(primary, 0.2)
+    const mid = darkenColor(secondary, 0.4)
+    const bottom = darkenColor(primary, 0.6)
+    return {
+      background: `linear-gradient(to bottom, ${top}, ${mid}, ${bottom})`,
+    }
+  } else {
+    // Light mode: blend primary and secondary for softer, elegant gradient
+    const top = lightenColor(primary, 0.9)
+    const mid = lightenColor(secondary, 0.6)
+    const bottom = lightenColor(primary, 0.3)
+    return {
+      background: `linear-gradient(to bottom, ${top}, ${mid}, ${bottom})`,
+    }
+  }
+}
+
+const handleImageError = (event) => {
+  // Hide image if it fails to load
+  if (event.target) {
+    event.target.style.display = 'none'
+  }
+}
+
+const getSetIdForTab = tabName => {
+  if (!tabName) return null
+  const collectionSets = collection.value?.mediaSets || []
+  const matchingSet = collectionSets.find(set => set.name === tabName)
+  return matchingSet?.id || null
+}
+
+const handleFavoriteMedia = async ({ item, isFavorite }) => {
+  // Star functionality is now handled by MediaLightbox based on phase
+  // This handler is kept for backward compatibility but the actual work is done in MediaLightbox
+}
+
+const handleSlideshow = ({ playing }) => {
+  // Handle slideshow state
+  console.log('Slideshow:', playing)
 }
 
 const getTabIcon = tab => {
-  const iconMap = {
-    Highlights: Sparkles,
-    All: Grid3x3,
-    Photos: Grid3x3,
+  if (!tab) return Grid3x3
+
+  // Get set object - check props.activeSet first (component mode), then collection
+  let set = null
+  if (props.previewMode && props.activeSet && props.activeSet.name === tab) {
+    set = props.activeSet
+  } else {
+    set = collection.value?.mediaSets?.find(s => s.name === tab) || null
   }
-  return iconMap[tab] || Grid3x3
+
+  // Use the robust icon matcher
+  return getSetIcon(tab, set)
 }
 
 // Watch for preview props changes - watch each prop separately for better reactivity
@@ -1439,7 +1633,7 @@ if (props.previewMode) {
   watch(
     () => props.previewDesignConfig,
     () => {
-      // The computed properties (designConfig, coverLayoutConfig) will automatically update
+      // The computed properties (designConfig) will automatically update
       // This watcher ensures Vue tracks the prop deeply for reactivity
     },
     { immediate: false, deep: true }
@@ -1519,19 +1713,71 @@ onMounted(async () => {
     isLoading.value = true
     isInitialLoad = true
 
-    const [collectionData, mediaData] = await Promise.all([
-      collectionsApi.fetchCollection(collectionId.value),
-      mediaApi.fetchCollectionMedia(collectionId.value),
-    ])
+    // Setup scroll listener for back to top button
+    window.addEventListener('scroll', handleScroll)
 
-    // Use API data as source of truth for initial load
-    // The API should have the saved coverDesign from the backend
-    const apiHasCoverDesign =
-      collectionData?.coverDesign &&
-      (collectionData.coverDesign.coverLayoutConfig || collectionData.coverDesign.coverLayoutUuid)
+    // Fetch branding settings
+    try {
+      const settingsResponse = await fetchSettings()
+      const settings = settingsResponse.data || settingsResponse
+      brandingLogoUrl.value = settings.branding?.logoUrl || null
+      brandingName.value = settings.branding?.name || null
+    } catch (error) {
+      console.warn('Failed to fetch branding settings:', error)
+    }
 
+    const collectionData = await collectionsApi.fetchCollection(collectionId.value)
     collection.value = collectionData
-    media.value = mediaData
+
+    const collectionSets = collectionData?.mediaSets || []
+    console.log('onMounted: Collection sets', collectionSets.map(s => ({ name: s.name, id: s.id })))
+
+    // Set active tab from route query or default to first set
+    if (collectionSets.length > 0) {
+      // Check if setId is in route query and set it first (like SelectionDetail)
+      if (route.query.setId) {
+        const setIdFromRoute = route.query.setId
+        const matchingSet = collectionSets.find(s => s.id === setIdFromRoute)
+        if (matchingSet) {
+          activeTab.value = matchingSet.name
+          console.log('onMounted: Found setId in route, using set', { setId: setIdFromRoute, setName: matchingSet.name })
+        }
+      }
+      
+      // Fall back to set name in route query
+      if (!activeTab.value) {
+        const setFromQuery = route.query.set
+        if (setFromQuery && collectionSets.some(s => s.name === setFromQuery)) {
+          activeTab.value = setFromQuery
+          console.log('onMounted: Found set name in route', { setName: setFromQuery })
+        }
+      }
+      
+      // Default to first set if nothing found in route
+      if (!activeTab.value) {
+        activeTab.value = collectionSets[0].name
+        console.log('onMounted: Using first set as default', { setName: activeTab.value })
+      }
+      
+      // Update route query if not already set (use setId if available, otherwise set name)
+      if (!route.query.setId && !route.query.set && !props.previewMode) {
+        const targetSet = collectionSets.find(s => s.name === activeTab.value)
+        router.replace({
+          query: {
+            ...route.query,
+            setId: targetSet?.id || undefined,
+            set: activeTab.value,
+          },
+        })
+      }
+      
+      // Wait for reactivity to update
+      await nextTick()
+      // Load media for the active set
+      await fetchMediaForActiveSet()
+    } else {
+      console.warn('onMounted: No sets found in collection')
+    }
 
     // Allow store updates after initial load completes
     // Use a delay to ensure API data is fully processed and reactive updates settle
@@ -1539,10 +1785,16 @@ onMounted(async () => {
       isInitialLoad = false
     }, 1000)
   } catch (error) {
+    console.error('Error loading collection:', error)
     isInitialLoad = false
   } finally {
     isLoading.value = false
   }
+})
+
+// Cleanup scroll listener
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
 })
 
 // Watch store's collections array for real-time updates (preset/watermark/coverDesign changes)
@@ -1565,11 +1817,11 @@ watch(
       const storeCoverDesign = updatedCollection.coverDesign
 
       const storeHasValidCoverDesign =
-        storeCoverDesign && (storeCoverDesign.coverLayoutConfig || storeCoverDesign.coverLayoutUuid)
+        storeCoverDesign && storeCoverDesign.coverLayoutUuid
 
       const existingHasValidCoverDesign =
         existingCoverDesign &&
-        (existingCoverDesign.coverLayoutConfig || existingCoverDesign.coverLayoutUuid)
+        existingCoverDesign.coverLayoutUuid
 
       // Only update if store has valid coverDesign (meaning it was just updated from Design view)
       // OR if neither has coverDesign (normal update for other properties)
@@ -1588,8 +1840,50 @@ watch(
         // Neither has valid coverDesign, update normally
         collection.value = { ...collection.value, ...updatedCollection }
       }
+      
+      // If mediaSets were updated, refresh tabs and reload media for active set
+      const storeMediaSets = updatedCollection.mediaSets
+      if (storeMediaSets && Array.isArray(storeMediaSets) && storeMediaSets.length > 0) {
+        // Check if active tab still exists
+        const activeTabExists = storeMediaSets.some(set => set.name === activeTab.value)
+        if (!activeTabExists && storeMediaSets.length > 0) {
+          // Active tab no longer exists, switch to first set
+          activeTab.value = storeMediaSets[0].name
+        }
+        // Reload media for the active set if it changed
+        if (collectionId.value && !props.previewMode) {
+          nextTick(() => {
+            fetchMediaForActiveSet()
+          })
+        }
+      }
     }
   },
   { deep: true }
 )
 </script>
+
+<style scoped>
+/* Fade-in animation for new items */
+.fade-in-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-in-enter-from {
+  opacity: 0;
+  transform: translateY(20px) scale(0.95);
+}
+
+.fade-in-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.fade-in-move {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+</style>

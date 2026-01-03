@@ -1,6 +1,20 @@
 <template>
   <div
     ref="cardRef"
+    :class="[
+      'group relative rounded-xl overflow-hidden cursor-pointer',
+      'transform-gpu',
+      'hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-black/40',
+      'transition-shadow duration-300 ease-out',
+      'hover:border-opacity-100',
+      'border-2',
+      containerClass,
+      theme.bgCard,
+      theme.shadowCard,
+      isDragging ? 'opacity-50 scale-95' : '',
+      isDragOver ? 'ring-2 ring-primary ring-offset-2' : '',
+      props.isMoving ? 'animate-move-out' : '',
+    ]"
     :style="{
       ...tiltStyle,
       width: containerWidth,
@@ -10,21 +24,6 @@
       '--card-color-dark': cardColorDark,
       borderColor: `${cardColor}33`,
     }"
-    :class="[
-      'group relative rounded-xl overflow-hidden cursor-pointer',
-      'transform-gpu',
-      'hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-black/40',
-      'transition-shadow duration-300 ease-out',
-      'hover:border-opacity-100',
-      'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2',
-      containerClass,
-      theme.bgCard,
-      theme.shadowCard,
-      'border-2',
-      isDragging ? 'opacity-50 scale-95' : '',
-      isDragOver ? 'ring-2 ring-primary ring-offset-2' : '',
-      props.isMoving ? 'animate-move-out' : '',
-    ]"
     :draggable="
       collectionData && !collectionData.isFolder && !isFolder && !collectionData.disableDrag
     "
@@ -51,26 +50,42 @@
       class="absolute inset-0 dark:opacity-40"
     ></div>
 
-    <!-- Image Container -->
+    <!-- Image/Icon Container -->
     <div
-      :class="['relative overflow-hidden', imageContainerClass]"
-      :style="{ height: imageHeight, width: imageWidth }"
+      :class="[
+        'relative flex items-center justify-center overflow-hidden',
+        imageContainerClass || 'aspect-[4/3]',
+      ]"
+      :style="imageContainerClass ? { height: imageHeight, width: imageWidth } : {}"
     >
+      <!-- Project Badge -->
+      <div
+        v-if="collectionData?.project?.name || collectionData?.projectId"
+        class="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+      >
+        <div class="flex items-center gap-1.5">
+          <FolderKanban class="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-1 max-w-[120px]">
+            {{ collectionData?.project?.name || 'Project' }}
+          </span>
+        </div>
+      </div>
+
       <!-- Starred Badge and Lock Icon -->
-      <div class="absolute top-3 left-3 z-30 flex items-center gap-2">
+      <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
         <div
           v-if="isStarred"
-          class="flex items-center justify-center w-7 h-7 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
           title="Starred"
         >
           <Star class="h-4 w-4 fill-white text-white" />
         </div>
         <div
-          v-if="collectionData?.password || collectionData?.hasPassword"
-          class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          v-if="collectionData?.password || collectionData?.hasPassword || collectionData?.hasPassword"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
           title="Password protected"
         >
-          <Lock class="h-4 w-4 fill-white text-white" />
+          <Lock class="h-4 w-4 text-white" />
         </div>
       </div>
       <!-- Folder Preview Grid (2x2) -->
@@ -126,20 +141,33 @@
         </div>
       </div>
 
-      <!-- Single Image -->
+      <!-- Single Image/Video -->
       <div v-else-if="imageSrc && !isFolder" class="relative w-full h-full overflow-hidden">
+        <!-- Cover Video -->
+        <video
+          v-if="isVideoCover"
+          ref="videoRef"
+          :src="imageSrc"
+          class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+          autoplay
+          loop
+          muted
+          playsinline
+        />
+        <!-- Cover Image -->
         <img
+          v-else
           :src="imageSrc"
           :alt="altText"
-          class="w-full h-full object-cover transition-transform duration-500 ease-out"
-          :style="{ transform: isHovering ? `scale(${scaleOnHover})` : 'scale(1)' }"
+          class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           loading="lazy"
           @error="handleImageError($event)"
         />
+        <!-- Gradient overlay when image is present for better contrast -->
         <div
-          class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
           :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-70'"
-        />
+          class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
+        ></div>
         <!-- Subtle color overlay for brand consistency -->
         <div
           :style="{
@@ -147,75 +175,57 @@
           }"
           class="absolute inset-0 pointer-events-none"
         ></div>
-        <!-- Project Indicator (if collection is part of a project) -->
+        <!-- Status Badge (when cover image exists) -->
         <div
-          v-if="collectionData?.projectId"
-          class="absolute top-3 left-3 z-20 flex items-center gap-1 px-2 py-0.5 rounded-md backdrop-blur-sm shadow-lg border text-xs font-medium bg-purple-500/95 text-white border-purple-600/50"
+          v-if="collectionData?.status"
+          class="absolute bottom-3 right-3 z-30"
         >
-          Project
-        </div>
-        <!-- Lock Icon Overlay on Collection Image - Bottom Left to avoid conflict with dropdown -->
-        <div
-          v-if="isLocked"
-          class="absolute bottom-3 left-3 z-20 flex items-center justify-center w-8 h-8 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg border"
-          :class="theme.borderSecondary"
-        >
-          <Lock class="h-4 w-4" :class="theme.textSecondary" />
+          <StatusBadge :status="collectionData.status" />
         </div>
       </div>
 
-      <!-- Folder Icon (when no preview images) -->
+      <!-- Large centered icon with unique styling (shown when no cover image) -->
       <div
         v-else
-        class="w-full h-full flex items-center justify-center relative"
-        :class="theme.bgCardSolid"
+        class="relative z-10 flex flex-col items-center justify-center gap-3 p-8 transition-transform duration-300 group-hover:scale-110"
       >
-        <!-- Gradient background for collections without images -->
         <div
           :style="{
-            background: `linear-gradient(to bottom right, ${cardColorLight}, ${cardColorDark})`,
-            opacity: '0.6',
+            background: `linear-gradient(to bottom right, ${cardColor}, ${cardColorDark})`,
+            borderColor: `${cardColor}80`,
           }"
-          class="absolute inset-0 dark:opacity-40"
-        ></div>
-        <div class="relative z-10 flex flex-col items-center gap-3">
-          <!-- Folder Icon with Lock Overlay -->
-          <div class="relative">
-            <div
-              v-if="isFolder"
-              :style="{
-                background: `linear-gradient(to bottom right, ${cardColor}, ${cardColorDark})`,
-                borderColor: `${cardColor}80`,
-              }"
-              class="w-20 h-20 rounded-xl flex items-center justify-center border-2 transition-transform duration-300 group-hover:scale-110"
-            >
-              <component v-if="folderIcon" :is="folderIcon" class="h-10 w-10 text-white" />
-              <Folder v-else class="h-10 w-10 text-white" />
-            </div>
-            <template v-else>
-              <component
-                v-if="folderIcon"
-                :is="folderIcon"
-                class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
-                :class="theme.textTertiary"
-              />
-              <Folder
-                v-else
-                class="h-20 w-20 transition-transform duration-300 group-hover:scale-110"
-                :class="theme.textTertiary"
-              />
-            </template>
-            <!-- Lock Icon Overlay on Folder -->
-            <div
-              v-if="isLocked"
-              class="absolute bottom-0 right-0 flex items-center justify-center w-6 h-6 rounded-full bg-white dark:bg-gray-800 border-2 shadow-md"
-              :class="theme.borderSecondary"
-            >
-              <Lock class="h-3.5 w-3.5" :class="theme.textSecondary" />
-            </div>
-          </div>
+          class="w-20 h-20 rounded-2xl shadow-lg flex items-center justify-center border-2"
+        >
+          <Image class="h-10 w-10 text-white" />
+        </div>
+        <div
+          v-if="collectionData?.status"
+          :style="{
+            backgroundColor: `${cardColor}20`,
+            color: 'white',
+            borderColor: `${cardColor}40`,
+          }"
+          class="px-3 py-1 rounded-full text-xs font-semibold border"
+        >
+          {{ capitalize(collectionData.status) }}
         </div>
       </div>
+
+      <!-- Decorative elements -->
+      <div
+        v-if="!imageSrc && !previewImages?.length"
+        :style="{
+          background: `${cardColorLight}30`,
+        }"
+        class="absolute top-4 right-4 w-16 h-16 rounded-full blur-xl"
+      ></div>
+      <div
+        v-if="!imageSrc && !previewImages?.length"
+        :style="{
+          background: `${cardColor}30`,
+        }"
+        class="absolute bottom-4 left-4 w-12 h-12 rounded-full blur-lg"
+      ></div>
 
       <!-- Lock Badge Overlay on Preview Grid - Bottom Left to avoid conflict with dropdown -->
       <div
@@ -350,38 +360,28 @@
       </div>
     </div>
 
-    <!-- Card Content (Below Image) -->
-    <div v-if="showContent" :class="['p-4 pt-3 space-y-1.5', contentClass]">
+    <!-- Card Content -->
+    <div
+      v-if="showContent"
+      :class="[
+        'relative p-4 pt-3 space-y-1.5 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm',
+        contentClass,
+      ]"
+    >
       <slot name="content">
         <div v-if="captionText" class="flex items-start gap-2.5 min-h-[24px]">
-          <!-- Always show folder icon for folders, or use provided icon -->
-          <component
-            v-if="isFolder && !icon"
-            :is="Folder"
-            :style="{ color: cardColor }"
-            class="h-4 w-4 mt-0.5 shrink-0"
-          />
-          <component
-            v-else-if="icon"
-            :is="icon"
-            :style="{ color: cardColor }"
-            class="h-4 w-4 mt-0.5 shrink-0"
-          />
+          <Image :style="{ color: cardColor }" class="h-4 w-4 mt-0.5 shrink-0" />
           <h3
             :class="theme.textPrimary"
-            class="font-semibold text-base leading-tight line-clamp-2"
             :title="captionText"
+            class="font-semibold text-base leading-tight line-clamp-2"
           >
             {{ captionText }}
           </h3>
         </div>
-        <div
-          v-if="subtitle"
-          class="flex items-center gap-3 text-sm mt-1"
-          :class="theme.textSecondary"
-        >
+        <div :class="theme.textSecondary" class="flex items-center gap-3 text-sm mt-1">
           <slot name="subtitle">
-            <span class="line-clamp-1">{{ subtitle }}</span>
+            <span class="line-clamp-1">{{ getMediaAndSetCount(collectionData) }}</span>
           </slot>
         </div>
       </slot>
@@ -391,7 +391,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Folder, Star, MoreVertical, Lock } from 'lucide-vue-next'
+import { Folder, Star, MoreVertical, Lock, Image, FolderKanban } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   DropdownMenu,
@@ -401,7 +401,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
+import { lightenColor, darkenColor, generateColorFromString } from '@/utils/colors'
+import { capitalize } from '@/lib/utils'
+import StatusBadge from '@/components/atoms/StatusBadge.vue'
 
 const theme = useThemeClasses()
 
@@ -546,7 +548,12 @@ const emit = defineEmits([
 
 // Color support
 const cardColor = computed(() => {
-  return props.collectionData?.color || generateRandomColorFromPalette()
+  if (props.collectionData?.color) {
+    return props.collectionData.color
+  }
+  // Generate deterministic color from collection ID
+  const id = props.collectionData?.id || props.collectionData?.uuid || ''
+  return generateColorFromString(id)
 })
 
 const cardColorLight = computed(() => {
@@ -580,6 +587,16 @@ const handleImageError = event => {
     img.src = placeholderImage
   }
 }
+
+// Video support
+const videoRef = ref(null)
+
+const isVideoCover = computed(() => {
+  if (!props.imageSrc) return false
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  const lowerUrl = props.imageSrc.toLowerCase()
+  return videoExtensions.some(ext => lowerUrl.includes(ext))
+})
 
 // Tilt effect
 const cardRef = ref(null)
@@ -639,6 +656,41 @@ const tiltStyle = computed(() => ({
       : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
   willChange: isHovering.value || isDropdownOpen.value ? 'transform' : 'auto',
 }))
+
+const getMediaAndSetCount = collection => {
+  if (!collection) return '0 media • 0 sets'
+  const parts = []
+
+  // Media count - always show
+  const mediaCount =
+    collection.mediaCount !== undefined && collection.mediaCount !== null
+      ? collection.mediaCount
+      : Array.isArray(collection.media)
+        ? collection.media.length
+        : Array.isArray(collection.items)
+          ? collection.items.length
+          : 0
+  parts.push(`${mediaCount} ${mediaCount === 1 ? 'media' : 'media'}`)
+
+  // Set count - always show
+  const setCount =
+    collection.setCount !== undefined && collection.setCount !== null
+      ? collection.setCount
+      : collection.setsCount !== undefined && collection.setsCount !== null
+        ? collection.setsCount
+        : collection.mediaSetsCount !== undefined && collection.mediaSetsCount !== null
+          ? collection.mediaSetsCount
+          : collection.mediaSetCount !== undefined && collection.mediaSetCount !== null
+            ? collection.mediaSetCount
+            : Array.isArray(collection.mediaSets)
+              ? collection.mediaSets.length
+              : Array.isArray(collection.sets)
+                ? collection.sets.length
+                : 0
+  parts.push(`${setCount} ${setCount === 1 ? 'set' : 'sets'}`)
+
+  return parts.join(' • ')
+}
 
 // Drag and drop handlers
 const handleDragStart = e => {

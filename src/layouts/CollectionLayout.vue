@@ -29,7 +29,6 @@
       @handle-date-change="handleDateChange"
       @handle-preset-change="handlePresetChange"
       @handle-watermark-change="handleWatermarkChange"
-      @handle-cover-image-upload="handleCoverImageUpload"
       @handle-preview="handlePreview"
       @handle-publish="handlePublish"
     />
@@ -42,7 +41,6 @@
         :collection="collection"
         :is-loading="isLoading"
         :is-sidebar-collapsed="isSidebarCollapsed"
-        @handle-cover-image-upload="handleCoverImageUpload"
         @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
       >
         <CollectionSidebarPanels
@@ -79,7 +77,7 @@
 import CollectionSidebar from '../components/organisms/CollectionSidebar.vue'
 import CollectionTopNav from '../components/organisms/CollectionTopNav.vue'
 import CollectionSidebarPanels from '../components/organisms/CollectionSidebarPanels.vue'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onMounted } from 'vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
 import { usePresetStore } from '@/stores/preset'
@@ -206,7 +204,7 @@ watch(
   c => {
     if (!c) return
     collectionStatus.value = c.status === 'active' ? 'published' : 'draft'
-    const rawDate = c.date
+    const rawDate = c.eventDate || c.date
     if (rawDate) {
       const d = new Date(rawDate)
       eventDate.value = Number.isNaN(d.getTime()) ? null : d
@@ -225,6 +223,29 @@ watch(
     mediaSetsSidebar.setContext(id || '', sets || [])
   },
   { immediate: true }
+)
+
+// Load presets and watermarks when popovers open
+watch(
+  () => isPresetPopoverOpen.value,
+  async open => {
+    if (open && presetStore.presets.length === 0) {
+      try {
+        await presetStore.loadPresets()
+      } catch (error) {}
+    }
+  }
+)
+
+watch(
+  () => isWatermarkPopoverOpen.value,
+  async open => {
+    if (open && watermarkStore.watermarks.length === 0) {
+      try {
+        await watermarkStore.fetchWatermarks()
+      } catch (error) {}
+    }
+  }
 )
 
 const {
@@ -262,7 +283,7 @@ const {
   description: 'An unknown error occurred',
 })
 
-const { handleCoverImageUpload } = useCollectionCoverActions({
+const { handleSetAsCover } = useCollectionCoverActions({
   collection,
   galleryStore,
   createThumbnailFromDataURL,

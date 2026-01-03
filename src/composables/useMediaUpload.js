@@ -233,6 +233,7 @@ export function useMediaUpload(options = {}) {
           mediaToDelete.push(existingMediaItem.id)
         }
       }
+      // Files with action 'skip' are intentionally excluded and will not be uploaded
     }
 
     if (mediaToDelete.length > 0 && deleteMediaFn) {
@@ -262,8 +263,32 @@ export function useMediaUpload(options = {}) {
       }
     }
 
-    // Combine new files (non-duplicates) with files to replace
-    const allFilesToUpload = [...newFilesFromProcess.value, ...filesToProcess]
+    // Re-check duplicates for newFilesFromProcess in case media list changed
+    // This ensures skipped duplicates don't accidentally get uploaded
+    let existingMediaList = getExistingMedia()
+    if (setId) {
+      const setIdValue = getSetId(setId)
+      if (setIdValue) {
+        existingMediaList = existingMediaList.filter(media => {
+          return media.setId === setIdValue
+        })
+      }
+    }
+
+    // Filter out any files from newFilesFromProcess that are now duplicates
+    const { duplicates: newDuplicates, newFiles: verifiedNewFiles } =
+      splitDuplicateUploadFiles(newFilesFromProcess.value, existingMediaList)
+
+    // Log if any previously non-duplicate files are now duplicates (shouldn't happen but safety check)
+    if (newDuplicates.length > 0) {
+      console.warn(
+        `${newDuplicates.length} file(s) became duplicates after processing and will be skipped`
+      )
+    }
+
+    // Combine verified new files (non-duplicates) with files to replace
+    // Only include files that are not skipped
+    const allFilesToUpload = [...verifiedNewFiles, ...filesToProcess]
 
     if (allFilesToUpload.length > 0) {
       // uploadMediaToSet already calls loadMediaItems() at the end, so no need to call it again here
@@ -331,7 +356,7 @@ export function useMediaUpload(options = {}) {
   /**
    * Cancel ongoing upload
    */
-  const cancelUpload = () => {
+  const cancelUpload = async () => {
     if (uploadAbortController.value) {
       uploadAbortController.value.abort()
       uploadAbortController.value = null
@@ -342,6 +367,15 @@ export function useMediaUpload(options = {}) {
     uploadErrors.value = [] // Clear errors on cancel
     // Dismiss progress toast
     toast.dismiss('upload-progress')
+    
+    // Reload media to show any completed uploads before cancellation
+    if (loadMediaItems && typeof loadMediaItems === 'function') {
+      try {
+        await loadMediaItems()
+      } catch (error) {
+        console.error('Failed to reload media after cancellation:', error)
+      }
+    }
   }
 
   /**
@@ -803,30 +837,41 @@ export function useMediaUpload(options = {}) {
 
         // Call loadMediaItems if provided
         if (loadMediaItems) {
-          await loadMediaItems()
+          try {
+            await loadMediaItems()
+          } catch (error) {
+            console.error('Error reloading media items:', error)
+          }
         }
 
         // Call optional onUploadComplete callback (e.g., to reload media sets, update counts, etc.)
         if (onUploadComplete) {
-          await onUploadComplete(results)
+          try {
+            await onUploadComplete(results)
+          } catch (error) {
+            console.error('Error in onUploadComplete callback:', error)
+          }
         }
       }
 
       // Dismiss progress toast
       toast.dismiss('upload-progress')
 
-      // Show results
-      if (results.successful.length > 0 && results.failed.length === 0) {
+      // Show results - only show error toast if ALL uploads failed
+      const hasSuccessful = results.successful && results.successful.length > 0
+      const hasFailed = results.failed && results.failed.length > 0
+
+      if (hasSuccessful && !hasFailed) {
         toast.success('Media uploaded', {
           description: `${results.successful.length} file(s) uploaded successfully.`,
         })
-      } else if (results.successful.length > 0 && results.failed.length > 0) {
+      } else if (hasSuccessful && hasFailed) {
         toast.warning('Partial upload', {
           description: `${results.successful.length} succeeded, ${results.failed.length} failed.`,
         })
-      } else if (results.failed.length > 0) {
-        const failedFileNames = results.failed.map(f => f.file.name).join(', ')
-        const errorDetails = results.failed.map(f => `"${f.file.name}": ${f.error}`).join('; ')
+      } else if (!hasSuccessful && hasFailed) {
+        const failedFileNames = results.failed.map(f => f.file?.name || 'Unknown').join(', ')
+        const errorDetails = results.failed.map(f => `"${f.file?.name || 'Unknown'}": ${f.error || 'Unknown error'}`).join('; ')
         toast.error(`Upload failed for ${results.failed.length} file(s)`, {
           description: errorDetails.length > 200 ? failedFileNames : errorDetails,
         })

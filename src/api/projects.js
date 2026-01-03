@@ -254,9 +254,10 @@ export function useProjectsApi() {
 
     let preset = null
     if (data.presetId) {
-      const PRESETS_STORAGE_KEY = 'mazeloot_presets'
-      const presets = storage.get(PRESETS_STORAGE_KEY) || []
-      preset = presets.find(p => p.id === data.presetId)
+      // Use preset store to get preset
+      const { usePresetStore } = await import('@/stores/preset')
+      const presetStore = usePresetStore()
+      preset = presetStore.getPresetById(data.presetId)
     }
 
     // Convert preset photoSets to mediaSets if preset exists
@@ -276,8 +277,8 @@ export function useProjectsApi() {
 
     // Determine watermarkId
     let watermarkId = data.watermarkId
-    if (!watermarkId && preset && preset.defaultWatermark && preset.defaultWatermark !== 'none') {
-      watermarkId = preset.defaultWatermark
+    if (!watermarkId && preset && preset.defaultWatermarkId && preset.defaultWatermarkId !== 'none') {
+      watermarkId = preset.defaultWatermarkId
     }
 
     // Parse collection tags from preset

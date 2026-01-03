@@ -19,6 +19,7 @@ export function useCollectionLoadFlow({
   watermarkStore,
   updateSetCounts,
   loadMediaItems,
+  mediaSetsSidebar,
 } = {}) {
   const loadCollection = async () => {
     const uuid = route.params.uuid
@@ -30,9 +31,7 @@ export function useCollectionLoadFlow({
 
     isLoading.value = true
     try {
-      // First ensure collections are loaded
-      await galleryStore.fetchCollections()
-
+      // Always fetch collection by UUID from API
       const collectionData = await galleryStore.fetchCollection(uuid)
       if (!collectionData) {
         toast.error('Collection not found', {
@@ -46,8 +45,8 @@ export function useCollectionLoadFlow({
       // Map 'active' status to 'published' for display
       collectionStatus.value = collectionData.status === 'active' ? 'published' : 'draft'
 
-      // API stores 'date' field
-      const dateString = collectionData.date
+      // Backend returns eventDate (extracted from settings)
+      const dateString = collectionData.eventDate || collectionData.date
       if (dateString) {
         try {
           const dateValue = typeof dateString === 'string' ? new Date(dateString) : dateString
@@ -78,25 +77,46 @@ export function useCollectionLoadFlow({
       selectedWatermark.value = watermarkId != null ? String(watermarkId) : 'none'
 
       // Load media sets from collection data
-      if (collectionData.mediaSets && collectionData.mediaSets.length > 0) {
-        mediaSets.value = collectionData.mediaSets.map(set => ({
-          id: set.id,
-          name: set.name,
-          description: set.description,
-          count: set.count,
-          order: set.order,
-        }))
-      } else {
-        // Initialize with default "Highlights" set if no sets exist
-        mediaSets.value = [{ id: 'highlights', name: 'Highlights', count: 0, order: 0 }]
+      const mappedMediaSets = collectionData.mediaSets && collectionData.mediaSets.length > 0
+        ? collectionData.mediaSets.map(set => ({
+            id: set.id,
+            name: set.name,
+            description: set.description,
+            count: set.count,
+            order: set.order,
+          }))
+        : []
+
+      mediaSets.value = mappedMediaSets
+
+      // Set context in sidebar store to ensure media sets are visible
+      if (mediaSetsSidebar) {
+        mediaSetsSidebar.setContext(collectionData.id || '', mappedMediaSets)
       }
 
-      if (mediaSets.value.length > 0) {
-        selectedSetId.value = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
+      // Check if setId is in route query and set it first (like SelectionDetail)
+      if (route.query.setId) {
+        const setIdFromRoute = route.query.setId
+        if (mediaSets.value.some(s => s.id === setIdFromRoute)) {
+          if (mediaSetsSidebar) {
+            mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+          } else {
+            selectedSetId.value = setIdFromRoute
+          }
+        }
       }
 
-      await updateSetCounts()
+      // Auto-select first set if none selected and sets exist
+      if (!selectedSetId.value && mediaSets.value.length > 0) {
+        const firstSetId = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
+        if (mediaSetsSidebar) {
+          mediaSetsSidebar.handleSelectSet(firstSetId)
+        } else {
+          selectedSetId.value = firstSetId
+        }
+      }
     } catch (error) {
+      console.error('Failed to load collection:', error)
       toast.error('Failed to load collection', {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
       })
@@ -145,9 +165,7 @@ export function useCollectionLoadFlow({
     if (selectedSetId.value) {
       await loadMediaItems()
     }
-    try {
-      await watermarkStore.fetchWatermarks()
-    } catch (error) {}
+    // Don't load watermarks/presets until requested
   })
 
   return {

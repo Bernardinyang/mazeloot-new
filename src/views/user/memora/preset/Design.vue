@@ -34,12 +34,6 @@
           <!-- Quick Stats -->
           <div class="hidden md:flex gap-4">
             <div :class="[theme.borderSecondary, theme.bgCard]" class="px-4 py-2 rounded-lg border">
-              <div :class="theme.textTertiary" class="text-xs">Cover Style</div>
-              <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
-                {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Modern' }}
-              </div>
-            </div>
-            <div :class="[theme.borderSecondary, theme.bgCard]" class="px-4 py-2 rounded-lg border">
               <div :class="theme.textTertiary" class="text-xs">Color Palette</div>
               <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
                 {{ colorPalettes.find(p => p.id === formData.colorPalette)?.label || 'Light' }}
@@ -49,279 +43,221 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Loading State -->
+      <div v-if="presetStore.isLoading || isLoadingData || !currentPreset" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Skeleton Loader -->
+        <div class="lg:col-span-1 space-y-12">
+          <div v-for="i in 4" :key="i" :class="[theme.borderSecondary, theme.bgCard]" class="space-y-4 p-6 rounded-2xl border-2">
+            <div class="space-y-2">
+              <Skeleton class="h-5 w-32" />
+              <Skeleton class="h-4 w-48" />
+            </div>
+            <Skeleton class="h-12 w-full" />
+            <Skeleton class="h-10 w-24" />
+          </div>
+        </div>
+        <div class="lg:col-span-2">
+          <Skeleton class="h-[600px] w-full rounded-2xl" />
+        </div>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Content -->
         <div class="lg:col-span-1 space-y-12">
-          <!-- Cover Section -->
-          <div
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="space-y-5 p-6 rounded-2xl border-2"
-          >
-            <div class="flex items-center justify-between mb-1">
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Cover Style</h3>
-                <p :class="theme.textSecondary" class="text-xs">
-                  Choose how your collection title appears on the cover
-                </p>
-              </div>
-              <div class="px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
-                  {{ coverOptions.find(c => c.id === formData.cover)?.label || 'Modern' }}
-                </span>
-              </div>
-            </div>
+          <!-- Joy Cover Customization - Hidden for now -->
+          <div v-if="false">
             <div
-              class="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-3 gap-4 md:gap-5"
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-5 p-6 rounded-2xl border-2"
             >
-              <div v-for="cover in coverOptions" :key="cover.id" class="flex flex-col gap-3">
-                <button
-                  :class="[
-                    formData.cover === cover.id
-                      ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
-                      : theme.borderSecondary,
-                    'hover:border-teal-500/60 hover:shadow-md',
-                    'active:scale-95',
-                    theme.bgCard,
-                  ]"
-                  class="group relative aspect-square rounded-xl border-2 transition-all duration-300 hover:scale-105 hover:shadow-lg overflow-hidden cursor-pointer"
-                  @click="formData.cover = cover.id"
-                >
-                  <!-- Selected indicator -->
-                  <div
-                    v-if="formData.cover === cover.id"
-                    class="absolute top-2 right-2 z-20 w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center shadow-lg"
-                  >
-                    <Check class="h-3 w-3 text-white" />
-                  </div>
-
-                  <!-- Cover previews based on type -->
-                  <CoverPreview :type="cover.id" />
-                </button>
-                <!-- Cover style label -->
-                <span
-                  :class="formData.cover === cover.id ? 'text-teal-600 dark:text-teal-400' : ''"
-                  class="text-xs md:text-sm font-semibold text-center transition-all duration-200"
-                >
-                  {{ cover.label }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Cover Focal Point Section -->
-          <div
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="space-y-5 p-6 rounded-2xl border-2"
-          >
-            <div class="mb-1">
-              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Cover Focal Point</h3>
-              <p :class="theme.textSecondary" class="text-xs">
-                Choose where to focus the cover image
-              </p>
-            </div>
-            <Button
-              :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-              class="w-full"
-              variant="outline"
-              @click="showFocalPointModal = true"
-            >
-              <span>Set Focal Point</span>
-            </Button>
-          </div>
-
-          <!-- Joy Cover Style Customization -->
-          <div
-            v-if="formData.cover === 'joy'"
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="space-y-5 p-6 rounded-2xl border-2"
-          >
-            <div class="mb-1">
-              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">
-                Joy Cover Customization
-              </h3>
-              <p :class="theme.textSecondary" class="text-xs">
-                Customize the title, avatar, and display options for your Joy cover
-              </p>
-            </div>
-
-            <div class="space-y-4">
-              <!-- Title Text -->
-              <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
-                  Title Text
-                </label>
-                <input
-                  v-model="formData.joyCoverTitle"
-                  :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
-                  placeholder="JOY"
-                  type="text"
-                />
-                <p :class="theme.textTertiary" class="text-xs mt-1.5">
-                  The letter "O" will be replaced with your avatar image
+              <div class="mb-1">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">
+                  Joy Cover Customization
+                </h3>
+                <p :class="theme.textSecondary" class="text-xs">
+                  Customize the title, avatar, and display options for your Joy cover
                 </p>
               </div>
 
-              <!-- Avatar Upload -->
-              <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
-                  Profile Picture / Avatar
-                </label>
-                <div class="flex items-center gap-4">
-                  <div
-                    v-if="formData.joyCoverAvatar"
-                    :class="theme.borderSecondary"
-                    class="w-20 h-20 rounded-full overflow-hidden border-2"
-                  >
-                    <img
-                      :src="formData.joyCoverAvatar"
-                      alt="Avatar"
-                      class="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div
-                    v-else
-                    :class="[theme.borderSecondary, theme.textTertiary]"
-                    class="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center"
-                  >
-                    <span class="text-xs">No image</span>
-                  </div>
-                  <Button
+              <div class="space-y-4">
+                <!-- Title Text -->
+                <div>
+                  <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
+                    Title Text
+                  </label>
+                  <input
+                    v-model="formData.joyCoverTitle"
                     :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                    size="sm"
-                    variant="outline"
-                    @click="handleAvatarUpload"
-                  >
-                    {{ formData.joyCoverAvatar ? 'Change' : 'Upload' }}
-                  </Button>
-                  <Button
-                    v-if="formData.joyCoverAvatar"
-                    :class="[theme.textSecondary, theme.bgButtonHover]"
-                    size="sm"
-                    variant="ghost"
-                    @click="formData.joyCoverAvatar = null"
-                  >
-                    Remove
-                  </Button>
-                </div>
-                <input
-                  ref="avatarInputRef"
-                  accept="image/*"
-                  class="hidden"
-                  type="file"
-                  @change="handleAvatarFileChange"
-                />
-              </div>
-
-              <!-- Show Date Toggle -->
-              <div class="flex items-center justify-between">
-                <div>
-                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
-                    Show Date
-                  </label>
-                  <p :class="theme.textSecondary" class="text-xs">
-                    Display the event date below the title
+                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50"
+                    placeholder="JOY"
+                    type="text"
+                  />
+                  <p :class="theme.textTertiary" class="text-xs mt-1.5">
+                    The letter "O" will be replaced with your avatar image
                   </p>
                 </div>
-                <ToggleSwitch
-                  v-model="formData.joyCoverShowDate"
-                  label=""
-                  off-label="Off"
-                  on-label="On"
-                />
-              </div>
 
-              <!-- Show Name Toggle -->
-              <div class="flex items-center justify-between">
+                <!-- Avatar Upload -->
                 <div>
-                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
-                    Show Name
+                  <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
+                    Profile Picture / Avatar
                   </label>
-                  <p :class="theme.textSecondary" class="text-xs">
-                    Display the collection name below the date
-                  </p>
-                </div>
-                <ToggleSwitch
-                  v-model="formData.joyCoverShowName"
-                  label=""
-                  off-label="Off"
-                  on-label="On"
-                />
-              </div>
-
-              <!-- Button Text -->
-              <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
-                  Button Text
-                </label>
-                <input
-                  v-model="formData.joyCoverButtonText"
-                  :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                  class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20"
-                  placeholder="VIEW GALLERY"
-                  type="text"
-                />
-              </div>
-
-              <!-- Show Button Toggle -->
-              <div class="flex items-center justify-between">
-                <div>
-                  <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
-                    Show Button
-                  </label>
-                  <p :class="theme.textSecondary" class="text-xs">
-                    Display the call-to-action button
-                  </p>
-                </div>
-                <ToggleSwitch
-                  v-model="formData.joyCoverShowButton"
-                  label=""
-                  off-label="Off"
-                  on-label="On"
-                />
-              </div>
-
-              <!-- Background Pattern -->
-              <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
-                  Background Pattern
-                </label>
-                <div class="flex gap-3">
-                  <button
-                    v-for="pattern in [
-                      { id: 'crosses', label: 'Crosses' },
-                      { id: 'sparkles', label: 'Sparkles' },
-                      { id: 'none', label: 'None' },
-                    ]"
-                    :key="pattern.id"
-                    :class="[
-                      formData.joyCoverBackgroundPattern === pattern.id
-                        ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
-                        : '',
-                      'hover:border-teal-500/60',
-                      theme.bgCard,
-                    ]"
-                    class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
-                    @click="handleJoyPatternChange(pattern.id)"
-                  >
-                    <span
-                      :class="
-                        formData.joyCoverBackgroundPattern === pattern.id
-                          ? 'text-teal-600 dark:text-teal-400'
-                          : ''
-                      "
-                      class="text-xs font-medium block text-center"
+                  <div class="flex items-center gap-4">
+                    <div
+                      v-if="formData.joyCoverAvatar"
+                      :class="theme.borderSecondary"
+                      class="w-20 h-20 rounded-full overflow-hidden border-2"
                     >
-                      {{ pattern.label }}
-                    </span>
-                  </button>
+                      <img
+                        :src="formData.joyCoverAvatar"
+                        alt="Avatar"
+                        class="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div
+                      v-else
+                      :class="[theme.borderSecondary, theme.textTertiary]"
+                      class="w-20 h-20 rounded-full border-2 border-dashed flex items-center justify-center"
+                    >
+                      <span class="text-xs">No image</span>
+                    </div>
+                    <Button
+                      :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                      size="sm"
+                      variant="outline"
+                      @click="handleAvatarUpload"
+                    >
+                      {{ formData.joyCoverAvatar ? 'Change' : 'Upload' }}
+                    </Button>
+                    <Button
+                      v-if="formData.joyCoverAvatar"
+                      :class="[theme.textSecondary, theme.bgButtonHover]"
+                      size="sm"
+                      variant="ghost"
+                      @click="formData.joyCoverAvatar = null"
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  <input
+                    ref="avatarInputRef"
+                    accept="image/*"
+                    class="hidden"
+                    type="file"
+                    @change="handleAvatarFileChange"
+                  />
+                </div>
+
+                <!-- Show Date Toggle -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
+                      Show Date
+                    </label>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      Display the event date below the title
+                    </p>
+                  </div>
+                  <ToggleSwitch
+                    v-model="formData.joyCoverShowDate"
+                    label=""
+                    off-label="Off"
+                    on-label="On"
+                  />
+                </div>
+
+                <!-- Show Name Toggle -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
+                      Show Name
+                    </label>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      Display the collection name below the date
+                    </p>
+                  </div>
+                  <ToggleSwitch
+                    v-model="formData.joyCoverShowName"
+                    label=""
+                    off-label="Off"
+                    on-label="On"
+                  />
+                </div>
+
+                <!-- Button Text -->
+                <div>
+                  <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
+                    Button Text
+                  </label>
+                  <input
+                    v-model="formData.joyCoverButtonText"
+                    :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
+                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50"
+                    placeholder="VIEW GALLERY"
+                    type="text"
+                  />
+                </div>
+
+                <!-- Show Button Toggle -->
+                <div class="flex items-center justify-between">
+                  <div>
+                    <label :class="theme.textPrimary" class="text-xs font-medium block mb-1">
+                      Show Button
+                    </label>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      Display the call-to-action button
+                    </p>
+                  </div>
+                  <ToggleSwitch
+                    v-model="formData.joyCoverShowButton"
+                    label=""
+                    off-label="Off"
+                    on-label="On"
+                  />
+                </div>
+
+                <!-- Background Pattern -->
+                <div>
+                  <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block">
+                    Background Pattern
+                  </label>
+                  <div class="flex gap-3">
+                    <button
+                      v-for="pattern in [
+                        { id: 'crosses', label: 'Crosses' },
+                        { id: 'sparkles', label: 'Sparkles' },
+                        { id: 'none', label: 'None' },
+                      ]"
+                      :key="pattern.id"
+                      :class="[
+                        formData.joyCoverBackgroundPattern === pattern.id
+                          ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
+                          : '',
+                        'hover:border-teal-500/60',
+                        theme.bgCard,
+                      ]"
+                      class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
+                      @click="handleJoyPatternChange(pattern.id)"
+                    >
+                      <span
+                        :class="
+                          formData.joyCoverBackgroundPattern === pattern.id
+                            ? 'text-teal-600 dark:text-teal-400'
+                            : ''
+                        "
+                        class="text-xs font-medium block text-center"
+                      >
+                        {{ pattern.label }}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Focal Point Modal -->
-          <Dialog :open="showFocalPointModal" @update:open="showFocalPointModal = $event">
+          <!-- Removed: Focal Point Modal (cover style/focal point removed from presets) -->
+          <Dialog v-if="false" :open="showFocalPointModal" @update:open="showFocalPointModal = $event">
             <DialogContent
               :class="[theme.bgCard, theme.borderCard, 'sm:max-w-4xl p-0', 'focal-point-dialog']"
             >
@@ -386,55 +322,62 @@
           <!-- Typography Section -->
           <div
             :class="[theme.borderSecondary, theme.bgCard]"
-            class="space-y-5 p-6 rounded-2xl border-2"
+            class="space-y-6 p-6 rounded-2xl border-2 transition-shadow duration-300"
           >
-            <div class="flex items-center justify-between mb-1">
+            <div class="flex items-center justify-between mb-2">
               <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Typography</h3>
-                <p :class="theme.textSecondary" class="text-xs">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Typography</h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                   Select fonts that match your brand and style
                 </p>
               </div>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-5">
               <!-- Font Families -->
               <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block"
-                  >Font Family</label
+                <label
+                  :class="theme.textSecondary"
+                  class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                 >
-                <FontFamilySelect v-model="formData.fontFamily" placeholder="Select font family" />
+                  Font Family
+                </label>
+                <FontFamilySelect
+                  v-model="formData.fontFamily"
+                  placeholder="Select font family"
+                />
               </div>
-              <!-- Font Weights/Styles -->
+              <!-- Font Style -->
               <div>
-                <label :class="theme.textSecondary" class="text-xs font-medium mb-2 block"
-                  >Font Style</label
+                <label
+                  :class="theme.textSecondary"
+                  class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
                 >
-                <div class="flex gap-3">
-                  <button
-                    v-for="style in fontStyles"
-                    :key="style.id"
+                  Font Style
+                </label>
+                <Select v-model="formData.fontStyle">
+                  <SelectTrigger
                     :class="[
-                      formData.fontStyle === style.id
-                        ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                        : '',
-                      'hover:border-teal-500/60',
-                      'active:scale-98',
-                      theme.bgCard,
+                      theme.bgInput,
+                      theme.borderInput,
+                      theme.textInput,
+                      'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
                     ]"
-                    class="group flex-1 px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
-                    @click="formData.fontStyle = style.id"
+                    class="transition-all"
                   >
-                    <span
-                      :class="[
-                        formData.fontStyle === style.id ? 'text-teal-600 dark:text-teal-400' : '',
-                        style.class,
-                      ]"
-                      class="text-base font-medium block text-center transition-colors duration-200"
+                    <SelectValue placeholder="Select style" />
+                  </SelectTrigger>
+                  <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+                    <SelectItem
+                      v-for="style in fontStyleOptions"
+                      :key="style.value"
+                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                      :style="getStylePreview(style.value)"
+                      :value="style.value"
                     >
                       {{ style.label }}
-                    </span>
-                  </button>
-                </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </div>
@@ -534,7 +477,7 @@
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <component
-                      :is="style.id === 'masonry' ? LayoutGrid : Grid3x3"
+                      :is="getGridStyleIcon(style.id)"
                       :class="
                         formData.gridStyle === style.id ? 'text-teal-600 dark:text-teal-400' : ''
                       "
@@ -613,9 +556,9 @@
             class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Thumbnail Size</h3>
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Thumbnail Orientation</h3>
               <p :class="theme.textSecondary" class="text-xs">
-                Control the size of gallery thumbnails
+                Choose the aspect ratio for gallery thumbnails
               </p>
             </div>
             <div class="grid grid-cols-2 gap-4">
@@ -693,60 +636,48 @@
             class="space-y-5 p-6 rounded-2xl border-2"
           >
             <div class="mb-1">
-              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Navigation Style</h3>
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1">Tab Icons</h3>
               <p :class="theme.textSecondary" class="text-xs">
-                Choose how navigation elements are displayed
+                Choose how tab icons are displayed
               </p>
             </div>
-            <div class="flex gap-4">
+            <div class="grid grid-cols-2 gap-4">
               <button
                 v-for="nav in navigationStyles"
                 :key="nav.id"
                 :class="[
                   formData.navigationStyle === nav.id
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
-                    : '',
-                  'hover:border-teal-500/60',
-                  'active:scale-98',
+                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 ring-2 ring-teal-500/20 scale-[1.01]'
+                    : [
+                        theme.borderSecondary,
+                        'hover:border-teal-500/70',
+                        'active:scale-[0.98]',
+                      ],
                   theme.bgCard,
                 ]"
-                class="group flex-1 px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] hover:shadow-md cursor-pointer"
+                class="group px-6 py-5 rounded-xl border-2 transition-all duration-300 hover:scale-[1.03] cursor-pointer min-w-0"
                 @click="formData.navigationStyle = nav.id"
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="[
-                      formData.navigationStyle === nav.id
-                        ? 'border-teal-500 bg-teal-500/10 shadow-sm'
-                        : '',
-                      theme.borderSecondary,
-                      'group-hover:border-teal-500/50',
-                      'bg-gray-100/50 dark:bg-gray-800/50',
-                    ]"
-                    class="w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-all duration-300"
+                    :class="formData.navigationStyle === nav.id ? 'bg-teal-500/20' : ''"
+                    class="p-2.5 rounded-lg transition-all duration-300"
                   >
-                    <span
-                      v-if="nav.id === 'icon-text'"
+                    <component
+                      :is="getNavigationStyleIcon(nav.id)"
                       :class="
                         formData.navigationStyle === nav.id
                           ? 'text-teal-600 dark:text-teal-400'
                           : ''
                       "
-                      class="text-xs font-bold transition-colors duration-200"
-                    >
-                      A
-                    </span>
-                    <div
-                      v-else
-                      :class="
-                        formData.navigationStyle === nav.id ? 'border-teal-500 bg-teal-500/20' : ''
-                      "
-                      class="w-3 h-3 rounded border transition-colors duration-200"
-                    ></div>
+                      class="h-5 w-5 transition-colors duration-200"
+                    />
                   </div>
                   <span
                     :class="
-                      formData.navigationStyle === nav.id ? 'text-teal-600 dark:text-teal-400' : ''
+                      formData.navigationStyle === nav.id
+                        ? 'text-teal-600 dark:text-teal-400 font-bold'
+                        : theme.textSecondary
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -871,20 +802,31 @@
 import { computed, inject, onMounted, onUnmounted, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2 } from 'lucide-vue-next'
+import { Check, ExternalLink, Grid3x3, LayoutGrid, Loader2, Type, Image as ImageIcon } from 'lucide-vue-next'
+import {
+  gridStyles,
+  gridColumnsOptions,
+  thumbnailSizes,
+  navigationStyles,
+  fontStyleOptions,
+  defaultDesignValues,
+  getGridStyleIcon,
+  getNavigationStyleIcon,
+} from '@/utils/designConstants'
+import { getColorPalettesArray } from '@/utils/colors'
 import { Button } from '@/components/shadcn/button'
 import { Slider } from '@/components/shadcn/slider'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
-import CoverPreview from '@/components/organisms/CoverPreview.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
-import { getCoverStyleOptions, useCoverStyles } from '@/composables/useCoverStyles'
 
 const route = useRoute()
 const router = useRouter()
@@ -895,9 +837,9 @@ const presetStore = usePresetStore()
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return null
 })
@@ -913,17 +855,15 @@ const focalPointImageContainer = ref(null)
 const showUnsavedChangesModal = ref(false)
 const avatarInputRef = ref(null)
 
-// Default design values - declare these first
-const defaultCover = 'none'
-const defaultCoverFocalPoint = { x: 50, y: 50 }
-const defaultFontFamily = 'sans'
-const defaultFontStyle = 'normal'
-const defaultColorPalette = 'light'
-const defaultGridStyle = 'vertical'
-const defaultGridColumns = 3
-const defaultThumbnailSize = 'medium'
-const defaultGridSpacing = 16
-const defaultNavigationStyle = 'icon-text'
+// Default design values - use shared constants
+const defaultFontFamily = defaultDesignValues.fontFamily
+const defaultFontStyle = defaultDesignValues.fontStyle
+const defaultColorPalette = defaultDesignValues.colorPalette
+const defaultGridStyle = defaultDesignValues.gridStyle
+const defaultGridColumns = defaultDesignValues.gridColumns
+const defaultThumbnailSize = defaultDesignValues.thumbnailSize
+const defaultGridSpacing = defaultDesignValues.gridSpacing
+const defaultNavigationStyle = defaultDesignValues.navigationStyle
 const defaultJoyCoverTitle = ''
 const defaultJoyCoverAvatar = null
 const defaultJoyCoverShowDate = false
@@ -934,8 +874,6 @@ const defaultJoyCoverBackgroundPattern = 'crosses'
 
 // Design form data
 const formData = reactive({
-  cover: defaultCover,
-  coverFocalPoint: defaultCoverFocalPoint,
   fontFamily: defaultFontFamily,
   fontStyle: defaultFontStyle,
   colorPalette: defaultColorPalette,
@@ -963,8 +901,6 @@ const hasUnsavedChanges = computed(() => {
   }
   return (
     formData.cover !== originalData.value.cover ||
-    formData.coverFocalPoint.x !== originalData.value.coverFocalPoint.x ||
-    formData.coverFocalPoint.y !== originalData.value.coverFocalPoint.y ||
     formData.fontFamily !== originalData.value.fontFamily ||
     formData.fontStyle !== originalData.value.fontStyle ||
     formData.colorPalette !== originalData.value.colorPalette ||
@@ -995,29 +931,8 @@ const gridSpacingSlider = computed({
   },
 })
 
-// Initialize cover styles from API (will load automatically)
-// The getCoverStyleOptions() function will use cached styles or fallback
-// Cover options - from API or fallback to hardcoded config
-const coverOptions = computed(() => getCoverStyleOptions())
+// Cover styles removed from presets
 
-// Preload cover styles on component mount
-onMounted(() => {
-  useCoverStyles().catch(err => {})
-})
-
-const handleFocalPointClick = event => {
-  if (!focalPointImageContainer.value) return
-
-  const rect = focalPointImageContainer.value.getBoundingClientRect()
-  const x = ((event.clientX - rect.left) / rect.width) * 100
-  const y = ((event.clientY - rect.top) / rect.height) * 100
-
-  // Clamp values between 0 and 100
-  formData.coverFocalPoint = {
-    x: Math.min(100, Math.max(0, x)),
-    y: Math.min(100, Math.max(0, y)),
-  }
-}
 
 const handleJoyPatternChange = patternId => {
   if (patternId === 'crosses' || patternId === 'sparkles' || patternId === 'none') {
@@ -1043,68 +958,39 @@ const handleAvatarFileChange = event => {
   }
 }
 
-// Font styles
-const fontStyles = [
-  { id: 'normal', label: 'Normal', class: 'font-normal' },
-  { id: 'bold', label: 'Bold', class: 'font-bold' },
-  { id: 'italic', label: 'Italic', class: 'italic' },
-]
+// Font styles - use shared constants
+const fontStyles = fontStyleOptions.map(opt => ({
+  id: opt.value,
+  label: opt.label,
+  class: opt.value === 'normal' ? 'font-normal' : opt.value === 'bold' ? 'font-bold' : 'italic',
+}))
 
-// Color palettes with improved contrast - no duplicates
-// Format: [background, accent, text] - ensuring WCAG AA contrast ratios
-const colorPalettes = [
-  { id: 'neutral', label: 'Neutral', colors: ['#E5E7EB', '#1F2937', '#000000'] },
-  { id: 'gold', label: 'Gold', colors: ['#F59E0B', '#78350F', '#000000'] },
-  { id: 'pink', label: 'Pink', colors: ['#EC4899', '#831843', '#000000'] },
-  { id: 'orange', label: 'Orange', colors: ['#EA580C', '#7C2D12', '#000000'] },
-  { id: 'purple', label: 'Purple', colors: ['#A855F7', '#581C87', '#FFFFFF'] },
-  { id: 'green', label: 'Green', colors: ['#84CC16', '#365314', '#000000'] },
-  { id: 'teal', label: 'Teal', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
-  { id: 'blue', label: 'Blue', colors: ['#0EA5E9', '#0C4A6E', '#FFFFFF'] },
-  { id: 'coral', label: 'Coral', colors: ['#F43F5E', '#9F1239', '#FFFFFF'] },
-  { id: 'sage', label: 'Sage', colors: ['#22C55E', '#14532D', '#000000'] },
-  { id: 'peach', label: 'Peach', colors: ['#FB923C', '#7C2D12', '#000000'] },
-  { id: 'mint', label: 'Mint', colors: ['#14B8A6', '#134E4A', '#FFFFFF'] },
-  { id: 'slate', label: 'Slate', colors: ['#64748B', '#0F172A', '#FFFFFF'] },
-  { id: 'amber', label: 'Amber', colors: ['#F59E0B', '#78350F', '#000000'] },
-  { id: 'indigo', label: 'Indigo', colors: ['#6366F1', '#312E81', '#FFFFFF'] },
-  { id: 'emerald', label: 'Emerald', colors: ['#10B981', '#064E3B', '#FFFFFF'] },
-  { id: 'cyan', label: 'Cyan', colors: ['#06B6D4', '#164E63', '#FFFFFF'] },
-  { id: 'violet', label: 'Violet', colors: ['#8B5CF6', '#4C1D95', '#FFFFFF'] },
-  { id: 'dark', label: 'Dark', colors: ['#374151', '#F9FAFB', '#FFFFFF'] },
-]
+// Helper function to convert font style to CSS properties
+const getFontStyleProperties = style => {
+  if (!style) {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    }
+  }
+  const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
+  return {
+    fontWeight: styles.includes('bold') ? 'bold' : 'normal',
+    fontStyle: styles.includes('italic') ? 'italic' : 'normal',
+  }
+}
 
-// Grid styles
-const gridStyles = [
-  { id: 'masonry', label: 'Masonry' },
-  { id: 'grid', label: 'Grid' },
-  { id: 'rows', label: 'Rows' },
-]
+// Helper function for style preview in Select dropdown
+const getStylePreview = styleValue => {
+  return getFontStyleProperties(styleValue)
+}
 
-// Grid columns options
-const gridColumnsOptions = [
-  { value: 2, label: '2 Columns' },
-  { value: 3, label: '3 Columns' },
-  { value: 4, label: '4 Columns' },
-  { value: 5, label: '5 Columns' },
-]
-
-// Thumbnail sizes
-const thumbnailSizes = [
-  { id: 'small', label: 'Small' },
-  { id: 'medium', label: 'Medium' },
-  { id: 'large', label: 'Large' },
-]
-
-// Navigation styles
-const navigationStyles = [
-  { id: 'icon', label: 'Icon' },
-  { id: 'icon-text', label: 'Icon + Text' },
-]
+// Color palettes - use shared utility
+const colorPalettes = getColorPalettesArray()
 
 // Load preset data
 const loadPresetData = () => {
-  if (currentPreset.value) {
+  if (currentPreset.value && !isLoadingData.value) {
     isLoadingData.value = true
     const designData = currentPreset.value.design || {}
 
@@ -1122,40 +1008,37 @@ const loadPresetData = () => {
       }
     }
 
+    const joyCover = designData.joyCover || {}
+    
     const loadedData = {
-      cover: designData.cover || defaultCover,
-      coverFocalPoint:
-        designData.coverFocalPoint && typeof designData.coverFocalPoint === 'object'
-          ? { ...designData.coverFocalPoint }
-          : defaultCoverFocalPoint,
       fontFamily: designData.fontFamily || defaultFontFamily,
       fontStyle: designData.fontStyle || defaultFontStyle,
       colorPalette: designData.colorPalette || defaultColorPalette,
       gridStyle: designData.gridStyle || defaultGridStyle,
       gridColumns: designData.gridColumns || defaultGridColumns,
-      thumbnailSize: designData.thumbnailSize || defaultThumbnailSize,
+      thumbnailSize: designData.thumbnailOrientation || designData.thumbnailSize || defaultThumbnailSize,
       gridSpacing: calculatedGridSpacing,
-      navigationStyle: designData.navigationStyle || defaultNavigationStyle,
+      navigationStyle: designData.tabStyle || designData.navigationStyle || defaultNavigationStyle,
       // Joy cover settings
-      joyCoverTitle: designData.joyCoverTitle || defaultJoyCoverTitle,
-      joyCoverAvatar: designData.joyCoverAvatar || defaultJoyCoverAvatar,
+      joyCoverTitle: joyCover.title || defaultJoyCoverTitle,
+      joyCoverAvatar: joyCover.avatar || defaultJoyCoverAvatar,
       joyCoverShowDate:
-        designData.joyCoverShowDate !== undefined
-          ? designData.joyCoverShowDate
+        joyCover.showDate !== undefined
+          ? joyCover.showDate
           : defaultJoyCoverShowDate,
       joyCoverShowName:
-        designData.joyCoverShowName !== undefined
-          ? designData.joyCoverShowName
+        joyCover.showName !== undefined
+          ? joyCover.showName
           : defaultJoyCoverShowName,
-      joyCoverButtonText: designData.joyCoverButtonText || defaultJoyCoverButtonText,
+      joyCoverButtonText: joyCover.buttonText || defaultJoyCoverButtonText,
       joyCoverShowButton:
-        designData.joyCoverShowButton !== undefined
-          ? designData.joyCoverShowButton
+        joyCover.showButton !== undefined
+          ? joyCover.showButton
           : defaultJoyCoverShowButton,
       joyCoverBackgroundPattern: ['crosses', 'sparkles', 'none'].includes(
-        designData.joyCoverBackgroundPattern
+        joyCover.backgroundPattern
       )
-        ? designData.joyCoverBackgroundPattern
+        ? joyCover.backgroundPattern
         : defaultJoyCoverBackgroundPattern,
     }
     Object.assign(formData, loadedData)
@@ -1165,11 +1048,29 @@ const loadPresetData = () => {
   }
 }
 
-// Watch for route changes to reload preset data
+// Watch for route changes to load preset and reload data
 watch(
-  () => route.params.name,
-  () => {
-    loadPresetData()
+  () => route.params.id,
+  async (idParam) => {
+    if (idParam) {
+      // Check if preset exists in store
+      let preset = presetStore.getPresetById(idParam)
+      
+      // If not found, fetch only this single preset
+      if (!preset) {
+        try {
+          preset = await presetStore.loadPreset(idParam)
+        } catch (error) {
+          // Silently fail
+          console.error('Failed to load preset:', error)
+        }
+      }
+      
+      // Load preset data once we have it
+      if (preset) {
+        loadPresetData()
+      }
+    }
   },
   { immediate: true }
 )
@@ -1179,7 +1080,7 @@ watch(
   () => formData.gridStyle,
   newStyle => {
     if (newStyle === 'masonry' && formData.thumbnailSize === 'large') {
-      formData.thumbnailSize = 'regular'
+      formData.thumbnailSize = 'medium'
     }
   }
 )
@@ -1188,9 +1089,7 @@ watch(
 let keyDownHandler = null
 
 // Initialize on mount
-onMounted(() => {
-  loadPresetData()
-
+onMounted(async () => {
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -1219,8 +1118,18 @@ const savePresetDesign = async () => {
   }
 
   try {
+    // Map form data to backend structure
     await presetStore.updatePreset(presetId.value, {
-      design: formData,
+      design: {
+        fontFamily: formData.fontFamily,
+        fontStyle: formData.fontStyle,
+        colorPalette: formData.colorPalette,
+        gridStyle: formData.gridStyle,
+        gridColumns: formData.gridColumns,
+        thumbnailOrientation: formData.thumbnailSize,
+        gridSpacing: formData.gridSpacing,
+        tabStyle: formData.navigationStyle,
+      },
     })
     if (originalData.value) {
       originalData.value = { ...formData }
@@ -1245,15 +1154,11 @@ const handlePrevious = async () => {
   isSubmitting.value = true
   try {
     const success = await savePresetDesign()
-    if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
-        router.push({
-          name: 'presetGeneral',
-          params: { name: urlFriendlyName },
-        })
-      }
+    if (success && presetId.value) {
+      router.push({
+        name: 'presetGeneral',
+        params: { id: presetId.value },
+      })
     }
   } finally {
     isSubmitting.value = false
@@ -1264,15 +1169,11 @@ const handleNext = async () => {
   isSubmitting.value = true
   try {
     const success = await savePresetDesign()
-    if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
-        router.push({
-          name: 'presetPrivacy',
-          params: { name: urlFriendlyName },
-        })
-      }
+    if (success && presetId.value) {
+      router.push({
+        name: 'presetPrivacy',
+        params: { id: presetId.value },
+      })
     }
   } finally {
     isSubmitting.value = false

@@ -10,21 +10,41 @@ export function useCollectionCoverActions({
     if (!collection.value) return
 
     try {
-      // For videos, use file.url (the actual video URL), for images use item.url
-      const mediaUrl = item.file?.url || item.url
-      const thumbnailUrl =
-        item.thumbnail || item.thumbnailUrl || item.file?.thumbnailUrl || item.url
+      // Get media URL - try multiple possible locations
+      const mediaUrl = item.url || item.file?.url || item.imageUrl
+      if (!mediaUrl) {
+        toast.error('Invalid media item', {
+          description: 'The selected media item does not have a valid URL.',
+        })
+        return
+      }
 
-      await galleryStore.updateCollection(collection.value.id, {
+      // Get thumbnail URL - prefer thumbnail, fallback to media URL
+      const thumbnailUrl = item.thumbnail || item.thumbnailUrl || item.file?.thumbnailUrl || mediaUrl
+
+      const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
         thumbnail: thumbnailUrl,
         image: mediaUrl,
       })
+      
+      // Update the collection ref with the updated data
+      if (updatedCollection) {
+        collection.value = updatedCollection
+      } else {
+        // Fallback optimistic update
+        collection.value = {
+          ...collection.value,
+          thumbnail: thumbnailUrl,
+          image: mediaUrl,
+        }
+      }
       toast.success('Cover updated', {
         description,
       })
     } catch (error) {
+      console.error('Failed to set cover:', error)
       toast.error('Failed to set cover', {
-        description,
+        description: error?.message || description || 'An error occurred while setting the cover photo.',
       })
     }
   }

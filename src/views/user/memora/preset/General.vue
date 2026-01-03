@@ -26,12 +26,40 @@
         </p>
       </div>
 
-      <div class="space-y-10">
+      <!-- Loading State -->
+      <div v-if="presetStore.isLoading || isLoadingData || !currentPreset" class="space-y-8">
+        <!-- Skeleton Loader -->
+        <div v-for="i in 5" :key="i" :class="[theme.borderSecondary, theme.bgCard]" class="space-y-4 p-6 rounded-2xl border-2">
+          <div class="space-y-2">
+            <Skeleton class="h-5 w-32" />
+            <Skeleton class="h-4 w-64" />
+          </div>
+          <Skeleton class="h-12 w-full" />
+        </div>
+      </div>
+
+      <div v-else class="space-y-8">
         <!-- Collection Tags -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Collection Tags </label>
+        <div
+          :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+        >
+          <div>
+            <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
+              Collection Tags
+            </label>
+            <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+              Add tags to categorize different collections e.g. wedding, outdoor, summer.
+              <a
+                href="#"
+                class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+              >
+                Learn more
+              </a>
+            </p>
+          </div>
           <div
-            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20"
+            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20 focus-within:border-teal-500/50"
             :class="[theme.bgInput, theme.borderInput]"
           >
             <span
@@ -57,19 +85,23 @@
               :class="theme.textInput"
             />
           </div>
-          <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-            Add tags to categorize different collections e.g. wedding, outdoor, summer.
-            <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
-              Learn more
-            </a>
-          </p>
         </div>
 
         <!-- Photo Sets -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary">Photo Sets</label>
+        <div
+          :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+        >
+          <div>
+            <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
+              Photo Sets
+            </label>
+            <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+              Separate photo sets by comma. e.g. Highlights, Reception, Getting Ready
+            </p>
+          </div>
           <div
-            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20"
+            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20 focus-within:border-teal-500/50"
             :class="[theme.bgInput, theme.borderInput]"
           >
             <span
@@ -95,21 +127,35 @@
               :class="theme.textInput"
             />
           </div>
-          <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-            Separate photo sets by comma. e.g. Highlights, Reception, Getting Ready
-          </p>
         </div>
 
         <!-- Default Watermark -->
-        <div class="space-y-2">
-          <label class="text-sm font-medium" :class="theme.textPrimary"> Default Watermark </label>
+        <div
+          :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+        >
+          <div>
+            <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
+              Default Watermark
+            </label>
+            <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
+              Set the default watermark to apply to photos. Manage watermarks in
+              <a
+                href="#"
+                class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+              >
+                App Settings
+              </a>
+              .
+            </p>
+          </div>
           <Select v-model="formData.defaultWatermark">
             <SelectTrigger
               :class="[
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                'transition-all duration-200 focus:ring-2 focus:ring-teal-500/20',
+                'border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
               ]"
             >
               <SelectValue placeholder="Select watermark" />
@@ -118,7 +164,7 @@
               <SelectItem
                 value="none"
                 label="No watermark"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
               >
                 No watermark
               </SelectItem>
@@ -127,197 +173,288 @@
                 :key="watermark.id"
                 :value="watermark.id"
                 :label="watermark.name"
-                :class="[theme.textPrimary, theme.bgButtonHover]"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
               >
                 {{ watermark.name }}
               </SelectItem>
             </SelectContent>
           </Select>
-          <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-            Set the default watermark to apply to photos. Manage watermarks in
-            <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
-              App Settings
-            </a>
-            .
-          </p>
-        </div>
-
-        <!-- Auto Expiry Reminder Email -->
-        <div class="space-y-3">
-          <div class="flex items-start gap-2">
-            <div
-              class="w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center shrink-0 mt-0.5"
-            >
-              <Info class="h-3 w-3 text-white" />
-            </div>
-            <div class="flex-1">
-              <h3 class="font-semibold text-sm mb-1" :class="theme.textPrimary">
-                Upgrade for Premium Features
-              </h3>
-              <p class="text-xs mb-2" :class="theme.textSecondary">
-                Sending reminder emails to activity lists is only available for upgraded accounts.
-                Default settings for activity lists will not apply until you have upgraded.
-              </p>
-              <UpgradePopover v-model:open="showUpgradePopover">
-                <template #trigger>
-                  <a
-                    href="#"
-                    @click.prevent="showUpgradePopover = true"
-                    class="text-xs text-teal-500 hover:text-teal-600 underline"
-                  >
-                    Upgrade
-                  </a>
-                </template>
-              </UpgradePopover>
-            </div>
-          </div>
-          <button
-            class="flex items-center gap-2 text-teal-500 hover:text-teal-600 transition-colors"
-          >
-            <div class="w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center">
-              <Plus class="h-4 w-4 text-white" />
-            </div>
-            <span class="text-sm font-medium">Add expiry reminder email</span>
-          </button>
-          <p class="text-xs ml-8" :class="theme.textSecondary">
-            Setup reminder emails that will send when you create a collection and add an Auto Expiry
-            date.
-          </p>
         </div>
 
         <!-- Email Registration -->
         <div
-          class="flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:border-teal-500/50"
           :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
         >
-          <div class="flex-1">
-            <h3 class="text-base font-semibold mb-1.5" :class="theme.textPrimary">
-              Email Registration
-            </h3>
-            <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-              Track email addresses accessing this collection.
-              <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
-                Learn more
-              </a>
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <label class="relative inline-flex items-center group cursor-pointer">
-              <input type="checkbox" v-model="formData.emailRegistration" class="sr-only peer" />
-              <div
-                class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg"
-                :class="
-                  formData.emailRegistration
-                    ? 'bg-teal-500 shadow-teal-500/50'
-                    : 'bg-gray-300 dark:bg-gray-600'
-                "
-              ></div>
-            </label>
-            <span
-              class="text-sm font-medium min-w-[2rem] transition-colors"
-              :class="formData.emailRegistration ? theme.textPrimary : theme.textSecondary"
-            >
-              {{ formData.emailRegistration ? 'On' : 'Off' }}
-            </span>
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                Email Registration
+              </h3>
+              <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                Track email addresses accessing this collection.
+                <a
+                  href="#"
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                >
+                  Learn more
+                </a>
+              </p>
+            </div>
+            <div class="flex-shrink-0 pt-1">
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                  :class="formData.emailRegistration ? theme.textPrimary : theme.textSecondary"
+                >
+                  {{ formData.emailRegistration ? 'On' : 'Off' }}
+                </span>
+                <label class="relative inline-flex items-center group cursor-pointer">
+                  <input type="checkbox" v-model="formData.emailRegistration" class="sr-only peer" />
+                  <div
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    :class="
+                      formData.emailRegistration
+                        ? 'bg-teal-500 shadow-teal-500/50'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    "
+                  ></div>
+                </label>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Gallery Assist -->
         <div
-          class="flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:border-teal-500/50"
           :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
         >
-          <div class="flex-1">
-            <h3 class="text-base font-semibold mb-1.5" :class="theme.textPrimary">
-              Gallery Assist
-            </h3>
-            <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-              Add walk-through cards to help visitors use the collection.
-              <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
-                Learn more
-              </a>
-            </p>
-          </div>
-          <div class="flex items-center gap-3">
-            <label class="relative inline-flex items-center group cursor-pointer">
-              <input type="checkbox" v-model="formData.galleryAssist" class="sr-only peer" />
-              <div
-                class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg"
-                :class="
-                  formData.galleryAssist
-                    ? 'bg-teal-500 shadow-teal-500/50'
-                    : 'bg-gray-300 dark:bg-gray-600'
-                "
-              ></div>
-            </label>
-            <span
-              class="text-sm font-medium min-w-[2rem] transition-colors"
-              :class="formData.galleryAssist ? theme.textPrimary : theme.textSecondary"
-            >
-              {{ formData.galleryAssist ? 'On' : 'Off' }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Slideshow -->
-        <div class="space-y-4">
-          <div
-            class="flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:border-teal-500/50"
-            :class="[theme.borderSecondary, theme.bgCard]"
-          >
+          <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 class="text-base font-semibold mb-1.5" :class="theme.textPrimary">Slideshow</h3>
-              <p class="text-xs leading-relaxed" :class="theme.textSecondary">
-                Allow visitors to view the images in their collection slideshow.
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline transition-colors">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Gallery Assist</h3>
+              <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                Add walk-through cards to help visitors use the collection.
+                <a
+                  href="#"
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                >
                   Learn more
                 </a>
               </p>
             </div>
-            <div class="flex items-center gap-3">
-              <label class="relative inline-flex items-center group cursor-pointer">
-                <input type="checkbox" v-model="formData.slideshow" class="sr-only peer" />
-                <div
-                  class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg"
-                  :class="
-                    formData.slideshow
-                      ? 'bg-teal-500 shadow-teal-500/50'
-                      : 'bg-gray-300 dark:bg-gray-600'
-                  "
-                ></div>
-              </label>
-              <span
-                class="text-sm font-medium min-w-[2rem] transition-colors"
-                :class="formData.slideshow ? theme.textPrimary : theme.textSecondary"
-              >
-                {{ formData.slideshow ? 'On' : 'Off' }}
-              </span>
+            <div class="flex-shrink-0 pt-1">
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                  :class="formData.galleryAssist ? theme.textPrimary : theme.textSecondary"
+                >
+                  {{ formData.galleryAssist ? 'On' : 'Off' }}
+                </span>
+                <label class="relative inline-flex items-center group cursor-pointer">
+                  <input type="checkbox" v-model="formData.galleryAssist" class="sr-only peer" />
+                  <div
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    :class="
+                      formData.galleryAssist
+                        ? 'bg-teal-500 shadow-teal-500/50'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    "
+                  ></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Slideshow -->
+        <div
+          :class="[theme.borderSecondary, theme.bgCard]"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+        >
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Slideshow</h3>
+              <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                Allow visitors to view the images in their collection as a slideshow.
+                <a
+                  href="#"
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                  >Learn more</a
+                >
+              </p>
+            </div>
+            <div class="flex-shrink-0 pt-1">
+              <div class="flex items-center gap-3">
+                <span
+                  class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                  :class="formData.slideshow ? theme.textPrimary : theme.textSecondary"
+                >
+                  {{ formData.slideshow ? 'On' : 'Off' }}
+                </span>
+                <label class="relative inline-flex items-center group cursor-pointer">
+                  <input type="checkbox" v-model="formData.slideshow" class="sr-only peer" />
+                  <div
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    :class="
+                      formData.slideshow
+                        ? 'bg-teal-500 shadow-teal-500/50'
+                        : 'bg-gray-300 dark:bg-gray-600'
+                    "
+                  ></div>
+                </label>
+              </div>
             </div>
           </div>
 
           <!-- Additional Options (Expandable) -->
           <div
             v-if="formData.slideshow"
-            class="ml-4 pl-4 border-l-2 space-y-4"
+            class="pt-4 border-t space-y-5"
             :class="theme.borderSecondary"
           >
             <button
               @click="showSlideshowOptions = !showSlideshowOptions"
-              class="flex items-center gap-2 text-sm font-medium"
-              :class="theme.textPrimary"
+              class="flex items-center gap-2 text-sm font-semibold transition-colors group"
+              :class="[
+                showSlideshowOptions
+                  ? 'text-teal-600 dark:text-teal-400'
+                  : theme.textPrimary,
+                'hover:text-teal-600 dark:hover:text-teal-400',
+              ]"
             >
               <ChevronDown
-                class="h-4 w-4 transition-transform"
+                class="h-4 w-4 transition-transform duration-200"
                 :class="showSlideshowOptions ? 'rotate-180' : ''"
               />
               Additional options
             </button>
-            <div v-if="showSlideshowOptions" class="space-y-4 pl-6">
-              <!-- Add slideshow options here -->
-              <p class="text-xs" :class="theme.textSecondary">
-                Slideshow options will be available here.
-              </p>
-            </div>
+
+            <Transition
+              enter-active-class="transition-all duration-300 ease-out"
+              enter-from-class="opacity-0 max-h-0"
+              enter-to-class="opacity-100 max-h-[500px]"
+              leave-active-class="transition-all duration-200 ease-in"
+              leave-from-class="opacity-100 max-h-[500px]"
+              leave-to-class="opacity-0 max-h-0"
+            >
+              <div v-if="showSlideshowOptions" class="space-y-5 pl-6 overflow-hidden">
+                <!-- Slideshow Speed -->
+                <div class="space-y-3">
+                  <label class="text-sm font-semibold block" :class="theme.textPrimary">
+                    Slideshow Speed
+                  </label>
+                  <div class="flex items-center gap-6">
+                    <label
+                      class="flex items-center gap-2.5 cursor-pointer group"
+                      :class="formData.slideshowSpeed === 'slow' ? '' : 'opacity-60 hover:opacity-100'"
+                    >
+                      <input
+                        type="radio"
+                        v-model="formData.slideshowSpeed"
+                        value="slow"
+                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        :checked="formData.slideshowSpeed === 'slow'"
+                      />
+                      <span
+                        class="text-sm font-medium transition-colors"
+                        :class="
+                          formData.slideshowSpeed === 'slow'
+                            ? theme.textPrimary
+                            : theme.textSecondary
+                        "
+                      >
+                        Slow
+                      </span>
+                    </label>
+                    <label
+                      class="flex items-center gap-2.5 cursor-pointer group"
+                      :class="
+                        formData.slideshowSpeed === 'regular' ? '' : 'opacity-60 hover:opacity-100'
+                      "
+                    >
+                      <input
+                        type="radio"
+                        v-model="formData.slideshowSpeed"
+                        value="regular"
+                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        :checked="formData.slideshowSpeed === 'regular'"
+                      />
+                      <span
+                        class="text-sm font-medium transition-colors"
+                        :class="
+                          formData.slideshowSpeed === 'regular'
+                            ? theme.textPrimary
+                            : theme.textSecondary
+                        "
+                      >
+                        Regular
+                      </span>
+                    </label>
+                    <label
+                      class="flex items-center gap-2.5 cursor-pointer group"
+                      :class="formData.slideshowSpeed === 'fast' ? '' : 'opacity-60 hover:opacity-100'"
+                    >
+                      <input
+                        type="radio"
+                        v-model="formData.slideshowSpeed"
+                        value="fast"
+                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        :checked="formData.slideshowSpeed === 'fast'"
+                      />
+                      <span
+                        class="text-sm font-medium transition-colors"
+                        :class="
+                          formData.slideshowSpeed === 'fast'
+                            ? theme.textPrimary
+                            : theme.textSecondary
+                        "
+                      >
+                        Fast
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Auto Loop -->
+                <div
+                  class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-teal-500/50 hover:shadow-sm"
+                  :class="[theme.borderSecondary, theme.bgCard]"
+                >
+                  <div class="flex-1">
+                    <h4 class="text-sm font-semibold mb-1" :class="theme.textPrimary">Auto Loop</h4>
+                    <p class="text-xs leading-relaxed" :class="theme.textSecondary">
+                      Automatically loop the slideshow when it reaches the end.
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3 flex-shrink-0">
+                    <span
+                      class="text-sm font-medium min-w-[2.5rem] text-right transition-colors"
+                      :class="
+                        formData.slideshowAutoLoop ? theme.textPrimary : theme.textSecondary
+                      "
+                    >
+                      {{ formData.slideshowAutoLoop ? 'On' : 'Off' }}
+                    </span>
+                    <label class="relative inline-flex items-center group cursor-pointer">
+                      <input
+                        type="checkbox"
+                        v-model="formData.slideshowAutoLoop"
+                        class="sr-only peer"
+                      />
+                      <div
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                        :class="
+                          formData.slideshowAutoLoop
+                            ? 'bg-teal-500 shadow-teal-500/50'
+                            : 'bg-gray-300 dark:bg-gray-600'
+                        "
+                      ></div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </Transition>
           </div>
         </div>
 
@@ -449,14 +586,13 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted, Transition } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
-import { Info, Plus, ChevronDown, Loader2, Check, X } from 'lucide-vue-next'
+import { ChevronDown, Loader2, Check, X } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import PresetLayout from '@/layouts/PresetLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
-import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import {
   Select,
   SelectContent,
@@ -468,6 +604,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
+import { Skeleton } from '@/components/shadcn/skeleton'
 
 const route = useRoute()
 const router = useRouter()
@@ -476,9 +613,9 @@ const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return null
 })
@@ -491,17 +628,18 @@ const presetName = computed(() => {
   return currentPreset.value?.name || 'Demo Test Preset'
 })
 
-const showSlideshowOptions = ref(false)
+const showSlideshowOptions = ref(true)
 const isSubmitting = ref(false)
 const isLoadingData = ref(false)
 const showUnsavedChangesModal = ref(false)
-const showUpgradePopover = ref(false)
 
 // Form field refs - declare these first
 const defaultWatermark = ref('none')
 const emailRegistration = ref(false)
 const galleryAssist = ref(false)
 const slideshow = ref(true)
+const slideshowSpeed = ref('regular')
+const slideshowAutoLoop = ref(true)
 const socialSharing = ref(true)
 const language = ref('en')
 
@@ -520,6 +658,8 @@ const formData = reactive({
   emailRegistration: emailRegistration.value,
   galleryAssist: galleryAssist.value,
   slideshow: slideshow.value,
+  slideshowSpeed: slideshowSpeed.value,
+  slideshowAutoLoop: slideshowAutoLoop.value,
   socialSharing: socialSharing.value,
   language: language.value,
 })
@@ -537,6 +677,8 @@ const hasUnsavedChanges = computed(() => {
     formData.emailRegistration !== originalData.value.formData.emailRegistration ||
     formData.galleryAssist !== originalData.value.formData.galleryAssist ||
     formData.slideshow !== originalData.value.formData.slideshow ||
+    formData.slideshowSpeed !== originalData.value.formData.slideshowSpeed ||
+    formData.slideshowAutoLoop !== originalData.value.formData.slideshowAutoLoop ||
     formData.socialSharing !== originalData.value.formData.socialSharing ||
     formData.language !== originalData.value.formData.language
 
@@ -558,7 +700,7 @@ const watermarks = computed(() => watermarkStore.watermarks)
 
 // Load preset data
 const loadPresetData = () => {
-  if (currentPreset.value) {
+  if (currentPreset.value && !isLoadingData.value) {
     isLoadingData.value = true
 
     // Load collection tags - support both string (comma-separated) and array formats
@@ -575,15 +717,20 @@ const loadPresetData = () => {
       }
     }
 
-    const loadedPhotoSets =
-      currentPreset.value.photoSets && currentPreset.value.photoSets.length > 0
-        ? [...currentPreset.value.photoSets]
-        : ['Highlights']
+    // Load photo sets - ensure we always get the array from the preset
+    let loadedPhotoSets = ['Highlights']
+    if (currentPreset.value.photoSets) {
+      if (Array.isArray(currentPreset.value.photoSets) && currentPreset.value.photoSets.length > 0) {
+        loadedPhotoSets = [...currentPreset.value.photoSets]
+      }
+    }
 
-    defaultWatermark.value = currentPreset.value.defaultWatermark || 'none'
+    defaultWatermark.value = currentPreset.value.defaultWatermarkId || 'none'
     emailRegistration.value = currentPreset.value.emailRegistration ?? false
     galleryAssist.value = currentPreset.value.galleryAssist ?? false
     slideshow.value = currentPreset.value.slideshow ?? true
+    slideshowSpeed.value = currentPreset.value.slideshowSpeed || 'regular'
+    slideshowAutoLoop.value = currentPreset.value.slideshowAutoLoop ?? true
     socialSharing.value = currentPreset.value.socialSharing ?? true
     language.value = currentPreset.value.language || 'en'
     collectionTags.value = loadedCollectionTags
@@ -595,6 +742,8 @@ const loadPresetData = () => {
       emailRegistration: emailRegistration.value,
       galleryAssist: galleryAssist.value,
       slideshow: slideshow.value,
+      slideshowSpeed: slideshowSpeed.value,
+      slideshowAutoLoop: slideshowAutoLoop.value,
       socialSharing: socialSharing.value,
       language: language.value,
     })
@@ -609,11 +758,29 @@ const loadPresetData = () => {
   }
 }
 
-// Watch for route changes to reload preset data
+// Watch for route changes to load preset and reload data
 watch(
-  () => route.params.name,
-  () => {
-    loadPresetData()
+  () => route.params.id,
+  async (idParam) => {
+    if (idParam) {
+      // Check if preset exists in store
+      let preset = presetStore.getPresetById(idParam)
+      
+      // If not found, fetch only this single preset
+      if (!preset) {
+        try {
+          preset = await presetStore.loadPreset(idParam)
+        } catch (error) {
+          // Silently fail
+          console.error('Failed to load preset:', error)
+        }
+      }
+      
+      // Load preset data once we have it
+      if (preset) {
+        loadPresetData()
+      }
+    }
   },
   { immediate: true }
 )
@@ -622,14 +789,7 @@ watch(
 let keyDownHandler = null
 
 // Initialize on mount
-onMounted(async () => {
-  loadPresetData()
-
-  // Fetch watermarks
-  try {
-    await watermarkStore.fetchWatermarks()
-  } catch (error) {}
-
+onMounted(() => {
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -694,10 +854,12 @@ const handleSave = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.defaultWatermark,
+      defaultWatermarkId: formData.defaultWatermark === 'none' ? null : formData.defaultWatermark,
       emailRegistration: formData.emailRegistration,
       galleryAssist: formData.galleryAssist,
       slideshow: formData.slideshow,
+      slideshowSpeed: formData.slideshowSpeed,
+      slideshowAutoLoop: formData.slideshowAutoLoop,
       socialSharing: formData.socialSharing,
       language: formData.language,
     })
@@ -730,10 +892,12 @@ const handleNext = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.defaultWatermark,
+      defaultWatermarkId: formData.defaultWatermark === 'none' ? null : formData.defaultWatermark,
       emailRegistration: formData.emailRegistration,
       galleryAssist: formData.galleryAssist,
       slideshow: formData.slideshow,
+      slideshowSpeed: formData.slideshowSpeed,
+      slideshowAutoLoop: formData.slideshowAutoLoop,
       socialSharing: formData.socialSharing,
       language: formData.language,
     })
@@ -747,12 +911,10 @@ const handleNext = async () => {
     }
 
     // Navigate to Design tab
-    const presetName = currentPreset.value?.name
-    if (presetName) {
-      const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+    if (presetId.value) {
       router.push({
         name: 'presetDesign',
-        params: { name: urlFriendlyName },
+        params: { id: presetId.value },
       })
     }
   } catch (error) {
@@ -774,10 +936,12 @@ const savePresetGeneral = async () => {
     await presetStore.updatePreset(presetId.value, {
       collectionTags: collectionTags.value.join(','), // Save as comma-separated string for backward compatibility
       photoSets: photoSets.value,
-      defaultWatermark: formData.defaultWatermark,
+      defaultWatermarkId: formData.defaultWatermark === 'none' ? null : formData.defaultWatermark,
       emailRegistration: formData.emailRegistration,
       galleryAssist: formData.galleryAssist,
       slideshow: formData.slideshow,
+      slideshowSpeed: formData.slideshowSpeed,
+      slideshowAutoLoop: formData.slideshowAutoLoop,
       socialSharing: formData.socialSharing,
       language: formData.language,
     })

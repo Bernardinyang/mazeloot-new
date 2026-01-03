@@ -40,7 +40,7 @@
               >
                 <div :class="theme.textTertiary" class="text-xs">Font Style</div>
                 <div :class="theme.textPrimary" class="text-sm font-semibold mt-0.5">
-                  {{ fontStyles.find(s => s.id === formData.fontStyle)?.label || 'Bold' }}
+                  {{ fontStyleOptions.find(s => s.value === formData.fontStyle)?.label || 'Normal' }}
                 </div>
               </div>
             </div>
@@ -78,7 +78,7 @@
                       placeholder="Select font family"
                     />
                   </div>
-                  <!-- Font Weights/Styles -->
+                  <!-- Font Style -->
                   <div>
                     <label
                       :class="theme.textSecondary"
@@ -86,36 +86,30 @@
                     >
                       Font Style
                     </label>
-                    <div class="grid grid-cols-3 gap-3">
-                      <button
-                        v-for="style in fontStyles"
-                        :key="style.id"
+                    <Select v-model="formData.fontStyle">
+                      <SelectTrigger
                         :class="[
-                          formData.fontStyle === style.id
-                            ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 ring-2 ring-teal-500/20'
-                            : [
-                                theme.borderSecondary,
-                                'hover:border-teal-500/70',
-                                'active:scale-[0.98]',
-                              ],
-                          theme.bgCard,
+                          theme.bgInput,
+                          theme.borderInput,
+                          theme.textInput,
+                          'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
                         ]"
-                        class="group px-5 py-4 rounded-xl border-2 transition-all duration-300 hover:scale-[1.02] cursor-pointer"
-                        @click="formData.fontStyle = style.id"
+                        class="transition-all"
                       >
-                        <span
-                          :class="[
-                            formData.fontStyle === style.id
-                              ? 'text-teal-600 dark:text-teal-400 font-bold'
-                              : theme.textPrimary,
-                            style.class,
-                          ]"
-                          class="text-base font-medium block text-center transition-colors duration-200"
+                        <SelectValue placeholder="Select style" />
+                      </SelectTrigger>
+                      <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+                        <SelectItem
+                          v-for="style in fontStyleOptions"
+                          :key="style.value"
+                          :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                          :style="getStylePreview(style.value)"
+                          :value="style.value"
                         >
                           {{ style.label }}
-                        </span>
-                      </button>
-                    </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </div>
@@ -273,6 +267,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/select'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
@@ -281,6 +276,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
 import { toast } from '@/utils/toast'
+import { fontStyleOptions as baseFontStyleOptions } from '@/utils/designConstants'
 
 const route = useRoute()
 const router = useRouter()
@@ -301,7 +297,7 @@ const showUnsavedChangesModal = ref(false)
 // Typography form data
 const formData = reactive({
   fontFamily: 'sans',
-  fontStyle: 'bold',
+  fontStyle: 'normal',
 })
 
 // Store original loaded data for comparison
@@ -351,52 +347,22 @@ const previewDesignConfig = computed(() => {
     }
   }
 
-  const coverDesign =
-    collectionInStore.coverDesign ||
-    (collectionInStore.design
-      ? {
-          cover: collectionInStore.design.cover,
-          coverFocalPoint: collectionInStore.design.coverFocalPoint,
-        }
-      : {})
-  const typographyDesign =
-    collectionInStore.typographyDesign ||
-    (collectionInStore.design
-      ? {
-          fontFamily: collectionInStore.design.fontFamily,
-          fontStyle: collectionInStore.design.fontStyle,
-        }
-      : {})
-  const colorDesign =
-    collectionInStore.colorDesign ||
-    (collectionInStore.design
-      ? {
-          colorPalette: collectionInStore.design.colorPalette,
-        }
-      : {})
-  const gridDesign =
-    collectionInStore.gridDesign ||
-    (collectionInStore.design
-      ? {
-          gridStyle: collectionInStore.design.gridStyle,
-          gridColumns: collectionInStore.design.gridColumns,
-          thumbnailSize: collectionInStore.design.thumbnailSize,
-          gridSpacing: collectionInStore.design.gridSpacing,
-          navigationStyle: collectionInStore.design.navigationStyle,
-        }
-      : {})
+  // Use organized design structure from API response
+  const coverDesign = collectionInStore.design?.cover || collectionInStore.coverDesign || {}
+  const colorDesign = collectionInStore.design?.color || collectionInStore.colorDesign || {}
+  const gridDesign = collectionInStore.design?.grid || collectionInStore.gridDesign || {}
 
   return {
     cover: coverDesign.cover || 'left',
     coverFocalPoint: coverDesign.coverFocalPoint || { x: 50, y: 50 },
-    fontFamily: typographyDesign.fontFamily || formData.fontFamily || 'sans',
-    fontStyle: typographyDesign.fontStyle || formData.fontStyle || 'bold',
+    fontFamily: formData.fontFamily || 'sans',
+    fontStyle: formData.fontStyle || 'normal',
     colorPalette: colorDesign.colorPalette || 'light',
     gridStyle: gridDesign.gridStyle || 'vertical',
     gridColumns: gridDesign.gridColumns || 3,
-    thumbnailSize: gridDesign.thumbnailSize || 'regular',
+    thumbnailSize: gridDesign.thumbnailOrientation || gridDesign.thumbnailSize || 'regular',
     gridSpacing: gridDesign.gridSpacing || 16,
-    navigationStyle: gridDesign.navigationStyle || 'icon-only',
+    navigationStyle: gridDesign.tabStyle || gridDesign.navigationStyle || 'icon-only',
   }
 })
 
@@ -410,7 +376,10 @@ watch(
     const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
     if (index !== -1) {
       const collectionInStore = galleryStore.collections[index]
-      collectionInStore.typographyDesign = { ...newData }
+      if (!collectionInStore.design) {
+        collectionInStore.design = {}
+      }
+      collectionInStore.design.typography = { ...newData }
       // Trigger reactivity by updating the array reference
       galleryStore.collections = [...galleryStore.collections]
     }
@@ -418,12 +387,32 @@ watch(
   { deep: true }
 )
 
-// Font styles
-const fontStyles = [
-  { id: 'timeless', label: 'Timeless', class: 'font-light' },
-  { id: 'bold', label: 'BOLD', class: 'font-bold' },
-  { id: 'subtle', label: 'SUBTLE', class: 'font-normal' },
+// Font style options (matching watermark implementation)
+// Font style options - extends base options with 'bold italic'
+const fontStyleOptions = [
+  ...baseFontStyleOptions,
+  { value: 'bold italic', label: 'Bold Italic' },
 ]
+
+// Helper function to convert font style to CSS properties (like watermark)
+const getFontStyleProperties = style => {
+  if (!style) {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    }
+  }
+  const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
+  return {
+    fontWeight: styles.includes('bold') ? 'bold' : 'normal',
+    fontStyle: styles.includes('italic') ? 'italic' : 'normal',
+  }
+}
+
+// Helper function for style preview in Select dropdown
+const getStylePreview = styleValue => {
+  return getFontStyleProperties(styleValue)
+}
 
 // Load collection data
 const loadCollectionData = async () => {
@@ -442,8 +431,9 @@ const loadCollectionData = async () => {
 
     collection.value = collectionData
 
-    // Load typography design data
+    // Load typography design data - use organized design.typography structure from API
     const typographyDesign =
+      collectionData.design?.typography ||
       collectionData.typographyDesign ||
       (collectionData.design
         ? {
@@ -453,7 +443,7 @@ const loadCollectionData = async () => {
         : {})
     const loadedData = {
       fontFamily: typographyDesign.fontFamily || 'sans',
-      fontStyle: typographyDesign.fontStyle || 'bold',
+      fontStyle: typographyDesign.fontStyle || 'normal',
     }
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
@@ -485,12 +475,17 @@ const saveTypographyDesign = async () => {
 
   try {
     isSaving.value = true
+    // Convert reactive formData to plain object to ensure proper serialization
+    const typographyData = {
+      fontFamily: formData.fontFamily,
+      fontStyle: formData.fontStyle,
+    }
     await galleryStore.updateCollection(collection.value.id, {
-      typographyDesign: formData,
+      typographyDesign: typographyData,
     })
 
     if (originalData.value) {
-      originalData.value = { ...formData }
+      originalData.value = { ...typographyData }
     }
     return true
   } catch (error) {

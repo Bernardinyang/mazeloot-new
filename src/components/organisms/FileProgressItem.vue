@@ -20,7 +20,7 @@
         <img
           v-if="isImage && thumbnailUrl"
           :src="thumbnailUrl"
-          :alt="progress.file.name"
+          :alt="progress.file?.name || 'File'"
           class="w-full h-full object-cover"
         />
         <FileImage v-else-if="isImage" :class="[theme.textSecondary, 'h-6 w-6']" />
@@ -36,9 +36,9 @@
               <p
                 :class="theme.textPrimary"
                 class="text-sm font-medium truncate min-w-0 flex-1"
-                :title="progress.file.name"
+                :title="progress.file?.name || 'Unknown file'"
               >
-                {{ progress.file.name }}
+                {{ progress.file?.name || 'Unknown file' }}
               </p>
               <span
                 :class="[
@@ -51,7 +51,7 @@
             </div>
             <div class="flex items-center gap-3 mt-1">
               <p :class="theme.textTertiary" class="text-xs">
-                {{ formatFileSize(progress.file.size) }}
+                {{ formatFileSize(progress.file?.size || 0) }}
               </p>
               <span
                 v-if="progress.status === 'uploading' && progress.percentage"

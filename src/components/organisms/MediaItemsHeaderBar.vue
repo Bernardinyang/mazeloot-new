@@ -188,6 +188,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/pop
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useProofingStore } from '@/stores/proofing'
+import { useGalleryStore } from '@/stores/gallery'
 
 const theme = useThemeClasses()
 
@@ -218,8 +219,8 @@ const props = defineProps({
   },
   storeType: {
     type: String,
-    default: 'selection', // 'selection' or 'proofing'
-    validator: value => ['selection', 'proofing'].includes(value),
+    default: 'selection', // 'selection', 'proofing', or 'collection'
+    validator: value => ['selection', 'proofing', 'collection'].includes(value),
   },
   disableUpload: {
     type: Boolean,
@@ -230,27 +231,41 @@ const props = defineProps({
 // Use the appropriate store based on storeType prop
 const selectionStore = useSelectionStore()
 const proofingStore = useProofingStore()
+const galleryStore = useGalleryStore()
 
-// Get refs from both stores
+// Get refs from stores
 const selectionRefs = storeToRefs(selectionStore)
 const proofingRefs = storeToRefs(proofingStore)
+const galleryRefs = storeToRefs(galleryStore)
 
 // Use computed refs that switch based on storeType
 const gridSize = computed(() => {
+  if (props.storeType === 'collection') {
+    return galleryRefs?.gridSize?.value ?? props.gridSize
+  }
   return props.storeType === 'proofing' ? proofingRefs.gridSize.value : selectionRefs.gridSize.value
 })
 
 const viewMode = computed(() => {
+  if (props.storeType === 'collection') {
+    return galleryRefs?.viewMode?.value ?? props.viewMode
+  }
   return props.storeType === 'proofing' ? proofingRefs.viewMode.value : selectionRefs.viewMode.value
 })
 
 const showFilename = computed(() => {
+  if (props.storeType === 'collection') {
+    return galleryRefs?.showFilename?.value ?? props.showFilename
+  }
   return props.storeType === 'proofing'
     ? proofingRefs.showFilename.value
     : selectionRefs.showFilename.value
 })
 
 const sortOrder = computed(() => {
+  if (props.storeType === 'collection') {
+    return galleryRefs?.sortOrder?.value ?? props.sortOrder
+  }
   return props.storeType === 'proofing'
     ? proofingRefs.sortOrder.value
     : selectionRefs.sortOrder.value
@@ -281,11 +296,13 @@ const selectedSortLabel = computed(() => {
 const isSortMenuOpen = ref(false)
 const isViewMenuOpen = ref(false)
 
-const emit = defineEmits(['toggle-select-all', 'add-media'])
+const emit = defineEmits(['toggle-select-all', 'add-media', 'grid-size-change', 'view-mode-change', 'filename-toggle', 'sort-change'])
 
 // Internal handlers - update store directly
 const handleGridSizeChange = value => {
-  if (props.storeType === 'proofing') {
+  if (props.storeType === 'collection') {
+    galleryStore.setGridSize(value)
+  } else if (props.storeType === 'proofing') {
     proofingStore.setGridSize(value)
   } else {
     selectionStore.setGridSize(value)
@@ -294,7 +311,9 @@ const handleGridSizeChange = value => {
 }
 
 const handleSortChange = value => {
-  if (props.storeType === 'proofing') {
+  if (props.storeType === 'collection') {
+    galleryStore.setSortOrder(value)
+  } else if (props.storeType === 'proofing') {
     proofingStore.setSortOrder(value)
   } else {
     selectionStore.setSortOrder(value)
@@ -303,7 +322,9 @@ const handleSortChange = value => {
 }
 
 const handleFilenameToggle = event => {
-  if (props.storeType === 'proofing') {
+  if (props.storeType === 'collection') {
+    galleryStore.setShowFilename(event.target.checked)
+  } else if (props.storeType === 'proofing') {
     proofingStore.setShowFilename(event.target.checked)
   } else {
     selectionStore.setShowFilename(event.target.checked)
@@ -311,7 +332,9 @@ const handleFilenameToggle = event => {
 }
 
 const handleViewModeChange = mode => {
-  if (props.storeType === 'proofing') {
+  if (props.storeType === 'collection') {
+    galleryStore.setViewMode(mode)
+  } else if (props.storeType === 'proofing') {
     proofingStore.setViewMode(mode)
   } else {
     selectionStore.setViewMode(mode)

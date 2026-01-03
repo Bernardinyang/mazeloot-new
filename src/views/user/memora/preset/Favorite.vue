@@ -29,7 +29,18 @@
         </p>
       </div>
 
-      <div class="space-y-6 max-w-3xl">
+      <!-- Loading State -->
+      <div v-if="presetStore.isLoading || isLoadingData || !currentPreset" class="space-y-8">
+        <div v-for="i in 2" :key="i" :class="[theme.borderSecondary, theme.bgCard]" class="space-y-4 p-6 rounded-2xl border-2">
+          <div class="space-y-2">
+            <Skeleton class="h-5 w-32" />
+            <Skeleton class="h-4 w-64" />
+          </div>
+          <Skeleton class="h-12 w-full" />
+        </div>
+      </div>
+
+      <div v-else class="space-y-6 max-w-3xl">
         <!-- Favorite Photos Section -->
         <div
           :class="[
@@ -103,7 +114,7 @@
               <p :class="theme.textSecondary" class="text-sm leading-relaxed ml-11">
                 Allow clients to add notes to photos they have favorited.
                 <a
-                  class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
                   href="#"
                 >
                   Learn more
@@ -197,6 +208,7 @@ import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
 import { usePresetStore } from '@/stores/preset'
+import { Skeleton } from '@/components/shadcn/skeleton'
 
 const route = useRoute()
 const router = useRouter()
@@ -207,9 +219,9 @@ const presetStore = usePresetStore()
 const isSidebarCollapsed = inject('isSidebarCollapsed', ref(false))
 
 const currentPreset = computed(() => {
-  const nameParam = route.params.name
-  if (nameParam) {
-    return presetStore.getPresetByName(nameParam)
+  const idParam = route.params.id
+  if (idParam) {
+    return presetStore.getPresetById(idParam)
   }
   return undefined
 })
@@ -247,13 +259,13 @@ const hasUnsavedChanges = computed(() => {
 
 // Load preset data
 const loadPresetData = () => {
-  if (currentPreset.value) {
+  if (currentPreset.value && !isLoadingData.value) {
     isLoadingData.value = true
     const favoriteData = currentPreset.value.favorite || {}
     const loadedData = {
       favoritePhotos:
-        favoriteData.favoritePhotos !== undefined ? favoriteData.favoritePhotos : false,
-      favoriteNotes: favoriteData.favoriteNotes !== undefined ? favoriteData.favoriteNotes : false,
+        favoriteData.photos !== undefined ? favoriteData.photos : false,
+      favoriteNotes: favoriteData.notes !== undefined ? favoriteData.notes : false,
     }
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
@@ -262,11 +274,29 @@ const loadPresetData = () => {
   }
 }
 
-// Watch for route changes to reload preset data
+// Watch for route changes to load preset and reload data
 watch(
-  () => route.params.name,
-  () => {
-    loadPresetData()
+  () => route.params.id,
+  async (idParam) => {
+    if (idParam) {
+      // Check if preset exists in store
+      let preset = presetStore.getPresetById(idParam)
+      
+      // If not found, fetch only this single preset
+      if (!preset) {
+        try {
+          preset = await presetStore.loadPreset(idParam)
+        } catch (error) {
+          // Silently fail
+          console.error('Failed to load preset:', error)
+        }
+      }
+      
+      // Load preset data once we have it
+      if (preset) {
+        loadPresetData()
+      }
+    }
   },
   { immediate: true }
 )
@@ -275,9 +305,7 @@ watch(
 let keyDownHandler = null
 
 // Initialize on mount
-onMounted(() => {
-  loadPresetData()
-
+onMounted(async () => {
   // Add keyboard shortcut for save (Cmd+S / Ctrl+S)
   keyDownHandler = e => {
     if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -307,7 +335,10 @@ const savePresetFavorite = async () => {
 
   try {
     await presetStore.updatePreset(presetId.value, {
-      favorite: formData,
+      favorite: {
+        photos: formData.favoritePhotos,
+        notes: formData.favoriteNotes,
+      },
     })
     if (originalData.value) {
       originalData.value = { ...formData }
@@ -334,12 +365,10 @@ const handlePrevious = async () => {
   try {
     const success = await savePresetFavorite()
     if (success) {
-      const presetName = currentPreset.value?.name
-      if (presetName) {
-        const urlFriendlyName = presetName.toLowerCase().replace(/\s+/g, '-')
+      if (presetId.value) {
         router.push({
           name: 'presetDownload',
-          params: { name: urlFriendlyName },
+          params: { id: presetId.value },
         })
       }
     }

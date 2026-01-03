@@ -5,18 +5,45 @@
 
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
-import { useCollectionsApi } from '@/api/collections'
+import { useCollectionsApi, addDefaultSettings } from '@/api/collections'
 import { storage } from '@/utils/storage'
 
 const STARRED_COLLECTIONS_STORAGE_KEY = 'mazeloot_starred_collections'
+const VIEW_MODE_STORAGE_KEY = 'mazeloot_collection_view_mode'
+const GRID_SIZE_STORAGE_KEY = 'mazeloot_collection_grid_size'
+const SHOW_FILENAME_STORAGE_KEY = 'mazeloot_collection_show_filename'
+const SORT_ORDER_STORAGE_KEY = 'mazeloot_collection_sort_order'
 
 export const useGalleryStore = defineStore('gallery', () => {
   const collections = ref([])
   const starredCollectionIds = ref(new Set())
   const isLoading = ref(false)
   const error = ref(null)
+  
+  // View settings
+  const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
+  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
+  const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
+  const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
 
   const collectionsApi = useCollectionsApi()
+
+  // Persist view settings to localStorage
+  watch(viewMode, () => {
+    storage.set(VIEW_MODE_STORAGE_KEY, viewMode.value)
+  })
+
+  watch(gridSize, () => {
+    storage.set(GRID_SIZE_STORAGE_KEY, gridSize.value)
+  })
+
+  watch(showFilename, () => {
+    storage.set(SHOW_FILENAME_STORAGE_KEY, showFilename.value)
+  })
+
+  watch(sortOrder, () => {
+    storage.set(SORT_ORDER_STORAGE_KEY, sortOrder.value)
+  })
 
   /**
    * Initialize starred collections from localStorage
@@ -55,13 +82,30 @@ export const useGalleryStore = defineStore('gallery', () => {
     isLoading.value = true
     error.value = null
     try {
-      const data = await collectionsApi.fetchCollections(params)
-      collections.value = data
+      const result = await collectionsApi.fetchCollections(params)
+      // Handle paginated response from real API: { data: [...], pagination: {...} }
+      // Or array from mock API
+      const data = result?.data || result
+      collections.value = Array.isArray(data) ? data : []
       collections.value.forEach(collection => {
         if (starredCollectionIds.value.has(collection.id)) {
           collection.isStarred = true
         }
       })
+      // Return paginated result if available
+      if (result?.data && result?.pagination) {
+        return result
+      }
+      // Otherwise return array wrapped in expected format
+      return {
+        data: collections.value,
+        pagination: {
+          page: 1,
+          limit: collections.value.length,
+          total: collections.value.length,
+          totalPages: 1,
+        },
+      }
     } catch (err) {
       error.value = err.message || 'Failed to fetch collections'
       throw err
@@ -77,31 +121,48 @@ export const useGalleryStore = defineStore('gallery', () => {
     const collection = collections.value.find(c => c.id === collectionId)
     if (!collection) return
 
-    const wasStarred = starredCollectionIds.value.has(collectionId)
+    const wasStarred = collection.isStarred || collection.starred || starredCollectionIds.value.has(collectionId)
     const newStarredState = !wasStarred
 
     // Optimistic update - update UI immediately
     if (newStarredState) {
       starredCollectionIds.value.add(collectionId)
       collection.isStarred = true
+      collection.starred = true
     } else {
       starredCollectionIds.value.delete(collectionId)
       collection.isStarred = false
+      collection.starred = false
     }
 
     // Persistence is handled by watcher
 
     try {
       // Sync with server in background
-      await collectionsApi.toggleStar(collectionId, newStarredState)
+      const result = await collectionsApi.toggleStar(collectionId, collection.projectId || null)
+      // Update with server response
+      if (result?.starred !== undefined) {
+        if (result.starred) {
+          starredCollectionIds.value.add(collectionId)
+          collection.isStarred = true
+          collection.starred = true
+        } else {
+          starredCollectionIds.value.delete(collectionId)
+          collection.isStarred = false
+          collection.starred = false
+        }
+      }
+      return result
     } catch (err) {
       // Revert optimistic update on error
       if (newStarredState) {
         starredCollectionIds.value.delete(collectionId)
         collection.isStarred = false
+        collection.starred = false
       } else {
         starredCollectionIds.value.add(collectionId)
         collection.isStarred = true
+        collection.starred = true
       }
       throw err
     }
@@ -134,7 +195,6 @@ export const useGalleryStore = defineStore('gallery', () => {
       id: tempId,
       name: data.name,
       description: data.description,
-      parentId: data.parentId || null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       status: 'draft',
@@ -197,15 +257,17 @@ export const useGalleryStore = defineStore('gallery', () => {
     isLoading.value = true
     error.value = null
 
+    // Try to find collection in store, but don't fail if not found
+    // The collection might only exist in the component's local state
     const collection = collections.value.find(c => c.id === id)
     if (!collection) {
-      error.value = 'Collection not found'
-      isLoading.value = false
-      throw new Error('Collection not found')
+      // Collection not in store, but we can still update it via API
+      // Just log a warning and continue
+      console.warn('Collection not found in store, updating via API only:', id)
     }
 
-    // Store original for revert
-    const original = { ...collection }
+    // Store original for revert (only if collection exists in store)
+    const original = collection ? { ...collection } : null
 
     // Optimistic update
     const index = collections.value.findIndex(c => c.id === id)
@@ -233,7 +295,8 @@ export const useGalleryStore = defineStore('gallery', () => {
         updatedData.watermarkId = null
       }
       if ('mediaSets' in updatedData) {
-        // mediaSets is already in updatedData, no conversion needed
+        // Keep mediaSets in updatedData for optimistic update
+        // The API response will have the correct format
       }
       collections.value[index] = {
         ...collections.value[index],
@@ -244,21 +307,22 @@ export const useGalleryStore = defineStore('gallery', () => {
 
     try {
       const updatedCollection = await collectionsApi.updateCollection(id, data)
+      const processedCollection = addDefaultSettings(updatedCollection)
       if (index !== -1) {
         collections.value[index] = {
           ...collections.value[index],
-          ...updatedCollection,
+          ...processedCollection,
         }
       }
       // Also update in the collections array if it exists there
       const collectionInList = collections.value.find(c => c.id === id)
       if (collectionInList) {
-        Object.assign(collectionInList, updatedCollection)
+        Object.assign(collectionInList, processedCollection)
       }
-      return updatedCollection
+      return processedCollection
     } catch (err) {
-      // Revert on error
-      if (index !== -1) {
+      // Revert on error (only if we had an original collection in store)
+      if (index !== -1 && original) {
         collections.value[index] = original
       }
       error.value = err.message || 'Failed to update collection'
@@ -458,13 +522,28 @@ export const useGalleryStore = defineStore('gallery', () => {
   /**
    * Fetch a single collection by ID
    */
-  const fetchCollection = async id => {
+  const fetchCollection = async (id, forceRefresh = false) => {
+    // Check if collection is already in store (unless forcing refresh)
+    if (!forceRefresh) {
+      const existing = collections.value.find(c => c.id === id)
+      if (existing) {
+        return existing
+      }
+    }
+
     isLoading.value = true
     error.value = null
     try {
       const collection = await collectionsApi.fetchCollection(id)
       if (starredCollectionIds.value.has(collection.id)) {
         collection.isStarred = true
+      }
+      // Cache in store
+      const index = collections.value.findIndex(c => c.id === id)
+      if (index !== -1) {
+        collections.value[index] = collection
+      } else {
+        collections.value.push(collection)
       }
       return collection
     } catch (err) {
@@ -475,11 +554,55 @@ export const useGalleryStore = defineStore('gallery', () => {
     }
   }
 
+  /**
+   * Set view mode (grid or list)
+   */
+  const setViewMode = mode => {
+    if (mode === 'grid' || mode === 'list') {
+      viewMode.value = mode
+    } else {
+      viewMode.value = 'grid'
+    }
+  }
+
+  /**
+   * Set grid size
+   */
+  const setGridSize = size => {
+    if (['small', 'medium', 'large'].includes(size)) {
+      gridSize.value = size
+    } else {
+      gridSize.value = 'small'
+    }
+  }
+
+  /**
+   * Set show filename
+   */
+  const setShowFilename = value => {
+    showFilename.value = Boolean(value)
+  }
+
+  /**
+   * Set sort order
+   */
+  const setSortOrder = order => {
+    sortOrder.value = order
+  }
+
   return {
     collections,
     starredCollectionIds,
     isLoading,
     error,
+    viewMode,
+    gridSize,
+    showFilename,
+    sortOrder,
+    setViewMode,
+    setGridSize,
+    setShowFilename,
+    setSortOrder,
     starredCollections,
     fetchCollections,
     fetchCollection,

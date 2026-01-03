@@ -4,14 +4,6 @@
     class="flex items-center justify-between px-6 py-3.5 border-b bg-white dark:bg-gray-900 shadow-sm"
     style="min-height: 3.5rem"
   >
-    <!-- Hidden file input for cover upload (must be mounted to allow programmatic click) -->
-    <input
-      ref="coverFileInputRef"
-      accept="image/*"
-      class="hidden"
-      type="file"
-      @change="handleCoverFileChange"
-    />
 
     <!-- Left Side: Back Button, Title/Status Section, Date/Preset/Watermark -->
     <div class="flex items-start gap-3 min-w-0">
@@ -34,12 +26,10 @@
           style="min-height: 1.5rem"
         >
           <div class="flex items-center gap-2 min-w-0">
-            <!-- Cover thumbnail (click to change cover) -->
-            <button
-              class="flex-shrink-0 h-7 w-7 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:shadow-sm transition"
-              title="Click to change cover"
-              type="button"
-              @click.stop="triggerCoverFilePicker"
+            <!-- Cover thumbnail -->
+            <div
+              class="flex-shrink-0 h-7 w-7 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+              title="Cover photo - Set from media items"
             >
               <img
                 v-if="props.collection?.thumbnail || props.collection?.image"
@@ -47,7 +37,7 @@
                 :src="props.collection?.thumbnail || props.collection?.image"
                 class="h-full w-full object-cover"
               />
-            </button>
+            </div>
             <Transition mode="out-in" name="fade">
               <h1
                 v-if="!props.isEditingName"
@@ -250,13 +240,6 @@
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
-          <DropdownMenuItem
-            :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-            @click="triggerCoverFilePicker"
-          >
-            <Pencil class="h-4 w-4 mr-2" />
-            Upload Cover Image
-          </DropdownMenuItem>
           <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
             <Pencil class="h-4 w-4 mr-2" />
             Edit Collection
@@ -379,7 +362,6 @@ const emit = defineEmits([
   'handleWatermarkChange',
   'handlePreview',
   'handlePublish',
-  'handle-cover-image-upload',
   'update:isDatePickerOpen',
   'update:isPresetPopoverOpen',
   'update:isWatermarkPopoverOpen',
@@ -387,7 +369,6 @@ const emit = defineEmits([
 
 const theme = useThemeClasses()
 const nameInputRef = ref(null)
-const coverFileInputRef = ref(null)
 
 const isDatePickerOpen = computed({
   get: () => props.isDatePickerOpen,
@@ -419,30 +400,5 @@ const handleWatermarkSelect = watermarkId => {
 
 const formatDate = date => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-const triggerCoverFilePicker = () => {
-  coverFileInputRef.value?.click?.()
-}
-
-const handleCoverFileChange = async event => {
-  const file = event?.target?.files?.[0]
-  if (!file) return
-
-  try {
-    const dataUrl = await new Promise((resolve, reject) => {
-      const reader = new FileReader()
-      reader.onload = () => resolve(reader.result)
-      reader.onerror = () => reject(reader.error)
-      reader.readAsDataURL(file)
-    })
-
-    if (typeof dataUrl === 'string') {
-      emit('handle-cover-image-upload', dataUrl)
-    }
-  } finally {
-    // Allow selecting the same file again
-    if (event?.target) event.target.value = ''
-  }
 }
 </script>
