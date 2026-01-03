@@ -1256,10 +1256,10 @@ const handleCompleteProofing = async () => {
       })
     }
   } catch (error) {
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to complete proofing'
     console.error('Failed to complete proofing', error)
-    toast.error('Failed to complete proofing', {
-      description: error?.message || 'An unknown error occurred',
-    })
+    toast.error(errorMessage)
   } finally {
     isCompletingProofing.value = false
   }
@@ -1809,8 +1809,10 @@ const loadProofing = async () => {
         duration: 8000,
       })
     } else {
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load proofing'
       toast.error('Failed to load proofing', {
-        description: error?.message || 'An unknown error occurred',
+        description: errorMessage,
       })
     }
   } finally {
@@ -1972,9 +1974,9 @@ const loadMediaItems = async () => {
           'This proofing is not yet published. Please contact the creator to publish it before accessing.',
       })
     } else {
-      toast.error('Failed to load media', {
-        description: error?.message || 'An unknown error occurred',
-      })
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load media'
+      toast.error(errorMessage)
     }
   }
 }
@@ -2105,10 +2107,10 @@ const handleViewClosureHistory = async item => {
     closureHistoryData.value = result.closure_requests || []
     showClosureHistoryModal.value = true
   } catch (error) {
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load closure history'
     console.error('Failed to load closure history:', error)
-    toast.error('Failed to load closure history', {
-      description: error?.message || 'An error occurred while loading closure history.',
-    })
+    toast.error(errorMessage)
   }
 }
 
@@ -2307,10 +2309,10 @@ const confirmApproveMedia = async () => {
       description: 'This media has been marked as approved.',
     })
   } catch (error) {
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to approve media'
     console.error('Failed to approve media', error)
-    toast.error('Failed to approve media', {
-      description: error?.message || 'An unknown error occurred',
-    })
+    toast.error(errorMessage)
   } finally {
     isApprovingMedia.value = false
   }

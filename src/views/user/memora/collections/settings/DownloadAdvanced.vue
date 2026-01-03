@@ -338,7 +338,7 @@ onMounted(async () => {
     downloadLimit.value = existingCollection.downloadLimit || 1
     restrictToContacts.value = existingCollection.restrictToContacts || false
     allowedEmails.value = Array.isArray(existingCollection.allowedDownloadEmails)
-      ? existingCollection.allowedDownloadEmails
+      ? [...existingCollection.allowedDownloadEmails]
       : existingCollection.allowedDownloadEmails
         ? [existingCollection.allowedDownloadEmails]
         : []
@@ -367,7 +367,7 @@ onMounted(async () => {
     downloadLimit.value = collectionData.downloadLimit || 1
     restrictToContacts.value = collectionData.restrictToContacts || false
     allowedEmails.value = Array.isArray(collectionData.allowedDownloadEmails)
-      ? collectionData.allowedDownloadEmails
+      ? [...collectionData.allowedDownloadEmails]
       : collectionData.allowedDownloadEmails
         ? [collectionData.allowedDownloadEmails]
         : []
@@ -418,13 +418,23 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    await galleryStore.updateCollection(collection.value.id, {
+    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
       limitDownloads: limitDownloads.value,
       downloadLimit: downloadLimit.value,
       restrictToContacts: restrictToContacts.value,
       allowedDownloadEmails: restrictToContacts.value ? allowedEmails.value : [],
       downloadableSets: selectedSets.value,
     })
+
+    // Update collection reference with fresh data
+    if (updatedCollection) {
+      collection.value = updatedCollection
+      allowedEmails.value = Array.isArray(updatedCollection.allowedDownloadEmails)
+        ? [...updatedCollection.allowedDownloadEmails]
+        : updatedCollection.allowedDownloadEmails
+          ? [updatedCollection.allowedDownloadEmails]
+          : []
+    }
 
     // Update original data
     originalData.value = {

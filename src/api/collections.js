@@ -90,7 +90,12 @@ export const addDefaultSettings = collection => {
     design: design,
     // Extract design settings from organized structure for backward compatibility
     coverDesign: design.cover || collection.coverDesign || {},
-    gridDesign: design.grid || collection.gridDesign || {},
+    gridDesign: design.grid ? {
+      ...design.grid,
+      // Normalize field names: thumbnailOrientation -> thumbnailSize, tabStyle -> navigationStyle
+      thumbnailSize: design.grid.thumbnailOrientation || design.grid.thumbnailSize,
+      navigationStyle: design.grid.tabStyle || design.grid.navigationStyle,
+    } : (collection.gridDesign || {}),
     typographyDesign: design.typography || collection.typographyDesign || {},
     colorDesign: design.color || collection.colorDesign || {},
     // Extract settings from organized structure for backward compatibility
@@ -107,8 +112,10 @@ export const addDefaultSettings = collection => {
     autoExpiryDate: general.autoExpiryDate ?? collection.autoExpiryDate ?? null,
     expiryDate: general.expiryDate ?? collection.expiryDate ?? null,
     expiryDays: general.expiryDays ?? collection.expiryDays ?? null,
-    // Settings - Privacy (collectionPassword is boolean, password is string)
-    password: privacy.password ?? (privacy.collectionPassword ? (collection.password ?? '') : null) ?? collection.password ?? null,
+    // Settings - Privacy
+    collectionPasswordEnabled: privacy.collectionPasswordEnabled ?? privacy.collectionPassword ?? collection.collectionPasswordEnabled ?? collection.collectionPassword ?? false,
+    collectionPassword: privacy.collectionPassword ?? privacy.password ?? collection.collectionPassword ?? null, // Actual password (only for owner)
+    password: privacy.password ?? collection.password ?? null, // Legacy support
     showOnHomepage: privacy.showOnHomepage ?? collection.showOnHomepage ?? true,
     clientExclusiveAccess: privacy.clientExclusiveAccess ?? collection.clientExclusiveAccess ?? false,
     clientPrivatePassword: privacy.clientPrivatePassword ?? collection.clientPrivatePassword ?? null,

@@ -11,6 +11,24 @@ export function useSettingsApi() {
     }
   }
 
+  const fetchPublicSettings = async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+      if (params.collectionId) {
+        queryParams.append('collectionId', params.collectionId)
+      }
+      if (params.userId) {
+        queryParams.append('userId', params.userId)
+      }
+      const queryString = queryParams.toString()
+      const url = `/v1/public/settings${queryString ? `?${queryString}` : ''}`
+      const response = await apiClient.get(url)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const updateBranding = async data => {
     try {
       const response = await apiClient.patch('/v1/memora/settings/branding', data)
@@ -49,6 +67,7 @@ export function useSettingsApi() {
 
   return {
     fetchSettings,
+    fetchPublicSettings,
     updateBranding,
     updatePreference,
     updateHomepage,

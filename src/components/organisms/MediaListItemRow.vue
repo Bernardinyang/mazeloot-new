@@ -132,8 +132,12 @@
             {{ props.item.filename }}
           </p>
           <p v-else :class="theme.textTertiary" class="text-sm font-medium truncate">Media Item</p>
+          <Heart
+            v-if="props.item?.isStarred && props.publicMode"
+            class="h-3.5 w-3.5 shrink-0 fill-red-500 text-red-500"
+          />
           <Star
-            v-if="props.item?.isStarred"
+            v-else-if="props.item?.isStarred"
             class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400"
           />
         </div>
@@ -187,13 +191,21 @@
       </div>
     </div>
 
-    <!-- Star Toggle Button (on hover) -->
+    <!-- Heart/Star Toggle Button (on hover) -->
     <button
       class="flex-shrink-0 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors opacity-0 group-hover:opacity-100"
       @click.stop="emit('star-click')"
-      :title="props.item?.isStarred ? 'Unstar' : 'Star'"
+      :title="props.publicMode ? (props.item?.isStarred ? 'Unfavorite' : 'Favorite') : (props.item?.isStarred ? 'Unstar' : 'Star')"
     >
+      <Heart
+        v-if="props.publicMode"
+        :class="[
+          'h-4 w-4',
+          props.item?.isStarred ? 'fill-red-500 text-red-500' : theme.textSecondary,
+        ]"
+      />
       <Star
+        v-else
         :class="[
           'h-4 w-4',
           props.item?.isStarred ? 'fill-yellow-400 text-yellow-400' : theme.textSecondary,
@@ -574,6 +586,7 @@ import {
   Play,
   Square,
   Star,
+  Heart,
   Trash2,
   X,
   Upload,
@@ -650,6 +663,10 @@ const props = defineProps({
     default: null,
   },
   isRevisionLimitExceeded: {
+    type: Boolean,
+    default: false,
+  },
+  publicMode: {
     type: Boolean,
     default: false,
   },

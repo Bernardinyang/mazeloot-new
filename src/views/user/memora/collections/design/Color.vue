@@ -417,9 +417,9 @@ const loadCollectionData = async () => {
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
   } catch (error) {
-    toast.error('Failed to load collection', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load collection'
+    toast.error(errorMessage)
     router.push({ name: 'collectionPhotos', params: { uuid: collection.value?.id } })
   } finally {
     isLoading.value = false
@@ -453,9 +453,9 @@ const saveColorDesign = async () => {
     }
     return true
   } catch (error) {
-    toast.error('Failed to save color design', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to save color design'
+    toast.error(errorMessage)
     return false
   } finally {
     isSaving.value = false

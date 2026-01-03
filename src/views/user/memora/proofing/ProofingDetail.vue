@@ -744,14 +744,14 @@ const handleImageError = event => {
 
 // Load proofing data
 const isLoading = ref(false)
-const loadProofing = async () => {
-  const proofingId = route.params.id
+const loadProofing = async (proofingId) => {
   if (!proofingId) {
     return
   }
 
   isLoading.value = true
   try {
+    // Always fetch proofing from backend
     const proofingData = await proofingStore.fetchProofing(proofingId)
     proofing.value = proofingData
 
@@ -886,14 +886,19 @@ watch(
 // Watch route params to reload when proofing ID changes
 watch(
   () => route.params.id,
-  () => {
-    loadProofing()
+  (id) => {
+    if (id) {
+      loadProofing(id)
+    }
   }
 )
 
 // Initialize selectedSetId from route query on mount
 onMounted(async () => {
-  loadProofing()
+  const proofingId = route.params.id
+  if (proofingId) {
+    await loadProofing(proofingId)
+  }
   
   try {
     await watermarkStore.fetchWatermarks()

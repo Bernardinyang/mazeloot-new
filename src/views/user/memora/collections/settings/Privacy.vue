@@ -344,8 +344,10 @@ onMounted(async () => {
   const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
   if (existingCollection) {
     collection.value = existingCollection
-    collectionPassword.value = existingCollection.password || ''
-    collectionPasswordEnabled.value = !!existingCollection.password
+    // Don't load the password hash - it's never returned from backend for security
+    // If password exists, show empty field with placeholder indicating password is set
+    collectionPassword.value = ''
+    collectionPasswordEnabled.value = !!existingCollection.collectionPasswordEnabled || !!existingCollection.password
     showOnHomepage.value = existingCollection.showOnHomepage !== false
     clientExclusiveAccess.value = existingCollection.clientExclusiveAccess || false
     clientPrivatePassword.value = existingCollection.clientPrivatePassword || ''
@@ -388,9 +390,9 @@ onMounted(async () => {
       clientOnlySets: [...(collectionData.clientOnlySets || [])],
     }
   } catch (error) {
-    toast.error('Failed to load collection', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load collection'
+    toast.error(errorMessage)
   } finally {
     isLoading.value = false
   }
@@ -438,9 +440,9 @@ const handleSave = async () => {
 
     toast.success('Settings saved successfully')
   } catch (error) {
-    toast.error('Failed to save settings', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to save settings'
+    toast.error(errorMessage)
   } finally {
     isSaving.value = false
   }

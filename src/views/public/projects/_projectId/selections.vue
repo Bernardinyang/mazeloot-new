@@ -1343,8 +1343,10 @@ const loadSelection = async () => {
         duration: 8000,
       })
     } else {
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load selection'
       toast.error('Failed to load selection', {
-        description: error?.message || 'An unknown error occurred',
+        description: errorMessage,
       })
     }
   } finally {
@@ -1495,9 +1497,9 @@ const loadMediaItems = async () => {
           'This selection is not yet published. Please contact the creator to publish it before accessing.',
       })
     } else {
-      toast.error('Failed to load media', {
-        description: error?.message || 'An unknown error occurred',
-      })
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load media'
+      toast.error(errorMessage)
     }
   }
 }
@@ -1677,15 +1679,12 @@ const handleToggleSelection = async mediaId => {
       mediaItem.isSelected = !mediaItem.isSelected
     }
   } catch (error) {
-    const errorMessage = error?.message || ''
-    if (errorMessage.toLowerCase().includes('limit reached')) {
-      toast.error('Selection limit reached', {
-        description: 'You have reached the maximum number of selections allowed.',
-      })
+    // Use exact backend error message
+    const backendMessage = error?.message || error?.response?.data?.message || ''
+    if (backendMessage.toLowerCase().includes('limit reached')) {
+      toast.error(backendMessage || 'Selection limit reached')
     } else {
-      toast.error('Failed to toggle selection', {
-        description: error?.message || 'An unknown error occurred',
-      })
+      toast.error(backendMessage || 'Failed to toggle selection')
     }
   } finally {
     togglingMediaIds.value.delete(mediaId)
@@ -1764,9 +1763,9 @@ const confirmComplete = async () => {
 
     showCompletionDialog.value = false
   } catch (error) {
-    toast.error('Failed to complete selection', {
-      description: error?.message || 'An unknown error occurred',
-    })
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to complete selection'
+    toast.error(errorMessage)
   } finally {
     isCompleting.value = false
   }

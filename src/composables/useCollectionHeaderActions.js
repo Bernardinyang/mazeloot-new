@@ -1,5 +1,6 @@
 import { nextTick } from 'vue'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 
 export function useCollectionHeaderActions({
   collection,
@@ -33,11 +34,9 @@ export function useCollectionHeaderActions({
       return
     }
     
-    // The preview route uses :id parameter
-    const previewUrl = router.resolve({
-      name: 'collectionPreview',
-      params: { id: collectionId },
-    }).href
+    // Generate public URL with preview=true parameter (similar to selections)
+    const projectId = collection.value?.projectId || collection.value?.project_uuid || 'standalone'
+    const previewUrl = `${window.location.origin}/p/${projectId}/collection?collectionId=${collectionId}&preview=true`
     
     window.open(previewUrl, '_blank')
   }
@@ -56,9 +55,29 @@ export function useCollectionHeaderActions({
         description,
       })
     } catch (error) {
-      toast.error('Failed to publish collection', {
+      const errorMessage = getErrorMessage(error, 'Failed to publish collection')
+      toast.error(errorMessage)
+    } finally {
+      isSavingStatus.value = false
+    }
+  }
+
+  const handleUnpublish = async () => {
+    if (!collection.value) return
+
+    isSavingStatus.value = true
+    try {
+      await galleryStore.updateCollection(collection.value.id, {
+        status: 'archived',
+      })
+      collectionStatus.value = 'archived'
+      collection.value.status = 'archived'
+      toast.success('Collection unpublished', {
         description,
       })
+    } catch (error) {
+      const errorMessage = getErrorMessage(error, 'Failed to unpublish collection')
+      toast.error(errorMessage)
     } finally {
       isSavingStatus.value = false
     }
@@ -69,8 +88,8 @@ export function useCollectionHeaderActions({
 
     isSavingStatus.value = true
     try {
-      // Map 'published' to 'active' for the API
-      const apiStatus = newStatus === 'published' ? 'active' : 'draft'
+      // Map frontend status to API status
+      const apiStatus = newStatus === 'published' ? 'active' : newStatus === 'archived' ? 'archived' : 'draft'
       await galleryStore.updateCollection(collection.value.id, {
         status: apiStatus,
       })
@@ -78,11 +97,17 @@ export function useCollectionHeaderActions({
       collectionStatus.value = newStatus
       // Auto-save
     } catch (error) {
-      toast.error('Failed to update status', {
-        description,
-      })
+      const errorMessage = getErrorMessage(error, 'Failed to update status')
+      toast.error(errorMessage)
       // Revert status on error
-      collectionStatus.value = collection.value.status === 'active' ? 'published' : 'draft'
+      const currentStatus = collection.value.status
+      if (currentStatus === 'active') {
+        collectionStatus.value = 'published'
+      } else if (currentStatus === 'archived') {
+        collectionStatus.value = 'archived'
+      } else {
+        collectionStatus.value = 'draft'
+      }
     } finally {
       isSavingStatus.value = false
     }
@@ -125,9 +150,8 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      toast.error('Failed to save event date', {
-        description,
-      })
+      const errorMessage = getErrorMessage(error, 'Failed to save event date')
+      toast.error(errorMessage)
       // Revert to original date on error
       const originalDate = collection.value?.eventDate || collection.value?.date
       if (originalDate) {
@@ -174,9 +198,8 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      toast.error('Failed to update preset', {
-        description: error instanceof Error ? error.message : (description || 'An unknown error occurred'),
-      })
+      const errorMessage = getErrorMessage(error, 'Failed to update preset')
+      toast.error(errorMessage)
       // Revert on error
       const errorPresetId = collection.value?.presetId
       selectedPresetId.value = errorPresetId != null ? String(errorPresetId) : 'none'
@@ -219,9 +242,8 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      toast.error('Failed to update watermark', {
-        description,
-      })
+      const errorMessage = getErrorMessage(error, 'Failed to update watermark')
+      toast.error(errorMessage)
       // Revert on error
       const errorWatermarkId = collection.value?.watermarkId
       selectedWatermark.value = errorWatermarkId != null ? String(errorWatermarkId) : 'none'
@@ -311,9 +333,8 @@ export function useCollectionHeaderActions({
       cancelEditingName()
       // Auto-save
     } catch (error) {
-      toast.error('Failed to update name', {
-        description,
-      })
+      const errorMessage = getErrorMessage(error, 'Failed to update name')
+      toast.error(errorMessage)
       // Revert editing name to original
       editingName.value = collection.value.name
       cancelEditingName()
@@ -325,6 +346,7 @@ export function useCollectionHeaderActions({
   return {
     handlePreview,
     handlePublish,
+    handleUnpublish,
     handleStatusChange,
     handleDateChange,
     handlePresetChange,

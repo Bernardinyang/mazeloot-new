@@ -30,7 +30,9 @@
       @handle-preset-change="handlePresetChange"
       @handle-watermark-change="handleWatermarkChange"
       @handle-preview="handlePreview"
+      @handle-share="showShareModal = true"
       @handle-publish="handlePublish"
+      @handle-unpublish="handleUnpublish"
     />
 
     <!-- Main Content Area (Sidebar + Content) -->
@@ -71,6 +73,9 @@
     @cancel="mediaSetsSidebar.cancelDeleteSet"
     @confirm="mediaSetsSidebar.confirmDeleteSet"
   />
+
+  <!-- Share Modal -->
+  <CollectionShareModal v-model:open="showShareModal" :collection="collection" />
 </template>
 
 <script setup>
@@ -79,6 +84,7 @@ import CollectionTopNav from '../components/organisms/CollectionTopNav.vue'
 import CollectionSidebarPanels from '../components/organisms/CollectionSidebarPanels.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
+import CollectionShareModal from '@/components/organisms/CollectionShareModal.vue'
 import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
@@ -154,6 +160,8 @@ const selectedWatermark = ref('none')
 const isWatermarkPopoverOpen = ref(false)
 const isSavingWatermark = ref(false)
 
+const showShareModal = ref(false)
+
 const downloadEnabled = computed(() => {
   if (!collection.value) return false
   return collection.value.downloadEnabled !== false
@@ -203,7 +211,13 @@ watch(
   () => collection.value,
   c => {
     if (!c) return
-    collectionStatus.value = c.status === 'active' ? 'published' : 'draft'
+    if (c.status === 'active') {
+      collectionStatus.value = 'published'
+    } else if (c.status === 'archived') {
+      collectionStatus.value = 'archived'
+    } else {
+      collectionStatus.value = 'draft'
+    }
     const rawDate = c.eventDate || c.date
     if (rawDate) {
       const d = new Date(rawDate)
@@ -251,6 +265,7 @@ watch(
 const {
   handlePreview,
   handlePublish,
+  handleUnpublish,
   handleStatusChange,
   handleDateChange,
   handlePresetChange,

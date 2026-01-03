@@ -34,7 +34,7 @@ export const publicRoutes = [
   {
     path: '/p/:projectId/collection',
     name: 'clientCollection',
-    component: () => import('@/views/user/memora/preview/CollectionPreview.vue'),
+    component: () => import('@/views/public/projects/_projectId/collection.vue'),
     meta: {
       requiresAuth: false,
     },

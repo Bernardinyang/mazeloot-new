@@ -284,6 +284,7 @@
               class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
               title="Download"
               aria-label="Download collection"
+              @click="handleDownloadAll"
             >
               <Download class="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
@@ -378,7 +379,7 @@
       <div class="px-3 sm:px-4 md:px-8 lg:px-12 pb-8 sm:pb-10 md:pb-12">
         <!-- Media Grid Skeleton (show when loading and collection is loaded) -->
       <div
-        v-if="isLoading && collection"
+        v-if="(isLoading || (props.previewMode && props.previewIsLoading)) && collection"
           :class="gridClasses"
           :style="gridStyles"
       >
@@ -403,67 +404,23 @@
         :class="gridClasses"
         :style="gridStyles"
       >
-        <div
-          v-for="(item, index) in paginatedMedia"
+        <MediaGridItemCard
+          v-for="item in paginatedMedia"
           :key="item.id"
-          :class="[
-            'group relative overflow-hidden rounded-lg cursor-pointer',
-            normalizedGridStyle === 'masonry' ? thumbnailSizeClasses : '',
-          ]"
-          :style="getGridItemStyle(index)"
-          @click="openMediaViewer(item)"
-        >
-          <div class="relative w-full h-full overflow-hidden bg-gray-100 dark:bg-gray-800">
-            <img
-              v-if="item.type === 'image' || (item.file && item.file.type === 'image') || !isVideoItem(item)"
-              :alt="item.title || 'Media'"
-                class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
-              :src="item.thumbnail || item.thumbnailUrl || item.url || item.largeImageUrl"
-              loading="lazy"
-              @error="handleImageError"
-            />
-            <video
-              v-else
-              :poster="item.thumbnail || item.thumbnailUrl"
-              :src="(item.file && item.file.url) || item.url || item.largeImageUrl"
-              class="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-110"
-              muted
-              playsinline
-            />
-            <!-- Video Play Icon Overlay -->
-            <div
-              v-if="isVideoItem(item)"
-              class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors pointer-events-none"
-            >
-              <div
-                class="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
-              >
-                <Play class="h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8 text-teal-600 dark:text-teal-400 ml-0.5 sm:ml-1" />
-              </div>
-            </div>
-              <!-- Hover Overlay -->
-              <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              <!-- Image Info on Hover -->
-              <div class="absolute bottom-0 left-0 right-0 p-4 transform translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                <p
-                  v-if="item.title"
-                  class="text-white text-sm font-semibold truncate drop-shadow-lg"
-                >
-                  {{ item.title }}
-                </p>
-                <p
-                  v-if="item.filename && item.filename !== item.title"
-                  class="text-white/80 text-xs mt-0.5 truncate"
-                >
-                  {{ item.filename }}
-                </p>
-              </div>
-              <!-- Loading indicator -->
-              <div class="absolute inset-0 flex items-center justify-center bg-gray-200 dark:bg-gray-700 opacity-0 group-hover:opacity-0 transition-opacity duration-300">
-                <Loader2 class="h-6 w-6 animate-spin text-gray-400" />
-              </div>
-          </div>
-        </div>
+          :item="item"
+          :placeholder-image="'/placeholder-image.png'"
+          :show-filename="false"
+          :show-management-actions="false"
+          :show-selection-checkbox="false"
+          :public-mode="props.previewMode === 'public'"
+          :is-downloading="props.downloadingMediaIds?.has?.(item.id || item.uuid) || false"
+          class="aspect-square"
+          @download="handleDownloadMedia"
+          @share="handleShareMedia"
+          @open-viewer="openMediaViewer"
+          @view-details="handleViewDetails"
+          @star-click="handleFavoriteMedia"
+        />
       </TransitionGroup>
 
         <!-- Empty State -->
@@ -586,6 +543,7 @@ import { format } from 'date-fns'
 import { getCoverStyleConfig } from '@/composables/useCoverStyles'
 import { usePagination } from '@/composables/usePagination'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
 import { Skeleton } from '@/components/shadcn/skeleton'
 import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
 import { useSettingsApi } from '@/api/settings'
@@ -597,6 +555,8 @@ import {
 } from '@/components/shadcn/tooltip'
 import { useSetIconMatcher } from '@/composables/useSetIconMatcher'
 import { getColorPalettes, getTextColorFromBackground, getTextColorForAccent } from '@/utils/colors'
+import { toast } from '@/utils/toast'
+import { useUserStore } from '@/stores/user'
 
 // Props for preview mode
 const props = defineProps({
@@ -604,7 +564,18 @@ const props = defineProps({
   previewCollection: Object,
   previewMedia: Array,
   previewDesignConfig: Object,
+  previewBranding: Object,
+  previewIsLoading: {
+    type: Boolean,
+    default: false,
+  },
+  downloadingMediaIds: {
+    type: [Set, Object],
+    default: () => new Set(),
+  },
 })
+
+const emit = defineEmits(['tab-change', 'download'])
 
 const route = useRoute()
 const router = useRouter()
@@ -612,6 +583,7 @@ const collectionsApi = useCollectionsApi()
 const mediaApi = useMediaApi()
 const presetStore = usePresetStore()
 const galleryStore = useGalleryStore()
+const userStore = useUserStore()
 const { getIcon: getSetIcon } = useSetIconMatcher()
 const { fetchSettings } = useSettingsApi()
 
@@ -675,10 +647,18 @@ const designConfig = computed(() => {
   }
 
   // Get collection design configs (standardized from backend)
-  const collectionCoverDesign = collection.value?.coverDesign || {}
-  const collectionTypographyDesign = collection.value?.typographyDesign || {}
-  const collectionColorDesign = collection.value?.colorDesign || {}
-  const collectionGridDesign = collection.value?.gridDesign || {}
+  // Support both organized structure (settings.design) and normalized top-level properties
+  const collectionDesign = collection.value?.design || collection.value?.settings?.design || {}
+  const collectionCoverDesign = collection.value?.coverDesign || collectionDesign.cover || {}
+  const collectionTypographyDesign = collection.value?.typographyDesign || collectionDesign.typography || {}
+  const collectionColorDesign = collection.value?.colorDesign || collectionDesign.color || {}
+  const rawGridDesign = collection.value?.gridDesign || collectionDesign.grid || {}
+  // Normalize grid design field names
+  const collectionGridDesign = {
+    ...rawGridDesign,
+    thumbnailSize: rawGridDesign.thumbnailOrientation || rawGridDesign.thumbnailSize,
+    navigationStyle: rawGridDesign.tabStyle || rawGridDesign.navigationStyle,
+  }
 
   // Build base design from preset or defaults
     const presetDesign = preset?.design || {}
@@ -1355,6 +1335,9 @@ const fetchMediaForActiveSet = async () => {
       url: item.largeImageUrl || item.url || item.file?.url || item.thumbnailUrl,
     }))
     console.log('fetchMediaForActiveSet: Set media.value', { count: media.value.length })
+    
+    // Load starred media from localStorage for public collections
+    loadStarredMediaFromStorage()
   } catch (error) {
     console.error(`Error loading media for ${activeTab.value}:`, error)
     media.value = []
@@ -1438,7 +1421,12 @@ watch(
 const handleTabClick = (tab) => {
   if (isUpdatingFromRoute) return
   activeTab.value = tab
-  if (!props.previewMode && collectionId.value) {
+  if (props.previewMode) {
+    // In preview mode, emit tab change event
+    const collectionSets = collection.value?.mediaSets || []
+    const matchingSet = collectionSets.find(s => s.name === tab)
+    emit('tab-change', { tab, setId: matchingSet?.id })
+  } else if (collectionId.value) {
     const collectionSets = collection.value?.mediaSets || []
     const matchingSet = collectionSets.find(s => s.name === tab)
     router.replace({
@@ -1460,11 +1448,19 @@ const scrollToTop = () => {
 }
 
 const openMediaViewer = item => {
+  if (!item) return
   selectedMedia.value = item
   const index = filteredMedia.value.findIndex(m => m.id === item.id)
   currentMediaIndex.value = index >= 0 ? index : 0
   autoStartSlideshow.value = false
   showMediaViewer.value = true
+}
+
+const openMediaViewerById = (mediaId) => {
+  const item = filteredMedia.value.find(m => m.id === mediaId)
+  if (item) {
+    openMediaViewer(item)
+  }
 }
 
 const closeMediaViewer = () => {
@@ -1483,7 +1479,11 @@ const handlePlaySlideshow = () => {
 }
 
 const handleDownloadMedia = item => {
-  if (item?.url) {
+  // Emit download event to parent - let parent handle it (especially for public collections with guest tokens)
+  emit('download', item)
+  
+  // Fallback: if no parent handler, use direct URL download
+  if (item?.url && !props.previewMode) {
     const link = document.createElement('a')
     link.href = item.url
     link.download = item.title || item.filename || 'media'
@@ -1491,9 +1491,63 @@ const handleDownloadMedia = item => {
   }
 }
 
-const handleShareMedia = item => {
-  // Share functionality is handled by MediaLightbox
-  console.log('Share media:', item)
+const handleDownloadAll = () => {
+  // Download all media items in the current filtered view
+  if (filteredMedia.value && filteredMedia.value.length > 0) {
+    filteredMedia.value.forEach(item => {
+      emit('download', item)
+    })
+  }
+}
+
+const handleShareMedia = async (item) => {
+  if (!item || !item.id) {
+    console.warn('handleShareMedia: Invalid item', item)
+    return
+  }
+  
+  try {
+    // Build share URL with media ID parameter
+    const baseUrl = window.location.origin
+    const collectionId = collection.value?.id || collection.value?.uuid
+    const projectId = collection.value?.projectId || collection.value?.project_uuid || route.params.projectId || 'standalone'
+    const shareUrl = `${baseUrl}/p/${projectId}/collection?collectionId=${collectionId}&mediaId=${item.id}`
+    
+    // Use browser's native share API
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: item?.title || collectionName.value || 'Media',
+          text: `Check out this media from ${collectionName.value || 'this collection'}`,
+          url: shareUrl,
+        })
+        return
+      } catch (shareError) {
+        // User cancelled - don't show error
+        if (shareError.name === 'AbortError') {
+          return
+        }
+        // Share failed, fall through to clipboard
+        console.warn('Web Share API failed:', shareError)
+      }
+    }
+    
+    // Fallback to clipboard
+    await navigator.clipboard.writeText(shareUrl)
+    toast.success('Link copied', {
+      description: 'The share link has been copied to your clipboard.',
+    })
+  } catch (error) {
+    // Use exact backend error message
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to share'
+    console.error('Share failed:', errorMessage, error)
+    toast.error(errorMessage)
+  }
+}
+
+const handleViewDetails = item => {
+  // Open media viewer for viewing details
+  openMediaViewer(item)
 }
 
 // Get collection theme color (prioritize collection color, then use palette primary)
@@ -1578,9 +1632,102 @@ const getSetIdForTab = tabName => {
   return matchingSet?.id || null
 }
 
-const handleFavoriteMedia = async ({ item, isFavorite }) => {
-  // Star functionality is now handled by MediaLightbox based on phase
-  // This handler is kept for backward compatibility but the actual work is done in MediaLightbox
+// Load starred media from localStorage for public collections
+const loadStarredMediaFromStorage = () => {
+  if (props.previewMode === 'public' && !userStore.isAuthenticated && collection.value) {
+    try {
+      const collectionId = collection.value?.id || collection.value?.uuid
+      const storageKey = `public_collection_${collectionId}_starred_media`
+      const starredMedia = JSON.parse(localStorage.getItem(storageKey) || '[]')
+      
+      // Update media items with starred status
+      media.value.forEach(item => {
+        if (starredMedia.includes(item.id)) {
+          item.isStarred = true
+        }
+      })
+    } catch (error) {
+      console.warn('Failed to load starred media from storage:', error)
+    }
+  }
+}
+
+const handleFavoriteMedia = async (item) => {
+  if (!item?.id) return
+
+  // Get current starred status
+  const currentStarred = item.isStarred || false
+  const newStarredStatus = !currentStarred
+
+  // Optimistic update
+  const mediaItem = media.value.find(m => m.id === item.id)
+  if (mediaItem) {
+    mediaItem.isStarred = newStarredStatus
+  }
+  if (item) {
+    item.isStarred = newStarredStatus
+  }
+
+  // If in public mode and user is not authenticated, use localStorage
+  if (props.previewMode === 'public' && !userStore.isAuthenticated) {
+    try {
+      const collectionId = collection.value?.id || collection.value?.uuid
+      const storageKey = `public_collection_${collectionId}_starred_media`
+      const starredMedia = JSON.parse(localStorage.getItem(storageKey) || '[]')
+      
+      if (newStarredStatus) {
+        if (!starredMedia.includes(item.id)) {
+          starredMedia.push(item.id)
+        }
+      } else {
+        const index = starredMedia.indexOf(item.id)
+        if (index > -1) {
+          starredMedia.splice(index, 1)
+        }
+      }
+      
+      localStorage.setItem(storageKey, JSON.stringify(starredMedia))
+      toast.success(newStarredStatus ? 'Added to favorites' : 'Removed from favorites')
+    } catch (error) {
+      // Revert on error
+      if (mediaItem) mediaItem.isStarred = currentStarred
+      if (item) item.isStarred = currentStarred
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update favorite'
+      toast.error(errorMessage)
+    }
+    return
+  }
+
+  // For authenticated users, use API
+  if (userStore.isAuthenticated && collection.value?.id && activeTab.value) {
+    try {
+      const collectionSets = collection.value?.mediaSets || []
+      const matchingSet = collectionSets.find(set => set.name === activeTab.value)
+      
+      if (matchingSet) {
+        const result = await collectionsApi.starMedia(collection.value.id, matchingSet.id, item.id)
+        const serverStarredStatus = result?.data?.starred ?? result?.starred ?? newStarredStatus
+        
+        // Update with server response
+        if (mediaItem) {
+          mediaItem.isStarred = serverStarredStatus
+        }
+        if (item) {
+          item.isStarred = serverStarredStatus
+        }
+        
+        toast.success(serverStarredStatus ? 'Added to favorites' : 'Removed from favorites')
+      }
+    } catch (error) {
+      // Revert on error
+      if (mediaItem) mediaItem.isStarred = currentStarred
+      if (item) item.isStarred = currentStarred
+      // Use exact backend error message
+      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update favorite'
+      toast.error(errorMessage)
+    }
+  }
 }
 
 const handleSlideshow = ({ playing }) => {
@@ -1623,6 +1770,19 @@ if (props.previewMode) {
       if (newMedia) {
         media.value = newMedia
         isLoading.value = false
+        loadStarredMediaFromStorage()
+      }
+    },
+    { immediate: true, deep: true }
+  )
+
+  // Watch previewBranding
+  watch(
+    () => props.previewBranding,
+    newBranding => {
+      if (newBranding) {
+        brandingLogoUrl.value = newBranding.logoUrl || null
+        brandingName.value = newBranding.name || null
       }
     },
     { immediate: true, deep: true }
@@ -1646,9 +1806,14 @@ onMounted(async () => {
     // In preview mode, use provided props
     if (props.previewCollection) {
       collection.value = props.previewCollection
+      // Set activeTab to first set if available
+      if (collection.value?.mediaSets && collection.value.mediaSets.length > 0 && !activeTab.value) {
+        activeTab.value = collection.value.mediaSets[0].name
+      }
     }
     if (props.previewMedia) {
       media.value = props.previewMedia
+      loadStarredMediaFromStorage()
     }
     isLoading.value = false
     return
@@ -1861,6 +2026,11 @@ watch(
   },
   { deep: true }
 )
+
+// Expose method to open media by ID
+defineExpose({
+  openMediaViewerById,
+})
 </script>
 
 <style scoped>

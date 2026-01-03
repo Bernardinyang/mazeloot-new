@@ -376,7 +376,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
@@ -1510,10 +1510,40 @@ const handleRetryUpload = async (fileId, retryFn) => {
 // Watch for route changes
 watch(
   () => route.params.uuid,
-  () => {
-    loadCollection()
+  (uuid) => {
+    if (uuid) {
+      loadCollection(uuid)
+    }
   }
 )
+
+onMounted(async () => {
+  const uuid = route.params.uuid
+  if (uuid) {
+    await loadCollection(uuid)
+  }
+  
+  try {
+    await watermarkStore.fetchWatermarks()
+  } catch (error) {}
+
+  // Check if setId is in route query and set it after mediaSets are loaded
+  watch(
+    () => mediaSetsSidebar.mediaSets.length,
+    () => {
+      if (route.query.setId && !selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
+        const setIdFromRoute = route.query.setId
+        // Verify the set exists in mediaSets before selecting
+        if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
+          isUpdatingFromRoute = true
+          mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+          isUpdatingFromRoute = false
+        }
+      }
+    },
+    { immediate: true, once: true }
+  )
+})
 </script>
 
 <style scoped>

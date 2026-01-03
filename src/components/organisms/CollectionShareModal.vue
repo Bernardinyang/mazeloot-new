@@ -171,7 +171,9 @@ const isOpen = computed({
 const shareLink = computed(() => {
   if (!props.collection) return ''
   const collectionId = props.collection.id || props.collection.uuid
-  return `${window.location.origin}/collections/${collectionId}`
+  const projectId = props.collection.projectId || props.collection.project_uuid || 'standalone'
+  // Use public collection route (similar to selections)
+  return `${window.location.origin}/p/${projectId}/collection?collectionId=${collectionId}`
 })
 
 const qrCodeDataUrl = ref(null)

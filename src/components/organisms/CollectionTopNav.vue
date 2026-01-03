@@ -127,6 +127,14 @@
                 >
                   PUBLISHED
                 </SelectItem>
+                <SelectItem
+                  :class="[theme.textPrimary, theme.bgButtonHover]"
+                  label="ARCHIVED"
+                  value="archived"
+                  @click="emit('handleStatusChange', 'archived')"
+                >
+                  ARCHIVED
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -223,47 +231,10 @@
       </div>
     </div>
 
-    <!-- Right Side: Theme, More, Preview, Publish -->
+    <!-- Right Side: Theme, Preview, Share, Publish -->
     <div class="flex items-center gap-3 flex-shrink-0">
       <!-- Theme Toggle -->
       <ThemeToggle />
-
-      <!-- More Dropdown -->
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <button
-            :class="theme.textSecondary"
-            class="flex items-center gap-1 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-sm font-medium"
-          >
-            <span>More</span>
-            <ChevronDown class="h-3.5 w-3.5" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent :class="[theme.bgDropdown, theme.borderSecondary]" align="end">
-          <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-            <Pencil class="h-4 w-4 mr-2" />
-            Edit Collection
-          </DropdownMenuItem>
-          <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-            <Copy class="h-4 w-4 mr-2" />
-            Duplicate
-          </DropdownMenuItem>
-          <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-            <Settings class="h-4 w-4 mr-2" />
-            Settings
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            :class="[
-              'text-red-600 dark:text-red-400',
-              'hover:bg-red-50 dark:hover:bg-red-900/20',
-              'cursor-pointer',
-            ]"
-          >
-            <Trash2 class="h-4 w-4 mr-2" />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
 
       <!-- Preview Button -->
       <Button
@@ -275,9 +246,34 @@
         Preview
       </Button>
 
-      <!-- Publish Button -->
+      <!-- Share Button (when published) -->
       <Button
-        v-if="props.collectionStatus !== 'published'"
+        v-if="props.collectionStatus === 'published'"
+        variant="outline"
+        size="sm"
+        :class="[theme.borderSecondary, theme.textPrimary]"
+        :disabled="props.isLoading"
+        @click="emit('handleShare')"
+      >
+        <Share2 class="h-4 w-4 mr-2" />
+        Share
+      </Button>
+
+      <!-- Publish/Unpublish Buttons -->
+      <Button
+        v-if="props.collectionStatus === 'published'"
+        variant="destructive"
+        size="sm"
+        class="bg-red-500 hover:bg-red-600 text-white"
+        :disabled="props.isSavingStatus"
+        @click="emit('handleUnpublish')"
+      >
+        <Loader2 v-if="props.isSavingStatus" class="mr-2 h-4 w-4 animate-spin" />
+        <X v-else class="mr-2 h-4 w-4" />
+        {{ props.isSavingStatus ? 'Unpublishing...' : 'Unpublish' }}
+      </Button>
+      <Button
+        v-else
         :disabled="props.isSavingStatus"
         class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
         @click="emit('handlePublish')"
@@ -286,12 +282,6 @@
         <span v-if="props.isSavingStatus">Publishing...</span>
         <span v-else>Publish</span>
       </Button>
-      <div
-        v-else
-        class="px-4 py-2 text-sm font-medium rounded-lg bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800"
-      >
-        Published
-      </div>
     </div>
   </nav>
 </template>
@@ -302,21 +292,12 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
-  Copy,
   Loader2,
-  Pencil,
-  Settings,
-  Trash2,
+  Share2,
   X,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button/index'
 import { Calendar } from '@/components/shadcn/calendar'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/shadcn/dropdown-menu/index'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover/index'
 import {
   Select,
@@ -361,7 +342,9 @@ const emit = defineEmits([
   'handlePresetChange',
   'handleWatermarkChange',
   'handlePreview',
+  'handleShare',
   'handlePublish',
+  'handleUnpublish',
   'update:isDatePickerOpen',
   'update:isPresetPopoverOpen',
   'update:isWatermarkPopoverOpen',

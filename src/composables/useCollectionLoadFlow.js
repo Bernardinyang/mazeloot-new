@@ -1,4 +1,4 @@
-import { onMounted, watch } from 'vue'
+import { watch } from 'vue'
 import { toast } from '@/utils/toast'
 
 export function useCollectionLoadFlow({
@@ -21,9 +21,8 @@ export function useCollectionLoadFlow({
   loadMediaItems,
   mediaSetsSidebar,
 } = {}) {
-  const loadCollection = async () => {
-    const uuid = route.params.uuid
-    if (!uuid) {
+  const loadCollection = async (collectionUuid) => {
+    if (!collectionUuid) {
       toast.error('Collection ID is required')
       await router.push({ name: 'manageCollections' })
       return
@@ -31,8 +30,8 @@ export function useCollectionLoadFlow({
 
     isLoading.value = true
     try {
-      // Always fetch collection by UUID from API
-      const collectionData = await galleryStore.fetchCollection(uuid)
+      // Always fetch collection by UUID from API (force refresh from backend)
+      const collectionData = await galleryStore.fetchCollection(collectionUuid, true)
       if (!collectionData) {
         toast.error('Collection not found', {
           description: 'The collection you are looking for does not exist.',
@@ -115,6 +114,11 @@ export function useCollectionLoadFlow({
           selectedSetId.value = firstSetId
         }
       }
+
+      // Load media items for the selected set (if one is selected)
+      if (selectedSetId.value && loadMediaItems) {
+        await loadMediaItems()
+      }
     } catch (error) {
       console.error('Failed to load collection:', error)
       toast.error('Failed to load collection', {
@@ -157,16 +161,6 @@ export function useCollectionLoadFlow({
     },
     { deep: true }
   )
-
-  onMounted(async () => {
-    await loadCollection()
-    // loadCollection sets selectedSetId, which will trigger loadMediaItems via watch
-    // But we also call it explicitly here to ensure media loads even if watch doesn't fire
-    if (selectedSetId.value) {
-      await loadMediaItems()
-    }
-    // Don't load watermarks/presets until requested
-  })
 
   return {
     loadCollection,

@@ -464,9 +464,9 @@ const loadCollectionData = async () => {
       })
       router.push({ name: 'manageCollections' })
     } else {
-      toast.error('Failed to load collection', {
-        description: errorMessage,
-      })
+      // Use exact backend error message
+      const backendMessage = error?.message || error?.response?.data?.message || errorMessage || 'Failed to load collection'
+      toast.error(backendMessage)
       router.push({ name: 'manageCollections' })
     }
   } finally {
@@ -532,9 +532,9 @@ const saveCoverDesign = async () => {
       return false
     }
 
-    toast.error('Failed to save cover design', {
-      description: errorMessage,
-    })
+    // Use exact backend error message
+    const backendMessage = error?.message || error?.response?.data?.message || errorMessage || 'Failed to save cover design'
+    toast.error(backendMessage)
     return false
   } finally {
     isSaving.value = false

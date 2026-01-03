@@ -10,16 +10,16 @@
               ? 'opacity-50 grayscale'
               : 'opacity-90 hover:opacity-100',
         props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
-        !props.selectionStatus && hasPendingClosureRequest
+        props.showManagementActions && !props.selectionStatus && hasPendingClosureRequest
           ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/20 dark:bg-amber-900/10 animate-pulse'
           : '',
-        !props.selectionStatus && hasApprovedClosureRequest
+        props.showManagementActions && !props.selectionStatus && hasApprovedClosureRequest
           ? 'ring-2 ring-green-500 border-green-500 bg-green-50/20 dark:bg-green-900/10 animate-pulse'
           : '',
-        !props.selectionStatus && hasRejectedClosureRequest
+        props.showManagementActions && !props.selectionStatus && hasRejectedClosureRequest
           ? 'ring-2 ring-red-500 border-red-500 bg-red-50/20 dark:bg-red-900/10'
           : '',
-        !props.selectionStatus && hasPendingApprovalRequest
+        props.showManagementActions && !props.selectionStatus && hasPendingApprovalRequest
           ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/20 dark:bg-blue-900/10 animate-pulse'
           : '',
         isRejected
@@ -45,8 +45,9 @@
         </button>
       </div>
 
-      <!-- Star Toggle Button (on hover) -->
+      <!-- Star Toggle Button (on hover) - hidden in public mode -->
       <div
+        v-if="!props.publicMode"
         class="absolute top-2 right-12 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         @click.stop
       >
@@ -63,7 +64,7 @@
         </button>
       </div>
 
-      <div class="w-full h-full cursor-pointer relative" @click="emit('open-viewer')">
+      <div class="w-full h-full cursor-pointer relative" @click="emit('open-viewer', props.item)">
         <!-- Image thumbnail -->
         <img
           v-if="(item?.type || item?.file?.type) !== 'video'"
@@ -102,6 +103,17 @@
           />
           <!-- Video play icon overlay -->
           <div
+            v-if="props.publicMode"
+            class="absolute top-2 left-2 z-30"
+          >
+            <div
+              class="w-10 h-10 rounded-full bg-black/70 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center shadow-lg"
+            >
+              <Play class="h-5 w-5 text-white ml-0.5" />
+            </div>
+          </div>
+          <div
+            v-else
             class="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors"
           >
             <div
@@ -113,8 +125,9 @@
         </div>
       </div>
 
-      <!-- Badges Container (bottom-left) -->
+      <!-- Badges Container (bottom-left) - hidden in public mode -->
       <div
+        v-if="!props.publicMode"
         :class="props.item?.isStarred ? 'bottom-12' : 'bottom-2'"
         class="absolute left-2 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)]"
       >
@@ -167,8 +180,8 @@
             <span class="text-xs font-semibold text-white">Rejected</span>
           </div>
         </template>
-        <!-- Closure Request Indicators (only show when NOT in selection context) -->
-        <template v-if="!props.selectionStatus">
+        <!-- Closure Request Indicators (only show when NOT in selection context and NOT in collection) -->
+        <template v-if="!props.selectionStatus && props.showManagementActions">
           <!-- Pending Closure Request Indicator -->
           <TooltipProvider v-if="hasPendingClosureRequest">
             <Tooltip>
@@ -251,18 +264,79 @@
         </div>
       </div>
 
-      <!-- Starred Badge (always visible when starred, bottom-left) -->
+      <!-- Favorited Badge (always visible when favorited, bottom-left) -->
       <div v-if="props.item?.isStarred" class="absolute bottom-2 left-2 z-30">
         <div
-          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
-          title="Starred"
+          :class="[
+            'flex items-center justify-center w-8 h-8 rounded-full backdrop-blur-sm shadow-lg',
+            props.publicMode
+              ? 'bg-red-500/90 dark:bg-red-600/90'
+              : 'bg-yellow-500/90 dark:bg-yellow-600/90',
+          ]"
+          :title="props.publicMode ? 'Favorited' : 'Starred'"
         >
-          <Star class="h-4 w-4 fill-white text-white" />
+          <Heart v-if="props.publicMode" class="h-4 w-4 fill-white text-white" />
+          <Star v-else class="h-4 w-4 fill-white text-white" />
         </div>
       </div>
 
-      <!-- Context Menu Button -->
+      <!-- Download Loading Overlay -->
       <div
+        v-if="props.isDownloading"
+        class="absolute inset-0 z-50 flex items-center justify-center bg-black/60 dark:bg-black/70 backdrop-blur-sm rounded-xl"
+      >
+        <div class="flex flex-col items-center gap-2">
+          <Loader2 class="h-8 w-8 text-white animate-spin" />
+          <p class="text-xs text-white/90 font-medium">Downloading...</p>
+        </div>
+      </div>
+
+      <!-- Centered Action Buttons (Public Mode) -->
+      <div
+        v-if="props.publicMode"
+        class="absolute inset-0 flex items-center justify-center gap-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        @click.stop
+      >
+        <button
+          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
+          @click.stop="emit('open-viewer', props.item)"
+          :title="(props.item?.type || props.item?.file?.type) === 'video' ? 'Play Video' : 'View Image'"
+        >
+          <Eye v-if="(props.item?.type || props.item?.file?.type) !== 'video'" class="h-5 w-5 text-white" />
+          <Play v-else class="h-5 w-5 text-white" />
+        </button>
+        <button
+          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
+          @click.stop="emit('share', props.item)"
+          title="Share"
+        >
+          <Share2 class="h-5 w-5 text-white" />
+        </button>
+        <button
+          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
+          :disabled="props.isDownloading"
+          @click.stop="emit('download', props.item)"
+          title="Download"
+        >
+          <Download class="h-5 w-5 text-white" />
+        </button>
+        <button
+          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
+          @click.stop="emit('star-click', props.item)"
+          title="Favorite"
+        >
+          <Heart
+            :class="[
+              'h-5 w-5',
+              props.item?.isStarred ? 'fill-red-500 text-red-500' : 'text-white',
+            ]"
+          />
+        </button>
+      </div>
+
+      <!-- Context Menu Button (hidden in public mode) -->
+      <div
+        v-if="!props.publicMode"
         :class="[
           'absolute top-2 right-2 transition-opacity duration-200 z-10',
           isDropdownOpen ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
@@ -293,23 +367,18 @@
             </DropdownMenuLabel>
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click.stop="emit('view-details')"
-            >
-              <Eye class="h-4 w-4 mr-2" />
-              View Details
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('open')"
             >
               <ExternalLink class="h-4 w-4 mr-2" />
               Open
             </DropdownMenuItem>
             <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :class="[theme.textPrimary, theme.bgButtonHover, props.isDownloading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer']"
+              :disabled="props.isDownloading"
               @click.stop="emit('download')"
             >
-              <Download class="h-4 w-4 mr-2" />
+              <Loader2 v-if="props.isDownloading" class="h-4 w-4 mr-2 animate-spin" />
+              <Download v-else class="h-4 w-4 mr-2" />
               Download
             </DropdownMenuItem>
 
@@ -375,9 +444,10 @@
               </DropdownMenuItem>
             </template>
 
-            <!-- Closure Actions (only show when NOT in selection context) -->
+            <!-- Closure Actions (only show when NOT in selection context and management actions enabled) -->
             <template
               v-if="
+                props.showManagementActions &&
                 !props.selectionStatus &&
                 (hasPendingClosureRequest ||
                   (closureRequests && closureRequests.length > 0) ||
@@ -569,6 +639,7 @@ import {
   Eye,
   FileImage,
   History,
+  Loader2,
   MessageSquare,
   MoreVertical,
   Move,
@@ -576,6 +647,8 @@ import {
   Play,
   Square,
   Star,
+  Heart,
+  Share2,
   Trash2,
   Upload,
   X,
@@ -650,6 +723,14 @@ const props = defineProps({
   approvalRequests: {
     type: Array,
     default: () => [],
+  },
+  publicMode: {
+    type: Boolean,
+    default: false,
+  },
+  isDownloading: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -893,6 +974,7 @@ const emit = defineEmits([
   'view-details',
   'open',
   'download',
+  'share',
   'move-copy',
   'copy-filenames',
   'set-as-cover',

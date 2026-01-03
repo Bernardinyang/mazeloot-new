@@ -15,6 +15,11 @@ export class AppError extends Error {
 
 /**
  * Parse error from API response
+ * Prioritizes backend error messages in this order:
+ * 1. error.message (from API client)
+ * 2. error.response.data.message (direct from backend)
+ * 3. error.response.data.error (alternative backend field)
+ * 4. Fallback messages
  */
 export function parseError(error) {
   // If it's already an AppError, return it
@@ -22,17 +27,20 @@ export function parseError(error) {
     return error
   }
 
-  // If it's an Error object
-  if (error instanceof Error) {
+  // Priority 1: API client format (already processed) - { message, code, status, errors }
+  if (error?.message && (error?.status !== undefined || error?.code !== undefined)) {
     return {
       message: error.message,
+      code: error.code,
+      status: error.status,
+      errors: error.errors,
     }
   }
 
-  // If it's an API response with error structure
+  // Priority 2: Raw API response with error structure
   if (error?.response?.data) {
     const data = error.response.data
-    // Extract the most specific error message
+    // Extract the most specific error message from backend
     let message = data.message || data.error
 
     // If there are field-specific errors, include the first one for more context
@@ -51,13 +59,20 @@ export function parseError(error) {
     }
   }
 
-  // If it's a plain object with error info
+  // Priority 3: Plain object with error info (API client format)
   if (error?.message || error?.errors || error?.status) {
     return {
       message: error.message || 'An error occurred',
       code: error.code,
       status: error.status,
       errors: error.errors,
+    }
+  }
+
+  // Priority 4: Error object
+  if (error instanceof Error) {
+    return {
+      message: error.message,
     }
   }
 
@@ -70,16 +85,35 @@ export function parseError(error) {
 /**
  * Get user-friendly error message
  * Prioritizes backend error message, only uses fallback if no message exists
+ * 
+ * Priority order:
+ * 1. error.message (from API client - already processed)
+ * 2. error.response.data.message (direct from backend)
+ * 3. error.response.data.error (alternative backend field)
+ * 4. Fallback message
  */
 export function getErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
   if (error === null || error === undefined) {
     return fallback
   }
+  
+  // Direct access to backend message (highest priority)
+  const backendMessage = error?.response?.data?.message || error?.response?.data?.error
+  if (backendMessage && backendMessage.trim() !== '') {
+    return backendMessage
+  }
+  
+  // API client processed message (second priority)
+  if (error?.message && error.message.trim() !== '') {
+    return error.message
+  }
+  
   const parsed = parseError(error)
-  // Prioritize backend message - only use fallback if message is missing/empty
+  // Use parsed message if available
   if (parsed.message && parsed.message.trim() !== '') {
     return parsed.message
   }
+  
   return fallback
 }
 
@@ -126,4 +160,16 @@ export function isAuthError(error) {
 export function isValidationError(error) {
   const parsed = parseError(error)
   return parsed.status === 422 || parsed.errors !== undefined
+}
+
+/**
+ * Extract backend error message for display
+ * This is the recommended way to get error messages throughout the app
+ * 
+ * @param {*} error - Error object from catch block
+ * @param {string} fallback - Fallback message if no backend message found
+ * @returns {string} Error message to display
+ */
+export function getBackendErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
+  return getErrorMessage(error, fallback)
 }

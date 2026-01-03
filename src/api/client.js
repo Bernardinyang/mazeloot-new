@@ -60,11 +60,17 @@ class ApiClient {
     }
 
     if (!response.ok) {
+      // Always prioritize backend error message
       const error = {
         message: data?.message || data?.error || `Request failed with status ${response.status}`,
         code: data?.code,
         status: response.status,
         errors: data?.errors,
+        // Store raw response for direct access to backend message
+        response: {
+          data: data,
+          status: response.status,
+        },
       }
       throw error
     }

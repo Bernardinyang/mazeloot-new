@@ -29,7 +29,9 @@ export function useErrorHandler() {
         await logout()
       }
       if (showToast) {
-        toast.error('Please sign in again.')
+        // Use backend error message if available, otherwise use default
+        const authErrorMessage = getErrorMessage(err, 'Please sign in again.')
+        toast.error(authErrorMessage)
       }
       return
     }
@@ -39,7 +41,9 @@ export function useErrorHandler() {
         onNetworkError()
       }
       if (showToast) {
-        toast.error('Please check your internet connection and try again.')
+        // Use backend error message if available, otherwise use default
+        const networkErrorMessage = getErrorMessage(err, 'Please check your internet connection and try again.')
+        toast.error(networkErrorMessage)
       }
       return
     }

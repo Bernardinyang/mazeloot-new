@@ -281,9 +281,9 @@ export const useSelectionHeaderStore = defineStore('selectionHeader', () => {
         // Show modal to add emails
         showAddEmailModal.value = true
       } else {
-        toast.error('Failed to update selection status', {
-          description: errorMessage || 'An unknown error occurred',
-        })
+        // Use exact backend error message
+        const backendMessage = error?.message || error?.response?.data?.message || 'Failed to update selection status'
+        toast.error(backendMessage)
       }
       throw error
     } finally {
