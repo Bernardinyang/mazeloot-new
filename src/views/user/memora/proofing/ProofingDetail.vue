@@ -282,15 +282,12 @@
 
       <!-- Create/Edit Set Modal -->
       <CreateEditMediaSetModal
-        :model-value="mediaSetsSidebar.showCreateSetModal"
-        :description="mediaSetsSidebar.newSetDescription"
-        :name="mediaSetsSidebar.newSetName"
+        v-model="mediaSetsSidebar.showCreateSetModal"
+        v-model:description="mediaSetsSidebar.newSetDescription"
+        v-model:name="mediaSetsSidebar.newSetName"
         :is-creating="mediaSetsSidebar.isCreatingSet"
         :is-editing="!!mediaSetsSidebar.editingSetIdInModal"
         context="proofing"
-        @update:model-value="mediaSetsSidebar.showCreateSetModal = $event"
-        @update:description="mediaSetsSidebar.newSetDescription = $event"
-        @update:name="mediaSetsSidebar.newSetName = $event"
         @cancel="mediaSetsSidebar.handleCancelCreateSet"
         @confirm="mediaSetsSidebar.handleCreateSet"
       />
@@ -320,12 +317,10 @@
       />
 
       <EditFilenamesModal
-        :model-value="showEditModal"
-        :append-text="editAppendText"
+        v-model="showEditModal"
+        v-model:append-text="editAppendText"
         :is-loading="isBulkEditLoading"
         :selected-count="selectedMediaIds.size"
-        @update:model-value="showEditModal = $event"
-        @update:append-text="editAppendText = $event"
         @cancel="handleCancelEdit"
         @confirm="handleConfirmEdit"
       />
@@ -366,11 +361,9 @@
       />
 
       <RenameMediaModal
-        :model-value="showRenameMediaModal"
-        :new-media-name="newMediaName"
+        v-model="showRenameMediaModal"
+        v-model:new-media-name="newMediaName"
         :is-renaming="isRenamingMedia"
-        @update:model-value="showRenameMediaModal = $event"
-        @update:new-media-name="newMediaName = $event"
         @cancel="handleCancelRenameMedia"
         @confirm="handleConfirmRenameMedia"
       />
@@ -453,8 +446,8 @@
       />
 
       <MoveCopyModal
-        :model-value="showMoveCopyModal"
-        :action="moveCopyAction"
+        v-model="showMoveCopyModal"
+        v-model:action="moveCopyAction"
         context="proofing"
         :available-collections="availableProofings"
         :current-collection-id="proofing?.id || ''"
@@ -465,8 +458,6 @@
         :target-set-id="targetSetId"
         :is-moving="isMovingMedia"
         :selected-count="selectedMediaIds.size"
-        @update:model-value="showMoveCopyModal = $event"
-        @update:action="moveCopyAction = $event"
         @selection-change="handleTargetProofingChange"
         @update:target-set-id="targetSetId = $event"
         @cancel="handleCancelMoveCopy"
@@ -475,12 +466,28 @@
 
       <!-- Focal Point Modal -->
       <FocalPointModal
-        :is-open="showFocalPointModal"
+        v-model:is-open="showFocalPointModal"
         :image-url="focalPointImageUrl"
         :initial-focal-point="currentFocalPoint"
-        @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
+
+      <!-- Remove Watermark Loading Modal -->
+      <CenterModal
+        v-model="showRemoveWatermarkLoading"
+        title="Removing Watermark"
+        content-class="sm:max-w-md"
+      >
+        <div class="flex flex-col items-center justify-center py-8">
+          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <p :class="theme.textPrimary" class="text-sm font-medium">
+            Removing watermark from image...
+          </p>
+          <p :class="theme.textSecondary" class="text-xs mt-2">
+            Please wait while we restore the original image.
+          </p>
+        </div>
+      </CenterModal>
 
       <!-- Request Closure Modal -->
       <RequestClosureModal
@@ -540,23 +547,6 @@
         :revision="selectedRevision"
         :media-item="revisionHistoryMediaItem"
       />
-
-      <!-- Remove Watermark Loading Modal -->
-      <CenterModal
-        v-model="showRemoveWatermarkLoading"
-        title="Removing Watermark"
-        content-class="sm:max-w-md"
-      >
-        <div class="flex flex-col items-center justify-center py-8">
-          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
-          <p :class="theme.textPrimary" class="text-sm font-medium">
-            Removing watermark from image...
-          </p>
-          <p :class="theme.textSecondary" class="text-xs mt-2">
-            Please wait while we restore the original image.
-          </p>
-        </div>
-      </CenterModal>
     </template>
   </ProofingLayout>
 </template>
@@ -600,16 +590,16 @@ import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useProofingStore } from '@/stores/proofing'
 import { useProofingMediaSetsSidebarStore } from '@/stores/proofingMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Plus } from 'lucide-vue-next'
+import { FolderPlus, ImagePlus, Plus, Loader2 } from 'lucide-vue-next'
 import { triggerFileInputClick } from '@/utils/media/triggerFileInputClick'
 import { useProofingWorkflow } from '@/composables/useProofingWorkflow'
 import { useProofingApi } from '@/api/proofing'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
-import { useActionHistoryStore } from '@/stores/actionHistory'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useUserStore } from '@/stores/user'
+import { useMediaActions } from '@/composables/useMediaActions'
 import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
 import { useWatermarkStore } from '@/stores/watermark'
 
@@ -627,27 +617,6 @@ const proofingColor = inject(
   computed(() => '#10B981')
 )
 
-// Action history for undo/redo (global store)
-const actionHistory = useActionHistoryStore()
-
-// Helper to get undo action button for toasts
-const getUndoAction = () => {
-  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0
-  const undoShortcut = isMac ? '⌘Z' : 'Ctrl+Z'
-
-  return {
-    label: `Undo ${undoShortcut}`,
-    onClick: async () => {
-      if (actionHistory.canUndo) {
-        const description = actionHistory.lastActionDescription
-        await actionHistory.undo()
-        toast.success('Undone', {
-          description: description ? `Reverted: ${description}` : 'Action has been undone',
-        })
-      }
-    },
-  }
-}
 
 // Use store for media sets
 const { selectedSetId } = storeToRefs(mediaSetsSidebar)
@@ -1654,135 +1623,6 @@ const handleStarMediaFromLightbox = async ({ item }) => {
   await handleStarMedia(item)
 }
 
-const handleStarMedia = async item => {
-  if (!item?.id || !proofing.value?.id || !selectedSetId.value) {
-    return
-  }
-
-  try {
-    const oldStarredStatus = item.isStarred
-    const result = await proofingApi.starMedia(
-      proofing.value.id,
-      selectedSetId.value,
-      item.id,
-      proofing.value.projectId
-    )
-
-    const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
-
-    const mediaItem = mediaItems.value.find(m => m.id === item.id)
-    if (mediaItem) {
-      mediaItem.isStarred = newStarredStatus
-    }
-
-    // Update in selectedMediaForView if it's there
-    const viewItem = selectedMediaForView.value.find(m => m.id === item.id)
-    if (viewItem) {
-      viewItem.isStarred = newStarredStatus
-    }
-
-    if (item) {
-      item.isStarred = newStarredStatus
-    }
-
-    if (oldStarredStatus !== newStarredStatus) {
-      actionHistory.addAction({
-        type: 'star',
-        description: `${newStarredStatus ? 'Starred' : 'Unstarred'} "${item.file?.filename || item.filename || 'media'}"`,
-        undo: async () => {
-          try {
-            await proofingApi.starMedia(
-              proofing.value.id,
-              selectedSetId.value,
-              item.id,
-              proofing.value.projectId
-            )
-            const mediaItem = mediaItems.value.find(m => m.id === item.id)
-            if (mediaItem) {
-              mediaItem.isStarred = oldStarredStatus
-            }
-            if (item) {
-              item.isStarred = oldStarredStatus
-            }
-          } catch (error) {}
-        },
-        redo: async () => {
-          try {
-            await proofingApi.starMedia(
-              proofing.value.id,
-              selectedSetId.value,
-              item.id,
-              proofing.value.projectId
-            )
-            const mediaItem = mediaItems.value.find(m => m.id === item.id)
-            if (mediaItem) {
-              mediaItem.isStarred = newStarredStatus
-            }
-            if (item) {
-              item.isStarred = newStarredStatus
-            }
-          } catch (error) {}
-        },
-      })
-    }
-  } catch (error) {
-    toast.error('Failed to star media', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while starring the media.',
-    })
-  }
-}
-
-const handleDownloadMedia = async item => {
-  if (!item?.id) {
-    toast.error('Media not found', {
-      description: 'Unable to download media. Please try again.',
-    })
-    return
-  }
-
-  try {
-    toast.loading('Preparing download...', {
-      id: 'download-media',
-    })
-
-    const { blob, filename } = await proofingApi.downloadMedia(item.id)
-
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-
-    toast.dismiss('download-media')
-    toast.success('Download started', {
-      description: `Downloading ${filename}`,
-    })
-  } catch (error) {
-    toast.dismiss('download-media')
-    toast.error('Download failed', {
-      description: error.message || 'Unable to download media. Please try again.',
-    })
-  }
-}
-
-const handleCopyFilenames = async item => {
-  try {
-    const filename = item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
-    await navigator.clipboard.writeText(filename)
-    toast.success('Filename copied', {
-      description: 'The filename has been copied to your clipboard.',
-    })
-  } catch (error) {
-    toast.error('Failed to copy', {
-      description: error instanceof Error ? error.message : 'Could not copy to clipboard',
-    })
-  }
-}
-
 // Progress calculation
 const overallProgress = computed(() => {
   if (proofing.value?.status === 'completed') {
@@ -1814,36 +1654,6 @@ const selectedCountInCurrentSet = computed(() => {
   return sortedMediaItems.value.filter(item => item.isCompleted === true).length
 })
 
-const handleBulkCopyFilenames = async () => {
-  if (selectedMediaIds.value.size === 0) {
-    toast.info('No items selected', {
-      description: 'Please select some media items to copy filenames.',
-    })
-    return
-  }
-
-  try {
-    const selectedItems = sortedMediaItems.value.filter(item =>
-      selectedMediaIds.value.has(getItemId(item))
-    )
-
-    const filenames = selectedItems.map(item => {
-      return item?.file?.filename || item?.filename || item?.title || 'untitled.jpg'
-    })
-
-    const filenamesText = filenames.join(', ')
-
-    await navigator.clipboard.writeText(filenamesText)
-
-    toast.success('Filenames copied', {
-      description: `${filenames.length} filename(s) copied to clipboard.`,
-    })
-  } catch (error) {
-    toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
-    })
-  }
-}
 
 const handleMoveCopy = item => {
   selectedMediaIds.value.clear()
@@ -2069,233 +1879,6 @@ const handleToggleSelectAll = () => {
   selectedMediaIds.value = newSet
 }
 
-const handleBulkDelete = () => {
-  if (selectedMediaIds.value.size === 0) {
-    return
-  }
-  showBulkDeleteModal.value = true
-}
-
-const handleConfirmBulkDelete = async () => {
-  if (selectedMediaIds.value.size === 0 || !proofing.value?.id || !selectedSetId.value) {
-    showBulkDeleteModal.value = false
-    return
-  }
-
-  const idsToDelete = Array.from(selectedMediaIds.value)
-  const deletedItems = []
-
-  isBulkDeleteLoading.value = true
-  try {
-    let successCount = 0
-    let errorCount = 0
-
-    for (const mediaId of idsToDelete) {
-      try {
-        const item = mediaItems.value.find(m => m.id === mediaId)
-        if (!item) continue
-
-        await proofingApi.deleteMedia(
-          proofing.value.id,
-          selectedSetId.value,
-          mediaId,
-          proofing.value.projectId
-        )
-
-        deletedItems.push({
-          ...item,
-          originalIndex: mediaItems.value.findIndex(m => m.id === mediaId),
-        })
-
-        const index = mediaItems.value.findIndex(m => m.id === mediaId)
-        if (index !== -1) {
-          mediaItems.value.splice(index, 1)
-        }
-
-        selectedMediaIds.value.delete(mediaId)
-        successCount++
-      } catch (error) {
-        errorCount++
-      }
-    }
-
-    await mediaSetsSidebar.loadMediaSets()
-
-    if (successCount > 0 && deletedItems.length > 0) {
-      actionHistory.addAction({
-        type: 'bulk-delete',
-        description: `Deleted ${successCount} item${successCount > 1 ? 's' : ''}`,
-        undo: async () => {
-          toast.info('Undo not available', {
-            description: 'Deleted items cannot be restored. Please re-upload if needed.',
-          })
-        },
-        redo: async () => {
-          for (const item of deletedItems) {
-            try {
-              await proofingApi.deleteMedia(
-                proofing.value.id,
-                selectedSetId.value,
-                item.id,
-                proofing.value.projectId
-              )
-              const index = mediaItems.value.findIndex(m => m.id === item.id)
-              if (index !== -1) {
-                mediaItems.value.splice(index, 1)
-              }
-              selectedMediaIds.value.delete(item.id)
-            } catch (error) {}
-          }
-          await mediaSetsSidebar.loadMediaSets()
-        },
-      })
-    }
-
-    if (errorCount === 0) {
-      toast.success('Media deleted', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} deleted successfully.`,
-        action: getUndoAction(),
-      })
-    } else if (successCount > 0) {
-      toast.warning('Partial deletion', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} deleted, ${errorCount} failed.`,
-      })
-    } else {
-      toast.error('Failed to delete media', {
-        description: `Failed to delete ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
-      })
-    }
-
-    showBulkDeleteModal.value = false
-  } catch (error) {
-    toast.error('Failed to delete media', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while deleting media.',
-    })
-  } finally {
-    isBulkDeleteLoading.value = false
-  }
-}
-
-const handleBulkFavorite = async () => {
-  if (selectedMediaIds.value.size === 0 || !proofing.value?.id || !selectedSetId.value) {
-    return
-  }
-
-  const ids = Array.from(selectedMediaIds.value)
-  const items = mediaItems.value.filter(m => ids.includes(m.id))
-
-  const allStarred = items.every(item => item.isStarred)
-  const targetStarred = !allStarred
-  const starOperations = []
-
-  isBulkFavoriteLoading.value = true
-  try {
-    let successCount = 0
-    let errorCount = 0
-
-    for (const item of items) {
-      try {
-        if (item.isStarred !== targetStarred) {
-          const oldStarredStatus = item.isStarred
-          const result = await proofingApi.starMedia(
-            proofing.value.id,
-            selectedSetId.value,
-            item.id,
-            proofing.value.projectId
-          )
-          const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
-
-          starOperations.push({
-            itemId: item.id,
-            oldStarred: oldStarredStatus,
-            newStarred: newStarredStatus,
-          })
-
-          const mediaItem = mediaItems.value.find(m => m.id === item.id)
-          if (mediaItem) {
-            mediaItem.isStarred = newStarredStatus
-          }
-
-          if (newStarredStatus === targetStarred) {
-            successCount++
-          }
-        } else {
-          successCount++
-        }
-      } catch (error) {
-        errorCount++
-      }
-    }
-
-    if (successCount > 0 && starOperations.length > 0) {
-      actionHistory.addAction({
-        type: 'bulk-star',
-        description: `${targetStarred ? 'Starred' : 'Unstarred'} ${successCount} item${successCount > 1 ? 's' : ''}`,
-        undo: async () => {
-          for (const op of starOperations) {
-            try {
-              if (op.newStarred !== op.oldStarred) {
-                await proofingApi.starMedia(
-                  proofing.value.id,
-                  selectedSetId.value,
-                  op.itemId,
-                  proofing.value.projectId
-                )
-                const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
-                if (mediaItem) {
-                  mediaItem.isStarred = op.oldStarred
-                }
-              }
-            } catch (error) {}
-          }
-        },
-        redo: async () => {
-          for (const op of starOperations) {
-            try {
-              if (op.newStarred !== op.oldStarred) {
-                await proofingApi.starMedia(
-                  proofing.value.id,
-                  selectedSetId.value,
-                  op.itemId,
-                  proofing.value.projectId
-                )
-                const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
-                if (mediaItem) {
-                  mediaItem.isStarred = op.newStarred
-                }
-              }
-            } catch (error) {}
-          }
-        },
-      })
-    }
-
-    if (errorCount === 0) {
-      toast.success(targetStarred ? 'Media starred' : 'Media unstarred', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} ${targetStarred ? 'starred' : 'unstarred'} successfully.`,
-        action: getUndoAction(),
-        duration: 5000,
-      })
-    } else if (successCount > 0) {
-      toast.warning('Partial success', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} updated, ${errorCount} failed.`,
-      })
-    } else {
-      toast.error('Failed to update media', {
-        description: `Failed to ${targetStarred ? 'star' : 'unstar'} ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
-      })
-    }
-  } catch (error) {
-    toast.error('Failed to update media', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while updating media.',
-    })
-  } finally {
-    isBulkFavoriteLoading.value = false
-  }
-}
-
 const handleSetAsCover = async item => {
   if (!proofing.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
@@ -2390,190 +1973,6 @@ const handleFocalPointConfirm = async focalPoint => {
   }
 }
 
-const handleBulkView = () => {
-  if (selectedMediaIds.value.size === 0) {
-    toast.info('No items selected', {
-      description: 'Please select some media items to view.',
-    })
-    return
-  }
-
-  const ids = Array.from(selectedMediaIds.value)
-  const items = mediaItems.value.filter(m => ids.includes(m.id))
-  const imageItems = items.filter(item => {
-    const itemType = item.type || item.file?.type
-    return itemType === 'image'
-  })
-
-  if (imageItems.length === 0) {
-    toast.info('No images to view', {
-      description:
-        'The selected items do not contain any images. Only images can be viewed in the lightbox.',
-    })
-    return
-  }
-
-  selectedMediaForView.value = imageItems
-  currentViewIndex.value = 0
-  showMediaViewer.value = true
-
-  nextTick(() => {})
-}
-
-const handleBulkEdit = () => {
-  if (selectedMediaIds.value.size === 0) {
-    return
-  }
-  editAppendText.value = ''
-  showEditModal.value = true
-}
-
-const handleCancelEdit = () => {
-  showEditModal.value = false
-  editAppendText.value = ''
-}
-
-const handleConfirmEdit = async () => {
-  if (
-    selectedMediaIds.value.size === 0 ||
-    !editAppendText.value.trim() ||
-    !proofing.value?.id ||
-    !selectedSetId.value
-  ) {
-    return
-  }
-
-  const ids = Array.from(selectedMediaIds.value)
-  const appendText = editAppendText.value.trim()
-  const items = mediaItems.value.filter(m => ids.includes(m.id))
-  const renameOperations = []
-
-  isBulkEditLoading.value = true
-  try {
-    let successCount = 0
-    let errorCount = 0
-
-    for (const item of items) {
-      try {
-        const currentFilename =
-          item.file?.filename || item.filename || item.title || `media-${item.id}`
-
-        const lastDotIndex = currentFilename.lastIndexOf('.')
-        let nameWithoutExt = currentFilename
-        let extension = ''
-
-        if (lastDotIndex > 0) {
-          nameWithoutExt = currentFilename.substring(0, lastDotIndex)
-          extension = currentFilename.substring(lastDotIndex)
-        }
-
-        const newFilename = nameWithoutExt + appendText + extension
-
-        await proofingApi.renameMedia(
-          proofing.value.id,
-          selectedSetId.value,
-          item.id,
-          newFilename,
-          proofing.value.projectId
-        )
-
-        renameOperations.push({
-          itemId: item.id,
-          oldFilename: currentFilename,
-          newFilename,
-        })
-
-        const mediaItem = mediaItems.value.find(m => m.id === item.id)
-        if (mediaItem) {
-          if (mediaItem.file) {
-            mediaItem.file.filename = newFilename
-          } else {
-            mediaItem.filename = newFilename
-          }
-        }
-
-        successCount++
-      } catch (error) {
-        errorCount++
-      }
-    }
-
-    if (successCount > 0 && renameOperations.length > 0) {
-      actionHistory.addAction({
-        type: 'bulk-rename',
-        description: `Renamed ${successCount} item${successCount > 1 ? 's' : ''} (append: "${appendText}")`,
-        undo: async () => {
-          for (const op of renameOperations) {
-            try {
-              await proofingApi.renameMedia(
-                proofing.value.id,
-                selectedSetId.value,
-                op.itemId,
-                op.oldFilename,
-                proofing.value.projectId
-              )
-              const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
-              if (mediaItem) {
-                if (mediaItem.file) {
-                  mediaItem.file.filename = op.oldFilename
-                } else {
-                  mediaItem.filename = op.oldFilename
-                }
-              }
-            } catch (error) {}
-          }
-        },
-        redo: async () => {
-          for (const op of renameOperations) {
-            try {
-              await proofingApi.renameMedia(
-                proofing.value.id,
-                selectedSetId.value,
-                op.itemId,
-                op.newFilename,
-                proofing.value.projectId
-              )
-              const mediaItem = mediaItems.value.find(m => m.id === op.itemId)
-              if (mediaItem) {
-                if (mediaItem.file) {
-                  mediaItem.file.filename = op.newFilename
-                } else {
-                  mediaItem.filename = op.newFilename
-                }
-              }
-            } catch (error) {}
-          }
-        },
-      })
-    }
-
-    if (errorCount === 0) {
-      toast.success('Filenames updated', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} updated successfully.`,
-        action: getUndoAction(),
-        duration: 5000,
-      })
-    } else if (successCount > 0) {
-      toast.warning('Partial update', {
-        description: `${successCount} item${successCount > 1 ? 's' : ''} updated, ${errorCount} failed.`,
-      })
-    } else {
-      toast.error('Failed to update filenames', {
-        description: `Failed to update ${errorCount} item${errorCount > 1 ? 's' : ''}.`,
-      })
-    }
-
-    showEditModal.value = false
-    editAppendText.value = ''
-  } catch (error) {
-    toast.error('Failed to update filenames', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while updating filenames.',
-    })
-  } finally {
-    isBulkEditLoading.value = false
-  }
-}
 
 const handleBulkWatermark = () => {
   showBulkWatermarkModal.value = true
@@ -2687,301 +2086,6 @@ const handleConfirmBulkWatermark = async () => {
 
 const watermarks = computed(() => watermarkStore.watermarks)
 
-const handleRenameMedia = item => {
-  mediaToRename.value = item
-  const fullFilename = item.file?.filename || item.filename || item.title || item.name || ''
-  const extension = fullFilename ? fullFilename.split('.').pop() : ''
-  const hasExtension = fullFilename.includes('.') && extension && extension.length < 10
-  newMediaName.value = hasExtension
-    ? fullFilename.substring(0, fullFilename.lastIndexOf('.'))
-    : fullFilename
-  showRenameMediaModal.value = true
-}
-
-const handleCancelRenameMedia = () => {
-  showRenameMediaModal.value = false
-  mediaToRename.value = null
-  newMediaName.value = ''
-}
-
-const handleConfirmRenameMedia = async () => {
-  if (
-    !mediaToRename.value ||
-    !newMediaName.value.trim() ||
-    !proofing.value?.id ||
-    !selectedSetId.value ||
-    isRenamingMedia.value
-  ) {
-    return
-  }
-
-  const trimmedName = newMediaName.value.trim()
-  const originalFilename = mediaToRename.value.file?.filename || mediaToRename.value.filename || ''
-
-  const originalExtension = originalFilename.includes('.')
-    ? originalFilename.substring(originalFilename.lastIndexOf('.'))
-    : ''
-
-  let finalFilename = trimmedName
-  if (trimmedName.includes('.')) {
-    const userExtension = trimmedName.substring(trimmedName.lastIndexOf('.'))
-    if (userExtension.length < 10) {
-      finalFilename = trimmedName.substring(0, trimmedName.lastIndexOf('.'))
-    }
-  }
-
-  if (originalExtension) {
-    finalFilename = finalFilename + originalExtension
-  }
-
-  if (finalFilename === originalFilename) {
-    handleCancelRenameMedia()
-    return
-  }
-
-  isRenamingMedia.value = true
-
-  try {
-    const result = await proofingApi.renameMedia(
-      proofing.value.id,
-      selectedSetId.value,
-      mediaToRename.value.id,
-      finalFilename,
-      proofing.value.projectId
-    )
-
-    const updatedFilename = result?.data?.filename || result?.filename || finalFilename
-    const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
-    if (index !== -1) {
-      if (mediaItems.value[index].file) {
-        mediaItems.value[index].file.filename = updatedFilename
-      } else {
-        mediaItems.value[index].file = { filename: updatedFilename }
-      }
-      mediaItems.value[index].filename = updatedFilename
-      mediaItems.value = [...mediaItems.value]
-    }
-
-    actionHistory.addAction({
-      type: 'rename',
-      description: `Renamed "${originalFilename}" to "${updatedFilename}"`,
-      undo: async () => {
-        try {
-          await proofingApi.renameMedia(
-            proofing.value.id,
-            selectedSetId.value,
-            mediaToRename.value.id,
-            originalFilename,
-            proofing.value.projectId
-          )
-          const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
-          if (index !== -1) {
-            if (mediaItems.value[index].file) {
-              mediaItems.value[index].file.filename = originalFilename
-            } else {
-              mediaItems.value[index].file = { filename: originalFilename }
-            }
-            mediaItems.value[index].filename = originalFilename
-            mediaItems.value = [...mediaItems.value]
-          }
-        } catch (error) {}
-      },
-      redo: async () => {
-        try {
-          await proofingApi.renameMedia(
-            proofing.value.id,
-            selectedSetId.value,
-            mediaToRename.value.id,
-            updatedFilename,
-            proofing.value.projectId
-          )
-          const index = mediaItems.value.findIndex(m => m.id === mediaToRename.value?.id)
-          if (index !== -1) {
-            if (mediaItems.value[index].file) {
-              mediaItems.value[index].file.filename = updatedFilename
-            } else {
-              mediaItems.value[index].file = { filename: updatedFilename }
-            }
-            mediaItems.value[index].filename = updatedFilename
-            mediaItems.value = [...mediaItems.value]
-          }
-        } catch (error) {}
-      },
-    })
-
-    toast.success('Media renamed', {
-      description: 'The filename has been updated successfully.',
-      action: getUndoAction(),
-      duration: 5000,
-    })
-
-    handleCancelRenameMedia()
-  } catch (error) {
-    toast.error('Failed to rename media', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while renaming the media.',
-    })
-  } finally {
-    isRenamingMedia.value = false
-  }
-}
-
-const handleDeleteMedia = item => {
-  openDeleteModal(item)
-}
-
-const handleConfirmDeleteItem = async () => {
-  if (!itemToDelete.value || isDeleting.value) return
-
-  const item = itemToDelete.value
-
-  if (item.setId || item.id) {
-    isDeleting.value = true
-
-    try {
-      await proofingApi.deleteMedia(
-        proofing.value.id,
-        selectedSetId.value,
-        item.id,
-        proofing.value.projectId
-      )
-
-      const index = mediaItems.value.findIndex(m => m.id === item.id)
-      if (index !== -1) {
-        mediaItems.value.splice(index, 1)
-        mediaItems.value = [...mediaItems.value]
-      }
-
-      selectedMediaIds.value.delete(item.id)
-
-      await mediaSetsSidebar.loadMediaSets()
-
-      actionHistory.addAction({
-        type: 'delete',
-        description: `Deleted "${item.file?.filename || item.filename || 'media'}"`,
-        undo: async () => {
-          toast.info('Undo not available', {
-            description: 'Deleted items cannot be restored. Please re-upload if needed.',
-          })
-        },
-        redo: async () => {
-          try {
-            await proofingApi.deleteMedia(
-              proofing.value.id,
-              selectedSetId.value,
-              item.id,
-              proofing.value.projectId
-            )
-            const index = mediaItems.value.findIndex(m => m.id === item.id)
-            if (index !== -1) {
-              mediaItems.value.splice(index, 1)
-            }
-            selectedMediaIds.value.delete(item.id)
-            await mediaSetsSidebar.loadMediaSets()
-          } catch (error) {}
-        },
-      })
-
-      toast.success('Media deleted', {
-        description: 'The media item has been deleted successfully.',
-        action: getUndoAction(),
-        duration: 5000,
-      })
-
-      closeDeleteModal()
-    } catch (error) {
-      toast.error('Failed to delete media', {
-        description:
-          error instanceof Error ? error.message : 'An error occurred while deleting the media.',
-      })
-    } finally {
-      isDeleting.value = false
-    }
-  } else {
-    closeDeleteModal()
-  }
-}
-
-const handleReplacePhoto = item => {
-  mediaToReplace.value = item
-  showReplacePhotoModal.value = true
-}
-
-const handleCancelReplacePhoto = () => {
-  showReplacePhotoModal.value = false
-  mediaToReplace.value = null
-}
-
-const handleReplacePhotoFileSelect = async event => {
-  const input = event.target
-  const files = input.files
-  if (!files || files.length === 0 || !mediaToReplace.value) return
-
-  const file = files[0]
-  if (!file.type.startsWith('image/')) {
-    toast.error('Invalid file type', {
-      description: 'Please select an image file.',
-    })
-    return
-  }
-
-  if (!proofing.value?.id || !selectedSetId.value) {
-    toast.error('Invalid context', {
-      description: 'Proofing or set not found.',
-    })
-    return
-  }
-
-  isReplacingPhoto.value = true
-
-  try {
-    const isImage = file.type.startsWith('image/')
-    const uploadEndpoint = isImage ? '/v1/images/upload' : '/v1/uploads'
-
-    const uploadResponse = await apiClient.upload(uploadEndpoint, file, {
-      purpose: 'memora-media',
-    })
-
-    const userFileUuid =
-      uploadResponse.data?.userFileUuid || uploadResponse.data?.data?.userFileUuid
-
-    if (!userFileUuid) {
-      throw new Error('Upload response missing userFileUuid')
-    }
-
-    const result = await proofingApi.replaceMedia(
-      proofing.value.id,
-      selectedSetId.value,
-      mediaToReplace.value.id,
-      userFileUuid,
-      proofing.value.projectId
-    )
-
-    const index = mediaItems.value.findIndex(m => m.id === mediaToReplace.value?.id)
-    if (index !== -1) {
-      const updatedMedia = result?.data || result
-      if (updatedMedia) {
-        mediaItems.value[index] = updatedMedia
-        mediaItems.value = [...mediaItems.value]
-      }
-    }
-
-    toast.success('Photo replaced', {
-      description: 'The photo has been replaced successfully.',
-    })
-
-    showReplacePhotoModal.value = false
-    mediaToReplace.value = null
-  } catch (error) {
-    toast.error('Failed to replace photo', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while replacing the photo.',
-    })
-  } finally {
-    isReplacingPhoto.value = false
-  }
-}
-
 const proofingId = computed(() => proofing.value?.id)
 
 const {
@@ -3006,6 +2110,69 @@ const {
   description: '',
   reloadMedia: loadMediaItems,
   showRemoveWatermarkLoading,
+})
+
+// Use media actions composable
+const {
+  handleDeleteMedia,
+  handleConfirmDeleteItem,
+  handleBulkDelete,
+  handleConfirmBulkDelete,
+  handleRenameMedia,
+  handleCancelRenameMedia,
+  handleConfirmRenameMedia,
+  handleStarMedia,
+  handleBulkFavorite,
+  handleDownloadMedia,
+  handleCopyFilenames,
+  handleBulkCopyFilenames,
+  handleBulkView,
+  handleBulkEdit,
+  handleCancelEdit,
+  handleConfirmEdit,
+  handleReplacePhoto,
+  handleCancelReplacePhoto,
+  handleReplacePhotoFileSelect,
+  getUndoAction,
+} = useMediaActions({
+  contextType: 'proofing',
+  api: proofingApi,
+  context: proofing,
+  contextId: computed(() => proofing.value?.id),
+  setId: selectedSetId,
+  mediaItems,
+  selectedMediaIds,
+  sortedMediaItems,
+  loadMediaItems,
+  loadMediaSets: () => mediaSetsSidebar.loadMediaSets(),
+  getItemId,
+  modals: {
+    openDeleteModal: openDeleteModal,
+    closeDeleteModal: closeDeleteModal,
+    itemToDelete: itemToDelete,
+    showBulkDeleteModal: showBulkDeleteModal,
+    showRenameMediaModal: showRenameMediaModal,
+    mediaToRename: mediaToRename,
+    newMediaName: newMediaName,
+    showEditModal: showEditModal,
+    editAppendText: editAppendText,
+    showReplacePhotoModal: showReplacePhotoModal,
+    mediaToReplace: mediaToReplace,
+    showMediaViewer: showMediaViewer,
+  },
+  loading: {
+    isDeleting: isDeleting,
+    isBulkDeleteLoading: isBulkDeleteLoading,
+    isRenamingMedia: isRenamingMedia,
+    isBulkFavoriteLoading: isBulkFavoriteLoading,
+    isBulkEditLoading: isBulkEditLoading,
+    isReplacingPhoto: isReplacingPhoto,
+  },
+  helpers: {
+    selectedMediaForView: selectedMediaForView,
+    currentViewIndex: currentViewIndex,
+    projectId: computed(() => proofing.value?.projectId),
+  },
 })
 
 const handleWatermarkMedia = handleWatermarkMediaFromComposable

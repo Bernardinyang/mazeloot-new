@@ -7,10 +7,10 @@ import { VALID_UPLOAD_MIME_TYPES } from './filterValidUploadFiles'
 /**
  * Validate file size
  * @param {File} file - File to validate
- * @param {number} maxSize - Maximum size in bytes (default: 10MB)
+ * @param {number} maxSize - Maximum size in bytes (default: 250MB)
  * @returns {{ valid: boolean, error?: string }}
  */
-export const validateFileSize = (file, maxSize = 10 * 1024 * 1024) => {
+export const validateFileSize = (file, maxSize = 250 * 1024 * 1024) => {
   if (file.size > maxSize) {
     const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(2)
     return {
@@ -142,17 +142,14 @@ export const checkDuplicateFilename = (filename, existingMedia = []) => {
  * @returns {Promise<{ valid: boolean, errors: string[], width?: number, height?: number }>}
  */
 export const validateUploadFile = async (file, options = {}) => {
-  // Videos default to 50MB, images default to 10MB
-  const isVideo = file.type.startsWith('video/')
+  // Default to 250MB for all files
   const envMaxSizeMB = import.meta.env.VITE_MAX_UPLOAD_SIZE_MB
     ? parseInt(import.meta.env.VITE_MAX_UPLOAD_SIZE_MB, 10)
     : null
   const defaultMaxSize =
     envMaxSizeMB && !isNaN(envMaxSizeMB)
       ? envMaxSizeMB * 1024 * 1024
-      : isVideo
-        ? 50 * 1024 * 1024
-        : 10 * 1024 * 1024
+      : 250 * 1024 * 1024
 
   const {
     maxSize = defaultMaxSize,

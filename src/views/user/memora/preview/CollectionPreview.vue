@@ -67,6 +67,10 @@
                         :is="getTabIcon(tab)"
                         class="h-5 w-5 sm:h-6 sm:w-6"
                       />
+                      <Download
+                        v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                        class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
+                      />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -102,7 +106,14 @@
                 v-if="designConfig.navigationStyle === 'icon-text' || designConfig.navigationStyle === 'text-only' || !designConfig.navigationStyle"
               >
                 {{ tab }}
+                <span class="ml-1 opacity-70">
+                  ({{ getMediaCountForTab(tab) }})
+                </span>
               </span>
+              <Download
+                v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
+              />
             </button>
           </div>
         </div>
@@ -265,18 +276,23 @@
           <!-- Right - Action Icons -->
           <div class="flex items-center gap-1 sm:gap-1.5 flex-shrink-0">
           <button
+            v-if="collection?.favoritePhotos !== false && media.length > 0"
+            :disabled="isFavoritingAll"
             :style="{
-                color: textColor,
-                backgroundColor: 'transparent',
+                color: allItemsFavourited ? accentColor : textColor,
+                backgroundColor: allItemsFavourited ? `${accentColor}15` : 'transparent',
+                opacity: isFavoritingAll ? 0.6 : 1,
             }"
-              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
-              title="Like"
-              aria-label="Like collection"
+              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10 disabled:cursor-not-allowed"
+              :title="allItemsFavourited ? 'Unfavourite all' : 'Favourite all'"
+              aria-label="Favourite all media"
+              @click="handleFavoriteAll"
           >
-              <Heart class="h-4 w-4 sm:h-5 sm:w-5" />
+              <Heart v-if="!isFavoritingAll" :class="allItemsFavourited ? 'fill-current' : ''" class="h-4 w-4 sm:h-5 sm:w-5" />
+              <Loader2 v-else class="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           </button>
           <button
-              v-if="filteredMedia.length > 0"
+              v-if="filteredMedia.length > 0 && (props.previewMode !== 'public' || !downloadableSets.length || isSetDownloadable(getSetIdForTab(activeTab)))"
               :style="{ 
                 color: textColor,
                 backgroundColor: 'transparent',
@@ -337,10 +353,14 @@
                       :is="getTabIcon(tab)"
                       class="h-5 w-5 sm:h-6 sm:w-6"
                     />
+                    <Download
+                      v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                      class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
+                    />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>{{ tab }}</p>
+                  <p>{{ tab }}{{ getMediaCountForTab(tab) > 0 ? ` (${getMediaCountForTab(tab)} items)` : '' }}</p>
                 </TooltipContent>
               </Tooltip>
             </template>
@@ -370,7 +390,14 @@
               v-if="designConfig.navigationStyle === 'icon-text' || designConfig.navigationStyle === 'text-only' || !designConfig.navigationStyle"
             >
               {{ tab }}
+              <span class="ml-1 opacity-70">
+                ({{ getMediaCountForTab(tab) }})
+              </span>
             </span>
+            <Download
+              v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+              class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
+            />
           </button>
         </div>
       </div>
@@ -414,6 +441,7 @@
           :show-selection-checkbox="false"
           :public-mode="props.previewMode === 'public'"
           :is-downloading="props.downloadingMediaIds?.has?.(item.id || item.uuid) || false"
+          :allow-download="isMediaItemDownloadable(item)"
           class="aspect-square"
           @download="handleDownloadMedia"
           @share="handleShareMedia"
@@ -515,6 +543,31 @@
       @slideshow="handleSlideshow"
     />
 
+    <!-- Favorite Note Modal -->
+    <Dialog :open="showFavoriteNoteModal" @update:open="showFavoriteNoteModal = $event">
+      <DialogContent class="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Add Note to Favorite</DialogTitle>
+          <DialogDescription>
+            Add an optional note for this media item (optional)
+          </DialogDescription>
+        </DialogHeader>
+        <div class="space-y-4 mt-4">
+          <Textarea
+            v-model="favoriteNote"
+            placeholder="Enter your note here..."
+            class="min-h-[120px]"
+            :maxlength="500"
+          />
+          <p class="text-xs text-gray-500 text-right">{{ favoriteNote.length }}/500</p>
+        </div>
+        <DialogFooter class="mt-6">
+          <Button variant="ghost" @click="handleCancelFavoriteNote">Cancel</Button>
+          <Button @click="handleConfirmFavoriteNote">Save</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
   </div>
 </template>
 
@@ -533,10 +586,12 @@ import {
   MoreVertical,
   Share2,
   Sparkles,
+  Star,
   X,
 } from 'lucide-vue-next'
 import { useCollectionsApi } from '@/api/collections'
 import { useMediaApi } from '@/api/media'
+import { apiClient } from '@/api/client'
 import { usePresetStore } from '@/stores/preset'
 import { useGalleryStore } from '@/stores/gallery'
 import { format } from 'date-fns'
@@ -557,6 +612,16 @@ import { useSetIconMatcher } from '@/composables/useSetIconMatcher'
 import { getColorPalettes, getTextColorFromBackground, getTextColorForAccent } from '@/utils/colors'
 import { toast } from '@/utils/toast'
 import { useUserStore } from '@/stores/user'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/shadcn/dialog'
+import { Textarea } from '@/components/shadcn/textarea'
+import { Button } from '@/components/shadcn/button'
 
 // Props for preview mode
 const props = defineProps({
@@ -601,6 +666,10 @@ const autoStartSlideshow = ref(false)
 const showBackToTop = ref(false)
 const coverVideoRef = ref(null)
 const isCoverVideoPlaying = ref(true)
+const showFavoriteNoteModal = ref(false)
+const favoriteNote = ref('')
+const pendingFavoriteItem = ref(null)
+const isFavoritingAll = ref(false)
 
 // Track if we're in initial load to prevent store updates from overwriting API data
 let isInitialLoad = true
@@ -1163,6 +1232,35 @@ const tabs = computed(() => {
   return []
 })
 
+const downloadableSets = computed(() => {
+  const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  if (!collectionToUse) return []
+  
+  // Try multiple paths for downloadableSets
+  let sets = null
+  if (collectionToUse?.settings?.download?.downloadableSets) {
+    sets = collectionToUse.settings.download.downloadableSets
+  } else if (collectionToUse?.download?.downloadableSets) {
+    sets = collectionToUse.download.downloadableSets
+  } else if (collectionToUse?.downloadableSets) {
+    sets = collectionToUse.downloadableSets
+  }
+  
+  return Array.isArray(sets) && sets.length > 0 ? sets : []
+})
+
+const isSetDownloadable = (setId) => {
+  if (!setId || !downloadableSets.value || downloadableSets.value.length === 0) return false
+  return downloadableSets.value.includes(setId)
+}
+
+const isMediaItemDownloadable = (item) => {
+  if (props.previewMode !== 'public') return true
+  if (!downloadableSets.value || downloadableSets.value.length === 0) return true
+  const setId = item.setId || item.set_id || item.mediaSet?.id
+  return setId && downloadableSets.value.includes(setId)
+}
+
 // Generate placeholder media items for empty sets
 const generatePlaceholderMedia = (count = 10) => {
   const placeholderPhotoIds = [
@@ -1293,36 +1391,40 @@ const fetchMediaForActiveSet = async () => {
 
     // Load media for the specific set
     const collectionSets = collection.value?.mediaSets || []
-    console.log('fetchMediaForActiveSet: Looking for set', { 
-      activeTab: activeTab.value, 
-      availableSets: collectionSets.map(s => ({ name: s.name, id: s.id }))
-    })
     const matchingSet = collectionSets.find(set => set.name === activeTab.value)
     
     if (!matchingSet) {
-      console.warn('fetchMediaForActiveSet: No matching set found', { 
-        activeTab: activeTab.value, 
-        availableSets: collectionSets.map(s => s.name) 
-      })
       media.value = []
       isLoading.value = false
       return
     }
 
-    const setMediaData = await collectionsApi.fetchSetMedia(collectionId.value, matchingSet.id, {
-      perPage: 100,
-    })
-    console.log('fetchMediaForActiveSet: API response', { 
-      setMediaData, 
-      hasData: !!setMediaData?.data,
-      dataType: Array.isArray(setMediaData?.data) ? 'array' : typeof setMediaData?.data,
-      dataLength: Array.isArray(setMediaData?.data) ? setMediaData.data.length : 'N/A'
-    })
+    // Use public API endpoint for public collections
+    const isPublicCollection = props.previewMode === 'public' || !userStore.isAuthenticated
+    let setMediaData
+    
+    if (isPublicCollection) {
+      // Use public API endpoint
+      const userEmail = localStorage.getItem(`collection_${collectionId.value}_email`) 
+        || localStorage.getItem(`collection_email_${collectionId.value}`)
+      const headers = userEmail ? { 'X-Collection-Email': userEmail } : {}
+      
+      const response = await apiClient.get(
+        `/v1/public/collections/${collectionId.value}/sets/${matchingSet.id}/media`,
+        { headers }
+      )
+      // Public API returns { data: { data: [...], ... }, ... }
+      setMediaData = response.data?.data || response.data || { data: [] }
+    } else {
+      // Use authenticated endpoint
+      setMediaData = await collectionsApi.fetchSetMedia(collectionId.value, matchingSet.id, {
+        perPage: 100,
+      })
+    }
     // Handle both paginated response { data: [...], pagination: {...} } and direct array
     const mediaItems = Array.isArray(setMediaData?.data) 
       ? setMediaData.data 
       : (Array.isArray(setMediaData) ? setMediaData : [])
-    console.log('fetchMediaForActiveSet: Loaded media items', { count: mediaItems.length, setName: matchingSet.name })
     
     // Set media for this set - normalize URL properties
     media.value = mediaItems.map(item => ({
@@ -1333,13 +1435,10 @@ const fetchMediaForActiveSet = async () => {
       // Normalize thumbnail and url properties for template
       thumbnail: item.thumbnailUrl || item.thumbnail || item.file?.thumbnailUrl || item.file?.url,
       url: item.largeImageUrl || item.url || item.file?.url || item.thumbnailUrl,
+      // Use isStarred from backend response (synced with collection favourites)
+      isStarred: item.isStarred || false,
     }))
-    console.log('fetchMediaForActiveSet: Set media.value', { count: media.value.length })
-    
-    // Load starred media from localStorage for public collections
-    loadStarredMediaFromStorage()
   } catch (error) {
-    console.error(`Error loading media for ${activeTab.value}:`, error)
     media.value = []
   } finally {
     isLoading.value = false
@@ -1502,7 +1601,6 @@ const handleDownloadAll = () => {
 
 const handleShareMedia = async (item) => {
   if (!item || !item.id) {
-    console.warn('handleShareMedia: Invalid item', item)
     return
   }
   
@@ -1528,7 +1626,6 @@ const handleShareMedia = async (item) => {
           return
         }
         // Share failed, fall through to clipboard
-        console.warn('Web Share API failed:', shareError)
       }
     }
     
@@ -1540,7 +1637,6 @@ const handleShareMedia = async (item) => {
   } catch (error) {
     // Use exact backend error message
     const errorMessage = error?.message || error?.response?.data?.message || 'Failed to share'
-    console.error('Share failed:', errorMessage, error)
     toast.error(errorMessage)
   }
 }
@@ -1627,112 +1723,210 @@ const handleImageError = (event) => {
 
 const getSetIdForTab = tabName => {
   if (!tabName) return null
-  const collectionSets = collection.value?.mediaSets || []
+  const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  const collectionSets = collectionToUse?.mediaSets || []
   const matchingSet = collectionSets.find(set => set.name === tabName)
   return matchingSet?.id || null
 }
 
-// Load starred media from localStorage for public collections
-const loadStarredMediaFromStorage = () => {
-  if (props.previewMode === 'public' && !userStore.isAuthenticated && collection.value) {
-    try {
-      const collectionId = collection.value?.id || collection.value?.uuid
-      const storageKey = `public_collection_${collectionId}_starred_media`
-      const starredMedia = JSON.parse(localStorage.getItem(storageKey) || '[]')
-      
-      // Update media items with starred status
-      media.value.forEach(item => {
-        if (starredMedia.includes(item.id)) {
-          item.isStarred = true
-        }
-      })
-    } catch (error) {
-      console.warn('Failed to load starred media from storage:', error)
-    }
-  }
+const getMediaCountForTab = tabName => {
+  if (!tabName) return 0
+  const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  const collectionSets = collectionToUse?.mediaSets || []
+  const matchingSet = collectionSets.find(set => set.name === tabName)
+  if (!matchingSet) return 0
+  // Return count from MediaSetResource (backend returns 'count' property)
+  // Default to 0 if count is undefined, null, or not a number
+  const count = matchingSet.count ?? matchingSet.mediaCount ?? matchingSet.media_count
+  return typeof count === 'number' ? count : 0
 }
+
 
 const handleFavoriteMedia = async (item) => {
   if (!item?.id) return
+
+  const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  const favoritePhotosEnabled = collectionToUse?.favoritePhotos !== false
+  const favoriteNotesEnabled = collectionToUse?.favoriteNotes !== false
+
+  if (!favoritePhotosEnabled) {
+    toast.info('Favorites are disabled for this collection')
+    return
+  }
 
   // Get current starred status
   const currentStarred = item.isStarred || false
   const newStarredStatus = !currentStarred
 
-  // Optimistic update
-  const mediaItem = media.value.find(m => m.id === item.id)
-  if (mediaItem) {
-    mediaItem.isStarred = newStarredStatus
-  }
-  if (item) {
-    item.isStarred = newStarredStatus
+  // If unfavoriting, proceed directly
+  if (!newStarredStatus) {
+    await saveFavorite(item, false, null)
+    return
   }
 
-  // If in public mode and user is not authenticated, use localStorage
-  if (props.previewMode === 'public' && !userStore.isAuthenticated) {
+  // If favoriting and notes are enabled, show modal
+  if (favoriteNotesEnabled && newStarredStatus) {
+    pendingFavoriteItem.value = item
+    favoriteNote.value = ''
+    showFavoriteNoteModal.value = true
+    return
+  }
+
+  // If favoriting without notes, proceed directly
+  await saveFavorite(item, newStarredStatus, null)
+}
+
+const handleCancelFavoriteNote = () => {
+  showFavoriteNoteModal.value = false
+  pendingFavoriteItem.value = null
+  favoriteNote.value = ''
+}
+
+const handleConfirmFavoriteNote = async () => {
+  if (!pendingFavoriteItem.value) return
+  
+  const note = favoriteNote.value.trim() || null
+  await saveFavorite(pendingFavoriteItem.value, true, note)
+  
+  showFavoriteNoteModal.value = false
+  pendingFavoriteItem.value = null
+  favoriteNote.value = ''
+}
+
+const allItemsFavourited = computed(() => {
+  if (!media.value || media.value.length === 0) return false
+  return media.value.every(item => item.isStarred === true)
+})
+
+const handleFavoriteAll = async () => {
+  if (!media.value || media.value.length === 0) return
+
+  const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  const favoritePhotosEnabled = collectionToUse?.favoritePhotos !== false
+
+  if (!favoritePhotosEnabled) {
+    toast.info('Favorites are disabled for this collection')
+    return
+  }
+
+  // Find items that are not favourited (use a snapshot to avoid race conditions)
+  const notFavouritedItems = media.value.filter(item => !item.isStarred)
+  
+  // If all are favourited, unfavourite all
+  if (notFavouritedItems.length === 0) {
+    isFavoritingAll.value = true
     try {
-      const collectionId = collection.value?.id || collection.value?.uuid
-      const storageKey = `public_collection_${collectionId}_starred_media`
-      const starredMedia = JSON.parse(localStorage.getItem(storageKey) || '[]')
+      const promises = media.value.map(item => saveFavorite(item, false, null, true))
+      const results = await Promise.allSettled(promises)
+      const failed = results.filter(r => r.status === 'rejected').length
+      const succeeded = results.length - failed
       
-      if (newStarredStatus) {
-        if (!starredMedia.includes(item.id)) {
-          starredMedia.push(item.id)
-        }
+      if (failed > 0) {
+        toast.error(`Failed to update ${failed} items. ${succeeded} items updated.`)
       } else {
-        const index = starredMedia.indexOf(item.id)
-        if (index > -1) {
-          starredMedia.splice(index, 1)
-        }
+        toast.success(`Removed ${media.value.length} items from favorites`)
       }
-      
-      localStorage.setItem(storageKey, JSON.stringify(starredMedia))
-      toast.success(newStarredStatus ? 'Added to favorites' : 'Removed from favorites')
     } catch (error) {
-      // Revert on error
-      if (mediaItem) mediaItem.isStarred = currentStarred
-      if (item) item.isStarred = currentStarred
-      // Use exact backend error message
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update favorite'
-      toast.error(errorMessage)
+      toast.error('Failed to update favorites')
+    } finally {
+      isFavoritingAll.value = false
     }
     return
   }
 
-  // For authenticated users, use API
-  if (userStore.isAuthenticated && collection.value?.id && activeTab.value) {
+  // Only favourite items that aren't already favourited (don't touch already favourited ones)
+  isFavoritingAll.value = true
+  try {
+    const promises = notFavouritedItems.map(item => saveFavorite(item, true, null, true))
+    const results = await Promise.allSettled(promises)
+    const failed = results.filter(r => r.status === 'rejected').length
+    const succeeded = results.length - failed
+    
+    if (failed > 0) {
+      toast.error(`Failed to update ${failed} items. ${succeeded} items added to favorites.`)
+    } else {
+      toast.success(`Added ${notFavouritedItems.length} items to favorites`)
+    }
+  } catch (error) {
+    toast.error('Failed to update favorites')
+  } finally {
+    isFavoritingAll.value = false
+  }
+}
+
+const saveFavorite = async (item, isFavorite, note, suppressToast = false) => {
+  const currentStarred = item.isStarred || false
+
+  // Optimistic update
+  const mediaItem = media.value.find(m => m.id === item.id)
+  if (mediaItem) {
+    mediaItem.isStarred = isFavorite
+  }
+  if (item) {
+    item.isStarred = isFavorite
+  }
+
+  // Use public API endpoint for both authenticated and unauthenticated users
+  if (collection.value?.id) {
     try {
-      const collectionSets = collection.value?.mediaSets || []
-      const matchingSet = collectionSets.find(set => set.name === activeTab.value)
+      const collectionId = collection.value.id || collection.value.uuid
+      const payload = {}
       
-      if (matchingSet) {
-        const result = await collectionsApi.starMedia(collection.value.id, matchingSet.id, item.id)
-        const serverStarredStatus = result?.data?.starred ?? result?.starred ?? newStarredStatus
-        
-        // Update with server response
-        if (mediaItem) {
-          mediaItem.isStarred = serverStarredStatus
+      // Always include note (even if null) - backend will handle validation
+      payload.note = note !== undefined && note !== null ? note : null
+      
+      // Get email - check both localStorage key formats, then authenticated user email
+      const headers = {}
+      let userEmail = localStorage.getItem(`collection_${collectionId}_email`) 
+        || localStorage.getItem(`collection_email_${collectionId}`)
+      
+      if (!userEmail || userEmail.trim() === '') {
+        if (userStore.isAuthenticated && userStore.user?.email) {
+          userEmail = userStore.user.email
         }
-        if (item) {
-          item.isStarred = serverStarredStatus
-        }
-        
-        toast.success(serverStarredStatus ? 'Added to favorites' : 'Removed from favorites')
+      }
+      
+      // Always send email in body (header may be stripped by CORS/middleware)
+      if (userEmail && userEmail.trim() !== '') {
+        payload.email = userEmail.trim()
+        headers['X-Collection-Email'] = userEmail.trim()
+      }
+      
+      const response = await apiClient.post(
+        `/v1/public/collections/${collectionId}/media/${item.id}/favourite`,
+        payload,
+        { headers }
+      )
+      
+      const result = response.data?.data || response.data
+      const serverFavouritedStatus = result?.favourited ?? isFavorite
+      
+      // Update with server response
+      if (mediaItem) {
+        mediaItem.isStarred = serverFavouritedStatus
+      }
+      if (item) {
+        item.isStarred = serverFavouritedStatus
+      }
+      
+      if (!suppressToast) {
+        toast.success(serverFavouritedStatus ? 'Added to favorites' : 'Removed from favorites')
       }
     } catch (error) {
       // Revert on error
       if (mediaItem) mediaItem.isStarred = currentStarred
       if (item) item.isStarred = currentStarred
-      // Use exact backend error message
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update favorite'
-      toast.error(errorMessage)
+      if (!suppressToast) {
+        const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update favorite'
+        toast.error(errorMessage)
+      }
+      throw error // Re-throw so Promise.all can catch it
     }
   }
 }
 
 const handleSlideshow = ({ playing }) => {
   // Handle slideshow state
-  console.log('Slideshow:', playing)
 }
 
 const getTabIcon = tab => {
@@ -1770,7 +1964,6 @@ if (props.previewMode) {
       if (newMedia) {
         media.value = newMedia
         isLoading.value = false
-        loadStarredMediaFromStorage()
       }
     },
     { immediate: true, deep: true }
@@ -1813,7 +2006,6 @@ onMounted(async () => {
     }
     if (props.previewMedia) {
       media.value = props.previewMedia
-      loadStarredMediaFromStorage()
     }
     isLoading.value = false
     return
@@ -1888,14 +2080,13 @@ onMounted(async () => {
       brandingLogoUrl.value = settings.branding?.logoUrl || null
       brandingName.value = settings.branding?.name || null
     } catch (error) {
-      console.warn('Failed to fetch branding settings:', error)
+      // Silently fail - branding is optional
     }
 
     const collectionData = await collectionsApi.fetchCollection(collectionId.value)
     collection.value = collectionData
 
     const collectionSets = collectionData?.mediaSets || []
-    console.log('onMounted: Collection sets', collectionSets.map(s => ({ name: s.name, id: s.id })))
 
     // Set active tab from route query or default to first set
     if (collectionSets.length > 0) {
@@ -1905,7 +2096,6 @@ onMounted(async () => {
         const matchingSet = collectionSets.find(s => s.id === setIdFromRoute)
         if (matchingSet) {
           activeTab.value = matchingSet.name
-          console.log('onMounted: Found setId in route, using set', { setId: setIdFromRoute, setName: matchingSet.name })
         }
       }
       
@@ -1914,14 +2104,12 @@ onMounted(async () => {
         const setFromQuery = route.query.set
         if (setFromQuery && collectionSets.some(s => s.name === setFromQuery)) {
           activeTab.value = setFromQuery
-          console.log('onMounted: Found set name in route', { setName: setFromQuery })
         }
       }
       
       // Default to first set if nothing found in route
       if (!activeTab.value) {
         activeTab.value = collectionSets[0].name
-        console.log('onMounted: Using first set as default', { setName: activeTab.value })
       }
       
       // Update route query if not already set (use setId if available, otherwise set name)
@@ -1940,8 +2128,6 @@ onMounted(async () => {
       await nextTick()
       // Load media for the active set
       await fetchMediaForActiveSet()
-    } else {
-      console.warn('onMounted: No sets found in collection')
     }
 
     // Allow store updates after initial load completes
@@ -1950,7 +2136,6 @@ onMounted(async () => {
       isInitialLoad = false
     }, 1000)
   } catch (error) {
-    console.error('Error loading collection:', error)
     isInitialLoad = false
   } finally {
     isLoading.value = false

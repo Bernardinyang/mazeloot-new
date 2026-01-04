@@ -65,6 +65,7 @@ export function useCollectionWorkflow({
     loadMediaItems,
     deleteMediaFn,
     onUploadComplete, // Pass through for post-upload actions (e.g., reload media sets)
+    contextType: 'collection',
   })
 
   // Helper to get collectionId value (handles refs, computed, functions, and plain values)

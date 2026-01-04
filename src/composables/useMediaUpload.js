@@ -44,6 +44,7 @@ import { validateUploadFile } from '@/utils/media/validateUploadFile'
 import { splitDuplicateUploadFiles } from '@/utils/media/splitDuplicateUploadFiles'
 import { filterValidUploadFiles } from '@/utils/media/filterValidUploadFiles'
 import { getErrorMessage } from '@/utils/errors'
+import { useBackgroundUploadManager } from '@/composables/useBackgroundUploadManager'
 
 /**
  * @param {object} options - Configuration options
@@ -70,7 +71,14 @@ export function useMediaUpload(options = {}) {
     validationOptions = {},
     batchSize = 3,
     maxRetries = 3,
+    contextType = 'collection', // collection, selection, or proofing
+    useBackgroundUploads = true,
   } = options
+
+  // Background upload manager (shared instance)
+  const backgroundUploadManager = useBackgroundUploadManager({
+    concurrentLimit: batchSize,
+  })
 
   // Upload progress tracking
   const uploadProgress = ref({}) // { fileId: { loaded, total, percentage, status, error } }
@@ -607,6 +615,137 @@ export function useMediaUpload(options = {}) {
         throw new Error('uploadMediaFn is required')
       }
 
+      const fileArray = Array.from(files)
+      const results = {
+        successful: [],
+        failed: [],
+      }
+
+      // Note: Duplicate checking is handled by processFiles before uploadMediaToSet is called
+      // This function assumes files have already been filtered for duplicates
+      const filteredFileArray = fileArray
+
+      const existingMediaList = getExistingMedia()
+
+      // Validate files if not skipped
+      const validFiles = []
+      if (!skipValidation) {
+        for (let i = 0; i < filteredFileArray.length; i++) {
+          const file = filteredFileArray[i]
+
+          try {
+            const validation = await validateUploadFile(file, {
+              existingMedia: existingMediaList,
+              skipDuplicateCheck: true, // Duplicates already handled by processFiles
+              ...validationOptions,
+            })
+
+            if (!validation.valid) {
+              results.failed.push({
+                file,
+                error: validation.errors.join(', '),
+              })
+              continue
+            }
+            validFiles.push(file)
+          } catch (error) {
+            const errorMessage = getErrorMessage(error, `Validation failed for "${file.name}"`)
+            results.failed.push({
+              file,
+              error: errorMessage,
+            })
+            continue
+          }
+        }
+      } else {
+        validFiles.push(...filteredFileArray)
+      }
+
+      // Use background upload manager if enabled
+      if (useBackgroundUploads) {
+        // Add files to background upload queue
+        const uploadPromises = validFiles.map(async file => {
+          try {
+            // Add to background queue (duplicate check happens inside addToQueue)
+            const result = await backgroundUploadManager.addToQueue(file, {
+              contextId: contextIdValue,
+              setId: setIdValue,
+              uploadMediaFn,
+              contextType,
+              validationOptions,
+              loadMediaItems,
+              onUploadComplete,
+            })
+
+            if (!result.success) {
+              console.error('Failed to queue file:', file.name, result)
+              if (result.duplicate) {
+                results.failed.push({
+                  file,
+                  error: 'File already in upload queue. Cancel it from the upload queue to retry.',
+                })
+              } else {
+                let errorMessage = 'Failed to add to upload queue'
+                if (result.error) {
+                  if (typeof result.error === 'string') {
+                    errorMessage = result.error
+                  } else if (result.error.message) {
+                    errorMessage = result.error.message
+                  } else {
+                    errorMessage = JSON.stringify(result.error)
+                  }
+                }
+                results.failed.push({
+                  file,
+                  error: errorMessage,
+                })
+              }
+            } else {
+              results.successful.push({
+                file,
+                uploadId: result.uploadId,
+              })
+            }
+          } catch (error) {
+            const errorMessage = getErrorMessage(error, `Failed to queue "${file.name}"`)
+            results.failed.push({
+              file,
+              error: errorMessage,
+            })
+          }
+        })
+
+        await Promise.allSettled(uploadPromises)
+
+        // Show success message
+        if (results.successful.length > 0) {
+          toast.success(`${results.successful.length} file(s) added to upload queue`, {
+            description: 'Uploads will continue in the background.',
+          })
+        }
+
+        if (results.failed.length > 0) {
+          const errorDetails = results.failed.map(f => `"${f.file?.name}": ${f.error || 'Unknown error'}`).join('; ')
+          toast.warning(`${results.failed.length} file(s) failed to queue`, {
+            description: errorDetails.length > 200 
+              ? results.failed.map(f => f.file?.name).join(', ') 
+              : errorDetails,
+          })
+        }
+
+        // Call onUploadComplete if provided (uploads are now in background)
+        if (onUploadComplete && results.successful.length > 0) {
+          try {
+            await onUploadComplete(results)
+          } catch (error) {
+            console.error('Error in onUploadComplete callback:', error)
+          }
+        }
+
+        return results
+      }
+
+      // Legacy direct upload path (fallback if useBackgroundUploads is false)
       // Reset state and track this batch
       uploadProgress.value = {}
       overallProgress.value = 0
@@ -617,20 +756,14 @@ export function useMediaUpload(options = {}) {
 
       // Show upload progress toast
       const toastId = 'upload-progress'
-      const fileCount = files.length
+      const fileCount = validFiles.length
       toast.loading(`Uploading ${fileCount} file${fileCount > 1 ? 's' : ''}...`, {
         id: toastId,
         duration: Infinity, // Keep it open until we dismiss it
       })
 
-      const fileArray = Array.from(files)
-      const results = {
-        successful: [],
-        failed: [],
-      }
-
       // Initialize progress for all files
-      fileArray.forEach((file, index) => {
+      validFiles.forEach((file, index) => {
         const fileId = getFileId(file, index)
         uploadProgress.value[fileId] = {
           file,
@@ -643,59 +776,8 @@ export function useMediaUpload(options = {}) {
         }
       })
 
-      // Note: Duplicate checking is handled by processFiles before uploadMediaToSet is called
-      // This function assumes files have already been filtered for duplicates
-      const filteredFileArray = fileArray
-
-      const existingMediaList = getExistingMedia()
-
-      // Validate files if not skipped
-      // Skip duplicate check since we already handled duplicates above
-      if (!skipValidation) {
-        for (let i = 0; i < filteredFileArray.length; i++) {
-          const file = filteredFileArray[i]
-          const fileId = getFileId(file, i)
-
-          try {
-            const validation = await validateUploadFile(file, {
-              existingMedia: existingMediaList,
-              skipDuplicateCheck: true, // Duplicates already handled by processFiles
-              ...validationOptions,
-            })
-
-            if (!validation.valid) {
-              uploadProgress.value[fileId] = {
-                ...uploadProgress.value[fileId],
-                status: 'failed',
-                error: validation.errors.join(', '),
-              }
-              results.failed.push({
-                file,
-                error: validation.errors.join(', '),
-              })
-              continue
-            }
-          } catch (error) {
-            const errorMessage = getErrorMessage(error, `Validation failed for "${file.name}"`)
-            uploadProgress.value[fileId] = {
-              ...uploadProgress.value[fileId],
-              status: 'failed',
-              error: errorMessage,
-            }
-            results.failed.push({
-              file,
-              error: errorMessage,
-            })
-            continue
-          }
-        }
-      }
-
       // Upload files in batches (use filtered array)
-      const filesToUploadBatch = filteredFileArray.filter((file, index) => {
-        const fileId = getFileId(file, index)
-        return uploadProgress.value[fileId]?.status !== 'failed'
-      })
+      const filesToUploadBatch = validFiles
 
       for (let i = 0; i < filesToUploadBatch.length; i += batchSize) {
         const batch = filesToUploadBatch.slice(i, i + batchSize)

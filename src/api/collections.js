@@ -1416,6 +1416,27 @@ export function useCollectionsApi() {
     }
   }
 
+  /**
+   * Rename media by updating the filename
+   * @param {string} collectionId - Collection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   * @param {string} filename - New filename
+   */
+  const renameMedia = async (collectionId, setId, mediaId, filename) => {
+    try {
+      const response = await apiClient.patch(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media/${mediaId}/rename`,
+        {
+          filename,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     fetchCollections,
     fetchCollection,
@@ -1430,5 +1451,6 @@ export function useCollectionsApi() {
     uploadMediaToSet,
     deleteMedia,
     starMedia,
+    renameMedia,
   }
 }

@@ -2,15 +2,25 @@
   <div class="min-h-screen">
     <RouterView />
     <Toaster />
+
+    <!-- Floating Upload Queue Button -->
+    <UploadQueueButton :floating="true" @click="showUploadQueueModal = true" />
+
+    <!-- Upload Queue Modal -->
+    <BackgroundUploadQueueModal v-model="showUploadQueueModal" />
   </div>
 </template>
 
 <script setup>
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
 import Toaster from './components/organisms/Toaster.vue'
+import UploadQueueButton from './components/organisms/UploadQueueButton.vue'
+import BackgroundUploadQueueModal from './components/organisms/BackgroundUploadQueueModal.vue'
 import { useActionHistoryStore } from './stores/actionHistory'
 import { toast } from './utils/toast'
+
+const showUploadQueueModal = ref(false)
 
 // Global keyboard shortcuts for undo/redo
 let keyDownHandler = null

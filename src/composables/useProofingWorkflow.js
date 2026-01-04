@@ -65,6 +65,7 @@ export function useProofingWorkflow({
     loadMediaItems,
     deleteMediaFn,
     onUploadComplete, // Pass through for post-upload actions (e.g., reload media sets)
+    contextType: 'proofing',
   })
 
   // Helper to get proofingId value (handles refs, computed, functions, and plain values)

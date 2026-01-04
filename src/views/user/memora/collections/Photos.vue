@@ -122,6 +122,7 @@
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
                 @open-viewer="openMediaViewer(item)"
+                @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
                 @quick-share="handleQuickShare(item)"
                 @move-copy="handleMoveCopy(item)"
@@ -149,6 +150,7 @@
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
                 @open-viewer="openMediaViewer(item)"
+                @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
                 @quick-share="handleQuickShare(item)"
                 @move-copy="handleMoveCopy(item)"
@@ -224,6 +226,7 @@
         v-model:name="newSetName"
         :is-creating="isCreatingSet"
         :is-editing="!!editingSetIdInModal"
+        context="collection"
         @cancel="handleCancelCreateSet"
         @confirm="handleCreateSet"
       />
@@ -284,7 +287,7 @@
       />
 
       <DuplicateFilesModal
-        :key="duplicateFileActionsKeyFromWorkflow"
+        :key="duplicateFileActionsKey"
         v-model="showDuplicateFilesModal"
         :duplicate-file-actions="duplicateFileActionsObject"
         :duplicate-files="duplicateFiles"
@@ -310,6 +313,7 @@
       <RenameMediaModal
         v-model="showRenameMediaModal"
         v-model:new-media-name="newMediaName"
+        :is-renaming="isRenamingMedia"
         @cancel="handleCancelRenameMedia"
         @confirm="handleConfirmRenameMedia"
       />
@@ -324,32 +328,41 @@
       <WatermarkMediaModal
         v-model="showWatermarkMediaModal"
         v-model:selected-watermark="selectedWatermarkForMedia"
-        :confirm-label="
-          selectedWatermarkForMedia === 'none' && mediaToWatermark?.originalUrl ? 'Remove' : 'Add'
-        "
-        :is-editing="!!mediaToWatermark?.originalUrl"
+        :confirm-label="watermarkConfirmLabel"
+        :is-editing="hasWatermarkOnMedia"
         :is-loading="isApplyingWatermark"
+        :is-loading-watermarks="watermarkStore.isLoading"
         :watermarks="watermarks"
         @cancel="handleCancelWatermarkMedia"
         @confirm="handleConfirmWatermarkMedia"
+        @preview="handlePreviewWatermark"
+      />
+
+      <WatermarkPreviewModal
+        v-model="showWatermarkPreviewModal"
+        :media-image-url="previewMediaImageUrl"
+        :watermark="previewWatermark"
+        @apply="handleApplyFromPreview"
+        @cancel="showWatermarkPreviewModal = false"
       />
 
       <MoveCopyModal
         v-model="showMoveCopyModal"
         v-model:action="moveCopyAction"
+        context="collection"
         :available-collections="availableCollections"
         :current-collection-id="collection?.id || ''"
         :current-collection-name="collection?.name || ''"
-        :is-loading-sets="isLoadingTargetCollectionSets"
-        :is-moving="isMovingMedia"
-        :selected-count="selectedMediaIds.size"
         :target-collection-id="targetCollectionIdForMove"
         :target-collection-sets="targetCollectionSets"
+        :is-loading-sets="isLoadingTargetCollectionSets"
         :target-set-id="targetSetIdInCollection"
+        :is-moving="isMovingMedia"
+        :selected-count="selectedMediaIds.size"
+        @selection-change="handleTargetCollectionChange"
+        @update:target-set-id="targetSetIdInCollection = $event"
         @cancel="handleCancelMoveCopy"
         @confirm="handleConfirmMoveCopy"
-        @collection-change="handleTargetCollectionChange"
-        @update:target-set-id="targetSetIdInCollection = $event"
       />
 
       <!-- Media Lightbox -->
@@ -371,6 +384,39 @@
         @image-error="handleImageError"
         @favorite="handleStarMediaFromLightbox"
       />
+
+      <MediaDetailSidebar
+        v-model="showMediaDetailSidebar"
+        :media="selectedMediaForDetails"
+        :placeholder-image="placeholderImage"
+        @view="openMediaViewer"
+        @download="handleDownloadMedia"
+      />
+
+      <!-- Focal Point Modal -->
+      <FocalPointModal
+        v-model:is-open="showFocalPointModal"
+        :image-url="focalPointImageUrl"
+        :initial-focal-point="currentFocalPoint"
+        @confirm="handleFocalPointConfirm"
+      />
+
+      <!-- Remove Watermark Loading Modal -->
+      <CenterModal
+        v-model="showRemoveWatermarkLoading"
+        title="Removing Watermark"
+        content-class="sm:max-w-md"
+      >
+        <div class="flex flex-col items-center justify-center py-8">
+          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <p :class="theme.textPrimary" class="text-sm font-medium">
+            Removing watermark from image...
+          </p>
+          <p :class="theme.textSecondary" class="text-xs mt-2">
+            Please wait while we restore the original image.
+          </p>
+        </div>
+      </CenterModal>
     </template>
   </CollectionLayout>
 </template>
@@ -386,7 +432,6 @@ import ContentLoader from '@/components/molecules/ContentLoader.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
 import { useWatermarkStore } from '@/stores/watermark'
-import { useDeleteConfirmation } from '@/composables/useDeleteConfirmation'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useMediaApi } from '@/api/media'
 import { toast } from '@/utils/toast'
@@ -403,8 +448,12 @@ import EditFilenamesModal from '@/components/organisms/EditFilenamesModal.vue'
 import BulkWatermarkModal from '@/components/organisms/BulkWatermarkModal.vue'
 import ReplacePhotoModal from '@/components/organisms/ReplacePhotoModal.vue'
 import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
-import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
+import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import MediaDetailSidebar from '@/components/organisms/MediaDetailSidebar.vue'
+import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
+import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CenterModal from '@/components/molecules/CenterModal.vue'
 import { fileToDataURL } from '@/utils/fileToDataURL'
 import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
 import { createThumbnail } from '@/utils/media/createThumbnail'
@@ -421,22 +470,18 @@ import { triggerFallbackDownloadLink } from '@/utils/media/triggerFallbackDownlo
 import { copyTextToClipboard } from '@/utils/clipboard/copyTextToClipboard'
 import { useCollectionWorkflow } from '@/composables/useCollectionWorkflow'
 // Media Sets sidebar is store-driven (Option B)
-import { useBulkDeleteFlow } from '@/composables/useBulkDeleteFlow'
 import { useBulkMoveToSetFlow } from '@/composables/useBulkMoveToSetFlow'
 import { useMoveCopyFlow } from '@/composables/useMoveCopyFlow'
 import { useBulkWatermarkFlow } from '@/composables/useBulkWatermarkFlow'
 import { useBulkTagFlow } from '@/composables/useBulkTagFlow'
-import { useBulkEditFilenamesFlow } from '@/composables/useBulkEditFilenamesFlow'
-import { useBulkFavoriteFlow } from '@/composables/useBulkFavoriteFlow'
 import { useMediaShareDownloadActions } from '@/composables/useMediaShareDownloadActions'
-import { useMediaRenameDeleteActions } from '@/composables/useMediaRenameDeleteActions'
-import { useReplacePhotoFlow } from '@/composables/useReplacePhotoFlow'
 import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
 import { useCollectionCoverActions } from '@/composables/useCollectionCoverActions'
 import { useMediaViewerFlow } from '@/composables/useMediaViewerFlow'
 import { useMediaSelectionFlow } from '@/composables/useMediaSelectionFlow'
 import { useCollectionLoadFlow } from '@/composables/useCollectionLoadFlow'
 import { useAsyncPagination } from '@/composables/useAsyncPagination'
+import { useMediaActions } from '@/composables/useMediaActions'
 import { useCollectionsApi } from '@/api/collections'
 import Pagination from '@/components/molecules/Pagination.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
@@ -499,6 +544,7 @@ const isBulkFavoriteLoading = ref(false)
 const isBulkTagLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
+const isRenamingMedia = ref(false)
 const isUpdatingSetCounts = ref(false)
 const isSortMenuOpen = ref(false)
 const isViewMenuOpen = ref(false)
@@ -507,6 +553,19 @@ const selectedMedia = ref(null)
 const selectedMediaForView = ref([])
 const currentViewIndex = ref(0)
 const showMediaViewer = ref(false)
+const showMediaDetailSidebar = ref(false)
+const selectedMediaForDetails = ref(null)
+
+// Focal point modal state
+const showFocalPointModal = ref(false)
+const focalPointImageUrl = ref(null)
+const selectedMediaForCover = ref(null)
+const currentFocalPoint = ref({ x: 50, y: 50 })
+
+const showWatermarkPreviewModal = ref(false)
+const previewMediaImageUrl = ref('')
+const previewWatermark = ref(null)
+const showRemoveWatermarkLoading = ref(false)
 const showBulkDeleteModal = ref(false)
 const showEditModal = ref(false)
 const showTagModal = ref(false)
@@ -542,14 +601,26 @@ const isSavingPreset = ref(false)
 const isSavingWatermark = ref(false)
 const setNameInputRef = ref(null)
 const fileInputRef = ref(null)
-const {
-  showDeleteModal,
-  itemToDelete,
-  isDeleting,
-  openDeleteModal,
-  closeDeleteModal,
-  getItemName,
-} = useDeleteConfirmation()
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+
+const openDeleteModal = item => {
+  itemToDelete.value = item
+  showDeleteModal.value = true
+}
+
+const closeDeleteModal = () => {
+  showDeleteModal.value = false
+  itemToDelete.value = null
+}
+
+const getItemName = () => {
+  if (!itemToDelete.value) return 'Item'
+  const item = itemToDelete.value
+  // For media items, try to get filename from file relationship
+  return item.file?.filename || item.filename || item.title || item.name || 'Item'
+}
 
 // MediaSet type definition removed (TypeScript syntax not allowed in JS)
 
@@ -718,20 +789,21 @@ const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
 
 // Update set counts by reloading collection and updating sidebar context
 const updateSetCounts = async () => {
-  if (collection.value?.id) {
-    // Reload collection to get updated media set counts
-    const updatedCollection = await galleryStore.fetchCollection(collection.value.id)
-    if (updatedCollection) {
-      // Update sidebar context with refreshed media sets
-      const mappedMediaSets = updatedCollection.mediaSets?.map(set => ({
-        id: set.id,
-        name: set.name,
-        description: set.description,
-        count: set.count,
-        order: set.order,
-      })) || []
-      mediaSetsSidebar.setContext(collection.value.id, mappedMediaSets)
-    }
+  if (!collection.value?.id) return
+  
+  // Ensure collectionId is set in the store
+  if (!mediaSetsSidebar.collectionId || mediaSetsSidebar.collectionId !== collection.value.id) {
+    mediaSetsSidebar.setContext(collection.value.id, mediaSetsSidebar.mediaSets || [])
+  }
+  
+  // Use the store's loadMediaSets which fetches fresh collection data and updates counts
+  // This will force refresh from backend and update the mediaSets reactive array
+  await mediaSetsSidebar.loadMediaSets()
+  
+  // Also update the local collection ref to keep it in sync
+  const updatedCollection = await galleryStore.fetchCollection(collection.value.id, true)
+  if (updatedCollection) {
+    collection.value = { ...collection.value, ...updatedCollection }
   }
 }
 
@@ -819,44 +891,7 @@ const handleStarMediaFromLightbox = async ({ item }) => {
   await handleStarMedia(item)
 }
 
-const handleStarMedia = async item => {
-  if (!item?.id || !collection.value?.id || !selectedSetId.value) {
-    return
-  }
-
-  try {
-    const oldStarredStatus = item.isStarred
-    const result = await collectionsApi.starMedia(collection.value.id, selectedSetId.value, item.id)
-
-    // ApiResponse wraps data in { data: { starred: bool } }
-    const newStarredStatus = result?.data?.starred ?? result?.starred ?? false
-
-    // Directly mutate the property to preserve the object reference
-    const mediaItem = mediaItems.value.find(m => m.id === item.id)
-    if (mediaItem) {
-      mediaItem.isStarred = newStarredStatus
-    }
-
-    // Update in selectedMediaForView if it's there
-    const viewItem = selectedMediaForView.value.find(m => m.id === item.id)
-    if (viewItem) {
-      viewItem.isStarred = newStarredStatus
-    }
-
-    // Also update the item prop directly (it's the same reference from sortedMediaItems)
-    if (item) {
-      item.isStarred = newStarredStatus
-    }
-  } catch (error) {
-    toast.error('Failed to star media', {
-      description:
-        error instanceof Error ? error.message : 'An error occurred while starring the media.',
-    })
-  }
-}
-
-const { handleQuickShare, handleDownloadMedia, handleCopyFilenames, handleCopyLink } =
-  useMediaShareDownloadActions({
+const { handleQuickShare, handleCopyLink, handleDownloadMedia: handleDownloadMediaFromShare, handleCopyFilenames: handleCopyFilenamesFromShare } = useMediaShareDownloadActions({
     getMediaShareUrl,
     getMediaDownloadUrl,
     getDownloadFilename,
@@ -869,6 +904,10 @@ const { handleQuickShare, handleDownloadMedia, handleCopyFilenames, handleCopyLi
     route,
     description,
   })
+
+// Override download and copy handlers from useMediaActions with collection-specific versions
+const handleDownloadMedia = handleDownloadMediaFromShare
+const handleCopyFilenames = handleCopyFilenamesFromShare
 
 const handleMoveCopy = item => {
   // Select the single item and open the move/copy modal
@@ -884,34 +923,119 @@ const handleMoveCopy = item => {
 
 // (moved to useMediaShareDownloadActions)
 
-const { handleSetAsCover } = useCollectionCoverActions({
-  collection,
-  galleryStore,
-  createThumbnailFromDataURL,
-  description,
-})
+const isUpdatingCoverPhoto = ref(false)
 
-const { handleReplacePhoto, handleCancelReplacePhoto, handleReplacePhotoFileSelect } =
-  useReplacePhotoFlow({
-    mediaToReplace,
-    showReplacePhotoModal,
-    isReplacingPhoto,
-    selectedWatermark,
-    watermarkStore,
-    mediaApi,
-    mediaItems,
-    createThumbnail,
-    getFileBaseName,
-    fileToDataURL,
-    applyWatermarkToImage,
-    description,
-  })
+const handleSetAsCoverOriginal = async item => {
+  if (!collection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
+
+  const isVideo = item.type === 'video' || item.file?.type === 'video'
+
+  if (isVideo) {
+    const coverUrl = item.file?.url || item.url
+    if (!coverUrl) {
+      toast.error('Invalid media', {
+        description: 'Media does not have a valid URL.',
+      })
+      return
+    }
+
+    isUpdatingCoverPhoto.value = true
+    try {
+      const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
+        thumbnail: coverUrl,
+        image: coverUrl,
+      })
+      
+      if (updatedCollection) {
+        collection.value = updatedCollection
+      } else {
+        collection.value = {
+          ...collection.value,
+          thumbnail: coverUrl,
+          image: coverUrl,
+        }
+      }
+
+      toast.success('Cover photo updated', {
+        description: 'The cover photo has been set successfully.',
+      })
+    } catch (error) {
+      toast.error('Failed to set cover photo', {
+        description:
+          error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
+      })
+    } finally {
+      isUpdatingCoverPhoto.value = false
+    }
+    return
+  }
+
+  const coverUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || item.url || null
+  if (!coverUrl) {
+    toast.error('Invalid media', {
+      description: 'Media does not have a valid URL.',
+    })
+    return
+  }
+
+  const existingFocalPoint = collection.value?.coverFocalPoint ||
+    collection.value?.cover_focal_point || { x: 50, y: 50 }
+
+  selectedMediaForCover.value = item
+  focalPointImageUrl.value = coverUrl
+  currentFocalPoint.value = existingFocalPoint
+  showFocalPointModal.value = true
+}
+
+const handleFocalPointConfirm = async focalPoint => {
+  if (!collection.value?.id || !selectedMediaForCover.value?.id || isUpdatingCoverPhoto.value) return
+
+  isUpdatingCoverPhoto.value = true
+
+  try {
+    const coverUrl = focalPointImageUrl.value
+    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
+      thumbnail: coverUrl,
+      image: coverUrl,
+      coverFocalPoint: focalPoint,
+      cover_focal_point: focalPoint,
+    })
+
+    if (updatedCollection) {
+      collection.value = updatedCollection
+    } else {
+      collection.value = {
+        ...collection.value,
+        thumbnail: coverUrl,
+        image: coverUrl,
+        coverFocalPoint: focalPoint,
+        cover_focal_point: focalPoint,
+      }
+    }
+
+    toast.success('Cover photo updated', {
+      description: 'The cover photo has been set successfully.',
+    })
+  } catch (error) {
+    toast.error('Failed to set cover photo', {
+      description:
+        error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
+    })
+  } finally {
+    isUpdatingCoverPhoto.value = false
+    selectedMediaForCover.value = null
+    focalPointImageUrl.value = null
+  }
+}
+
+const handleSetAsCover = handleSetAsCoverOriginal
+
 
 const {
-  handleWatermarkMedia,
-  handleCancelWatermarkMedia,
-  handleRemoveWatermark,
-  handleConfirmWatermarkMedia,
+  handleWatermarkMedia: handleWatermarkMediaFromComposable,
+  handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
+  handleRemoveWatermark: handleRemoveWatermarkFromComposable,
+  handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
 } = useMediaWatermarkActions({
   showWatermarkMediaModal,
   mediaToWatermark,
@@ -925,18 +1049,70 @@ const {
   description,
 })
 
+const handleWatermarkMedia = handleWatermarkMediaFromComposable
+const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
+const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
+const handleRemoveWatermark = handleRemoveWatermarkFromComposable
+
+const handlePreviewWatermark = async () => {
+  if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
+    return
+  }
+  
+  const imageUrl = mediaToWatermark.value.largeImageUrl || mediaToWatermark.value.file?.url || mediaToWatermark.value.thumbnailUrl
+  if (!imageUrl) {
+    toast.error('Image URL not available', { description: '' })
+    return
+  }
+  
+  try {
+    const watermark = await watermarkStore.fetchWatermark(selectedWatermarkForMedia.value)
+    previewWatermark.value = watermark
+    previewMediaImageUrl.value = imageUrl
+    showWatermarkPreviewModal.value = true
+  } catch (error) {
+    toast.error('Failed to load watermark', { description: '' })
+  }
+}
+
+const handleApplyFromPreview = () => {
+  showWatermarkPreviewModal.value = false
+  handleConfirmWatermarkMedia()
+}
+
+const hasWatermarkOnMedia = computed(() => {
+  if (!mediaToWatermark.value) return false
+  const uuid = mediaToWatermark.value.watermarkUuid || mediaToWatermark.value.watermark_uuid
+  return !!(uuid && uuid !== null && uuid !== '' && uuid !== undefined)
+})
+
+const watermarkConfirmLabel = computed(() => {
+  if (!mediaToWatermark.value) return 'Add Watermark'
+  
+  const hasWatermark = hasWatermarkOnMedia.value
+  const isRemoving = selectedWatermarkForMedia.value === 'none'
+  
+  if (isRemoving && hasWatermark) {
+    return 'Remove Watermark'
+  } else if (hasWatermark) {
+    return 'Update Watermark'
+  } else {
+    return 'Add Watermark'
+  }
+})
+
 // (moved to useMediaRenameDeleteActions)
 
 const getDeleteModalTitle = () => {
   if (!itemToDelete.value) return 'Delete'
   const item = itemToDelete.value
-  return item.collectionId ? 'Delete Media' : 'Delete Set'
+  return item.collectionId || item.setId ? 'Delete Media' : 'Delete Set'
 }
 
 const getDeleteModalWarning = () => {
   if (!itemToDelete.value) return 'This action cannot be undone.'
   const item = itemToDelete.value
-  return item.collectionId
+  return item.collectionId || item.setId
     ? 'This media item will be permanently deleted.'
     : 'This set will be permanently deleted.'
 }
@@ -981,37 +1157,6 @@ const { handleTargetCollectionChange, handleCancelMoveCopy, handleConfirmMoveCop
     description,
   })
 
-// Bulk action handlers
-const { handleBulkFavorite } = useBulkFavoriteFlow({
-  selectedMediaIds,
-  isBulkFavoriteLoading,
-  mediaItems,
-  mediaApi,
-  loadMediaItems,
-  description,
-})
-
-const handleBulkView = () => {
-  if (selectedMediaIds.value.size === 0) return
-
-  const ids = Array.from(selectedMediaIds.value)
-  const items = mediaItems.value.filter(m => ids.includes(m.id))
-
-  // Filter to only images for preview
-  const imageItems = items.filter(item => item.type === 'image')
-
-  if (imageItems.length === 0) {
-    toast.info('No images to view', {
-      description,
-    })
-    return
-  }
-
-  selectedMediaForView.value = imageItems
-  currentViewIndex.value = 0
-  showMediaViewer.value = true
-}
-
 const { handleBulkTag, handleCancelTag, handleAddTag, handleConfirmTag } = useBulkTagFlow({
   selectedMediaIds,
   mediaItems,
@@ -1019,17 +1164,6 @@ const { handleBulkTag, handleCancelTag, handleAddTag, handleConfirmTag } = useBu
   tagInput,
   existingTags,
   isBulkTagLoading,
-  mediaApi,
-  loadMediaItems,
-  description,
-})
-
-const { handleBulkEdit, handleCancelEdit, handleConfirmEdit } = useBulkEditFilenamesFlow({
-  selectedMediaIds,
-  showEditModal,
-  editAppendText,
-  isBulkEditLoading,
-  mediaItems,
   mediaApi,
   loadMediaItems,
   description,
@@ -1073,34 +1207,6 @@ const { loadCollection } = useCollectionLoadFlow({
   mediaSetsSidebar,
 })
 
-// Bulk delete handlers (must be defined after loadCollection)
-const { handleBulkDelete, handleConfirmBulkDelete } = useBulkDeleteFlow({
-  selectedMediaIds,
-  showBulkDeleteModal,
-  isBulkDeleteLoading,
-  mediaApi,
-  deleteMediaFn: async mediaId => {
-    if (!collection.value?.id || !selectedSetId.value) {
-      throw new Error('Collection ID and Set ID are required')
-    }
-    // Delete via collections API
-    await collectionsApi.deleteMedia(collection.value.id, selectedSetId.value, mediaId)
-    // Remove from local array immediately
-    const index = mediaItems.value.findIndex(m => m.id === mediaId)
-    if (index !== -1) {
-      mediaItems.value.splice(index, 1)
-    }
-    // Note: Don't reload collection here during bulk delete - it will be reloaded after all deletions
-  },
-  mediaItems,
-  loadMediaItems,
-  loadCollection,
-  pagination: mediaPagination,
-  goToPage: goToMediaPage,
-  resetToFirstPage: resetMediaToFirstPage,
-  updateSetCounts,
-  description,
-})
 
 // Track if we're loading display settings to prevent saves during load
 const isLoadingDisplaySettings = ref(false)
@@ -1176,45 +1282,67 @@ const goBack = () => {
   router.push({ name: 'manageCollections' })
 }
 
-// Media Sets CRUD/drag/drop is handled by `useCollectionMediaSetsSidebarStore`.
-
+// Use media actions composable
 const {
+  handleDeleteMedia,
+  handleConfirmDeleteItem,
+  handleBulkDelete,
+  handleConfirmBulkDelete,
   handleRenameMedia,
   handleCancelRenameMedia,
   handleConfirmRenameMedia,
-  handleDeleteMedia,
-  handleConfirmDeleteItem,
-} = useMediaRenameDeleteActions({
-  showRenameMediaModal,
-  mediaToRename,
-  newMediaName,
-  itemToDelete,
-  openDeleteModal,
-  closeDeleteModal,
-  isDeleting,
+  handleStarMedia,
+  handleBulkFavorite,
+  handleBulkCopyFilenames,
+  handleBulkView,
+  handleBulkEdit,
+  handleCancelEdit,
+  handleConfirmEdit,
+  handleReplacePhoto,
+  handleCancelReplacePhoto,
+  handleReplacePhotoFileSelect,
+  getUndoAction,
+} = useMediaActions({
+  contextType: 'collection',
+  api: collectionsApi,
+  context: collection,
+  contextId: computed(() => collection.value?.id),
+  setId: selectedSetId,
   mediaItems,
   selectedMediaIds,
-  mediaApi,
-  deleteMediaFn: async mediaId => {
-    if (!collection.value?.id || !selectedSetId.value) {
-      throw new Error('Collection ID and Set ID are required')
-    }
-    // Delete via collections API
-    await collectionsApi.deleteMedia(collection.value.id, selectedSetId.value, mediaId)
-    // Remove from local array immediately
-    const index = mediaItems.value.findIndex(m => m.id === mediaId)
-    if (index !== -1) {
-      mediaItems.value.splice(index, 1)
-    }
-    // Reload media after deletion to sync with backend
-    await loadMediaItems()
-    // Reload collection to update media set counts
-    await loadCollection()
+  sortedMediaItems,
+  loadMediaItems,
+  loadMediaSets: updateSetCounts,
+  getItemId: item => item?.id || '',
+  modals: {
+    openDeleteModal,
+    closeDeleteModal,
+    itemToDelete,
+    showBulkDeleteModal,
+    showRenameMediaModal,
+    mediaToRename,
+    newMediaName,
+    showEditModal,
+    editAppendText,
+    showReplacePhotoModal,
+    mediaToReplace,
+    showMediaViewer,
   },
-  updateSetCounts,
-  handleConfirmDeleteSet: mediaSetsSidebar.confirmDeleteSet,
-  description,
+  loading: {
+    isDeleting,
+    isBulkDeleteLoading,
+    isRenamingMedia,
+    isBulkFavoriteLoading,
+    isBulkEditLoading,
+    isReplacingPhoto,
+  },
+  helpers: {
+    selectedMediaForView,
+    currentViewIndex,
+  },
 })
+
+// Media Sets CRUD/drag/drop is handled by `useCollectionMediaSetsSidebarStore`.
 
 const handleAddMedia = () => {
   triggerFileInputClick(fileInputRef.value)

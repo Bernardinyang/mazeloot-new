@@ -65,6 +65,7 @@ export function useSelectionWorkflow({
     loadMediaItems,
     deleteMediaFn,
     onUploadComplete, // Pass through for post-upload actions (e.g., reload media sets)
+    contextType: 'selection',
   })
 
   // Helper to get selectionId value (handles refs, computed, functions, and plain values)

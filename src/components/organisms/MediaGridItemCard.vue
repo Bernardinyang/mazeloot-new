@@ -313,6 +313,7 @@
           <Share2 class="h-5 w-5 text-white" />
         </button>
         <button
+          v-if="props.allowDownload"
           class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
           :disabled="props.isDownloading"
           @click.stop="emit('download', props.item)"
@@ -373,6 +374,7 @@
               Open
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="props.allowDownload"
               :class="[theme.textPrimary, theme.bgButtonHover, props.isDownloading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer']"
               :disabled="props.isDownloading"
               @click.stop="emit('download')"
@@ -731,6 +733,10 @@ const props = defineProps({
   isDownloading: {
     type: Boolean,
     default: false,
+  },
+  allowDownload: {
+    type: Boolean,
+    default: true,
   },
 })
 

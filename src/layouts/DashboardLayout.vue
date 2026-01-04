@@ -147,6 +147,7 @@
         <slot />
       </div>
     </SidebarInset>
+
   </SidebarProvider>
 </template>
 
@@ -246,4 +247,5 @@ const notifications = ref([
 const clearNotifications = () => {
   notifications.value = []
 }
+
 </script>

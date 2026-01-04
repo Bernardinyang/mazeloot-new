@@ -74,16 +74,18 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
   const loadMediaSets = async () => {
     if (!collectionId.value) return
     try {
-      const fetchedCollection = await galleryStore.fetchCollection(collectionId.value)
+      // Force refresh from backend to get updated counts
+      const fetchedCollection = await galleryStore.fetchCollection(collectionId.value, true)
       if (fetchedCollection?.mediaSets && Array.isArray(fetchedCollection.mediaSets)) {
         const mappedMediaSets = fetchedCollection.mediaSets.map(set => ({
           id: set.id,
           name: set.name,
           description: set.description,
           order: set.order ?? 0,
-          count: set.count ?? 0,
+          count: set.count ?? set.media_count ?? 0,
         }))
-        mediaSets.value = mappedMediaSets
+        // Force reactivity by creating a new array
+        mediaSets.value = [...mappedMediaSets]
 
         // Only auto-select first set if no set is currently selected
         // Do NOT change selection if current set exists (even if empty) - user might want to upload to it

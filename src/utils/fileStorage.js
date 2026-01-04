@@ -11,7 +11,7 @@
  */
 
 const DB_NAME = 'mazeloot_file_storage'
-const DB_VERSION = 1
+const DB_VERSION = 2 // Match uploadQueueStorage.js version
 const STORE_NAME = 'files'
 
 let db = null
@@ -28,8 +28,11 @@ const initDB = () => {
 
     const request = indexedDB.open(DB_NAME, DB_VERSION)
 
-    request.onerror = () => {
-      reject(new Error('Failed to open IndexedDB'))
+    request.onerror = (event) => {
+      const error = request.error || event.target?.error
+      const errorMessage = error?.message || error?.name || 'Unknown IndexedDB error'
+      console.error('IndexedDB open error:', error)
+      reject(new Error(`Failed to open IndexedDB: ${errorMessage}`))
     }
 
     request.onsuccess = () => {
