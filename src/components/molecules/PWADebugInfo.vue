@@ -69,12 +69,10 @@ const checkManifest = async () => {
 }
 
 onMounted(() => {
-  // Show debug panel if ?pwa-debug is in URL
   if (window.location.search.includes('pwa-debug')) {
     showDebug.value = true
   }
 
-  // Check service worker
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistration().then(reg => {
       swStatus.value = reg ? '✓ Registered' : '✗ Not registered'
@@ -83,7 +81,6 @@ onMounted(() => {
     swStatus.value = '✗ Not supported'
   }
 
-  // Check icons and manifest
   checkIcons()
   checkManifest()
 })

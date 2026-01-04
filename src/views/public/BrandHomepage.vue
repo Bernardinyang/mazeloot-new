@@ -345,7 +345,6 @@ const featuredMedia = ref([])
 const showVideoMedia = ref(false) // Flag to control video media display
 
 const userId = computed(() => {
-  // Get userId from query params, route params, or from domain/subdomain
   return route.query.userId || route.params.userId || null
 })
 
@@ -412,11 +411,9 @@ const handleCardMove = event => {
 
 const handleCollectionClick = collection => {
   const collectionId = collection.id || collection.uuid
-  // Use userId as projectId to navigate to the public collection page
   const projectId = userId.value || 'homepage'
   const query = { collectionId }
   
-  // Preserve preview mode if in preview
   if (isPreviewMode.value && isOwner.value) {
     query.preview = 'true'
   }
@@ -443,7 +440,6 @@ const handleVerifyPassword = async () => {
     if (response.data?.data?.verified) {
       isPasswordVerified.value = true
       showPasswordModal.value = false
-      // Reload collections after password verification
       await loadCollections()
     } else {
       passwordError.value = 'Incorrect password'

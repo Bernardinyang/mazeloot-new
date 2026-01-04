@@ -42,19 +42,15 @@ const hasActiveOrFailedUploads = computed(() => {
          backgroundUploadManager.failedUploadCount.value > 0
 })
 
-// Global keyboard shortcuts for undo/redo
 let keyDownHandler = null
 
 onMounted(() => {
   const actionHistory = useActionHistoryStore()
 
-  // Add keyboard shortcuts for undo/redo
   keyDownHandler = e => {
-    // Prevent default browser undo/redo in input fields
     const isInputFocused =
       e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable
 
-    // Undo: Ctrl+Z (Windows/Linux) or Cmd+Z (Mac)
     if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
       if (!isInputFocused) {
         e.preventDefault()
@@ -72,7 +68,6 @@ onMounted(() => {
       }
     }
 
-    // Redo: Ctrl+Y (Windows/Linux) or Cmd+Shift+Z (Mac)
     if (
       ((e.ctrlKey && e.key === 'y') || (e.metaKey && e.shiftKey && e.key === 'z')) &&
       !isInputFocused

@@ -118,24 +118,18 @@ const filteredMedia = computed(() => {
 const getCommentCount = media => {
   if (!media.feedback || !Array.isArray(media.feedback)) return 0
 
-  // Count all comments including replies
-  // Counts ALL comments: both top-level comments and replies
-  // Uses a Set to avoid double-counting if a reply appears both in the array and nested in replies
   const countedIds = new Set()
 
   const countComments = commentList => {
     let count = 0
     for (const comment of commentList) {
-      // Skip if already counted (to avoid double-counting)
       if (countedIds.has(comment.id)) {
         continue
       }
 
-      // Count this comment (whether it's top-level or a reply)
       count++
       countedIds.add(comment.id)
 
-      // Count nested replies recursively
       if (comment.replies && comment.replies.length > 0) {
         count += countComments(comment.replies)
       }
@@ -143,13 +137,10 @@ const getCommentCount = media => {
     return count
   }
 
-  // Count all comments in the array (both top-level and replies)
   return countComments(media.feedback)
 }
 
 const hasUnreadComments = media => {
-  // This would need to be implemented based on read/unread tracking
-  // For now, return false
   return false
 }
 

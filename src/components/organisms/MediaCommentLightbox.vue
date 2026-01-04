@@ -88,7 +88,6 @@
                 :key="currentIndex"
                 :class="[
                   'relative max-w-full max-h-full w-full h-full flex items-center justify-center overflow-hidden',
-                  // Add horizontal padding when navigation buttons are present to prevent overlap
                   items.length > 1 ? (isMobile ? 'px-14' : 'px-16') : '',
                 ]"
                 @wheel.prevent="handleWheelZoom"
@@ -397,7 +396,6 @@ const currentVideoTime = ref(0)
 const comments = ref([])
 const isLoadingComments = ref(false)
 
-// Zoom state
 const imageContainerRef = ref(null)
 const zoomLevel = ref(1)
 const panX = ref(0)
@@ -414,21 +412,17 @@ const currentItem = computed(() => {
   return props.items[currentIndex.value] || props.items[0]
 })
 
-// Block comments/feedback if media is approved/completed, rejected, or closure request is pending
 const allowReply = computed(() => {
   if (!currentItem.value) return false
 
-  // Block if media is completed/approved
   if (currentItem.value.isCompleted || currentItem.value.is_completed) {
     return false
   }
 
-  // Block if media is rejected
   if (currentItem.value.isRejected || currentItem.value.is_rejected) {
     return false
   }
 
-  // Block if closure request is pending
   const mediaId = currentItem.value.id || currentItem.value.uuid
   const closureRequests = props.closureRequestsMap[mediaId] || []
   const hasPendingClosureRequest = closureRequests.some(req => req.status === 'pending')
@@ -439,17 +433,11 @@ const allowReply = computed(() => {
   return true
 })
 
-// Computed property to get the correct media ID (handles both 'id' and 'uuid')
-// IMPORTANT: MediaResource returns 'id' as the UUID, so we use that first
 const currentMediaId = computed(() => {
   if (!currentItem.value) return null
 
-  // Try id first (this is the UUID from MediaResource)
-  // Then try uuid as fallback
   let mediaId = currentItem.value.id || currentItem.value.uuid || null
 
-  // CRITICAL: If mediaId matches proofingId, something is very wrong with the item structure
-  // Return null to prevent API calls with wrong ID
   if (mediaId && mediaId === props.proofingId) {
     console.error('CRITICAL ERROR: mediaId matches proofingId! Item structure is incorrect.', {
       mediaId,
@@ -460,7 +448,6 @@ const currentMediaId = computed(() => {
       itemUuid: currentItem.value.uuid,
       allItemIds: props.items.slice(0, 3).map(item => ({ id: item.id, uuid: item.uuid })),
     })
-    // Don't return the proofingId - return null to prevent the API call
     return null
   }
 
@@ -503,7 +490,6 @@ const totalCommentCount = computed(() => {
   return countAllComments(currentComments.value)
 })
 
-// Zoom computed styles
 const imageTransformStyle = computed(() => {
   return {
     transform: `translate(${panX.value}px, ${panY.value}px) scale(${zoomLevel.value})`,
@@ -540,7 +526,6 @@ const getMediaUrl = item => {
     return item.file?.url || item.url || null
   }
 
-  // For videos, return the video URL
   if (mediaType === 'video') {
     return item.file?.url || item.url || null
   }
@@ -553,7 +538,6 @@ const getThumbnailUrl = item => {
 
   const mediaType = item.type || item.file?.type
 
-  // For videos, check file thumbnailUrl or metadata thumbnail
   if (mediaType === 'video') {
     if (item.file?.thumbnailUrl && item.file.thumbnailUrl !== item.file?.url) {
       return item.file.thumbnailUrl
@@ -564,7 +548,6 @@ const getThumbnailUrl = item => {
     return null
   }
 
-  // For images, use file URL or variants
   if (mediaType === 'image') {
     if (item.file?.variants?.thumb) {
       return item.file.variants.thumb
@@ -589,7 +572,6 @@ const updateMediaUrl = async () => {
     const url = getMediaUrl(currentItem.value)
     const thumbnail = getThumbnailUrl(currentItem.value)
 
-    // Handle file:// URLs by converting to blob URLs
     if (url && url.startsWith('file://')) {
       try {
         const blobUrl = await getMediaDisplayUrl(url, '')
@@ -606,7 +588,6 @@ const updateMediaUrl = async () => {
     } else if (url) {
       currentMediaUrl.value = url
     } else {
-      // If no URL found, try to get it from the item directly
       const fallbackUrl =
         currentItem.value.file?.url || currentItem.value.url || currentItem.value.thumbnailUrl || ''
       currentMediaUrl.value = fallbackUrl
@@ -654,7 +635,6 @@ const handleClose = () => {
 }
 
 const handleCloseComments = () => {
-  // When closing comments, go back to MediaLightbox
   emit('back-to-lightbox')
 }
 
@@ -712,9 +692,7 @@ const handleVideoPlay = () => {
   isLoading.value = false
 }
 
-const handleVideoPause = () => {
-  // Keep loading state as is when paused
-}
+const handleVideoPause = () => {}
 
 const handleVideoTimeUpdate = event => {
   currentVideoTime.value = event.currentTime
@@ -726,7 +704,6 @@ const handleSeekVideo = timestamp => {
   }
 }
 
-// Zoom functions
 const MIN_ZOOM = 1
 const MAX_ZOOM = 5
 const ZOOM_STEP = 0.25
@@ -752,13 +729,11 @@ const resetZoom = () => {
 }
 
 const constrainPan = () => {
-  // Constrain panning to keep image within bounds
   const maxPan = 100 * zoomLevel.value
   panX.value = Math.max(-maxPan, Math.min(maxPan, panX.value))
   panY.value = Math.max(-maxPan, Math.min(maxPan, panY.value))
 }
 
-// Mouse wheel zoom
 const handleWheelZoom = event => {
   if (currentMediaType.value !== 'image') return
 
@@ -767,7 +742,6 @@ const handleWheelZoom = event => {
   const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, zoomLevel.value + delta))
 
   if (newZoom !== zoomLevel.value) {
-    // Zoom towards mouse position
     const rect = imageContainerRef.value?.getBoundingClientRect()
     if (rect) {
       const mouseX = event.clientX - rect.left - rect.width / 2
@@ -783,7 +757,6 @@ const handleWheelZoom = event => {
   }
 }
 
-// Mouse drag for panning
 const handleMouseDown = event => {
   if (zoomLevel.value <= MIN_ZOOM) return
   isDragging.value = true
@@ -801,7 +774,6 @@ const handleMouseUp = () => {
   isDragging.value = false
 }
 
-// Touch events for pinch-to-zoom
 const handleTouchStart = event => {
   if (event.touches.length === 2) {
     const touch1 = event.touches[0]
@@ -827,7 +799,6 @@ const handleTouchMove = event => {
   event.preventDefault()
 
   if (event.touches.length === 2) {
-    // Pinch to zoom
     const touch1 = event.touches[0]
     const touch2 = event.touches[1]
     const distance = Math.hypot(touch2.clientX - touch1.clientX, touch2.clientY - touch1.clientY)
@@ -854,7 +825,6 @@ const handleTouchMove = event => {
       lastTouchDistance.value = distance
     }
   } else if (event.touches.length === 1 && isDragging.value && zoomLevel.value > MIN_ZOOM) {
-    // Pan with single touch
     panX.value = event.touches[0].clientX - dragStart.value.x
     panY.value = event.touches[0].clientY - dragStart.value.y
     constrainPan()
@@ -866,14 +836,12 @@ const handleTouchEnd = () => {
   lastTouchDistance.value = 0
 }
 
-// Double-click to zoom
 const handleDoubleClick = event => {
   if (currentMediaType.value !== 'image') return
 
   if (zoomLevel.value > MIN_ZOOM) {
     resetZoom()
   } else {
-    // Zoom in to 2x at click position
     const rect = imageContainerRef.value?.getBoundingClientRect()
     if (rect) {
       const clickX = event.clientX - rect.left - rect.width / 2
@@ -950,8 +918,6 @@ const handleAddComment = async commentData => {
   }
 
   try {
-    // Get setId from current item or props
-    // Check multiple possible property names for setId
     const setId =
       currentItem.value?.setId ||
       currentItem.value?.media_set_uuid ||
@@ -969,13 +935,11 @@ const handleAddComment = async commentData => {
       return
     }
 
-    // Ensure createdBy is set - use creativeEmail for authenticated users, guestEmail for guests
     const finalCommentData = {
       ...commentData,
       createdBy: commentData.createdBy || props.creativeEmail || props.guestEmail || null,
     }
 
-    // Validate that mediaId is not the same as proofingId (safety check)
     if (!mediaId || mediaId === props.proofingId) {
       console.error('ERROR: Invalid mediaId!', {
         mediaId,
@@ -988,7 +952,6 @@ const handleAddComment = async commentData => {
       return
     }
 
-    // Additional validation - ensure mediaId is a valid UUID format
     const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
     if (!uuidRegex.test(mediaId)) {
       console.error('ERROR: mediaId is not a valid UUID format!', {
@@ -1017,7 +980,6 @@ const handleAddComment = async commentData => {
     }
 
     if (!newComment || !newComment.id) {
-      // Remove optimistic comment on invalid response
       const removeComment = (commentList, tempId) => {
         const index = commentList.findIndex(c => c.id === tempId)
         if (index !== -1) {
@@ -1064,21 +1026,8 @@ const handleAddComment = async commentData => {
       updatedComments.some(c => c.id === tempId) ||
       updatedComments.some(c => c.replies?.some(r => r.id === tempId))
 
-    console.log('Replacement check:', {
-      tempCommentStillExists,
-      tempId,
-      newCommentId: newComment.id,
-    })
-
     if (!tempCommentStillExists) {
-      // Replacement successful - update comments
-      console.log('Replacing optimistic comment with real one:', newComment.id)
       comments.value = updatedComments
-      console.log(
-        'Comments after replacement:',
-        comments.value.length,
-        comments.value.map(c => c.id)
-      )
 
       // Emit event to update parent component's comment count
       emit('comment-added', {
@@ -1121,7 +1070,6 @@ const handleAddComment = async commentData => {
       })
     }
   } catch (error) {
-    // Remove optimistic comment on error
     const removeComment = (commentList, tempId) => {
       const index = commentList.findIndex(c => c.id === tempId)
       if (index !== -1) {
@@ -1140,7 +1088,6 @@ const handleAddComment = async commentData => {
     removeComment(comments.value, tempId)
     throw error
   }
-  // No finally block needed since we're not setting isLoadingComments
 }
 
 const handleUpdateComment = async ({ commentId, content }) => {
@@ -1169,8 +1116,6 @@ const handleUpdateComment = async ({ commentId, content }) => {
   try {
     isLoadingComments.value = true
 
-    // Get setId from current item or props
-    // Check multiple possible property names for setId
     const setId =
       currentItem.value?.setId ||
       currentItem.value?.media_set_uuid ||
@@ -1204,7 +1149,6 @@ const handleUpdateComment = async ({ commentId, content }) => {
       props.guestToken
     )
 
-    // Emit event to update parent component
     emit('comment-updated', {
       mediaId: mediaId,
       commentId,
@@ -1212,7 +1156,6 @@ const handleUpdateComment = async ({ commentId, content }) => {
       allComments: comments.value,
     })
   } catch (error) {
-    // Revert optimistic update on error
     await loadComments()
     throw error
   } finally {
@@ -1233,13 +1176,8 @@ const handleDeleteComment = commentId => {
     return
   }
 
-  // Store the comment ID to delete and show confirmation dialog
   commentToDelete.value = commentId
   showDeleteConfirm.value = true
-  console.log('Delete confirmation dialog opened', {
-    commentId,
-    showDeleteConfirm: showDeleteConfirm.value,
-  })
 }
 
 const confirmDelete = async () => {
@@ -1272,32 +1210,12 @@ const confirmDelete = async () => {
   try {
     isLoadingComments.value = true
 
-    // Get setId - prioritize props.setId since it's explicitly passed
-    // Fallback to media item properties if props.setId is not available
     const setId =
       props.setId ||
       currentItem.value?.setId ||
       currentItem.value?.media_set_uuid ||
       currentItem.value?.mediaSet?.id ||
       currentItem.value?.mediaSet?.uuid
-
-    console.log('Delete comment - Parameters:', {
-      proofingId: props.proofingId,
-      setId,
-      propsSetId: props.setId,
-      mediaId: currentMediaId.value,
-      commentId,
-      currentItemKeys: currentItem.value ? Object.keys(currentItem.value) : [],
-      currentItemSetId: currentItem.value?.setId,
-      currentItemMediaSetUuid: currentItem.value?.media_set_uuid,
-      currentItemMediaSet: currentItem.value?.mediaSet,
-      currentItemFull: currentItem.value,
-    })
-
-    // Validate setId format (should be UUID)
-    if (setId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(setId)) {
-      console.error('Invalid setId format (not a UUID):', setId)
-    }
 
     if (!props.proofingId || !setId) {
       console.error('Missing proofingId or setId in handleDeleteComment', {
@@ -1330,14 +1248,12 @@ const confirmDelete = async () => {
       props.guestToken
     )
 
-    // Emit event to update parent component
     emit('comment-deleted', {
       mediaId: mediaId,
       commentId,
       allComments: comments.value,
     })
   } catch (error) {
-    // Revert optimistic delete on error
     comments.value = originalComments
     throw error
   } finally {
@@ -1385,7 +1301,6 @@ const loadComments = async () => {
   }
 }
 
-// Initialize real-time comments
 const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtimeComments(
   computed(() => currentItem.value?.id || ''),
   {
@@ -1456,7 +1371,6 @@ const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtime
             commentList[index] = updated
             return true
           }
-          // Search in replies
           for (const comment of commentList) {
             if (comment.replies && comment.replies.length > 0) {
               if (updateComment(comment.replies, updated)) {
@@ -1491,13 +1405,11 @@ watch(
 
 watch(isOpen, (open, oldValue) => {
   if (open) {
-    // When opening, set showComments based on prop
     if (!oldValue) {
       showComments.value = props.openWithComments
     }
     const safeIndex = Math.max(0, Math.min(props.initialIndex, props.items.length - 1))
     currentIndex.value = safeIndex
-    // Use nextTick to ensure currentItem is set before updating URL
     nextTick(() => {
       if (currentItem.value) {
         updateMediaUrl()
@@ -1529,7 +1441,6 @@ watch(
       }
     }
 
-    // Always update media URL when currentItem changes
     updateMediaUrl()
     loadComments()
     resetZoom()
@@ -1549,34 +1460,11 @@ watch(
       currentIndex.value = safeIndex
       updateMediaUrl()
 
-      // Debug: Log item structure when items change
-      if (newItems.length > 0) {
-        console.log('MediaCommentLightbox items updated:', {
-          itemsCount: newItems.length,
-          firstItem: {
-            id: newItems[0].id,
-            uuid: newItems[0].uuid,
-            keys: Object.keys(newItems[0]),
-          },
-          proofingId: props.proofingId,
-        })
-      }
     }
   },
   { deep: true }
 )
 
-// Watch currentMediaId to debug when it changes
-watch(currentMediaId, (newMediaId, oldMediaId) => {
-  if (newMediaId && newMediaId === props.proofingId) {
-    console.error('CRITICAL: currentMediaId changed to proofingId!', {
-      newMediaId,
-      oldMediaId,
-      proofingId: props.proofingId,
-      currentItem: currentItem.value,
-    })
-  }
-})
 
 watch(showComments, newValue => {
   if (isMobile) {

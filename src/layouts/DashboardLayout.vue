@@ -224,7 +224,6 @@ const appTeams = MAZELOOT_PRODUCTS.map(product => ({
   route: product.route || { name: 'overview' },
 }))
 
-// Sample notifications - TODO: Replace with actual data from store/API
 const notifications = ref([
   {
     id: 1,

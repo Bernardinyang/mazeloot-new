@@ -78,7 +78,6 @@ const isAndroid = computed(() => {
   return /Android/.test(navigator.userAgent)
 })
 
-// Check if we should show manual install instructions
 const isStandalone = computed(() => {
   return window.matchMedia('(display-mode: standalone)').matches || 
          window.navigator.standalone ||
@@ -92,7 +91,6 @@ const handleInstall = async () => {
       isDismissed.value = true
     }
   } else {
-    // Show manual install instructions
     showManualInstallInstructions()
   }
 }
@@ -118,17 +116,14 @@ const showManualInstallInstructions = () => {
 
 const dismiss = () => {
   isDismissed.value = true
-  // Store dismissal in localStorage to prevent showing again for a while
   localStorage.setItem('pwa-install-dismissed', Date.now().toString())
 }
 
 onMounted(() => {
-  // Check if app is already installed
   if (isStandalone.value) {
     return
   }
 
-  // Check if user dismissed recently (within 7 days)
   const dismissed = localStorage.getItem('pwa-install-dismissed')
   if (dismissed) {
     const dismissedTime = parseInt(dismissed, 10)
@@ -139,14 +134,11 @@ onMounted(() => {
     }
   }
 
-  // Show manual install option if beforeinstallprompt doesn't fire after a delay
   setTimeout(() => {
     if (!isInstallable.value && !isInstalled.value && !isDismissed.value) {
-      // Check if service worker is registered (PWA criteria met)
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.getRegistration().then(registration => {
           if (registration) {
-            // Also check if manifest is accessible
             fetch('/manifest.json')
               .then(res => res.json())
               .then(manifest => {
