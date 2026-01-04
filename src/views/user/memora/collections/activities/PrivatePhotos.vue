@@ -5,7 +5,7 @@
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm">Loading private photos activity...</p>
+            <p :class="theme.textSecondary" class="text-sm">Loading private media activity...</p>
           </div>
         </div>
 
@@ -15,7 +15,7 @@
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-3">
                 <h1 :class="theme.textPrimary" class="text-2xl md:text-3xl font-bold">
-                  Private Photos Activity
+                  Private Media Activity
                 </h1>
               </div>
               <div class="flex items-center gap-3">
@@ -32,7 +32,7 @@
               </div>
             </div>
             <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
-              Track access to private photos in this collection. See who has viewed private photos
+              Track access to private media in this collection. See who has viewed private media
               and when.
             </p>
           </div>
@@ -43,8 +43,8 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="p-6 rounded-2xl border-2 transition-all duration-300"
             >
-              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Private Photos</p>
-              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalPrivatePhotos }}</p>
+              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Private Media</p>
+              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalPrivateMedia }}</p>
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -165,32 +165,64 @@
                             {{ activity.userEmail?.charAt(0).toUpperCase() || '?' }}
                           </span>
                         </div>
-                        <div>
-                          <div :class="theme.textPrimary" class="text-sm font-medium">
-                            {{ activity.userName || 'Anonymous' }}
-                          </div>
-                          <div :class="theme.textSecondary" class="text-xs">
-                            {{ activity.userEmail || 'No email' }}
-                          </div>
+                        <div :class="theme.textPrimary" class="text-sm font-medium">
+                          {{ activity.userEmail || 'No email' }}
                         </div>
                       </div>
                     </td>
                     <td class="px-6 py-4">
                       <div class="flex items-center gap-3">
-                        <img
-                          v-if="activity.photoThumbnail"
-                          :alt="activity.photoName"
-                          :src="activity.photoThumbnail"
-                          class="w-12 h-12 rounded-lg object-cover"
-                        />
+                        <button
+                          v-if="activity.mediaId"
+                          class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-opacity cursor-pointer"
+                          @click="openMedia(activity)"
+                        >
+                          <img
+                            v-if="activity.photoThumbnail"
+                            :alt="activity.photoName"
+                            :src="activity.photoThumbnail"
+                            class="w-full h-full object-cover"
+                          />
+                          <div
+                            v-else
+                            class="w-full h-full flex items-center justify-center"
+                          >
+                            <ImageIcon v-if="!activity.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                            <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
+                          </div>
+                          <div
+                            v-if="activity.isVideo && activity.photoThumbnail"
+                            class="absolute inset-0 flex items-center justify-center bg-black/20"
+                          >
+                            <Play class="h-4 w-4 text-white" />
+                          </div>
+                        </button>
                         <div
                           v-else
-                          class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
+                          class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
                         >
-                          <ImageIcon :class="theme.textTertiary" class="h-5 w-5" />
+                          <img
+                            v-if="activity.photoThumbnail"
+                            :alt="activity.photoName"
+                            :src="activity.photoThumbnail"
+                            class="w-full h-full object-cover"
+                          />
+                          <div
+                            v-else
+                            class="w-full h-full flex items-center justify-center"
+                          >
+                            <ImageIcon v-if="!activity.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                            <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
+                          </div>
+                          <div
+                            v-if="activity.isVideo && activity.photoThumbnail"
+                            class="absolute inset-0 flex items-center justify-center bg-black/20"
+                          >
+                            <Play class="h-4 w-4 text-white" />
+                          </div>
                         </div>
                         <div :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ activity.photoName || 'Unknown photo' }}
+                          {{ activity.photoName || 'Unknown media' }}
                         </div>
                       </div>
                     </td>
@@ -217,10 +249,10 @@
                       <div class="flex flex-col items-center gap-3">
                         <Lock :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
                         <p :class="theme.textPrimary" class="text-sm font-medium">
-                          No private photo activity found
+                          No private media activity found
                         </p>
                         <p :class="theme.textSecondary" class="text-xs">
-                          Private photo access will appear here once users access private photos
+                          Private media access will appear here once users access private media
                         </p>
                       </div>
                     </td>
@@ -231,6 +263,15 @@
           </div>
         </div>
       </div>
+
+      <!-- Media Lightbox -->
+      <MediaLightbox
+        v-model="showMediaViewer"
+        :items="mediaItemsForViewer"
+        :initial-index="currentMediaIndex"
+        :collection-id="collection?.id || collection?.uuid"
+        @close="closeMediaViewer"
+      />
     </template>
   </CollectionLayout>
 </template>
@@ -238,7 +279,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, ImageIcon, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, ImageIcon, Link, Loader2, Lock, Mail, Play } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -249,6 +290,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
@@ -269,8 +311,13 @@ const activities = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
 
+// Media viewer
+const showMediaViewer = ref(false)
+const mediaItemsForViewer = ref([])
+const currentMediaIndex = ref(0)
+
 // Computed stats
-const totalPrivatePhotos = computed(() => {
+const totalPrivateMedia = computed(() => {
   const uniquePhotos = new Set(activities.value.map(a => a.photoName))
   return uniquePhotos.size
 })
@@ -386,12 +433,13 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // activities.value = await fetchPrivatePhotoActivities(collectionId)
-    // For now, use demo data
-    activities.value = generateDemoData()
+    
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getPrivatePhotoActivities } = useCollectionsApi()
+    activities.value = await getPrivatePhotoActivities(collectionId)
   } catch (error) {
-    // Still load demo data even if collection fetch fails
-    activities.value = generateDemoData()
+    console.error('Failed to load private photo activities:', error)
+    activities.value = []
   } finally {
     isLoading.value = false
   }
@@ -420,4 +468,31 @@ const formatTime = dateString => {
 
 // Export data
 const exportData = () => {}
+
+// Open media in lightbox
+const openMedia = async activity => {
+  if (!activity.mediaId || !collection.value) return
+
+  try {
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getMedia } = useCollectionsApi()
+    
+    // Fetch the single media item
+    const mediaItem = await getMedia(activity.mediaId)
+    if (!mediaItem) return
+    
+    // Just show the single media item
+    mediaItemsForViewer.value = [mediaItem]
+    currentMediaIndex.value = 0
+    showMediaViewer.value = true
+  } catch (error) {
+    console.error('Failed to open media:', error)
+  }
+}
+
+const closeMediaViewer = () => {
+  showMediaViewer.value = false
+  mediaItemsForViewer.value = []
+  currentMediaIndex.value = 0
+}
 </script>

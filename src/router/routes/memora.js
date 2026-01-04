@@ -3,6 +3,7 @@ import CollectionsView from '@/views/user/memora/Collections.vue'
 import StarredCollectionsView from '@/views/user/memora/starred/StarredCollections.vue'
 import StarredFoldersView from '@/views/user/memora/starred/StarredFolders.vue'
 import StarredMediaView from '@/views/user/memora/starred/StarredMedia.vue'
+import FeaturedMediaView from '@/views/user/memora/starred/FeaturedMedia.vue'
 import HomepageView from '@/views/user/memora/Homepage.vue'
 import BrandingView from '@/views/user/memora/settings/Branding.vue'
 import WatermarkView from '@/views/user/memora/settings/watermark/Watermark.vue'
@@ -35,7 +36,7 @@ import CollectionActivitiesDownloadView from '@/views/user/memora/collections/ac
 import CollectionActivitiesFavouriteView from '@/views/user/memora/collections/activities/FavouriteActivity.vue'
 import CollectionActivitiesEmailRegistrationView from '@/views/user/memora/collections/activities/EmailRegistration.vue'
 import CollectionActivitiesQuickShareView from '@/views/user/memora/collections/activities/QuickShareLinks.vue'
-import CollectionActivitiesPrivatePhotosView from '@/views/user/memora/collections/activities/PrivatePhotos.vue'
+import CollectionActivitiesPrivateMediaView from '@/views/user/memora/collections/activities/PrivateMedia.vue'
 import ProjectDashboardView from '@/views/user/memora/projects/ProjectDashboard.vue'
 import CollectionPhaseView from '@/views/user/memora/projects/collections/CollectionPhase.vue'
 import SelectionsListView from '@/views/user/memora/selections/Selections.vue'
@@ -89,6 +90,14 @@ export const memoraRoutes = [
     path: '/memora/photos/starred',
     name: 'starredMedias',
     component: StarredMediaView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/photos/featured',
+    name: 'featuredMedias',
+    component: FeaturedMediaView,
     meta: {
       requiresAuth: true,
     },
@@ -432,9 +441,9 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/collections/:uuid/activities/private-photos',
-    name: 'collectionActivitiesPrivatePhotos',
-    component: CollectionActivitiesPrivatePhotosView,
+    path: '/memora/collections/:uuid/activities/private-media',
+    name: 'collectionActivitiesPrivateMedia',
+    component: CollectionActivitiesPrivateMediaView,
     meta: {
       requiresAuth: true,
     },

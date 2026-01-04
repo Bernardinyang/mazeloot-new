@@ -19,7 +19,7 @@
             </div>
             <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
               View and manage all activities related to this collection including downloads,
-              favourites, email registrations, share links, and private photo access.
+              favourites, email registrations, share links, and private media access.
             </p>
           </div>
 
@@ -124,15 +124,15 @@
               <router-link
                 v-if="collection?.id"
                 :class="[theme.borderSecondary, theme.bgCard]"
-                :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: collection.id } }"
+                :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: collection.id } }"
                 class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-lg"
               >
                 <div class="flex items-center gap-3 mb-2">
                   <Lock class="h-5 w-5 text-teal-600 dark:text-teal-400" />
-                  <h3 :class="theme.textPrimary" class="text-base font-semibold">Private Photos</h3>
+                  <h3 :class="theme.textPrimary" class="text-base font-semibold">Private Media</h3>
                 </div>
                 <p :class="theme.textSecondary" class="text-sm">
-                  View private photo access and activity
+                  View private media access and activity
                 </p>
               </router-link>
             </div>

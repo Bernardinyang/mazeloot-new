@@ -91,6 +91,16 @@ export const MEMORA_NAVIGATION = [
     ],
   },
   {
+    title: 'Featured',
+    icon: Star,
+    items: [
+      {
+        title: 'Media',
+        name: 'featuredMedias',
+      },
+    ],
+  },
+  {
     title: 'Settings',
   },
   {

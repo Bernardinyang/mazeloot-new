@@ -12,11 +12,25 @@ export function useMediaShareDownloadActions({
   getCollectionShareLink,
   route,
   description,
+  collectionId,
+  publicMode = false,
 } = {}) {
   const handleQuickShare = async item => {
     try {
       const shareUrl = getMediaShareUrl(window.location.origin, item.id)
       await copyTextToClipboard(shareUrl)
+      
+      // Track share link click (only in public mode)
+      if (publicMode && collectionId) {
+        try {
+          const { useCollectionsApi } = await import('@/api/collections')
+          const { trackShareLinkClick } = useCollectionsApi()
+          await trackShareLinkClick(collectionId, null, shareUrl)
+        } catch (err) {
+          console.warn('Failed to track share link click:', err)
+        }
+      }
+      
       toast.success('The share link has been copied to your clipboard.')
     } catch (error) {
       toast.error('Please try again.')

@@ -18,16 +18,43 @@
             Configure your public homepage settings and preview how it will appear to visitors
           </p>
         </div>
-        <Button
-          class="bg-teal-500 hover:bg-teal-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
-          @click="handleViewSite"
-        >
-          <Globe class="h-4 w-4 mr-2" />
-          View Site
-        </Button>
+        <div class="flex items-center gap-2">
+          <Button
+            variant="outline"
+            class="border-teal-500 text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20"
+            @click="handleShare"
+          >
+            <Share2 class="h-4 w-4 mr-2" />
+            Share
+          </Button>
+          <Button
+            class="bg-teal-500 hover:bg-teal-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            @click="handleViewSite"
+          >
+            <Globe class="h-4 w-4 mr-2" />
+            View Site
+          </Button>
+        </div>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Loading State -->
+      <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="space-y-6">
+          <div v-for="i in 5" :key="i" class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/3"></div>
+            <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
+            <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+        <div class="lg:sticky lg:top-6 h-fit">
+          <div class="rounded-lg border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
+            <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/2 mb-4"></div>
+            <div class="h-[600px] bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+
+      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Left Section -->
         <div class="space-y-6">
           <!-- Homepage Status Card -->
@@ -184,6 +211,35 @@
             </div>
           </div>
 
+          <!-- Slideshow Card -->
+          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
+                  Featured Works Slideshow
+                </h3>
+                <p class="text-sm" :class="theme.textSecondary">
+                  Display featured media as a slideshow on your homepage
+                </p>
+              </div>
+              <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+                <input type="checkbox" v-model="slideshowEnabled" :disabled="isLoading" class="sr-only peer" />
+                <div
+                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                ></div>
+              </label>
+            </div>
+            <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+              Mark media as "Featured" from your collections to showcase them in a slideshow on your homepage.
+              <RouterLink
+                :to="{ name: 'featuredMedias' }"
+                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+              >
+                Manage Featured Media
+              </RouterLink>
+            </p>
+          </div>
+
           <!-- Homepage Info Card -->
           <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
@@ -232,191 +288,37 @@
           <div class="rounded-lg border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between mb-4">
               <h3 class="text-base sm:text-lg font-semibold" :class="theme.textPrimary">
-                Live Preview
+                Homepage Preview
               </h3>
-              <span class="text-xs px-2 py-1 rounded-full bg-teal-500/10 text-teal-500 font-medium">
-                Live
-              </span>
             </div>
             <div
               v-if="showPreviewContent"
               class="rounded-lg border shadow-xl overflow-hidden transition-all duration-300 hover:shadow-2xl max-w-full"
               :class="[theme.bgCardSolid, theme.borderCard]"
             >
-              <!-- Preview Header -->
-              <div
-                class="p-3 sm:p-4 border-b flex items-center justify-between"
-                :class="[theme.bgCard, theme.borderSecondary]"
-              >
-                <div class="flex items-center gap-1.5 sm:gap-2">
-                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500"></div>
-                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-yellow-500"></div>
-                  <div class="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-green-500"></div>
-                </div>
-                <div class="flex items-center gap-2 sm:gap-3">
-                  <template v-if="homepageInfo.includes('socialLinks') && isLoadingSocialLinks">
-                    <div
-                      v-for="i in 4"
-                      :key="i"
-                      :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded animate-pulse', theme.bgSkeleton]"
-                    ></div>
-                  </template>
-                  <template v-else-if="homepageInfo.includes('socialLinks') && socialLinks.length > 0">
-                    <a
-                      v-for="link in socialLinks.filter(l => l.isActive).slice(0, 4)"
-                      :key="link.id"
-                      :href="link.url"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      :class="[
-                        'h-3.5 w-3.5 sm:h-4 sm:w-4 hover:opacity-80 transition-opacity',
-                        theme.textTertiary,
-                      ]"
-                    >
-                      <Globe v-if="!link.platform" class="h-full w-full" />
-                      <component
-                        v-else-if="link.platform.slug === 'facebook'"
-                        :is="Facebook"
-                        class="h-full w-full"
-                      />
-                      <component
-                        v-else-if="link.platform.slug === 'instagram'"
-                        :is="Instagram"
-                        class="h-full w-full"
-                      />
-                      <Globe v-else class="h-full w-full" />
-                    </a>
-                  </template>
-                  <template v-else-if="homepageInfo.includes('socialLinks')">
-                    <div
-                      :class="['w-3.5 h-3.5 sm:w-4 sm:h-4 rounded', theme.bgSkeleton]"
-                    ></div>
-                  </template>
+              <div class="px-4 py-2 border-b flex items-center justify-between" :class="theme.borderCard">
+                <div class="flex items-center gap-2">
+                  <div
+                    class="h-2 w-2 rounded-full"
+                    :class="homepageStatus ? 'bg-green-500 animate-pulse' : 'bg-gray-400'"
+                  ></div>
+                  <span class="text-sm font-medium" :class="theme.textPrimary">
+                    {{ homepageStatus ? 'Live' : 'Not Live' }}
+                  </span>
                 </div>
               </div>
-
-              <!-- Preview Content -->
-              <div class="p-4 sm:p-6 space-y-4 sm:space-y-6" :class="theme.bgCardSolid">
-                <!-- Name -->
-                <div class="text-center space-y-2">
-                  <h2 class="text-xl sm:text-2xl font-bold" :class="theme.textPrimary">
-                    {{ displayName }}
-                  </h2>
-                  <p
-                    v-if="homepageInfo.includes('biography') && biography"
-                    class="text-xs sm:text-sm leading-relaxed max-w-full sm:max-w-md mx-auto px-2"
-                    :class="theme.textSecondary"
-                  >
-                    {{ biography }}
-                  </p>
-                  <p
-                    v-else-if="homepageInfo.includes('biography') && !biography"
-                    class="text-xs italic"
-                    :class="theme.textTertiary"
-                  >
-                    Add a biography to see it here
-                  </p>
-                </div>
-
-                <!-- Contact Info -->
-                <div
-                  v-if="
-                    homepageInfo.length > 0 &&
-                    (homepageInfo.includes('website') ||
-                      homepageInfo.includes('email') ||
-                      homepageInfo.includes('address') ||
-                      homepageInfo.includes('phone'))
-                  "
-                  class="space-y-2 sm:space-y-3 pt-2"
-                >
-                  <div
-                    v-if="homepageInfo.includes('website')"
-                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
-                    :class="theme.textSecondary"
-                  >
-                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
-                      <Globe class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
-                    </div>
-                    <span class="truncate font-medium text-xs sm:text-sm">{{ homepageUrl }}</span>
-                  </div>
-                  <div
-                    v-if="homepageInfo.includes('email')"
-                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
-                    :class="theme.textSecondary"
-                  >
-                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
-                      <Mail class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
-                    </div>
-                    <span class="text-xs sm:text-sm">email@mazeloot.com</span>
-                  </div>
-                  <div
-                    v-if="homepageInfo.includes('address')"
-                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
-                    :class="theme.textSecondary"
-                  >
-                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
-                      <MapPin class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
-                    </div>
-                    <span class="text-xs sm:text-sm">101 Main Street</span>
-                  </div>
-                  <div
-                    v-if="homepageInfo.includes('phone')"
-                    class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm hover:text-teal-600 transition-colors"
-                    :class="theme.textSecondary"
-                  >
-                    <div class="p-1 sm:p-1.5 rounded-md flex-shrink-0" :class="theme.bgCard">
-                      <Phone class="h-3.5 w-3.5 sm:h-4 sm:w-4" :class="theme.textSecondary" />
-                    </div>
-                    <span class="text-xs sm:text-sm">123-456-7890</span>
-                  </div>
-                </div>
-                <div
-                  v-else-if="
-                    !homepageInfo.includes('website') &&
-                    !homepageInfo.includes('email') &&
-                    !homepageInfo.includes('address') &&
-                    !homepageInfo.includes('phone')
-                  "
-                  class="text-center py-4"
-                >
-                  <p class="text-xs italic" :class="theme.textTertiary">
-                    Select homepage info options to see them here
-                  </p>
-                </div>
-
-                <!-- Collections Grid Preview -->
-                <div class="pt-3 sm:pt-4 border-t" :class="theme.borderSecondary">
-                  <div v-if="previewCollections.length > 0" class="grid grid-cols-2 gap-2 sm:gap-3">
-                    <div
-                      v-for="collection in previewCollections.slice(0, 6)"
-                      :key="collection.id"
-                      class="aspect-square rounded-lg overflow-hidden group cursor-pointer hover:scale-105 transition-transform duration-200"
-                    >
-                      <div class="relative w-full h-full">
-                        <img
-                          :src="collection.image"
-                          :alt="collection.title"
-                          class="w-full h-full object-cover"
-                          loading="lazy"
-                        />
-                        <div
-                          class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                        >
-                          <div class="absolute bottom-0 left-0 right-0 p-1.5 sm:p-2">
-                            <p class="text-white text-[10px] sm:text-xs font-medium truncate">
-                              {{ collection.title }}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div v-else class="text-center py-6 sm:py-8">
-                    <p class="text-xs italic" :class="theme.textTertiary">
-                      No collections to display
-                    </p>
-                  </div>
-                </div>
+              <div class="h-[600px] overflow-auto">
+                <BrandHomepagePreview
+                  :branding="previewBranding"
+                  :homepage-info="homepageInfo"
+                  :biography="biography"
+                  :social-links="socialLinks"
+                  :collections="previewCollections"
+                  :is-loading="isLoadingSocialLinks || isLoading"
+                  :contact-info="previewContactInfo"
+                  :slideshow-enabled="slideshowEnabled"
+                  :featured-media="previewFeaturedMedia"
+                />
               </div>
             </div>
             <div
@@ -471,12 +373,22 @@
         </div>
       </div>
     </div>
+
+    <!-- Share Modal -->
+    <HomepageShareModal
+      :open="showShareModal"
+      :homepage-url="homepageUrl"
+      :homepage-password="homepagePassword"
+      :brand-name="previewBranding.name"
+      :biography="biography"
+      @update:open="showShareModal = $event"
+    />
   </DashboardLayout>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check } from 'lucide-vue-next'
+import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check, Share2 } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import Input from '@/components/shadcn/input/Input.vue'
@@ -487,10 +399,16 @@ import { toast } from '@/utils/toast'
 import { generatePassword } from '@/utils/generatePassword'
 import { useSettingsApi } from '@/api/settings'
 import { useSocialLinksApi } from '@/api/socialLinks'
+import BrandHomepagePreview from '@/components/organisms/BrandHomepagePreview.vue'
+import HomepageShareModal from '@/components/organisms/HomepageShareModal.vue'
+import { useUserStore } from '@/stores/user'
+import { useRouter } from 'vue-router'
 
 const description = ''
 
 const theme = useThemeClasses()
+const router = useRouter()
+const userStore = useUserStore()
 const { fetchSettings, updateHomepage } = useSettingsApi()
 const { fetchSocialLinks } = useSocialLinksApi()
 
@@ -500,6 +418,7 @@ const homepageUrl = ref('')
 const homepagePassword = ref('')
 const biography = ref('')
 const homepageInfo = ref(['biography', 'socialLinks'])
+const slideshowEnabled = ref(false)
 
 // Social links
 const socialLinks = ref([])
@@ -508,12 +427,14 @@ const socialLinks = ref([])
 const isLoading = ref(false)
 const isSaving = ref(false)
 const isLoadingSocialLinks = ref(false)
+const showShareModal = ref(false)
 
 // Original values for change tracking
 const originalHomepageStatus = ref(true)
 const originalHomepagePassword = ref('')
 const originalBiography = ref('')
 const originalHomepageInfo = ref(['biography', 'socialLinks'])
+const originalSlideshowEnabled = ref(false)
 
 // Computed to check if there are changes
 const hasChanges = computed(() => {
@@ -521,20 +442,30 @@ const hasChanges = computed(() => {
     homepageStatus.value !== originalHomepageStatus.value ||
     homepagePassword.value !== originalHomepagePassword.value ||
     biography.value !== originalBiography.value ||
-    JSON.stringify(homepageInfo.value) !== JSON.stringify(originalHomepageInfo.value)
+    JSON.stringify(homepageInfo.value) !== JSON.stringify(originalHomepageInfo.value) ||
+    slideshowEnabled.value !== originalSlideshowEnabled.value
   )
 })
 
 // Sample collections data for preview
 const sampleCollections = ref([])
+const previewFeaturedMedia = ref([])
 
 // Computed
 const previewCollections = computed(() => sampleCollections.value)
 
-// Computed, defaulting to BERNODE)
-const displayName = computed(() => {
-  // In a real app, this would come from user profile
-  return 'BERNODE'
+// Preview branding (will be updated when settings load)
+const previewBranding = ref({
+  name: 'BERNODE',
+  logoUrl: null,
+  tagline: null,
+})
+
+// Preview contact info
+const previewContactInfo = ref({
+  email: '',
+  phone: '',
+  address: '',
 })
 
 // Computed
@@ -566,6 +497,22 @@ onMounted(async () => {
     homepagePassword.value = settings.homepage?.password || ''
     biography.value = settings.homepage?.biography || ''
     homepageInfo.value = Array.isArray(settings.homepage?.info) ? settings.homepage.info : ['biography', 'socialLinks']
+    slideshowEnabled.value = settings.homepage?.slideshowEnabled ?? false
+    
+    // Update preview branding
+    previewBranding.value = {
+      name: settings.branding?.name || 'BERNODE',
+      logoUrl: settings.branding?.logoUrl || null,
+      tagline: settings.branding?.tagline || null,
+      website: settings.branding?.website || null,
+    }
+
+    // Update preview contact info
+    previewContactInfo.value = {
+      email: settings.branding?.supportEmail || '',
+      phone: settings.branding?.supportPhone || '',
+      address: settings.branding?.location || '',
+    }
     
     // Fetch social links
     try {
@@ -576,11 +523,38 @@ onMounted(async () => {
       socialLinks.value = []
     }
 
+    // Fetch collections for preview
+    try {
+      const { useCollectionsApi } = await import('@/api/collections')
+      const { fetchCollections } = useCollectionsApi()
+      const collectionsResponse = await fetchCollections({ status: 'active', perPage: 6 })
+      sampleCollections.value = (collectionsResponse.data || []).filter(c => c.showOnHomepage !== false).slice(0, 6)
+    } catch (error) {
+      console.error('Failed to load collections for preview:', error)
+      sampleCollections.value = []
+    }
+
+    // Fetch featured media for preview
+    try {
+      const { apiClient } = await import('@/api/client')
+      const featuredResponse = await apiClient.get('/v1/memora/media/featured?per_page=10')
+      const featuredData = featuredResponse.data?.data || featuredResponse.data || []
+      previewFeaturedMedia.value = featuredData.map(item => ({
+        url: item.thumbnailUrl || item.file?.url || item.url,
+        thumbnail: item.thumbnailUrl || item.file?.url || item.url,
+        collectionName: item.mediaSet?.name || item.collection?.name || 'Featured Work',
+      }))
+    } catch (error) {
+      console.error('Failed to load featured media for preview:', error)
+      previewFeaturedMedia.value = []
+    }
+
     // Store original values after successful load
     originalHomepageStatus.value = homepageStatus.value
     originalHomepagePassword.value = homepagePassword.value
     originalBiography.value = biography.value
     originalHomepageInfo.value = [...homepageInfo.value]
+    originalSlideshowEnabled.value = slideshowEnabled.value
   } catch (error) {
     toast.error('Failed to load settings', {
       description: error.message || 'Please try again',
@@ -602,6 +576,7 @@ const handleSave = async () => {
       password: homepagePassword.value,
       biography: biography.value,
       info: Array.isArray(homepageInfo.value) ? homepageInfo.value : [],
+      slideshowEnabled: slideshowEnabled.value,
     })
 
     // Update original values after successful save
@@ -609,6 +584,7 @@ const handleSave = async () => {
     originalHomepagePassword.value = homepagePassword.value
     originalBiography.value = biography.value
     originalHomepageInfo.value = [...homepageInfo.value]
+    originalSlideshowEnabled.value = slideshowEnabled.value
 
     toast.success('Settings saved successfully')
   } catch (error) {
@@ -667,6 +643,22 @@ const handleGeneratePassword = () => {
 }
 
 const handleViewSite = () => {
-  window.open(homepageUrl.value, '_blank')
+  const currentUserId = userStore.user?.id || userStore.user?.uuid
+  if (currentUserId) {
+    const route = router.resolve({
+      name: 'brandHomepage',
+      query: {
+        userId: currentUserId,
+        preview: 'true',
+      },
+    })
+    window.open(route.href, '_blank')
+  } else {
+    window.open(homepageUrl.value, '_blank')
+  }
+}
+
+const handleShare = () => {
+  showShareModal.value = true
 }
 </script>

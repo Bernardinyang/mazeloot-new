@@ -140,6 +140,11 @@
             v-else-if="props.item?.isStarred"
             class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400"
           />
+          <Sparkles
+            v-if="props.item?.isFeatured || props.item?.is_featured"
+            class="h-3.5 w-3.5 shrink-0 fill-purple-500 text-purple-500"
+            title="Featured"
+          />
         </div>
         <p :class="theme.textTertiary" class="text-xs mt-1">
           {{ props.subtitle }}
@@ -355,6 +360,13 @@
             >
               <Copy class="h-4 w-4 mr-2" />
               Copy filenames
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @select.prevent="emit('toggle-featured')"
+            >
+              <Star :class="['h-4 w-4 mr-2', (props.item?.isFeatured || props.item?.is_featured) ? 'fill-yellow-400 text-yellow-400' : '']" />
+              {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -587,6 +599,7 @@ import {
   Square,
   Star,
   Heart,
+  Sparkles,
   Trash2,
   X,
   Upload,
@@ -923,6 +936,7 @@ const emit = defineEmits([
   'replace',
   'remove-watermark',
   'watermark',
+  'toggle-featured',
   'request-closure',
   'view-closure-history',
   'delete',

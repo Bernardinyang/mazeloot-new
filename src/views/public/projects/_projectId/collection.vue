@@ -1,7 +1,46 @@
 <template>
-  <div class="min-h-screen bg-gray-50 dark:bg-gray-950">
+  <div 
+    class="min-h-screen bg-gray-50 dark:bg-gray-950 relative"
+    :style="coverPhotoStyle"
+  >
+    <!-- Cover Photo Background Overlay -->
+    <div
+      v-if="coverPhotoUrl"
+      class="fixed inset-0 z-0"
+    >
+      <!-- Cover Image -->
+      <img
+        v-if="!isVideoCover"
+        :src="coverPhotoUrl"
+        :alt="collection?.name || 'Collection Cover'"
+        class="w-full h-full object-cover"
+      />
+      <!-- Cover Video -->
+      <video
+        v-else
+        :src="coverPhotoUrl"
+        autoplay
+        loop
+        muted
+        playsinline
+        class="w-full h-full object-cover"
+      />
+      <div class="absolute inset-0 bg-black/20"></div>
+    </div>
+
+    <!-- Preview Mode Banner -->
+    <div
+      v-if="isPreviewMode && isAuthenticatedOwner"
+      class="sticky top-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+    >
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-center gap-2">
+        <Eye class="h-4 w-4" />
+        <span class="text-sm font-semibold">Preview Mode - You are viewing this collection as it will appear to visitors</span>
+      </div>
+    </div>
+    
     <!-- Initial Loading State with Skeleton -->
-    <div v-if="isLoading && !collection && !hasPassword && !showEmailModal" class="min-h-screen">
+    <div v-if="isLoading && !collection && !hasPassword && !showEmailModal && !showGuestClientModal && !showClientEmailModal && !showClientPasswordModal" class="min-h-screen">
       <div class="container mx-auto px-4 py-8">
         <!-- Header Skeleton -->
         <div class="mb-8">
@@ -21,43 +60,231 @@
       </div>
     </div>
 
-    <!-- Email Registration Modal -->
-    <Dialog v-if="showEmailModal && !isAuthenticatedOwner && !isPreviewMode" :open="true">
-      <DialogContent :class="[theme.bgCard, theme.borderSecondary]" class="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle :class="theme.textPrimary" class="text-xl font-bold">
+    <!-- Guest/Client Choice Modal -->
+    <Dialog v-if="showGuestClientModal && hasClientExclusiveAccess && !isAuthenticatedOwner && !isPreviewMode" :open="true">
+      <!-- Branding Logo Above Modal -->
+      <div class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+        <img
+          :src="brandingLogoUrl || mazelootLogo"
+          :alt="brandingName || 'Mazeloot'"
+          class="h-12 w-auto object-contain"
+        />
+      </div>
+      <!-- Mazeloot Footer at Bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+        <p class="text-xs text-center text-white/80">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[420px] p-8 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+          <DialogHeader class="text-center space-y-1 mb-8">
+            <DialogTitle :class="theme.textPrimary" class="text-2xl text-center font-serif tracking-wide">
+              {{ collection?.name?.toUpperCase() || 'COLLECTION' }}
+            </DialogTitle>
+            <DialogDescription :class="theme.textSecondary" class="text-sm text-center font-sans">
+              {{ brandingName || 'MAZELOOT' }}
+            </DialogDescription>
+          </DialogHeader>
+
+        <p :class="theme.textSecondary" class="text-sm text-center mb-8">
+          Welcome. Choose one to continue:
+        </p>
+
+        <div class="space-y-3">
+          <Button
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary, 'w-full h-12 text-sm font-light border hover:bg-transparent']"
+            @click="handleSelectGuest"
+          >
+            ENTER AS GUEST
+          </Button>
+          <Button
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary, 'w-full h-12 text-sm font-light border hover:bg-transparent']"
+            @click="handleSelectClient"
+          >
+            ENTER AS CLIENT
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Client Email Modal -->
+    <Dialog v-if="showClientEmailModal && userMode === 'client' && requiresClientEmail && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientEmailModal = false; emailInput = ''; emailError = '' } }">
+      <!-- Mazeloot Footer at Bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+        <p class="text-xs text-center text-white/80">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+        <DialogHeader class="text-center pb-2">
+          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Email Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
-            Please enter your email address to access this collection.
+          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+            Please enter your email address to continue as a client
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-4 mt-6">
+        <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Email Address </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Email Address </label>
             <Input
               v-model="emailInput"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              :class="[theme.bgInput, theme.borderInput, theme.textInput, emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
               :disabled="isSubmittingEmail"
-              class="w-full"
+              class="w-full h-11"
+              placeholder="your.email@example.com"
+              type="email"
+              @keydown.enter="handleSubmitClientEmail"
+            />
+            <p v-if="emailError" class="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
+              <AlertCircle class="h-3 w-3" />
+              {{ emailError }}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter class="mt-8 flex gap-3">
+          <Button
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary]"
+            class="flex-1"
+            @click="handleBackToAccessControl"
+          >
+            <ChevronLeft class="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <Button
+            :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
+            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            @click="handleSubmitClientEmail"
+          >
+            <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
+            {{ isSubmittingEmail ? 'Submitting...' : 'Continue' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Client Password Modal -->
+    <Dialog v-if="showClientPasswordModal && userMode === 'client' && !isClientVerified && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientPasswordModal = false; clientPasswordInput = ''; clientPasswordError = '' } }">
+      <!-- Mazeloot Footer at Bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+        <p class="text-xs text-center text-white/80">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+        <DialogHeader class="text-center pb-2">
+          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+            Client Password Required
+          </DialogTitle>
+          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+            Enter the client password to access exclusive content
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-5 mt-6">
+          <div class="space-y-2">
+            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Client Password </label>
+            <PasswordInput
+              v-model="clientPasswordInput"
+              :input-class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+                clientPasswordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
+                'w-full h-11 transition-all',
+              ]"
+              :disabled="isVerifyingClientPassword"
+              placeholder="Enter client password"
+              @keydown.enter="handleVerifyClientPassword"
+            />
+            <p v-if="clientPasswordError" class="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
+              <AlertCircle class="h-3 w-3" />
+              {{ clientPasswordError }}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter class="mt-8 flex gap-3">
+          <Button
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary]"
+            class="flex-1"
+            @click="handleBackToAccessControl"
+          >
+            <ChevronLeft class="h-4 w-4 mr-2" />
+            Back
+          </Button>
+          <Button
+            :disabled="isVerifyingClientPassword || !clientPasswordInput"
+            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            @click="handleVerifyClientPassword"
+          >
+            <Loader2 v-if="isVerifyingClientPassword" class="h-4 w-4 mr-2 animate-spin" />
+            {{ isVerifyingClientPassword ? 'Verifying...' : 'Continue' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Email Registration Modal -->
+    <Dialog v-if="showEmailModal && !isAuthenticatedOwner && !isPreviewMode && userMode !== 'client'" :open="true" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
+      <!-- Mazeloot Footer at Bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+        <p class="text-xs text-center text-white/80">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+        <DialogHeader class="text-center pb-2">
+          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+            Email Required
+          </DialogTitle>
+          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+            Please enter your email address to access this collection
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-5 mt-6">
+          <div class="space-y-2">
+            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Email Address </label>
+            <Input
+              v-model="emailInput"
+              :class="[theme.bgInput, theme.borderInput, theme.textInput, emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
+              :disabled="isSubmittingEmail"
+              class="w-full h-11"
               placeholder="your.email@example.com"
               type="email"
               @keydown.enter="handleSubmitEmail"
             />
-            <p v-if="emailError" class="text-xs text-red-600 dark:text-red-400">
+            <p v-if="emailError" class="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
+              <AlertCircle class="h-3 w-3" />
               {{ emailError }}
             </p>
-            <p :class="theme.textSecondary" class="text-xs">
+            <p :class="theme.textSecondary" class="text-xs mt-1">
               Your email will be used to access this collection.
             </p>
           </div>
         </div>
 
-        <DialogFooter class="mt-6">
+        <DialogFooter class="mt-8 flex gap-3">
+          <Button
+            v-if="hasClientExclusiveAccess"
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary]"
+            class="flex-1"
+            @click="handleBackToAccessControl"
+          >
+            <ChevronLeft class="h-4 w-4 mr-2" />
+            Back
+          </Button>
           <Button
             :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
-            class="bg-teal-500 hover:bg-teal-600 text-white"
+            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleSubmitEmail"
           >
             <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
@@ -68,42 +295,69 @@
     </Dialog>
 
     <!-- Password Protection Modal (must come before error state, after email if required) -->
-    <Dialog v-if="hasPassword && !isPasswordVerified && !guestToken && !isAuthenticatedOwner && !showEmailModal && !isLoading && (!emailRegistrationRequired || userEmail)" :open="true" @update:open="(val) => { if (!val && hasPassword && !isPasswordVerified && !guestToken) { passwordInput = ''; passwordError = '' } }">
-      <DialogContent :class="[theme.bgCard, theme.borderSecondary]" class="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle :class="theme.textPrimary" class="text-xl font-bold">
+    <!-- Don't show password modal for clients - they use client password instead -->
+    <Dialog v-if="hasPassword && !isPasswordVerified && !guestToken && !isAuthenticatedOwner && !showEmailModal && !isLoading && (!emailRegistrationRequired || userEmail) && userMode !== 'client'" :open="true" @update:open="(val) => { if (!val && hasPassword && !isPasswordVerified && !guestToken) { passwordInput = ''; passwordError = '' } }" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
+      <!-- Branding Logo Above Modal -->
+      <div class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+        <img
+          :src="brandingLogoUrl || mazelootLogo"
+          :alt="brandingName || 'Mazeloot'"
+          class="h-12 w-auto object-contain"
+        />
+      </div>
+      <!-- Mazeloot Footer at Bottom -->
+      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+        <p class="text-xs text-center text-white/80">
+          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        </p>
+      </div>
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+        <DialogHeader class="text-center pb-2">
+          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Password Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
+          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
             This collection is password protected. Please enter the password to continue.
           </DialogDescription>
         </DialogHeader>
 
-        <div class="space-y-4 mt-6">
+        <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold"> Password </label>
+            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Password </label>
             <PasswordInput
               v-model="passwordInput"
               :input-class="[
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                'w-full focus:ring-2 focus:ring-teal-500/20 transition-all',
+                passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
+                'w-full h-11 transition-all',
               ]"
               :disabled="isVerifyingPassword"
               placeholder="Enter password"
               @keydown.enter="handleVerifyPassword"
             />
-            <p v-if="passwordError" class="text-xs text-red-600 dark:text-red-400">
+            <p v-if="passwordError" class="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
+              <AlertCircle class="h-3 w-3" />
               {{ passwordError }}
             </p>
           </div>
         </div>
 
-        <DialogFooter class="mt-6">
+        <DialogFooter class="mt-8 flex gap-3">
+          <Button
+            v-if="hasClientExclusiveAccess"
+            variant="outline"
+            :class="[theme.borderSecondary, theme.textPrimary]"
+            class="flex-1"
+            @click="handleBackToAccessControl"
+          >
+            <ChevronLeft class="h-4 w-4 mr-2" />
+            Back
+          </Button>
           <Button
             :disabled="isVerifyingPassword || !passwordInput"
-            class="bg-teal-500 hover:bg-teal-600 text-white"
+            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleVerifyPassword"
           >
             <Loader2 v-if="isVerifyingPassword" class="h-4 w-4 mr-2 animate-spin" />
@@ -114,54 +368,64 @@
     </Dialog>
 
     <!-- Error State -->
-    <div v-else-if="error && !collection && !hasPassword && !showEmailModal" class="flex items-center justify-center min-h-screen">
-      <div class="text-center max-w-md px-4">
-        <AlertCircle class="h-12 w-12 mx-auto mb-4 text-red-500" />
-        <h2 class="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">{{ errorTitle }}</h2>
-        <p class="text-sm text-gray-600 dark:text-gray-400">{{ errorMessage }}</p>
+    <div v-else-if="error && !collection && !hasPassword && !showEmailModal" class="flex items-center justify-center min-h-screen bg-gray-50 dark:bg-gray-950 px-4">
+      <div class="text-center max-w-md">
+        <div class="mx-auto mb-6 w-20 h-20 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center">
+          <AlertCircle class="h-10 w-10 text-red-600 dark:text-red-400" />
+        </div>
+        <h2 :class="theme.textPrimary" class="text-2xl font-bold mb-3">{{ errorTitle }}</h2>
+        <p :class="theme.textSecondary" class="text-sm leading-relaxed">{{ errorMessage }}</p>
       </div>
     </div>
 
     <!-- Collection Preview -->
     <div
-      v-else-if="collection && (isPasswordVerified || guestToken || !hasPassword || isAuthenticatedOwner) && !showEmailModal"
+      v-else-if="collection && (isPasswordVerified || guestToken || !hasPassword || isAuthenticatedOwner || (userMode === 'client' && isClientVerified)) && !showEmailModal && !showGuestClientModal && !showClientEmailModal && !showClientPasswordModal && !isLoading"
       class="relative"
     >
       <!-- Download PIN Modal -->
       <Dialog v-if="showDownloadPinModal && requiresDownloadPin && !isDownloadPinVerified && !isAuthenticatedOwner" :open="showDownloadPinModal" @update:open="(val) => { if (!val) { showDownloadPinModal = false; downloadPinInput = ''; downloadPinError = '' } }">
-        <DialogContent :class="[theme.bgCard, theme.borderSecondary]" class="sm:max-w-[420px]">
-          <DialogHeader>
-            <DialogTitle :class="theme.textPrimary" class="text-xl font-bold">
+        <!-- Mazeloot Footer at Bottom -->
+        <div class="fixed bottom-0 left-0 right-0 z-[60] py-4">
+          <p :class="theme.textSecondary" class="text-xs text-center">
+            © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+          </p>
+        </div>
+        <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl">
+          <DialogHeader class="text-center pb-2">
+            <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
               Download PIN Required
             </DialogTitle>
-            <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
-              Please enter the 4-digit download PIN to download media from this collection.
+            <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+              Please enter the 4-digit download PIN to download media from this collection
             </DialogDescription>
           </DialogHeader>
 
-          <div class="space-y-4 mt-6">
-            <div class="space-y-2">
+          <div class="space-y-5 mt-6">
+            <div class="space-y-3">
               <PinInput
                 v-model="downloadPinInput"
                 :input-class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
+                  downloadPinError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
                 ]"
                 :disabled="isVerifyingDownloadPin"
                 :length="4"
                 @complete="handleVerifyDownloadPin"
               />
-              <p v-if="downloadPinError" class="text-xs text-red-600 dark:text-red-400 text-center">
+              <p v-if="downloadPinError" class="text-xs text-red-600 dark:text-red-400 text-center flex items-center justify-center gap-1">
+                <AlertCircle class="h-3 w-3" />
                 {{ downloadPinError }}
               </p>
             </div>
           </div>
 
-          <DialogFooter class="mt-6">
+          <DialogFooter class="mt-8">
             <Button
               :disabled="isVerifyingDownloadPin || !downloadPinInput || downloadPinInput.length !== 4"
-              class="bg-teal-500 hover:bg-teal-600 text-white w-full"
+              class="bg-teal-500 hover:bg-teal-600 text-white w-full h-11 shadow-md hover:shadow-lg transition-all"
               @click="handleVerifyDownloadPin"
             >
               <Loader2 v-if="isVerifyingDownloadPin" class="h-4 w-4 mr-2 animate-spin" />
@@ -171,14 +435,16 @@
         </DialogContent>
       </Dialog>
 
-      <!-- Loading Overlay for Media -->
+      <!-- Loading Overlay for Collection/Media -->
       <div
-        v-if="isLoadingMedia"
+        v-if="isLoading || isLoadingMedia || isOpeningMediaLightbox"
         class="fixed inset-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm z-50 flex items-center justify-center"
       >
         <div class="flex flex-col items-center gap-3">
           <Loader2 class="h-8 w-8 animate-spin text-teal-500" />
-          <p class="text-sm text-gray-600 dark:text-gray-400">Loading media...</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            {{ isOpeningMediaLightbox ? 'Opening media...' : isLoading ? 'Loading collection...' : 'Loading media...' }}
+          </p>
         </div>
       </div>
 
@@ -190,17 +456,21 @@
         :preview-branding="{ logoUrl: brandingLogoUrl, name: brandingName }"
         :preview-is-loading="isLoadingMedia"
         :downloading-media-ids="downloadingMediaIds"
+        :is-client-verified="isClientVerified"
+        :user-mode="userMode"
+        :disable-actions="isPreviewMode"
         @tab-change="handleTabChange"
         @download="handleDownloadMedia"
+        @logout="handleLogout"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
-import { Loader2, AlertCircle } from 'lucide-vue-next'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Loader2, AlertCircle, ChevronLeft, Mail, Lock, Shield, User, Users, Eye } from 'lucide-vue-next'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
@@ -215,10 +485,14 @@ import { useUserStore } from '@/stores/user'
 import { toast } from '@/utils/toast'
 import { addDefaultSettings } from '@/api/collections'
 import { useSettingsApi } from '@/api/settings'
+import { clearCollectionGuestData } from '@/utils/guestLogout'
+import mazelootLogo from '@/assets/images/mazeloot.svg'
+import { getColorPalettes } from '@/utils/colors'
 
 const { fetchSettings, fetchPublicSettings } = useSettingsApi()
 
 const route = useRoute()
+const router = useRouter()
 const theme = useThemeClasses()
 const userStore = useUserStore()
 
@@ -227,8 +501,33 @@ const media = ref([])
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
 const collectionPreviewRef = ref(null)
+
+const coverPhotoUrl = computed(() => {
+  return collection.value?.coverPhotoUrl || 
+         collection.value?.cover_photo_url || 
+         collection.value?.image || 
+         collection.value?.thumbnail ||
+         (media.value && media.value.length > 0 ? media.value[0]?.url : null)
+})
+
+const isVideoCover = computed(() => {
+  if (!coverPhotoUrl.value) return false
+  const videoExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv']
+  return videoExtensions.some(ext => coverPhotoUrl.value.toLowerCase().includes(ext))
+})
+
+const coverPhotoStyle = computed(() => {
+  if (!coverPhotoUrl.value || isVideoCover.value) return {}
+  return {
+    backgroundImage: `url(${coverPhotoUrl.value})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+  }
+})
 const isLoading = ref(true)
 const isLoadingMedia = ref(false)
+const isOpeningMediaLightbox = ref(false)
 const error = ref(null)
 const hasPassword = ref(false)
 const isPasswordVerified = ref(false)
@@ -250,6 +549,16 @@ const downloadPinError = ref('')
 const showDownloadPinModal = ref(false)
 const downloadingMediaIds = ref(new Set())
 const pendingDownloadItem = ref(null)
+const userMode = ref(null) // 'guest' | 'client' | null
+const showGuestClientModal = ref(false)
+const isClientVerified = ref(false)
+const clientToken = ref(null)
+const showClientEmailModal = ref(false)
+const showClientPasswordModal = ref(false)
+const clientPasswordInput = ref('')
+const isVerifyingClientPassword = ref(false)
+const clientPasswordError = ref('')
+const clientEmail = ref('')
 
 const isAuthenticatedOwner = computed(() => {
   if (!userStore.isAuthenticated || !collection.value) return false
@@ -284,6 +593,92 @@ const requiresEmailRegistration = computed(() => {
 const requiresDownloadPin = computed(() => {
   return collection.value?.downloadPinEnabled ?? false
 })
+
+const hasClientExclusiveAccess = computed(() => {
+  return collection.value?.clientExclusiveAccess ?? false
+})
+
+const requiresClientEmail = computed(() => {
+  return collection.value?.emailRegistration ?? false
+})
+
+// Get stored user mode from localStorage
+const getStoredUserMode = (collectionId) => {
+  const stored = localStorage.getItem(`collection_${collectionId}_user_mode`)
+  if (stored) {
+    try {
+      const data = JSON.parse(stored)
+      const expiresAt = data.expiresAt
+      if (expiresAt && Date.now() < expiresAt) {
+        return data.mode // 'guest' | 'client'
+      } else {
+        // Expired, remove it
+        localStorage.removeItem(`collection_${collectionId}_user_mode`)
+      }
+    } catch (e) {
+      // Invalid data, clear it
+      localStorage.removeItem(`collection_${collectionId}_user_mode`)
+    }
+  }
+  return null
+}
+
+// Store user mode in localStorage
+const storeUserMode = (collectionId, mode) => {
+  const expiresAt = Date.now() + 30 * 60 * 1000 // 30 minutes (same as client token)
+  const data = {
+    mode,
+    expiresAt,
+  }
+  localStorage.setItem(`collection_${collectionId}_user_mode`, JSON.stringify(data))
+  userMode.value = mode
+}
+
+// Get stored client verification from localStorage
+const getStoredClientVerification = (collectionId) => {
+  const stored = localStorage.getItem(`collection_${collectionId}_client_verified`)
+  if (stored) {
+    try {
+      const data = JSON.parse(stored)
+      const expiresAt = data.expiresAt
+      if (expiresAt && Date.now() < expiresAt) {
+        isClientVerified.value = true
+        clientToken.value = data.token
+        userMode.value = 'client'
+        if (data.email) {
+          clientEmail.value = data.email
+        }
+        return true
+      } else {
+        // Expired, clear it
+        localStorage.removeItem(`collection_${collectionId}_client_verified`)
+        localStorage.removeItem(`collection_${collectionId}_user_mode`)
+      }
+    } catch (e) {
+      // Invalid data, clear it
+      localStorage.removeItem(`collection_${collectionId}_client_verified`)
+      localStorage.removeItem(`collection_${collectionId}_user_mode`)
+    }
+  }
+  return false
+}
+
+// Store client verification in localStorage
+const storeClientVerification = (collectionId, token, email = null) => {
+  const expiresAt = Date.now() + 30 * 60 * 1000 // 30 minutes
+  const data = {
+    token,
+    expiresAt,
+    email: email || null,
+  }
+  localStorage.setItem(`collection_${collectionId}_client_verified`, JSON.stringify(data))
+  isClientVerified.value = true
+  clientToken.value = token
+  userMode.value = 'client'
+  if (email) {
+    clientEmail.value = email
+  }
+}
 
 // Get stored email from localStorage
 const getStoredEmail = (collectionId) => {
@@ -344,6 +739,20 @@ const storeDownloadPin = (collectionId, pin) => {
   isDownloadPinVerified.value = true
 }
 
+// Fetch branding early
+const fetchBranding = async (collectionId) => {
+  if (!collectionId || brandingLogoUrl.value) return // Skip if already fetched
+  
+  try {
+    const settingsResponse = await fetchPublicSettings({ collectionId })
+    const settings = settingsResponse.data || settingsResponse
+    brandingLogoUrl.value = settings.branding?.logoUrl || null
+    brandingName.value = settings.branding?.name || null
+  } catch (error) {
+    console.warn('Failed to fetch public branding settings:', error)
+  }
+}
+
 // Load collection
 const loadCollection = async () => {
   isLoading.value = true
@@ -380,15 +789,8 @@ const loadCollection = async () => {
         const isOwner = userUuid && currentUserId && userUuid === currentUserId
 
         if (isOwner) {
-          // Fetch public branding settings for collection owner
-          try {
-            const settingsResponse = await fetchPublicSettings({ collectionId: collectionId })
-            const settings = settingsResponse.data || settingsResponse
-            brandingLogoUrl.value = settings.branding?.logoUrl || null
-            brandingName.value = settings.branding?.name || null
-          } catch (error) {
-            console.warn('Failed to fetch public branding settings:', error)
-          }
+          // Fetch branding if not already fetched
+          await fetchBranding(collectionId)
 
           // Normalize collection data structure
           collection.value = addDefaultSettings(collectionData)
@@ -396,9 +798,10 @@ const loadCollection = async () => {
           if (hasPassword.value) {
             isPasswordVerified.value = true
           }
-          // Load media for the first/default set
-          if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
-            await loadMediaForSet(collection.value.mediaSets[0].id)
+          // Load media for the set from route or first set
+          const setIdToLoad = getSetIdToLoad()
+          if (setIdToLoad) {
+            await loadMediaForSet(setIdToLoad)
           }
           isLoading.value = false
           return
@@ -438,9 +841,10 @@ const loadCollection = async () => {
       if (hasPassword.value) {
         isPasswordVerified.value = true
       }
-      // Load media for the first/default set
-      if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
-        await loadMediaForSet(collection.value.mediaSets[0].id)
+      // Load media for the set from route or first set
+      const setIdToLoad = getSetIdToLoad()
+      if (setIdToLoad) {
+        await loadMediaForSet(setIdToLoad)
       }
       isLoading.value = false
       return
@@ -453,27 +857,101 @@ const loadCollection = async () => {
       )
     }
 
-    // If draft and owner, allow preview
+    // If draft and owner, allow preview (use public API unless in preview mode)
     if (statusCheck.status === 'draft' && statusCheck.isOwner === true) {
-      const response = await apiClient.get(`/v1/memora/collections/${collectionId}`)
-      const collectionData = response.data?.data || response.data
-      // Normalize collection data structure
-      collection.value = addDefaultSettings(collectionData)
-      hasPassword.value = collection.value.collectionPasswordEnabled || statusCheck.hasPassword || false
-      if (hasPassword.value) {
-        isPasswordVerified.value = true
+      // Only use authenticated API if in preview mode
+      if (isPreviewMode.value) {
+        const response = await apiClient.get(`/v1/memora/collections/${collectionId}`)
+        const collectionData = response.data?.data || response.data
+        // Normalize collection data structure
+        collection.value = addDefaultSettings(collectionData)
+        hasPassword.value = collection.value.collectionPasswordEnabled || statusCheck.hasPassword || false
+        if (hasPassword.value) {
+          isPasswordVerified.value = true
+        }
+        // Load media for the set from route or first set
+        const setIdToLoad = getSetIdToLoad()
+        if (setIdToLoad) {
+          await loadMediaForSet(setIdToLoad)
+        }
+        isLoading.value = false
+        return
+      } else {
+        // For draft collections accessed normally (not preview), use public API
+        const response = await apiClient.get(`/v1/public/collections/${collectionId}`)
+        const collectionData = response.data?.data || response.data
+        collection.value = addDefaultSettings(collectionData)
+        hasPassword.value = collection.value.collectionPasswordEnabled || statusCheck.hasPassword || false
+        if (hasPassword.value) {
+          isPasswordVerified.value = true
+        }
+        const setIdToLoad = getSetIdToLoad()
+        if (setIdToLoad) {
+          await loadMediaForSet(setIdToLoad)
+        }
+        isLoading.value = false
+        return
       }
-      // Load media for the first/default set
-      if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
-        await loadMediaForSet(collection.value.mediaSets[0].id)
-      }
-      isLoading.value = false
-      return
     }
 
     // Load collection from public API
     hasPassword.value = statusCheck.hasPassword || false
     emailRegistrationRequired.value = statusCheck.emailRegistration || false
+
+    // Check for stored user mode and client verification
+    const storedUserMode = getStoredUserMode(collectionId)
+    const hasStoredClientVerification = getStoredClientVerification(collectionId)
+    const storedGuestToken = getStoredGuestToken(collectionId)
+    
+    // If we have a stored user mode, use it
+    if (storedUserMode && !userMode.value) {
+      userMode.value = storedUserMode
+    } else if (storedGuestToken && !userMode.value && !hasStoredClientVerification) {
+      // If we have a guest token but no stored mode, assume guest mode
+      userMode.value = 'guest'
+    }
+    
+    // Fetch collection to check for clientExclusiveAccess
+    // If in preview mode and authenticated owner, use authenticated API
+    try {
+      let tempResponse
+      if (statusCheck.isOwner === true && userStore.isAuthenticated && isPreviewMode.value) {
+        tempResponse = await apiClient.get(`/v1/memora/collections/${collectionId}`)
+      } else {
+        tempResponse = await apiClient.get(`/v1/public/collections/${collectionId}`)
+      }
+      const tempCollectionData = tempResponse.data?.data || tempResponse.data
+      const tempCollection = addDefaultSettings(tempCollectionData)
+      
+      // Set collection early so computed properties can access it
+      collection.value = tempCollection
+      
+      // Check if client exclusive access is enabled
+      if (tempCollection.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+        // If user hasn't selected a mode yet and no stored mode, show guest/client modal
+        if (!userMode.value && !storedUserMode && !hasStoredClientVerification) {
+          error.value = null
+          isLoading.value = false
+          showGuestClientModal.value = true
+          return
+        }
+        
+        // If user selected client but not verified, show client password modal
+        if (userMode.value === 'client' && !isClientVerified.value) {
+          if (requiresClientEmail.value && !clientEmail.value) {
+            showClientEmailModal.value = true
+          } else {
+            showClientPasswordModal.value = true
+          }
+          error.value = null
+          isLoading.value = false
+          return
+        }
+      }
+    } catch (tempErr) {
+      // Continue with normal flow if this fails
+      console.warn('Failed to check client exclusive access:', tempErr)
+    }
 
     // If we have a guest token and password is required, try to fetch collection with token
     if (hasPassword.value && guestToken.value && !isAuthenticatedOwner.value && !isPreviewMode.value) {
@@ -498,7 +976,8 @@ const loadCollection = async () => {
     }
 
     // Check for password requirement (no valid token)
-    if (hasPassword.value && !guestToken.value && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+    // Don't require collection password for clients - they use client password instead
+    if (hasPassword.value && !guestToken.value && !isAuthenticatedOwner.value && !isPreviewMode.value && userMode.value !== 'client') {
       // Check if email registration is required before password
       if (emailRegistrationRequired.value) {
         const storedEmail = getStoredEmail(collectionId)
@@ -561,6 +1040,27 @@ const loadCollection = async () => {
 const fetchCollection = async () => {
   try {
     const collectionId = route.query.collectionId
+    
+    // If in preview mode and authenticated owner, use authenticated API
+    if (isPreviewMode.value && isAuthenticatedOwner.value) {
+      const response = await apiClient.get(`/v1/memora/collections/${collectionId}`)
+      const collectionData = response.data?.data || response.data
+      collection.value = addDefaultSettings(collectionData)
+      
+      // Fetch branding if not already fetched
+      await fetchBranding(collectionId)
+      
+      // Load media for the set from route or first set
+      const setIdToLoad = getSetIdToLoad()
+      if (setIdToLoad) {
+        await loadMediaForSet(setIdToLoad)
+      }
+      
+      isLoading.value = false
+      return
+    }
+    
+    // For public access, use public API
     const headers = {}
 
     // Use guest token if available, otherwise use password header
@@ -569,16 +1069,20 @@ const fetchCollection = async () => {
     } else if (isPasswordVerified.value && passwordInput.value) {
       headers['X-Collection-Password'] = passwordInput.value
     }
-
-    // Fetch public branding settings for collection owner
-    try {
-      const settingsResponse = await fetchPublicSettings({ collectionId: route.query.collectionId })
-      const settings = settingsResponse.data || settingsResponse
-      brandingLogoUrl.value = settings.branding?.logoUrl || null
-      brandingName.value = settings.branding?.name || null
-    } catch (error) {
-      console.warn('Failed to fetch public branding settings:', error)
+    
+    // Include client token if verified
+    if (clientToken.value) {
+      headers['X-Guest-Token'] = clientToken.value
+      headers['Authorization'] = `Bearer ${clientToken.value}`
     }
+    
+    // Include client email if available
+    if (clientEmail.value) {
+      headers['X-Collection-Email'] = clientEmail.value
+    }
+
+    // Fetch branding if not already fetched
+    await fetchBranding(collectionId)
 
     const response = await apiClient.get(`/v1/public/collections/${collectionId}`, { headers })
     const collectionData = response.data?.data || response.data
@@ -590,8 +1094,8 @@ const fetchCollection = async () => {
       hasPassword.value = collection.value.collectionPasswordEnabled
     }
 
-    // Check if email registration is required
-    if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+    // Check if email registration is required (skip for clients - they already provided email)
+    if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value && userMode.value !== 'client') {
       const storedEmail = getStoredEmail(collectionId)
       if (!storedEmail) {
         showEmailModal.value = true
@@ -612,11 +1116,36 @@ const fetchCollection = async () => {
           return
         }
       }
+      
+      // Track email registration to update last access (updated_at)
+      if (collectionId && storedEmail) {
+        try {
+          const { useCollectionsApi } = await import('@/api/collections')
+          const { trackEmailRegistration } = useCollectionsApi()
+          await trackEmailRegistration(collectionId, storedEmail, null)
+        } catch (err) {
+          // Don't fail if tracking fails
+          console.warn('Failed to track email registration:', err)
+        }
+      }
     }
     
-    // Load media for the first/default set
-    if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
-      await loadMediaForSet(collection.value.mediaSets[0].id)
+    // Track email registration for client mode
+    if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value && userMode.value === 'client' && clientEmail.value) {
+      try {
+        const { useCollectionsApi } = await import('@/api/collections')
+        const { trackEmailRegistration } = useCollectionsApi()
+        await trackEmailRegistration(collectionId, clientEmail.value, null)
+      } catch (err) {
+        // Don't fail if tracking fails
+        console.warn('Failed to track email registration:', err)
+      }
+    }
+    
+    // Load media for the set from route or first set
+    const setIdToLoad = getSetIdToLoad()
+    if (setIdToLoad) {
+      await loadMediaForSet(setIdToLoad)
     }
     
     isLoading.value = false
@@ -626,6 +1155,13 @@ const fetchCollection = async () => {
     
     if (errorStatus === 401) {
       // Password required or incorrect password
+      // Don't show password modal for clients - they use client password instead
+      if (userMode.value === 'client') {
+        // For clients, if we get 401, it might be client verification issue
+        // Don't show collection password modal
+        throw err
+      }
+      
       const errorMessage = err?.message || err?.response?.data?.message || ''
       const errorCode = err?.code || err?.response?.data?.code || ''
       
@@ -663,13 +1199,47 @@ const fetchCollection = async () => {
   }
 }
 
+const getSetIdToLoad = () => {
+  const setIdFromRoute = route.query.setId
+  if (setIdFromRoute && collection.value?.mediaSets) {
+    const matchingSet = collection.value.mediaSets.find(s => String(s.id) === String(setIdFromRoute))
+    if (matchingSet) {
+      return matchingSet.id
+    }
+  }
+  // Fallback to first set
+  if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
+    return collection.value.mediaSets[0].id
+  }
+  return null
+}
+
 const loadMediaForSet = async (setId) => {
   isLoadingMedia.value = true
   try {
     const collectionId = route.query.collectionId
+    
+    // If in preview mode and authenticated owner, use authenticated API
+    if (isPreviewMode.value && isAuthenticatedOwner.value) {
+      const response = await apiClient.get(`/v1/memora/collections/${collectionId}/sets/${setId}/media`)
+      const mediaData = response.data?.data || response.data
+      media.value = Array.isArray(mediaData) ? mediaData : []
+      return
+    }
+    
+    // For public access, use public API
     const headers = {}
     if (guestToken.value) {
       headers['Authorization'] = `Bearer ${guestToken.value}`
+    }
+    // Include client token if verified
+    if (clientToken.value) {
+      headers['X-Guest-Token'] = clientToken.value
+      headers['Authorization'] = `Bearer ${clientToken.value}`
+    }
+    // Include client email if available
+    if (clientEmail.value) {
+      headers['X-Collection-Email'] = clientEmail.value
     }
     const response = await apiClient.get(`/v1/public/collections/${collectionId}/sets/${setId}/media`, { headers })
     const mediaData = response.data?.data || response.data
@@ -685,8 +1255,15 @@ const loadMediaForSet = async (setId) => {
   }
 }
 
-const handleTabChange = async ({ setId }) => {
+const handleTabChange = async ({ setId, tab }) => {
   if (setId) {
+    router.replace({
+      query: {
+        ...route.query,
+        setId: setId,
+        set: tab || undefined,
+      },
+    })
     await loadMediaForSet(setId)
   }
 }
@@ -715,8 +1292,21 @@ const handleSubmitEmail = async () => {
       }
     }
 
+    // Track email registration first (before storing, so it happens even if other operations fail)
+    if (collectionId) {
+      try {
+        const { useCollectionsApi } = await import('@/api/collections')
+        const { trackEmailRegistration } = useCollectionsApi()
+        await trackEmailRegistration(collectionId, email, null)
+      } catch (err) {
+        // Don't fail if tracking fails
+        console.warn('Failed to track email registration:', err)
+      }
+    }
+    
     // Store email
     storeEmail(collectionId, email)
+    
     showEmailModal.value = false
     emailInput.value = ''
 
@@ -844,8 +1434,172 @@ const handleVerifyDownloadPin = async () => {
   }
 }
 
+const handleBackToAccessControl = () => {
+  const collectionId = route.query.collectionId
+  
+  // Clear all modal states
+  showClientEmailModal.value = false
+  showClientPasswordModal.value = false
+  showEmailModal.value = false
+  
+  // Clear input fields
+  emailInput.value = ''
+  emailError.value = ''
+  clientPasswordInput.value = ''
+  clientPasswordError.value = ''
+  passwordInput.value = ''
+  passwordError.value = ''
+  clientEmail.value = ''
+  
+  // Clear user mode from localStorage
+  if (collectionId) {
+    localStorage.removeItem(`collection_${collectionId}_user_mode`)
+  }
+  
+  // Reset user mode
+  userMode.value = null
+  
+  // Show guest/client selection modal again
+  if (hasClientExclusiveAccess.value) {
+    showGuestClientModal.value = true
+  }
+}
+
+const handleSelectGuest = () => {
+  const collectionId = route.query.collectionId
+  storeUserMode(collectionId, 'guest')
+  showGuestClientModal.value = false
+  isLoading.value = true
+  // Continue with normal flow - no client password needed
+  fetchCollection()
+}
+
+const handleSelectClient = () => {
+  const collectionId = route.query.collectionId
+  storeUserMode(collectionId, 'client')
+  showGuestClientModal.value = false
+  
+  // If email registration is required, show email modal first
+  if (requiresClientEmail.value) {
+    showClientEmailModal.value = true
+  } else {
+    // Otherwise, go straight to client password
+    showClientPasswordModal.value = true
+  }
+}
+
+const handleSubmitClientEmail = async () => {
+  if (!isValidEmail.value || !emailInput.value) {
+    emailError.value = 'Please enter a valid email address'
+    return
+  }
+
+  isSubmittingEmail.value = true
+  emailError.value = ''
+
+  try {
+    const collectionId = route.query.collectionId
+    const email = emailInput.value.trim().toLowerCase()
+    clientEmail.value = email
+    
+    // Track email registration (will update updated_at if exists)
+    if (collectionId) {
+      try {
+        const { useCollectionsApi } = await import('@/api/collections')
+        const { trackEmailRegistration } = useCollectionsApi()
+        await trackEmailRegistration(collectionId, email, null)
+      } catch (err) {
+        // Don't fail if tracking fails
+        console.warn('Failed to track email registration:', err)
+      }
+    }
+    
+    showClientEmailModal.value = false
+    emailInput.value = ''
+    
+    // Now show client password modal
+    showClientPasswordModal.value = true
+  } catch (err) {
+    const errorMessage = err?.message || err?.response?.data?.message || 'Failed to submit email. Please try again.'
+    emailError.value = errorMessage
+  } finally {
+    isSubmittingEmail.value = false
+  }
+}
+
+const handleVerifyClientPassword = async () => {
+  if (!clientPasswordInput.value) return
+
+  isVerifyingClientPassword.value = true
+  clientPasswordError.value = ''
+
+  try {
+    const collectionId = route.query.collectionId
+    const payload = {
+      password: clientPasswordInput.value,
+    }
+    
+    // Include email if provided
+    if (clientEmail.value) {
+      payload.email = clientEmail.value
+    }
+
+    const response = await apiClient.post(`/v1/public/collections/${collectionId}/verify-client-password`, payload)
+
+    const verified = response.data?.verified ?? false
+    const token = response.data?.token
+
+    if (verified && token) {
+      // Store client verification
+      storeClientVerification(collectionId, token, clientEmail.value)
+      isClientVerified.value = true
+      clientToken.value = token
+      showClientPasswordModal.value = false
+      showClientEmailModal.value = false
+      showGuestClientModal.value = false
+      clientPasswordInput.value = ''
+      
+      // Show loading state
+      isLoading.value = true
+      
+      try {
+        // Fetch collection with client verification
+        await fetchCollection()
+        
+        // Load media for the set from route or first set
+        const setIdToLoad = getSetIdToLoad()
+        if (setIdToLoad) {
+          await loadMediaForSet(setIdToLoad)
+        }
+      } catch (fetchErr) {
+        console.error('Failed to fetch collection after client verification:', fetchErr)
+        const errorMessage = fetchErr?.message || fetchErr?.response?.data?.message || 'Failed to load collection'
+        error.value = errorMessage
+      } finally {
+        isLoading.value = false
+      }
+    } else {
+      const errorMessage = response.data?.message || 'Incorrect client password. Please try again.'
+      clientPasswordError.value = errorMessage
+      clientPasswordInput.value = ''
+    }
+  } catch (err) {
+    const errorMessage = err?.message || err?.response?.data?.message || 'Failed to verify client password. Please try again.'
+    clientPasswordError.value = errorMessage
+    clientPasswordInput.value = ''
+  } finally {
+    isVerifyingClientPassword.value = false
+  }
+}
+
 const handleDownloadMedia = async (item) => {
   if (!item || !collection.value) return
+
+  // Disable downloads in preview mode
+  if (isPreviewMode.value) {
+    toast.info('Downloads are disabled in preview mode')
+    return
+  }
 
   // Check if download is enabled
   if (!collection.value.photoDownload) {
@@ -898,18 +1652,29 @@ const handleDownloadMedia = async (item) => {
   downloadingMediaIds.value = new Set(downloadingMediaIds.value).add(mediaId)
   try {
     const collectionId = route.query.collectionId
-    const endpoint = `/v1/public/collections/${collectionId}/media/${mediaId}/download`
+    
+    // If in preview mode and authenticated owner, use authenticated API (but downloads are disabled in preview)
+    let endpoint
+    if (isPreviewMode.value && isAuthenticatedOwner.value) {
+      endpoint = `/v1/memora/collections/${collectionId}/media/${mediaId}/download`
+    } else {
+      endpoint = `/v1/public/collections/${collectionId}/media/${mediaId}/download`
+    }
+    
     const url = endpoint.startsWith('http') ? endpoint : `${API_CONFIG.API_BASE_URL}${endpoint}`
     const headers = {}
     
-    if (guestToken.value) {
-      headers['Authorization'] = `Bearer ${guestToken.value}`
-    }
-    if (userEmail.value) {
-      headers['X-Collection-Email'] = userEmail.value
-    }
-    if (isDownloadPinVerified.value && verifiedDownloadPin.value) {
-      headers['X-Download-PIN'] = verifiedDownloadPin.value
+    // Only add guest/client tokens for public API
+    if (!(isPreviewMode.value && isAuthenticatedOwner.value)) {
+      if (guestToken.value) {
+        headers['Authorization'] = `Bearer ${guestToken.value}`
+      }
+      if (userEmail.value) {
+        headers['X-Collection-Email'] = userEmail.value
+      }
+      if (isDownloadPinVerified.value && verifiedDownloadPin.value) {
+        headers['X-Download-PIN'] = verifiedDownloadPin.value
+      }
     }
     
     const response = await fetch(url, {
@@ -991,21 +1756,122 @@ const handleDownloadMedia = async (item) => {
   }
 }
 
+const handleLogout = () => {
+  const collectionId = route.query.collectionId
+  if (collectionId) {
+    clearCollectionGuestData(collectionId)
+  }
+  
+  // Reset all state
+  guestToken.value = null
+  isPasswordVerified.value = false
+  passwordInput.value = ''
+  userEmail.value = ''
+  emailInput.value = ''
+  isClientVerified.value = false
+  clientToken.value = null
+  clientEmail.value = ''
+  clientPasswordInput.value = ''
+  userMode.value = null
+  isDownloadPinVerified.value = false
+  verifiedDownloadPin.value = ''
+  downloadPinInput.value = ''
+  collection.value = null
+  media.value = []
+  
+  toast.success('Logged out successfully')
+  
+  // Reload the page to reset everything
+  window.location.reload()
+}
+
 // Watch for mediaId in URL to open lightbox
+let mediaIdCheckInterval = null
+const openMediaViewerForMediaId = (mediaId) => {
+  if (!mediaId || !collectionPreviewRef.value) return false
+  
+  try {
+    collectionPreviewRef.value.openMediaViewerById(mediaId)
+    // Clear loading state after lightbox should have opened
+    setTimeout(() => {
+      isOpeningMediaLightbox.value = false
+    }, 800)
+    return true
+  } catch (error) {
+    console.warn('Failed to open media viewer:', error)
+    isOpeningMediaLightbox.value = false
+    return false
+  }
+}
+
 watch(
-  () => [route.query.mediaId, media.value.length],
-  ([mediaId, mediaLength]) => {
-    if (mediaId && mediaLength > 0 && collectionPreviewRef.value) {
-      // Wait for next tick to ensure component is ready
-      nextTick(() => {
-        collectionPreviewRef.value?.openMediaViewerById(mediaId)
-      })
+  () => [route.query.mediaId, media.value.length, collection.value, isLoading.value, isLoadingMedia.value],
+  ([mediaId, mediaLength, collectionData, isLoadingState, isLoadingMediaState]) => {
+    // Clear any existing interval
+    if (mediaIdCheckInterval) {
+      clearInterval(mediaIdCheckInterval)
+      mediaIdCheckInterval = null
+    }
+    
+    if (mediaId && collectionData && !isLoadingState && !isLoadingMediaState) {
+      // Set loading state when mediaId is present
+      isOpeningMediaLightbox.value = true
+      
+      // Wait for media to be loaded and CollectionPreview to be ready
+      if (mediaLength > 0 && collectionPreviewRef.value) {
+        // Wait a bit more to ensure CollectionPreview has processed the media
+        setTimeout(() => {
+          if (!openMediaViewerForMediaId(mediaId)) {
+            // If first attempt failed, retry once more
+            setTimeout(() => {
+              openMediaViewerForMediaId(mediaId)
+            }, 500)
+          }
+        }, 500)
+      } else {
+        // If media not loaded yet, wait a bit longer and retry
+        mediaIdCheckInterval = setInterval(() => {
+          if (media.value.length > 0 && collectionPreviewRef.value && !isLoading.value && !isLoadingMedia.value) {
+            clearInterval(mediaIdCheckInterval)
+            mediaIdCheckInterval = null
+            setTimeout(() => {
+              if (!openMediaViewerForMediaId(mediaId)) {
+                // If first attempt failed, retry once more
+                setTimeout(() => {
+                  openMediaViewerForMediaId(mediaId)
+                }, 500)
+              }
+            }, 500)
+          }
+        }, 300)
+        
+        // Stop checking after 10 seconds
+        setTimeout(() => {
+          if (mediaIdCheckInterval) {
+            clearInterval(mediaIdCheckInterval)
+            mediaIdCheckInterval = null
+          }
+          isOpeningMediaLightbox.value = false
+        }, 10000)
+      }
+    } else if (!mediaId) {
+      // Clear loading state when mediaId is removed
+      isOpeningMediaLightbox.value = false
     }
   },
   { immediate: true }
 )
 
-onMounted(() => {
+
+// Cleanup interval on unmount
+onUnmounted(() => {
+  if (mediaIdCheckInterval) {
+    clearInterval(mediaIdCheckInterval)
+    mediaIdCheckInterval = null
+  }
+})
+
+onMounted(async () => {
   const collectionId = route.query.collectionId
   if (collectionId) {
     getStoredEmail(collectionId)
@@ -1014,6 +1880,8 @@ onMounted(() => {
       verifiedDownloadPin.value = storedPin
       isDownloadPinVerified.value = true
     }
+    // Fetch branding early so it's available for modals
+    await fetchBranding(collectionId)
   }
   loadCollection()
 })

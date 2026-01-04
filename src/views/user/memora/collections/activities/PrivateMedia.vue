@@ -5,7 +5,7 @@
         <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm">Loading download activity...</p>
+            <p :class="theme.textSecondary" class="text-sm">Loading private media activity...</p>
           </div>
         </div>
 
@@ -15,7 +15,7 @@
             <div class="flex items-center justify-between mb-2">
               <div class="flex items-center gap-3">
                 <h1 :class="theme.textPrimary" class="text-2xl md:text-3xl font-bold">
-                  Download Activity
+                  Private Media Activity
                 </h1>
               </div>
               <div class="flex items-center gap-3">
@@ -32,7 +32,8 @@
               </div>
             </div>
             <p :class="theme.textSecondary" class="text-sm leading-relaxed max-w-2xl">
-              Track all download activity for this collection. See who downloaded what and when.
+              Track access to private media in this collection. See who has viewed private media
+              and when.
             </p>
           </div>
 
@@ -42,29 +43,29 @@
               :class="[theme.borderSecondary, theme.bgCard]"
               class="p-6 rounded-2xl border-2 transition-all duration-300"
             >
-              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Total Downloads</p>
-              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalDownloads }}</p>
+              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Private Media</p>
+              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalPrivateMedia }}</p>
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
               class="p-6 rounded-2xl border-2 transition-all duration-300"
             >
-              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Unique Users</p>
-              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ uniqueUsers }}</p>
+              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Total Views</p>
+              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalViews }}</p>
+            </div>
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="p-6 rounded-2xl border-2 transition-all duration-300"
+            >
+              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Unique Viewers</p>
+              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ uniqueViewers }}</p>
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
               class="p-6 rounded-2xl border-2 transition-all duration-300"
             >
               <p :class="theme.textSecondary" class="text-sm font-medium mb-2">This Week</p>
-              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ thisWeekDownloads }}</p>
-            </div>
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300"
-            >
-              <p :class="theme.textSecondary" class="text-sm font-medium mb-2">This Month</p>
-              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ thisMonthDownloads }}</p>
+              <p :class="theme.textPrimary" class="text-3xl font-bold">{{ thisWeekViews }}</p>
             </div>
           </div>
 
@@ -106,8 +107,8 @@
               :items="filteredActivities"
               :columns="tableColumns"
               :loading="isLoading"
-              :empty-message="'No download activity found'"
-              :empty-icon="Download"
+              :empty-message="'No private media activity found'"
+              :empty-icon="Lock"
             >
               <template #cell-timestamp="{ item }">
                 <div class="px-6 py-4 whitespace-nowrap">
@@ -123,9 +124,9 @@
                 <div class="px-6 py-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center"
+                      class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"
                     >
-                      <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                      <span class="text-xs font-semibold text-purple-600 dark:text-purple-400">
                         {{ item.userEmail?.charAt(0).toUpperCase() || '?' }}
                       </span>
                     </div>
@@ -188,41 +189,20 @@
                       </div>
                     </div>
                     <div :class="theme.textPrimary" class="text-sm font-medium">
-                      {{ item.photoName || 'Unknown media' }}
+                      {{ item.photoName || 'Unknown photo' }}
                     </div>
-                  </div>
-                </div>
-              </template>
-              <template #cell-downloadType="{ item }">
-                <div class="px-6 py-4">
-                  <span
-                    :class="
-                      item.downloadType === 'full'
-                        ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
-                        : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                    "
-                    class="px-2 py-1 rounded-full text-xs font-semibold"
-                  >
-                    {{ item.downloadType === 'full' ? 'Full Size' : 'Thumbnail' }}
-                  </span>
-                </div>
-              </template>
-              <template #cell-ipAddress="{ item }">
-                <div class="px-6 py-4">
-                  <div :class="theme.textSecondary" class="text-sm font-mono">
-                    {{ item.ipAddress || 'N/A' }}
                   </div>
                 </div>
               </template>
               <template #empty>
                 <div class="px-6 py-12 text-center">
                   <div class="flex flex-col items-center gap-3">
-                    <Download :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
+                    <Lock :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
                     <p :class="theme.textPrimary" class="text-sm font-medium">
-                      No download activity found
+                      No private media activity found
                     </p>
                     <p :class="theme.textSecondary" class="text-xs">
-                      Downloads will appear here once users start downloading photos
+                      Private media access will appear here once users access private media
                     </p>
                   </div>
                 </div>
@@ -272,7 +252,6 @@ const galleryStore = useGalleryStore()
 // Collection data
 const collection = ref(null)
 const isLoading = ref(false)
-
 // UI State
 const { isSidebarCollapsed } = useSidebarCollapse()
 
@@ -291,25 +270,22 @@ const tableColumns = [
   { key: 'timestamp', label: 'Date & Time', slot: 'timestamp' },
   { key: 'userEmail', label: 'User', slot: 'userEmail' },
   { key: 'photo', label: 'Photo', slot: 'photo' },
-  { key: 'downloadType', label: 'Type', slot: 'downloadType' },
-  { key: 'ipAddress', label: 'IP Address', slot: 'ipAddress' },
 ]
 
 // Computed stats
-const totalDownloads = computed(() => activities.value.length)
-const uniqueUsers = computed(() => {
+const totalPrivateMedia = computed(() => {
+  const uniqueMedia = new Set(activities.value.map(a => a.mediaId).filter(Boolean))
+  return uniqueMedia.size
+})
+const totalViews = computed(() => activities.value.length)
+const uniqueViewers = computed(() => {
   const emails = new Set(activities.value.map(a => a.userEmail).filter(Boolean))
   return emails.size
 })
-const thisWeekDownloads = computed(() => {
+const thisWeekViews = computed(() => {
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
   return activities.value.filter(a => new Date(a.timestamp) >= weekAgo).length
-})
-const thisMonthDownloads = computed(() => {
-  const monthAgo = new Date()
-  monthAgo.setMonth(monthAgo.getMonth() - 1)
-  return activities.value.filter(a => new Date(a.timestamp) >= monthAgo).length
 })
 
 // Filtered activities
@@ -344,88 +320,6 @@ const filteredActivities = computed(() => {
   return filtered.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
 })
 
-// Generate demo data
-const generateDemoData = () => {
-  const now = new Date()
-  const demoActivities = []
-
-  const demoUsers = [
-    { name: 'John Doe', email: 'john@example.com' },
-    { name: 'Jane Smith', email: 'jane@example.com' },
-    { name: 'Bob Johnson', email: 'bob@example.com' },
-    { name: 'Alice Williams', email: 'alice@example.com' },
-    { name: 'Charlie Brown', email: 'charlie@example.com' },
-    { name: 'Diana Prince', email: 'diana@example.com' },
-    { name: 'Edward Norton', email: 'edward@example.com' },
-    { name: 'Fiona Apple', email: 'fiona@example.com' },
-    { name: 'Anonymous User', email: 'anonymous@example.com' }, // Anonymous user
-    { name: 'George Lucas', email: 'george@example.com' },
-  ]
-
-  const demoPhotos = [
-    { name: 'photo1.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo2.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo3.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo4.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo5.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo6.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo7.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo8.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo9.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo10.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo11.jpg', thumbnail: 'https://via.placeholder.com/150' },
-    { name: 'photo12.jpg', thumbnail: 'https://via.placeholder.com/150' },
-  ]
-
-  const ipAddresses = [
-    '192.168.1.45',
-    '10.0.0.23',
-    '172.16.0.12',
-    '203.0.113.42',
-    '198.51.100.89',
-    '192.0.2.156',
-    '203.0.113.78',
-    '198.51.100.34',
-    '192.0.2.91',
-    '203.0.113.123',
-  ]
-
-  const downloadTypes = ['original', 'web']
-
-  // Generate activities for the past 30 days
-  for (let i = 0; i < 45; i++) {
-    const daysAgo = Math.floor(Math.random() * 30)
-    const hoursAgo = Math.floor(Math.random() * 24)
-    const minutesAgo = Math.floor(Math.random() * 60)
-
-    const timestamp = new Date(now)
-    timestamp.setDate(timestamp.getDate() - daysAgo)
-    timestamp.setHours(timestamp.getHours() - hoursAgo)
-    timestamp.setMinutes(timestamp.getMinutes() - minutesAgo)
-
-    const user = demoUsers[Math.floor(Math.random() * demoUsers.length)]
-    const photo = demoPhotos[Math.floor(Math.random() * demoPhotos.length)]
-    const ipAddress = ipAddresses[Math.floor(Math.random() * ipAddresses.length)]
-    const downloadType = downloadTypes[Math.floor(Math.random() * downloadTypes.length)]
-
-    demoActivities.push({
-      id: `activity-${i + 1}`,
-      timestamp: timestamp.toISOString(),
-      userName: user.name,
-      userEmail: user.email,
-      photoName: photo.name,
-      photoThumbnail: photo.thumbnail,
-      downloadType: downloadType,
-      ipAddress: ipAddress,
-    })
-  }
-
-  // Sort by timestamp (newest first)
-  return demoActivities.sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-  )
-}
-
 // Load collection data
 onMounted(async () => {
   const collectionId = route.params.uuid
@@ -437,10 +331,11 @@ onMounted(async () => {
     collection.value = collectionData
     
     const { useCollectionsApi } = await import('@/api/collections')
-    const { getDownloadActivities } = useCollectionsApi()
-    activities.value = await getDownloadActivities(collectionId)
+    const { getPrivatePhotoActivities } = useCollectionsApi()
+    const response = await getPrivatePhotoActivities(collectionId)
+    activities.value = response.data || response || []
   } catch (error) {
-    console.error('Failed to load download activities:', error)
+    console.error('Failed to load private photo activities:', error)
     activities.value = []
   } finally {
     isLoading.value = false

@@ -133,8 +133,21 @@
           />
         </div>
 
-        <!-- Theme Toggle (Top Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20">
+        <!-- Theme Toggle and Logout (Top Right) -->
+        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-3">
+          <button
+            v-if="!isAuthenticatedOwner && !isPreviewMode"
+            :class="[
+              selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
+                ? 'text-white/90 hover:text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+            ]"
+            class="p-2 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10"
+            title="Logout"
+            @click="handleLogout"
+          >
+            <LogOut class="h-5 w-5" />
+          </button>
           <ThemeToggle
             :contrast="
               !!(selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText)
@@ -718,7 +731,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
-import { CheckCircle2, Copy, Eye, Loader2, X } from 'lucide-vue-next'
+import { CheckCircle2, Copy, Eye, Loader2, X, LogOut } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
@@ -740,6 +753,7 @@ import { useSelectionsApi } from '@/api/selections'
 import { useMediaApi } from '@/api/media'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/utils/toast'
+import { clearSelectionGuestData } from '@/utils/guestLogout'
 
 const theme = useThemeClasses()
 const themeStore = useThemeStore()
@@ -1643,6 +1657,28 @@ const scrollToGallery = () => {
   if (gallerySection) {
     gallerySection.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+const handleLogout = () => {
+  const selectionId = route.params.projectId
+  if (selectionId) {
+    clearSelectionGuestData(selectionId)
+  }
+  
+  // Reset all state
+  guestToken.value = null
+  isPasswordVerified.value = false
+  passwordInput.value = ''
+  userEmail.value = ''
+  emailInput.value = ''
+  selection.value = null
+  mediaSets.value = []
+  mediaItems.value = []
+  
+  toast.success('Logged out successfully')
+  
+  // Reload the page to reset everything
+  window.location.reload()
 }
 
 // Select/deselect from preview

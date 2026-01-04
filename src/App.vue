@@ -4,23 +4,32 @@
     <Toaster />
 
     <!-- Floating Upload Queue Button -->
-    <UploadQueueButton :floating="true" @click="showUploadQueueModal = true" />
+    <UploadQueueButton
+      v-if="!isPublicRoute"
+      :floating="true"
+      @click="showUploadQueueModal = true"
+    />
 
     <!-- Upload Queue Modal -->
-    <BackgroundUploadQueueModal v-model="showUploadQueueModal" />
+    <BackgroundUploadQueueModal v-if="!isPublicRoute" v-model="showUploadQueueModal" />
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
-import { RouterView } from 'vue-router'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
 import Toaster from './components/organisms/Toaster.vue'
 import UploadQueueButton from './components/organisms/UploadQueueButton.vue'
 import BackgroundUploadQueueModal from './components/organisms/BackgroundUploadQueueModal.vue'
 import { useActionHistoryStore } from './stores/actionHistory'
 import { toast } from './utils/toast'
 
+const route = useRoute()
 const showUploadQueueModal = ref(false)
+
+const isPublicRoute = computed(() => {
+  return route.matched.some(record => record.meta.requiresAuth === false)
+})
 
 // Global keyboard shortcuts for undo/redo
 let keyDownHandler = null
@@ -80,3 +89,5 @@ onUnmounted(() => {
   }
 })
 </script>
+
+

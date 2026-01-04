@@ -103,127 +103,124 @@
           </div>
 
           <!-- Activity Table -->
-          <div
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="rounded-2xl border-2 overflow-hidden"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr :class="theme.borderSecondary" class="border-b">
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+          <div :class="[theme.borderSecondary, theme.bgCard]" class="rounded-2xl border-2 overflow-hidden">
+            <DataTable
+              :items="filteredActivities"
+              :columns="tableColumns"
+              :loading="isLoading"
+              :empty-message="'No favourite activity found'"
+              :empty-icon="Heart"
+            >
+              <template #cell-timestamp="{ item }">
+                <div class="px-6 py-4 whitespace-nowrap">
+                  <div :class="theme.textPrimary" class="text-sm font-medium">
+                    {{ formatDate(item.timestamp) }}
+                  </div>
+                  <div :class="theme.textSecondary" class="text-xs">
+                    {{ formatTime(item.timestamp) }}
+                  </div>
+                </div>
+              </template>
+              <template #cell-userEmail="{ item }">
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center"
                     >
-                      Date & Time
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                      <span class="text-xs font-semibold text-pink-600 dark:text-pink-400">
+                        {{ item.userEmail?.charAt(0).toUpperCase() || '?' }}
+                      </span>
+                    </div>
+                    <div :class="theme.textPrimary" class="text-sm font-medium">
+                      {{ item.userEmail || 'No email' }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template #cell-photo="{ item }">
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <button
+                      v-if="item.mediaId"
+                      class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-opacity cursor-pointer"
+                      @click.stop="openMedia(item)"
                     >
-                      User
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+                      <img
+                        v-if="item.photoThumbnail"
+                        :alt="item.photoName"
+                        :src="item.photoThumbnail"
+                        class="w-full h-full object-cover"
+                      />
+                      <div
+                        v-else
+                        class="w-full h-full flex items-center justify-center"
+                      >
+                        <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                        <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
+                      </div>
+                      <div
+                        v-if="item.isVideo && item.photoThumbnail"
+                        class="absolute inset-0 flex items-center justify-center bg-black/20"
+                      >
+                        <Play class="h-4 w-4 text-white" />
+                      </div>
+                    </button>
+                    <div
+                      v-else
+                      class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
                     >
-                      Photo
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody :class="theme.borderSecondary" class="divide-y">
-                  <tr
-                    v-for="activity in filteredActivities"
-                    :key="activity.id"
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div :class="theme.textPrimary" class="text-sm font-medium">
-                        {{ formatDate(activity.timestamp) }}
+                      <img
+                        v-if="item.photoThumbnail"
+                        :alt="item.photoName"
+                        :src="item.photoThumbnail"
+                        class="w-full h-full object-cover"
+                      />
+                      <div
+                        v-else
+                        class="w-full h-full flex items-center justify-center"
+                      >
+                        <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                        <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
                       </div>
-                      <div :class="theme.textSecondary" class="text-xs">
-                        {{ formatTime(activity.timestamp) }}
+                      <div
+                        v-if="item.isVideo && item.photoThumbnail"
+                        class="absolute inset-0 flex items-center justify-center bg-black/20"
+                      >
+                        <Play class="h-4 w-4 text-white" />
                       </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="w-8 h-8 rounded-full bg-pink-100 dark:bg-pink-900/30 flex items-center justify-center"
-                        >
-                          <span class="text-xs font-semibold text-pink-600 dark:text-pink-400">
-                            {{ activity.userEmail?.charAt(0).toUpperCase() || '?' }}
-                          </span>
-                        </div>
-                        <div>
-                          <div :class="theme.textPrimary" class="text-sm font-medium">
-                            {{ activity.userName || 'Anonymous' }}
-                          </div>
-                          <div :class="theme.textSecondary" class="text-xs">
-                            {{ activity.userEmail || 'No email' }}
-                          </div>
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <img
-                          v-if="activity.photoThumbnail"
-                          :alt="activity.photoName"
-                          :src="activity.photoThumbnail"
-                          class="w-12 h-12 rounded-lg object-cover"
-                        />
-                        <div
-                          v-else
-                          class="w-12 h-12 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center"
-                        >
-                          <ImageIcon :class="theme.textTertiary" class="h-5 w-5" />
-                        </div>
-                        <div :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ activity.photoName || 'Unknown photo' }}
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-2">
-                        <Heart
-                          :class="
-                            activity.action === 'favourite'
-                              ? 'text-pink-600 dark:text-pink-400 fill-current'
-                              : 'text-gray-400 dark:text-gray-500'
-                          "
-                          class="h-4 w-4"
-                        />
-                        <span :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ activity.action === 'favourite' ? 'Favourited' : 'Unfavourited' }}
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredActivities.length === 0">
-                    <td class="px-6 py-12 text-center" colspan="4">
-                      <div class="flex flex-col items-center gap-3">
-                        <Heart :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
-                        <p :class="theme.textPrimary" class="text-sm font-medium">
-                          No favourite activity found
-                        </p>
-                        <p :class="theme.textSecondary" class="text-xs">
-                          Favourites will appear here once users start favouriting photos
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                    <div :class="theme.textPrimary" class="text-sm font-medium">
+                      {{ item.photoName || 'Unknown media' }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template #empty>
+                <div class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <Heart :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
+                    <p :class="theme.textPrimary" class="text-sm font-medium">
+                      No favourite activity found
+                    </p>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      Favourites will appear here once users start favouriting photos
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
+
+      <!-- Media Lightbox -->
+      <MediaLightbox
+        v-model="showMediaViewer"
+        :items="mediaItemsForViewer"
+        :initial-index="currentMediaIndex"
+        :collection-id="collection?.id || collection?.uuid"
+        @close="closeMediaViewer"
+      />
     </template>
   </CollectionLayout>
 </template>
@@ -231,7 +228,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, ImageIcon, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, ImageIcon, Link, Loader2, Lock, Mail, Play } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import {
@@ -242,6 +239,8 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
+import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
+import DataTable from '@/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
@@ -261,6 +260,18 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 const activities = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
+
+// Media viewer
+const showMediaViewer = ref(false)
+const mediaItemsForViewer = ref([])
+const currentMediaIndex = ref(0)
+
+// Table columns
+const tableColumns = [
+  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp' },
+  { key: 'userEmail', label: 'User', slot: 'userEmail' },
+  { key: 'photo', label: 'Photo', slot: 'photo' },
+]
 
 // Computed stats
 const totalFavourites = computed(
@@ -388,12 +399,13 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // activities.value = await fetchFavouriteActivities(collectionId)
-    // For now, use demo data
-    activities.value = generateDemoData()
+    
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getFavouriteActivities } = useCollectionsApi()
+    activities.value = await getFavouriteActivities(collectionId)
   } catch (error) {
-    // Still load demo data even if collection fetch fails
-    activities.value = generateDemoData()
+    console.error('Failed to load favourite activities:', error)
+    activities.value = []
   } finally {
     isLoading.value = false
   }
@@ -422,4 +434,31 @@ const formatTime = dateString => {
 
 // Export data
 const exportData = () => {}
+
+// Open media in lightbox
+const openMedia = async activity => {
+  if (!activity.mediaId || !collection.value) return
+
+  try {
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getMedia } = useCollectionsApi()
+    
+    // Fetch the single media item
+    const mediaItem = await getMedia(activity.mediaId)
+    if (!mediaItem) return
+    
+    // Just show the single media item
+    mediaItemsForViewer.value = [mediaItem]
+    currentMediaIndex.value = 0
+    showMediaViewer.value = true
+  } catch (error) {
+    console.error('Failed to open media:', error)
+  }
+}
+
+const closeMediaViewer = () => {
+  showMediaViewer.value = false
+  mediaItemsForViewer.value = []
+  currentMediaIndex.value = 0
+}
 </script>

@@ -121,118 +121,69 @@
           </div>
 
           <!-- Email List -->
-          <div
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="rounded-2xl border-2 overflow-hidden"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr :class="theme.borderSecondary" class="border-b">
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
+          <div :class="[theme.borderSecondary, theme.bgCard]" class="rounded-2xl border-2 overflow-hidden">
+            <DataTable
+              :items="filteredRegistrations"
+              :columns="tableColumns"
+              :loading="isLoading"
+              :empty-message="'No email registrations found'"
+              :empty-icon="Mail"
+            >
+              <template #cell-email="{ item }">
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"
                     >
-                      Email Address
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Name
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Registered
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Status
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Last Access
-                    </th>
-                  </tr>
-                </thead>
-                <tbody :class="theme.borderSecondary" class="divide-y">
-                  <tr
-                    v-for="registration in filteredRegistrations"
-                    :key="registration.id"
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
-                  >
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center"
-                        >
-                          <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">
-                            {{ registration.email.charAt(0).toUpperCase() }}
-                          </span>
-                        </div>
-                        <div :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ registration.email }}
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div :class="theme.textPrimary" class="text-sm font-medium">
-                        {{ registration.name || 'N/A' }}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div :class="theme.textPrimary" class="text-sm font-medium">
-                        {{ formatDate(registration.registeredAt) }}
-                      </div>
-                      <div :class="theme.textSecondary" class="text-xs">
-                        {{ formatTime(registration.registeredAt) }}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <span
-                        :class="
-                          registration.verified
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                        "
-                        class="px-2 py-1 rounded-full text-xs font-semibold"
-                      >
-                        {{ registration.verified ? 'Verified' : 'Unverified' }}
+                      <span class="text-xs font-semibold text-blue-600 dark:text-blue-400">
+                        {{ item.email.charAt(0).toUpperCase() }}
                       </span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div :class="theme.textSecondary" class="text-sm">
-                        {{
-                          registration.lastAccessAt
-                            ? formatDate(registration.lastAccessAt)
-                            : 'Never'
-                        }}
-                        }}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredRegistrations.length === 0">
-                    <td class="px-6 py-12 text-center" colspan="5">
-                      <div class="flex flex-col items-center gap-3">
-                        <Mail :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
-                        <p :class="theme.textPrimary" class="text-sm font-medium">
-                          No email registrations found
-                        </p>
-                        <p :class="theme.textSecondary" class="text-xs">
-                          Email registrations will appear here once users register
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    </div>
+                    <div :class="theme.textPrimary" class="text-sm font-medium">
+                      {{ item.email }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template #cell-registeredAt="{ item }">
+                <div class="px-6 py-4 whitespace-nowrap">
+                  <div :class="theme.textPrimary" class="text-sm font-medium">
+                    {{ formatDate(item.registeredAt) }}
+                  </div>
+                  <div :class="theme.textSecondary" class="text-xs">
+                    {{ formatTime(item.registeredAt) }}
+                  </div>
+                </div>
+              </template>
+              <template #cell-lastAccessAt="{ item }">
+                <div class="px-6 py-4 whitespace-nowrap">
+                  <div v-if="item.lastAccessAt">
+                    <div :class="theme.textPrimary" class="text-sm font-medium">
+                      {{ formatDate(item.lastAccessAt) }}
+                    </div>
+                    <div :class="theme.textSecondary" class="text-xs">
+                      {{ formatTime(item.lastAccessAt) }}
+                    </div>
+                  </div>
+                  <div v-else :class="theme.textSecondary" class="text-sm">
+                    Never
+                  </div>
+                </div>
+              </template>
+              <template #empty>
+                <div class="px-6 py-12 text-center">
+                  <div class="flex flex-col items-center gap-3">
+                    <Mail :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
+                    <p :class="theme.textPrimary" class="text-sm font-medium">
+                      No email registrations found
+                    </p>
+                    <p :class="theme.textSecondary" class="text-xs">
+                      Email registrations will appear here once users register
+                    </p>
+                  </div>
+                </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -254,6 +205,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
+import DataTable from '@/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
@@ -274,6 +226,13 @@ const registrations = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
 const verificationFilter = ref('all')
+
+// Table columns
+const tableColumns = [
+  { key: 'email', label: 'Email Address', slot: 'email' },
+  { key: 'registeredAt', label: 'Registered', slot: 'registeredAt' },
+  { key: 'lastAccessAt', label: 'Last Access', slot: 'lastAccessAt' },
+]
 
 // Computed stats
 const totalEmails = computed(() => registrations.value.length)
@@ -396,12 +355,13 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // registrations.value = await fetchEmailRegistrations(collectionId)
-    // For now, use demo data
-    registrations.value = generateDemoData()
+    
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getEmailRegistrations } = useCollectionsApi()
+    registrations.value = await getEmailRegistrations(collectionId)
   } catch (error) {
-    // Still load demo data even if collection fetch fails
-    registrations.value = generateDemoData()
+    console.error('Failed to load email registrations:', error)
+    registrations.value = []
   } finally {
     isLoading.value = false
   }

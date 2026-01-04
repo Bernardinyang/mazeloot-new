@@ -25,7 +25,7 @@
         isRejected
           ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/20 dark:bg-red-900/10'
           : '',
-        'relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl',
+        'relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl will-change-transform',
         isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
       ]"
     >
@@ -71,7 +71,7 @@
           ref="imageElementRef"
           :alt="props.item?.filename || 'Media'"
           :class="[
-            'w-full h-full object-cover transition-all duration-300 will-change-transform',
+            'w-full h-full object-cover transition-all duration-500 ease-out will-change-transform',
             isImageLoaded
               ? 'opacity-100 scale-100 group-hover:scale-110'
               : 'opacity-0 scale-[0.98]',
@@ -91,7 +91,7 @@
             ref="videoThumbnailRef"
             :alt="props.item?.filename || 'Video'"
             :class="[
-              'w-full h-full object-cover transition-all duration-300 will-change-transform',
+              'w-full h-full object-cover transition-all duration-500 ease-out will-change-transform',
               isImageLoaded
                 ? 'opacity-100 scale-100 group-hover:scale-110'
                 : 'opacity-0 scale-[0.98]',
@@ -128,7 +128,7 @@
       <!-- Badges Container (bottom-left) - hidden in public mode -->
       <div
         v-if="!props.publicMode"
-        :class="props.item?.isStarred ? 'bottom-12' : 'bottom-2'"
+        :class="(props.item?.isStarred || props.item?.isFeatured || props.item?.is_featured) ? 'bottom-12' : 'bottom-2'"
         class="absolute left-2 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)]"
       >
         <!-- Proofing Badges (only show when NOT in selection context) -->
@@ -264,19 +264,41 @@
         </div>
       </div>
 
-      <!-- Favorited Badge (always visible when favorited, bottom-left) -->
-      <div v-if="props.item?.isStarred" class="absolute bottom-2 left-2 z-30">
-        <div
-          :class="[
-            'flex items-center justify-center w-8 h-8 rounded-full backdrop-blur-sm shadow-lg',
-            props.publicMode
-              ? 'bg-red-500/90 dark:bg-red-600/90'
-              : 'bg-yellow-500/90 dark:bg-yellow-600/90',
-          ]"
-          :title="props.publicMode ? 'Favorited' : 'Starred'"
-        >
-          <Heart v-if="props.publicMode" class="h-4 w-4 fill-white text-white" />
-          <Star v-else class="h-4 w-4 fill-white text-white" />
+      <!-- Favorited Badge, Featured Badge and Private Badge (bottom-left) -->
+      <div class="absolute bottom-2 left-2 z-30 flex items-center gap-2">
+        <!-- Favorited Badge (always visible when favorited) -->
+        <div v-if="props.item?.isStarred" class="flex items-center justify-center">
+          <div
+            :class="[
+              'flex items-center justify-center w-8 h-8 rounded-full backdrop-blur-sm shadow-lg',
+              props.publicMode
+                ? 'bg-red-500/90 dark:bg-red-600/90'
+                : 'bg-yellow-500/90 dark:bg-yellow-600/90',
+            ]"
+            :title="props.publicMode ? 'Favorited' : 'Starred'"
+          >
+            <Heart v-if="props.publicMode" class="h-4 w-4 fill-white text-white" />
+            <Star v-else class="h-4 w-4 fill-white text-white" />
+          </div>
+        </div>
+        <!-- Featured Badge (always visible when featured) -->
+        <div v-if="props.item?.isFeatured || props.item?.is_featured" class="flex items-center justify-center">
+          <div
+            class="flex items-center justify-center w-8 h-8 rounded-full bg-purple-500/90 dark:bg-purple-600/90 backdrop-blur-sm shadow-lg"
+            title="Featured"
+          >
+            <Sparkles class="h-4 w-4 fill-white text-white" />
+          </div>
+        </div>
+        <!-- Private Badge (always visible when private) -->
+        <div v-if="props.item?.isPrivate" class="flex items-center justify-center">
+          <div
+            class="flex items-center justify-center w-8 h-8 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg border"
+            :class="theme.borderSecondary"
+            title="Private"
+          >
+            <Lock class="h-4 w-4" :class="theme.textSecondary" />
+          </div>
         </div>
       </div>
 
@@ -294,45 +316,116 @@
       <!-- Centered Action Buttons (Public Mode) -->
       <div
         v-if="props.publicMode"
-        class="absolute inset-0 flex items-center justify-center gap-3 z-20 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+        class="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out"
         @click.stop
       >
-        <button
-          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
-          @click.stop="emit('open-viewer', props.item)"
-          :title="(props.item?.type || props.item?.file?.type) === 'video' ? 'Play Video' : 'View Image'"
-        >
-          <Eye v-if="(props.item?.type || props.item?.file?.type) !== 'video'" class="h-5 w-5 text-white" />
-          <Play v-else class="h-5 w-5 text-white" />
-        </button>
-        <button
-          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
-          @click.stop="emit('share', props.item)"
-          title="Share"
-        >
-          <Share2 class="h-5 w-5 text-white" />
-        </button>
-        <button
-          v-if="props.allowDownload"
-          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
-          :disabled="props.isDownloading"
-          @click.stop="emit('download', props.item)"
-          title="Download"
-        >
-          <Download class="h-5 w-5 text-white" />
-        </button>
-        <button
-          class="p-3 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 active:scale-95"
-          @click.stop="emit('star-click', props.item)"
-          title="Favorite"
-        >
-          <Heart
-            :class="[
-              'h-5 w-5',
-              props.item?.isStarred ? 'fill-red-500 text-red-500' : 'text-white',
-            ]"
-          />
-        </button>
+        <!-- Backdrop overlay for better visibility -->
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm rounded-xl transition-all duration-300 ease-out backdrop-blur-transition"></div>
+        
+        <!-- Action buttons container -->
+        <div class="relative flex items-center gap-2.5 px-4 py-3 bg-white/10 dark:bg-gray-900/10 backdrop-blur-md rounded-full border border-white/20 dark:border-gray-700/20 shadow-xl transform transition-all duration-300 ease-out group-hover:scale-100 scale-95">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-black/80 hover:bg-black dark:bg-gray-900/90 dark:hover:bg-gray-800 transition-all duration-300 ease-out shadow-md hover:shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                  style="animation: fadeInUp 0.4s ease-out 0.1s both"
+                  @click.stop="emit('open-viewer', props.item)"
+                >
+                  <Eye v-if="(props.item?.type || props.item?.file?.type) !== 'video'" class="h-4 w-4 text-white transition-transform duration-300 hover:scale-110" />
+                  <Play v-else class="h-4 w-4 text-white transition-transform duration-300 hover:scale-110" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{{ (props.item?.type || props.item?.file?.type) === 'video' ? 'Play Video' : 'View Image' }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-black/80 hover:bg-black dark:bg-gray-900/90 dark:hover:bg-gray-800 transition-all duration-300 ease-out shadow-md hover:shadow-xl hover:scale-110 active:scale-95 transform hover:-translate-y-0.5"
+                  style="animation: fadeInUp 0.4s ease-out 0.15s both"
+                  @click.stop="emit('share', props.item)"
+                >
+                  <Share2 class="h-4 w-4 text-white transition-transform duration-300 hover:rotate-12" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Share</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider v-if="props.allowDownload">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-black/80 hover:bg-black dark:bg-gray-900/90 dark:hover:bg-gray-800 transition-all duration-300 ease-out shadow-md hover:shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
+                  style="animation: fadeInUp 0.4s ease-out 0.2s both"
+                  :disabled="props.isDownloading"
+                  @click.stop="emit('download', props.item)"
+                >
+                  <Download class="h-4 w-4 text-white transition-transform duration-300 hover:translate-y-0.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-black/80 hover:bg-black dark:bg-gray-900/90 dark:hover:bg-gray-800 transition-all duration-300 ease-out shadow-md hover:shadow-xl hover:scale-110 active:scale-95 transform hover:-translate-y-0.5"
+                  style="animation: fadeInUp 0.4s ease-out 0.25s both"
+                  @click.stop="emit('star-click', props.item)"
+                >
+                  <Heart
+                    :class="[
+                      'h-4 w-4 transition-all duration-300 ease-out',
+                      props.item?.isStarred ? 'fill-red-500 text-red-500 scale-110' : 'text-white scale-100',
+                    ]"
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{{ props.item?.isStarred ? 'Unfavorite' : 'Favorite' }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider v-if="props.allowMarkPrivate">
+            <Tooltip>
+              <TooltipTrigger as-child>
+                <button
+                  class="flex items-center justify-center w-10 h-10 rounded-full bg-white/95 dark:bg-gray-800/95 hover:bg-white dark:hover:bg-gray-700 transition-all duration-300 ease-out shadow-md hover:shadow-xl border hover:scale-110 active:scale-95 transform hover:-translate-y-0.5"
+                  :class="theme.borderSecondary"
+                  style="animation: fadeInUp 0.4s ease-out 0.3s both"
+                  @click.stop="emit('toggle-private', props.item)"
+                >
+                  <LockOpen
+                    v-if="props.item?.isPrivate"
+                    class="h-4 w-4 transition-transform duration-300"
+                    :class="theme.textSecondary"
+                  />
+                  <Lock
+                    v-else
+                    class="h-4 w-4 transition-transform duration-300 hover:rotate-12"
+                    :class="theme.textSecondary"
+                  />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>{{ props.item?.isPrivate ? 'Unmark as Private' : 'Mark as Private' }}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <!-- Context Menu Button (hidden in public mode) -->
@@ -413,6 +506,13 @@
               >
                 <FileImage class="h-4 w-4 mr-2" />
                 Set as cover photo
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @select.prevent="emit('toggle-featured')"
+              >
+                <Star :class="['h-4 w-4 mr-2', (props.item?.isFeatured || props.item?.is_featured) ? 'fill-yellow-400 text-yellow-400' : '']" />
+                {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
               </DropdownMenuItem>
               <DropdownMenuItem
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
@@ -634,6 +734,8 @@ import {
 import {
   CheckCircle2,
   CheckSquare2,
+  Lock,
+  LockOpen,
   Clock,
   Copy,
   Download,
@@ -651,6 +753,7 @@ import {
   Star,
   Heart,
   Share2,
+  Sparkles,
   Trash2,
   Upload,
   X,
@@ -737,6 +840,14 @@ const props = defineProps({
   allowDownload: {
     type: Boolean,
     default: true,
+  },
+  isClientVerified: {
+    type: Boolean,
+    default: false,
+  },
+  allowMarkPrivate: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -992,5 +1103,68 @@ const emit = defineEmits([
   'star-click',
   'request-closure',
   'view-closure-history',
+  'toggle-private',
+  'toggle-featured',
 ])
 </script>
+
+<style scoped>
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.9) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1) translateZ(0);
+  }
+}
+
+.group:hover .group-hover\:scale-100 {
+  animation: fadeInScale 0.3s ease-out;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateZ(0);
+  }
+}
+
+/* Smooth backdrop blur transition */
+.backdrop-blur-transition {
+  backdrop-filter: blur(0px);
+  transition: backdrop-filter 0.3s ease-out, opacity 0.3s ease-out, background-color 0.3s ease-out;
+  will-change: backdrop-filter, opacity, background-color;
+}
+
+.group:hover .backdrop-blur-transition {
+  backdrop-filter: blur(4px);
+}
+
+/* Smooth blur for button container */
+.group:hover .backdrop-blur-md {
+  transition: backdrop-filter 0.3s ease-out;
+  will-change: backdrop-filter;
+}
+
+/* GPU acceleration for media card */
+.group {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform;
+}
+
+.group > div:first-child {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+</style>

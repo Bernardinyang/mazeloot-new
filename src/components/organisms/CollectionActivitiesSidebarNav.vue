@@ -63,15 +63,15 @@
       <router-link
         v-if="props.collectionId"
         :class="[
-          route.name === 'collectionActivitiesPrivatePhotos'
+          route.name === 'collectionActivitiesPrivateMedia'
             ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
             : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
         ]"
-        :to="{ name: 'collectionActivitiesPrivatePhotos', params: { uuid: props.collectionId } }"
+        :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
       >
         <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Private Photos</span>
+        <span :class="theme.textPrimary" class="text-sm font-medium">Private Media</span>
       </router-link>
     </div>
   </div>
@@ -155,10 +155,10 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesPrivatePhotos' ? 'bg-teal-500 text-white' : '',
+              route.name === 'collectionActivitiesPrivateMedia' ? 'bg-teal-500 text-white' : '',
             ]"
             :to="{
-              name: 'collectionActivitiesPrivatePhotos',
+              name: 'collectionActivitiesPrivateMedia',
               params: { uuid: props.collectionId },
             }"
             class="p-3 rounded-lg transition-all duration-200"
@@ -167,7 +167,7 @@
           </router-link>
         </TooltipTrigger>
         <TooltipContent side="right">
-          <p>Private Photos</p>
+          <p>Private Media</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

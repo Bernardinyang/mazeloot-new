@@ -121,6 +121,7 @@
                 @replace="handleReplacePhoto(item)"
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
+                @toggle-featured="handleToggleFeatured(item)"
                 @open-viewer="openMediaViewer(item)"
                 @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
@@ -149,6 +150,7 @@
                 @replace="handleReplacePhoto(item)"
                 @watermark="handleWatermarkMedia(item)"
                 @toggle-selection="handleToggleMediaSelection(item.id)"
+                @toggle-featured="handleToggleFeatured(item)"
                 @open-viewer="openMediaViewer(item)"
                 @view-details="handleViewDetails(item)"
                 @image-error="handleImageError"
@@ -1029,6 +1031,45 @@ const handleFocalPointConfirm = async focalPoint => {
 }
 
 const handleSetAsCover = handleSetAsCoverOriginal
+
+const handleToggleFeatured = async item => {
+  if (!item?.id && !item?.uuid) {
+    toast.error('Invalid media item')
+    return
+  }
+  
+  const mediaId = item.id || item.uuid
+  const isCurrentlyFeatured = item.isFeatured || item.is_featured || false
+  
+  try {
+    toast.loading(isCurrentlyFeatured ? 'Removing from featured list...' : 'Adding to featured list...', {
+      id: 'toggle-featured',
+    })
+    
+    const { apiClient } = await import('@/api/client')
+    const response = await apiClient.post(`/v1/memora/media/${mediaId}/toggle-featured`)
+    const updatedMedia = response.data?.data || response.data
+    
+    // Update local state
+    const mediaIndex = mediaItems.value.findIndex(m => (m.id || m.uuid) === mediaId)
+    if (mediaIndex !== -1) {
+      mediaItems.value[mediaIndex] = {
+        ...mediaItems.value[mediaIndex],
+        isFeatured: updatedMedia.is_featured ?? !isCurrentlyFeatured,
+        is_featured: updatedMedia.is_featured ?? !isCurrentlyFeatured,
+      }
+    }
+    
+    toast.success(updatedMedia.is_featured ? 'Added to featured list' : 'Removed from featured list', {
+      id: 'toggle-featured',
+    })
+  } catch (error) {
+    toast.error('Failed to update featured status', {
+      description: error?.response?.data?.message || error?.message || 'Please try again',
+      id: 'toggle-featured',
+    })
+  }
+}
 
 
 const {

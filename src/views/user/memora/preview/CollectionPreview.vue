@@ -328,6 +328,19 @@
              >
                <Play class="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
+            <button
+              v-if="props.previewMode === 'public'"
+              :style="{ 
+                color: textColor,
+                backgroundColor: 'transparent',
+              }"
+              class="p-2 sm:p-2.5 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10 hover:scale-110 active:scale-95 border border-transparent hover:border-black/10 dark:hover:border-white/10"
+              title="Logout"
+              aria-label="Logout"
+              @click="handleLogout"
+            >
+              <LogOut class="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
         </div>
       </div>
 
@@ -442,12 +455,15 @@
           :public-mode="props.previewMode === 'public'"
           :is-downloading="props.downloadingMediaIds?.has?.(item.id || item.uuid) || false"
           :allow-download="isMediaItemDownloadable(item)"
+          :is-client-verified="props.isClientVerified"
+          :allow-mark-private="collection?.allowClientsMarkPrivate && props.userMode === 'client'"
           class="aspect-square"
           @download="handleDownloadMedia"
           @share="handleShareMedia"
           @open-viewer="openMediaViewer"
           @view-details="handleViewDetails"
           @star-click="handleFavoriteMedia"
+          @toggle-private="handleToggleMediaPrivate"
         />
       </TransitionGroup>
 
@@ -536,10 +552,15 @@
       :collection-id="collection?.id || collectionId"
       :set-id="getSetIdForTab(activeTab)"
       :auto-start-slideshow="autoStartSlideshow"
+      :public-mode="props.previewMode === 'public'"
+      :is-client-verified="props.isClientVerified"
+      :allow-mark-private="collection?.allowClientsMarkPrivate && props.userMode === 'client'"
+      :disable-actions="props.disableActions"
       @close="closeMediaViewer"
       @download="handleDownloadMedia"
       @share="handleShareMedia"
       @favorite="handleFavoriteMedia"
+      @toggle-private="handleToggleMediaPrivate"
       @slideshow="handleSlideshow"
     />
 
@@ -588,6 +609,7 @@ import {
   Sparkles,
   Star,
   X,
+  LogOut,
 } from 'lucide-vue-next'
 import { useCollectionsApi } from '@/api/collections'
 import { useMediaApi } from '@/api/media'
@@ -638,9 +660,21 @@ const props = defineProps({
     type: [Set, Object],
     default: () => new Set(),
   },
+  isClientVerified: {
+    type: Boolean,
+    default: false,
+  },
+  userMode: {
+    type: String,
+    default: null, // 'guest' | 'client' | null
+  },
+  disableActions: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['tab-change', 'download'])
+const emit = defineEmits(['tab-change', 'download', 'toggle-private', 'logout'])
 
 const route = useRoute()
 const router = useRouter()
@@ -1209,7 +1243,17 @@ const joyCoverButtonText = computed(() => designConfig.value.joyCoverButtonText)
 const tabs = computed(() => {
   // Use actual sets from collection if available
   if (collection.value?.mediaSets && collection.value.mediaSets.length > 0) {
-    return collection.value.mediaSets.map(set => set.name)
+    let sets = collection.value.mediaSets
+    
+    // Filter client-only sets for guests
+    if (props.previewMode === 'public' && props.userMode === 'guest') {
+      const clientOnlySets = collection.value?.clientOnlySets || []
+      if (clientOnlySets.length > 0) {
+        sets = sets.filter(set => !clientOnlySets.includes(set.id))
+      }
+    }
+    
+    return sets.map(set => set.name)
   }
 
   // Fallback to preset photoSets for preset preview
@@ -1308,6 +1352,11 @@ const filteredMedia = computed(() => {
     return item.url !== coverImageUrl && item.thumbnail !== coverImageUrl
   })
 
+  // Filter private media for guests
+  if (props.previewMode === 'public' && props.userMode === 'guest') {
+    filtered = filtered.filter(item => !item.isPrivate)
+  }
+
   // No need to filter by set - we only load the active set's media
   // Return all filtered media
   return filtered
@@ -1391,12 +1440,28 @@ const fetchMediaForActiveSet = async () => {
 
     // Load media for the specific set
     const collectionSets = collection.value?.mediaSets || []
-    const matchingSet = collectionSets.find(set => set.name === activeTab.value)
+    // Handle case where activeTab might be an ID instead of a name
+    let matchingSet = collectionSets.find(set => set.name === activeTab.value)
+    
+    // If not found by name, try to find by ID (in case activeTab was incorrectly set to an ID)
+    if (!matchingSet && (typeof activeTab.value === 'number' || /^\d+$/.test(String(activeTab.value)))) {
+      matchingSet = collectionSets.find(set => String(set.id) === String(activeTab.value))
+      // If found by ID, update activeTab to the correct name
+      if (matchingSet) {
+        activeTab.value = matchingSet.name
+      }
+    }
     
     if (!matchingSet) {
-      media.value = []
-      isLoading.value = false
-      return
+      // If still no match, reset to first available tab
+      if (collectionSets.length > 0) {
+        activeTab.value = collectionSets[0].name
+        matchingSet = collectionSets[0]
+      } else {
+        media.value = []
+        isLoading.value = false
+        return
+      }
     }
 
     // Use public API endpoint for public collections
@@ -1407,7 +1472,30 @@ const fetchMediaForActiveSet = async () => {
       // Use public API endpoint
       const userEmail = localStorage.getItem(`collection_${collectionId.value}_email`) 
         || localStorage.getItem(`collection_email_${collectionId.value}`)
-      const headers = userEmail ? { 'X-Collection-Email': userEmail } : {}
+      const headers = {}
+      
+      if (userEmail) {
+        headers['X-Collection-Email'] = userEmail
+      }
+      
+      // Include client token if verified
+      if (props.isClientVerified) {
+        const stored = localStorage.getItem(`collection_${collectionId.value}_client_verified`)
+        if (stored) {
+          try {
+            const data = JSON.parse(stored)
+            if (data.token) {
+              headers['X-Guest-Token'] = data.token
+              headers['Authorization'] = `Bearer ${data.token}`
+            }
+            if (data.email) {
+              headers['X-Collection-Email'] = data.email
+            }
+          } catch (e) {
+            // Invalid data
+          }
+        }
+      }
       
       const response = await apiClient.get(
         `/v1/public/collections/${collectionId.value}/sets/${matchingSet.id}/media`,
@@ -1460,7 +1548,21 @@ watch(tabs, async (newTabs) => {
   // Skip during initial load - onMounted handles initial setup
   if (isInitialLoad) return
   
-  if (newTabs.length > 0 && activeTab.value && !newTabs.includes(activeTab.value)) {
+  // Check if activeTab is a valid tab name
+  const isValidTab = activeTab.value && newTabs.includes(activeTab.value)
+  
+  // Also check if activeTab is a numeric ID (shouldn't happen, but handle it)
+  if (activeTab.value && !isValidTab && (typeof activeTab.value === 'number' || /^\d+$/.test(String(activeTab.value)))) {
+    // Try to find matching set by ID and convert to name
+    const collectionSets = collection.value?.mediaSets || []
+    const matchingSet = collectionSets.find(s => String(s.id) === String(activeTab.value))
+    if (matchingSet && newTabs.includes(matchingSet.name)) {
+      activeTab.value = matchingSet.name
+      return
+    }
+  }
+  
+  if (newTabs.length > 0 && activeTab.value && !isValidTab) {
     // Set to first set if current tab is no longer available
     activeTab.value = newTabs[0]
     if (!props.previewMode) {
@@ -1489,12 +1591,16 @@ watch(
     if (!setIdFromQuery) return
     
     const collectionSets = collection.value?.mediaSets || []
-    const matchingSet = collectionSets.find(s => s.id === setIdFromQuery)
+    const matchingSet = collectionSets.find(s => String(s.id) === String(setIdFromQuery))
     if (matchingSet && activeTab.value !== matchingSet.name) {
       isUpdatingFromRoute = true
       activeTab.value = matchingSet.name
       await fetchMediaForActiveSet()
       isUpdatingFromRoute = false
+    } else if (!matchingSet && collectionSets.length > 0) {
+      // If setId doesn't match any set, reset to first available tab
+      activeTab.value = collectionSets[0].name
+      await fetchMediaForActiveSet()
     }
   }
 )
@@ -1556,9 +1662,66 @@ const openMediaViewer = item => {
 }
 
 const openMediaViewerById = (mediaId) => {
-  const item = filteredMedia.value.find(m => m.id === mediaId)
+  if (!mediaId) return
+  
+  // Convert mediaId to string for comparison
+  const mediaIdStr = String(mediaId)
+  
+  // Helper function to find media by ID
+  const findMedia = (mediaArray) => {
+    return mediaArray.find(m => {
+      const id = String(m.id || m.uuid || '')
+      return id === mediaIdStr
+    })
+  }
+  
+  // Try to find in filteredMedia first
+  let item = findMedia(filteredMedia.value)
+  
+  // If not found in filteredMedia, try in all media (including props.previewMedia)
+  if (!item) {
+    const mediaToSearch = props.previewMode && props.previewMedia ? props.previewMedia : media.value
+    if (mediaToSearch && Array.isArray(mediaToSearch)) {
+      item = findMedia(mediaToSearch)
+    }
+  }
+  
   if (item) {
+    // Find the index in filteredMedia for correct positioning
+    const index = filteredMedia.value.findIndex(m => {
+      const id = String(m.id || m.uuid || '')
+      return id === mediaIdStr
+    })
+    if (index >= 0) {
+      currentMediaIndex.value = index
+    } else {
+      // If not in filteredMedia, find in all media and set index to 0
+      currentMediaIndex.value = 0
+    }
     openMediaViewer(item)
+  } else {
+    // If media not found yet, wait a bit and retry (media might still be loading)
+    setTimeout(() => {
+      let retryItem = findMedia(filteredMedia.value)
+      if (!retryItem) {
+        const mediaToSearch = props.previewMode && props.previewMedia ? props.previewMedia : media.value
+        if (mediaToSearch && Array.isArray(mediaToSearch)) {
+          retryItem = findMedia(mediaToSearch)
+        }
+      }
+      if (retryItem) {
+        const index = filteredMedia.value.findIndex(m => {
+          const id = String(m.id || m.uuid || '')
+          return id === mediaIdStr
+        })
+        if (index >= 0) {
+          currentMediaIndex.value = index
+        } else {
+          currentMediaIndex.value = 0
+        }
+        openMediaViewer(retryItem)
+      }
+    }, 500)
   }
 }
 
@@ -1566,6 +1729,13 @@ const closeMediaViewer = () => {
   showMediaViewer.value = false
   selectedMedia.value = null
   autoStartSlideshow.value = false
+  
+  // If in public mode and mediaId exists in route, remove it
+  if (props.previewMode === 'public' && route.query.mediaId) {
+    const query = { ...route.query }
+    delete query.mediaId
+    router.replace({ query })
+  }
 }
 
 const handlePlaySlideshow = () => {
@@ -1601,15 +1771,52 @@ const handleDownloadAll = () => {
 
 const handleShareMedia = async (item) => {
   if (!item || !item.id) {
+    console.warn('handleShareMedia: No item or item.id', item)
     return
   }
   
   try {
     // Build share URL with media ID parameter
     const baseUrl = window.location.origin
-    const collectionId = collection.value?.id || collection.value?.uuid
-    const projectId = collection.value?.projectId || collection.value?.project_uuid || route.params.projectId || 'standalone'
+    
+    // Get collection ID - check multiple sources
+    let collectionId = null
+    
+    // First, check collection object (works for both public and non-public)
+    const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+    collectionId = collectionToUse?.id || collectionToUse?.uuid
+    
+    // If not found, check route query (for public mode)
+    if (!collectionId && props.previewMode === 'public') {
+      collectionId = route.query.collectionId
+    }
+    
+    // If still not found, check route params (for non-public mode)
+    if (!collectionId && !props.previewMode) {
+      const computedCollectionId = collectionId.value
+      collectionId = route.params.id || computedCollectionId
+    }
+    
+    // Get project ID
+    let projectId = collectionToUse?.projectId || collectionToUse?.project_uuid
+    if (!projectId) {
+      projectId = route.params.projectId || 'standalone'
+    }
+    
+    if (!collectionId) {
+      console.error('Collection ID not found', {
+        previewMode: props.previewMode,
+        previewCollection: props.previewCollection,
+        collection: collection.value,
+        routeQuery: route.query,
+        routeParams: route.params,
+      })
+      toast.error('Collection ID not found')
+      return
+    }
+    
     const shareUrl = `${baseUrl}/p/${projectId}/collection?collectionId=${collectionId}&mediaId=${item.id}`
+    console.log('Sharing URL:', shareUrl)
     
     // Use browser's native share API
     if (navigator.share) {
@@ -1619,6 +1826,20 @@ const handleShareMedia = async (item) => {
           text: `Check out this media from ${collectionName.value || 'this collection'}`,
           url: shareUrl,
         })
+        // Track share link click (only in public mode)
+        if (props.previewMode === 'public' && collectionId) {
+          try {
+            const { useCollectionsApi } = await import('@/api/collections')
+            const { trackShareLinkClick } = useCollectionsApi()
+            await trackShareLinkClick(collectionId, null, shareUrl)
+          } catch (err) {
+            console.warn('Failed to track share link click:', err)
+          }
+        }
+        
+        toast.success('Shared successfully', {
+          description: 'The link has been shared.',
+        })
         return
       } catch (shareError) {
         // User cancelled - don't show error
@@ -1626,15 +1847,114 @@ const handleShareMedia = async (item) => {
           return
         }
         // Share failed, fall through to clipboard
+        console.warn('Share API failed, falling back to clipboard:', shareError)
       }
     }
     
     // Fallback to clipboard
-    await navigator.clipboard.writeText(shareUrl)
-    toast.success('Link copied', {
-      description: 'The share link has been copied to your clipboard.',
-    })
+    try {
+      // Try modern clipboard API first
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        try {
+          await navigator.clipboard.writeText(shareUrl)
+          console.log('Clipboard API: Success')
+          
+          // Track share link click (only in public mode)
+          if (props.previewMode === 'public' && collectionId) {
+            try {
+              const { useCollectionsApi } = await import('@/api/collections')
+              const { trackShareLinkClick } = useCollectionsApi()
+              await trackShareLinkClick(collectionId, null, shareUrl)
+            } catch (err) {
+              console.warn('Failed to track share link click:', err)
+            }
+          }
+          
+          toast.success('Link copied to clipboard', {
+            description: 'The share link has been copied to your clipboard.',
+            duration: 3000,
+          })
+          return
+        } catch (clipError) {
+          console.warn('Clipboard API failed, trying fallback:', clipError)
+          // Fall through to execCommand fallback
+        }
+      }
+      
+      // Fallback for older browsers or when clipboard API fails
+      console.log('Using execCommand fallback')
+      const textArea = document.createElement('textarea')
+      textArea.value = shareUrl
+      textArea.style.position = 'fixed'
+      textArea.style.left = '0'
+      textArea.style.top = '0'
+      textArea.style.width = '1px'
+      textArea.style.height = '1px'
+      textArea.style.padding = '0'
+      textArea.style.border = 'none'
+      textArea.style.outline = 'none'
+      textArea.style.boxShadow = 'none'
+      textArea.style.background = 'transparent'
+      textArea.style.opacity = '0'
+      textArea.style.zIndex = '-9999'
+      
+      document.body.appendChild(textArea)
+      textArea.focus()
+      
+      // Select the text
+      if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+        // iOS requires a different approach
+        const range = document.createRange()
+        range.selectNodeContents(textArea)
+        const selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(range)
+        textArea.setSelectionRange(0, shareUrl.length)
+      } else {
+        textArea.select()
+        textArea.setSelectionRange(0, shareUrl.length)
+      }
+      
+      // Try to copy
+      let successful = false
+      try {
+        successful = document.execCommand('copy')
+        console.log('execCommand result:', successful)
+      } catch (e) {
+        console.error('execCommand error:', e)
+      }
+      
+      document.body.removeChild(textArea)
+      
+      if (successful) {
+        // Track share link click (only in public mode)
+        if (props.previewMode === 'public' && collectionId) {
+          try {
+            const { useCollectionsApi } = await import('@/api/collections')
+            const { trackShareLinkClick } = useCollectionsApi()
+            await trackShareLinkClick(collectionId, null, shareUrl)
+          } catch (err) {
+            console.warn('Failed to track share link click:', err)
+          }
+        }
+        
+        toast.success('Link copied to clipboard', {
+          description: 'The share link has been copied to your clipboard.',
+          duration: 3000,
+        })
+      } else {
+        throw new Error('execCommand copy returned false')
+      }
+    } catch (clipboardError) {
+      console.error('Clipboard copy failed:', clipboardError)
+      // If clipboard fails, show the URL in a toast
+      toast.error('Failed to copy to clipboard', {
+        description: `Please copy this link manually: ${shareUrl}`,
+        duration: 10000,
+      })
+    }
   } catch (error) {
+    console.error('Share error:', error)
     // Use exact backend error message
     const errorMessage = error?.message || error?.response?.data?.message || 'Failed to share'
     toast.error(errorMessage)
@@ -1723,6 +2043,20 @@ const handleImageError = (event) => {
 
 const getSetIdForTab = tabName => {
   if (!tabName) return null
+  
+  // If tabName is a number (ID), try to find set by ID first
+  if (typeof tabName === 'number' || (typeof tabName === 'string' && /^\d+$/.test(tabName))) {
+    const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+    const collectionSets = collectionToUse?.mediaSets || []
+    const matchingSetById = collectionSets.find(set => String(set.id) === String(tabName))
+    if (matchingSetById) {
+      return matchingSetById.id
+    }
+    // If not found by ID, return null (invalid tab)
+    return null
+  }
+  
+  // Normal case: tabName is a set name (string)
   const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
   const collectionSets = collectionToUse?.mediaSets || []
   const matchingSet = collectionSets.find(set => set.name === tabName)
@@ -1742,8 +2076,15 @@ const getMediaCountForTab = tabName => {
 }
 
 
-const handleFavoriteMedia = async (item) => {
+const handleFavoriteMedia = async (event) => {
+  // MediaLightbox emits { item, isFavorite }, MediaCard emits just the item
+  const item = event?.item || event
   if (!item?.id) return
+  
+  if (props.disableActions) {
+    toast.info('Actions are disabled in preview mode')
+    return
+  }
 
   const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
   const favoritePhotosEnabled = collectionToUse?.favoritePhotos !== false
@@ -1754,7 +2095,18 @@ const handleFavoriteMedia = async (item) => {
     return
   }
 
-  // Get current starred status
+  // Check if event is from MediaLightbox (has both item and isFavorite properties)
+  const isFromLightbox = event?.item !== undefined && event?.isFavorite !== undefined
+
+  // If from MediaLightbox, call API directly without modal
+  if (isFromLightbox) {
+    const currentStarred = item.isStarred || false
+    const newStarredStatus = !currentStarred
+    await saveFavorite(item, newStarredStatus, null)
+    return
+  }
+
+  // If from MediaCard, show modal if notes enabled
   const currentStarred = item.isStarred || false
   const newStarredStatus = !currentStarred
 
@@ -1800,6 +2152,11 @@ const allItemsFavourited = computed(() => {
 
 const handleFavoriteAll = async () => {
   if (!media.value || media.value.length === 0) return
+  
+  if (props.disableActions) {
+    toast.info('Actions are disabled in preview mode')
+    return
+  }
 
   const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
   const favoritePhotosEnabled = collectionToUse?.favoritePhotos !== false
@@ -1855,42 +2212,73 @@ const handleFavoriteAll = async () => {
 }
 
 const saveFavorite = async (item, isFavorite, note, suppressToast = false) => {
+  if (props.disableActions) {
+    if (!suppressToast) {
+      toast.info('Actions are disabled in preview mode')
+    }
+    return
+  }
+  
   const currentStarred = item.isStarred || false
-
-  // Optimistic update
-  const mediaItem = media.value.find(m => m.id === item.id)
-  if (mediaItem) {
-    mediaItem.isStarred = isFavorite
-  }
-  if (item) {
-    item.isStarred = isFavorite
-  }
 
   // Use public API endpoint for both authenticated and unauthenticated users
   if (collection.value?.id) {
-    try {
-      const collectionId = collection.value.id || collection.value.uuid
-      const payload = {}
-      
-      // Always include note (even if null) - backend will handle validation
-      payload.note = note !== undefined && note !== null ? note : null
-      
-      // Get email - check both localStorage key formats, then authenticated user email
-      const headers = {}
-      let userEmail = localStorage.getItem(`collection_${collectionId}_email`) 
-        || localStorage.getItem(`collection_email_${collectionId}`)
-      
-      if (!userEmail || userEmail.trim() === '') {
-        if (userStore.isAuthenticated && userStore.user?.email) {
-          userEmail = userStore.user.email
+    const collectionId = collection.value.id || collection.value.uuid
+    const payload = {}
+    
+    // Always include note (even if null) - backend will handle validation
+    payload.note = note !== undefined && note !== null ? note : null
+    
+    // Get email and client token - check both localStorage key formats, then authenticated user email
+    const headers = {}
+    let userEmail = localStorage.getItem(`collection_${collectionId}_email`) 
+      || localStorage.getItem(`collection_email_${collectionId}`)
+    
+    if (!userEmail || userEmail.trim() === '') {
+      if (userStore.isAuthenticated && userStore.user?.email) {
+        userEmail = userStore.user.email
+      }
+    }
+    
+    // Get client token if available (for client mode)
+    const stored = localStorage.getItem(`collection_${collectionId}_client_verified`)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.token) {
+          headers['X-Guest-Token'] = data.token
+          headers['Authorization'] = `Bearer ${data.token}`
         }
+        // Use email from client verification if available
+        if (data.email && (!userEmail || userEmail.trim() === '')) {
+          userEmail = data.email
+        }
+      } catch (e) {
+        // Invalid data
       }
-      
+    }
+    
+    // Email is required for favoriting
+    if (!userEmail || userEmail.trim() === '') {
+      if (!suppressToast) {
+        toast.error('Email is required to favorite media. Please provide your email.')
+      }
+      return
+    }
+    
+    // Optimistic update
+    const mediaItem = media.value.find(m => m.id === item.id)
+    if (mediaItem) {
+      mediaItem.isStarred = isFavorite
+    }
+    if (item) {
+      item.isStarred = isFavorite
+    }
+    
+    try {
       // Always send email in body (header may be stripped by CORS/middleware)
-      if (userEmail && userEmail.trim() !== '') {
-        payload.email = userEmail.trim()
-        headers['X-Collection-Email'] = userEmail.trim()
-      }
+      payload.email = userEmail.trim()
+      headers['X-Collection-Email'] = userEmail.trim()
       
       const response = await apiClient.post(
         `/v1/public/collections/${collectionId}/media/${item.id}/favourite`,
@@ -1927,6 +2315,103 @@ const saveFavorite = async (item, isFavorite, note, suppressToast = false) => {
 
 const handleSlideshow = ({ playing }) => {
   // Handle slideshow state
+}
+
+const handleLogout = () => {
+  emit('logout')
+}
+
+const handleToggleMediaPrivate = async (item) => {
+  if (!item?.id || !collection.value?.id) return
+  
+  if (props.disableActions) {
+    toast.info('Actions are disabled in preview mode')
+    return
+  }
+  
+  const collectionId = collection.value.id || collection.value.uuid
+  const currentPrivateState = item.isPrivate || false
+  const isPrivate = !currentPrivateState
+  
+  // Get email - check both localStorage key formats, then client verification, then authenticated user email
+  let userEmail = localStorage.getItem(`collection_${collectionId}_email`) 
+    || localStorage.getItem(`collection_email_${collectionId}`)
+  
+  if (!userEmail || userEmail.trim() === '') {
+    if (userStore.isAuthenticated && userStore.user?.email) {
+      userEmail = userStore.user.email
+    }
+  }
+  
+  // Get client token and email from client verification
+  const headers = {}
+  const stored = localStorage.getItem(`collection_${collectionId}_client_verified`)
+  if (stored) {
+    try {
+      const data = JSON.parse(stored)
+      if (data.token) {
+        headers['X-Guest-Token'] = data.token
+        headers['Authorization'] = `Bearer ${data.token}`
+      }
+      // Use email from client verification if available
+      if (data.email && (!userEmail || userEmail.trim() === '')) {
+        userEmail = data.email
+      }
+    } catch (e) {
+      // Invalid data
+    }
+  }
+  
+  // Email is required for marking media as private
+  if (!userEmail || userEmail.trim() === '') {
+    toast.error('Email is required to mark media as private. Please provide your email.')
+    return
+  }
+  
+  try {
+    // Optimistic update
+    const mediaItem = media.value.find(m => m.id === item.id)
+    if (mediaItem) {
+      mediaItem.isPrivate = isPrivate
+    }
+    if (item) {
+      item.isPrivate = isPrivate
+    }
+    
+    // Always send email in body (header may be stripped by CORS/middleware)
+    headers['X-Collection-Email'] = userEmail.trim()
+    
+    const response = await apiClient.post(
+      `/v1/public/collections/${collectionId}/media/${item.id}/toggle-private`,
+      { email: userEmail.trim() },
+      { headers }
+    )
+    
+    const updatedMedia = response.data?.data || response.data
+    if (updatedMedia) {
+      // Update with server response
+      if (mediaItem) {
+        mediaItem.isPrivate = updatedMedia.isPrivate ?? isPrivate
+      }
+      if (item) {
+        item.isPrivate = updatedMedia.isPrivate ?? isPrivate
+      }
+    }
+    
+    toast.success(isPrivate ? 'Photo marked as private' : 'Photo unmarked as private')
+  } catch (error) {
+    // Revert on error
+    const mediaItem = media.value.find(m => m.id === item.id)
+    if (mediaItem) {
+      mediaItem.isPrivate = !isPrivate
+    }
+    if (item) {
+      item.isPrivate = !isPrivate
+    }
+    
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to update private status'
+    toast.error(errorMessage)
+  }
 }
 
 const getTabIcon = tab => {
@@ -1999,9 +2484,19 @@ onMounted(async () => {
     // In preview mode, use provided props
     if (props.previewCollection) {
       collection.value = props.previewCollection
-      // Set activeTab to first set if available
+      // Set activeTab from route query or first set if available
       if (collection.value?.mediaSets && collection.value.mediaSets.length > 0 && !activeTab.value) {
-        activeTab.value = collection.value.mediaSets[0].name
+        const setIdFromRoute = route.query.setId
+        if (setIdFromRoute) {
+          const matchingSet = collection.value.mediaSets.find(s => String(s.id) === String(setIdFromRoute))
+          if (matchingSet) {
+            activeTab.value = matchingSet.name
+          } else {
+            activeTab.value = collection.value.mediaSets[0].name
+          }
+        } else {
+          activeTab.value = collection.value.mediaSets[0].name
+        }
       }
     }
     if (props.previewMedia) {
@@ -2093,7 +2588,7 @@ onMounted(async () => {
       // Check if setId is in route query and set it first (like SelectionDetail)
       if (route.query.setId) {
         const setIdFromRoute = route.query.setId
-        const matchingSet = collectionSets.find(s => s.id === setIdFromRoute)
+        const matchingSet = collectionSets.find(s => String(s.id) === String(setIdFromRoute))
         if (matchingSet) {
           activeTab.value = matchingSet.name
         }

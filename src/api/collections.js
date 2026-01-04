@@ -1437,6 +1437,137 @@ export function useCollectionsApi() {
     }
   }
 
+  /**
+   * Track email registration
+   */
+  const trackEmailRegistration = async (collectionId, email, name = null) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/collections/${collectionId}/track-email-registration`,
+        { email, name }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Track share link click
+   */
+  const trackShareLinkClick = async (collectionId, linkId = null, linkUrl = null, email = null) => {
+    try {
+      const headers = {}
+      if (email) {
+        headers['X-Collection-Email'] = email
+      }
+      const response = await apiClient.post(
+        `/v1/public/collections/${collectionId}/track-share-link`,
+        { link_id: linkId, link_url: linkUrl },
+        { headers }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Track private photo access
+   */
+  const trackPrivatePhotoAccess = async (collectionId, mediaId) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/public/collections/${collectionId}/media/${mediaId}/track-private-access`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get email registrations
+   */
+  const getEmailRegistrations = async collectionId => {
+    try {
+      const response = await apiClient.get(
+        `/v1/memora/collections/${collectionId}/activities/email-registrations`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get share link activities
+   */
+  const getShareLinkActivities = async collectionId => {
+    try {
+      const response = await apiClient.get(
+        `/v1/memora/collections/${collectionId}/activities/share-links`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get download activities
+   */
+  const getDownloadActivities = async collectionId => {
+    try {
+      const response = await apiClient.get(
+        `/v1/memora/collections/${collectionId}/activities/downloads`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get favourite activities
+   */
+  const getFavouriteActivities = async collectionId => {
+    try {
+      const response = await apiClient.get(
+        `/v1/memora/collections/${collectionId}/activities/favourites`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get private photo activities
+   */
+  const getPrivatePhotoActivities = async collectionId => {
+    try {
+      const response = await apiClient.get(
+        `/v1/memora/collections/${collectionId}/activities/private-photos`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get a single media item by UUID
+   */
+  const getMedia = async mediaId => {
+    try {
+      const response = await apiClient.get(`/v1/memora/media/${mediaId}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     fetchCollections,
     fetchCollection,
@@ -1452,5 +1583,14 @@ export function useCollectionsApi() {
     deleteMedia,
     starMedia,
     renameMedia,
+    trackEmailRegistration,
+    trackShareLinkClick,
+    trackPrivatePhotoAccess,
+    getEmailRegistrations,
+    getShareLinkActivities,
+    getDownloadActivities,
+    getFavouriteActivities,
+    getPrivatePhotoActivities,
+    getMedia,
   }
 }

@@ -133,8 +133,21 @@
           />
         </div>
 
-        <!-- Theme Toggle (Top Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20">
+        <!-- Theme Toggle and Logout (Top Right) -->
+        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-3">
+          <button
+            v-if="!isAuthenticatedOwner && !isPreviewMode"
+            :class="[
+              proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                ? 'text-white/90 hover:text-white'
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+            ]"
+            class="p-2 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10"
+            title="Logout"
+            @click="handleLogout"
+          >
+            <LogOut class="h-5 w-5" />
+          </button>
           <ThemeToggle
             :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText)"
           />
@@ -921,6 +934,7 @@ import {
   History,
   Clock,
   Upload,
+  LogOut,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
@@ -953,6 +967,7 @@ import { useProofingApi } from '@/api/proofing'
 import { useMediaApi } from '@/api/media'
 import { useUserStore } from '@/stores/user'
 import { toast } from '@/utils/toast'
+import { clearProofingGuestData } from '@/utils/guestLogout'
 
 const theme = useThemeClasses()
 const themeStore = useThemeStore()
@@ -2402,6 +2417,28 @@ const scrollToGallery = () => {
   if (gallerySection) {
     gallerySection.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
+}
+
+const handleLogout = () => {
+  const proofingId = route.query.proofingId || route.params.projectId
+  if (proofingId) {
+    clearProofingGuestData(proofingId)
+  }
+  
+  // Reset all state
+  guestToken.value = null
+  isPasswordVerified.value = false
+  passwordInput.value = ''
+  userEmail.value = ''
+  emailInput.value = ''
+  proofing.value = null
+  mediaSets.value = []
+  mediaItems.value = []
+  
+  toast.success('Logged out successfully')
+  
+  // Reload the page to reset everything
+  window.location.reload()
 }
 
 onMounted(() => {

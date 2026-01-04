@@ -12,13 +12,15 @@
           class="absolute top-4 sm:top-2 md:top-4 left-1/2 -translate-x-1/2 z-[110] w-full max-w-4xl px-8 sm:px-4 flex items-center justify-between gap-3 sm:gap-2 md:gap-3"
         >
           <!-- Counter -->
-          <div
-            v-if="items.length > 1"
-            class="px-4 sm:px-3 py-2 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md text-white text-sm sm:text-xs font-semibold shadow-xl border border-white/10"
-          >
-            <span class="text-white/90">{{ currentIndex + 1 }}</span>
-            <span class="mx-1.5 sm:mx-1 text-white/50">/</span>
-            <span class="text-white/70">{{ items.length }}</span>
+          <div class="flex items-center">
+            <div
+              v-if="items.length > 0"
+              class="px-4 sm:px-3 py-2 sm:py-1.5 rounded-full bg-black/70 backdrop-blur-md text-white text-sm sm:text-xs font-semibold shadow-xl border border-white/10"
+            >
+              <span class="text-white/90">{{ currentIndex + 1 }}</span>
+              <span class="mx-1.5 sm:mx-1 text-white/50">/</span>
+              <span class="text-white/70">{{ items.length }}</span>
+            </div>
           </div>
 
           <!-- Action Buttons Group -->
@@ -32,14 +34,38 @@
               <Share2 class="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
 
-            <!-- Star/Favorite Button -->
+            <!-- Star/Favorite Button (hidden in public mode) -->
             <button
+              v-if="!publicMode"
               aria-label="Favorite"
               class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
               :class="isFavorite ? 'text-yellow-400' : ''"
               @click.stop="handleFavorite"
             >
               <Star class="w-5 h-5 sm:w-4 sm:h-4" :class="isFavorite ? 'fill-current' : ''" />
+            </button>
+
+            <!-- Heart/Favorite Button (public mode) -->
+            <button
+              v-if="publicMode"
+              aria-label="Favorite"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              :class="isFavorite ? 'text-red-500' : 'text-white'"
+              @click.stop="handleFavorite"
+            >
+              <Heart class="w-5 h-5 sm:w-4 sm:h-4" :class="isFavorite ? 'fill-current' : ''" />
+            </button>
+
+            <!-- Padlock/Unlock Button (public mode, client verified) -->
+            <button
+              v-if="publicMode && isClientVerified && allowMarkPrivate"
+              aria-label="Toggle private"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              :class="isPrivate ? 'text-teal-400' : ''"
+              @click.stop="handleTogglePrivate"
+            >
+              <LockOpen v-if="isPrivate" class="w-5 h-5 sm:w-4 sm:h-4" />
+              <Lock v-else class="w-5 h-5 sm:w-4 sm:h-4" />
             </button>
 
             <!-- Play Slideshow Button -->
@@ -276,7 +302,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause, Heart, Lock, LockOpen } from 'lucide-vue-next'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
@@ -285,6 +311,7 @@ import { useProofingApi } from '@/api/proofing'
 import { useCollectionsApi } from '@/api/collections'
 import { useSelectionsApi } from '@/api/selections'
 import { useMediaApi } from '@/api/media'
+import { toast } from '@/utils/toast'
 
 const props = defineProps({
   modelValue: {
@@ -335,9 +362,25 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  publicMode: {
+    type: Boolean,
+    default: false,
+  },
+  isClientVerified: {
+    type: Boolean,
+    default: false,
+  },
+  allowMarkPrivate: {
+    type: Boolean,
+    default: false,
+  },
+  disableActions: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow'])
+const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow', 'toggle-private'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -354,6 +397,7 @@ const currentVideoTime = ref(null)
 const isLoadingComments = ref(false)
 const comments = ref([])
 const isFavorite = ref(false)
+const isPrivate = ref(false)
 const isSlideshowPlaying = ref(false)
 const slideshowInterval = ref(null)
 const slideshowDelay = 3000 // 3 seconds
@@ -739,6 +783,11 @@ const handleShare = async () => {
 const handleFavorite = () => {
   if (!currentItem.value || !currentItem.value.id) return
   
+  if (props.disableActions) {
+    toast.info('Actions are disabled in preview mode')
+    return
+  }
+  
   // Optimistically update UI
   const newFavoriteState = !isFavorite.value
   isFavorite.value = newFavoriteState
@@ -746,6 +795,19 @@ const handleFavorite = () => {
   // Just emit the event - let the parent handle the API call
   // This prevents double API calls since parent views already have handlers
   emit('favorite', { item: currentItem.value, isFavorite: newFavoriteState })
+}
+
+const handleTogglePrivate = () => {
+  if (!currentItem.value || !currentItem.value.id) return
+  
+  if (props.disableActions) {
+    toast.info('Actions are disabled in preview mode')
+    return
+  }
+  
+  // Just emit the event - let the parent handle the API call and optimistic updates
+  // The parent will update the items array, and we'll reactively update via watchers
+  emit('toggle-private', currentItem.value)
 }
 
 const toggleSlideshow = () => {
@@ -931,6 +993,18 @@ watch(isOpen, open => {
     document.body.style.overflow = 'hidden'
     // Initialize favorite state from item
     isFavorite.value = currentItem.value?.isStarred || currentItem.value?.starred || false
+    // Initialize private state from item
+    isPrivate.value = currentItem.value?.isPrivate || false
+    
+    // Track private photo access when lightbox opens (only in public mode)
+    if (props.publicMode && isPrivate.value && props.collectionId && currentItem.value?.id) {
+      import('@/api/collections').then(({ useCollectionsApi }) => {
+        const { trackPrivatePhotoAccess } = useCollectionsApi()
+        trackPrivatePhotoAccess(props.collectionId, currentItem.value.id).catch(err => {
+          console.warn('Failed to track private photo access:', err)
+        })
+      })
+    }
   } else {
     stopSlideshow()
     disconnectRealtime()
@@ -951,6 +1025,19 @@ watch(
     loadComments()
     // Update favorite state for new item
     isFavorite.value = currentItem.value?.isStarred || currentItem.value?.starred || false
+    // Update private state for new item
+    isPrivate.value = currentItem.value?.isPrivate || false
+    
+    // Track private photo access (only in public mode)
+    if (props.publicMode && isOpen.value && isPrivate.value && props.collectionId && currentItem.value?.id) {
+      import('@/api/collections').then(({ useCollectionsApi }) => {
+        const { trackPrivatePhotoAccess } = useCollectionsApi()
+        trackPrivatePhotoAccess(props.collectionId, currentItem.value.id).catch(err => {
+          console.warn('Failed to track private photo access:', err)
+        })
+      })
+    }
+    
     // Reconnect real-time for new media
     if (isOpen.value) {
       disconnectRealtime()
@@ -967,6 +1054,8 @@ watch(
     if (item) {
       const starred = item.isStarred ?? item.starred ?? false
       isFavorite.value = !!starred
+      const privateState = item.isPrivate ?? false
+      isPrivate.value = !!privateState
     }
   },
   { immediate: false, deep: true }

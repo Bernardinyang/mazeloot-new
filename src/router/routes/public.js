@@ -2,6 +2,7 @@ import Home from '@/views/public/Home.vue'
 import About from '@/views/public/About.vue'
 import ClientSelectionView from '@/views/public/projects/_projectId/selections.vue'
 import ClientProofingView from '@/views/public/projects/_projectId/proofing.vue'
+import BrandHomepage from '@/views/public/BrandHomepage.vue'
 
 export const publicRoutes = [
   {
@@ -51,6 +52,14 @@ export const publicRoutes = [
     path: '/p/approval-request/:token',
     name: 'approvalRequest',
     component: () => import('@/views/public/ApprovalRequest.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/homepage',
+    name: 'brandHomepage',
+    component: BrandHomepage,
     meta: {
       requiresAuth: false,
     },

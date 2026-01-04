@@ -65,108 +65,75 @@
           </div>
 
           <!-- Links List -->
-          <div class="space-y-4">
-            <div
-              v-for="link in shareLinks"
-              :key="link.id"
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          <div :class="[theme.borderSecondary, theme.bgCard]" class="rounded-2xl border-2 overflow-hidden">
+            <DataTable
+              :items="shareLinks"
+              :columns="tableColumns"
+              :loading="isLoading"
+              :empty-message="'No quick share links yet'"
+              :empty-icon="Link"
             >
-              <div class="flex items-start justify-between mb-4">
-                <div class="flex-1">
-                  <div class="flex items-center gap-3 mb-2">
-                    <h3 :class="theme.textPrimary" class="text-lg font-semibold">
-                      {{ link.name || 'Untitled Link' }}
-                    </h3>
-                    <span
-                      :class="
-                        link.active
-                          ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                          : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                      "
-                      class="px-2 py-1 rounded-full text-xs font-semibold"
+              <template #cell-url="{ item }">
+                <div class="px-6 py-4">
+                  <div class="flex items-center gap-2">
+                    <Link :class="theme.textSecondary" class="h-4 w-4" />
+                    <a
+                      :href="item.url"
+                      class="text-sm text-teal-600 dark:text-teal-400 hover:underline font-mono"
+                      target="_blank"
                     >
-                      {{ link.active ? 'Active' : 'Inactive' }}
-                    </span>
+                      {{ item.url }}
+                    </a>
+                    <button
+                      class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      title="Copy link"
+                      @click.stop="copyToClipboard(item.url, item.id)"
+                    >
+                      <Copy :class="theme.textSecondary" class="h-3.5 w-3.5" />
+                    </button>
                   </div>
-                  <div class="flex items-center gap-4 mb-3">
-                    <div class="flex items-center gap-2">
-                      <Link :class="theme.textSecondary" class="h-4 w-4" />
-                      <a
-                        :href="link.url"
-                        class="text-sm text-teal-600 dark:text-teal-400 hover:underline font-mono"
-                        target="_blank"
-                      >
-                        {{ link.url }}
-                      </a>
-                      <button
-                        class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                        title="Copy link"
-                        @click="copyToClipboard(link.url)"
-                      >
-                        <Copy :class="theme.textSecondary" class="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+                </div>
+              </template>
+              <template #cell-createdAt="{ item }">
+                <div class="px-6 py-4">
+                  <div :class="theme.textPrimary" class="text-sm">
+                    {{ formatDate(item.createdAt) }}
                   </div>
-                  <p :class="theme.textSecondary" class="text-sm mb-3">
-                    {{ link.description || 'No description' }}
+                </div>
+              </template>
+              <template #cell-clickCount="{ item }">
+                <div class="px-6 py-4">
+                  <div :class="theme.textPrimary" class="text-sm">
+                    {{ item.clickCount || 0 }}
+                  </div>
+                </div>
+              </template>
+              <template #cell-lastUsedAt="{ item }">
+                <div class="px-6 py-4">
+                  <div :class="theme.textPrimary" class="text-sm">
+                    {{ item.lastUsedAt ? formatDate(item.lastUsedAt) : 'Never' }}
+                  </div>
+                </div>
+              </template>
+              <template #empty>
+                <div class="px-6 py-12 text-center">
+                  <Link :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-4 opacity-30" />
+                  <p :class="theme.textPrimary" class="text-sm font-medium mb-2">
+                    No quick share links yet
                   </p>
-                  <div :class="theme.textSecondary" class="flex items-center gap-6 text-xs">
-                    <span>Created) }}</span>
-                    <span>•</span>
-                    <span>{{ link.clickCount }} clicks</span>
-                    <span>•</span>
-                    <span
-                      >Last used:
-                      {{ link.lastUsedAt ? formatDate(link.lastUsedAt) : 'Never' }}
-                    </span>
-                  </div>
-                </div>
-                <div class="flex items-center gap-2 ml-4">
+                  <p :class="theme.textSecondary" class="text-xs mb-4">
+                    Create your first quick share link to get started
+                  </p>
                   <Button
-                    :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="gap-2"
-                    size="sm"
-                    variant="outline"
-                    @click="editLink(link)"
+                    class="gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                    @click="showCreateModal = true"
                   >
-                    <Pencil class="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    :class="theme.borderSecondary"
-                    class="gap-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                    size="sm"
-                    variant="outline"
-                    @click="deleteLink(link.id)"
-                  >
-                    <Trash2 class="h-4 w-4" />
-                    Delete
+                    <Plus class="h-4 w-4" />
+                    Create Link
                   </Button>
                 </div>
-              </div>
-            </div>
-
-            <div
-              v-if="shareLinks.length === 0"
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-12 rounded-2xl border-2 border-dashed text-center"
-            >
-              <Link :class="theme.textTertiary" class="h-12 w-12 mx-auto mb-4 opacity-30" />
-              <p :class="theme.textPrimary" class="text-sm font-medium mb-2">
-                No quick share links yet
-              </p>
-              <p :class="theme.textSecondary" class="text-xs mb-4">
-                Create your first quick share link to get started
-              </p>
-              <Button
-                class="gap-2 bg-teal-500 hover:bg-teal-600 text-white"
-                @click="showCreateModal = true"
-              >
-                <Plus class="h-4 w-4" />
-                Create Link
-              </Button>
-            </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -185,12 +152,11 @@ import {
   Loader2,
   Lock,
   Mail,
-  Pencil,
   Plus,
-  Trash2,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
+import DataTable from '@/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
@@ -211,6 +177,14 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 // Share links data
 const shareLinks = ref([])
 const showCreateModal = ref(false)
+
+// Table columns
+const tableColumns = [
+  { key: 'url', label: 'Link', slot: 'url' },
+  { key: 'createdAt', label: 'Created', slot: 'createdAt' },
+  { key: 'clickCount', label: 'Clicks', slot: 'clickCount' },
+  { key: 'lastUsedAt', label: 'Last Used', slot: 'lastUsedAt' },
+]
 
 // Computed stats
 const totalLinks = computed(() => shareLinks.value.length)
@@ -297,12 +271,13 @@ onMounted(async () => {
   try {
     const collectionData = await galleryStore.fetchCollection(collectionId)
     collection.value = collectionData
-    // shareLinks.value = await fetchShareLinks(collectionId)
-    // For now, use demo data
-    shareLinks.value = generateDemoData()
+    
+    const { useCollectionsApi } = await import('@/api/collections')
+    const { getShareLinkActivities } = useCollectionsApi()
+    shareLinks.value = await getShareLinkActivities(collectionId)
   } catch (error) {
-    // Still load demo data even if collection fetch fails
-    shareLinks.value = generateDemoData()
+    console.error('Failed to load share link activities:', error)
+    shareLinks.value = []
   } finally {
     isLoading.value = false
   }
@@ -323,19 +298,28 @@ const formatDate = dateString => {
 }
 
 // Copy to clipboard
-const copyToClipboard = async text => {
+const copyToClipboard = async (text, linkId) => {
   try {
     await navigator.clipboard.writeText(text)
     toast.success('Link copied to clipboard')
+    
+    // Track share link copy with email
+    if (collection.value?.id || collection.value?.uuid) {
+      const collectionId = collection.value?.id || collection.value?.uuid
+      try {
+        // Get stored email from localStorage (same as public collection view)
+        const storedEmail = localStorage.getItem(`collection_email_${collectionId}`)
+        const { useCollectionsApi } = await import('@/api/collections')
+        const { trackShareLinkClick } = useCollectionsApi()
+        await trackShareLinkClick(collectionId, linkId, text, storedEmail)
+      } catch (err) {
+        // Don't fail if tracking fails
+        console.warn('Failed to track share link copy:', err)
+      }
+    }
   } catch (error) {
     toast.error('Failed to copy link')
   }
 }
 
-// Edit link
-const editLink = link => {}
-
-const deleteLink = async linkId => {
-  toast.success('Link deleted')
-}
 </script>

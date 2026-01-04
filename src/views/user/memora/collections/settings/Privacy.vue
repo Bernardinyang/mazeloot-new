@@ -241,7 +241,7 @@
                         Allow Clients to Mark Photos Private
                       </h4>
                       <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                        Give clients the ability to mark photos private. Private photos are not visible
+                        Give clients the ability to mark photos private. Private media are not visible
                         to public guests and only clients can see them.
                         <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
                           >Learn more</a
