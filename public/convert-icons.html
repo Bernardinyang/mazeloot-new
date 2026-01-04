@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Convert SVG Icons to PNG</title>
+  <style>
+    body { font-family: Arial; padding: 20px; max-width: 800px; margin: 0 auto; }
+    canvas { border: 1px solid #ccc; margin: 10px; display: block; }
+    button { padding: 10px 20px; margin: 10px; font-size: 16px; cursor: pointer; }
+    .instructions { background: #f0f0f0; padding: 15px; border-radius: 5px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <h1>PWA Icon Converter</h1>
+  <div class="instructions">
+    <p><strong>Instructions:</strong></p>
+    <ol>
+      <li>Click "Generate Icons" to create PNG icons from SVG</li>
+      <li>Click "Download Icons" to save the PNG files</li>
+      <li>Place the downloaded PNG files in the <code>public</code> directory</li>
+    </ol>
+  </div>
+  
+  <canvas id="icon192" width="192" height="192"></canvas>
+  <canvas id="icon512" width="512" height="512"></canvas>
+  
+  <div>
+    <button onclick="generateIcons()">Generate Icons</button>
+    <button onclick="downloadIcons()">Download Icons</button>
+  </div>
+
+  <script>
+    function generateIcons() {
+      const sizes = [192, 512];
+      sizes.forEach(size => {
+        const canvas = document.getElementById(`icon${size}`);
+        const ctx = canvas.getContext('2d');
+        
+        // Create gradient background
+        const gradient = ctx.createLinearGradient(0, 0, size, size);
+        gradient.addColorStop(0, '#8B5CF6');
+        gradient.addColorStop(1, '#6366F1');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
+        
+        // Draw 'M' text
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${size / 3}px Arial, sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('M', size / 2, size / 2);
+      });
+    }
+    
+    function downloadIcons() {
+      const sizes = [192, 512];
+      sizes.forEach(size => {
+        const canvas = document.getElementById(`icon${size}`);
+        canvas.toBlob(blob => {
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `icon-${size}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 'image/png');
+      });
+      alert('Icons downloaded! Place them in the public directory.');
+    }
+    
+    // Auto-generate on load
+    window.onload = generateIcons;
+  </script>
+</body>
+</html>

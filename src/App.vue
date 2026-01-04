@@ -2,10 +2,12 @@
   <div class="min-h-screen">
     <RouterView />
     <Toaster />
+    <PWAInstallPrompt />
+    <PWADebugInfo />
 
     <!-- Floating Upload Queue Button -->
     <UploadQueueButton
-      v-if="!isPublicRoute"
+      v-if="!isPublicRoute && hasActiveOrFailedUploads"
       :floating="true"
       @click="showUploadQueueModal = true"
     />
@@ -21,14 +23,23 @@ import { RouterView, useRoute } from 'vue-router'
 import Toaster from './components/organisms/Toaster.vue'
 import UploadQueueButton from './components/organisms/UploadQueueButton.vue'
 import BackgroundUploadQueueModal from './components/organisms/BackgroundUploadQueueModal.vue'
+import PWAInstallPrompt from './components/molecules/PWAInstallPrompt.vue'
+import PWADebugInfo from './components/molecules/PWADebugInfo.vue'
 import { useActionHistoryStore } from './stores/actionHistory'
+import { useBackgroundUploadManager } from './composables/useBackgroundUploadManager'
 import { toast } from './utils/toast'
 
 const route = useRoute()
 const showUploadQueueModal = ref(false)
+const backgroundUploadManager = useBackgroundUploadManager()
 
 const isPublicRoute = computed(() => {
   return route.matched.some(record => record.meta.requiresAuth === false)
+})
+
+const hasActiveOrFailedUploads = computed(() => {
+  return backgroundUploadManager.activeUploadCount.value > 0 || 
+         backgroundUploadManager.failedUploadCount.value > 0
 })
 
 // Global keyboard shortcuts for undo/redo
