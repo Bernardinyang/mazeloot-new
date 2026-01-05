@@ -89,10 +89,10 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.photoDownload
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -117,7 +117,7 @@
             <button
               :class="[
                 showPhotoOptions
-                  ? 'text-teal-600 dark:text-teal-400 bg-teal-50/50 dark:bg-teal-950/20'
+                  ? 'text-accent bg-accent/10 dark:bg-accent/20'
                   : '',
               ]"
               class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
@@ -149,7 +149,7 @@
                   <div
                     :class="[
                       formData.highResolutionEnabled
-                        ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
+                        ? 'bg-accent/10 dark:bg-accent/20 border-accent/30 dark:border-accent/30'
                         : '',
                       theme.bgCard,
                     ]"
@@ -158,8 +158,8 @@
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
                         v-model="formData.highResolutionEnabled"
-                        :class="formData.highResolutionEnabled ? 'border-teal-500 bg-teal-500' : ''"
-                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                        :class="formData.highResolutionEnabled ? 'border-accent bg-accent' : ''"
+                        class="mt-1 h-4 w-4 rounded border-2 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                         type="checkbox"
                       />
                       <div class="flex-1">
@@ -191,14 +191,14 @@
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
                               v-model="formData.highResolutionSize"
-                              class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              class="h-4 w-4 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                               type="radio"
                               value="3600px"
                             />
                             <span
                               :class="
                                 formData.highResolutionSize === '3600px'
-                                  ? 'text-teal-600 dark:text-teal-400'
+                                  ? 'text-accent'
                                   : ''
                               "
                               class="text-sm font-medium transition-colors"
@@ -208,7 +208,7 @@
                           <label class="flex items-center gap-2.5 cursor-not-allowed opacity-50">
                             <input
                               v-model="formData.highResolutionSize"
-                              class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-not-allowed"
+                              class="h-4 w-4 text-accent focus:ring-2 focus:ring-accent/20 cursor-not-allowed"
                               disabled
                               type="radio"
                               value="original"
@@ -231,7 +231,7 @@
                   <div
                     :class="[
                       formData.webSizeEnabled
-                        ? 'bg-teal-50/30 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
+                        ? 'bg-accent/10 dark:bg-accent/20 border-accent/30 dark:border-accent/30'
                         : '',
                       theme.bgCard,
                     ]"
@@ -240,8 +240,8 @@
                     <label class="flex items-start gap-3 cursor-pointer group">
                       <input
                         v-model="formData.webSizeEnabled"
-                        :class="formData.webSizeEnabled ? 'border-teal-500 bg-teal-500' : ''"
-                        class="mt-1 h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                        :class="formData.webSizeEnabled ? 'border-accent bg-accent' : ''"
+                        class="mt-1 h-4 w-4 rounded border-2 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                         type="checkbox"
                       />
                       <div class="flex-1">
@@ -255,14 +255,14 @@
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
                               v-model="formData.webSize"
-                              class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              class="h-4 w-4 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                               type="radio"
                               value="2048px"
                             />
                             <span
                               :class="
                                 formData.webSize === '2048px'
-                                  ? 'text-teal-600 dark:text-teal-400'
+                                  ? 'text-accent'
                                   : ''
                               "
                               class="text-sm font-medium transition-colors"
@@ -272,14 +272,14 @@
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
                               v-model="formData.webSize"
-                              class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              class="h-4 w-4 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                               type="radio"
                               value="1024px"
                             />
                             <span
                               :class="
                                 formData.webSize === '1024px'
-                                  ? 'text-teal-600 dark:text-teal-400'
+                                  ? 'text-accent'
                                   : ''
                               "
                               class="text-sm font-medium transition-colors"
@@ -289,14 +289,14 @@
                           <label class="flex items-center gap-2.5 cursor-pointer group/radio">
                             <input
                               v-model="formData.webSize"
-                              class="h-4 w-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                              class="h-4 w-4 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                               type="radio"
                               value="640px"
                             />
                             <span
                               :class="
                                 formData.webSize === '640px'
-                                  ? 'text-teal-600 dark:text-teal-400'
+                                  ? 'text-accent'
                                   : ''
                               "
                               class="text-sm font-medium transition-colors"
@@ -311,7 +311,7 @@
                   <p :class="theme.textSecondary" class="text-xs mt-4 leading-relaxed pl-1">
                     Allow photos to be downloaded in select sizes.
                     <a
-                      class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
+                      class="text-accent hover:text-accent underline transition-colors font-medium"
                       href="#"
                     >
                       Learn more
@@ -329,10 +329,10 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.videoDownload
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -340,7 +340,7 @@
               <p :class="theme.textSecondary" class="text-sm leading-relaxed">
                 Allow videos to be downloaded for offline viewing.
                 <a
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  class="text-accent hover:text-accent underline transition-colors font-medium"
                   href="#"
                 >
                   Learn more
@@ -363,7 +363,7 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.downloadPin ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.downloadPin ? 'ring-2 ring-accent/20 dark:ring-accent/20' : '',
           ]"
           class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
@@ -382,7 +382,7 @@
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                'flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all px-3 py-2 rounded-lg border',
+                'flex-1 font-mono focus:ring-2 focus:ring-accent/20 transition-all px-3 py-2 rounded-lg border',
               ]"
               type="text"
               maxlength="4"
@@ -392,13 +392,13 @@
             />
             <Button
               :class="[theme.borderSecondary, theme.textPrimary]"
-              class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+              class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
               size="sm"
               variant="outline"
               @click="handleGeneratePin"
             >
               <RefreshCw
-                class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+                class="h-4 w-4 mr-2 group-hover:text-accent transition-colors"
               />
               Generate
             </Button>
@@ -410,7 +410,7 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            formData.restrictToContacts ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20' : '',
+            formData.restrictToContacts ? 'ring-2 ring-accent/20 dark:ring-accent/20' : '',
           ]"
           class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
         >
@@ -419,13 +419,13 @@
           </h3>
           <div class="space-y-3 pt-2">
             <label
-              :class="formData.restrictToContacts ? 'bg-teal-50/30 dark:bg-teal-950/20' : ''"
+              :class="formData.restrictToContacts ? 'bg-accent/10 dark:bg-accent/20' : ''"
               class="flex items-center gap-3 cursor-pointer group p-3 rounded-lg transition-all duration-200 hover:bg-gray-50/50 dark:hover:bg-gray-800/30"
             >
               <input
                 v-model="formData.restrictToContacts"
-                :class="formData.restrictToContacts ? 'border-teal-500 bg-teal-500' : ''"
-                class="h-4 w-4 rounded border-2 text-teal-500 focus:ring-2 focus:ring-teal-500/20 cursor-pointer transition-all"
+                :class="formData.restrictToContacts ? 'border-accent bg-accent' : ''"
+                class="h-4 w-4 rounded border-2 text-accent focus:ring-2 focus:ring-accent/20 cursor-pointer transition-all"
                 type="checkbox"
               />
               <span :class="theme.textPrimary" class="text-sm font-medium flex-1">
@@ -449,7 +449,7 @@
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
-              'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+              'hover:text-accent transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
             :disabled="isSubmitting || isSaving"
@@ -478,7 +478,7 @@
             </Transition>
             <Button
               :disabled="isSubmitting || isSaving"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />

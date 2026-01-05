@@ -3,7 +3,7 @@
     :class="[
       theme.borderSecondary,
       props.isSelected
-        ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20 opacity-100'
+        ? 'ring-2 ring-accent border-accent bg-accent/10 dark:bg-accent/20 opacity-100'
         : props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
           ? 'opacity-100'
           : props.selectionStatus === 'completed'
@@ -45,7 +45,7 @@
       class="flex-shrink-0 p-1 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       @click.stop="emit('toggle-selection')"
     >
-      <CheckSquare2 v-if="props.isSelected" class="h-5 w-5 text-teal-500" />
+      <CheckSquare2 v-if="props.isSelected" class="h-5 w-5 text-accent" />
       <Square v-else :class="theme.textSecondary" class="h-5 w-5" />
     </button>
 
@@ -92,7 +92,7 @@
             <div
               class="w-10 h-10 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
             >
-              <Play class="h-5 w-5 text-teal-600 dark:text-teal-400 ml-0.5" />
+              <Play class="h-5 w-5 text-accent ml-0.5" />
             </div>
           </div>
         </div>
@@ -100,7 +100,7 @@
         <div
           v-if="commentCount > 0"
           :class="[
-            'absolute z-30 px-1.5 py-0.5 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1',
+            'absolute z-30 px-1.5 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-lg flex items-center gap-1',
             props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
               ? 'bottom-8 right-1'
               : 'bottom-1 right-1',

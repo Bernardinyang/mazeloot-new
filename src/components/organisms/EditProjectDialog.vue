@@ -78,7 +78,7 @@
               <input
                 type="checkbox"
                 v-model="formData.hasSelections"
-                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
               />
               <div class="flex-1">
                 <span class="text-sm font-medium" :class="theme.textPrimary">Selections</span>
@@ -133,7 +133,7 @@
               <input
                 type="checkbox"
                 v-model="formData.hasProofing"
-                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
               />
               <div class="flex-1">
                 <span class="text-sm font-medium" :class="theme.textPrimary">Proofing</span>
@@ -187,7 +187,7 @@
               <input
                 type="checkbox"
                 v-model="formData.hasCollections"
-                class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent"
               />
               <div class="flex-1">
                 <span class="text-sm font-medium" :class="theme.textPrimary">Collections</span>
@@ -299,7 +299,7 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-teal-600 dark:hover:text-teal-400',
+            'hover:text-accent',
           ]"
           :disabled="props.isSubmitting || isLocalSubmitting"
           type="button"
@@ -312,7 +312,7 @@
           :disabled="
             !formData.name.trim() || !hasChanges || props.isSubmitting || isLocalSubmitting
           "
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
           @click="handleSubmit"
         >

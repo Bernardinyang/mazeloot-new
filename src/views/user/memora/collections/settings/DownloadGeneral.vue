@@ -3,7 +3,7 @@
     <!-- Photo Download -->
     <div
       :class="[theme.borderSecondary, theme.bgCard]"
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
@@ -28,7 +28,7 @@
         <h4 :class="theme.textPrimary" class="text-base font-semibold mb-1.5">Photo Download Sizes</h4>
         <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-4">
           Allow photos to be downloaded in select sizes.
-          <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+          <a class="text-accent hover:underline font-medium" href="#"
             >Learn more</a
           >
         </p>
@@ -41,7 +41,7 @@
           >
             <input
               v-model="highResolutionEnabled"
-              class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 transition-all"
+              class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent transition-all"
               type="checkbox"
             />
             <span :class="theme.textPrimary" class="text-sm font-medium">High Resolution</span>
@@ -60,7 +60,7 @@
               <span :class="theme.textSecondary" class="text-sm">
                 Original - Upgrade required.
                 <a
-                  class="text-teal-600 dark:text-teal-400 hover:underline font-medium transition-colors"
+                  class="text-accent hover:underline font-medium transition-colors"
                   href="#"
                   >Upgrade</a
                 >
@@ -88,7 +88,7 @@
           >
             <input
               v-model="webSizeEnabled"
-              class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 transition-all"
+              class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent transition-all"
               type="checkbox"
             />
             <span :class="theme.textPrimary" class="text-sm font-medium">Web Size</span>
@@ -99,7 +99,7 @@
             >
               <input
                 v-model="webSize"
-                class="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 text-accent focus:ring-accent"
                 name="webSize"
                 type="radio"
                 value="2048px"
@@ -111,7 +111,7 @@
             >
               <input
                 v-model="webSize"
-                class="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 text-accent focus:ring-accent"
                 name="webSize"
                 type="radio"
                 value="1024px"
@@ -123,7 +123,7 @@
             >
               <input
                 v-model="webSize"
-                class="w-4 h-4 text-teal-600 focus:ring-teal-500"
+                class="w-4 h-4 text-accent focus:ring-accent"
                 name="webSize"
                 type="radio"
                 value="640px"
@@ -140,7 +140,7 @@
     <!-- Download PIN -->
     <div
       :class="[theme.borderSecondary, theme.bgCard]"
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
@@ -160,7 +160,7 @@
             theme.bgInput,
             theme.borderInput,
             theme.textInput,
-            'flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all'
+            'flex-1 font-mono focus:ring-2 focus:ring-accent/20 transition-all'
           )"
           :maxlength="4"
           readonly
@@ -168,25 +168,25 @@
         />
         <Button
           :class="[theme.borderSecondary, theme.textPrimary]"
-          class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+          class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
           size="sm"
           variant="outline"
           @click="resetPin"
         >
           <RefreshCw
-            class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+            class="h-4 w-4 mr-2 group-hover:text-accent transition-colors"
           />
           Reset PIN
         </Button>
         <Button
           v-if="downloadPin"
           :class="[theme.borderSecondary, theme.textPrimary]"
-          class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+          class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
           size="sm"
           variant="outline"
           @click="copyPin"
         >
-          <Copy class="h-4 w-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+          <Copy class="h-4 w-4 group-hover:text-accent transition-colors" />
         </Button>
       </div>
     </div>
@@ -199,12 +199,12 @@
           <span :class="theme.textSecondary">You have unsaved changes</span>
         </div>
         <div v-else class="flex items-center gap-2 text-sm">
-          <Check class="h-4 w-4 text-teal-500" />
+          <Check class="h-4 w-4 text-accent" />
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
           :disabled="!hasChanges || isSaving"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSave"
         >
           <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />

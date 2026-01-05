@@ -47,22 +47,22 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.favoritePhotos
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-accent/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  :class="formData.favoritePhotos ? 'bg-teal-500/10 dark:bg-teal-500/20' : ''"
+                  :class="formData.favoritePhotos ? 'bg-accent/10 dark:bg-accent/20' : ''"
                   class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <Heart
                     :class="
                       formData.favoritePhotos
-                        ? 'text-teal-600 dark:text-teal-400 fill-teal-600 dark:fill-teal-400'
+                        ? 'text-accent fill-accent'
                         : ''
                     "
                     class="h-4 w-4 transition-colors"
@@ -72,7 +72,7 @@
               </div>
               <p :class="theme.textSecondary" class="text-sm leading-relaxed ml-11">
                 Allow visitors to favorite photos. You can review these afterwards in
-                <span class="font-medium text-teal-600 dark:text-teal-400">Favorite Activity</span>.
+                <span class="font-medium text-accent">Favorite Activity</span>.
               </p>
             </div>
             <div class="flex-shrink-0 pt-1">
@@ -92,20 +92,20 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.favoriteNotes
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-teal-500/30"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200 hover:shadow-md hover:border-accent/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-2.5 mb-2">
                 <div
-                  :class="formData.favoriteNotes ? 'bg-teal-500/10 dark:bg-teal-500/20' : ''"
+                  :class="formData.favoriteNotes ? 'bg-accent/10 dark:bg-accent/20' : ''"
                   class="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200"
                 >
                   <StickyNote
-                    :class="formData.favoriteNotes ? 'text-teal-600 dark:text-teal-400' : ''"
+                    :class="formData.favoriteNotes ? 'text-accent' : ''"
                     class="h-4 w-4 transition-colors"
                   />
                 </div>
@@ -114,7 +114,7 @@
               <p :class="theme.textSecondary" class="text-sm leading-relaxed ml-11">
                 Allow clients to add notes to photos they have favorited.
                 <a
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  class="text-accent hover:text-accent underline transition-colors font-medium"
                   href="#"
                 >
                   Learn more
@@ -143,7 +143,7 @@
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
-              'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+              'hover:text-accent transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
             :disabled="isSubmitting || isSaving"
@@ -172,7 +172,7 @@
             </Transition>
             <Button
               :disabled="isSubmitting || isSaving"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />

@@ -119,7 +119,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsGeneral' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsGeneral' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -136,7 +136,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsPrivacy' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsPrivacy' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -154,7 +154,7 @@
                 v-if="collection?.id"
                 :class="[
                   route.name?.toString().startsWith('collectionSettingsDownload')
-                    ? 'bg-teal-500 text-white'
+                    ? 'bg-accent text-accent-foreground'
                     : '',
                 ]"
                 :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
@@ -176,7 +176,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsFavorite' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsFavorite' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -286,7 +286,7 @@
               </div>
               <Button
                 :disabled="!hasChanges || isSaving"
-                class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="handleSave"
               >
                 <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />

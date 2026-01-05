@@ -30,7 +30,7 @@
           <Button
             variant="default"
             size="sm"
-            class="bg-teal-500 hover:bg-teal-600 text-white"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground"
             @click="handleCreateCollection"
           >
             Create Collection
@@ -103,7 +103,7 @@
         <p :class="theme.textSecondary" class="mb-4">No collections created yet</p>
         <Button
           variant="default"
-          class="bg-teal-500 hover:bg-teal-600 text-white"
+          class="bg-accent hover:bg-accent/90 text-accent-foreground"
           @click="handleCreateCollection"
         >
           Create First Collection

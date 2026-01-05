@@ -3,7 +3,7 @@
     <div
       :class="[
         props.isSelected
-          ? 'ring-2 ring-teal-500 ring-offset-2 opacity-100'
+          ? 'ring-2 ring-accent ring-offset-2 opacity-100'
           : props.wasSelectedOnCompletion && props.selectionStatus === 'completed'
             ? 'opacity-100'
             : props.selectionStatus === 'completed'
@@ -40,7 +40,7 @@
           class="p-1.5 rounded-md bg-black/50 hover:bg-black/70 backdrop-blur-sm transition-colors"
           @click.stop="emit('toggle-selection')"
         >
-          <CheckSquare2 v-if="props.isSelected" class="h-5 w-5 text-teal-400" />
+          <CheckSquare2 v-if="props.isSelected" class="h-5 w-5 text-accent" />
           <Square v-else class="h-5 w-5 text-white" />
         </button>
       </div>
@@ -119,7 +119,7 @@
             <div
               class="w-16 h-16 rounded-full bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform"
             >
-              <Play class="h-8 w-8 text-teal-600 dark:text-teal-400 ml-1" />
+              <Play class="h-8 w-8 text-accent ml-1" />
             </div>
           </div>
         </div>
@@ -249,7 +249,7 @@
         <!-- Comment Count Badge -->
         <div
           v-if="commentCount > 0"
-          class="px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+          class="px-2 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-lg flex items-center gap-1"
         >
           <MessageSquare class="w-3 h-3" />
           {{ commentCount }}

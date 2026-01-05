@@ -33,8 +33,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsGeneral'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
             ]"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -46,8 +46,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsPrivacy'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
             ]"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -59,8 +59,8 @@
             v-if="collection?.id"
             :class="[
               route.name?.toString().startsWith('collectionSettingsDownload')
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -84,8 +84,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsFavorite'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
             ]"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -119,7 +119,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsGeneral' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsGeneral' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -136,7 +136,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsPrivacy' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsPrivacy' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200"
@@ -154,7 +154,7 @@
                 v-if="collection?.id"
                 :class="[
                   route.name?.toString().startsWith('collectionSettingsDownload')
-                    ? 'bg-teal-500 text-white'
+                    ? 'bg-accent text-accent-foreground'
                     : '',
                 ]"
                 :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
@@ -176,7 +176,7 @@
               <router-link
                 v-if="collection?.id"
                 :class="[
-                  route.name === 'collectionSettingsFavorite' ? 'bg-teal-500 text-white' : '',
+                  route.name === 'collectionSettingsFavorite' ? 'bg-accent text-accent-foreground' : '',
                 ]"
                 :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
                 class="p-3 rounded-lg transition-all duration-200 relative"
@@ -232,7 +232,7 @@
               v-if="collection?.id"
               :class="[
                 route.name === 'collectionSettingsDownloadGeneral'
-                  ? 'text-teal-600 dark:text-teal-400 border-b-2 border-teal-500 font-semibold'
+                  ? 'text-accent border-b-2 border-accent font-semibold'
                   : '',
               ]"
               :to="{ name: 'collectionSettingsDownloadGeneral', params: { uuid: collection.id } }"
@@ -244,7 +244,7 @@
               v-if="collection?.id"
               :class="[
                 route.name === 'collectionSettingsDownloadAdvanced'
-                  ? 'text-teal-600 dark:text-teal-400 border-b-2 border-teal-500 font-semibold'
+                  ? 'text-accent border-b-2 border-accent font-semibold'
                   : '',
               ]"
               :to="{ name: 'collectionSettingsDownloadAdvanced', params: { uuid: collection.id } }"

@@ -2,7 +2,7 @@
   <div class="space-y-6">
     <!-- Limit Photo Downloads -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div class="flex items-start justify-between gap-4">
@@ -27,7 +27,7 @@
           :model-value="downloadLimit"
           @update:model-value="downloadLimit = Number($event)"
           min="1"
-          class="w-20 focus:ring-2 focus:ring-teal-500/20"
+          class="w-20 focus:ring-2 focus:ring-accent/20"
           :class="[theme.bgInput, theme.borderInput, theme.textInput]"
         />
         <span class="text-sm font-medium" :class="theme.textPrimary">photo</span>
@@ -36,7 +36,7 @@
 
     <!-- Restrict Downloads to Specific Contacts -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div class="flex items-start justify-between gap-4">
@@ -224,7 +224,7 @@
 
     <!-- Photo Sets Available for Download -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div>
@@ -249,7 +249,7 @@
             type="checkbox"
             :checked="selectedSets.includes(set.id)"
             @change="toggleSet(set.id)"
-            class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 transition-all"
+            class="w-4 h-4 rounded border-gray-300 text-accent focus:ring-accent transition-all"
           />
           <span class="text-sm font-medium" :class="theme.textPrimary">{{ set.name }}</span>
         </label>
@@ -269,12 +269,12 @@
           <span :class="theme.textSecondary">You have unsaved changes</span>
         </div>
         <div v-else class="flex items-center gap-2 text-sm">
-          <Check class="h-4 w-4 text-teal-500" />
+          <Check class="h-4 w-4 text-accent" />
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
           :disabled="!hasChanges || isSaving"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSave"
         >
           <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />

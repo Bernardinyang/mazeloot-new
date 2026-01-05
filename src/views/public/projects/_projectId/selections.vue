@@ -86,7 +86,7 @@
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                'w-full focus:ring-2 focus:ring-teal-500/20 transition-all',
+                'w-full focus:ring-2 focus:ring-accent/20 transition-all',
               ]"
               :disabled="isVerifyingPassword"
               placeholder="Enter password"
@@ -701,7 +701,7 @@
         <Button
           v-if="!previewCurrentItem.isSelected"
           :disabled="isAtLimit(currentMediaItems) && !previewCurrentItem.isSelected"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 shadow-lg"
+          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 shadow-lg"
           @click="handleSelectFromPreview(previewCurrentItem.id)"
         >
           <CheckCircle2 class="h-4 w-4 mr-2" />

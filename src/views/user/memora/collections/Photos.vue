@@ -410,7 +410,7 @@
         content-class="sm:max-w-md"
       >
         <div class="flex flex-col items-center justify-center py-8">
-          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <Loader2 class="h-8 w-8 animate-spin text-accent mb-4" />
           <p :class="theme.textPrimary" class="text-sm font-medium">
             Removing watermark from image...
           </p>

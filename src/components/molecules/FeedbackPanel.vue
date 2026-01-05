@@ -7,7 +7,7 @@
       <Button
         :variant="feedbackType === 'text' ? 'default' : 'outline'"
         size="sm"
-        :class="feedbackType === 'text' ? 'bg-teal-500' : ''"
+        :class="feedbackType === 'text' ? 'bg-accent' : ''"
         @click="feedbackType = 'text'"
       >
         Text
@@ -15,7 +15,7 @@
       <Button
         :variant="feedbackType === 'video' ? 'default' : 'outline'"
         size="sm"
-        :class="feedbackType === 'video' ? 'bg-teal-500' : ''"
+        :class="feedbackType === 'video' ? 'bg-accent' : ''"
         @click="feedbackType = 'video'"
       >
         Video
@@ -23,7 +23,7 @@
       <Button
         :variant="feedbackType === 'audio' ? 'default' : 'outline'"
         size="sm"
-        :class="feedbackType === 'audio' ? 'bg-teal-500' : ''"
+        :class="feedbackType === 'audio' ? 'bg-accent' : ''"
         @click="feedbackType = 'audio'"
       >
         Audio
@@ -75,7 +75,7 @@
       </Button>
       <Button
         size="sm"
-        class="bg-teal-500 hover:bg-teal-600 text-white"
+        class="bg-accent hover:bg-accent/90 text-accent-foreground"
         :disabled="!canSubmit || isSubmitting"
         @click="handleSubmit"
       >

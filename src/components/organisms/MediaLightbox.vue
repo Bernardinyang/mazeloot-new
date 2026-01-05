@@ -61,7 +61,7 @@
               v-if="publicMode && isClientVerified && allowMarkPrivate"
               aria-label="Toggle private"
               class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
-              :class="isPrivate ? 'text-teal-400' : ''"
+              :class="isPrivate ? 'text-accent' : ''"
               @click.stop="handleTogglePrivate"
             >
               <LockOpen v-if="isPrivate" class="w-5 h-5 sm:w-4 sm:h-4" />
@@ -91,7 +91,7 @@
               />
               <span
                 v-if="totalCommentCount > 0"
-                class="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5 min-w-[20px] sm:min-w-[16px] h-5 sm:h-4 px-1.5 sm:px-1 rounded-full bg-teal-500 text-white text-[10px] sm:text-[9px] font-bold flex items-center justify-center z-[111] shadow-lg ring-2 ring-black/20 animate-pulse"
+                class="absolute -top-1 -right-1 sm:-top-0.5 sm:-right-0.5 min-w-[20px] sm:min-w-[16px] h-5 sm:h-4 px-1.5 sm:px-1 rounded-full bg-accent text-accent-foreground text-[10px] sm:text-[9px] font-bold flex items-center justify-center z-[111] shadow-lg ring-2 ring-black/20 animate-pulse"
               >
                 {{ totalCommentCount }}
               </span>

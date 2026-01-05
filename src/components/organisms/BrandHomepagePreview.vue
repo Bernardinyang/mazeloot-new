@@ -48,7 +48,7 @@
           :href="branding.website"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition-all duration-300"
+          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-accent hover:bg-accent/10 transition-all duration-300"
         >
           <Globe class="h-2.5 w-2.5 text-gray-600" />
           <span class="text-[9px] text-gray-700 font-medium">{{ branding.website }}</span>
@@ -56,7 +56,7 @@
         <a
           v-if="homepageInfo.includes('phone') && contactInfo.phone"
           :href="`tel:${contactInfo.phone}`"
-          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition-all duration-300"
+          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-accent hover:bg-accent/10 transition-all duration-300"
         >
           <Phone class="h-2.5 w-2.5 text-gray-600" />
           <span class="text-[9px] text-gray-700 font-medium">{{ contactInfo.phone }}</span>
@@ -64,7 +64,7 @@
         <a
           v-if="homepageInfo.includes('email') && contactInfo.email"
           :href="`mailto:${contactInfo.email}`"
-          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition-all duration-300"
+          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-accent hover:bg-accent/10 transition-all duration-300"
         >
           <Mail class="h-2.5 w-2.5 text-gray-600" />
           <span class="text-[9px] text-gray-700 font-medium">{{ contactInfo.email }}</span>
@@ -74,7 +74,7 @@
           :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactInfo.address)}`"
           target="_blank"
           rel="noopener noreferrer"
-          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition-all duration-300"
+          class="flex items-center gap-1 px-2 py-1 rounded-full bg-white border border-gray-200 shadow-sm hover:border-accent hover:bg-accent/10 transition-all duration-300"
         >
           <MapPin class="h-2.5 w-2.5 text-gray-600" />
           <span class="text-[9px] text-gray-700 font-medium">{{ contactInfo.address }}</span>

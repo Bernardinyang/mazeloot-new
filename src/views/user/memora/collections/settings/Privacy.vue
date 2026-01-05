@@ -26,7 +26,7 @@
             <!-- Collection Password -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -52,10 +52,10 @@
                         class="sr-only peer"
                       />
                       <div
-                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-500"
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"
                         :class="
                           collectionPasswordEnabled
-                            ? 'bg-teal-500'
+                            ? 'bg-accent'
                             : 'bg-gray-300 dark:bg-gray-600'
                         "
                       ></div>
@@ -70,14 +70,14 @@
                     theme.bgInput,
                     theme.borderInput,
                     theme.textInput,
-                    'flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all'
+                    'flex-1 focus:ring-2 focus:ring-accent/20 transition-all'
                   )"
                   placeholder="Add a password"
                   @update:model-value="collectionPassword = $event"
                 />
                 <Button
                   :class="[theme.borderSecondary, theme.textPrimary]"
-                  class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                  class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
                   size="sm"
                   variant="outline"
                   @click="generateCollectionPassword"
@@ -90,7 +90,7 @@
                 <Button
                   v-if="collectionPassword"
                   :class="[theme.borderSecondary, theme.textPrimary]"
-                  class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                  class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
                   size="sm"
                   variant="outline"
                   @click="copyCollectionPassword"
@@ -103,7 +103,7 @@
             <!-- Show on Homepage -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -126,7 +126,7 @@
             <!-- Client Exclusive Access -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-6 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-6 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -172,14 +172,14 @@
                           theme.bgInput,
                           theme.borderInput,
                           theme.textInput,
-                          'flex-1 font-mono focus:ring-2 focus:ring-teal-500/20 transition-all'
+                          'flex-1 font-mono focus:ring-2 focus:ring-accent/20 transition-all'
                         )"
                         placeholder="Add a password"
                         @update:model-value="clientPrivatePassword = $event"
                       />
                       <Button
                         :class="[theme.borderSecondary, theme.textPrimary]"
-                        class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95"
+                        class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95"
                         size="sm"
                         variant="outline"
                         @click="generateClientPassword"
@@ -192,7 +192,7 @@
                       <Button
                         :disabled="!clientPrivatePassword"
                         :class="[theme.borderSecondary, theme.textPrimary]"
-                        class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                        class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                         size="sm"
                         variant="outline"
                         @click="copyClientPassword"
@@ -220,7 +220,7 @@
                       >
                         <input
                           :checked="selectedClientSets.includes(set.id)"
-                          class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-teal-500 transition-all"
+                          class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-accent transition-all"
                           type="checkbox"
                           @change="toggleClientSet(set.id)"
                         />
@@ -270,7 +270,7 @@
               </div>
               <Button
                 :disabled="!hasChanges || isSaving"
-                class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="handleSave"
               >
                 <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />

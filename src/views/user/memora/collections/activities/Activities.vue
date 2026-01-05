@@ -27,7 +27,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
+              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -37,7 +37,7 @@
             >
               <div class="flex items-center gap-3 mb-3">
                 <div
-                  class="p-3 rounded-xl bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400"
+                  class="p-3 rounded-xl bg-accent/10 dark:bg-accent/20 text-accent"
                 >
                   <Download class="h-5 w-5" />
                 </div>
@@ -51,7 +51,7 @@
 
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
+              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -75,7 +75,7 @@
 
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 cursor-pointer"
+              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -108,10 +108,10 @@
                 v-if="collection?.id"
                 :class="[theme.borderSecondary, theme.bgCard]"
                 :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
-                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-lg"
+                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
               >
                 <div class="flex items-center gap-3 mb-2">
-                  <Link class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                  <Link class="h-5 w-5 text-accent" />
                   <h3 :class="theme.textPrimary" class="text-base font-semibold">
                     Quick Share Links
                   </h3>
@@ -125,10 +125,10 @@
                 v-if="collection?.id"
                 :class="[theme.borderSecondary, theme.bgCard]"
                 :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: collection.id } }"
-                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-lg"
+                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
               >
                 <div class="flex items-center gap-3 mb-2">
-                  <Lock class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                  <Lock class="h-5 w-5 text-accent" />
                   <h3 :class="theme.textPrimary" class="text-base font-semibold">Private Media</h3>
                 </div>
                 <p :class="theme.textSecondary" class="text-sm">

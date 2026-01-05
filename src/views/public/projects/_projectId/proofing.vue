@@ -780,7 +780,7 @@
                 <!-- Comment Count Badge -->
                 <div
                   v-if="getItemCommentCount(item) > 0"
-                  class="px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+                  class="px-2 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-lg flex items-center gap-1"
                 >
                   <MessageSquare class="w-3 h-3" />
                   {{ getItemCommentCount(item) }}

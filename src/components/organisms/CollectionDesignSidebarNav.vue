@@ -7,7 +7,7 @@
         v-if="hasCoverPhoto"
         :class="[
           route.name === 'collectionCover'
-            ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
+            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
             : '',
           'hover:bg-gray-100 dark:hover:bg-gray-800',
         ]"
@@ -20,7 +20,7 @@
       <router-link
         :class="[
           route.name === 'collectionTypography'
-            ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
+            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
             : '',
           'hover:bg-gray-100 dark:hover:bg-gray-800',
         ]"
@@ -36,7 +36,7 @@
       <router-link
         :class="[
           route.name === 'collectionColor'
-            ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
+            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
             : '',
           'hover:bg-gray-100 dark:hover:bg-gray-800',
         ]"
@@ -49,7 +49,7 @@
       <router-link
         :class="[
           route.name === 'collectionGrid'
-            ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400 border-l-4 border-teal-500'
+            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
             : '',
           'hover:bg-gray-100 dark:hover:bg-gray-800',
         ]"
@@ -70,7 +70,7 @@
           <router-link
             :class="[
               route.name === 'collectionCover'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
+                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                 : '',
               'hover:bg-gray-100 dark:hover:bg-gray-800',
             ]"
@@ -94,7 +94,7 @@
           <router-link
             :class="[
               route.name === 'collectionTypography'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
+                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                 : '',
               'hover:bg-gray-100 dark:hover:bg-gray-800',
             ]"
@@ -118,7 +118,7 @@
           <router-link
             :class="[
               route.name === 'collectionColor'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
+                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                 : '',
               'hover:bg-gray-100 dark:hover:bg-gray-800',
             ]"
@@ -142,7 +142,7 @@
           <router-link
             :class="[
               route.name === 'collectionGrid'
-                ? 'bg-teal-500/10 dark:bg-teal-500/20 text-teal-600 dark:text-teal-400'
+                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                 : '',
               'hover:bg-gray-100 dark:hover:bg-gray-800',
             ]"

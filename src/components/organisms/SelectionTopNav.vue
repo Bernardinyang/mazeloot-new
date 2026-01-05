@@ -158,7 +158,7 @@
         v-if="selectionStatus === 'draft' || selectionStatus === 'completed'"
         variant="default"
         size="sm"
-        class="bg-teal-500 hover:bg-teal-600 text-white"
+        class="bg-accent hover:bg-accent/90 text-accent-foreground"
         :disabled="isLoading || isPublishing"
         @click="headerStore.handlePublish()"
       >

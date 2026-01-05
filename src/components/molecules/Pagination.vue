@@ -23,11 +23,11 @@
         <select
           :value="limit"
           :class="[
-            'h-9 px-3 text-sm rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2',
+            'h-9 px-3 text-sm rounded-lg border transition-all focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2',
             theme.bgInput,
             theme.borderInput,
             theme.textInput,
-            'hover:border-teal-500/50',
+            'hover:border-accent/50',
           ]"
           @change="handlePageSizeChange($event.target.value)"
         >
@@ -87,7 +87,7 @@
             :class="[
               'h-10 w-10 p-0 font-semibold rounded-lg transition-all',
               currentPage === 1
-                ? 'bg-teal-500 text-white hover:bg-teal-600 shadow-md'
+                ? 'bg-accent text-accent-foreground hover:bg-accent/90 shadow-md'
                 : [theme.textPrimary, theme.bgButtonHover, 'hover:scale-105'],
             ]"
             @click="handlePageChange(1)"
@@ -108,7 +108,7 @@
           :class="[
             'h-10 w-10 p-0 font-semibold rounded-lg transition-all',
             pageNum === currentPage
-              ? 'bg-teal-500 text-white hover:bg-teal-600 shadow-md scale-105'
+              ? 'bg-accent text-accent-foreground hover:bg-accent/90 shadow-md scale-105'
               : [theme.textPrimary, theme.bgButtonHover, 'hover:scale-105 hover:shadow-sm'],
           ]"
           @click="handlePageChange(pageNum)"
@@ -127,7 +127,7 @@
             :class="[
               'h-10 w-10 p-0 font-semibold rounded-lg transition-all',
               currentPage === totalPages
-                ? 'bg-teal-500 text-white hover:bg-teal-600 shadow-md'
+                ? 'bg-accent text-accent-foreground hover:bg-accent/90 shadow-md'
                 : [theme.textPrimary, theme.bgButtonHover, 'hover:scale-105'],
             ]"
             @click="handlePageChange(totalPages)"
@@ -192,11 +192,11 @@
           :min="1"
           :max="totalPages"
           :class="[
-            'h-10 w-20 px-3 text-sm rounded-lg border text-center transition-all focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2',
+            'h-10 w-20 px-3 text-sm rounded-lg border text-center transition-all focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2',
             theme.bgInput,
             theme.borderInput,
             theme.textInput,
-            'hover:border-teal-500/50',
+            'hover:border-accent/50',
           ]"
           placeholder="Page"
           @keyup.enter="handleGoToPage"

@@ -42,7 +42,7 @@
               <h1
                 v-if="!props.isEditingName"
                 key="title"
-                class="text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95"
+                class="text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text hover:text-accent transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95"
                 style="line-height: 1.5rem"
                 @click="emit('startEditingName')"
               >
@@ -74,9 +74,9 @@
                 >
                   <Check
                     v-if="!props.isSavingName"
-                    class="h-4 w-4 text-teal-600 dark:text-teal-400"
+                    class="h-4 w-4 text-accent"
                   />
-                  <Loader2 v-else class="h-4 w-4 text-teal-600 dark:text-teal-400 animate-spin" />
+                  <Loader2 v-else class="h-4 w-4 text-accent animate-spin" />
                 </button>
                 <button
                   :disabled="props.isSavingName"
@@ -151,7 +151,7 @@
           <Popover v-model:open="isDatePickerOpen">
             <PopoverTrigger as-child>
               <button
-                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
+                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
                 style="line-height: 1.25rem"
               >
                 <span class="opacity-70 transition-opacity duration-200">Date:</span>
@@ -178,7 +178,7 @@
           <Popover v-model:open="isWatermarkPopoverOpen">
             <PopoverTrigger as-child>
               <button
-                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
+                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
                 style="line-height: 1.25rem"
               >
                 <span class="opacity-70 transition-opacity duration-200">Watermark:</span>
@@ -198,7 +198,7 @@
                 <button
                   :class="[
                     props.selectedWatermark === 'none'
-                      ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
+                      ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                       : theme.textPrimary,
                   ]"
                   class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -211,7 +211,7 @@
                   :key="watermark.id"
                   :class="[
                     props.selectedWatermark === watermark.id
-                      ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-600 dark:text-teal-400'
+                      ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                       : theme.textPrimary,
                   ]"
                   class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
@@ -275,7 +275,7 @@
       <Button
         v-else
         :disabled="props.isSavingStatus"
-        class="bg-teal-500 hover:bg-teal-600 text-white px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
+        class="bg-accent hover:bg-accent/90 text-accent-foreground px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
         @click="emit('handlePublish')"
       >
         <Loader2 v-if="props.isSavingStatus" class="mr-2 h-4 w-4 animate-spin" />

@@ -33,7 +33,7 @@
     <Button
       :disabled="isLoading"
       :class="[
-        'bg-teal-500 hover:bg-teal-600 text-white',
+        'bg-accent hover:bg-accent/90 text-accent-foreground',
         { 'opacity-50 cursor-not-allowed': isLoading },
       ]"
       @click="handleSearch"

@@ -106,7 +106,7 @@
                 <div class="flex items-center gap-2">
                   <Loader2
                     v-if="item.status === 'uploading'"
-                    class="h-4 w-4 animate-spin text-teal-500"
+                    class="h-4 w-4 animate-spin text-accent"
                   />
                   <CheckCircle2
                     v-else-if="item.status === 'completed'"
@@ -137,7 +137,7 @@
                 :class="[theme.bgInput, 'h-2 rounded-full overflow-hidden mt-2']"
               >
                 <div
-                  class="bg-teal-500 h-full transition-all duration-300"
+                  class="bg-accent h-full transition-all duration-300"
                   :style="{ width: `${item.progress.percentage || 0}%` }"
                 />
               </div>

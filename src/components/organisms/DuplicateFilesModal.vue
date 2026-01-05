@@ -29,7 +29,7 @@
             <button
               :class="[
                 duplicateFileActions[item.file.name] === 'replace'
-                  ? 'bg-teal-500 text-white border-teal-500'
+                  ? 'bg-accent text-accent-foreground border-accent'
                   : theme.bgInput,
                 theme.borderSecondary,
                 duplicateFileActions[item.file.name] === 'replace' ? '' : theme.textPrimary,

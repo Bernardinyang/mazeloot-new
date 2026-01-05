@@ -24,15 +24,15 @@ const statusConfig = {
   // Collection statuses (uppercase)
   PUBLISHED: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   ACTIVE: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   DRAFT: {
     variant: 'warning',
-    classes: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
+    classes: 'bg-warning/10 text-warning border-warning/20',
   },
   ARCHIVED: {
     variant: 'default',
@@ -40,21 +40,21 @@ const statusConfig = {
   },
   COMPLETED: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
 
   // Collection statuses (title case)
   Published: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   Active: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   Draft: {
     variant: 'warning',
-    classes: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
+    classes: 'bg-warning/10 text-warning border-warning/20',
   },
   Archived: {
     variant: 'default',
@@ -62,21 +62,21 @@ const statusConfig = {
   },
   Completed: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
 
   // Collection statuses (lowercase)
   published: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   active: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   draft: {
     variant: 'warning',
-    classes: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
+    classes: 'bg-warning/10 text-warning border-warning/20',
   },
   archived: {
     variant: 'default',
@@ -84,13 +84,13 @@ const statusConfig = {
   },
   completed: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
 
   // Other statuses
   Preview: {
     variant: 'warning',
-    classes: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
+    classes: 'bg-warning/10 text-warning border-warning/20',
   },
   Processing: {
     variant: 'info',
@@ -102,7 +102,7 @@ const statusConfig = {
   },
   Delivered: {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   Scheduled: {
     variant: 'info',
@@ -110,7 +110,7 @@ const statusConfig = {
   },
   'In stock': {
     variant: 'success',
-    classes: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
+    classes: 'bg-success/10 text-success border-success/20',
   },
   New: {
     variant: 'info',
@@ -138,10 +138,10 @@ const badgeClasses = computed(() => {
 
   // Fallback based on variant prop
   const variantClasses = {
-    success: 'bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30',
-    warning: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400 border border-yellow-500/30',
+    success: 'bg-success/10 text-success border-success/20',
+    warning: 'bg-warning/10 text-warning border-warning/20',
     info: 'bg-blue-500/20 text-blue-600 dark:text-blue-400 border border-blue-500/30',
-    error: 'bg-red-500/20 text-red-600 dark:text-red-400 border border-red-500/30',
+    error: 'bg-destructive/10 text-destructive border-destructive/20',
     default: 'bg-gray-500/20 text-gray-600 dark:text-gray-400 border border-gray-500/30',
   }
 

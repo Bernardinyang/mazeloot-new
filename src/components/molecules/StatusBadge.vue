@@ -33,7 +33,7 @@ const props = defineProps({
 
 const statusConfig = {
   completed: {
-    classes: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20',
+    classes: 'bg-success/10 text-success border-success/20',
     icon: CheckCircle2,
   },
   active: {
@@ -41,7 +41,7 @@ const statusConfig = {
     icon: CheckCircle2,
   },
   published: {
-    classes: 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20',
+    classes: 'bg-success/10 text-success border-success/20',
     icon: CheckCircle2,
   },
   draft: {
@@ -53,11 +53,11 @@ const statusConfig = {
     icon: AlertCircle,
   },
   pending: {
-    classes: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20',
+    classes: 'bg-warning/10 text-warning border-warning/20',
     icon: Clock,
   },
   failed: {
-    classes: 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20',
+    classes: 'bg-destructive/10 text-destructive border-destructive/20',
     icon: XCircle,
   },
   cancelled: {
@@ -70,7 +70,7 @@ const statusInfo = computed(() => {
   const normalizedStatus = props.status.toLowerCase()
   return (
     statusConfig[normalizedStatus] || {
-      classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20',
+      classes: 'bg-muted/10 text-muted-foreground border-muted/20',
       icon: Circle,
     }
   )

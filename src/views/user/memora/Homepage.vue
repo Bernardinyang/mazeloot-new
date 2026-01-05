@@ -21,14 +21,14 @@
         <div class="flex items-center gap-2">
           <Button
             variant="outline"
-            class="border-teal-500 text-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20"
+            class="border-accent text-accent hover:bg-accent/10 dark:hover:bg-accent/20"
             @click="handleShare"
           >
             <Share2 class="h-4 w-4 mr-2" />
             Share
           </Button>
           <Button
-            class="bg-teal-500 hover:bg-teal-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg hover:shadow-xl transition-all duration-200"
             @click="handleViewSite"
           >
             <Globe class="h-4 w-4 mr-2" />
@@ -71,7 +71,7 @@
               <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
                 <input type="checkbox" v-model="homepageStatus" :disabled="isLoading" class="sr-only peer" />
                 <div
-                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
                 ></div>
               </label>
             </div>
@@ -80,7 +80,7 @@
               which collections will be shown here under each collection's setting.
               <a
                 href="#"
-                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+                class="text-accent hover:text-accent underline font-medium transition-colors"
                 >Learn more</a
               >
             </p>
@@ -113,7 +113,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.textSecondary,
-                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                  'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
                 @click="handleCopyUrl"
               >
@@ -153,7 +153,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.textSecondary,
-                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                  'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
                 @click="handleCopyPassword"
                 :disabled="!homepagePassword || isLoading"
@@ -167,7 +167,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.textSecondary,
-                  'hover:bg-teal-50 dark:hover:bg-teal-900/20',
+                  'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
                 @click="handleGeneratePassword"
               >
@@ -225,7 +225,7 @@
               <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
                 <input type="checkbox" v-model="slideshowEnabled" :disabled="isLoading" class="sr-only peer" />
                 <div
-                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
                 ></div>
               </label>
             </div>
@@ -233,7 +233,7 @@
               Mark media as "Featured" from your collections to showcase them in a slideshow on your homepage.
               <RouterLink
                 :to="{ name: 'featuredMedias' }"
-                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+                class="text-accent hover:text-accent underline font-medium transition-colors"
               >
                 Manage Featured Media
               </RouterLink>
@@ -259,7 +259,7 @@
                   v-model="homepageInfo"
                   :value="info.key"
                   :disabled="isLoading"
-                  class="w-5 h-5 rounded border-gray-300 text-teal-500 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-all"
+                  class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-all"
                   :class="[
                     theme.borderSecondary,
                     isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
@@ -275,7 +275,7 @@
               To update any of the above details, please go to your
               <a
                 href="#"
-                class="text-teal-500 hover:text-teal-600 underline font-medium transition-colors"
+                class="text-accent hover:text-accent underline font-medium transition-colors"
                 >profile</a
               >. Any information left blank will not appear on your homepage.
             </p>
@@ -358,12 +358,12 @@
             <span :class="theme.textSecondary">You have unsaved changes</span>
           </div>
           <div v-else class="flex items-center gap-2 text-sm">
-            <Check class="h-4 w-4 text-teal-500" />
+            <Check class="h-4 w-4 text-accent" />
             <span :class="theme.textSecondary">All changes saved</span>
           </div>
           <Button
             :disabled="!hasChanges || isSaving || isLoading"
-            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
             @click="handleSave"
           >
             <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />

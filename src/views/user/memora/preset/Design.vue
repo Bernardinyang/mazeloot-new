@@ -88,7 +88,7 @@
                   <input
                     v-model="formData.joyCoverTitle"
                     :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50"
+                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50"
                     placeholder="JOY"
                     type="text"
                   />
@@ -192,7 +192,7 @@
                   <input
                     v-model="formData.joyCoverButtonText"
                     :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50"
+                    class="w-full px-4 py-2.5 rounded-lg border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50"
                     placeholder="VIEW GALLERY"
                     type="text"
                   />
@@ -231,9 +231,9 @@
                       :key="pattern.id"
                       :class="[
                         formData.joyCoverBackgroundPattern === pattern.id
-                          ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20'
+                          ? 'border-accent bg-accent/10 dark:bg-accent/20'
                           : '',
-                        'hover:border-teal-500/60',
+                        'hover:border-accent/60',
                         theme.bgCard,
                       ]"
                       class="flex-1 px-4 py-3 rounded-lg border-2 transition-all duration-200"
@@ -242,7 +242,7 @@
                       <span
                         :class="
                           formData.joyCoverBackgroundPattern === pattern.id
-                            ? 'text-teal-600 dark:text-teal-400'
+                            ? 'text-accent'
                             : ''
                         "
                         class="text-xs font-medium block text-center"
@@ -308,7 +308,7 @@
                     Cancel
                   </Button>
                   <Button
-                    class="bg-teal-500 hover:bg-teal-600 text-white"
+                    class="bg-accent hover:bg-accent/90 text-accent-foreground"
                     type="button"
                     @click="showFocalPointModal = false"
                   >
@@ -360,7 +360,7 @@
                       theme.bgInput,
                       theme.borderInput,
                       theme.textInput,
-                      'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                      'focus:ring-2 focus:ring-accent/20 focus:border-accent',
                     ]"
                     class="transition-all"
                   >
@@ -394,8 +394,8 @@
                   Choose a color scheme that reflects your collection's mood
                 </p>
               </div>
-              <div class="px-3 py-1.5 rounded-lg bg-teal-500/10 border border-teal-500/20">
-                <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
+              <div class="px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/20">
+                <span class="text-xs font-semibold text-accent">
                   {{ colorPalettes.find(p => p.id === formData.colorPalette)?.label || 'Light' }}
                 </span>
               </div>
@@ -406,10 +406,10 @@
                 :key="palette.id"
                 :class="[
                   formData.colorPalette === palette.id
-                    ? 'border-teal-500 shadow-lg shadow-teal-500/30 ring-2 ring-teal-500/20'
+                    ? 'border-accent shadow-lg shadow-accent/30 ring-2 ring-accent/20'
                     : '',
                   theme.borderSecondary,
-                  'hover:border-teal-500/60 hover:shadow-md',
+                  'hover:border-accent/60 hover:shadow-md',
                   'active:scale-95',
                   theme.bgCard,
                 ]"
@@ -419,7 +419,7 @@
                 <!-- Selected indicator -->
                 <div
                   v-if="formData.colorPalette === palette.id"
-                  class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-teal-500 flex items-center justify-center shadow-md"
+                  class="absolute top-2 right-2 z-10 w-5 h-5 rounded-full bg-accent flex items-center justify-center shadow-md"
                 >
                   <Check class="h-3 w-3 text-white" />
                 </div>
@@ -435,7 +435,7 @@
                 </div>
                 <span
                   :class="
-                    formData.colorPalette === palette.id ? 'text-teal-600 dark:text-teal-400' : ''
+                    formData.colorPalette === palette.id ? 'text-accent' : ''
                   "
                   class="text-xs font-semibold text-center transition-colors duration-200"
                 >
@@ -462,9 +462,9 @@
                 :key="style.id"
                 :class="[
                   formData.gridStyle === style.id
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20 shadow-md shadow-accent/10'
                     : '',
-                  'hover:border-teal-500/60',
+                  'hover:border-accent/60',
                   'active:scale-98',
                   theme.bgCard,
                 ]"
@@ -473,20 +473,20 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="formData.gridStyle === style.id ? 'bg-teal-500/20' : ''"
+                    :class="formData.gridStyle === style.id ? 'bg-accent/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <component
                       :is="getGridStyleIcon(style.id)"
                       :class="
-                        formData.gridStyle === style.id ? 'text-teal-600 dark:text-teal-400' : ''
+                        formData.gridStyle === style.id ? 'text-accent' : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
                     :class="
-                      formData.gridStyle === style.id ? 'text-teal-600 dark:text-teal-400' : ''
+                      formData.gridStyle === style.id ? 'text-accent' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -514,9 +514,9 @@
                 :key="cols.value"
                 :class="[
                   formData.gridColumns === cols.value
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20 shadow-md shadow-accent/10'
                     : '',
-                  'hover:border-teal-500/60',
+                  'hover:border-accent/60',
                   'active:scale-98',
                   theme.bgCard,
                 ]"
@@ -525,13 +525,13 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="formData.gridColumns === cols.value ? 'bg-teal-500/20' : ''"
+                    :class="formData.gridColumns === cols.value ? 'bg-accent/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
                       :class="
                         formData.gridColumns === cols.value
-                          ? 'text-teal-600 dark:text-teal-400'
+                          ? 'text-accent'
                           : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
@@ -539,7 +539,7 @@
                   </div>
                   <span
                     :class="
-                      formData.gridColumns === cols.value ? 'text-teal-600 dark:text-teal-400' : ''
+                      formData.gridColumns === cols.value ? 'text-accent' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -567,9 +567,9 @@
                 :key="size.id"
                 :class="[
                   formData.thumbnailSize === size.id
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 shadow-md shadow-teal-500/10'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20 shadow-md shadow-accent/10'
                     : '',
-                  'hover:border-teal-500/60',
+                  'hover:border-accent/60',
                   'active:scale-98',
                   theme.bgCard,
                 ]"
@@ -579,19 +579,19 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="formData.thumbnailSize === size.id ? 'bg-teal-500/20' : ''"
+                    :class="formData.thumbnailSize === size.id ? 'bg-accent/20' : ''"
                     class="p-2 rounded-lg transition-all duration-300"
                   >
                     <Grid3x3
                       :class="
-                        formData.thumbnailSize === size.id ? 'text-teal-600 dark:text-teal-400' : ''
+                        formData.thumbnailSize === size.id ? 'text-accent' : ''
                       "
                       class="h-6 w-6 transition-colors duration-200"
                     />
                   </div>
                   <span
                     :class="
-                      formData.thumbnailSize === size.id ? 'text-teal-600 dark:text-teal-400' : ''
+                      formData.thumbnailSize === size.id ? 'text-accent' : ''
                     "
                     class="text-sm font-semibold transition-colors duration-200"
                   >
@@ -647,10 +647,10 @@
                 :key="nav.id"
                 :class="[
                   formData.navigationStyle === nav.id
-                    ? 'border-teal-500 bg-teal-500/10 dark:bg-teal-500/20 ring-2 ring-teal-500/20 scale-[1.01]'
+                    ? 'border-accent bg-accent/10 dark:bg-accent/20 ring-2 ring-accent/20 scale-[1.01]'
                     : [
                         theme.borderSecondary,
-                        'hover:border-teal-500/70',
+                        'hover:border-accent/70',
                         'active:scale-[0.98]',
                       ],
                   theme.bgCard,
@@ -660,14 +660,14 @@
               >
                 <div class="flex items-center justify-center gap-3">
                   <div
-                    :class="formData.navigationStyle === nav.id ? 'bg-teal-500/20' : ''"
+                    :class="formData.navigationStyle === nav.id ? 'bg-accent/20' : ''"
                     class="p-2.5 rounded-lg transition-all duration-300"
                   >
                     <component
                       :is="getNavigationStyleIcon(nav.id)"
                       :class="
                         formData.navigationStyle === nav.id
-                          ? 'text-teal-600 dark:text-teal-400'
+                          ? 'text-accent'
                           : ''
                       "
                       class="h-5 w-5 transition-colors duration-200"
@@ -676,7 +676,7 @@
                   <span
                     :class="
                       formData.navigationStyle === nav.id
-                        ? 'text-teal-600 dark:text-teal-400 font-bold'
+                        ? 'text-accent font-bold'
                         : theme.textSecondary
                     "
                     class="text-sm font-semibold transition-colors duration-200"
@@ -710,7 +710,7 @@
                   :class="[
                     theme.textSecondary,
                     theme.bgButtonHover,
-                    'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+                    'hover:text-accent transition-colors duration-200',
                   ]"
                   class="shrink-0"
                   size="sm"
@@ -747,7 +747,7 @@
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
-              'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+              'hover:text-accent transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
             :disabled="isSubmitting || isSaving"
@@ -775,7 +775,7 @@
             </Transition>
             <Button
               :disabled="isSubmitting || isSaving"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />

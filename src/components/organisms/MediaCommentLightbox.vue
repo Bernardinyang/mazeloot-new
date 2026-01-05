@@ -243,7 +243,7 @@
               <span class="font-medium">Comments</span>
               <span
                 v-if="totalCommentCount > 0"
-                class="ml-2 px-2 py-0.5 rounded-full bg-teal-500 text-white text-xs font-bold shadow-md"
+                class="ml-2 px-2 py-0.5 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-md"
               >
                 {{ totalCommentCount }}
               </span>

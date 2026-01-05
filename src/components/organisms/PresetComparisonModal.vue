@@ -21,7 +21,7 @@
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
-                  'border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
+                  'border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50',
                 ]"
               >
                 <SelectValue placeholder="Select preset" />
@@ -31,7 +31,7 @@
                   v-for="p in availablePresets"
                   :key="p.id"
                   :value="p.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-accent/10 dark:hover:bg-accent/20']"
                 >
                   {{ p.name }}
                 </SelectItem>
@@ -46,7 +46,7 @@
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
-                  'border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
+                  'border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50',
                 ]"
               >
                 <SelectValue placeholder="Select preset" />
@@ -56,7 +56,7 @@
                   v-for="p in availablePresets"
                   :key="p.id"
                   :value="p.id"
-                  :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-accent/10 dark:hover:bg-accent/20']"
                 >
                   {{ p.name }}
                 </SelectItem>
@@ -109,7 +109,7 @@
                 class="text-sm"
                 :class="
                   isDifferent(preset1[field.key], preset2[field.key])
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -119,7 +119,7 @@
                 class="text-sm"
                 :class="
                   isDifferent(preset1[field.key], preset2[field.key])
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -157,7 +157,7 @@
                     preset1[field.path]?.[field.key],
                     preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -170,7 +170,7 @@
                     preset1[field.path]?.[field.key],
                     preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -210,7 +210,7 @@
                     preset1[field.path]?.[field.key],
                     preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -223,7 +223,7 @@
                     preset1[field.path]?.[field.key],
                     preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -271,7 +271,7 @@
                       ? preset2.download?.highResolution?.enabled
                       : preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >
@@ -294,7 +294,7 @@
                       ? preset2.download?.highResolution?.enabled
                       : preset2[field.path]?.[field.key]
                   )
-                    ? 'font-medium text-teal-600 dark:text-teal-400'
+                    ? 'font-medium text-accent'
                     : theme.textPrimary
                 "
               >

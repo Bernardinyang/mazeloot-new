@@ -11,7 +11,7 @@
             :class="[
               theme.borderSecondary,
               theme.bgCard,
-              isSortMenuOpen ? 'ring-2 ring-teal-500/20' : '',
+              isSortMenuOpen ? 'ring-2 ring-accent/20' : '',
             ]"
             class="px-3 py-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
           >
@@ -38,7 +38,7 @@
                 @click="handleSortChange(option.value)"
               >
                 <span>{{ option.label }}</span>
-                <Check v-if="sortOrder === option.value" class="h-4 w-4 text-teal-500" />
+                <Check v-if="sortOrder === option.value" class="h-4 w-4 text-accent" />
               </button>
             </div>
           </div>
@@ -52,7 +52,7 @@
             :class="[
               theme.borderSecondary,
               theme.bgCard,
-              isViewMenuOpen ? 'ring-2 ring-teal-500/20' : '',
+              isViewMenuOpen ? 'ring-2 ring-accent/20' : '',
             ]"
             class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
@@ -83,7 +83,7 @@
                     <Grid3x3 class="h-4 w-4" />
                     <span>Grid View</span>
                   </div>
-                  <Check v-if="viewMode === 'grid'" class="h-4 w-4 text-teal-500" />
+                  <Check v-if="viewMode === 'grid'" class="h-4 w-4 text-accent" />
                 </button>
                 <button
                   :class="[
@@ -96,7 +96,7 @@
                     <List class="h-4 w-4" />
                     <span>List View</span>
                   </div>
-                  <Check v-if="viewMode === 'list'" class="h-4 w-4 text-teal-500" />
+                  <Check v-if="viewMode === 'list'" class="h-4 w-4 text-accent" />
                 </button>
               </div>
             </div>
@@ -116,7 +116,7 @@
                   @click="handleGridSizeChange(size.value)"
                 >
                   <span>{{ size.label }}</span>
-                  <Check v-if="gridSize === size.value" class="h-4 w-4 text-teal-500" />
+                  <Check v-if="gridSize === size.value" class="h-4 w-4 text-accent" />
                 </button>
               </div>
             </div>
@@ -136,7 +136,7 @@
                       @change="handleFilenameToggle"
                     />
                     <div
-                      class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-teal-500 bg-gray-300 dark:bg-gray-600"
+                      class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600"
                     ></div>
                     <span
                       :class="showFilename ? theme.textPrimary : theme.textSecondary"
@@ -168,7 +168,7 @@
         v-if="!props.disableUpload"
         :disabled="props.isUploading"
         size="sm"
-        class="bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+        class="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg transition-all duration-200 font-medium"
         @click="emit('add-media')"
       >
         <Loader2 v-if="props.isUploading" class="h-4 w-4 mr-2 animate-spin" />

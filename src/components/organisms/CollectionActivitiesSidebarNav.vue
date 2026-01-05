@@ -9,8 +9,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesDownload'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
         ]"
         :to="{ name: 'collectionActivitiesDownload', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -22,8 +22,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesFavourite'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
         ]"
         :to="{ name: 'collectionActivitiesFavourite', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -35,8 +35,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesEmailRegistration'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
         ]"
         :to="{
           name: 'collectionActivitiesEmailRegistration',
@@ -51,8 +51,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesQuickShare'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
         ]"
         :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -64,8 +64,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesPrivateMedia'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
         ]"
         :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -83,7 +83,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionActivitiesDownload' ? 'bg-teal-500 text-white' : '']"
+            :class="[route.name === 'collectionActivitiesDownload' ? 'bg-accent text-accent-foreground' : '']"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -99,7 +99,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesFavourite' ? 'bg-teal-500 text-white' : '',
+              route.name === 'collectionActivitiesFavourite' ? 'bg-accent text-accent-foreground' : '',
             ]"
             :to="{ name: 'collectionActivitiesFavourite', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
@@ -117,7 +117,7 @@
             v-if="props.collectionId"
             :class="[
               route.name === 'collectionActivitiesEmailRegistration'
-                ? 'bg-teal-500 text-white'
+                ? 'bg-accent text-accent-foreground'
                 : '',
             ]"
             :to="{
@@ -138,7 +138,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesQuickShare' ? 'bg-teal-500 text-white' : '',
+              route.name === 'collectionActivitiesQuickShare' ? 'bg-accent text-accent-foreground' : '',
             ]"
             :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
@@ -155,7 +155,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesPrivateMedia' ? 'bg-teal-500 text-white' : '',
+              route.name === 'collectionActivitiesPrivateMedia' ? 'bg-accent text-accent-foreground' : '',
             ]"
             :to="{
               name: 'collectionActivitiesPrivateMedia',

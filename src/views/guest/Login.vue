@@ -116,7 +116,7 @@
             />
 
             <Button
-              :disabled="loading || !meta.valid || magicLinkSent"
+              :disabled="magicLinkLoading || !meta.valid || magicLinkSent"
               :variant="magicLinkSent ? 'secondary' : 'default'"
               class="w-full"
               type="submit"
@@ -126,8 +126,9 @@
                 <span>Magic link sent!</span>
               </template>
               <template v-else>
-                <Mail v-if="!loading" :size="16" class="mr-2" />
-                <span>{{ loading ? 'Sending...' : 'Send magic link' }}</span>
+                <Loader2 v-if="magicLinkLoading" class="mr-2 h-4 w-4 animate-spin" />
+                <Mail v-else :size="16" class="mr-2" />
+                <span>{{ magicLinkLoading ? 'Sending...' : 'Send magic link' }}</span>
               </template>
             </Button>
 
@@ -138,7 +139,7 @@
             >
               <div
                 v-if="magicLinkSent"
-                class="rounded-lg border border-primary/20 bg-primary/5 p-4"
+                class="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-3"
               >
                 <div class="flex items-start gap-3">
                   <Mail :size="18" class="mt-0.5 shrink-0 text-primary" />
@@ -150,6 +151,17 @@
                     </p>
                   </div>
                 </div>
+                <Button
+                  :disabled="resendLoading || resendCooldown > 0"
+                  class="w-full"
+                  variant="outline"
+                  @click="handleResendMagicLink"
+                >
+                  <Loader2 v-if="resendLoading" class="mr-2 h-4 w-4 animate-spin" />
+                  <span v-if="resendLoading">Sending...</span>
+                  <span v-else-if="resendCooldown > 0">Resend link ({{ resendCooldown }}s)</span>
+                  <span v-else>Resend magic link</span>
+                </Button>
               </div>
             </Transition>
           </div>
@@ -159,7 +171,7 @@
 
     <Divider />
 
-    <GoogleButton text="Sign in with Google" @click="handleGoogleSignIn" />
+    <GoogleButton :disabled="googleLoading" :loading="googleLoading" text="Sign in with Google" @click="handleGoogleSignIn" />
 
     <AuthLink prefix="Don't have an account?" text="Sign up" to="register" />
   </AuthLayout>
@@ -170,7 +182,7 @@ import { computed, ref, Transition } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Field, Form } from 'vee-validate'
 import * as yup from 'yup'
-import { Lock, Mail, CheckCircle } from 'lucide-vue-next'
+import { Lock, Mail, CheckCircle, Loader2 } from 'lucide-vue-next'
 import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
 import { Button } from '@/components/shadcn/button'
@@ -191,6 +203,11 @@ const authApi = useAuthApi()
 const loading = computed(() => userStore.isLoading)
 const loginMethod = ref('password')
 const magicLinkSent = ref(false)
+const magicLinkEmail = ref('')
+const magicLinkLoading = ref(false)
+const resendLoading = ref(false)
+const resendCooldown = ref(0)
+const googleLoading = ref(false)
 
 const passwordSchema = yup.object({
   email: yup.string().required('Email is required').email('Please enter a valid email address'),
@@ -222,9 +239,11 @@ const handleLogin = async values => {
 }
 
 const handleMagicLinkLogin = async values => {
+  magicLinkLoading.value = true
   try {
     await authApi.sendMagicLink(values.email)
 
+    magicLinkEmail.value = values.email
     magicLinkSent.value = true
     toast.success('Magic link sent!', {
       description: 'Check your email for a link to sign in.',
@@ -234,26 +253,63 @@ const handleMagicLinkLogin = async values => {
     await handleError(error, {
       fallbackMessage: 'Failed to send magic link. Please try again.',
     })
+  } finally {
+    magicLinkLoading.value = false
+  }
+}
+
+const handleResendMagicLink = async () => {
+  if (!magicLinkEmail.value || resendLoading.value || resendCooldown.value > 0) return
+
+  resendLoading.value = true
+  try {
+    await authApi.sendMagicLink(magicLinkEmail.value)
+
+    resendCooldown.value = 60
+    const interval = setInterval(() => {
+      resendCooldown.value--
+      if (resendCooldown.value <= 0) {
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    toast.success('Magic link sent!', {
+      description: 'A new magic link has been sent to your email',
+    })
+  } catch (error) {
+    await handleError(error, {
+      fallbackMessage: 'Failed to send magic link. Please try again.',
+    })
+  } finally {
+    resendLoading.value = false
   }
 }
 
 const handlePasswordMethodClick = () => {
   loginMethod.value = 'password'
   magicLinkSent.value = false
+  magicLinkEmail.value = ''
+  resendCooldown.value = 0
 }
 
 const handleMagicLinkMethodClick = () => {
   loginMethod.value = 'magic-link'
   magicLinkSent.value = false
+  magicLinkEmail.value = ''
+  resendCooldown.value = 0
 }
 
 const handleGoogleSignIn = async () => {
+  if (googleLoading.value) return
+
+  googleLoading.value = true
   try {
     const redirectUrl = await authApi.googleSignIn()
 
     // Redirect to Google OAuth
     window.location.href = redirectUrl
   } catch (error) {
+    googleLoading.value = false
     await handleError(error, {
       fallbackMessage: 'Google sign in failed. Please try again.',
     })

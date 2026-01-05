@@ -187,7 +187,7 @@ export function getColorPalettes() {
     marigold: ['#854D0E', '#FBBF24', '#FEF3C7'],
     periwinkle: ['#4338CA', '#6366F1', '#EEF2FF'],
     sagebrush: ['#166534', '#22C55E', '#DCFCE7'],
-    cream: ['#F5F5DC', '#D4A574', '#FEFCF3'],
+    cream: ['#9C6F47', '#C9A882', '#FEFCF3'],
   }
 }
 

@@ -30,7 +30,7 @@
       <div
         v-for="media in filteredMedia"
         :key="media.id"
-        class="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 transition-all duration-200"
+        class="relative group cursor-pointer rounded-lg overflow-hidden border border-gray-200 dark:border-gray-700 hover:border-accent transition-all duration-200"
         @click="$emit('open-comments', media)"
       >
         <!-- Media Thumbnail -->
@@ -51,7 +51,7 @@
           <!-- Comment Count Badge -->
           <div
             v-if="getCommentCount(media) > 0"
-            class="absolute top-2 right-2 px-2 py-1 rounded-full bg-teal-500 text-white text-xs font-bold shadow-lg"
+            class="absolute top-2 right-2 px-2 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-lg"
           >
             {{ getCommentCount(media) }}
           </div>

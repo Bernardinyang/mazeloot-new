@@ -35,7 +35,7 @@
 
           <!-- New Project Button -->
           <Button
-            :class="['bg-teal-500 hover:bg-teal-600 text-white']"
+            :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
             @click="handleCreateProject"
           >
             New Project

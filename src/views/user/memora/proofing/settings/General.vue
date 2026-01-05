@@ -35,7 +35,7 @@
             <!-- Proofing Name -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -44,7 +44,7 @@
                     The name of this proofing as it appears in your dashboard and to customers.
                   </p>
                 </div>
-                <div v-if="nameSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="nameSaved" class="flex items-center gap-2 text-accent">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -52,7 +52,7 @@
               <Input
                 v-model="proofingName"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-md focus:ring-2 focus:ring-accent/20 transition-all"
                 placeholder="My Proofing"
                 @blur="handleNameChange"
                 @keydown.enter="handleNameChange"
@@ -62,7 +62,7 @@
             <!-- Proofing Description -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -71,7 +71,7 @@
                     Optional description shown to clients viewing this proofing.
                   </p>
                 </div>
-                <div v-if="descriptionSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="descriptionSaved" class="flex items-center gap-2 text-accent">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -79,7 +79,7 @@
               <Textarea
                 v-model="proofingDescription"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-accent/20 transition-all"
                 placeholder="Enter a description for this proofing..."
                 :maxlength="1000"
                 @blur="handleDescriptionChange"
@@ -97,7 +97,7 @@
             <!-- Proofing Color -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -108,7 +108,7 @@
                     Choose a color to help identify this proofing in your dashboard.
                   </p>
                 </div>
-                <div v-if="colorSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="colorSaved" class="flex items-center gap-2 text-accent">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -124,7 +124,7 @@
                 <Input
                   v-model="proofingColor"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono text-sm"
+                  class="flex-1 focus:ring-2 focus:ring-accent/20 transition-all font-mono text-sm"
                   placeholder="#F59E0B"
                   @blur="handleColorChange"
                   @keydown.enter="handleColorChange"
@@ -140,7 +140,7 @@
             <!-- Allowed Emails -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -152,7 +152,7 @@
                     primary to identify the main contact.
                   </p>
                 </div>
-                <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-teal-500">
+                <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-accent">
                   <Loader2 class="h-4 w-4 animate-spin" />
                   <span class="text-xs font-medium">Saving...</span>
                 </div>
@@ -164,7 +164,7 @@
                   :class="[
                     'group relative flex items-center gap-3 rounded-lg border transition-all duration-200 px-3 py-2',
                     isPrimaryEmail(email) && isValidEmail(email)
-                      ? 'bg-teal-50/30 dark:bg-teal-950/10 border-teal-500/40 dark:border-teal-500/30'
+                      ? 'bg-accent/10 dark:bg-accent/20 border-accent/40 dark:border-accent/30'
                       : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700',
                     theme.bgCard,
                   ]"
@@ -172,7 +172,7 @@
                   <!-- Primary Indicator Bar -->
                   <div
                     v-if="isPrimaryEmail(email) && isValidEmail(email)"
-                    class="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-teal-500"
+                    class="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-accent"
                   ></div>
 
                   <!-- Radio Button for Primary Selection -->
@@ -193,8 +193,8 @@
                         :class="[
                           'w-4 h-4 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
                           isPrimaryEmail(email)
-                            ? 'border-teal-500 bg-teal-500 shadow-sm ring-2 ring-teal-500/20'
-                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-teal-400 dark:hover:border-teal-500',
+                            ? 'border-accent bg-accent shadow-sm ring-2 ring-accent/20'
+                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-accent dark:hover:border-accent',
                         ]"
                       >
                         <div
@@ -231,9 +231,9 @@
                       <!-- Primary Badge -->
                       <span
                         v-if="email && isValidEmail(email) && isPrimaryEmail(email)"
-                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 whitespace-nowrap"
+                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-accent/10 dark:bg-accent/20 text-accent whitespace-nowrap"
                       >
-                        <Star class="h-3 w-3 fill-teal-600 dark:fill-teal-400 flex-shrink-0" />
+                        <Star class="h-3 w-3 fill-accent flex-shrink-0" />
                         <span>Primary</span>
                       </span>
                     </div>
@@ -276,7 +276,7 @@
                   </Button>
                   <Button
                     :class="[
-                      'bg-teal-500 hover:bg-teal-600 text-white transition-all',
+                      'bg-accent hover:bg-accent/90 text-accent-foreground transition-all',
                       isSavingAllowedEmails ? 'opacity-75 cursor-not-allowed' : '',
                     ]"
                     :disabled="isSavingAllowedEmails || !hasValidEmails"
@@ -301,12 +301,12 @@
                       </div>
                       <div
                         v-if="primaryEmail"
-                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-50 dark:bg-teal-950/20 border border-teal-500/20 dark:border-teal-500/30"
+                        class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent/10 dark:bg-accent/20 border border-accent/20 dark:border-accent/30"
                       >
                         <Star
-                          class="h-3.5 w-3.5 fill-teal-600 dark:fill-teal-400 text-teal-600 dark:text-teal-400"
+                          class="h-3.5 w-3.5 fill-accent text-accent"
                         />
-                        <span class="text-xs font-medium text-teal-700 dark:text-teal-300">
+                        <span class="text-xs font-medium text-accent">
                           Primary: <span class="font-mono">{{ primaryEmail }}</span>
                         </span>
                       </div>
@@ -332,7 +332,7 @@
                       <p
                         v-else
                         :class="theme.textSecondary"
-                        class="text-teal-600 dark:text-teal-400"
+                        class="text-accent"
                       >
                         Ready to publish
                       </p>
@@ -345,7 +345,7 @@
             <!-- Password Protection -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -373,7 +373,7 @@
                         theme.bgInput,
                         theme.borderInput,
                         theme.textInput,
-                        'w-full focus:ring-2 focus:ring-teal-500/20 transition-all',
+                        'w-full focus:ring-2 focus:ring-accent/20 transition-all',
                       ]"
                       readonly
                       placeholder="Password"
@@ -381,7 +381,7 @@
                   </div>
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="handleCopyPassword"
@@ -397,7 +397,7 @@
                     theme.bgInput,
                     theme.borderInput,
                     theme.textInput,
-                    'focus:ring-2 focus:ring-teal-500/20 transition-all',
+                    'focus:ring-2 focus:ring-accent/20 transition-all',
                   ]"
                   placeholder="Enter new password"
                   @blur="handlePasswordChange"
@@ -405,7 +405,7 @@
                 <div class="flex items-center gap-2">
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="isChangingPassword = !isChangingPassword"
@@ -414,7 +414,7 @@
                   </Button>
                   <Button
                     v-if="isChangingPassword && newPassword"
-                    :class="['bg-teal-500 hover:bg-teal-600 text-white']"
+                    :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
                     :disabled="isSavingPassword"
                     size="sm"
                     @click="handleSavePassword"
@@ -428,7 +428,7 @@
             <!-- Max Revisions -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -437,7 +437,7 @@
                     Set the maximum number of revision rounds allowed for this proofing.
                   </p>
                 </div>
-                <div v-if="maxRevisionsSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="maxRevisionsSaved" class="flex items-center gap-2 text-accent">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -447,7 +447,7 @@
                   <Input
                     v-model.number="maxRevisions"
                     :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                    class="max-w-xs focus:ring-2 focus:ring-teal-500/20 transition-all"
+                    class="max-w-xs focus:ring-2 focus:ring-accent/20 transition-all"
                     placeholder="5"
                     type="number"
                     min="1"
@@ -467,7 +467,7 @@
             <!-- Display Preferences -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
@@ -488,7 +488,7 @@
                     <select
                       v-model="viewMode"
                       :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-teal-500/20 transition-all"
+                      class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-accent/20 transition-all"
                       @change="handleViewModeChange"
                     >
                       <option value="grid">Grid</option>
@@ -507,7 +507,7 @@
                     <select
                       v-model="gridSize"
                       :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                      class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-teal-500/20 transition-all"
+                      class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-accent/20 transition-all"
                       @change="handleGridSizeChange"
                     >
                       <option value="small">Small</option>
@@ -539,7 +539,7 @@
             <!-- Save Button -->
             <div class="flex justify-end gap-3 pt-4">
               <Button
-                :class="['bg-teal-500 hover:bg-teal-600 text-white']"
+                :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
                 :disabled="isSaving"
                 @click="handleSaveAll"
               >

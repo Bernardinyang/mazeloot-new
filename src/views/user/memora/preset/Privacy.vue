@@ -47,10 +47,10 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.collectionPassword
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -77,10 +77,10 @@
             theme.borderSecondary,
             theme.bgCard,
             formData.showOnHomepage
-              ? 'ring-2 ring-teal-500/20 dark:ring-teal-400/20 shadow-sm border-teal-500/30'
+              ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30 hover:shadow-md"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -89,7 +89,7 @@
                 Show your collections on your Homepage. Manage Homepage in
                 <router-link
                   :to="{ name: 'homepageConfig' }"
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline transition-colors font-medium"
+                  class="text-accent hover:text-accent underline transition-colors font-medium"
                 >
                   Settings
                 </router-link>
@@ -118,7 +118,7 @@
             :class="[
               theme.textSecondary,
               theme.bgButtonHover,
-              'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+              'hover:text-accent transition-colors duration-200',
               'disabled:opacity-50 disabled:cursor-not-allowed',
             ]"
             :disabled="isSubmitting || isSaving"
@@ -138,7 +138,7 @@
             </span>
             <Button
               :disabled="isSubmitting || isSaving"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />

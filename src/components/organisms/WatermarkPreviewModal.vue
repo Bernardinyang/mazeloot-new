@@ -11,7 +11,7 @@
         <button
           :class="
             viewMode === 'before'
-              ? 'bg-teal-500 text-white'
+              ? 'bg-accent text-accent-foreground'
               : [theme.bgCard, theme.borderSecondary, 'border', theme.textSecondary]
           "
           class="px-4 py-2 rounded-md text-sm font-semibold transition-all"
@@ -22,7 +22,7 @@
         <button
           :class="
             viewMode === 'after'
-              ? 'bg-teal-500 text-white'
+              ? 'bg-accent text-accent-foreground'
               : [theme.bgCard, theme.borderSecondary, 'border', theme.textSecondary]
           "
           class="px-4 py-2 rounded-md text-sm font-semibold transition-all"
@@ -33,7 +33,7 @@
         <button
           :class="
             viewMode === 'compare'
-              ? 'bg-teal-500 text-white'
+              ? 'bg-accent text-accent-foreground'
               : [theme.bgCard, theme.borderSecondary, 'border', theme.textSecondary]
           "
           class="px-4 py-2 rounded-md text-sm font-semibold transition-all"
@@ -151,7 +151,7 @@
 
     <template #footer>
       <Button variant="outline" @click="handleCancel">Cancel</Button>
-      <Button class="bg-teal-500 hover:bg-teal-600 text-white" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
+      <Button class="bg-accent hover:bg-accent/90 text-accent-foreground" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
         Apply Watermark
       </Button>
     </template>

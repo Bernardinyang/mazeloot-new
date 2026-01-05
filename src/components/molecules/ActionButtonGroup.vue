@@ -9,7 +9,7 @@
         :class="[
           cancelButtonClass || theme.textSecondary,
           cancelButtonClass || theme.bgButtonHover,
-          cancelButtonClass ? '' : 'hover:text-teal-600 dark:hover:text-teal-400',
+          cancelButtonClass ? '' : 'hover:text-accent',
           cancelButtonClass,
         ]"
         :disabled="loading"
@@ -20,7 +20,7 @@
       <Button
         v-if="confirmLabel"
         type="button"
-        :class="['bg-teal-500 hover:bg-teal-600 text-white', confirmButtonClass]"
+        :class="['bg-accent hover:bg-accent/90 text-accent-foreground', confirmButtonClass]"
         :disabled="disabled || loading"
         @click="$emit('confirm')"
       >

@@ -1,6 +1,31 @@
 <template>
-  <AuthLayout description="Verifying your magic link..." title="Signing you in...">
-    <div class="flex flex-col items-center justify-center space-y-4">
+  <AuthLayout
+    :description="error ? 'Magic link verification failed' : 'Verifying your magic link...'"
+    :title="error ? 'Verification Failed' : 'Signing you in...'"
+  >
+    <div v-if="error" class="flex flex-col items-center justify-center space-y-4">
+      <div class="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+        <AlertCircle :size="32" class="text-destructive" />
+      </div>
+      <div class="text-center space-y-2">
+        <p class="text-sm font-medium text-foreground">Invalid or expired magic link</p>
+        <p class="text-sm text-muted-foreground">
+          The magic link has expired or is invalid. Please request a new one.
+        </p>
+      </div>
+      <Button
+        :disabled="loading || resendCooldown > 0"
+        class="w-full mt-4"
+        @click="handleResend"
+      >
+        <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
+        <span v-if="loading">Sending...</span>
+        <span v-else-if="resendCooldown > 0">Resend link ({{ resendCooldown }}s)</span>
+        <span v-else>Resend magic link</span>
+      </Button>
+      <AuthLink to="login" text="Back to login" />
+    </div>
+    <div v-else class="flex flex-col items-center justify-center space-y-4">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
       <p class="text-sm text-muted-foreground">Please wait while we verify your magic link...</p>
     </div>
@@ -8,10 +33,13 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { AlertCircle, Loader2 } from 'lucide-vue-next'
 import { toast } from '@/utils/toast'
 import AuthLayout from '@/layouts/AuthLayout.vue'
+import { Button } from '@/components/shadcn/button'
+import AuthLink from '@/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
 import { useErrorHandler } from '@/composables/useErrorHandler'
@@ -22,19 +50,23 @@ const authApi = useAuthApi()
 const userStore = useUserStore()
 const { handleError } = useErrorHandler()
 
+const loading = ref(false)
+const error = ref(false)
+const resendCooldown = ref(0)
+const email = ref('')
+
 onMounted(async () => {
+  loading.value = true
   try {
     const token = route.query.token
-    const email = route.query.email
+    email.value = route.query.email
 
-    if (!token || !email) {
+    if (!token || !email.value) {
       throw new Error('Invalid magic link. Missing token or email.')
     }
 
-    // Verify magic link
-    const response = await authApi.verifyMagicLink(token, email)
+    const response = await authApi.verifyMagicLink(token, email.value)
 
-    // Format user data to match what the store expects
     userStore.user = {
       id: response.user.uuid,
       uuid: response.user.uuid,
@@ -51,16 +83,42 @@ onMounted(async () => {
       description: 'Welcome! Redirecting...',
     })
 
-    // Redirect to the original destination or overview
     const redirect = route.query.redirect
     await router.push(redirect || { name: 'overview' })
-  } catch (error) {
-    handleError(error, {
+  } catch (err) {
+    error.value = true
+    handleError(err, {
       fallbackMessage: 'Invalid or expired magic link. Please try again.',
     })
-
-    // Redirect to login on error
-    await router.push({ name: 'login' })
+  } finally {
+    loading.value = false
   }
 })
+
+const handleResend = async () => {
+  if (!email.value || loading.value || resendCooldown.value > 0) return
+
+  loading.value = true
+  try {
+    await authApi.sendMagicLink(email.value)
+
+    resendCooldown.value = 60
+    const interval = setInterval(() => {
+      resendCooldown.value--
+      if (resendCooldown.value <= 0) {
+        clearInterval(interval)
+      }
+    }, 1000)
+
+    toast.success('Magic link sent!', {
+      description: 'A new magic link has been sent to your email',
+    })
+  } catch (err) {
+    handleError(err, {
+      fallbackMessage: 'Failed to send magic link. Please try again.',
+    })
+  } finally {
+    loading.value = false
+  }
+}
 </script>

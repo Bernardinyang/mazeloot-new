@@ -19,7 +19,7 @@
                 </h1>
               </div>
               <Button
-                class="gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                class="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
                 @click="showCreateModal = true"
               >
                 <Plus class="h-4 w-4" />
@@ -79,7 +79,7 @@
                     <Link :class="theme.textSecondary" class="h-4 w-4" />
                     <a
                       :href="item.url"
-                      class="text-sm text-teal-600 dark:text-teal-400 hover:underline font-mono"
+                      class="text-sm text-accent hover:underline font-mono"
                       target="_blank"
                     >
                       {{ item.url }}
@@ -125,7 +125,7 @@
                     Create your first quick share link to get started
                   </p>
                   <Button
-                    class="gap-2 bg-teal-500 hover:bg-teal-600 text-white"
+                    class="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
                     @click="showCreateModal = true"
                   >
                     <Plus class="h-4 w-4" />

@@ -142,7 +142,7 @@
 
       <!-- Decorative elements -->
       <div
-        class="absolute top-4 right-4 w-16 h-16 rounded-full bg-teal-200/30 dark:bg-teal-800/30 blur-xl"
+        class="absolute top-4 right-4 w-16 h-16 rounded-full bg-accent/30 dark:bg-accent/30 blur-xl"
       ></div>
       <div
         class="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-blue-200/30 dark:bg-blue-800/30 blur-lg"

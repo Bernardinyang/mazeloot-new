@@ -125,7 +125,7 @@
                 <Button
                   v-if="selectedPresetId !== 'none'"
                   :disabled="isApplyingPreset"
-                  class="bg-teal-500 hover:bg-teal-600 text-white"
+                  class="bg-accent hover:bg-accent/90 text-accent-foreground"
                   @click="handleApplyPreset"
                 >
                   <Loader2
@@ -310,7 +310,7 @@
                     <label class="relative inline-flex items-center group cursor-pointer">
                       <input type="checkbox" v-model="slideshow" class="sr-only peer" />
                       <div
-                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-500"
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"
                         :class="
                           slideshow
                             ? 'bg-teal-500'
@@ -460,7 +460,7 @@
                             class="sr-only peer"
                           />
                           <div
-                            class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-teal-500"
+                            class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"
                             :class="
                               slideshowAutoLoop
                                 ? 'bg-teal-500'
@@ -568,7 +568,7 @@
               </div>
               <Button
                 :disabled="!hasChanges || isSaving"
-                class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                 @click="handleSave"
               >
                 <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />

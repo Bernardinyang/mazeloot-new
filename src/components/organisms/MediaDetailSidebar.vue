@@ -64,7 +64,7 @@
         <Button
           variant="default"
           size="sm"
-          class="flex-1 bg-teal-500 hover:bg-teal-600 text-white"
+          class="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
           @click="handleViewMedia"
         >
           <Eye class="h-4 w-4 mr-2" />

@@ -7,12 +7,11 @@
     ]"
   >
     <img
-      :src="logoImage"
+      :src="currentLogo"
       alt="Mazeloot"
       :class="[
         'object-contain transition-all duration-200',
         'h-full w-auto max-w-full',
-        logoColorClass,
         colorClass,
       ]"
       draggable="false"
@@ -23,7 +22,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
-import logoImage from '@/assets/images/mazeloot.svg'
+import mazelootLightLogo from '@/assets/images/logos/mazelootLightLogo.svg'
+import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
 const themeStore = useThemeStore()
 
@@ -45,15 +45,18 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  logoSrc: {
+    type: String,
+    default: undefined,
+  },
 })
 
-const isDark = computed(() => themeStore.effectiveTheme === 'dark')
-
-const logoColorClass = computed(() => {
-  if (props.colorClass) return ''
-  // White filter for dark theme, black filter for light theme
-  return isDark.value
-    ? 'brightness-0 invert'
-    : 'brightness-0'
+const currentLogo = computed(() => {
+  if (props.logoSrc) {
+    return props.logoSrc
+  }
+  return themeStore.effectiveTheme === 'dark'
+    ? mazelootLightLogo
+    : mazelootPrimaryLogo
 })
 </script>

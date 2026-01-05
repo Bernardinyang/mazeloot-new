@@ -123,9 +123,9 @@
                 <div class="px-6 py-4">
                   <div class="flex items-center gap-3">
                     <div
-                      class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center"
+                      class="w-8 h-8 rounded-full bg-accent/20 dark:bg-accent/30 flex items-center justify-center"
                     >
-                      <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                      <span class="text-xs font-semibold text-accent">
                         {{ item.userEmail?.charAt(0).toUpperCase() || '?' }}
                       </span>
                     </div>
@@ -198,7 +198,7 @@
                   <span
                     :class="
                       item.downloadType === 'full'
-                        ? 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400'
+                        ? 'bg-accent/20 text-accent dark:bg-accent/30'
                         : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
                     "
                     class="px-2 py-1 rounded-full text-xs font-semibold"

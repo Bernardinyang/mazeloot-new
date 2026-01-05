@@ -158,7 +158,7 @@
           </Button>
           <Button
             :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
-            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleSubmitClientEmail"
           >
             <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
@@ -195,7 +195,7 @@
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                clientPasswordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
+                clientPasswordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-accent/20',
                 'w-full h-11 transition-all',
               ]"
               :disabled="isVerifyingClientPassword"
@@ -221,7 +221,7 @@
           </Button>
           <Button
             :disabled="isVerifyingClientPassword || !clientPasswordInput"
-            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleVerifyClientPassword"
           >
             <Loader2 v-if="isVerifyingClientPassword" class="h-4 w-4 mr-2 animate-spin" />
@@ -284,7 +284,7 @@
           </Button>
           <Button
             :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
-            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleSubmitEmail"
           >
             <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
@@ -330,7 +330,7 @@
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
+                passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-accent/20',
                 'w-full h-11 transition-all',
               ]"
               :disabled="isVerifyingPassword"
@@ -357,7 +357,7 @@
           </Button>
           <Button
             :disabled="isVerifyingPassword || !passwordInput"
-            class="bg-teal-500 hover:bg-teal-600 text-white flex-1 shadow-md hover:shadow-lg transition-all"
+            class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
             @click="handleVerifyPassword"
           >
             <Loader2 v-if="isVerifyingPassword" class="h-4 w-4 mr-2 animate-spin" />
@@ -409,7 +409,7 @@
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
-                  downloadPinError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-teal-500/20',
+                  downloadPinError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'focus:ring-accent/20',
                 ]"
                 :disabled="isVerifyingDownloadPin"
                 :length="4"
@@ -425,7 +425,7 @@
           <DialogFooter class="mt-8">
             <Button
               :disabled="isVerifyingDownloadPin || !downloadPinInput || downloadPinInput.length !== 4"
-              class="bg-teal-500 hover:bg-teal-600 text-white w-full h-11 shadow-md hover:shadow-lg transition-all"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground w-full h-11 shadow-md hover:shadow-lg transition-all"
               @click="handleVerifyDownloadPin"
             >
               <Loader2 v-if="isVerifyingDownloadPin" class="h-4 w-4 mr-2 animate-spin" />
@@ -441,7 +441,7 @@
         class="fixed inset-0 bg-white/80 dark:bg-gray-950/80 backdrop-blur-sm z-50 flex items-center justify-center"
       >
         <div class="flex flex-col items-center gap-3">
-          <Loader2 class="h-8 w-8 animate-spin text-teal-500" />
+          <Loader2 class="h-8 w-8 animate-spin text-accent" />
           <p class="text-sm text-gray-600 dark:text-gray-400">
             {{ isOpeningMediaLightbox ? 'Opening media...' : isLoading ? 'Loading collection...' : 'Loading media...' }}
           </p>

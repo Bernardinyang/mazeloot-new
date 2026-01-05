@@ -42,7 +42,7 @@
         <!-- Collection Tags -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div>
             <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
@@ -52,25 +52,25 @@
               Add tags to categorize different collections e.g. wedding, outdoor, summer.
               <a
                 href="#"
-                class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                class="text-accent hover:text-accent hover:underline font-medium transition-colors"
               >
                 Learn more
               </a>
             </p>
           </div>
           <div
-            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20 focus-within:border-teal-500/50"
+            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-accent/20 focus-within:border-accent/50"
             :class="[theme.bgInput, theme.borderInput]"
           >
             <span
               v-for="(tag, index) in collectionTags"
               :key="index"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/20 dark:border-teal-500/30 transition-all duration-200 hover:bg-teal-500/20 dark:hover:bg-teal-500/30"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-accent/10 dark:bg-accent/20 text-accent border border-accent/20 dark:border-accent/30 transition-all duration-200 hover:bg-accent/20 dark:hover:bg-accent/30"
             >
               {{ tag }}
               <button
                 @click="removeCollectionTag(index)"
-                class="ml-0.5 hover:bg-teal-500/20 dark:hover:bg-teal-500/30 rounded-full p-0.5 transition-colors"
+                class="ml-0.5 hover:bg-accent/20 dark:hover:bg-accent/30 rounded-full p-0.5 transition-colors"
                 :class="theme.textSecondary"
               >
                 <X class="h-3 w-3" />
@@ -90,7 +90,7 @@
         <!-- Photo Sets -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div>
             <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
@@ -101,18 +101,18 @@
             </p>
           </div>
           <div
-            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-teal-500/20 focus-within:border-teal-500/50"
+            class="flex flex-wrap gap-2 p-3 min-h-[2.75rem] rounded-lg border-2 transition-all duration-200 focus-within:ring-2 focus-within:ring-accent/20 focus-within:border-accent/50"
             :class="[theme.bgInput, theme.borderInput]"
           >
             <span
               v-for="(tag, index) in photoSets"
               :key="index"
-              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/20 dark:border-teal-500/30 transition-all duration-200 hover:bg-teal-500/20 dark:hover:bg-teal-500/30"
+              class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-accent/10 dark:bg-accent/20 text-accent border border-accent/20 dark:border-accent/30 transition-all duration-200 hover:bg-accent/20 dark:hover:bg-accent/30"
             >
               {{ tag }}
               <button
                 @click="removePhotoSet(index)"
-                class="ml-0.5 hover:bg-teal-500/20 dark:hover:bg-teal-500/30 rounded-full p-0.5 transition-colors"
+                class="ml-0.5 hover:bg-accent/20 dark:hover:bg-accent/30 rounded-full p-0.5 transition-colors"
                 :class="theme.textSecondary"
               >
                 <X class="h-3 w-3" />
@@ -132,7 +132,7 @@
         <!-- Default Watermark -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-3 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div>
             <label class="text-sm font-semibold block mb-2" :class="theme.textPrimary">
@@ -142,7 +142,7 @@
               Set the default watermark to apply to photos. Manage watermarks in
               <a
                 href="#"
-                class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                class="text-accent hover:text-accent hover:underline font-medium transition-colors"
               >
                 App Settings
               </a>
@@ -155,7 +155,7 @@
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
-                'border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
+                'border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50',
               ]"
             >
               <SelectValue placeholder="Select watermark" />
@@ -164,7 +164,7 @@
               <SelectItem
                 value="none"
                 label="No watermark"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-accent/10 dark:hover:bg-accent/20']"
               >
                 No watermark
               </SelectItem>
@@ -173,7 +173,7 @@
                 :key="watermark.id"
                 :value="watermark.id"
                 :label="watermark.name"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-teal-50 dark:hover:bg-teal-950/20']"
+                :class="[theme.textPrimary, theme.bgButtonHover, 'hover:bg-accent/10 dark:hover:bg-accent/20']"
               >
                 {{ watermark.name }}
               </SelectItem>
@@ -184,7 +184,7 @@
         <!-- Email Registration -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -195,7 +195,7 @@
                 Track email addresses accessing this collection.
                 <a
                   href="#"
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                  class="text-accent hover:text-accent hover:underline font-medium transition-colors"
                 >
                   Learn more
                 </a>
@@ -212,10 +212,10 @@
                 <label class="relative inline-flex items-center group cursor-pointer">
                   <input type="checkbox" v-model="formData.emailRegistration" class="sr-only peer" />
                   <div
-                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-accent peer-checked:shadow-accent/50"
                     :class="
                       formData.emailRegistration
-                        ? 'bg-teal-500 shadow-teal-500/50'
+                        ? 'bg-accent shadow-accent/50'
                         : 'bg-gray-300 dark:bg-gray-600'
                     "
                   ></div>
@@ -228,7 +228,7 @@
         <!-- Gallery Assist -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -237,7 +237,7 @@
                 Add walk-through cards to help visitors use the collection.
                 <a
                   href="#"
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                  class="text-accent hover:text-accent hover:underline font-medium transition-colors"
                 >
                   Learn more
                 </a>
@@ -254,10 +254,10 @@
                 <label class="relative inline-flex items-center group cursor-pointer">
                   <input type="checkbox" v-model="formData.galleryAssist" class="sr-only peer" />
                   <div
-                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-accent peer-checked:shadow-accent/50"
                     :class="
                       formData.galleryAssist
-                        ? 'bg-teal-500 shadow-teal-500/50'
+                        ? 'bg-accent shadow-accent/50'
                         : 'bg-gray-300 dark:bg-gray-600'
                     "
                   ></div>
@@ -270,7 +270,7 @@
         <!-- Slideshow -->
         <div
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -279,7 +279,7 @@
                 Allow visitors to view the images in their collection as a slideshow.
                 <a
                   href="#"
-                  class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                  class="text-accent hover:text-accent hover:underline font-medium transition-colors"
                   >Learn more</a
                 >
               </p>
@@ -295,10 +295,10 @@
                 <label class="relative inline-flex items-center group cursor-pointer">
                   <input type="checkbox" v-model="formData.slideshow" class="sr-only peer" />
                   <div
-                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-accent peer-checked:shadow-accent/50"
                     :class="
                       formData.slideshow
-                        ? 'bg-teal-500 shadow-teal-500/50'
+                        ? 'bg-accent shadow-accent/50'
                         : 'bg-gray-300 dark:bg-gray-600'
                     "
                   ></div>
@@ -318,9 +318,9 @@
               class="flex items-center gap-2 text-sm font-semibold transition-colors group"
               :class="[
                 showSlideshowOptions
-                  ? 'text-teal-600 dark:text-teal-400'
+                  ? 'text-accent'
                   : theme.textPrimary,
-                'hover:text-teal-600 dark:hover:text-teal-400',
+                'hover:text-accent',
               ]"
             >
               <ChevronDown
@@ -353,7 +353,7 @@
                         type="radio"
                         v-model="formData.slideshowSpeed"
                         value="slow"
-                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        class="w-4 h-4 text-accent focus:ring-2 focus:ring-accent/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                         :checked="formData.slideshowSpeed === 'slow'"
                       />
                       <span
@@ -377,7 +377,7 @@
                         type="radio"
                         v-model="formData.slideshowSpeed"
                         value="regular"
-                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        class="w-4 h-4 text-accent focus:ring-2 focus:ring-accent/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                         :checked="formData.slideshowSpeed === 'regular'"
                       />
                       <span
@@ -399,7 +399,7 @@
                         type="radio"
                         v-model="formData.slideshowSpeed"
                         value="fast"
-                        class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                        class="w-4 h-4 text-accent focus:ring-2 focus:ring-accent/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                         :checked="formData.slideshowSpeed === 'fast'"
                       />
                       <span
@@ -418,7 +418,7 @@
 
                 <!-- Auto Loop -->
                 <div
-                  class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-teal-500/50 hover:shadow-sm"
+                  class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-accent/50 hover:shadow-sm"
                   :class="[theme.borderSecondary, theme.bgCard]"
                 >
                   <div class="flex-1">
@@ -443,10 +443,10 @@
                         class="sr-only peer"
                       />
                       <div
-                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-teal-500 peer-checked:shadow-teal-500/50"
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg peer-checked:bg-accent peer-checked:shadow-accent/50"
                         :class="
                           formData.slideshowAutoLoop
-                            ? 'bg-teal-500 shadow-teal-500/50'
+                            ? 'bg-accent shadow-accent/50'
                             : 'bg-gray-300 dark:bg-gray-600'
                         "
                       ></div>
@@ -460,7 +460,7 @@
 
         <!-- Social Sharing -->
         <div
-          class="flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:border-teal-500/50"
+          class="flex items-center justify-between p-5 rounded-lg border transition-all duration-200 hover:border-accent/50"
           :class="[theme.borderSecondary, theme.bgCard]"
         >
           <div class="flex-1">
@@ -478,7 +478,7 @@
                 class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:shadow-lg"
                 :class="
                   formData.socialSharing
-                    ? 'bg-teal-500 shadow-teal-500/50'
+                    ? 'bg-accent shadow-accent/50'
                     : 'bg-gray-300 dark:bg-gray-600'
                 "
               ></div>
@@ -563,7 +563,7 @@
             <Button
               @click="handleNext"
               :disabled="isSubmitting || isSaving"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
             >
               <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
               <span v-if="isSubmitting || isSaving">Saving...</span>

@@ -128,9 +128,9 @@
                 <button
                   :class="[
                     props.activeTab === tab?.name
-                      ? 'bg-white dark:bg-gray-900 text-teal-600 dark:text-teal-400 shadow-sm scale-105'
+                      ? 'bg-white dark:bg-gray-900 text-accent shadow-sm scale-105'
                       : theme.textSecondary +
-                        ' hover:bg-white/80 dark:hover:bg-gray-800/70 hover:text-teal-600 dark:hover:text-teal-400 hover:scale-102',
+                        ' hover:bg-white/80 dark:hover:bg-gray-800/70 hover:text-accent hover:scale-102',
                   ]"
                   class="flex flex-col items-center gap-1 p-3 rounded-lg relative transition-all duration-300 ease-out group"
                   @click="handleTabClick(tab)"
@@ -256,9 +256,9 @@
               <button
                 :class="[
                   props.activeTab === tab?.name
-                    ? 'bg-teal-500 text-white shadow-md'
+                    ? 'bg-accent text-accent-foreground shadow-md'
                     : theme.textSecondary +
-                      ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-teal-600 dark:hover:text-teal-400',
+                      ' hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-accent',
                 ]"
                 class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
                 @click="handleTabClick(tab)"
@@ -266,7 +266,7 @@
                 <component :is="tab?.icon" class="h-5 w-5" />
                 <span
                   v-if="props.activeTab === tab?.name"
-                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+                  class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-accent rounded-r-full"
                 ></span>
               </button>
             </TooltipTrigger>

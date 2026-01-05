@@ -92,7 +92,7 @@
                           theme.bgInput,
                           theme.borderInput,
                           theme.textInput,
-                          'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                          'focus:ring-2 focus:ring-accent/20 focus:border-accent',
                         ]"
                         class="transition-all"
                       >
@@ -125,7 +125,7 @@
                   :class="[
                     theme.textSecondary,
                     theme.bgButtonHover,
-                    'hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all duration-200',
+                    'hover:text-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-200',
                     'disabled:opacity-50 disabled:cursor-not-allowed',
                   ]"
                   :disabled="isSubmitting || isSaving"
@@ -156,7 +156,7 @@
                   </Transition>
                   <Button
                     :disabled="isSubmitting || isSaving || !hasUnsavedChanges"
-                    class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
+                    class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
                     @click="handleSave"
                   >
                     <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
@@ -187,7 +187,7 @@
                         :class="theme.textPrimary"
                         class="text-lg font-semibold flex items-center gap-2"
                       >
-                        <div class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
+                        <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
                         Live Preview
                       </h3>
                       <p :class="theme.textSecondary" class="text-xs mt-1.5">
@@ -197,7 +197,7 @@
                     <Button
                       :class="[
                         theme.textSecondary,
-                        'hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200',
+                        'hover:text-accent transition-all duration-200',
                       ]"
                       class="shrink-0 hover:bg-white/80 dark:hover:bg-gray-800/80"
                       size="sm"
@@ -227,7 +227,7 @@
                       class="absolute inset-0 flex items-center justify-center bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm z-10"
                     >
                       <div class="flex flex-col items-center gap-3">
-                        <Loader2 class="h-8 w-8 animate-spin text-teal-500" />
+                        <Loader2 class="h-8 w-8 animate-spin text-accent" />
                         <p :class="theme.textSecondary" class="text-sm font-medium">
                           Loading preview...
                         </p>

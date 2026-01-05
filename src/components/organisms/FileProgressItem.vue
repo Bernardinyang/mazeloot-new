@@ -65,7 +65,7 @@
           <div class="flex items-center gap-2 flex-shrink-0">
             <Loader2
               v-if="progress.status === 'uploading' || progress.status === 'processing'"
-              class="h-4 w-4 animate-spin text-teal-500"
+              class="h-4 w-4 animate-spin text-accent"
             />
             <CheckCircle2
               v-else-if="progress.status === 'completed'"
@@ -94,7 +94,7 @@
         >
           <div
             :class="[
-              progress.status === 'failed' ? 'bg-red-500' : 'bg-teal-500',
+              progress.status === 'failed' ? 'bg-red-500' : 'bg-accent',
               'h-full transition-all duration-300 ease-out relative',
             ]"
             :style="{ width: `${progress.percentage || 0}%` }"

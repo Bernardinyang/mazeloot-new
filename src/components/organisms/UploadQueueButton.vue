@@ -14,7 +14,7 @@
       v-if="activeCount > 0"
       :class="[
         'absolute -top-1 -right-1 h-5 w-5 rounded-full flex items-center justify-center text-xs font-semibold',
-        'bg-teal-500 text-white',
+        'bg-accent text-accent-foreground',
       ]"
     >
       {{ activeCount > 99 ? '99+' : activeCount }}

@@ -4,7 +4,7 @@
       <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
       <button
         :class="[
-          'bg-teal-500 hover:bg-teal-600 text-white border-teal-600',
+          'bg-accent hover:bg-accent/90 text-accent-foreground border-accent',
           'hover:shadow-md hover:scale-105 active:scale-95',
         ]"
         :disabled="props.isSavingSets || props.disableAddSet"
@@ -47,7 +47,7 @@
           class="absolute inset-0 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm z-10 flex items-center justify-center rounded-lg"
         >
           <div class="flex flex-col items-center gap-2">
-            <Loader2 class="h-5 w-5 animate-spin text-teal-500" />
+            <Loader2 class="h-5 w-5 animate-spin text-accent" />
             <span class="text-xs font-medium text-gray-600 dark:text-gray-400">Saving...</span>
           </div>
         </div>
@@ -58,10 +58,10 @@
           :key="set.id"
           :class="[
             props.selectedSetId === set.id
-              ? 'bg-white dark:bg-gray-800/50 border-2 border-teal-200 dark:border-teal-800 shadow-sm scale-[1.01]'
+              ? 'bg-white dark:bg-gray-800/50 border-2 border-accent/30 dark:border-accent/30 shadow-sm scale-[1.01]'
               : '',
             props.draggedSetId === set.id ? 'opacity-50 scale-95' : '',
-            props.dragOverIndex === index ? 'ring-2 ring-teal-500 ring-offset-2 scale-[1.02]' : '',
+            props.dragOverIndex === index ? 'ring-2 ring-accent ring-offset-2 scale-[1.02]' : '',
             props.isSavingSets ? 'opacity-60 pointer-events-none' : '',
           ]"
           :draggable="!props.isSavingSets"
@@ -77,20 +77,20 @@
           <Transition name="indicator">
             <div
               v-if="props.selectedSetId === set.id"
-              class="absolute left-0 top-0 bottom-0 w-1 bg-teal-500 dark:bg-teal-400 rounded-r-full transition-all duration-300"
+              class="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full transition-all duration-300"
             ></div>
           </Transition>
 
           <GripVertical
             :class="[
-              props.selectedSetId === set.id ? 'text-teal-600 dark:text-teal-400' : '',
+              props.selectedSetId === set.id ? 'text-accent' : '',
               props.isSavingSets ? 'opacity-30 cursor-not-allowed' : '',
             ]"
             class="h-4 w-4 flex-shrink-0 opacity-50 transition-all duration-200 ml-1 hover:opacity-70 hover:scale-110"
           />
           <span
             v-if="!props.editingSetId || props.editingSetId !== set.id"
-            :class="[props.selectedSetId === set.id ? 'text-teal-700 dark:text-teal-300' : '']"
+            :class="[props.selectedSetId === set.id ? 'text-accent' : '']"
             class="flex-1 text-xs font-bold tracking-wide truncate"
           >
             {{ set.name }}
@@ -98,8 +98,8 @@
           <input
             v-else
             :value="props.editingSetName"
-            :class="[theme.bgInput, theme.borderInput, theme.textInput, 'focus:border-teal-500']"
-            class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition-all duration-200"
+            :class="[theme.bgInput, theme.borderInput, theme.textInput, 'focus:border-accent']"
+            class="flex-1 text-xs font-bold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all duration-200"
             @input="emit('update:editingSetName', $event.target.value)"
             @blur="emit('save-set-name', set.id)"
             @keydown.enter="emit('save-set-name', set.id)"
@@ -111,7 +111,7 @@
               v-if="props.setProgress && props.setProgress[set.id]"
               :class="[
                 props.selectedSetId === set.id
-                  ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                  ? 'bg-accent/20 dark:bg-accent/30 text-accent'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
                 'text-xs px-2 py-1 rounded-full font-semibold',
               ]"
@@ -119,7 +119,7 @@
               {{ props.setProgress[set.id].selected }}/{{ props.setProgress[set.id].total }}
             </span>
             <span
-              :class="[props.selectedSetId === set.id ? 'bg-teal-500 text-white shadow-sm' : '']"
+              :class="[props.selectedSetId === set.id ? 'bg-accent text-accent-foreground shadow-sm' : '']"
               class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
             >
               {{ set.count }}
@@ -130,7 +130,7 @@
               <button
                 :class="[
                   props.selectedSetId === set.id
-                    ? 'hover:bg-teal-100 dark:hover:bg-teal-900/30'
+                    ? 'hover:bg-accent/20 dark:hover:bg-accent/30'
                     : '',
                   theme.textSecondary,
                 ]"

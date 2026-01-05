@@ -16,7 +16,7 @@
             placeholder="Enter password"
             :input-class="[
               'w-full h-12 px-4 rounded-lg border-2 transition-all',
-              passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-teal-500 focus:ring-teal-500/20',
+              passwordError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : 'border-gray-200 focus:border-accent focus:ring-accent/20',
             ]"
             @keydown.enter="handleVerifyPassword"
           />
@@ -55,7 +55,7 @@
       <!-- Initial Loading State -->
       <div v-if="isLoadingHomepage" class="min-h-screen flex items-center justify-center">
         <div class="text-center space-y-4">
-          <Loader2 class="h-12 w-12 text-teal-500 animate-spin mx-auto" />
+          <Loader2 class="h-12 w-12 text-accent animate-spin mx-auto" />
           <p class="text-gray-600 dark:text-gray-400">Loading homepage...</p>
         </div>
       </div>
@@ -129,10 +129,10 @@
             :href="branding.website"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <Globe class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{{ branding.website }}</span>
+            <Globe class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ branding.website }}</span>
           </a>
           <div
             v-if="homepageInfo.includes('phone') && contactInfo.phone"
@@ -144,20 +144,20 @@
           <a
             v-if="homepageInfo.includes('email') && contactInfo.email"
             :href="`mailto:${contactInfo.email}`"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <Mail class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{{ contactInfo.email }}</span>
+            <Mail class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ contactInfo.email }}</span>
           </a>
           <a
             v-if="homepageInfo.includes('address') && contactInfo.address"
             :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactInfo.address)}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-teal-500 dark:hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <MapPin class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">{{ contactInfo.address }}</span>
+            <MapPin class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ contactInfo.address }}</span>
           </a>
         </div>
 
@@ -172,20 +172,20 @@
             :href="link.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="group w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-teal-50 dark:hover:bg-teal-900/20 hover:border-teal-500 dark:hover:border-teal-500 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent transition-all duration-300 shadow-sm hover:shadow-md"
           >
-            <Globe v-if="!link.platform" class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+            <Globe v-if="!link.platform" class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
             <component
               v-else-if="link.platform.slug === 'facebook'"
               :is="Facebook"
-              class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+              class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors"
             />
             <component
               v-else-if="link.platform.slug === 'instagram'"
               :is="Instagram"
-              class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+              class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors"
             />
-            <Globe v-else class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+            <Globe v-else class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
           </a>
         </div>
       </section>

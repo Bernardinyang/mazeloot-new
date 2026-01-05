@@ -52,9 +52,9 @@
                     </p>
                   </div>
                   <div
-                    class="px-3 py-1.5 rounded-lg bg-teal-500/10 dark:bg-teal-500/20 border border-teal-500/20 dark:border-teal-500/30"
+                    class="px-3 py-1.5 rounded-lg bg-accent/10 dark:bg-accent/20 border border-accent/20 dark:border-accent/30"
                   >
-                    <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">
+                    <span class="text-xs font-semibold text-accent">
                       {{
                         colorPalettes.find(p => p.id === formData.colorPalette)?.label || 'Light'
                       }}
@@ -67,10 +67,10 @@
                     :key="palette.id"
                     :class="[
                       formData.colorPalette === palette.id
-                        ? 'border-teal-500 ring-2 ring-teal-500/30 scale-[1.02]'
+                        ? 'border-accent ring-2 ring-accent/30 scale-[1.02]'
                         : [
                             theme.borderSecondary,
-                            'hover:border-teal-500/70',
+                            'hover:border-accent/70',
                             'active:scale-[0.98]',
                           ],
                       theme.bgCard,
@@ -89,7 +89,7 @@
                     >
                       <div
                         v-if="formData.colorPalette === palette.id"
-                        class="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-teal-500 flex items-center justify-center ring-2 ring-white dark:ring-gray-900"
+                        class="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-accent flex items-center justify-center ring-2 ring-white dark:ring-gray-900"
                       >
                         <Check class="h-3.5 w-3.5 text-white" />
                       </div>
@@ -107,7 +107,7 @@
                     <span
                       :class="
                         formData.colorPalette === palette.id
-                          ? 'text-teal-600 dark:text-teal-400 font-bold'
+                          ? 'text-accent font-bold'
                           : ''
                       "
                       class="text-xs font-semibold text-center transition-colors duration-200 mt-1"
@@ -129,7 +129,7 @@
                   :class="[
                     theme.textSecondary,
                     theme.bgButtonHover,
-                    'hover:text-teal-600 dark:hover:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-all duration-200',
+                    'hover:text-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-200',
                     'disabled:opacity-50 disabled:cursor-not-allowed',
                   ]"
                   :disabled="isSubmitting || isSaving"
@@ -160,7 +160,7 @@
                   </Transition>
                   <Button
                     :disabled="isSubmitting || isSaving || !hasUnsavedChanges"
-                    class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
+                    class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
                     @click="handleSave"
                   >
                     <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
@@ -191,7 +191,7 @@
                         :class="theme.textPrimary"
                         class="text-lg font-semibold flex items-center gap-2"
                       >
-                        <div class="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
+                        <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
                         Live Preview
                       </h3>
                       <p :class="theme.textSecondary" class="text-xs mt-1.5">
@@ -201,7 +201,7 @@
                     <Button
                       :class="[
                         theme.textSecondary,
-                        'hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200',
+                        'hover:text-accent transition-all duration-200',
                       ]"
                       class="shrink-0 hover:bg-white/80 dark:hover:bg-gray-800/80"
                       size="sm"
@@ -231,7 +231,7 @@
                       class="absolute inset-0 flex items-center justify-center bg-gray-50/80 dark:bg-gray-950/80 backdrop-blur-sm z-10"
                     >
                       <div class="flex flex-col items-center gap-3">
-                        <Loader2 class="h-8 w-8 animate-spin text-teal-500" />
+                        <Loader2 class="h-8 w-8 animate-spin text-accent" />
                         <p :class="theme.textSecondary" class="text-sm font-medium">
                           Loading preview...
                         </p>
