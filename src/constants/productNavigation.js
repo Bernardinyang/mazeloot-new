@@ -3,26 +3,22 @@
  * Each product can have its own set of navigation items
  */
 import {
-  LayoutDashboard,
-  Upload,
-  Users,
-  Settings,
-  FolderOpen,
   Album,
-  Grid3x3,
-  FileImage,
-  Star,
-  Globe,
-  Palette,
-  Image as ImageIcon,
-  Mail,
-  Sliders,
-  FolderKanban,
   CheckSquare,
   Eye,
-  Bell,
-  AtSign,
-  Link as LinkIcon,
+  FileImage,
+  FolderKanban,
+  FolderOpen,
+  Globe,
+  Grid3x3,
+  Image as ImageIcon,
+  LayoutDashboard,
+  Palette,
+  Settings,
+  SparklesIcon,
+  Star,
+  Upload,
+  Users,
 } from 'lucide-vue-next'
 
 /**
@@ -91,14 +87,9 @@ export const MEMORA_NAVIGATION = [
     ],
   },
   {
-    title: 'Featured',
-    icon: Star,
-    items: [
-      {
-        title: 'Media',
-        name: 'featuredMedias',
-      },
-    ],
+    title: 'Featured Media',
+    icon: SparklesIcon,
+    name: 'featuredMedias',
   },
   {
     title: 'Settings',

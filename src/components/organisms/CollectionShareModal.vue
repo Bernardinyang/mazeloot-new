@@ -40,6 +40,84 @@
           </p>
         </div>
 
+        <!-- Password Section (if exists) -->
+        <div v-if="password" class="space-y-2">
+          <label :class="theme.textPrimary" class="text-sm font-semibold"> Password </label>
+          <div class="flex items-center gap-2">
+            <input
+              :value="password"
+              :type="showPassword ? 'text' : 'password'"
+              :class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+                'font-mono text-xs flex-1 h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm',
+              ]"
+              readonly
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="togglePasswordVisibility"
+            >
+              <Eye v-if="!showPassword" class="h-4 w-4 mr-1.5" />
+              <EyeOff v-else class="h-4 w-4 mr-1.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="handleCopyPassword"
+            >
+              <Copy class="h-4 w-4 mr-1.5" />
+              Copy
+            </Button>
+          </div>
+          <p :class="theme.textSecondary" class="text-xs">
+            Share this password with visitors to access this collection
+          </p>
+        </div>
+
+        <!-- Download PIN Section (if exists) -->
+        <div v-if="downloadPin" class="space-y-2">
+          <label :class="theme.textPrimary" class="text-sm font-semibold"> Download PIN </label>
+          <div class="flex items-center gap-2">
+            <input
+              :value="downloadPin"
+              :type="showPin ? 'text' : 'password'"
+              :class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+                'font-mono text-xs flex-1 h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm',
+              ]"
+              readonly
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="togglePinVisibility"
+            >
+              <Eye v-if="!showPin" class="h-4 w-4 mr-1.5" />
+              <EyeOff v-else class="h-4 w-4 mr-1.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="handleCopyPin"
+            >
+              <Copy class="h-4 w-4 mr-1.5" />
+              Copy
+            </Button>
+          </div>
+          <p :class="theme.textSecondary" class="text-xs">
+            Share this PIN with visitors to download from this collection
+          </p>
+        </div>
+
         <!-- QR Code Section -->
         <div class="space-y-2">
           <label :class="theme.textPrimary" class="text-sm font-semibold"> QR Code </label>
@@ -135,7 +213,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { Copy, Download, Mail, Loader2 } from 'lucide-vue-next'
+import { Copy, Download, Mail, Loader2, Eye, EyeOff } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   Dialog,
@@ -175,6 +253,32 @@ const shareLink = computed(() => {
   // Use public collection route (similar to selections)
   return `${window.location.origin}/p/${projectId}/collection?collectionId=${collectionId}`
 })
+
+const password = computed(() => {
+  if (!props.collection) return ''
+  return props.collection.password || 
+         props.collection.settings?.privacy?.password || 
+         props.collection.collectionPassword || 
+         ''
+})
+
+const downloadPin = computed(() => {
+  if (!props.collection) return ''
+  return props.collection.downloadPin || 
+         props.collection.settings?.download?.downloadPin || 
+         ''
+})
+
+const showPassword = ref(false)
+const showPin = ref(false)
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
+const togglePinVisibility = () => {
+  showPin.value = !showPin.value
+}
 
 const qrCodeDataUrl = ref(null)
 
@@ -246,6 +350,34 @@ const handleShareEmail = () => {
   const body = encodeURIComponent(`Check out this collection:\n\n${shareLink.value}`)
   const mailtoUrl = `mailto:?subject=${subject}&body=${body}`
   window.location.href = mailtoUrl
+}
+
+const handleCopyPassword = async () => {
+  if (!password.value) return
+  try {
+    await navigator.clipboard.writeText(password.value)
+    toast.success('Password copied', {
+      description: 'Password has been copied to clipboard.',
+    })
+  } catch (error) {
+    toast.error('Failed to copy password', {
+      description: 'Please try again.',
+    })
+  }
+}
+
+const handleCopyPin = async () => {
+  if (!downloadPin.value) return
+  try {
+    await navigator.clipboard.writeText(downloadPin.value)
+    toast.success('PIN copied', {
+      description: 'Download PIN has been copied to clipboard.',
+    })
+  } catch (error) {
+    toast.error('Failed to copy PIN', {
+      description: 'Please try again.',
+    })
+  }
 }
 
 const close = () => {

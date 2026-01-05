@@ -28,10 +28,7 @@
               <h1
                 v-if="!isEditingName"
                 key="title"
-                class="text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95"
-                :style="{ '--hover-color': selectionColor.value }"
-                @mouseenter="e => (e.target.style.color = selectionColor.value)"
-                @mouseleave="e => (e.target.style.color = '')"
+                class="text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95 hover:text-accent"
                 style="line-height: 1.5rem"
                 @click="headerStore.startEditingName()"
               >
@@ -62,13 +59,11 @@
                 >
                   <Check
                     v-if="!isSavingName"
-                    class="h-4 w-4"
-                    :style="{ color: selectionColor.value }"
+                    class="h-4 w-4 text-accent"
                   />
                   <Loader2
                     v-else
-                    class="h-4 w-4 animate-spin"
-                    :style="{ color: selectionColor.value }"
+                    class="h-4 w-4 animate-spin text-accent"
                   />
                 </button>
                 <button
@@ -179,7 +174,6 @@
       :open="showAddEmailModal"
       :selection-id="selection?.id"
       :current-emails="selection?.allowedEmails || selection?.allowed_emails || []"
-      :selection-color="selectionColor"
       @update:open="showAddEmailModal = $event"
       @save-and-publish="handleEmailsSaved"
     />
@@ -187,7 +181,7 @@
 </template>
 
 <script setup>
-import { computed, inject } from 'vue'
+import { computed } from 'vue'
 import {
   ChevronLeft,
   Check,
@@ -209,12 +203,6 @@ import AddEmailModal from '@/components/organisms/AddEmailModal.vue'
 
 const theme = useThemeClasses()
 
-// Get selection color from parent (provided by SelectionLayout)
-const selectionColor = inject(
-  'selectionColor',
-  computed(() => '#10B981')
-)
-const getSelectionHoverColor = inject('getSelectionHoverColor', () => '#059669')
 
 const props = defineProps({
   goBack: {

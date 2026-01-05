@@ -41,6 +41,7 @@
       :selection-id="selection?.id || ''"
       :selection-name="selection?.name || 'Selection'"
       :project-id="selection?.projectId || selection?.project_uuid || null"
+      :password="selection?.password || ''"
     />
 
     <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
@@ -102,22 +103,6 @@ const props = defineProps({
 
 defineEmits(['goBack'])
 
-// Get selection theme color (with fallback to teal-500)
-const selectionColor = computed(() => {
-  return selection.value?.color || '#10B981' // Default teal-500
-})
-
-// Get hover color (slightly darker)
-const getSelectionHoverColor = () => {
-  const color = selectionColor.value
-  // Convert hex to RGB, darken by 10%
-  const hex = color.replace('#', '')
-  const r = Math.max(0, parseInt(hex.substr(0, 2), 16) - 20)
-  const g = Math.max(0, parseInt(hex.substr(2, 2), 16) - 20)
-  const b = Math.max(0, parseInt(hex.substr(4, 2), 16) - 20)
-  return `rgb(${r}, ${g}, ${b})`
-}
-
 // Provide selection actions and progress data for child components
 provide('selectionActions', {
   onCopyFilenamesPerSet: props.onCopyFilenamesPerSet,
@@ -126,10 +111,6 @@ provide('selectionActions', {
   setProgress: computed(() => props.setProgress),
   selectionStatus: computed(() => selection.value?.status),
 })
-
-// Provide selection color theming for child components
-provide('selectionColor', selectionColor)
-provide('getSelectionHoverColor', getSelectionHoverColor)
 
 const route = useRoute()
 const router = useRouter()

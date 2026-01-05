@@ -60,6 +60,7 @@
       :proofing-id="proofing?.id || ''"
       :proofing-name="proofing?.name || 'Proofing'"
       :project-id="proofing?.projectId || proofing?.project_uuid || null"
+      :password="proofing?.password || ''"
     />
   </div>
 </template>

@@ -40,6 +40,45 @@
           </p>
         </div>
 
+        <!-- Password Section (if exists) -->
+        <div v-if="password" class="space-y-2">
+          <label :class="theme.textPrimary" class="text-sm font-semibold"> Password </label>
+          <div class="flex items-center gap-2">
+            <input
+              :value="password"
+              :type="showPassword ? 'text' : 'password'"
+              :class="[
+                theme.bgInput,
+                theme.borderInput,
+                theme.textInput,
+                'font-mono text-xs flex-1 h-9 w-full rounded-md border px-3 py-1 text-sm shadow-sm',
+              ]"
+              readonly
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="togglePasswordVisibility"
+            >
+              <Eye v-if="!showPassword" class="h-4 w-4 mr-1.5" />
+              <EyeOff v-else class="h-4 w-4 mr-1.5" />
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary, 'flex-shrink-0']"
+              @click="handleCopyPassword"
+            >
+              <Copy class="h-4 w-4 mr-1.5" />
+              Copy
+            </Button>
+          </div>
+          <p :class="theme.textSecondary" class="text-xs">
+            Share this password with visitors to access this selection
+          </p>
+        </div>
+
         <!-- QR Code Section -->
         <div class="space-y-2">
           <label :class="theme.textPrimary" class="text-sm font-semibold"> QR Code </label>
@@ -135,7 +174,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { Copy, Download, Mail, Loader2 } from 'lucide-vue-next'
+import { Copy, Download, Mail, Loader2, Eye, EyeOff } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   Dialog,
@@ -165,6 +204,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  password: {
+    type: String,
+    default: '',
+  },
 })
 
 const emit = defineEmits(['update:modelValue'])
@@ -193,7 +236,12 @@ const shareLink = computed(() => {
   }
 })
 
+const showPassword = ref(false)
 const qrCodeDataUrl = ref(null)
+
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
 
 // Generate QR code using a simple API
 const generateQRCode = async () => {
@@ -266,6 +314,20 @@ const handleDownloadQR = () => {
     })
   } catch (error) {
     toast.error('Failed to download QR code', {
+      description: 'Please try again.',
+    })
+  }
+}
+
+const handleCopyPassword = async () => {
+  if (!props.password) return
+  try {
+    await navigator.clipboard.writeText(props.password)
+    toast.success('Password copied', {
+      description: 'Password has been copied to clipboard.',
+    })
+  } catch (error) {
+    toast.error('Failed to copy password', {
       description: 'Please try again.',
     })
   }

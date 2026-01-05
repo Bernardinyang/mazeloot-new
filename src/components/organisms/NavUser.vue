@@ -41,13 +41,13 @@ const handleLogout = async () => {
       <DropdownMenu>
         <DropdownMenuTrigger as-child>
           <SidebarMenuButton
-            size="lg"
-            class="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             :tooltip="props.user.name"
+            class="cursor-pointer data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+            size="lg"
           >
             <AvatarDisplay
-              :name="props.user.name"
               :avatar="props.user.avatar"
+              :name="props.user.name"
               :size="state === 'collapsed' && !isMobile ? 'lg' : 'md'"
             />
             <div
@@ -61,14 +61,14 @@ const handleLogout = async () => {
           </SidebarMenuButton>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
           :side="isMobile ? 'bottom' : 'right'"
-          align="end"
           :side-offset="4"
+          align="end"
+          class="w-[--reka-dropdown-menu-trigger-width] min-w-56 rounded-lg"
         >
           <DropdownMenuLabel class="p-0 font-normal">
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-              <AvatarDisplay :name="props.user.name" :avatar="props.user.avatar" />
+              <AvatarDisplay :avatar="props.user.avatar" :name="props.user.name" />
               <div class="grid flex-1 text-left text-sm leading-tight">
                 <span class="truncate font-semibold">{{ props.user.name }}</span>
                 <span class="truncate text-xs">{{ props.user.email }}</span>
@@ -99,7 +99,7 @@ const handleLogout = async () => {
           </DropdownMenuGroup>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            class="text-red-500 dark:text-red-400 hover:bg-red-500/20 dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-500/20 dark:focus:bg-red-500/20"
+            class="text-red-500 dark:text-red-400 hover:bg-red-600 hover:text-white dark:hover:bg-red-500/20 cursor-pointer focus:bg-red-500/20 dark:focus:bg-red-500/20"
             @click="handleLogout"
           >
             <LogOut />

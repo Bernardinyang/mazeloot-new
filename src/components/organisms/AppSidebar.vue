@@ -3,16 +3,28 @@
     <SidebarHeader>
       <div
         :class="[
-          'px-3 py-4 flex items-center justify-center border-b',
+          'px-3 py-4 flex items-center justify-center dark:border-b rounded-lg ',
           'group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3',
           theme.bgCard,
           theme.borderPrimary,
           'bg-sidebar-background',
         ]"
       >
-        <MazelootLogo :show-text="false" class="group-data-[collapsible=icon]:scale-95" size="sm" />
+        <MazelootLogo
+          :show-text="false"
+          :use-favicon="state === 'collapsed'"
+          class="group-data-[collapsible=icon]:scale-95"
+          size="md"
+        />
       </div>
-      <AppSwitcher :is-admin="isAdmin" :teams="teams" />
+      <div
+        :class="{
+          'py-2': state === 'collapsed',
+        }"
+        class="bg-primary-600 dark:bg-primary-500 rounded-lg"
+      >
+        <AppSwitcher :is-admin="isAdmin" :teams="teams" />
+      </div>
     </SidebarHeader>
     <SidebarContent>
       <NavMain :items="navigationItems" :label="navigationLabel" />
@@ -26,7 +38,13 @@
 
 <script setup>
 import { computed, h } from 'vue'
-import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/shadcn/sidebar'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  useSidebar,
+} from '@/components/shadcn/sidebar'
 import NavMain from './NavMain.vue'
 import NavUser from './NavUser.vue'
 import AppSwitcher from './AppSwitcher.vue'
@@ -38,6 +56,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 
 const theme = useThemeClasses()
+const { state } = useSidebar()
 
 const { navigationItems, navigationLabel } = useProductNavigation()
 

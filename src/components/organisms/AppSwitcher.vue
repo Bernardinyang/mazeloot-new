@@ -10,12 +10,7 @@ import {
   DropdownMenuShortcut,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
-import {
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-  useSidebar,
-} from '@/components/shadcn/sidebar'
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar, } from '@/components/shadcn/sidebar'
 import { useNavigation } from '@/composables/useNavigation'
 import { useUserStore } from '@/stores/user'
 
@@ -69,14 +64,14 @@ watch(activeTeam, newTeam => {
               v-if="state !== 'collapsed' || isMobile"
               class="grid flex-1 text-left text-sm leading-tight gap-0.5"
             >
-              <span class="truncate font-semibold">
+              <span class="truncate font-semibold text-white">
                 {{ activeTeam.name }}
               </span>
-              <span class="truncate text-xs text-muted-foreground">{{ activeTeam.plan }}</span>
+              <span class="truncate text-xs text-gray-300">{{ activeTeam.plan }}</span>
             </div>
             <ChevronsUpDown
               v-if="state !== 'collapsed' || isMobile"
-              class="ml-auto size-4 text-muted-foreground"
+              class="ml-auto size-4 text-gray-300"
             />
           </SidebarMenuButton>
         </DropdownMenuTrigger>
@@ -93,19 +88,29 @@ watch(activeTeam, newTeam => {
             v-for="(team, index) in teams"
             :key="team.name"
             :class="{
-              'bg-sidebar-accent text-sidebar-accent-foreground': activeTeam.name === team.name,
+              'bg-sidebar-accent text-gray-300': activeTeam.name === team.name,
             }"
-            class="gap-2.5 p-2.5 mx-1 rounded-md"
+            class="gap-2.5 p-2.5 mx-1 rounded-md group"
             @click="activeTeam = team"
           >
             <div
-              class="flex size-7 items-center justify-center rounded-md border border-sidebar-border bg-sidebar-background"
+              :class="{
+                'border-gray-400': activeTeam.name === team.name,
+              }"
+              class="flex size-10 items-center justify-center rounded-md border border-sidebar-border group-hover:border-gray-400 bg-sidebar-background"
             >
-              <component :is="team.logo" class="size-4 shrink-0" />
+              <component :is="team.logo" class="size-10 shrink-0" />
             </div>
             <div class="flex-1 min-w-0">
               <div class="font-medium truncate">{{ team.name }}</div>
-              <div class="text-xs text-muted-foreground truncate">{{ team.plan }}</div>
+              <div
+                :class="{
+                  'text-gray-100': activeTeam.name === team.name,
+                }"
+                class="text-xs text-gray-500 truncate group-hover:text-gray-100"
+              >
+                {{ team.plan }}
+              </div>
             </div>
             <DropdownMenuShortcut class="ml-auto">⌘{{ index + 1 }}</DropdownMenuShortcut>
           </DropdownMenuItem>

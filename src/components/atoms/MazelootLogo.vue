@@ -24,6 +24,9 @@ import { computed } from 'vue'
 import { useThemeStore } from '@/stores/theme'
 import mazelootLightLogo from '@/assets/images/logos/mazelootLightLogo.svg'
 import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
+import mazeloofFaviconDarkLogo from '@/assets/images/logos/mazeloofFaviconDarkLogo.svg'
+import mazeloofFaviconLightLogo from '@/assets/images/logos/mazeloofFaviconLightLogo.svg'
+import mazeloofFaviconPrimaryLogo from '@/assets/images/logos/mazeloofFaviconPrimaryLogo.svg'
 
 const themeStore = useThemeStore()
 
@@ -49,11 +52,20 @@ const props = defineProps({
     type: String,
     default: undefined,
   },
+  useFavicon: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const currentLogo = computed(() => {
   if (props.logoSrc) {
     return props.logoSrc
+  }
+  if (props.useFavicon) {
+    return themeStore.effectiveTheme === 'dark'
+      ? mazeloofFaviconDarkLogo
+      : mazeloofFaviconPrimaryLogo
   }
   return themeStore.effectiveTheme === 'dark'
     ? mazelootLightLogo

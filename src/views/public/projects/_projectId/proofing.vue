@@ -122,7 +122,19 @@
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
+          <div v-if="isLoadingBranding" class="h-14 w-32 flex items-center justify-center">
+            <Loader2
+              :class="[
+                'h-5 w-5 animate-spin',
+                proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                  ? 'text-white/70'
+                  : 'text-gray-600 dark:text-gray-400',
+              ]"
+            />
+          </div>
           <MazelootLogo
+            v-else-if="brandingLogoUrl || showMazelootBranding"
+            :logoSrc="brandingLogoUrl || mazelootPrimaryLogo"
             :color-class="
               proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                 ? 'text-white'
@@ -812,6 +824,16 @@
           <p class="text-gray-500 dark:text-gray-400">No media available in this set</p>
         </div>
       </div>
+
+      <!-- Footer -->
+      <footer class="border-t border-gray-800 bg-gray-900 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 md:px-8 text-center">
+          <p class="text-sm font-medium text-gray-300 mb-1">
+            © {{ new Date().getFullYear() }} {{ brandingName || 'Mazeloot' }}
+          </p>
+          <p v-if="showMazelootBranding" class="text-xs text-gray-400">Powered by Mazeloot</p>
+        </div>
+      </footer>
     </div>
 
     <!-- Error State -->
@@ -966,8 +988,10 @@ import { useProofingStore } from '@/stores/proofing'
 import { useProofingApi } from '@/api/proofing'
 import { useMediaApi } from '@/api/media'
 import { useUserStore } from '@/stores/user'
+import { useSettingsApi } from '@/api/settings'
 import { toast } from '@/utils/toast'
 import { clearProofingGuestData } from '@/utils/guestLogout'
+import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
 const theme = useThemeClasses()
 const themeStore = useThemeStore()
@@ -977,6 +1001,7 @@ const proofingStore = useProofingStore()
 const proofingApi = useProofingApi()
 const mediaApi = useMediaApi()
 const userStore = useUserStore()
+const { fetchPublicSettings } = useSettingsApi()
 
 // State
 const proofing = ref(null)
@@ -994,6 +1019,10 @@ const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
 const openWithComments = ref(false)
 const useCommentLightbox = ref(false) // true = MediaCommentLightbox, false = MediaLightbox
+const brandingLogoUrl = ref(null)
+const brandingName = ref(null)
+const showMazelootBranding = ref(true)
+const isLoadingBranding = ref(false)
 
 // Approval state
 const showApproveConfirm = ref(false)
@@ -1153,6 +1182,66 @@ const getTotalApprovedCount = () => {
 // Get total media count
 const getTotalMediaCount = () => {
   return filteredMediaItems.value.length
+}
+
+// Fetch branding
+const fetchBranding = async (userId) => {
+  if (!userId || (brandingLogoUrl.value && brandingName.value)) {
+    isLoadingBranding.value = false
+    return // Skip if already fetched
+  }
+  
+  isLoadingBranding.value = true
+  try {
+    const settingsResponse = await fetchPublicSettings({ userId })
+    const settings = settingsResponse.data || settingsResponse
+    brandingLogoUrl.value = settings.branding?.logoUrl || null
+    brandingName.value = settings.branding?.name || null
+    showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
+  } catch (error) {
+    console.warn('Failed to fetch public branding settings:', error)
+  } finally {
+    isLoadingBranding.value = false
+  }
+}
+
+// Store password verification with timestamp (30 minutes)
+const storePasswordVerification = (proofingId) => {
+  const expiresAt = Date.now() + (30 * 60 * 1000) // 30 minutes
+  localStorage.setItem(`password_verified_proofing_${proofingId}`, JSON.stringify({
+    verified: true,
+    expiresAt,
+    proofingId
+  }))
+}
+
+// Check if password verification is still valid
+const getStoredPasswordVerification = (proofingId) => {
+  if (!proofingId) return null
+  try {
+    const stored = localStorage.getItem(`password_verified_proofing_${proofingId}`)
+    if (!stored) return null
+    
+    const data = JSON.parse(stored)
+    const expiresAt = data.expiresAt
+    
+    // Check if expired
+    if (Date.now() > expiresAt) {
+      localStorage.removeItem(`password_verified_proofing_${proofingId}`)
+      return null
+    }
+    
+    // Verify it's for the correct proofing
+    if (data.proofingId !== proofingId) {
+      localStorage.removeItem(`password_verified_proofing_${proofingId}`)
+      return null
+    }
+    
+    return data
+  } catch (error) {
+    localStorage.removeItem(`password_verified_proofing_${proofingId}`)
+    return null
+  }
 }
 
 // Check if all media items are approved
@@ -1535,6 +1624,10 @@ const loadProofing = async () => {
           }
           // Skip email modal for preview mode
           showEmailModal.value = false
+          // Fetch branding
+          if (userUuid) {
+            await fetchBranding(userUuid)
+          }
           // Load media sets and items
           if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
             mediaSets.value = proofingData.mediaSets
@@ -1571,6 +1664,11 @@ const loadProofing = async () => {
         }
         // Skip email modal for preview mode
         showEmailModal.value = false
+        // Fetch branding
+        const userUuid = proofingData.userUuid || proofingData.user_uuid
+        if (userUuid) {
+          await fetchBranding(userUuid)
+        }
         // Load media sets and items
         if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
           mediaSets.value = proofingData.mediaSets
@@ -1598,6 +1696,11 @@ const loadProofing = async () => {
         // Skip password check for owner
         if (proofingData.hasPassword) {
           isPasswordVerified.value = true
+        }
+        // Fetch branding
+        const userUuid = proofingData.userUuid || proofingData.user_uuid
+        if (userUuid) {
+          await fetchBranding(userUuid)
         }
         // Load media sets and items
         if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
@@ -1631,6 +1734,10 @@ const loadProofing = async () => {
             }
             // Skip email modal for preview mode
             showEmailModal.value = false
+            // Fetch branding
+            if (userUuid) {
+              await fetchBranding(userUuid)
+            }
             // Load media sets and items
             if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
               mediaSets.value = proofingData.mediaSets
@@ -1723,6 +1830,12 @@ const loadProofing = async () => {
 
     proofing.value = proofingData
 
+    // Fetch branding
+    const userUuid = proofingData.userUuid || proofingData.user_uuid
+    if (userUuid) {
+      await fetchBranding(userUuid)
+    }
+
     // Validate guest email against allowed emails list (skip for authenticated owners and preview mode)
     if (
       !isAuthenticatedOwner.value &&
@@ -1762,8 +1875,14 @@ const loadProofing = async () => {
       if (isOwnerCheck || (isPreview && isOwnerCheck)) {
         isPasswordVerified.value = true
       } else {
-        // Password will be checked via modal - don't load media yet
-        return
+        // Check if password was verified within last 30 minutes
+        const storedVerification = getStoredPasswordVerification(proofingId)
+        if (storedVerification) {
+          isPasswordVerified.value = true
+        } else {
+          // Password will be checked via modal - don't load media yet
+          return
+        }
       }
     }
 
@@ -2009,9 +2128,10 @@ const handleVerifyPassword = async () => {
     const proofingId = route.query.proofingId
     await proofingApi.verifyProofingPassword(proofingId, passwordInput.value)
 
-    // Password verified successfully
+    // Password verified successfully - store for 30 minutes
     verifiedPassword.value = passwordInput.value
     isPasswordVerified.value = true
+    storePasswordVerification(proofingId)
     passwordInput.value = ''
     await loadProofing()
   } catch (error) {
@@ -2442,16 +2562,22 @@ const handleLogout = () => {
 }
 
 onMounted(() => {
-  // Load proofing (will show email modal if needed)
-  loadProofing()
-
-  // Check if we have a stored email for this proofing
+  // Check if we have a stored password verification for this proofing
   const proofingId = route.query.proofingId
   if (proofingId) {
+    const storedVerification = getStoredPasswordVerification(proofingId)
+    if (storedVerification) {
+      isPasswordVerified.value = true
+    }
+    
+    // Check if we have a stored email for this proofing
     const storedEmail = localStorage.getItem(`guest_email_proofing_${proofingId}`)
     if (storedEmail) {
       userEmail.value = storedEmail
     }
   }
+
+  // Load proofing (will show email modal if needed)
+  loadProofing()
 })
 </script>

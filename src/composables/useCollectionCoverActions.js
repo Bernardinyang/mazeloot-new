@@ -10,21 +10,19 @@ export function useCollectionCoverActions({
     if (!collection.value) return
 
     try {
-      // Get media URL - try multiple possible locations
-      const mediaUrl = item.url || item.file?.url || item.imageUrl
-      if (!mediaUrl) {
+      // Get original/best quality URL - prioritize original file URL
+      const originalUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || item.imageUrl
+      if (!originalUrl) {
         toast.error('Invalid media item', {
           description: 'The selected media item does not have a valid URL.',
         })
         return
       }
 
-      // Get thumbnail URL - prefer thumbnail, fallback to media URL
-      const thumbnailUrl = item.thumbnail || item.thumbnailUrl || item.file?.thumbnailUrl || mediaUrl
-
+      // Use original URL for both thumbnail and image (best quality)
       const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-        thumbnail: thumbnailUrl,
-        image: mediaUrl,
+        thumbnail: originalUrl,
+        image: originalUrl,
       })
       
       // Update the collection ref with the updated data
@@ -34,8 +32,8 @@ export function useCollectionCoverActions({
         // Fallback optimistic update
         collection.value = {
           ...collection.value,
-          thumbnail: thumbnailUrl,
-          image: mediaUrl,
+          thumbnail: originalUrl,
+          image: originalUrl,
         }
       }
       toast.success('Cover updated', {

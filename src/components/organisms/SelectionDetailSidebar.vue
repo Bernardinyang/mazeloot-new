@@ -241,18 +241,6 @@
       <div v-if="hasAdditionalFields" class="pt-2 pb-6">
         <DetailSection title="Additional Properties" :icon="FileText">
           <div class="space-y-3.5">
-            <!-- Color -->
-            <DetailField v-if="selection.color" label="Color">
-              <div class="flex items-center gap-2">
-                <div
-                  :style="{ backgroundColor: selection.color }"
-                  class="h-5 w-5 rounded border"
-                  :class="theme.borderSecondary"
-                ></div>
-                <span :class="['text-sm font-mono', theme.textPrimary]">{{ selection.color }}</span>
-              </div>
-            </DetailField>
-
             <!-- Cover Photo -->
             <DetailField v-if="selection.coverPhotoUrl" label="Cover Photo">
               <div class="flex items-center gap-2">
@@ -447,7 +435,6 @@ const hasSets = computed(() => {
 const hasAdditionalFields = computed(() => {
   if (!selection.value) return false
 
-  const hasColor = selection.value.color !== null && selection.value.color !== undefined
   const hasCoverPhoto = selection.value.coverPhotoUrl || selection.value.cover_photo_url
   const hasCompletedBy = selection.value.completedByEmail || selection.value.completed_by_email
   const hasStarred =
@@ -469,7 +456,7 @@ const hasAdditionalFields = computed(() => {
       selection.value[key] !== undefined
   )
 
-  return hasColor || hasCoverPhoto || hasCompletedBy || hasStarred || hasOtherFields
+  return hasCoverPhoto || hasCompletedBy || hasStarred || hasOtherFields
 })
 
 const handleImageError = event => {

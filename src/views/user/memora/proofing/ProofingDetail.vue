@@ -1960,7 +1960,7 @@ const handleSetAsCover = async item => {
     return
   }
 
-  const coverUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
+  const coverUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {
       description: 'Media does not have a valid URL.',

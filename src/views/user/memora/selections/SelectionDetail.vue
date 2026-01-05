@@ -34,8 +34,7 @@
       <!-- Main Content Area -->
       <main
         class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
-        :style="isDragging ? { '--tw-ring-color': `${selectionColor.value}33` } : {}"
-        :class="isDragging ? 'ring-4' : ''"
+        :class="isDragging ? 'ring-4 ring-teal-500/20' : ''"
         @dragover.prevent="handleDragOver"
         @dragleave="handleDragLeave"
         @drop="handleDrop"
@@ -43,22 +42,13 @@
         <!-- Drag overlay when dragging files -->
         <div
           v-if="isDragging && selectedSetId"
-          class="absolute inset-0 z-50 border-4 border-dashed rounded-lg flex items-center justify-center pointer-events-none"
-          :style="{
-            backgroundColor: `${selectionColor.value}1A`,
-            borderColor: selectionColor.value,
-          }"
+          class="absolute inset-0 z-50 border-4 border-dashed border-accent rounded-lg flex items-center justify-center pointer-events-none bg-accent/10"
         >
           <div class="text-center space-y-4">
-            <div
-              class="p-6 rounded-full"
-              :style="{
-                backgroundColor: `${selectionColor.value}33`,
-              }"
-            >
-              <ImagePlus class="h-16 w-16 mx-auto" :style="{ color: selectionColor.value }" />
+            <div class="p-6 rounded-full bg-accent/20">
+              <ImagePlus class="h-16 w-16 mx-auto text-accent" />
             </div>
-            <p class="text-2xl font-bold" :style="{ color: selectionColor.value }">
+            <p class="text-2xl font-bold text-accent">
               Drop files here to upload
             </p>
           </div>
@@ -462,7 +452,7 @@
         content-class="sm:max-w-md"
       >
         <div class="flex flex-col items-center justify-center py-8">
-          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <Loader2 class="h-8 w-8 animate-spin text-accent mb-4" />
           <p :class="theme.textPrimary" class="text-sm font-medium">
             Removing watermark from image...
           </p>
@@ -517,7 +507,6 @@ import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions
 import { useMediaActions } from '@/composables/useMediaActions'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
-import { darkenColor } from '@/utils/colors'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useWatermarkStore } from '@/stores/watermark'
@@ -528,19 +517,6 @@ const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 const watermarkStore = useWatermarkStore()
-
-// Get selection color from parent (provided by SelectionLayout)
-const selectionColor = inject(
-  'selectionColor',
-  computed(() => '#10B981')
-)
-const getSelectionHoverColor = inject('getSelectionHoverColor', () => '#059669')
-
-// Get hover color (slightly darker) for use in this component
-const selectionHoverColor = computed(() => {
-  return darkenColor(selectionColor.value, 10)
-})
-
 
 // Use store for media sets
 const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
@@ -1726,7 +1702,7 @@ const handleSetAsCover = async item => {
   }
 
   // For images, open focal point modal
-  const coverUrl = item.thumbnailUrl || item.file?.variants?.thumb || item.file?.url || null
+  const coverUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {
       description: 'Media does not have a valid URL.',

@@ -380,7 +380,7 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:modelValue', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow', 'toggle-private'])
+const emit = defineEmits(['update:modelValue', 'update:currentIndex', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow', 'toggle-private'])
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -951,6 +951,13 @@ const handleKeyDown = e => {
     }
   }
 }
+
+watch(
+  currentIndex,
+  (newIndex) => {
+    emit('update:currentIndex', newIndex)
+  }
+)
 
 watch(
   currentItem,

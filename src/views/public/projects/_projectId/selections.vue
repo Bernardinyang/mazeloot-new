@@ -122,7 +122,19 @@
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
+          <div v-if="isLoadingBranding" class="h-14 w-32 flex items-center justify-center">
+            <Loader2
+              :class="[
+                'h-5 w-5 animate-spin',
+                selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
+                  ? 'text-white/70'
+                  : 'text-gray-600 dark:text-gray-400',
+              ]"
+            />
+          </div>
           <MazelootLogo
+            v-else-if="brandingLogoUrl || showMazelootBranding"
+            :logoSrc="brandingLogoUrl || mazelootPrimaryLogo"
             :color-class="
               selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                 ? 'text-white'
@@ -229,7 +241,6 @@
             <!-- Action Button (Bottom Right) -->
             <div class="flex-shrink-0">
               <Button
-                v-if="!isAuthenticatedOwner && !isPreviewMode"
                 :class="[
                   selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20'
@@ -426,17 +437,19 @@
               :key="item.id"
               :class="[
                 'relative rounded-lg overflow-hidden transition-all group',
-                isAuthenticatedOwner || isPreviewMode
-                  ? 'opacity-75 cursor-not-allowed'
-                  : item.isSelected
-                    ? 'opacity-100'
-                    : selection.status === 'completed' && item.isSelected === true
-                      ? 'opacity-100' // Selected on completion, full opacity
-                      : selection.status === 'completed'
-                        ? 'opacity-50 grayscale' // Unselected in completed, dimmed & grayscale
-                        : isAtLimit(currentMediaItems) && !item.isSelected
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'opacity-60 hover:opacity-100 hover:shadow-lg cursor-pointer',
+                isPreviewMode
+                  ? 'opacity-100 hover:opacity-100 cursor-pointer'
+                  : isAuthenticatedOwner
+                    ? 'opacity-75 cursor-not-allowed'
+                    : item.isSelected
+                      ? 'opacity-100'
+                      : selection.status === 'completed' && item.isSelected === true
+                        ? 'opacity-100' // Selected on completion, full opacity
+                        : selection.status === 'completed'
+                          ? 'opacity-50 grayscale' // Unselected in completed, dimmed & grayscale
+                          : isAtLimit(currentMediaItems) && !item.isSelected
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'opacity-60 hover:opacity-100 hover:shadow-lg cursor-pointer',
                 selection.status === 'completed' && item.isSelected === true
                   ? 'ring-1 ring-green-500/50' // Subtle green ring for items selected on completion
                   : '',
@@ -455,13 +468,13 @@
               <!-- Media container with overflow-hidden to prevent scale overflow -->
               <div
                 :class="[
-                  'w-full aspect-square overflow-hidden rounded-lg',
-                  !isAuthenticatedOwner &&
-                  !isPreviewMode &&
-                  selection.status !== 'completed' &&
-                  !item.isSelected &&
-                  !isAtLimit(currentMediaItems)
-                    ? 'transition-transform duration-300 group-hover:scale-105'
+                  'w-full aspect-square overflow-hidden rounded-lg transition-transform duration-300',
+                  (isPreviewMode ||
+                    (!isAuthenticatedOwner &&
+                      selection.status !== 'completed' &&
+                      !item.isSelected &&
+                      !isAtLimit(currentMediaItems)))
+                    ? 'group-hover:scale-105'
                     : '',
                 ]"
               >
@@ -477,14 +490,12 @@
                   "
                   :class="[
                     'w-full h-full object-cover',
-                    !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
+                    (!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode
                       ? 'cursor-pointer'
                       : 'cursor-default',
                   ]"
                   @click="
-                    !isAuthenticatedOwner &&
-                    !isPreviewMode &&
-                    selection.status !== 'completed' &&
+                    ((!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode) &&
                     handleViewMedia(item)
                   "
                 />
@@ -494,14 +505,12 @@
                   :src="(item.file && item.file.url) || item.url"
                   :class="[
                     'w-full h-full object-cover',
-                    !isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed'
+                    (!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode
                       ? 'cursor-pointer'
                       : 'cursor-default',
                   ]"
                   @click="
-                    !isAuthenticatedOwner &&
-                    !isPreviewMode &&
-                    selection.status !== 'completed' &&
+                    ((!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode) &&
                     handleViewMedia(item)
                   "
                 />
@@ -583,6 +592,16 @@
           <p class="text-gray-500 dark:text-gray-400">No media available in this set</p>
         </div>
       </div>
+
+      <!-- Footer -->
+      <footer class="border-t border-gray-800 bg-gray-900 text-white py-8 mt-12">
+        <div class="container mx-auto px-4 md:px-8 text-center">
+          <p class="text-sm font-medium text-gray-300 mb-1">
+            © {{ new Date().getFullYear() }} {{ brandingName || 'Mazeloot' }}
+          </p>
+          <p v-if="showMazelootBranding" class="text-xs text-gray-400">Powered by Mazeloot</p>
+        </div>
+      </footer>
     </div>
 
     <!-- Error State -->
@@ -723,6 +742,7 @@
       :initial-index="previewMediaIndex"
       :items="currentMediaItems"
       @close="showMediaLightbox = false"
+      @update:current-index="previewMediaIndex = $event"
     />
   </div>
 </template>
@@ -752,8 +772,10 @@ import { useSelectionStore } from '@/stores/selection'
 import { useSelectionsApi } from '@/api/selections'
 import { useMediaApi } from '@/api/media'
 import { useUserStore } from '@/stores/user'
+import { useSettingsApi } from '@/api/settings'
 import { toast } from '@/utils/toast'
 import { clearSelectionGuestData } from '@/utils/guestLogout'
+import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
 const theme = useThemeClasses()
 const themeStore = useThemeStore()
@@ -763,6 +785,7 @@ const selectionStore = useSelectionStore()
 const selectionsApi = useSelectionsApi()
 const mediaApi = useMediaApi()
 const userStore = useUserStore()
+const { fetchPublicSettings } = useSettingsApi()
 
 // State
 const selection = ref(null)
@@ -780,6 +803,10 @@ const togglingMediaIds = ref(new Set())
 const guestToken = ref(null)
 const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
+const brandingLogoUrl = ref(null)
+const brandingName = ref(null)
+const showMazelootBranding = ref(true)
+const isLoadingBranding = ref(true)
 
 const previewCurrentItem = computed(() => {
   if (previewMediaIndex.value >= 0 && previewMediaIndex.value < currentMediaItems.value.length) {
@@ -831,6 +858,65 @@ const {
 // Helper to get selected count for a set
 const getSetSelectedCount = setId => {
   return mediaItems.value.filter(item => item.setId === setId && item.isSelected).length
+}
+
+// Fetch branding
+const fetchBranding = async (userId) => {
+  if (!userId || (brandingLogoUrl.value && brandingName.value)) {
+    isLoadingBranding.value = false
+    return // Skip if already fetched
+  }
+  
+  isLoadingBranding.value = true
+  try {
+    const settingsResponse = await fetchPublicSettings({ userId })
+    const settings = settingsResponse.data || settingsResponse
+    brandingLogoUrl.value = settings.branding?.logoUrl || null
+    brandingName.value = settings.branding?.name || null
+  } catch (error) {
+    console.warn('Failed to fetch public branding settings:', error)
+  } finally {
+    isLoadingBranding.value = false
+  }
+}
+
+// Store password verification with timestamp (30 minutes)
+const storePasswordVerification = (selectionId) => {
+  const expiresAt = Date.now() + (30 * 60 * 1000) // 30 minutes
+  localStorage.setItem(`password_verified_selection_${selectionId}`, JSON.stringify({
+    verified: true,
+    expiresAt,
+    selectionId
+  }))
+}
+
+// Check if password verification is still valid
+const getStoredPasswordVerification = (selectionId) => {
+  if (!selectionId) return null
+  try {
+    const stored = localStorage.getItem(`password_verified_selection_${selectionId}`)
+    if (!stored) return null
+    
+    const data = JSON.parse(stored)
+    const expiresAt = data.expiresAt
+    
+    // Check if expired
+    if (Date.now() > expiresAt) {
+      localStorage.removeItem(`password_verified_selection_${selectionId}`)
+      return null
+    }
+    
+    // Verify it's for the correct selection
+    if (data.selectionId !== selectionId) {
+      localStorage.removeItem(`password_verified_selection_${selectionId}`)
+      return null
+    }
+    
+    return data
+  } catch (error) {
+    localStorage.removeItem(`password_verified_selection_${selectionId}`)
+    return null
+  }
 }
 
 // Helper to get selected items for a set
@@ -1066,6 +1152,10 @@ const loadSelection = async () => {
           }
           // Skip email modal for preview mode
           showEmailModal.value = false
+          // Fetch branding
+          if (userUuid) {
+            await fetchBranding(userUuid)
+          }
           // Load media sets and items
           if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
             mediaSets.value = selectionData.mediaSets
@@ -1104,6 +1194,11 @@ const loadSelection = async () => {
         }
         // Skip email modal for preview mode
         showEmailModal.value = false
+        // Fetch branding
+        const userUuid = selectionData.userUuid || selectionData.user_uuid
+        if (userUuid) {
+          await fetchBranding(userUuid)
+        }
         // Load media sets and items
         if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
           mediaSets.value = selectionData.mediaSets
@@ -1164,6 +1259,10 @@ const loadSelection = async () => {
             }
             // Skip email modal for preview mode
             showEmailModal.value = false
+            // Fetch branding
+            if (userUuid) {
+              await fetchBranding(userUuid)
+            }
             // Load media sets and items
             if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
               mediaSets.value = selectionData.mediaSets
@@ -1258,6 +1357,12 @@ const loadSelection = async () => {
 
     selection.value = selectionData
 
+    // Fetch branding
+    const userUuid = selectionData.userUuid || selectionData.user_uuid
+    if (userUuid) {
+      await fetchBranding(userUuid)
+    }
+
     // Validate guest email against allowed emails list (skip for authenticated owners and preview mode)
     if (
       !isAuthenticatedOwner.value &&
@@ -1297,8 +1402,14 @@ const loadSelection = async () => {
       if (isOwnerCheck || (isPreview && isOwnerCheck)) {
         isPasswordVerified.value = true
       } else {
-        // Password will be checked via modal - don't load media yet
-        return
+        // Check if password was verified within last 30 minutes
+        const storedVerification = getStoredPasswordVerification(selectionId)
+        if (storedVerification) {
+          isPasswordVerified.value = true
+        } else {
+          // Password will be checked via modal - don't load media yet
+          return
+        }
       }
     }
 
@@ -1368,153 +1479,120 @@ const loadSelection = async () => {
   }
 }
 
-// Load media items for all sets
+// Load media for a specific set
+const loadMediaForSet = async (setId) => {
+  if (!selection.value?.id || !setId) return
+  if (!isPasswordVerified.value && selection.value?.hasPassword && !isPreviewMode.value) return
+
+  try {
+    const isDraft = selection.value?.status === 'draft'
+    let setMedia
+
+    // Preview mode AND authenticated owner - use authenticated endpoint
+    if (isPreviewMode.value) {
+      setMedia = await selectionsApi.fetchSetMedia(selection.value.id, setId)
+    } else {
+      // Public mode - use public/guest endpoints
+      // Ensure we have a guest token for active/completed selections
+      if (!isDraft && !guestToken.value && selection.value?.id) {
+        const token = getStoredGuestToken(selection.value.id)
+        if (token) {
+          guestToken.value = token
+        } else {
+          console.warn('No guest token available for loading media')
+          return
+        }
+      }
+
+      if (isDraft && !guestToken.value) {
+        // For draft selections, try authenticated endpoint first (for owner preview)
+        try {
+          setMedia = await selectionsApi.fetchSetMedia(selection.value.id, setId)
+        } catch (error) {
+          const token = getStoredGuestToken(selection.value.id)
+          if (token) {
+            guestToken.value = token
+            setMedia = await selectionsApi.fetchSetMediaGuest(selection.value.id, setId, token)
+          } else {
+            throw error
+          }
+        }
+      } else if (guestToken.value) {
+        // Use guest endpoint for active/completed selections
+        setMedia = await selectionsApi.fetchSetMediaGuest(
+          selection.value.id,
+          setId,
+          guestToken.value
+        )
+      } else {
+        // Fallback: try regular endpoint (requires authentication)
+        setMedia = await selectionsApi.fetchSetMedia(selection.value.id, setId)
+      }
+    }
+
+    // Handle response format
+    let mediaArray = setMedia
+    if (setMedia && typeof setMedia === 'object' && !Array.isArray(setMedia)) {
+      if (setMedia.data && Array.isArray(setMedia.data)) {
+        mediaArray = setMedia.data
+      } else {
+        console.warn(`Unexpected media response format for set ${setId}:`, setMedia)
+        return
+      }
+    }
+
+    if (!Array.isArray(mediaArray)) {
+      console.warn(`Media for set ${setId} is not an array:`, mediaArray)
+      return
+    }
+
+    // Remove existing media for this set, then add new media
+    mediaItems.value = mediaItems.value.filter(item => item.setId !== setId)
+    
+    const mediaWithSetId = mediaArray.map(item => ({
+      ...item,
+      setId: item.setId || setId,
+      type: item.type || (item.file && item.file.type) || 'image',
+      url: item.url || (item.file && item.file.url) || item.thumbnailUrl || item.largeImageUrl,
+    }))
+    
+    mediaItems.value.push(...mediaWithSetId)
+  } catch (error) {
+    console.error(`Failed to load media for set ${setId}:`, error)
+    const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load media'
+    
+    if (
+      errorMessage.toLowerCase().includes('not active') ||
+      errorMessage.toLowerCase().includes('selection is not active') ||
+      error?.code === 'SELECTION_NOT_ACTIVE' ||
+      error?.status === 403
+    ) {
+      toast.error('Selection not published', {
+        description: 'This selection is not yet published. Please contact the creator to publish it before accessing.',
+      })
+    } else {
+      toast.error(errorMessage)
+    }
+  }
+}
+
+// Load media items for selected set
 const loadMediaItems = async () => {
   if (!selection.value?.id) return
   if (!isPasswordVerified.value && selection.value?.hasPassword && !isPreviewMode.value) return
   if (mediaSets.value.length === 0) return
 
-  try {
-    // For draft selections, authenticated users can use regular endpoint
-    // For active/completed, use guest token if available
-    const isDraft = selection.value?.status === 'draft'
-
-    // Ensure we have a guest token for active/completed selections
-    if (!isDraft && !guestToken.value && selection.value?.id) {
-      const token = getStoredGuestToken(selection.value.id)
-      if (token) {
-        guestToken.value = token
-      } else {
-        // No token available - cannot load media without token for active/completed selections
-        console.warn('No guest token available for loading media')
-        return
-      }
+  // Auto-select first set if none selected (use sorted sets to respect order)
+  if (!selectedSetId.value) {
+    const sortedSets = [...mediaSets.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+    if (sortedSets.length > 0) {
+      selectedSetId.value = sortedSets[0].id
     }
+  }
 
-    // Load media for all sets
-    const allMedia = []
-    const isPreview = route.query.preview === 'true'
-
-    for (const set of mediaSets.value) {
-      try {
-        let setMedia
-
-        // Preview mode - use authenticated endpoint
-        if (isPreview && isPreviewMode.value) {
-          setMedia = await selectionsApi.fetchSetMedia(selection.value.id, set.id)
-        } else if (isDraft && !guestToken.value) {
-          // For draft selections, try authenticated endpoint first (for owner preview)
-          try {
-            setMedia = await selectionsApi.fetchSetMedia(selection.value.id, set.id)
-          } catch (error) {
-            // If authenticated endpoint fails, try getting stored guest token
-            console.warn(`Failed to fetch media for draft set ${set.id} via auth:`, error)
-            const token = getStoredGuestToken(selection.value.id)
-            if (token) {
-              guestToken.value = token
-              setMedia = await selectionsApi.fetchSetMediaGuest(selection.value.id, set.id, token)
-            } else {
-              throw error
-            }
-          }
-        } else if (guestToken.value) {
-          // Use guest endpoint for active/completed selections or when token is available
-          setMedia = await selectionsApi.fetchSetMediaGuest(
-            selection.value.id,
-            set.id,
-            guestToken.value
-          )
-        } else {
-          // Fallback: try regular endpoint (requires authentication)
-          setMedia = await selectionsApi.fetchSetMedia(selection.value.id, set.id)
-        }
-
-        // The API client already unwraps response.data, so setMedia should be the array directly
-        // But handle both cases just in case
-        let mediaArray = setMedia
-        if (setMedia && typeof setMedia === 'object' && !Array.isArray(setMedia)) {
-          // If wrapped, try to extract array
-          if (setMedia.data && Array.isArray(setMedia.data)) {
-            mediaArray = setMedia.data
-          } else {
-            console.warn(`Unexpected media response format for set ${set.id}:`, setMedia)
-            continue
-          }
-        }
-
-        // Ensure it's an array
-        if (!Array.isArray(mediaArray)) {
-          console.warn(
-            `Media for set ${set.id} is not an array:`,
-            mediaArray,
-            'Type:',
-            typeof mediaArray
-          )
-          continue
-        }
-
-        console.log(`Loaded ${mediaArray.length} media items for set ${set.id} (${set.name})`)
-
-        // Add setId to each media item (if not already present)
-        const mediaWithSetId = mediaArray.map(item => ({
-          ...item,
-          setId: item.setId || set.id, // Use existing setId if present
-          // Ensure type is available from file if not directly on item
-          type: item.type || (item.file && item.file.type) || 'image',
-          // Ensure url is available
-          url: item.url || (item.file && item.file.url) || item.thumbnailUrl || item.largeImageUrl,
-        }))
-        allMedia.push(...mediaWithSetId)
-      } catch (error) {
-        console.error(`Failed to load media for set ${set.id}:`, error)
-
-        // Check if selection is not active
-        const errorMessage = error?.message || ''
-        const errorCode = error?.code || ''
-
-        if (
-          errorMessage.toLowerCase().includes('not active') ||
-          errorMessage.toLowerCase().includes('selection is not active') ||
-          errorCode === 'SELECTION_NOT_ACTIVE' ||
-          error?.status === 403
-        ) {
-          // Re-throw with better message to be caught by outer catch
-          throw new Error(
-            'This selection is not yet published. Please contact the creator to publish it before accessing.'
-          )
-        }
-
-        // Continue loading other sets even if one fails (for other errors)
-      }
-    }
-    mediaItems.value = allMedia
-
-    if (allMedia.length === 0 && mediaSets.value.length > 0) {
-      console.warn('No media loaded for any sets. Sets:', mediaSets.value)
-    }
-  } catch (error) {
-    console.error('Error loading media items:', error)
-
-    // Check if selection is not active
-    const errorMessage = error?.message || ''
-    const errorCode = error?.code || ''
-
-    if (
-      errorMessage.toLowerCase().includes('not active') ||
-      errorMessage.toLowerCase().includes('selection is not active') ||
-      errorMessage.toLowerCase().includes('not yet published') ||
-      errorCode === 'SELECTION_NOT_ACTIVE' ||
-      error?.status === 403
-    ) {
-      toast.error('Selection not published', {
-        description:
-          'This selection is not yet published. Please contact the creator to publish it before accessing.',
-      })
-    } else {
-      // Use exact backend error message
-      const errorMessage = error?.message || error?.response?.data?.message || 'Failed to load media'
-      toast.error(errorMessage)
-    }
+  // Load media for the selected set
+  if (selectedSetId.value) {
+    await loadMediaForSet(selectedSetId.value)
   }
 }
 
@@ -1530,9 +1608,10 @@ const handleVerifyPassword = async () => {
     // Verify password with backend
     await selectionsApi.verifyPassword(selection.value.id, passwordInput.value)
 
-    // Password verified successfully
+    // Password verified successfully - store for 30 minutes
     verifiedPassword.value = passwordInput.value
     isPasswordVerified.value = true
+    storePasswordVerification(selection.value.id)
     passwordInput.value = ''
     await loadSelection()
   } catch (error) {
@@ -1555,14 +1634,16 @@ const handleVerifyPassword = async () => {
 }
 
 // Select set
-const handleSelectSet = setId => {
+const handleSelectSet = async setId => {
   selectedSetId.value = setId
+  await loadMediaForSet(setId)
 }
 
 // View media in lightbox
 const handleViewMedia = item => {
-  if (isAuthenticatedOwner.value || isPreviewMode.value) return
-  if (selection.value?.status === 'completed') return // Don't allow viewing in lightbox when completed
+  // Allow viewing in preview mode, but restrict for authenticated owners (non-preview)
+  if (isAuthenticatedOwner.value && !isPreviewMode.value) return
+  if (selection.value?.status === 'completed' && !isPreviewMode.value) return // Don't allow viewing in lightbox when completed (except preview mode)
 
   const index = currentMediaItems.value.findIndex(m => m.id === item.id)
   if (index !== -1) {
@@ -1870,16 +1951,22 @@ const handleCopySelectedFilenamesInSet = async () => {
 }
 
 onMounted(() => {
-  // Load selection (will show email modal if needed)
-  loadSelection()
-
-  // Check if we have a stored email for this selection
+  // Check if we have a stored password verification for this selection
   const selectionId = route.query.selectionId
   if (selectionId) {
+    const storedVerification = getStoredPasswordVerification(selectionId)
+    if (storedVerification) {
+      isPasswordVerified.value = true
+    }
+    
+    // Check if we have a stored email for this selection
     const storedEmail = localStorage.getItem(`guest_email_${selectionId}`)
     if (storedEmail) {
       userEmail.value = storedEmail
     }
   }
+
+  // Load selection (will show email modal if needed)
+  loadSelection()
 })
 </script>

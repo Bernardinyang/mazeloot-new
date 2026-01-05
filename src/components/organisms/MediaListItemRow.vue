@@ -149,8 +149,8 @@
         <p :class="theme.textTertiary" class="text-xs mt-1">
           {{ props.subtitle }}
         </p>
-        <!-- Proofing Badges (only show when NOT in selection context) -->
-        <template v-if="!props.selectionStatus">
+        <!-- Proofing Badges (only show when NOT in selection context, NOT in public mode, and management actions are enabled) -->
+        <template v-if="!props.selectionStatus && !props.publicMode && props.showManagementActions">
           <!-- Draft/Revision Badge (under date) -->
           <div
             v-if="!(props.item?.isCompleted || props.item?.is_completed)"
@@ -337,6 +337,13 @@
             <Download class="h-4 w-4 mr-2" />
             Download
           </DropdownMenuItem>
+          <DropdownMenuItem
+            :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+            @select.prevent="emit('toggle-featured')"
+          >
+            <Star :class="['h-4 w-4 mr-2', (props.item?.isFeatured || props.item?.is_featured) ? 'fill-yellow-400 text-yellow-400' : '']" />
+            {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
+          </DropdownMenuItem>
 
           <!-- Management Actions -->
           <template v-if="props.showManagementActions">
@@ -360,13 +367,6 @@
             >
               <Copy class="h-4 w-4 mr-2" />
               Copy filenames
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @select.prevent="emit('toggle-featured')"
-            >
-              <Star :class="['h-4 w-4 mr-2', (props.item?.isFeatured || props.item?.is_featured) ? 'fill-yellow-400 text-yellow-400' : '']" />
-              {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"

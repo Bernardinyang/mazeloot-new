@@ -63,7 +63,7 @@
     <!-- Guest/Client Choice Modal -->
     <Dialog v-if="showGuestClientModal && hasClientExclusiveAccess && !isAuthenticatedOwner && !isPreviewMode" :open="true">
       <!-- Branding Logo Above Modal -->
-      <div class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+      <div v-if="brandingLogoUrl || showMazelootBranding" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
         <img
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
@@ -71,7 +71,7 @@
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -112,7 +112,7 @@
     <!-- Client Email Modal -->
     <Dialog v-if="showClientEmailModal && userMode === 'client' && requiresClientEmail && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientEmailModal = false; emailInput = ''; emailError = '' } }">
       <!-- Mazeloot Footer at Bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -171,7 +171,7 @@
     <!-- Client Password Modal -->
     <Dialog v-if="showClientPasswordModal && userMode === 'client' && !isClientVerified && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientPasswordModal = false; clientPasswordInput = ''; clientPasswordError = '' } }">
       <!-- Mazeloot Footer at Bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -234,7 +234,7 @@
     <!-- Email Registration Modal -->
     <Dialog v-if="showEmailModal && !isAuthenticatedOwner && !isPreviewMode && userMode !== 'client'" :open="true" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
       <!-- Mazeloot Footer at Bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -298,7 +298,7 @@
     <!-- Don't show password modal for clients - they use client password instead -->
     <Dialog v-if="hasPassword && !isPasswordVerified && !guestToken && !isAuthenticatedOwner && !showEmailModal && !isLoading && (!emailRegistrationRequired || userEmail) && userMode !== 'client'" :open="true" @update:open="(val) => { if (!val && hasPassword && !isPasswordVerified && !guestToken) { passwordInput = ''; passwordError = '' } }" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
       <!-- Branding Logo Above Modal -->
-      <div class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+      <div v-if="brandingLogoUrl || showMazelootBranding" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
         <img
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
@@ -306,7 +306,7 @@
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
-      <div class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -386,7 +386,7 @@
       <!-- Download PIN Modal -->
       <Dialog v-if="showDownloadPinModal && requiresDownloadPin && !isDownloadPinVerified && !isAuthenticatedOwner" :open="showDownloadPinModal" @update:open="(val) => { if (!val) { showDownloadPinModal = false; downloadPinInput = ''; downloadPinError = '' } }">
         <!-- Mazeloot Footer at Bottom -->
-        <div class="fixed bottom-0 left-0 right-0 z-[60] py-4">
+        <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] py-4">
           <p :class="theme.textSecondary" class="text-xs text-center">
             © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
           </p>
@@ -500,6 +500,7 @@ const collection = ref(null)
 const media = ref([])
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
+const showMazelootBranding = ref(true)
 const collectionPreviewRef = ref(null)
 
 const coverPhotoUrl = computed(() => {
@@ -748,6 +749,7 @@ const fetchBranding = async (collectionId) => {
     const settings = settingsResponse.data || settingsResponse
     brandingLogoUrl.value = settings.branding?.logoUrl || null
     brandingName.value = settings.branding?.name || null
+    showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
   } catch (error) {
     console.warn('Failed to fetch public branding settings:', error)
   }

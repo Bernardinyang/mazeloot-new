@@ -4,7 +4,7 @@
     <SidebarInset>
       <header
         :class="[
-          'sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80',
+          'sticky top-0 z-50 flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg',
           theme.borderPrimary,
           theme.transitionColors,
         ]"
@@ -12,25 +12,25 @@
         <div class="flex items-center gap-2 px-4">
           <SidebarTrigger :class="['-ml-1', theme.textPrimary, theme.bgButtonHover]" />
           <Separator
-            orientation="vertical"
             :class="['mr-2 data-[orientation=vertical]:h-4', theme.borderPrimary]"
+            orientation="vertical"
           />
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem class="hidden md:block">
                 <BreadcrumbLink as-child>
                   <RouterLink
-                    :to="{ name: 'overview' }"
                     :class="[theme.textPrimary, 'hover:opacity-80', theme.transitionColors]"
+                    :to="{ name: 'overview' }"
                   >
                     Dashboard
                   </RouterLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparatorSelector
+                :custom-separator="customBreadcrumbSeparator"
                 :separator="breadcrumbSeparator"
                 :separator-class="['hidden md:block', theme.textTertiary]"
-                :custom-separator="customBreadcrumbSeparator"
               />
               <BreadcrumbItem>
                 <BreadcrumbPage :class="theme.textPrimary">
@@ -49,8 +49,6 @@
                 :class="['absolute left-3 h-4 w-4 pointer-events-none', theme.textTertiary]"
               />
               <Input
-                type="search"
-                placeholder="Search..."
                 :class="[
                   'pl-9 pr-4 h-9 w-64 focus-visible:ring-white/20 dark:focus-visible:ring-white/20 light:focus-visible:ring-gray-400',
                   theme.bgInput,
@@ -58,6 +56,8 @@
                   theme.textInput,
                   theme.placeholderInput,
                 ]"
+                placeholder="Search..."
+                type="search"
               />
             </div>
 
@@ -65,15 +65,15 @@
             <ThemeToggle />
 
             <!-- App Switcher -->
-            <AppSwitcherCompact :teams="appTeams" :is-admin="isAdmin" />
+            <AppSwitcherCompact :is-admin="isAdmin" :teams="appTeams" />
 
             <!-- Notifications -->
             <DropdownMenu>
               <DropdownMenuTrigger as-child>
                 <Button
-                  variant="ghost"
-                  size="icon"
                   :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+                  size="icon"
+                  variant="ghost"
                 >
                   <Bell class="h-5 w-5" />
                   <span
@@ -83,16 +83,16 @@
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
-                align="end"
                 :class="['w-80', theme.bgDropdown, theme.borderSecondary]"
+                align="end"
               >
                 <div class="flex items-center justify-between px-2 py-1.5">
                   <DropdownMenuLabel :class="theme.textPrimary">Notifications</DropdownMenuLabel>
                   <Button
                     v-if="notifications.length > 0"
-                    variant="ghost"
-                    size="sm"
                     :class="['h-7 px-2 text-xs', theme.textSecondary, theme.bgButtonHover]"
+                    size="sm"
+                    variant="ghost"
                     @click.stop="clearNotifications"
                   >
                     Clear all
@@ -118,8 +118,8 @@
                     <div class="flex items-start gap-2 w-full">
                       <component
                         :is="notification.icon"
-                        class="h-4 w-4 mt-0.5 shrink-0"
                         :class="notification.iconColor"
+                        class="h-4 w-4 mt-0.5 shrink-0"
                       />
                       <div class="flex-1 min-w-0">
                         <p class="text-sm font-medium">{{ notification.title }}</p>
@@ -138,7 +138,7 @@
       </header>
       <div
         :class="[
-          'flex flex-1 flex-col gap-4 p-6 md:p-10',
+          'flex flex-1 flex-col gap-4 p-6 md:p-10 rounded-bl-lg',
           'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
           theme.bgFooter,
           theme.transitionColors,
@@ -147,14 +147,13 @@
         <slot />
       </div>
     </SidebarInset>
-
   </SidebarProvider>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Search, Bell, CheckCircle2, ShoppingCart } from 'lucide-vue-next'
-import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/shadcn/sidebar'
+import { computed, h, ref } from 'vue'
+import { Bell, CheckCircle2, Search, ShoppingCart } from 'lucide-vue-next'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/shadcn/sidebar'
 import { Separator } from '@/components/shadcn/separator'
 import {
   Breadcrumb,
@@ -174,9 +173,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
-import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
-import { h } from 'vue'
 import AppSidebar from '@/components/organisms/AppSidebar.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import AppSwitcherCompact from '@/components/organisms/AppSwitcherCompact.vue'
@@ -246,5 +243,4 @@ const notifications = ref([
 const clearNotifications = () => {
   notifications.value = []
 }
-
 </script>
