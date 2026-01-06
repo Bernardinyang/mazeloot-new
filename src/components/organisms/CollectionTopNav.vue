@@ -171,11 +171,14 @@
             </PopoverContent>
           </Popover>
 
-          <!-- Separator -->
-          <div class="h-3 w-px bg-gray-300 dark:bg-gray-600 transition-opacity duration-200"></div>
+          <!-- Separator (only show if watermark section is visible) -->
+          <div
+            v-if="props.watermarks && props.watermarks.length > 0"
+            class="h-3 w-px bg-gray-300 dark:bg-gray-600 transition-opacity duration-200"
+          ></div>
 
-          <!-- Watermark Dropdown -->
-          <Popover v-model:open="isWatermarkPopoverOpen">
+          <!-- Watermark Dropdown (only show if watermarks exist) -->
+          <Popover v-if="props.watermarks && props.watermarks.length > 0" v-model:open="isWatermarkPopoverOpen">
             <PopoverTrigger as-child>
               <button
                 class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"

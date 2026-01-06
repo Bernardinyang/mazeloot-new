@@ -89,11 +89,13 @@ export function useCollectionLoadFlow({
       mediaSets.value = mappedMediaSets
 
       // Set context in sidebar store to ensure media sets are visible
+      // This will auto-select the first set if none is selected
       if (mediaSetsSidebar) {
         mediaSetsSidebar.setContext(collectionData.id || '', mappedMediaSets)
       }
 
       // Check if setId is in route query and set it first (like SelectionDetail)
+      // This overrides the auto-selection from setContext
       if (route.query.setId) {
         const setIdFromRoute = route.query.setId
         if (mediaSets.value.some(s => s.id === setIdFromRoute)) {
@@ -103,20 +105,16 @@ export function useCollectionLoadFlow({
             selectedSetId.value = setIdFromRoute
           }
         }
-      }
-
-      // Auto-select first set if none selected and sets exist
-      if (!selectedSetId.value && mediaSets.value.length > 0) {
+      } else if (mediaSetsSidebar && !mediaSetsSidebar.selectedSetId?.value && mediaSets.value.length > 0) {
+        // If no route query and store didn't auto-select (shouldn't happen, but safety check)
         const firstSetId = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
-        if (mediaSetsSidebar) {
-          mediaSetsSidebar.handleSelectSet(firstSetId)
-        } else {
-          selectedSetId.value = firstSetId
-        }
+        mediaSetsSidebar.handleSelectSet(firstSetId)
       }
 
       // Load media items for the selected set (if one is selected)
-      if (selectedSetId.value && loadMediaItems) {
+      // Use store's selectedSetId if available, otherwise fall back to local ref
+      const currentSelectedSetId = mediaSetsSidebar?.selectedSetId?.value ?? selectedSetId.value
+      if (currentSelectedSetId && loadMediaItems) {
         await loadMediaItems()
       }
     } catch (error) {

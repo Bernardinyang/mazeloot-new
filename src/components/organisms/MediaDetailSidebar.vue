@@ -22,7 +22,8 @@
             v-if="mediaPreviewUrl"
             :src="mediaPreviewUrl"
             :alt="media.title || media.filename || 'Media preview'"
-            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer"
+            draggable="false"
+            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer protected-content"
             @error="handleImageError"
             @load="isImageLoading = false"
             @click="handleViewMedia"
@@ -666,7 +667,8 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { Loader2, Eye, Download, AlertCircle, Copy, Check } from 'lucide-vue-next'
 import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import DetailSection from '@/components/molecules/DetailSection.vue'
@@ -696,6 +698,12 @@ const emit = defineEmits(['update:modelValue', 'view', 'download'])
 
 const theme = useThemeClasses()
 const selectionsApi = useSelectionsApi()
+
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
 
 const isImageLoading = ref(true)
 const imageError = ref(false)
@@ -930,6 +938,14 @@ const handleViewMedia = () => {
   emit('view', props.media)
   isOpen.value = false
 }
+
+onMounted(() => {
+  // Protection is initialized above
+})
+
+onUnmounted(() => {
+  cleanupProtection()
+})
 
 const handleDownload = async () => {
   if (!props.media?.id) {

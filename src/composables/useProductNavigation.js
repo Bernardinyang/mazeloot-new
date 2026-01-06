@@ -5,6 +5,8 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { PRODUCT_NAVIGATION, PRODUCT_NAVIGATION_LABELS } from '@/constants/productNavigation'
+import { usePresetStore } from '@/stores/preset'
+import { useWatermarkStore } from '@/stores/watermark'
 
 /**
  * Detect the current product from the route
@@ -27,13 +29,24 @@ export function getProductFromRoute(path) {
  */
 export function useProductNavigation() {
   const route = useRoute()
+  const presetStore = usePresetStore()
+  const watermarkStore = useWatermarkStore()
 
   const currentProduct = computed(() => {
     return getProductFromRoute(route.path)
   })
 
   const navigationItems = computed(() => {
-    return PRODUCT_NAVIGATION[currentProduct.value] || PRODUCT_NAVIGATION.default
+    const items = PRODUCT_NAVIGATION[currentProduct.value] || PRODUCT_NAVIGATION.default
+    return items.map(item => {
+      if (item.name === 'presetSettings' && (!presetStore.presets || presetStore.presets.length === 0)) {
+        return null
+      }
+      if (item.name === 'watermarkSettings' && (!watermarkStore.watermarks || watermarkStore.watermarks.length === 0)) {
+        return null
+      }
+      return item
+    }).filter(Boolean)
   })
 
   const navigationLabel = computed(() => {

@@ -424,7 +424,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
@@ -437,6 +438,7 @@ import { useWatermarkStore } from '@/stores/watermark'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useMediaApi } from '@/api/media'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import MediaItemsHeaderBar from '@/components/organisms/MediaItemsHeaderBar.vue'
 import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
 import MediaUploadDropzone from '@/components/organisms/MediaUploadDropzone.vue'
@@ -964,7 +966,7 @@ const handleSetAsCoverOriginal = async item => {
     } catch (error) {
       toast.error('Failed to set cover photo', {
         description:
-          error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
+          getErrorMessage(error, 'An error occurred while setting the cover photo.'),
       })
     } finally {
       isUpdatingCoverPhoto.value = false
@@ -1501,17 +1503,17 @@ watch(duplicateFileActionsFromWorkflow, val => {
 })
 
 const handleFileSelect = async event => {
-  const files = Array.from(event.target.files || [])
-  if (files.length === 0) return
-
-  // Prevent multiple simultaneous uploads or file processing
+  // Set flag immediately to prevent race conditions
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
     return
   }
 
+  const files = Array.from(event.target.files || [])
   // Reset input immediately to prevent duplicate events
   event.target.value = ''
+  
+  if (files.length === 0) return
 
   if (!selectedSetId.value) {
     toast.error('No set selected', {
@@ -1533,6 +1535,7 @@ const handleFileSelect = async event => {
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
     }
   } catch (error) {
+    console.error('File upload error:', error)
   } finally {
     isProcessingFiles.value = false
   }
@@ -1681,10 +1684,21 @@ watch(
   () => route.params.uuid,
   (uuid) => {
     if (uuid) {
+      // Clear media items when switching to a different collection
+      const previousCollectionId = collection.value?.id
+      if (previousCollectionId && previousCollectionId !== uuid) {
+        mediaItems.value = []
+      }
       loadCollection(uuid)
     }
   }
 )
+
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
 
 onMounted(async () => {
   const uuid = route.params.uuid
@@ -1712,6 +1726,10 @@ onMounted(async () => {
     },
     { immediate: true, once: true }
   )
+})
+
+onUnmounted(() => {
+  cleanupProtection()
 })
 </script>
 

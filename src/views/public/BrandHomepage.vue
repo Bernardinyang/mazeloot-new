@@ -287,7 +287,7 @@
             <p class="text-sm font-medium text-gray-300 mb-1">
               © {{ new Date().getFullYear() }} {{ branding?.name || 'Mazeloot' }}
             </p>
-            <p class="text-xs text-gray-400">Powered by Mazeloot</p>
+            <p v-if="branding?.showMazelootBranding !== false" class="text-xs text-gray-400">Powered by Mazeloot</p>
           </div>
         </footer>
       </template>

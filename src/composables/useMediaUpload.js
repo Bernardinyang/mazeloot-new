@@ -56,7 +56,7 @@ import { useBackgroundUploadManager } from '@/composables/useBackgroundUploadMan
  * @param {function} options.onUploadComplete - Optional callback after successful upload: (results) => Promise
  * @param {function} options.deleteMediaFn - Function to delete existing media when replacing: (mediaId) => Promise
  * @param {object} options.validationOptions - Validation options (maxSize, allowedTypes, dimensions)
- * @param {number} options.batchSize - Number of concurrent uploads (default: 3)
+ * @param {number} options.batchSize - Number of concurrent uploads (default: 1, serial uploads)
  * @param {number} options.maxRetries - Maximum retry attempts (default: 3)
  */
 export function useMediaUpload(options = {}) {
@@ -69,15 +69,15 @@ export function useMediaUpload(options = {}) {
     onUploadComplete,
     deleteMediaFn,
     validationOptions = {},
-    batchSize = 3,
+    batchSize = 1,
     maxRetries = 3,
     contextType = 'collection', // collection, selection, or proofing
     useBackgroundUploads = true,
   } = options
 
-  // Background upload manager (shared instance)
+  // Background upload manager (shared instance) - serial uploads
   const backgroundUploadManager = useBackgroundUploadManager({
-    concurrentLimit: batchSize,
+    concurrentLimit: 1,
   })
 
   // Upload progress tracking
@@ -567,13 +567,14 @@ export function useMediaUpload(options = {}) {
   }
 
   /**
-   * Generate a unique batch ID from files
+   * Generate a unique batch ID from files (without timestamp to detect duplicates)
    */
   const generateBatchId = files => {
     const fileIds = Array.from(files)
       .map((file, index) => `${file.name}-${file.size}-${file.lastModified}-${index}`)
+      .sort()
       .join('|')
-    return `${Date.now()}-${fileIds.slice(0, 100)}` // Limit length
+    return fileIds.slice(0, 200) // Limit length, no timestamp to allow duplicate detection
   }
 
   /**
@@ -587,31 +588,39 @@ export function useMediaUpload(options = {}) {
 
     // Prevent multiple simultaneous uploads
     if (isUploading.value) {
+      console.warn('Upload already in progress, skipping duplicate call')
       return
     }
 
+    // Mark batch as active immediately to prevent race conditions
     if (activeUploadBatches.value.has(batchId)) {
+      console.warn('Batch already being processed, skipping duplicate call', batchId)
       return
     }
+    activeUploadBatches.value.add(batchId)
 
     try {
       const contextIdValue = getContextId()
 
       if (!contextIdValue) {
+        activeUploadBatches.value.delete(batchId)
         throw new Error('Context ID is required')
       }
 
       const setIdValue = getSetId(setId)
 
       if (!setIdValue) {
+        activeUploadBatches.value.delete(batchId)
         throw new Error('Set ID is required')
       }
 
       if (!files || files.length === 0) {
+        activeUploadBatches.value.delete(batchId)
         throw new Error('No files provided')
       }
 
       if (!uploadMediaFn) {
+        activeUploadBatches.value.delete(batchId)
         throw new Error('uploadMediaFn is required')
       }
 
@@ -663,8 +672,27 @@ export function useMediaUpload(options = {}) {
 
       // Use background upload manager if enabled
       if (useBackgroundUploads) {
-        // Add files to background upload queue
-        const uploadPromises = validFiles.map(async file => {
+        // Deduplicate files by name+size before adding to queue
+        const seenFiles = new Map()
+        const uniqueFiles = []
+        for (const file of validFiles) {
+          const fileKey = `${file.name}-${file.size}-${file.lastModified}`
+          if (!seenFiles.has(fileKey)) {
+            seenFiles.set(fileKey, true)
+            uniqueFiles.push(file)
+          } else {
+            console.warn('Skipping duplicate file:', file.name)
+          }
+        }
+
+        // Get existing media for duplicate checking
+        const existingMediaList = getExistingMedia()
+        const existingMediaForSet = setIdValue
+          ? existingMediaList.filter(media => media.setId === setIdValue)
+          : existingMediaList
+
+        // Add files to background upload queue serially (one at a time)
+        for (const file of uniqueFiles) {
           try {
             // Add to background queue (duplicate check happens inside addToQueue)
             const result = await backgroundUploadManager.addToQueue(file, {
@@ -675,6 +703,7 @@ export function useMediaUpload(options = {}) {
               validationOptions,
               loadMediaItems,
               onUploadComplete,
+              existingMedia: existingMediaForSet, // Pass existing media for duplicate checking
             })
 
             if (!result.success) {
@@ -713,9 +742,7 @@ export function useMediaUpload(options = {}) {
               error: errorMessage,
             })
           }
-        })
-
-        await Promise.allSettled(uploadPromises)
+        }
 
         // Show success message
         if (results.successful.length > 0) {
@@ -742,6 +769,8 @@ export function useMediaUpload(options = {}) {
           }
         }
 
+        // Clean up batch ID
+        activeUploadBatches.value.delete(batchId)
         return results
       }
 
@@ -752,7 +781,6 @@ export function useMediaUpload(options = {}) {
       uploadErrors.value = []
       isUploading.value = true
       uploadAbortController.value = new AbortController()
-      activeUploadBatches.value.add(batchId)
 
       // Show upload progress toast
       const toastId = 'upload-progress'
@@ -776,163 +804,165 @@ export function useMediaUpload(options = {}) {
         }
       })
 
-      // Upload files in batches (use filtered array)
+      // Upload files serially (one at a time)
       const filesToUploadBatch = validFiles
 
-      for (let i = 0; i < filesToUploadBatch.length; i += batchSize) {
-        const batch = filesToUploadBatch.slice(i, i + batchSize)
+      for (let i = 0; i < filesToUploadBatch.length; i++) {
+        const file = filesToUploadBatch[i]
+        const originalIndex = filteredFileArray.indexOf(file)
+        const fileId = getFileId(file, originalIndex)
 
-        const batchPromises = batch.map(async (file, batchIndex) => {
-          const originalIndex = filteredFileArray.indexOf(file)
-          const fileId = getFileId(file, originalIndex)
+        try {
+          const result = await uploadSingleFile(
+            file,
+            fileId,
+            contextIdValue,
+            setIdValue,
+            uploadAbortController.value.signal
+          )
+          results.successful.push(result)
 
-          try {
-            const result = await uploadSingleFile(
-              file,
-              fileId,
-              contextIdValue,
-              setIdValue,
-              uploadAbortController.value.signal
-            )
-            results.successful.push(result)
-            return result
-          } catch (error) {
-            const errorMessage = getErrorMessage(error, `Failed to upload "${file.name}"`)
-            uploadProgress.value[fileId] = {
-              ...uploadProgress.value[fileId],
-              status: 'failed',
-              error: errorMessage,
+          // Call callbacks immediately after each successful upload
+          if (loadMediaItems) {
+            try {
+              await loadMediaItems()
+            } catch (error) {
+              console.error('Error reloading media items:', error)
             }
-            results.failed.push({
-              file,
-              error: errorMessage,
-            })
-            uploadErrors.value.push({
-              file,
-              fileId,
-              error: errorMessage,
-              retry: async () => {
-                // Each retry gets its own controller to avoid conflicts
-                const retryAbortController = new AbortController()
+          }
 
-                // Track if we need to manage the global upload state
-                const wasUploading = isUploading.value
-                const hadAbortController = !!uploadAbortController.value
+          if (onUploadComplete) {
+            try {
+              await onUploadComplete({ successful: [result], failed: [] })
+            } catch (error) {
+              console.error('Error in onUploadComplete callback:', error)
+            }
+          }
+        } catch (error) {
+          const errorMessage = getErrorMessage(error, `Failed to upload "${file.name}"`)
+          uploadProgress.value[fileId] = {
+            ...uploadProgress.value[fileId],
+            status: 'failed',
+            error: errorMessage,
+          }
+          results.failed.push({
+            file,
+            error: errorMessage,
+          })
+          uploadErrors.value.push({
+            file,
+            fileId,
+            error: errorMessage,
+            retry: async () => {
+              // Each retry gets its own controller to avoid conflicts
+              const retryAbortController = new AbortController()
 
+              // Track if we need to manage the global upload state
+              const wasUploading = isUploading.value
+              const hadAbortController = !!uploadAbortController.value
+
+              if (!wasUploading) {
+                isUploading.value = true
+              }
+
+              // Store the retry controller if no global one exists
+              if (!hadAbortController) {
+                uploadAbortController.value = retryAbortController
+              }
+
+              try {
+                const result = await uploadSingleFile(
+                  file,
+                  fileId,
+                  contextIdValue,
+                  setIdValue,
+                  retryAbortController.signal
+                )
+
+                if (uploadProgress.value[fileId]) {
+                  uploadProgress.value[fileId] = {
+                    ...uploadProgress.value[fileId],
+                    status: 'completed',
+                    percentage: 100,
+                    error: null,
+                  }
+                }
+
+                // Call callbacks immediately after successful retry
+                if (loadMediaItems) {
+                  try {
+                    await loadMediaItems()
+                  } catch (error) {
+                    console.error('Error reloading media items:', error)
+                  }
+                }
+
+                if (onUploadComplete) {
+                  try {
+                    await onUploadComplete({ successful: [result], failed: [] })
+                  } catch (error) {
+                    console.error('Error in onUploadComplete callback:', error)
+                  }
+                }
+
+                // Remove from errors array on success
+                const errorIndex = uploadErrors.value.findIndex(e => e.fileId === fileId)
+                if (errorIndex !== -1) {
+                  uploadErrors.value.splice(errorIndex, 1)
+                }
+
+                return result
+              } catch (error) {
+                const retryErrorMessage = getErrorMessage(
+                  error,
+                  `Failed to retry upload for "${file.name}"`
+                )
+                if (uploadProgress.value[fileId]) {
+                  uploadProgress.value[fileId] = {
+                    ...uploadProgress.value[fileId],
+                    status: 'failed',
+                    error: retryErrorMessage,
+                  }
+                }
+
+                const errorIndex = uploadErrors.value.findIndex(e => e.fileId === fileId)
+                if (errorIndex !== -1) {
+                  uploadErrors.value[errorIndex] = {
+                    ...uploadErrors.value[errorIndex],
+                    error: retryErrorMessage,
+                  }
+                }
+
+                throw error
+              } finally {
+                // Only reset uploading state if we set it and no other uploads are in progress
                 if (!wasUploading) {
-                  isUploading.value = true
-                }
-
-                // Store the retry controller if no global one exists
-                if (!hadAbortController) {
-                  uploadAbortController.value = retryAbortController
-                }
-
-                try {
-                  const result = await uploadSingleFile(
-                    file,
-                    fileId,
-                    contextIdValue,
-                    setIdValue,
-                    retryAbortController.signal
+                  const hasActiveUploads = Object.values(uploadProgress.value).some(
+                    p => p.status === 'uploading' || p.status === 'processing'
                   )
 
-                  if (uploadProgress.value[fileId]) {
-                    uploadProgress.value[fileId] = {
-                      ...uploadProgress.value[fileId],
-                      status: 'completed',
-                      percentage: 100,
-                      error: null,
-                    }
+                  if (!hasActiveUploads) {
+                    isUploading.value = false
                   }
 
-                  // Remove from errors array on success
-                  const errorIndex = uploadErrors.value.findIndex(e => e.fileId === fileId)
-                  if (errorIndex !== -1) {
-                    uploadErrors.value.splice(errorIndex, 1)
-                  }
-
-                  return result
-                } catch (error) {
-                  const retryErrorMessage = getErrorMessage(
-                    error,
-                    `Failed to retry upload for "${file.name}"`
-                  )
-                  if (uploadProgress.value[fileId]) {
-                    uploadProgress.value[fileId] = {
-                      ...uploadProgress.value[fileId],
-                      status: 'failed',
-                      error: retryErrorMessage,
-                    }
-                  }
-
-                  const errorIndex = uploadErrors.value.findIndex(e => e.fileId === fileId)
-                  if (errorIndex !== -1) {
-                    uploadErrors.value[errorIndex] = {
-                      ...uploadErrors.value[errorIndex],
-                      error: retryErrorMessage,
-                    }
-                  }
-
-                  throw error
-                } finally {
-                  // Only reset uploading state if we set it and no other uploads are in progress
-                  if (!wasUploading) {
-                    const hasActiveUploads = Object.values(uploadProgress.value).some(
-                      p => p.status === 'uploading' || p.status === 'processing'
-                    )
-
+                  // Only clear abort controller if we created it and no other uploads are active
+                  if (!hadAbortController && !hasActiveUploads) {
+                    uploadAbortController.value = null
+                  } else if (
+                    !hadAbortController &&
+                    uploadAbortController.value === retryAbortController
+                  ) {
+                    // If we set it but there are still active uploads, keep it
+                    // Otherwise clear it if it's still our retry controller
                     if (!hasActiveUploads) {
-                      isUploading.value = false
-                    }
-
-                    // Only clear abort controller if we created it and no other uploads are active
-                    if (!hadAbortController && !hasActiveUploads) {
                       uploadAbortController.value = null
-                    } else if (
-                      !hadAbortController &&
-                      uploadAbortController.value === retryAbortController
-                    ) {
-                      // If we set it but there are still active uploads, keep it
-                      // Otherwise clear it if it's still our retry controller
-                      if (!hasActiveUploads) {
-                        uploadAbortController.value = null
-                      }
                     }
                   }
                 }
-              },
-            })
-            // Don't throw - allow batch to continue with other files
-          }
-        })
-
-        // Wait for batch to complete (using allSettled to allow partial success)
-        await Promise.allSettled(batchPromises)
-      }
-
-      // Reload media items if any were successful
-      // Use nextTick to ensure this happens after any reactive updates
-      if (results.successful.length > 0) {
-        // Add a small delay to batch any potential duplicate calls
-        await new Promise(resolve => setTimeout(resolve, 100))
-
-        // Call loadMediaItems if provided
-        if (loadMediaItems) {
-          try {
-            await loadMediaItems()
-          } catch (error) {
-            console.error('Error reloading media items:', error)
-          }
-        }
-
-        // Call optional onUploadComplete callback (e.g., to reload media sets, update counts, etc.)
-        if (onUploadComplete) {
-          try {
-            await onUploadComplete(results)
-          } catch (error) {
-            console.error('Error in onUploadComplete callback:', error)
-          }
+              }
+            },
+          })
+          // Continue with next file even if this one failed
         }
       }
 

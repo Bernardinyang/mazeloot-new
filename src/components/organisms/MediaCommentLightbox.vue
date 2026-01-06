@@ -110,7 +110,7 @@
                   <img
                     :alt="currentItem?.title || currentItem?.filename || 'Media'"
                     :src="currentMediaUrl"
-                    class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300"
+                    class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300 protected-content"
                     :class="isLoading ? 'opacity-0' : 'opacity-100'"
                     draggable="false"
                     :style="imageStyle"
@@ -287,6 +287,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import {
   ChevronLeft,
   ChevronRight,
@@ -314,6 +315,7 @@ import { useProofingApi } from '@/api/proofing'
 import { useRealtimeComments } from '@/composables/useRealtimeComments'
 import { toast } from '@/utils/toast'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
+import { getMediaLightboxPreviewUrl, getMediaPreviewUrl } from '@/utils/media/getMediaPreviewUrl'
 
 const props = defineProps({
   modelValue: {
@@ -512,50 +514,13 @@ const hasNext = computed(() => {
 })
 
 const getMediaUrl = item => {
-  if (!item) return null
-
-  const mediaType = item.type || item.file?.type
-
-  if (mediaType === 'image') {
-    if (item.largeImageUrl) {
-      return item.largeImageUrl
-    }
-    if (item.file?.variants?.large) {
-      return item.file.variants.large
-    }
-    return item.file?.url || item.url || null
-  }
-
-  if (mediaType === 'video') {
-    return item.file?.url || item.url || null
-  }
-
-  return item.file?.url || item.url || null
+  // Use lightbox preview URL utility (prefers medium variant for display)
+  return getMediaLightboxPreviewUrl(item)
 }
 
 const getThumbnailUrl = item => {
-  if (!item) return null
-
-  const mediaType = item.type || item.file?.type
-
-  if (mediaType === 'video') {
-    if (item.file?.thumbnailUrl && item.file.thumbnailUrl !== item.file?.url) {
-      return item.file.thumbnailUrl
-    }
-    if (item.file?.metadata?.thumbnail) {
-      return item.file.metadata.thumbnail
-    }
-    return null
-  }
-
-  if (mediaType === 'image') {
-    if (item.file?.variants?.thumb) {
-      return item.file.variants.thumb
-    }
-    return item.file?.url || item.url
-  }
-
-  return item.file?.url || item.url || item.thumbnail
+  // Use preview URL utility for thumbnails (prefers thumb variant)
+  return getMediaPreviewUrl(item)
 }
 
 const updateMediaUrl = async () => {
@@ -1472,6 +1437,12 @@ watch(showComments, newValue => {
   }
 })
 
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 onMounted(() => {
   if (isOpen.value) {
     document.addEventListener('keydown', handleKeyDown)
@@ -1480,6 +1451,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cleanupProtection()
   document.removeEventListener('keydown', handleKeyDown)
   document.body.style.overflow = ''
 })

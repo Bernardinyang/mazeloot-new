@@ -92,26 +92,71 @@ export function parseError(error) {
  * 3. error.response.data.error (alternative backend field)
  * 4. Fallback message
  */
+/**
+ * Extract only the backend error message, removing frontend prefixes
+ */
+function extractBackendMessage(message) {
+  if (!message || typeof message !== 'string') {
+    return message
+  }
+  
+  // Common frontend error prefixes to remove
+  const prefixes = [
+    'Failed to delete media: ',
+    'Failed to delete: ',
+    'Delete failed: ',
+    'Failed to toggle star: ',
+    'Failed to toggle featured: ',
+    'Failed to download: ',
+    'Download failed: ',
+    'Failed to upload: ',
+    'Upload failed: ',
+    'Failed to save: ',
+    'Save failed: ',
+    'Failed to update: ',
+    'Update failed: ',
+    'Failed to create: ',
+    'Create failed: ',
+    'Failed to fetch: ',
+    'Fetch failed: ',
+  ]
+  
+  for (const prefix of prefixes) {
+    if (message.startsWith(prefix)) {
+      return message.substring(prefix.length).trim()
+    }
+  }
+  
+  return message
+}
+
 export function getErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
   if (error === null || error === undefined) {
     return fallback
   }
   
   // Direct access to backend message (highest priority)
-  const backendMessage = error?.response?.data?.message || error?.response?.data?.error
+  // Check both raw response and processed error object
+  const backendMessage = 
+    error?.response?.data?.message || 
+    error?.response?.data?.error ||
+    (error?.response?.data?.data?.message) ||
+    (error?.response?.data?.data?.error)
+  
   if (backendMessage && backendMessage.trim() !== '') {
-    return backendMessage
+    return extractBackendMessage(backendMessage)
   }
   
   // API client processed message (second priority)
+  // This handles errors that have been parsed by parseError
   if (error?.message && error.message.trim() !== '') {
-    return error.message
+    return extractBackendMessage(error.message)
   }
   
+  // Parse error if not already parsed
   const parsed = parseError(error)
-  // Use parsed message if available
   if (parsed.message && parsed.message.trim() !== '') {
-    return parsed.message
+    return extractBackendMessage(parsed.message)
   }
   
   return fallback

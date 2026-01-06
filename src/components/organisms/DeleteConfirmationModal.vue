@@ -1,20 +1,30 @@
 <template>
   <CenterModal
     v-model="isOpen"
-    :description="description"
     :title="title"
     content-class="sm:max-w-[425px]"
   >
     <div class="space-y-4 py-4">
-      <div class="space-y-2">
+      <div class="space-y-3">
         <p :class="theme.textSecondary" class="text-sm">
           Are you sure you want to delete
           <span :class="theme.textPrimary" class="font-semibold">
             {{ itemName || fallbackName }} </span
           >?
         </p>
-        <p :class="theme.textTertiary" class="text-xs">
-          {{ warningMessage }}
+        
+        <!-- Phase and Set Info (if available) -->
+        <div
+          v-if="warningMessage"
+          :class="[theme.bgCard, theme.borderSecondary]"
+          class="p-3 rounded-lg border space-y-2"
+        >
+          <p :class="theme.textPrimary" class="text-xs font-semibold">Media Location:</p>
+          <p :class="theme.textSecondary" class="text-xs whitespace-pre-line">{{ warningMessage }}</p>
+        </div>
+        
+        <p :class="theme.textTertiary" class="text-xs whitespace-pre-line">
+          {{ description }}
         </p>
       </div>
     </div>

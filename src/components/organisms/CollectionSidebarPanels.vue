@@ -3,16 +3,16 @@
   <div v-if="props.activeTab === 'photos' && !props.isSidebarCollapsed">
     <MediaSetsSidebarSection
       :active-tab="props.activeTab"
-      :drag-over-index="mediaSetsSidebar.dragOverIndex"
-      :dragged-set-id="mediaSetsSidebar.draggedSetId"
-      :editing-set-id="mediaSetsSidebar.editingSetId"
-      :editing-set-name="mediaSetsSidebar.editingSetName"
+      :drag-over-index="dragOverIndex"
+      :dragged-set-id="draggedSetId"
+      :editing-set-id="editingSetId"
+      :editing-set-name="editingSetName"
       :is-loading="props.isLoading"
-      :is-saving-sets="mediaSetsSidebar.isSavingSets"
+      :is-saving-sets="isSavingSets"
       :is-sidebar-collapsed="props.isSidebarCollapsed"
-      :media-sets="mediaSetsSidebar.mediaSets"
-      :selected-set-id="mediaSetsSidebar.selectedSetId"
-      :sorted-media-sets="mediaSetsSidebar.sortedMediaSets"
+      :media-sets="mediaSets"
+      :selected-set-id="selectedSetId"
+      :sorted-media-sets="sortedMediaSets"
       @add-set="mediaSetsSidebar.handleAddSet"
       @select-set="mediaSetsSidebar.handleSelectSet($event)"
       @edit-set="mediaSetsSidebar.handleEditSet($event)"
@@ -76,11 +76,13 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import MediaSetsSidebarSection from '@/components/organisms/MediaSetsSidebarSection.vue'
 import CollectionDesignSidebarNav from '@/components/organisms/CollectionDesignSidebarNav.vue'
 import CollectionSettingsSidebarNav from '@/components/organisms/CollectionSettingsSidebarNav.vue'
 import CollectionActivitiesSidebarNav from '@/components/organisms/CollectionActivitiesSidebarNav.vue'
 import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps({
   collectionId: { type: String, default: '' },
@@ -92,4 +94,17 @@ const props = defineProps({
 })
 
 const mediaSetsSidebar = useCollectionMediaSetsSidebarStore()
+const {
+  dragOverIndex,
+  draggedSetId,
+  editingSetId,
+  editingSetName,
+  isSavingSets,
+  mediaSets,
+  selectedSetId: selectedSetIdRef,
+  sortedMediaSets,
+} = storeToRefs(mediaSetsSidebar)
+
+// Ensure selectedSetId is reactive and properly unwrapped
+const selectedSetId = computed(() => selectedSetIdRef.value)
 </script>

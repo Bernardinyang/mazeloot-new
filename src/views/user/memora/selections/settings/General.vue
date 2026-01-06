@@ -744,6 +744,7 @@ import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useSelectionsApi } from '@/api/selections'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import { storeToRefs } from 'pinia'
 
 const route = useRoute()
@@ -916,7 +917,7 @@ onMounted(async () => {
     }
   } catch (error) {
     toast.error('Failed to load selection', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isLoading.value = false
@@ -1090,7 +1091,7 @@ const handleSave = async () => {
     })
   } catch (error) {
     toast.error('Failed to save settings', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isSaving.value = false
@@ -1124,7 +1125,7 @@ const handlePasswordToggle = async enabled => {
         // Revert the toggle if API call fails
         hasPassword.value = false
         toast.error('Failed to enable password', {
-          description: error instanceof Error ? error.message : 'An unknown error occurred',
+          description: getErrorMessage(error, 'An unknown error occurred'),
         })
       }
     } else {
@@ -1153,7 +1154,7 @@ const handlePasswordToggle = async enabled => {
       // Revert the toggle if API call fails
       hasPassword.value = true
       toast.error('Failed to remove password', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        description: getErrorMessage(error, 'An unknown error occurred'),
       })
     }
   }
@@ -1199,7 +1200,7 @@ const handleSavePassword = async () => {
     })
   } catch (error) {
     toast.error('Failed to set password', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isSavingPassword.value = false
@@ -1310,7 +1311,7 @@ const handleAllowedEmailsChange = async (forceSave = false) => {
   } catch (error) {
     emailsSaved.value = false
     toast.error('Failed to update emails', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
     // Reload to get original values
     const selectionData = await selectionStore.fetchSelection(selection.value.id)

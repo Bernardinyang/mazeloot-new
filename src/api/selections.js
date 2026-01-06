@@ -368,6 +368,39 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Fetch all user media with optional sort and pagination parameters
+   * @param {Object} params - Query parameters
+   * @param {string} params.sortBy - Sort field and direction (e.g., 'uploaded-desc', 'name-asc')
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.perPage - Items per page (default: 10)
+   * @returns {Promise<{data: Array, pagination: {page: number, limit: number, total: number, totalPages: number}}>}
+   */
+  const fetchUserMedia = async (params = {}) => {
+    try {
+      const queryParams = new URLSearchParams()
+
+      if (params.sortBy) {
+        queryParams.append('sort_by', params.sortBy)
+      }
+
+      if (params.page) {
+        queryParams.append('page', params.page.toString())
+      }
+
+      if (params.perPage) {
+        queryParams.append('per_page', params.perPage.toString())
+      }
+
+      const endpoint = `/v1/memora/media/user${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+      const response = await apiClient.get(endpoint)
+
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get single media set
    */
   const fetchMediaSet = async (selectionId, setId) => {
@@ -536,6 +569,18 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Delete media directly (without selection/set context)
+   */
+  const deleteMediaDirect = async mediaId => {
+    try {
+      const response = await apiClient.delete(`/v1/memora/media/${mediaId}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Rename media by updating the filename
    * @param {string} selectionId - Selection ID
    * @param {string} setId - Set ID
@@ -639,6 +684,19 @@ export function useSelectionsApi() {
   }
 
   /**
+   * Toggle star status for a media item (direct, without selection/set context)
+   * @param {string} mediaId - Media ID
+   */
+  const starMediaDirect = async mediaId => {
+    try {
+      const response = await apiClient.post(`/v1/memora/media/${mediaId}/toggle-star`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Apply watermark to media
    */
   const applyWatermarkToMedia = async (selectionId, setId, mediaId, watermarkUuid) => {
@@ -661,6 +719,18 @@ export function useSelectionsApi() {
       const response = await apiClient.delete(
         `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/watermark`
       )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Toggle featured status for media
+   */
+  const toggleFeatured = async mediaId => {
+    try {
+      const response = await apiClient.post(`/v1/memora/media/${mediaId}/toggle-featured`)
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -923,16 +993,20 @@ export function useSelectionsApi() {
     // Media
     fetchSetMedia,
     fetchStarredMedia,
+    fetchUserMedia,
     uploadMediaToSet,
     deleteMedia,
+    deleteMediaDirect,
     renameMedia,
     replaceMedia,
     moveMediaToSet,
     copyMediaToSet,
     starMedia,
+    starMediaDirect,
     applyWatermarkToMedia,
     removeWatermarkFromMedia,
     downloadMedia,
+    toggleFeatured,
 
     // Guest Access
     checkSelectionStatus,

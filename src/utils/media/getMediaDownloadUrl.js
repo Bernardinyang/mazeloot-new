@@ -1,3 +1,2 @@
-export const getMediaDownloadUrl = item => {
-  return item?.url || item?.thumbnail || ''
-}
+// Re-export getMediaDownloadUrl from getMediaPreviewUrl for backward compatibility
+export { getMediaDownloadUrl } from '@/utils/media/getMediaPreviewUrl'

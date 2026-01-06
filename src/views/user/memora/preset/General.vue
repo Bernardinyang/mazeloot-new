@@ -602,6 +602,7 @@ import {
 } from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
 import { Skeleton } from '@/components/shadcn/skeleton'
@@ -874,7 +875,7 @@ const handleSave = async () => {
     toast.success('Preset saved successfully')
   } catch (error) {
     toast.error('Failed to save preset', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   }
 }
@@ -919,7 +920,7 @@ const handleNext = async () => {
     }
   } catch (error) {
     toast.error('Failed to save preset', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isSubmitting.value = false
@@ -956,7 +957,7 @@ const savePresetGeneral = async () => {
     return true
   } catch (error) {
     toast.error('Failed to save preset', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
     return false
   }

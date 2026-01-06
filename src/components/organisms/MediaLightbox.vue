@@ -155,7 +155,8 @@
                   v-if="currentMediaType === 'image' && currentMediaUrl"
                   :alt="currentItem?.title || currentItem?.filename || 'Media'"
                   :src="currentMediaUrl"
-                  class="w-auto h-auto object-contain shadow-2xl transition-all duration-300"
+                  draggable="false"
+                  class="w-auto h-auto object-contain shadow-2xl transition-all duration-300 protected-content"
                   :class="[
                     isLoading ? 'opacity-0' : 'opacity-100',
                     isSlideshowPlaying && isFullscreen 
@@ -260,7 +261,7 @@
                   </span>
                 </div>
               </div>
-              <div class="flex items-center gap-2 sm:gap-1.5 flex-shrink-0 self-end sm:self-auto">
+              <div v-if="isCollectionContext" class="flex items-center gap-2 sm:gap-1.5 flex-shrink-0 self-end sm:self-auto">
                 <button
                   aria-label="Download"
                   class="p-2.5 sm:p-2 rounded-lg bg-white/10 hover:bg-white/20 backdrop-blur-sm transition-all duration-200 hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50"
@@ -312,6 +313,7 @@ import { useCollectionsApi } from '@/api/collections'
 import { useSelectionsApi } from '@/api/selections'
 import { useMediaApi } from '@/api/media'
 import { toast } from '@/utils/toast'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 
 const props = defineProps({
   modelValue: {
@@ -414,6 +416,10 @@ const currentItem = computed(() => {
   const item = props.items[currentIndex.value] || props.items[0]
   // Ensure we return a reactive reference
   return item
+})
+
+const isCollectionContext = computed(() => {
+  return props.collectionId && !props.proofingId && !props.selectionId
 })
 
 const currentMediaType = computed(() => {
@@ -1082,6 +1088,11 @@ watch(
   { deep: true }
 )
 
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 onMounted(() => {
   if (isOpen.value) {
     document.addEventListener('keydown', handleKeyDown)
@@ -1090,6 +1101,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  cleanupProtection()
   stopSlideshow()
   document.removeEventListener('keydown', handleKeyDown)
   document.removeEventListener('fullscreenchange', handleFullscreenChange)

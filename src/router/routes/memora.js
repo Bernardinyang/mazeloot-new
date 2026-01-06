@@ -103,6 +103,14 @@ export const memoraRoutes = [
     },
   },
   {
+    path: '/memora/media/my',
+    name: 'myMedia',
+    component: () => import('@/views/user/memora/MyMedia.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: '/memora/projects/starred',
     name: 'starredProjects',
     component: () => import('@/views/user/memora/starred/StarredProjects.vue'),

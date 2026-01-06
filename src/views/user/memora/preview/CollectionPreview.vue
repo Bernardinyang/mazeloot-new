@@ -594,6 +594,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import {
   ChevronLeft,
@@ -1352,10 +1353,6 @@ const filteredMedia = computed(() => {
     return item.url !== coverImageUrl && item.thumbnail !== coverImageUrl
   })
 
-  // Filter private media for guests
-  if (props.previewMode === 'public' && props.userMode === 'guest') {
-    filtered = filtered.filter(item => !item.isPrivate)
-  }
 
   // No need to filter by set - we only load the active set's media
   // Return all filtered media
@@ -1747,16 +1744,20 @@ const handlePlaySlideshow = () => {
   showMediaViewer.value = true
 }
 
-const handleDownloadMedia = item => {
+const handleDownloadMedia = async item => {
   // Emit download event to parent - let parent handle it (especially for public collections with guest tokens)
   emit('download', item)
   
-  // Fallback: if no parent handler, use direct URL download
-  if (item?.url && !props.previewMode) {
-    const link = document.createElement('a')
-    link.href = item.url
-    link.download = item.title || item.filename || 'media'
-    link.click()
+  // Fallback: if no parent handler, use full-quality URL for download
+  if (!props.previewMode) {
+    const { getMediaDownloadUrl } = await import('@/utils/media/getMediaPreviewUrl')
+    const downloadUrl = getMediaDownloadUrl(item)
+    if (downloadUrl) {
+      const link = document.createElement('a')
+      link.href = downloadUrl
+      link.download = item.title || item.filename || 'media'
+      link.click()
+    }
   }
 }
 
@@ -2478,8 +2479,17 @@ if (props.previewMode) {
   )
 }
 
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 // Load data (only if not in preview mode)
 onMounted(async () => {
+  // Setup scroll listener for scroll-to-load (works in both preview and normal mode)
+  window.addEventListener('scroll', handleScroll)
+
   if (props.previewMode) {
     // In preview mode, use provided props
     if (props.previewCollection) {
@@ -2565,9 +2575,6 @@ onMounted(async () => {
     isLoading.value = true
     isInitialLoad = true
 
-    // Setup scroll listener for back to top button
-    window.addEventListener('scroll', handleScroll)
-
     // Fetch branding settings
     try {
       const settingsResponse = await fetchSettings()
@@ -2639,6 +2646,7 @@ onMounted(async () => {
 
 // Cleanup scroll listener
 onUnmounted(() => {
+  cleanupProtection()
   window.removeEventListener('scroll', handleScroll)
 })
 

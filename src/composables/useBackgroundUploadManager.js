@@ -157,6 +157,46 @@ const resolveUploadMediaCallback = (contextType, contextId, setId) => {
   }
 }
 
+/**
+ * Resolve loadMediaItems callback based on context type
+ * Emits custom event that components can listen to
+ */
+const resolveLoadMediaItemsCallback = (contextType, contextId, setId) => {
+  if (!contextType || !contextId) return null
+
+  try {
+    return async () => {
+      // Emit custom event for components to listen to
+      window.dispatchEvent(new CustomEvent('backgroundUpload:loadMediaItems', {
+        detail: { contextType, contextId, setId }
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to resolve loadMediaItems callback:', error)
+    return null
+  }
+}
+
+/**
+ * Resolve onUploadComplete callback based on context type
+ * Emits custom event that components can listen to
+ */
+const resolveOnUploadCompleteCallback = (contextType, contextId, setId) => {
+  if (!contextType || !contextId) return null
+
+  try {
+    return async (results) => {
+      // Emit custom event for components to listen to
+      window.dispatchEvent(new CustomEvent('backgroundUpload:uploadComplete', {
+        detail: { contextType, contextId, setId, results }
+      }))
+    }
+  } catch (error) {
+    console.error('Failed to resolve onUploadComplete callback:', error)
+    return null
+  }
+}
+
 // Singleton instance
 let managerInstance = null
 
@@ -164,13 +204,16 @@ let managerInstance = null
  * Background Upload Manager Composable (Singleton)
  */
 export function useBackgroundUploadManager(options = {}) {
-  // Return existing instance if available
+  // Update existing instance if options provided
   if (managerInstance) {
+    if (options.concurrentLimit !== undefined) {
+      managerInstance.concurrentLimit.value = options.concurrentLimit
+    }
     return managerInstance
   }
 
   const {
-    concurrentLimit = DEFAULT_CONCURRENT_LIMIT,
+    concurrentLimit: initialConcurrentLimit = DEFAULT_CONCURRENT_LIMIT,
     cleanupHours = DEFAULT_CLEANUP_HOURS,
     historyDays = DEFAULT_HISTORY_DAYS,
     quotaWarningThreshold = DEFAULT_QUOTA_WARNING_THRESHOLD,
@@ -179,6 +222,7 @@ export function useBackgroundUploadManager(options = {}) {
   } = options
 
   // Reactive state
+  const concurrentLimit = ref(initialConcurrentLimit)
   const uploadQueue = ref([])
   const isOnline = ref(navigator.onLine !== false)
   const quotaUsage = ref({ quota: null, usage: null, percentage: null })
@@ -350,15 +394,59 @@ export function useBackgroundUploadManager(options = {}) {
       contextType = 'collection',
       loadMediaItems,
       onUploadComplete,
+      existingMedia = [], // Optional: existing media to check against
     } = uploadConfig
 
     // Generate file hash for deduplication
     const fileHash = generateFileHash(file.name, file.size, contextId, setId)
 
-    // Check for duplicates
+    // Check for duplicates in upload queue
     const duplicate = await checkDuplicate(fileHash)
     if (duplicate) {
       return { success: false, duplicate: true, existingItem: duplicate }
+    }
+
+    // Check against existing media if provided (prevents duplicates after reload)
+    if (Array.isArray(existingMedia) && existingMedia.length > 0) {
+      const fileName = file.name.toLowerCase().trim()
+      const fileSize = file.size
+      
+      const existingMediaItem = existingMedia.find(m => {
+        const mediaFilename = (
+          m.filename ||
+          m.file?.filename ||
+          m.title ||
+          m.originalFilename ||
+          ''
+        ).toLowerCase().trim()
+        
+        const mediaSize = m.size || m.file?.size || 0
+        
+        // Check if filename matches (with or without extension)
+        const filenameMatches =
+          mediaFilename === fileName ||
+          mediaFilename === fileName.replace(/\.[^/.]+$/, '') ||
+          (mediaFilename && fileName && 
+           mediaFilename + file.name.substring(file.name.lastIndexOf('.')) === fileName)
+        
+        // Check if size matches (within 1% tolerance)
+        const sizeMatches =
+          mediaSize > 0 && Math.abs(mediaSize - fileSize) <= Math.max(1, fileSize * 0.01)
+        
+        // Also check setId if provided
+        const setIdMatches = !setId || m.setId === setId
+        
+        return filenameMatches && (sizeMatches || mediaSize === 0) && setIdMatches
+      })
+      
+      if (existingMediaItem) {
+        return { 
+          success: false, 
+          duplicate: true, 
+          existingItem: existingMediaItem,
+          message: `File "${file.name}" already exists in this set`
+        }
+      }
     }
 
     // Check quota
@@ -454,7 +542,7 @@ export function useBackgroundUploadManager(options = {}) {
     if (!isOnline.value) return
 
     const activeCount = activeUploadCount.value
-    if (activeCount >= concurrentLimit) return
+    if (activeCount >= concurrentLimit.value) return
 
     const toStart = uploadQueue.value
       .filter(u => u.status === 'pending' || (u.status === 'paused' && autoResumeOnOnline))
@@ -464,7 +552,7 @@ export function useBackgroundUploadManager(options = {}) {
         }
         return (a.order || 0) - (b.order || 0)
       })
-      .slice(0, concurrentLimit - activeCount)
+      .slice(0, concurrentLimit.value - activeCount)
 
     for (const item of toStart) {
       startUpload(item.id)
@@ -573,8 +661,23 @@ export function useBackgroundUploadManager(options = {}) {
           })
 
           // Execute post-upload callbacks
-          const loadMediaItemsFn = loadMediaItemsCallbacks.value.get(uploadId)
-          const onUploadCompleteFn = onUploadCompleteCallbacks.value.get(uploadId)
+          let loadMediaItemsFn = loadMediaItemsCallbacks.value.get(uploadId)
+          let onUploadCompleteFn = onUploadCompleteCallbacks.value.get(uploadId)
+
+          // Resolve callbacks if missing (after page reload)
+          if (!loadMediaItemsFn && item.contextType && item.contextId) {
+            loadMediaItemsFn = resolveLoadMediaItemsCallback(item.contextType, item.contextId, item.setId)
+            if (loadMediaItemsFn) {
+              loadMediaItemsCallbacks.value.set(uploadId, loadMediaItemsFn)
+            }
+          }
+
+          if (!onUploadCompleteFn && item.contextType && item.contextId) {
+            onUploadCompleteFn = resolveOnUploadCompleteCallback(item.contextType, item.contextId, item.setId)
+            if (onUploadCompleteFn) {
+              onUploadCompleteCallbacks.value.set(uploadId, onUploadCompleteFn)
+            }
+          }
 
           if (loadMediaItemsFn) {
             try {
@@ -999,6 +1102,7 @@ export function useBackgroundUploadManager(options = {}) {
     uploadHistory,
     isInitialized,
     isQuotaHigh,
+    concurrentLimit,
 
     // Computed
     activeUploadCount,

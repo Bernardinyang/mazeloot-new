@@ -233,7 +233,7 @@
       </div>
 
       <!-- Preset -->
-      <div class="space-y-2">
+      <div v-if="presets && presets.length > 0" class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-medium"> Preset </label>
         <Select v-model="formData.presetId">
           <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">
@@ -264,7 +264,7 @@
       </div>
 
       <!-- Watermark -->
-      <div class="space-y-2">
+      <div v-if="watermarks && watermarks.length > 0" class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-medium"> Watermark </label>
         <Select v-model="formData.watermarkId">
           <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput]">

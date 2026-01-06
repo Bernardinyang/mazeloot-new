@@ -133,7 +133,7 @@
             />
           </div>
           <MazelootLogo
-            v-else-if="brandingLogoUrl || showMazelootBranding"
+            v-else-if="brandingLogoUrl || (showMazelootBranding && !brandingLogoUrl)"
             :logoSrc="brandingLogoUrl || mazelootPrimaryLogo"
             :color-class="
               proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
@@ -943,7 +943,8 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
 import {
@@ -2561,6 +2562,12 @@ const handleLogout = () => {
   window.location.reload()
 }
 
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 onMounted(() => {
   // Check if we have a stored password verification for this proofing
   const proofingId = route.query.proofingId
@@ -2579,5 +2586,9 @@ onMounted(() => {
 
   // Load proofing (will show email modal if needed)
   loadProofing()
+})
+
+onUnmounted(() => {
+  cleanupProtection()
 })
 </script>

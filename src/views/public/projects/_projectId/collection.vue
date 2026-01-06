@@ -61,9 +61,9 @@
     </div>
 
     <!-- Guest/Client Choice Modal -->
-    <Dialog v-if="showGuestClientModal && hasClientExclusiveAccess && !isAuthenticatedOwner && !isPreviewMode" :open="true">
+    <Dialog v-if="showGuestClientModal && !isAuthenticatedOwner && !isPreviewMode" :open="true">
       <!-- Branding Logo Above Modal -->
-      <div v-if="brandingLogoUrl || showMazelootBranding" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+      <div v-if="brandingLogoUrl || (showMazelootBranding && !brandingLogoUrl)" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
         <img
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
@@ -298,7 +298,7 @@
     <!-- Don't show password modal for clients - they use client password instead -->
     <Dialog v-if="hasPassword && !isPasswordVerified && !guestToken && !isAuthenticatedOwner && !showEmailModal && !isLoading && (!emailRegistrationRequired || userEmail) && userMode !== 'client'" :open="true" @update:open="(val) => { if (!val && hasPassword && !isPasswordVerified && !guestToken) { passwordInput = ''; passwordError = '' } }" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
       <!-- Branding Logo Above Modal -->
-      <div v-if="brandingLogoUrl || showMazelootBranding" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
+      <div v-if="brandingLogoUrl || (showMazelootBranding && !brandingLogoUrl)" class="fixed left-1/2 -translate-x-1/2 z-[60]" style="top: calc(50% - 250px);">
         <img
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
@@ -469,6 +469,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, AlertCircle, ChevronLeft, Mail, Lock, Shield, User, Users, Eye } from 'lucide-vue-next'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
@@ -486,7 +487,7 @@ import { toast } from '@/utils/toast'
 import { addDefaultSettings } from '@/api/collections'
 import { useSettingsApi } from '@/api/settings'
 import { clearCollectionGuestData } from '@/utils/guestLogout'
-import mazelootLogo from '@/assets/images/mazeloot.svg'
+import mazelootLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 import { getColorPalettes } from '@/utils/colors'
 
 const { fetchSettings, fetchPublicSettings } = useSettingsApi()
@@ -929,7 +930,8 @@ const loadCollection = async () => {
       collection.value = tempCollection
       
       // Check if client exclusive access is enabled
-      if (tempCollection.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+      // Only show guest/client modal if there's no password (password modal takes priority)
+      if (tempCollection.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value && !hasPassword.value) {
         // If user hasn't selected a mode yet and no stored mode, show guest/client modal
         if (!userMode.value && !storedUserMode && !hasStoredClientVerification) {
           error.value = null
@@ -959,7 +961,7 @@ const loadCollection = async () => {
     if (hasPassword.value && guestToken.value && !isAuthenticatedOwner.value && !isPreviewMode.value) {
       try {
         await fetchCollection()
-        // Collection loaded successfully with token
+        // fetchCollection() will handle showing the access modal if client exclusive access is enabled
         isLoading.value = false
         return
       } catch (fetchErr) {
@@ -1096,8 +1098,38 @@ const fetchCollection = async () => {
       hasPassword.value = collection.value.collectionPasswordEnabled
     }
 
+    // Check if client exclusive access is enabled - this takes priority over email registration
+    if (collection.value?.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+      const storedUserMode = getStoredUserMode(collectionId)
+      const hasStoredClientVerification = getStoredClientVerification(collectionId)
+      
+      // If user hasn't explicitly selected a mode (no storedUserMode) and not verified as client, show access modal
+      // This allows choosing access mode even when guest token exists (userMode may be auto-set to 'guest')
+      if (!storedUserMode && !hasStoredClientVerification) {
+        showGuestClientModal.value = true
+        isLoading.value = false
+        return
+      }
+      
+      // If user selected client but not verified, show client password modal
+      if (userMode.value === 'client' && !isClientVerified.value) {
+        if (requiresClientEmail.value && !clientEmail.value) {
+          showClientEmailModal.value = true
+        } else {
+          showClientPasswordModal.value = true
+        }
+        isLoading.value = false
+        return
+      }
+    }
+
     // Check if email registration is required (skip for clients - they already provided email)
-    if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value && userMode.value !== 'client') {
+    // Also skip if client exclusive access is enabled and user hasn't selected a mode (access modal takes priority)
+    const hasStoredUserMode = getStoredUserMode(collectionId)
+    const hasStoredClientVerification = getStoredClientVerification(collectionId)
+    const shouldSkipEmailForClientAccess = collection.value?.clientExclusiveAccess && !hasStoredUserMode && !hasStoredClientVerification
+    
+    if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value && userMode.value !== 'client' && !shouldSkipEmailForClientAccess) {
       const storedEmail = getStoredEmail(collectionId)
       if (!storedEmail) {
         showEmailModal.value = true
@@ -1353,6 +1385,28 @@ const handleVerifyPassword = async () => {
       storeGuestToken(collectionId, token)
       // After password is verified, fetch collection and check for email registration
       await fetchCollection()
+      
+      // Check if client exclusive access is enabled (after password verification)
+      if (collection.value?.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value) {
+        const storedUserMode = getStoredUserMode(collectionId)
+        const hasStoredClientVerification = getStoredClientVerification(collectionId)
+        
+        // If user hasn't selected a mode yet and no stored mode, show guest/client modal
+        if (!userMode.value && !storedUserMode && !hasStoredClientVerification) {
+          showGuestClientModal.value = true
+          return
+        }
+        
+        // If user selected client but not verified, show client password modal
+        if (userMode.value === 'client' && !isClientVerified.value) {
+          if (requiresClientEmail.value && !clientEmail.value) {
+            showClientEmailModal.value = true
+          } else {
+            showClientPasswordModal.value = true
+          }
+          return
+        }
+      }
       
       // Check if email registration is required after password is verified
       if (collection.value?.emailRegistration && !isAuthenticatedOwner.value && !isPreviewMode.value) {
@@ -1865,8 +1919,15 @@ watch(
 )
 
 
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 // Cleanup interval on unmount
 onUnmounted(() => {
+  cleanupProtection()
   if (mediaIdCheckInterval) {
     clearInterval(mediaIdCheckInterval)
     mediaIdCheckInterval = null

@@ -10,21 +10,21 @@
             ? 'opacity-50 grayscale'
             : 'opacity-90 hover:opacity-100',
       props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
-      hasPendingClosureRequest
+      !props.minimalActions && hasPendingClosureRequest
         ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/30 dark:bg-amber-900/10 animate-pulse'
         : '',
-      hasApprovedClosureRequest
+      !props.minimalActions && hasApprovedClosureRequest
         ? 'ring-2 ring-green-500 border-green-500 bg-green-50/30 dark:bg-green-900/10 animate-pulse'
         : '',
-      hasRejectedClosureRequest
+      !props.minimalActions && hasRejectedClosureRequest
         ? 'ring-2 ring-red-500 border-red-500 bg-red-50/30 dark:bg-red-900/10'
         : '',
-      hasPendingApprovalRequest
+      !props.minimalActions && hasPendingApprovalRequest
         ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/30 dark:bg-blue-900/10 animate-pulse'
         : '',
-      isRejected ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/30 dark:bg-red-900/10' : '',
+      !props.minimalActions && isRejected ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/30 dark:bg-red-900/10' : '',
       'group flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-gray-900 hover:shadow-lg transition-all duration-200',
-      isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
+      !props.minimalActions && isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
     ]"
     :title="
       hasPendingClosureRequest
@@ -62,7 +62,7 @@
           :class="[
             'w-20 h-20 object-cover rounded-lg shadow-sm transition-all duration-300 will-change-transform',
             isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
-            isRejected ? 'grayscale' : '',
+            !props.minimalActions && isRejected ? 'grayscale' : '',
           ]"
           :style="props.isSelected ? { opacity: 1 } : {}"
           :src="imageSrc"
@@ -78,7 +78,7 @@
             :class="[
               'w-full h-full object-cover transition-all duration-300 will-change-transform',
               isImageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.98]',
-              isRejected ? 'grayscale' : '',
+              !props.minimalActions && isRejected ? 'grayscale' : '',
             ]"
             :style="props.isSelected ? { opacity: 1 } : {}"
             :src="imageSrc"
@@ -140,6 +140,11 @@
             v-else-if="props.item?.isStarred"
             class="h-3.5 w-3.5 shrink-0 fill-yellow-400 text-yellow-400"
           />
+          <Lock
+            v-if="props.item?.isPrivate || props.item?.is_private"
+            :class="['h-3.5 w-3.5 shrink-0', theme.textSecondary]"
+            title="Private"
+          />
           <Sparkles
             v-if="props.item?.isFeatured || props.item?.is_featured"
             class="h-3.5 w-3.5 shrink-0 fill-purple-500 text-purple-500"
@@ -150,7 +155,7 @@
           {{ props.subtitle }}
         </p>
         <!-- Proofing Badges (only show when NOT in selection context, NOT in public mode, and management actions are enabled) -->
-        <template v-if="!props.selectionStatus && !props.publicMode && props.showManagementActions">
+        <template v-if="!props.minimalActions && !props.selectionStatus && !props.publicMode && props.showManagementActions">
           <!-- Draft/Revision Badge (under date) -->
           <div
             v-if="!(props.item?.isCompleted || props.item?.is_completed)"
@@ -219,7 +224,7 @@
     </button>
 
     <!-- Closure Request Indicators (only show when NOT in selection context) -->
-    <template v-if="!props.selectionStatus">
+    <template v-if="!props.minimalActions && !props.selectionStatus">
       <!-- Pending Closure Request Indicator -->
       <TooltipProvider v-if="hasPendingClosureRequest">
         <Tooltip>
@@ -331,6 +336,7 @@
             Open
           </DropdownMenuItem>
           <DropdownMenuItem
+            v-if="isCollectionContext"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @click.stop="emit('download')"
           >
@@ -355,6 +361,7 @@
               Manage
             </DropdownMenuLabel>
             <DropdownMenuItem
+              v-if="!props.minimalActions"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('move-copy')"
             >
@@ -369,6 +376,7 @@
               Copy filenames
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="!props.minimalActions"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('set-as-cover')"
             >
@@ -376,6 +384,7 @@
               Set as cover photo
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="!props.minimalActions"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('rename')"
             >
@@ -383,6 +392,7 @@
               Rename
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="!props.minimalActions"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('replace')"
             >
@@ -390,7 +400,7 @@
               Replace photo
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="(props.item?.type === 'image' || props.item?.file?.type === 'image') && hasWatermark"
+              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && hasWatermark"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('remove-watermark')"
             >
@@ -398,7 +408,7 @@
               Remove Watermark
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="props.item?.type === 'image' || props.item?.file?.type === 'image'"
+              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image')"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('watermark')"
             >
@@ -410,6 +420,7 @@
           <!-- Closure Actions (only show when NOT in selection context) -->
           <template
             v-if="
+              !props.minimalActions &&
               !props.selectionStatus &&
               (hasPendingClosureRequest ||
                 (closureRequests && closureRequests.length > 0) ||
@@ -474,6 +485,7 @@
           <!-- Revision History (only show when NOT in selection context) -->
           <template
             v-if="
+              !props.minimalActions &&
               !props.selectionStatus &&
               (props.item?.originalMediaId ||
                 props.item?.original_media_uuid ||
@@ -494,6 +506,7 @@
           <!-- Upload Revision - Only when media is ready for revision (only show when NOT in selection context) -->
           <template
             v-if="
+              !props.minimalActions &&
               !props.selectionStatus &&
               (props.item?.isReadyForRevision || props.item?.is_ready_for_revision)
             "
@@ -514,7 +527,7 @@
           </template>
 
           <!-- Approval Request (only show when NOT in selection context) -->
-          <template v-if="!props.selectionStatus && hasAnyApprovalRequest">
+          <template v-if="!props.minimalActions && !props.selectionStatus && hasAnyApprovalRequest">
             <DropdownMenuSeparator />
             <DropdownMenuItem
               v-if="hasPendingApprovalRequest"
@@ -538,7 +551,7 @@
             </DropdownMenuItem>
           </template>
           <!-- Request Approval (only show when NOT in selection context) -->
-          <template v-else-if="!props.selectionStatus && props.isRevisionLimitExceeded">
+          <template v-else-if="!props.minimalActions && !props.selectionStatus && props.isRevisionLimitExceeded">
             <DropdownMenuSeparator />
             <DropdownMenuItem
               :class="[
@@ -600,6 +613,7 @@ import {
   Star,
   Heart,
   Sparkles,
+  Lock,
   Trash2,
   X,
   Upload,
@@ -655,6 +669,10 @@ const props = defineProps({
     type: Boolean,
     default: true,
   },
+  minimalActions: {
+    type: Boolean,
+    default: false,
+  },
   showSelectionCheckbox: {
     type: Boolean,
     default: true,
@@ -690,6 +708,10 @@ const isImageLoaded = ref(false)
 const isDropdownOpen = ref(false)
 const imageElementRef = ref(null)
 const videoThumbnailRef = ref(null)
+
+const isCollectionContext = computed(() => {
+  return props.selectionStatus === 'collection' || (!props.selectionStatus && !props.publicMode)
+})
 
 const latestClosureRequest = computed(() => {
   if (!props.closureRequests || props.closureRequests.length === 0) return null

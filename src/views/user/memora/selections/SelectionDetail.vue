@@ -467,6 +467,7 @@
 
 <script setup>
 import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import SelectionSettingsGeneral from '@/views/user/memora/selections/settings/General.vue'
@@ -503,6 +504,7 @@ import { useSelectionWorkflow } from '@/composables/useSelectionWorkflow'
 import { useSelectionActions } from '@/composables/useSelectionActions'
 import { useSelectionProgress } from '@/composables/useSelectionProgress'
 import { useSelectionsApi } from '@/api/selections'
+import { getErrorMessage } from '@/utils/errors'
 import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
 import { useMediaActions } from '@/composables/useMediaActions'
 import { apiClient } from '@/api/client'
@@ -517,6 +519,12 @@ const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 const watermarkStore = useWatermarkStore()
+
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
 
 // Use store for media sets
 const { selectedSetId, sortedMediaSets } = storeToRefs(mediaSetsSidebar)
@@ -601,6 +609,12 @@ const loadSelection = async () => {
 
   isLoading.value = true
   try {
+    // Clear media items when switching to a different phase
+    const previousSelectionId = selection.value?.id
+    if (previousSelectionId && previousSelectionId !== selectionId) {
+      mediaItems.value = []
+    }
+
     const selectionData = await selectionStore.fetchSelection(selectionId)
     selection.value = selectionData
 
@@ -745,6 +759,16 @@ watch(
   () => route.params.id,
   () => {
     loadSelection()
+  }
+)
+
+// Watch for route changes to handle navigation between different selections
+watch(
+  () => route.params.id,
+  (selectionId) => {
+    if (selectionId) {
+      loadSelection()
+    }
   }
 )
 
@@ -924,6 +948,35 @@ const loadMediaItems = async () => {
   // Use pagination fetch
   await fetchMedia()
 }
+
+// Listen for background upload events after page reload
+const handleBackgroundLoadMediaItems = (event) => {
+  const { contextType, contextId, setId } = event.detail
+  if (contextType === 'selection' && contextId === selection.value?.id && setId === selectedSetId.value) {
+    loadMediaItems()
+  }
+}
+
+const handleBackgroundUploadComplete = (event) => {
+  const { contextType, contextId, results } = event.detail
+  if (contextType === 'selection' && contextId === selection.value?.id && results.successful.length > 0) {
+    // Reload media sets after successful upload
+    if (mediaSetsSidebar) {
+      mediaSetsSidebar.loadMediaSets()
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
+  window.addEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+})
+
+onUnmounted(() => {
+  cleanupProtection()
+  window.removeEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
+  window.removeEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+})
 
 // Update isLoadingMedia to use pagination loading state
 const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
@@ -1318,7 +1371,7 @@ const handleCopySelectedFilenamesInSet = async setId => {
       })
     } catch (error) {
       toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        description: getErrorMessage(error, 'An unknown error occurred'),
       })
     }
     return
@@ -1348,7 +1401,7 @@ const handleCopySelectedFilenamesInSet = async setId => {
     })
   } catch (error) {
     toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   }
 }
@@ -1377,7 +1430,7 @@ const handleCopyAllSelectedFilenames = async () => {
       })
     } catch (error) {
       toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        description: getErrorMessage(error, 'An unknown error occurred'),
       })
     }
     return
@@ -1406,7 +1459,7 @@ const handleCopyAllSelectedFilenames = async () => {
     })
   } catch (error) {
     toast.error('Failed to copy filenames', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   }
 }
@@ -1859,7 +1912,7 @@ const handleConfirmBulkWatermark = async () => {
     await loadMediaItems()
   } catch (error) {
     toast.error('Failed to apply watermark', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isBulkWatermarkLoading.value = false
@@ -2028,25 +2081,24 @@ watch(
 )
 
 const handleFileSelect = async event => {
-  const files = Array.from(event.target.files || [])
-  if (files.length === 0) return
-
-  if (selection.value?.status === 'completed') {
-    event.target.value = ''
-    toast.info('Upload disabled', {
-      description: 'Cannot upload media to a completed selection.',
-    })
-    return
-  }
-
-  // Prevent multiple simultaneous uploads or file processing
+  // Set flag immediately to prevent race conditions
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
     return
   }
 
+  const files = Array.from(event.target.files || [])
   // Reset input immediately to prevent duplicate events
   event.target.value = ''
+  
+  if (files.length === 0) return
+
+  if (selection.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed selection.',
+    })
+    return
+  }
 
   if (!selectedSetId.value) {
     toast.error('No set selected', {
@@ -2066,9 +2118,9 @@ const handleFileSelect = async event => {
 
     if (filesToUpload.length > 0) {
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
-    } else {
     }
   } catch (error) {
+    console.error('File upload error:', error)
   } finally {
     isProcessingFiles.value = false
   }

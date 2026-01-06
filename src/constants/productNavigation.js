@@ -92,6 +92,11 @@ export const MEMORA_NAVIGATION = [
     name: 'featuredMedias',
   },
   {
+    title: 'My Media',
+    icon: FileImage,
+    name: 'myMedia',
+  },
+  {
     title: 'Settings',
   },
   {

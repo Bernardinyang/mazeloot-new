@@ -78,6 +78,7 @@
 
             <!-- Preset -->
             <div
+              v-if="presets && presets.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
@@ -140,6 +141,7 @@
 
             <!-- Default Watermark -->
             <div
+              v-if="watermarks && watermarks.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
               class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
             >
@@ -611,6 +613,7 @@ import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
 import { usePresetsApi } from '@/api/presets'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 
 const route = useRoute()
 const router = useRouter()
@@ -791,7 +794,7 @@ onMounted(async () => {
     }
   } catch (error) {
     toast.error('Failed to load collection', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isLoading.value = false
@@ -883,7 +886,7 @@ const handleSave = async () => {
     toast.success('Settings saved successfully')
   } catch (error) {
     toast.error('Failed to save settings', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isSaving.value = false
@@ -926,7 +929,7 @@ const handleDateChange = async newDate => {
     toast.success('Event date updated successfully')
   } catch (error) {
     toast.error('Failed to update event date', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   }
 }
@@ -1053,7 +1056,7 @@ const handleApplyPreset = async () => {
     })
   } catch (error) {
     toast.error('Failed to apply preset', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   } finally {
     isApplyingPreset.value = false
@@ -1070,7 +1073,7 @@ const handleWatermarkChange = async watermarkId => {
     toast.success('Watermark updated successfully')
   } catch (error) {
     toast.error('Failed to update watermark', {
-      description: error instanceof Error ? error.message : 'An unknown error occurred',
+      description: getErrorMessage(error, 'An unknown error occurred'),
     })
   }
 }

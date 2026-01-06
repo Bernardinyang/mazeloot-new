@@ -514,6 +514,7 @@ import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import UpgradePopover from '@/components/molecules/UpgradePopover.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import { usePresetStore } from '@/stores/preset'
 import { Skeleton } from '@/components/shadcn/skeleton'
 import { generatePin } from '@/utils/generatePin'
@@ -725,7 +726,7 @@ const savePresetDownload = async () => {
     }
     return true
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred'
+    const errorMessage = getErrorMessage(error, 'An unknown error occurred')
     toast.error('Failed to save preset', {
       description: errorMessage,
     })

@@ -554,7 +554,8 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import ProofingLayout from '@/layouts/ProofingLayout.vue'
 import ProofingSettingsGeneral from '@/views/user/memora/proofing/settings/General.vue'
@@ -598,6 +599,7 @@ import { useProofingWorkflow } from '@/composables/useProofingWorkflow'
 import { useProofingApi } from '@/api/proofing'
 import { apiClient } from '@/api/client'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import Pagination from '@/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useUserStore } from '@/stores/user'
@@ -612,6 +614,12 @@ const proofingStore = useProofingStore()
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 const userStore = useUserStore()
 const watermarkStore = useWatermarkStore()
+
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
 
 // Get proofing color from parent (provided by ProofingLayout)
 const proofingColor = inject(
@@ -722,6 +730,12 @@ const loadProofing = async (proofingId) => {
 
   isLoading.value = true
   try {
+    // Clear media items when switching to a different phase
+    const previousProofingId = proofing.value?.id
+    if (previousProofingId && previousProofingId !== proofingId) {
+      mediaItems.value = []
+    }
+
     // Always fetch proofing from backend
     const proofingData = await proofingStore.fetchProofing(proofingId)
     proofing.value = proofingData
@@ -860,6 +874,16 @@ watch(
   (id) => {
     if (id) {
       loadProofing(id)
+    }
+  }
+)
+
+// Watch for route changes to handle navigation between different proofings
+watch(
+  () => route.params.id,
+  (proofingId) => {
+    if (proofingId) {
+      loadProofing(proofingId)
     }
   }
 )
@@ -1039,6 +1063,35 @@ const loadMediaItems = async () => {
 
   await fetchMedia()
 }
+
+// Listen for background upload events after page reload
+const handleBackgroundLoadMediaItems = (event) => {
+  const { contextType, contextId, setId } = event.detail
+  if (contextType === 'proofing' && contextId === proofing.value?.id && setId === selectedSetId.value) {
+    loadMediaItems()
+  }
+}
+
+const handleBackgroundUploadComplete = (event) => {
+  const { contextType, contextId, results } = event.detail
+  if (contextType === 'proofing' && contextId === proofing.value?.id && results.successful.length > 0) {
+    // Reload media sets after successful upload
+    if (mediaSetsSidebar) {
+      mediaSetsSidebar.loadMediaSets()
+    }
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
+  window.addEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+})
+
+onUnmounted(() => {
+  cleanupProtection()
+  window.removeEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
+  window.removeEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+})
 
 // Update isLoadingMedia to use pagination loading state
 const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
@@ -1850,7 +1903,7 @@ const handleConfirmMoveCopy = async () => {
     }
   } catch (error) {
     toast.error(`Failed to ${moveCopyAction.value} media`, {
-      description: error instanceof Error ? error.message : 'An unknown error occurred.',
+      description: getErrorMessage(error, 'An unknown error occurred.'),
     })
   } finally {
     isMovingMedia.value = false
@@ -2005,7 +2058,7 @@ const handleFocalPointConfirm = async focalPoint => {
   } catch (error) {
     toast.error('Failed to set cover photo', {
       description:
-        error instanceof Error ? error.message : 'An error occurred while setting the cover photo.',
+        getErrorMessage(error, 'An error occurred while setting the cover photo.'),
     })
   } finally {
     isUpdatingCoverPhoto.value = false
@@ -2368,23 +2421,24 @@ watch(
 )
 
 const handleFileSelect = async event => {
-  const files = Array.from(event.target.files || [])
-  if (files.length === 0) return
-
-  if (proofing.value?.status === 'completed') {
-    event.target.value = ''
-    toast.info('Upload disabled', {
-      description: 'Cannot upload media to a completed proofing.',
-    })
-    return
-  }
-
+  // Set flag immediately to prevent race conditions
   if (isUploading.value || isProcessingFiles.value) {
     event.target.value = ''
     return
   }
 
+  const files = Array.from(event.target.files || [])
+  // Reset input immediately to prevent duplicate events
   event.target.value = ''
+  
+  if (files.length === 0) return
+
+  if (proofing.value?.status === 'completed') {
+    toast.info('Upload disabled', {
+      description: 'Cannot upload media to a completed proofing.',
+    })
+    return
+  }
 
   if (!selectedSetId.value) {
     toast.error('No set selected', {
@@ -2405,6 +2459,7 @@ const handleFileSelect = async event => {
       await uploadMediaToSet(filesToUpload, selectedSetId.value)
     }
   } catch (error) {
+    console.error('File upload error:', error)
   } finally {
     isProcessingFiles.value = false
   }
@@ -2505,7 +2560,7 @@ const handleRetryUpload = async (fileId, retryFn) => {
   } catch (error) {
     toast.error('Retry failed', {
       description:
-        error instanceof Error ? error.message : 'An error occurred while retrying the upload.',
+        getErrorMessage(error, 'An error occurred while retrying the upload.'),
     })
   }
 }

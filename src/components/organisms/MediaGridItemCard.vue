@@ -10,23 +10,23 @@
               ? 'opacity-50 grayscale'
               : 'opacity-90 hover:opacity-100',
         props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
-        props.showManagementActions && !props.selectionStatus && hasPendingClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasPendingClosureRequest
           ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/20 dark:bg-amber-900/10 animate-pulse'
           : '',
-        props.showManagementActions && !props.selectionStatus && hasApprovedClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasApprovedClosureRequest
           ? 'ring-2 ring-green-500 border-green-500 bg-green-50/20 dark:bg-green-900/10 animate-pulse'
           : '',
-        props.showManagementActions && !props.selectionStatus && hasRejectedClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasRejectedClosureRequest
           ? 'ring-2 ring-red-500 border-red-500 bg-red-50/20 dark:bg-red-900/10'
           : '',
-        props.showManagementActions && !props.selectionStatus && hasPendingApprovalRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasPendingApprovalRequest
           ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/20 dark:bg-blue-900/10 animate-pulse'
           : '',
-        isRejected
+        !props.minimalActions && isRejected
           ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/20 dark:bg-red-900/10'
           : '',
         'relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl will-change-transform',
-        isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
+        !props.minimalActions && isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
       ]"
     >
       <!-- Selection Checkbox -->
@@ -75,7 +75,7 @@
             isImageLoaded
               ? 'opacity-100 scale-100 group-hover:scale-110'
               : 'opacity-0 scale-[0.98]',
-            isRejected ? 'grayscale' : '',
+            !props.minimalActions && isRejected ? 'grayscale' : '',
           ]"
           :src="imageSrc"
           @error="emit('image-error', $event)"
@@ -95,7 +95,7 @@
               isImageLoaded
                 ? 'opacity-100 scale-100 group-hover:scale-110'
                 : 'opacity-0 scale-[0.98]',
-              isRejected ? 'grayscale' : '',
+              !props.minimalActions && isRejected ? 'grayscale' : '',
             ]"
             :src="imageSrc"
             @error="emit('image-error', $event)"
@@ -132,7 +132,7 @@
         class="absolute left-2 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)]"
       >
         <!-- Proofing Badges (only show when NOT in selection context, NOT in public mode, and management actions are enabled) -->
-        <template v-if="!props.selectionStatus && !props.publicMode && props.showManagementActions">
+        <template v-if="!props.minimalActions && !props.selectionStatus && !props.publicMode && props.showManagementActions">
           <!-- Draft/Revision Badge -->
           <div v-if="!(props.item?.isCompleted || props.item?.is_completed)">
             <div
@@ -181,7 +181,7 @@
           </div>
         </template>
         <!-- Closure Request Indicators (only show when NOT in selection context and NOT in collection) -->
-        <template v-if="!props.selectionStatus && props.showManagementActions">
+        <template v-if="!props.minimalActions && !props.selectionStatus && props.showManagementActions">
           <!-- Pending Closure Request Indicator -->
           <TooltipProvider v-if="hasPendingClosureRequest">
             <Tooltip>
@@ -232,7 +232,7 @@
           </TooltipProvider>
         </template>
         <!-- Revision Indicator (only show when NOT in selection context) -->
-        <TooltipProvider v-if="!props.selectionStatus && hasRevisions">
+        <TooltipProvider v-if="!props.minimalActions && !props.selectionStatus && hasRevisions">
           <Tooltip>
             <TooltipTrigger as-child>
               <div
@@ -264,8 +264,8 @@
         </div>
       </div>
 
-      <!-- Favorited Badge, Featured Badge and Private Badge (bottom-left) -->
-      <div class="absolute bottom-2 left-2 z-30 flex items-center gap-2">
+      <!-- Favorited Badge, Private Badge and Featured Badge (bottom-left) -->
+      <div class="absolute bottom-2 left-2 z-30 flex items-center gap-1.5">
         <!-- Favorited Badge (always visible when favorited) -->
         <div v-if="props.item?.isStarred" class="flex items-center justify-center">
           <div
@@ -281,6 +281,16 @@
             <Star v-else class="h-4 w-4 fill-white text-white" />
           </div>
         </div>
+        <!-- Private Badge (always visible when private, positioned next to star) -->
+        <div v-if="props.item?.isPrivate || props.item?.is_private" class="flex items-center justify-center">
+          <div
+            class="flex items-center justify-center w-8 h-8 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg border"
+            :class="theme.borderSecondary"
+            title="Private"
+          >
+            <Lock class="h-4 w-4" :class="theme.textSecondary" />
+          </div>
+        </div>
         <!-- Featured Badge (always visible when featured) -->
         <div v-if="props.item?.isFeatured || props.item?.is_featured" class="flex items-center justify-center">
           <div
@@ -288,16 +298,6 @@
             title="Featured"
           >
             <Sparkles class="h-4 w-4 fill-white text-white" />
-          </div>
-        </div>
-        <!-- Private Badge (always visible when private) -->
-        <div v-if="props.item?.isPrivate" class="flex items-center justify-center">
-          <div
-            class="flex items-center justify-center w-8 h-8 rounded-full bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-lg border"
-            :class="theme.borderSecondary"
-            title="Private"
-          >
-            <Lock class="h-4 w-4" :class="theme.textSecondary" />
           </div>
         </div>
       </div>
@@ -359,7 +359,7 @@
             </Tooltip>
           </TooltipProvider>
           
-          <TooltipProvider v-if="props.allowDownload">
+          <TooltipProvider v-if="props.allowDownload && isCollectionContext">
             <Tooltip>
               <TooltipTrigger as-child>
                 <button
@@ -474,7 +474,7 @@
               Open
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="props.allowDownload"
+              v-if="props.allowDownload && isCollectionContext"
               :class="[theme.textPrimary, theme.bgButtonHover, props.isDownloading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer']"
               :disabled="props.isDownloading"
               @click.stop="emit('download')"
@@ -501,6 +501,7 @@
                 Manage
               </DropdownMenuLabel>
               <DropdownMenuItem
+                v-if="!props.minimalActions"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('move-copy')"
               >
@@ -515,6 +516,7 @@
                 Copy filenames
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="!props.minimalActions"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('set-as-cover')"
               >
@@ -522,6 +524,7 @@
                 Set as cover photo
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="!props.minimalActions"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('rename')"
               >
@@ -529,6 +532,7 @@
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="!props.minimalActions"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('replace')"
               >
@@ -536,7 +540,7 @@
                 Replace photo
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="props.item?.type === 'image' && hasWatermark"
+                v-if="!props.minimalActions && props.item?.type === 'image' && hasWatermark"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('remove-watermark')"
               >
@@ -544,7 +548,7 @@
                 Remove Watermark
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="props.item?.type === 'image'"
+                v-if="!props.minimalActions && props.item?.type === 'image'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('watermark')"
               >
@@ -557,6 +561,7 @@
             <template
               v-if="
                 props.showManagementActions &&
+                !props.minimalActions &&
                 !props.selectionStatus &&
                 (hasPendingClosureRequest ||
                   (closureRequests && closureRequests.length > 0) ||
@@ -621,6 +626,7 @@
             <!-- Revision History (only show when NOT in selection context) -->
             <template
               v-if="
+                !props.minimalActions &&
                 !props.selectionStatus &&
                 (props.item?.originalMediaId ||
                   props.item?.original_media_uuid ||
@@ -639,7 +645,7 @@
             </template>
 
             <!-- Approval Request (only show when NOT in selection context) -->
-            <template v-if="!props.selectionStatus && hasAnyApprovalRequest">
+            <template v-if="!props.minimalActions && !props.selectionStatus && hasAnyApprovalRequest">
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 v-if="hasPendingApprovalRequest"
@@ -663,7 +669,7 @@
               </DropdownMenuItem>
             </template>
             <!-- Request Approval (only show when NOT in selection context) -->
-            <template v-else-if="!props.selectionStatus && props.isRevisionLimitExceeded">
+            <template v-else-if="!props.minimalActions && !props.selectionStatus && props.isRevisionLimitExceeded">
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 :class="[
@@ -681,6 +687,7 @@
             <!-- Upload Revision - Only when media is ready for revision (only show when NOT in selection context) -->
             <template
               v-if="
+                !props.minimalActions &&
                 !props.selectionStatus &&
                 (props.item?.isReadyForRevision || props.item?.is_ready_for_revision)
               "
@@ -811,6 +818,10 @@ const props = defineProps({
   showManagementActions: {
     type: Boolean,
     default: true,
+  },
+  minimalActions: {
+    type: Boolean,
+    default: false,
   },
   showSelectionCheckbox: {
     type: Boolean,

@@ -1,6 +1,6 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Starred Media</template>
+    <template #breadcrumb> My Media</template>
     <template #header>
       <div class="flex items-center justify-end w-full">
         <!-- Header actions can go here -->
@@ -17,7 +17,7 @@
         :view-mode="viewMode"
         :show-view-toggle="false"
         sort-label="Sort photos by"
-        title="Starred Media"
+        title="My Media"
         @clear="handleClearSearch"
         @search="handleSearch"
         @update:search-query="searchQuery = $event"
@@ -138,13 +138,20 @@
         <!-- Loading State -->
         <div
           v-if="isLoadingPhotos"
-          class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+          :class="[
+            'grid gap-4',
+            gridSize === 'small'
+              ? 'grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+              : gridSize === 'medium'
+                ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+          ]"
         >
           <div
             v-for="i in 20"
             :key="i"
             :class="theme.bgSkeleton"
-            class="aspect-square rounded-lg overflow-hidden animate-pulse"
+            class="aspect-square rounded-xl overflow-hidden animate-pulse"
           />
         </div>
 
@@ -153,13 +160,13 @@
           <EmptyState
             :icon="Image"
             action-label="Browse Photos"
-            message="No starred photos found"
+            message="No media found"
             @action="handleBrowsePhotos"
           />
         </div>
 
         <!-- Photos Grid -->
-        <TransitionGroup
+        <div
           v-else
           :class="[
             'grid gap-4',
@@ -169,29 +176,51 @@
                 ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
                 : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
           ]"
-          name="media-grid"
-          tag="div"
         >
-          <MediaGridItemCard
-            v-for="photo in sortedPhotos"
-            :key="photo.id"
-            :is-selected="false"
-            :item="photo"
-            :placeholder-image="placeholderImage"
-            :selection-status="null"
-            :show-filename="showFilename"
-            :show-management-actions="false"
-            :show-selection-checkbox="false"
-            :was-selected-on-completion="false"
-            @copy-filenames="handleCopyFilenames(photo)"
-            @download="handleDownloadPhoto(photo)"
-            @image-error="handleImageError"
-            @open="handlePhotoClick(photo)"
-            @open-viewer="handlePhotoClick(photo)"
-            @star-click="toggleStar(photo)"
-            @view-details="handleViewDetails(photo)"
-          />
-        </TransitionGroup>
+          <TransitionGroup name="media-grid" tag="div" class="contents">
+            <div
+              v-for="photo in sortedPhotos"
+              :key="photo.id"
+              class="relative overflow-hidden"
+              :class="{
+                'opacity-50 pointer-events-none': loadingStates.deleting.has(photo.id),
+              }"
+            >
+              <MediaGridItemCard
+                :is-selected="false"
+                :item="photo"
+                :placeholder-image="placeholderImage"
+                :selection-status="null"
+                :show-filename="showFilename"
+                :show-management-actions="true"
+                :minimal-actions="true"
+                :show-selection-checkbox="false"
+                :was-selected-on-completion="false"
+                :is-downloading="loadingStates.downloading.has(photo.id)"
+                @copy-filenames="handleCopyFilenames(photo)"
+                @delete="handleDeletePhoto(photo)"
+                @download="handleDownloadPhoto(photo)"
+                @image-error="handleImageError"
+                @open="handlePhotoClick(photo)"
+                @open-viewer="handlePhotoClick(photo)"
+                @star-click="toggleStar(photo)"
+                @toggle-featured="handleToggleFeatured(photo)"
+                @view-details="handleViewDetails(photo)"
+              />
+              <!-- Loading Overlay for actions -->
+              <div
+                v-if="
+                  loadingStates.starring.has(photo.id) ||
+                  loadingStates.featuring.has(photo.id) ||
+                  loadingStates.deleting.has(photo.id)
+                "
+                class="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center z-50"
+              >
+                <Loader2 class="h-6 w-6 text-white animate-spin" />
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
       </div>
 
       <!-- Photos List View -->
@@ -217,34 +246,57 @@
           <EmptyState
             :icon="Image"
             action-label="Browse Photos"
-            message="No starred photos found"
+            message="No media found"
             @action="handleBrowsePhotos"
           />
         </div>
 
         <!-- Photos List -->
-        <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
-          <MediaListItemRow
-            v-for="photo in sortedPhotos"
-            :key="photo.id"
-            :is-selected="false"
-            :item="photo"
-            :placeholder-image="placeholderImage"
-            :selection-status="null"
-            :show-filename="showFilename"
-            :show-management-actions="false"
-            :show-selection-checkbox="false"
-            :subtitle="`${photo.mediaSet?.name || 'No set'} • ${formatDate(photo.createdAt)}`"
-            :was-selected-on-completion="false"
-            @copy-filenames="handleCopyFilenames(photo)"
-            @download="handleDownloadPhoto(photo)"
-            @image-error="handleImageError"
-            @open="handlePhotoClick(photo)"
-            @open-viewer="handlePhotoClick(photo)"
-            @star-click="toggleStar(photo)"
-            @view-details="handleViewDetails(photo)"
-          />
-        </TransitionGroup>
+        <div v-else class="space-y-2">
+          <TransitionGroup name="media-list" tag="div" class="contents">
+            <div
+              v-for="photo in sortedPhotos"
+              :key="photo.id"
+              class="relative overflow-hidden"
+              :class="{
+                'opacity-50 pointer-events-none': loadingStates.deleting.has(photo.id),
+              }"
+            >
+              <MediaListItemRow
+                :is-selected="false"
+                :item="photo"
+                :placeholder-image="placeholderImage"
+                :selection-status="null"
+                :show-filename="showFilename"
+                :show-management-actions="true"
+                :minimal-actions="true"
+                :show-selection-checkbox="false"
+                :subtitle="`${photo.mediaSet?.name || 'No set'} • ${formatDate(photo.createdAt)}`"
+                :was-selected-on-completion="false"
+                @copy-filenames="handleCopyFilenames(photo)"
+                @delete="handleDeletePhoto(photo)"
+                @download="handleDownloadPhoto(photo)"
+                @image-error="handleImageError"
+                @open="handlePhotoClick(photo)"
+                @open-viewer="handlePhotoClick(photo)"
+                @star-click="toggleStar(photo)"
+                @toggle-featured="handleToggleFeatured(photo)"
+                @view-details="handleViewDetails(photo)"
+              />
+              <!-- Loading Overlay for actions -->
+              <div
+                v-if="
+                  loadingStates.starring.has(photo.id) ||
+                  loadingStates.featuring.has(photo.id) ||
+                  loadingStates.deleting.has(photo.id)
+                "
+                class="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-xl flex items-center justify-center z-50"
+              >
+                <Loader2 class="h-5 w-5 text-white animate-spin" />
+              </div>
+            </div>
+          </TransitionGroup>
+        </div>
       </div>
 
       <!-- Pagination -->
@@ -279,6 +331,18 @@
       @view="handlePhotoClick"
       @download="handleDownloadPhoto"
     />
+
+    <!-- Delete Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDeleteModal"
+      :is-deleting="loadingStates.deleting.has(photoToDelete?.id)"
+      :item-name="photoToDelete?.filename"
+      :warning-message="deleteWarningMessage"
+      :description="deleteDescription"
+      title="Delete Media"
+      @cancel="showDeleteModal = false"
+      @confirm="handleConfirmDelete"
+    />
   </DashboardLayout>
 </template>
 
@@ -286,7 +350,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRouter } from 'vue-router'
-import { Grid3x3, Image, Check, List } from 'lucide-vue-next'
+import { Grid3x3, Image, Check, List, Loader2 } from 'lucide-vue-next'
 import { storage } from '@/utils/storage'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
@@ -300,6 +364,7 @@ import MediaGridItemCard from '@/components/organisms/MediaGridItemCard.vue'
 import MediaListItemRow from '@/components/organisms/MediaListItemRow.vue'
 import MediaDetailSidebar from '@/components/organisms/MediaDetailSidebar.vue'
 import Pagination from '@/components/molecules/Pagination.vue'
+import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import { toast } from '@/utils/toast'
 import { getErrorMessage } from '@/utils/errors'
 import { useSelectionsApi } from '@/api/selections'
@@ -325,21 +390,29 @@ const searchQuery = ref('')
 const isSearching = ref(false)
 const sortOptions = PHOTO_SORT_OPTIONS
 
+// Loading states for individual actions
+const loadingStates = ref({
+  starring: new Set(),
+  featuring: new Set(),
+  deleting: new Set(),
+  downloading: new Set(),
+})
+
 // Grid size
-const gridSize = ref(storage.get('mazeloot_starred_grid_size') || 'medium')
+const gridSize = ref(storage.get('mazeloot_my_media_grid_size') || 'medium')
 const gridSizeOptions = [
   { label: 'Small', value: 'small' },
   { label: 'Medium', value: 'medium' },
   { label: 'Large', value: 'large' },
 ]
 watch(gridSize, () => {
-  storage.set('mazeloot_starred_grid_size', gridSize.value)
+  storage.set('mazeloot_my_media_grid_size', gridSize.value)
 })
 
 // Show filename toggle
-const showFilename = ref(storage.get('mazeloot_starred_show_filename') ?? false)
+const showFilename = ref(storage.get('mazeloot_my_media_show_filename') ?? false)
 watch(showFilename, () => {
-  storage.set('mazeloot_starred_show_filename', showFilename.value)
+  storage.set('mazeloot_my_media_show_filename', showFilename.value)
 })
 
 // View menu state
@@ -369,7 +442,7 @@ const mapSortToBackend = frontendSort => {
 }
 
 // Fetch function for pagination
-const fetchStarredMedia = async params => {
+const fetchUserMedia = async params => {
   const fetchParams = { ...params }
 
   // Add sort parameter
@@ -377,9 +450,7 @@ const fetchStarredMedia = async params => {
     fetchParams.sortBy = mapSortToBackend(sortBy.value)
   }
 
-  // Add search parameter (if backend supports it, otherwise filter client-side)
-  // For now, we'll filter client-side since the backend endpoint doesn't support search yet
-  const result = await selectionsApi.fetchStarredMedia(fetchParams)
+  const result = await selectionsApi.fetchUserMedia(fetchParams)
   return result
 }
 
@@ -392,11 +463,11 @@ const {
   goToPage,
   resetToFirstPage,
   setPerPage,
-} = useAsyncPagination(fetchStarredMedia, {
+} = useAsyncPagination(fetchUserMedia, {
   initialPage: 1,
   initialPerPage: 10,
-  autoFetch: false, // We'll call fetch manually in onMounted
-  watchForReset: [sortBy], // Reset to page 1 when sort changes (search only on button click)
+  autoFetch: false,
+  watchForReset: [sortBy],
 })
 
 // Filter photos by search query (client-side filtering)
@@ -418,35 +489,111 @@ const { sortedItems: sortedPhotos } = useCollectionSort(
 )
 
 const toggleStar = async photo => {
+  if (!photo?.id) {
+    toast.error('Media not found', {
+      description: 'Unable to toggle star. Please try again.',
+    })
+    return
+  }
+
+  if (loadingStates.value.starring.has(photo.id)) {
+    return
+  }
+
+  loadingStates.value.starring.add(photo.id)
   try {
-    // Find the selection and set IDs from the media item
-    // Use selectionUuid from mediaSet, or fallback to selection.id if selection relationship is loaded
-    const selectionId =
-      photo.mediaSet?.selectionUuid || photo.mediaSet?.selection?.id || photo.selectionId
-    // Use setId from mediaSet.id or fallback to photo.setId
-    const setId = photo.mediaSet?.id || photo.setId
-
-    if (!selectionId || !setId) {
-      console.error('Missing IDs for star toggle:', {
-        selectionId,
-        setId,
-        photo: photo,
-        mediaSet: photo.mediaSet,
-      })
-      toast.error('Unable to toggle star', {
-        description: 'Media set information not available. Please refresh the page.',
-      })
-      return
-    }
-
-    await selectionsApi.starMedia(selectionId, setId, photo.id)
-    // Reload starred media after toggling
+    // Always use direct star toggle in My Media view
+    await selectionsApi.starMediaDirect(photo.id)
     await fetch()
   } catch (error) {
     const errorMessage = getErrorMessage(error, 'Failed to toggle star')
     toast.error('Failed to toggle star', {
       description: errorMessage,
     })
+  } finally {
+    loadingStates.value.starring.delete(photo.id)
+  }
+}
+
+const handleToggleFeatured = async photo => {
+  if (!photo?.id) {
+    toast.error('Media not found', {
+      description: 'Unable to toggle featured status. Please try again.',
+    })
+    return
+  }
+
+  if (loadingStates.value.featuring.has(photo.id)) {
+    return
+  }
+
+  loadingStates.value.featuring.add(photo.id)
+  try {
+    await selectionsApi.toggleFeatured(photo.id)
+    await fetch()
+    toast.success(
+      photo.isFeatured || photo.is_featured
+        ? 'Removed from featured list'
+        : 'Added to featured list'
+    )
+  } catch (error) {
+    const errorMessage = getErrorMessage(error, 'Failed to toggle featured status')
+    toast.error('Failed to toggle featured status', {
+      description: errorMessage,
+    })
+  } finally {
+    loadingStates.value.featuring.delete(photo.id)
+  }
+}
+
+const handleDeletePhoto = photo => {
+  if (!photo?.id) {
+    toast.error('Media not found', {
+      description: 'Unable to delete media. Please try again.',
+    })
+    return
+  }
+
+  if (loadingStates.value.deleting.has(photo.id)) {
+    return
+  }
+
+  photoToDelete.value = photo
+  showDeleteModal.value = true
+}
+
+const handleConfirmDelete = async () => {
+  if (!photoToDelete.value?.id) {
+    return
+  }
+
+  const photo = photoToDelete.value
+  loadingStates.value.deleting.add(photo.id)
+  
+  try {
+    toast.loading('Deleting media...', {
+      id: `delete-media-${photo.id}`,
+    })
+
+    // Always use direct delete in My Media view
+    await selectionsApi.deleteMediaDirect(photo.id)
+    await fetch()
+
+    toast.dismiss(`delete-media-${photo.id}`)
+    toast.success('Media deleted', {
+      description: 'The media has been deleted successfully.',
+    })
+    
+    showDeleteModal.value = false
+    photoToDelete.value = null
+  } catch (error) {
+    toast.dismiss(`delete-media-${photo.id}`)
+    const errorMessage = getErrorMessage(error, 'Failed to delete media')
+    toast.error(errorMessage, {
+      description: '',
+    })
+  } finally {
+    loadingStates.value.deleting.delete(photo.id)
   }
 }
 
@@ -454,6 +601,62 @@ const showPhotoViewer = ref(false)
 const selectedPhotoIndex = ref(0)
 const showMediaDetailSidebar = ref(false)
 const selectedMediaForDetails = ref(null)
+const showDeleteModal = ref(false)
+const photoToDelete = ref(null)
+
+const deleteWarningMessage = computed(() => {
+  if (!photoToDelete.value) return null
+  
+  const mediaSet = photoToDelete.value.mediaSet
+  if (!mediaSet) {
+    return null
+  }
+
+  const phaseInfo = []
+  let phaseType = null
+  let phaseName = null
+  
+  if (mediaSet.proofing || mediaSet.proof_uuid) {
+    phaseName = mediaSet.proofing?.name || 'Unknown'
+    phaseType = 'Proofing'
+    phaseInfo.push(`Proofing: ${phaseName}`)
+  } else if (mediaSet.selection || mediaSet.selection_uuid) {
+    phaseName = mediaSet.selection?.name || 'Unknown'
+    phaseType = 'Selection'
+    phaseInfo.push(`Selection: ${phaseName}`)
+  } else if (mediaSet.collection || mediaSet.collection_uuid) {
+    phaseName = mediaSet.collection?.name || 'Unknown'
+    phaseType = 'Collection'
+    phaseInfo.push(`Collection: ${phaseName}`)
+  }
+
+  const setName = mediaSet.name || 'Unknown'
+  
+  if (phaseInfo.length > 0) {
+    return `Phase: ${phaseType} - ${phaseName}\nSet: ${setName}`
+  }
+
+  return `Set: ${setName}`
+})
+
+const deleteDescription = computed(() => {
+  if (!photoToDelete.value) return 'This action cannot be undone.'
+  
+  const mediaSet = photoToDelete.value.mediaSet
+  if (!mediaSet) {
+    return 'This media is not part of any phase or set. It will be permanently deleted. This action cannot be undone.'
+  }
+
+  const hasPhase = mediaSet.proofing || mediaSet.proof_uuid || 
+                   mediaSet.selection || mediaSet.selection_uuid || 
+                   mediaSet.collection || mediaSet.collection_uuid
+
+  if (hasPhase) {
+    return 'It will be removed from the phase/set and then permanently deleted. This action cannot be undone.'
+  }
+
+  return 'It will be removed from the set and then permanently deleted. This action cannot be undone.'
+})
 
 const handlePhotoClick = photo => {
   const index = sortedPhotos.value.findIndex(p => p.id === photo.id)
@@ -476,14 +679,18 @@ const handleDownloadPhoto = async photo => {
     return
   }
 
+  if (loadingStates.value.downloading.has(photo.id)) {
+    return
+  }
+
+  loadingStates.value.downloading.add(photo.id)
   try {
     toast.loading('Preparing download...', {
-      id: 'download-media',
+      id: `download-media-${photo.id}`,
     })
 
     const { blob, filename } = await selectionsApi.downloadMedia(photo.id)
 
-    // Trigger browser download
     const url = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
@@ -493,16 +700,18 @@ const handleDownloadPhoto = async photo => {
     document.body.removeChild(link)
     window.URL.revokeObjectURL(url)
 
-    toast.dismiss('download-media')
+    toast.dismiss(`download-media-${photo.id}`)
     toast.success('Download started', {
       description: `Downloading ${filename}`,
     })
   } catch (error) {
-    toast.dismiss('download-media')
+    toast.dismiss(`download-media-${photo.id}`)
     const errorMessage = getErrorMessage(error, 'Failed to download media')
     toast.error('Download failed', {
       description: errorMessage,
     })
+  } finally {
+    loadingStates.value.downloading.delete(photo.id)
   }
 }
 
@@ -558,7 +767,6 @@ const formatDate = date => {
 }
 
 const handleImageError = event => {
-  // Set a placeholder image on error
   event.target.src = '/placeholder-image.png'
 }
 

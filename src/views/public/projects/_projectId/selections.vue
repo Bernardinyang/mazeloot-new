@@ -133,7 +133,7 @@
             />
           </div>
           <MazelootLogo
-            v-else-if="brandingLogoUrl || showMazelootBranding"
+            v-else-if="brandingLogoUrl || (showMazelootBranding && !brandingLogoUrl)"
             :logoSrc="brandingLogoUrl || mazelootPrimaryLogo"
             :color-class="
               selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
@@ -748,7 +748,8 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
 import { CheckCircle2, Copy, Eye, Loader2, X, LogOut } from 'lucide-vue-next'
@@ -774,6 +775,7 @@ import { useMediaApi } from '@/api/media'
 import { useUserStore } from '@/stores/user'
 import { useSettingsApi } from '@/api/settings'
 import { toast } from '@/utils/toast'
+import { getErrorMessage } from '@/utils/errors'
 import { clearSelectionGuestData } from '@/utils/guestLogout'
 import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
@@ -873,6 +875,7 @@ const fetchBranding = async (userId) => {
     const settings = settingsResponse.data || settingsResponse
     brandingLogoUrl.value = settings.branding?.logoUrl || null
     brandingName.value = settings.branding?.name || null
+    showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
   } catch (error) {
     console.warn('Failed to fetch public branding settings:', error)
   } finally {
@@ -1920,7 +1923,7 @@ const handleCopySelectedFilenamesInSet = async () => {
       })
     } catch (error) {
       toast.error('Failed to copy filenames', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        description: getErrorMessage(error, 'An unknown error occurred'),
       })
     }
     return
@@ -1950,6 +1953,12 @@ const handleCopySelectedFilenamesInSet = async () => {
   }
 }
 
+// Initialize download protection
+const { cleanup: cleanupProtection } = useDownloadProtection({
+  enabled: true,
+  showWarnings: false,
+})
+
 onMounted(() => {
   // Check if we have a stored password verification for this selection
   const selectionId = route.query.selectionId
@@ -1968,5 +1977,9 @@ onMounted(() => {
 
   // Load selection (will show email modal if needed)
   loadSelection()
+})
+
+onUnmounted(() => {
+  cleanupProtection()
 })
 </script>
