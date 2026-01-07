@@ -91,7 +91,7 @@
         :class="[
           'p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md',
           selectedRevision?.id === revision.id
-            ? 'ring-2 ring-teal-500 border-teal-500 bg-teal-50/50 dark:bg-teal-900/20'
+            ? 'ring-2 ring-accent border-accent bg-accent/10 dark:bg-accent/20'
             : theme.borderSecondary,
           theme.bgCardSolid,
         ]"

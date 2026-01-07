@@ -561,13 +561,14 @@
               </span>
             </Transition>
             <Button
+              variant="default"
+              :disabled="false"
+              :loading="isSubmitting || isSaving"
+              loading-label="Saving..."
+              class="shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
-              :disabled="isSubmitting || isSaving"
-              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
             >
-              <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
-              <span v-if="isSubmitting || isSaving">Saving...</span>
-              <span v-else>Next →</span>
+              Next →
             </Button>
           </div>
         </div>

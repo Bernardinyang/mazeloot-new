@@ -2,7 +2,7 @@
   <Select :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)">
     <SelectTrigger
       :class="[
-        'w-full transition-all duration-200 focus:ring-2 focus:ring-teal-500/20',
+        'w-full transition-all duration-200 focus:ring-2 focus:ring-violet-500/20',
         theme.bgInput,
         theme.borderInput,
         theme.textInput,

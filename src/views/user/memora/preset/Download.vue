@@ -477,14 +477,14 @@
               </span>
             </Transition>
             <Button
-              :disabled="isSubmitting || isSaving"
-              class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 px-6"
+              variant="default"
+              :loading="isSubmitting || isSaving"
+              :icon="ArrowRight"
+              loading-label="Saving..."
+              class="shadow-lg hover:shadow-xl transition-all duration-200 px-6"
               @click="handleNext"
             >
-              <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
-              <ArrowRight v-else class="mr-2 h-4 w-4" />
-              <span v-if="isSubmitting || isSaving">Saving...</span>
-              <span v-else>Next</span>
+              Next
             </Button>
           </div>
         </div>

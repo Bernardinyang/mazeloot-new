@@ -44,15 +44,49 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
   // Persistence state
   const isSavingSets = ref(false)
 
-  const setContext = (id, sets = []) => {
+  const setContext = async (id, sets = null) => {
+    const previousCollectionId = collectionId.value
+    
+    // If collection ID changed, clear media sets immediately to prevent carry-over
+    if (previousCollectionId && previousCollectionId !== id) {
+      mediaSets.value = []
+      selectedSetId.value = null
+    }
+    
     collectionId.value = id || ''
-    mediaSets.value = Array.isArray(sets) ? sets : []
+
+    // If sets are provided, use them; otherwise fetch from API
+    if (sets !== null) {
+      mediaSets.value = Array.isArray(sets) ? sets : []
+    } else if (id) {
+      // Fetch media sets from API
+      try {
+        // Force refresh from backend to get updated counts
+        const fetchedCollection = await galleryStore.fetchCollection(id, true)
+        if (fetchedCollection?.mediaSets && Array.isArray(fetchedCollection.mediaSets)) {
+          const mappedMediaSets = fetchedCollection.mediaSets.map(set => ({
+            id: set.id,
+            name: set.name,
+            description: set.description,
+            order: set.order ?? 0,
+            count: set.count ?? set.media_count ?? 0,
+          }))
+          mediaSets.value = [...mappedMediaSets]
+        } else {
+          mediaSets.value = []
+        }
+      } catch (error) {
+        mediaSets.value = []
+      }
+    } else {
+      mediaSets.value = []
+    }
+
     // Keep selection stable if possible - only clear if the set no longer exists
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
     }
-    // Only auto-select first set if no set is currently selected AND there are sets available
-    // Do NOT auto-select if current set is empty - user might want to upload to it
+    // Always auto-select first set if none selected and sets exist
     if (!selectedSetId.value && mediaSets.value.length > 0) {
       selectedSetId.value = mediaSets.value[0].id
     }

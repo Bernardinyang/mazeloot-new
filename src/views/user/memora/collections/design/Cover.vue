@@ -51,14 +51,11 @@
                   </p>
                 </div>
                 <Button
-                  :class="[theme.borderSecondary, theme.bgCard, theme.textPrimary]"
-                  class="w-full group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 transition-all duration-200"
-                  variant="outline"
+                  class="w-full"
+                  variant="default"
                   @click="showFocalPointModal = true"
                 >
-                  <Eye
-                    class="h-4 w-4 mr-2 group-hover:text-accent transition-colors"
-                  />
+                  <Eye class="h-4 w-4 mr-2" />
                   <span>Set Focal Point</span>
                 </Button>
               </div>
@@ -104,15 +101,15 @@
                     </div>
                   </Transition>
                   <Button
-                    :disabled="isSubmitting || isSaving || !hasUnsavedChanges"
-                    class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
+                    variant="default"
+                    :disabled="!hasUnsavedChanges"
+                    :loading="isSubmitting || isSaving"
+                    :icon="!hasUnsavedChanges ? Check : null"
+                    loading-label="Saving..."
+                    class="hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
                     @click="handleSave"
                   >
-                    <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
-                    <Check v-else-if="!hasUnsavedChanges" class="mr-2 h-4 w-4" />
-                    <span v-if="isSubmitting || isSaving">Saving...</span>
-                    <span v-else-if="!hasUnsavedChanges">Saved</span>
-                    <span v-else>Save Changes</span>
+                    {{ !hasUnsavedChanges ? 'Saved' : 'Save Changes' }}
                   </Button>
                 </div>
               </div>
@@ -128,7 +125,7 @@
               >
                 <div
                   :class="theme.borderSecondary"
-                  class="p-5 border-b bg-gradient-to-r from-teal-50/50 to-blue-50/50 dark:from-teal-950/30 dark:to-blue-950/30"
+                  class="p-5 border-b bg-gradient-to-r from-violet-50/50 to-blue-50/50 dark:from-violet-950/30 dark:to-blue-950/30"
                 >
                   <div class="flex items-center justify-between">
                     <div>
@@ -199,66 +196,14 @@
       </div>
 
       <!-- Focal Point Modal -->
-      <Dialog :open="showFocalPointModal" @update:open="showFocalPointModal = $event">
-        <DialogContent
-          :class="[theme.bgCard, theme.borderCard, 'sm:max-w-4xl p-0', 'focal-point-dialog']"
-        >
-          <DialogHeader class="px-6 pt-6 pb-4">
-            <DialogTitle :class="['text-lg font-semibold uppercase', theme.textPrimary]">
-              SET FOCAL POINT
-            </DialogTitle>
-          </DialogHeader>
-
-          <div class="px-6 pb-6">
-            <div
-              ref="focalPointImageContainer"
-              :style="{
-                aspectRatio: '16/9',
-                backgroundImage: collectionCoverImage
-                  ? `url(${collectionCoverImage})`
-                  : collection.thumbnail
-                    ? `url(${collection.thumbnail})`
-                    : 'none',
-                backgroundSize: 'cover',
-                backgroundPosition: `${formData.coverFocalPoint.x}% ${formData.coverFocalPoint.y}%`,
-                backgroundRepeat: 'no-repeat',
-              }"
-              class="relative w-full bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden cursor-crosshair"
-              @click="handleFocalPointClick"
-            >
-              <!-- Focal Point Indicator -->
-              <div
-                :style="{
-                  left: `${formData.coverFocalPoint.x}%`,
-                  top: `${formData.coverFocalPoint.y}%`,
-                  transform: 'translate(-50%, -50%)',
-                }"
-                class="absolute w-8 h-8 rounded-full border-4 border-white bg-green-500 pointer-events-none transition-all duration-100"
-              >
-                <div class="w-full h-full rounded-full bg-white/30"></div>
-              </div>
-            </div>
-
-            <div class="flex items-center justify-end gap-3 mt-4">
-              <Button
-                :class="[theme.textSecondary, theme.bgButtonHover]"
-                type="button"
-                variant="ghost"
-                @click="showFocalPointModal = false"
-              >
-                Cancel
-              </Button>
-              <Button
-                class="bg-accent hover:bg-accent/90 text-accent-foreground"
-                type="button"
-                @click="showFocalPointModal = false"
-              >
-                Done
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
+        :image-url="collectionCoverImage"
+        :fallback-image-url="collection?.thumbnail"
+        :initial-focal-point="formData?.coverFocalPoint || { x: 50, y: 50 }"
+        @update:is-open="showFocalPointModal = $event"
+        @confirm="handleFocalPointConfirm"
+      />
 
       <!-- Unsaved Changes Modal -->
       <UnsavedChangesModal
@@ -278,7 +223,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/composables/useUnsavedChangesGuard'
 import { Check, ExternalLink, Eye, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/shadcn/dialog'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import ContentLoader from '@/components/molecules/ContentLoader.vue'
@@ -302,7 +247,6 @@ const isLoading = ref(false)
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
 const showFocalPointModal = ref(false)
-const focalPointImageContainer = ref(null)
 const collectionCoverImage = ref(null)
 const isSaving = ref(false)
 const isSubmitting = ref(false)
@@ -399,18 +343,8 @@ watch(
 )
 
 
-const handleFocalPointClick = event => {
-  if (!focalPointImageContainer.value) return
-
-  const rect = focalPointImageContainer.value.getBoundingClientRect()
-  const x = ((event.clientX - rect.left) / rect.width) * 100
-  const y = ((event.clientY - rect.top) / rect.height) * 100
-
-  // Clamp values between 0 and 100
-  formData.coverFocalPoint = {
-    x: Math.min(100, Math.max(0, x)),
-    y: Math.min(100, Math.max(0, y)),
-  }
+const handleFocalPointConfirm = focalPoint => {
+  formData.coverFocalPoint = { ...focalPoint }
 }
 
 const handleCoverPhotoClick = () => {
@@ -512,9 +446,26 @@ const saveCoverDesign = async () => {
       }
     }
 
-    await galleryStore.updateCollection(collection.value.id, {
+    const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
       coverDesign: coverDesignData,
     })
+
+    // Update local collection ref with the response to ensure sidebar updates
+    if (updatedCollection) {
+      collection.value = updatedCollection
+      // Also ensure store is updated (should already be, but ensure reactivity)
+      const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
+      if (index !== -1) {
+        galleryStore.collections[index] = updatedCollection
+        galleryStore.collections = [...galleryStore.collections]
+      }
+    } else {
+      // Fallback: refresh from store
+      const collectionInStore = galleryStore.collections.find(c => c.id === collection.value?.id)
+      if (collectionInStore) {
+        collection.value = collectionInStore
+      }
+    }
 
     if (originalData.value) {
       originalData.value = { ...formData }

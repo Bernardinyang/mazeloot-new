@@ -59,8 +59,8 @@
         </Label>
       </div>
 
-      <Button :disabled="loading || !meta.valid" class="w-full" type="submit">
-        {{ loading ? 'Creating account...' : 'Create Account' }}
+      <Button :disabled="loading || !meta.valid" class="w-full" type="submit" :loading="loading" loading-label="Creating account...">
+        Create Account
       </Button>
     </Form>
 

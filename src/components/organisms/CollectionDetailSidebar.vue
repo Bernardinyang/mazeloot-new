@@ -23,7 +23,7 @@
           :class="[
             'text-sm font-semibold hover:underline transition-colors',
             theme.textPrimary,
-            'hover:text-teal-500 dark:hover:text-teal-400',
+            'hover:text-accent',
           ]"
         >
           {{ project.name }}
@@ -289,10 +289,10 @@
         <ActionButtonGroup>
           <Button
             variant="default"
-            class="w-full bg-teal-500 hover:bg-teal-600 text-white"
+            :icon="Eye"
+            class="w-full"
             @click="handleViewCollection"
           >
-            <Eye class="h-4 w-4 mr-2" />
             View Collection
           </Button>
           <Button

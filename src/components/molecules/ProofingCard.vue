@@ -43,6 +43,7 @@
         v-if="coverImage && !isVideoCover"
         :src="coverImage"
         :alt="proofing.name"
+        :style="coverImageStyle"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
         @error="handleImageError"
@@ -53,6 +54,7 @@
         v-if="coverImage && isVideoCover"
         :src="coverImage"
         :poster="coverVideoPoster"
+        :style="coverImageStyle"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         muted
         loop
@@ -91,17 +93,6 @@
         >
           <Eye class="h-10 w-10 text-white" />
         </div>
-        <div
-          v-if="proofing.status"
-          :style="{
-            backgroundColor: `${cardColor}20`,
-            color: 'white',
-            borderColor: `${cardColor}40`,
-          }"
-          class="px-3 py-1 rounded-full text-xs font-semibold border"
-        >
-          {{ capitalize(proofing.status) }}
-        </div>
       </div>
 
       <!-- Project Badge -->
@@ -117,13 +108,6 @@
         </div>
       </div>
 
-      <!-- Status Badge (when cover image exists) -->
-      <div
-        v-if="coverImage && proofing.status"
-        class="absolute bottom-3 right-3 z-30"
-      >
-        <StatusBadge :status="proofing.status" />
-      </div>
 
       <!-- Starred Badge and Lock Icon -->
       <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
@@ -154,18 +138,17 @@
           v-if="showStar"
           variant="ghost"
           size="icon"
-          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 [&_svg]:transition-all"
+          :disabled="isStarring"
+          :loading="isStarring"
+          :icon="!isStarring ? Star : null"
+          :class="[
+            proofing.isStarred || proofing.starred
+              ? '[&_svg]:fill-yellow-400 [&_svg]:text-yellow-400'
+              : '[&_svg]:text-gray-600 dark:[&_svg]:text-gray-400',
+          ]"
           @click.stop="$emit('star-click', proofing)"
-        >
-          <Star
-            :class="[
-              'h-4 w-4',
-              proofing.isStarred || proofing.starred
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-600 dark:text-gray-400',
-            ]"
-          />
-        </Button>
+        />
         <DropdownMenu v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <Button
@@ -190,15 +173,18 @@
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :disabled="isDeleting"
               @click.stop="$emit('edit', proofing)"
             >
               <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+              :disabled="isDeleting"
               @click.stop="$emit('delete', proofing)"
             >
-              <span>Delete</span>
+              <span v-if="isDeleting">Deleting...</span>
+              <span v-else>Delete</span>
             </DropdownMenuItem>
             <slot name="menu-items-append" />
           </DropdownMenuContent>
@@ -218,10 +204,13 @@
           {{ proofing.name }}
         </h3>
       </div>
-      <div class="flex items-center gap-3 text-sm mt-1" :class="theme.textSecondary">
+      <div class="flex items-center justify-between gap-3 text-sm mt-1" :class="theme.textSecondary">
         <slot name="subtitle">
           <span class="line-clamp-1">{{ subtitle || getMediaAndSetCount(proofing) }}</span>
         </slot>
+        <div v-if="proofing.status" class="shrink-0">
+          <StatusBadge :status="proofing.status" />
+        </div>
       </div>
     </div>
   </div>
@@ -240,6 +229,7 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/utils/colors'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 import { capitalize } from '@/lib/utils'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 
@@ -263,6 +253,14 @@ const props = defineProps({
   rotateAmplitude: {
     type: Number,
     default: 8,
+  },
+  isStarring: {
+    type: Boolean,
+    default: false,
+  },
+  isDeleting: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -341,6 +339,9 @@ const isVideoCover = computed(() => {
   const lowerUrl = coverImage.value.toLowerCase()
   return videoExtensions.some(ext => lowerUrl.includes(ext))
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.proofing))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 const coverVideoPoster = computed(() => {
   if (!isVideoCover.value) return null

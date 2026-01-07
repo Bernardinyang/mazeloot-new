@@ -203,13 +203,14 @@
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
-          :disabled="!hasChanges || isSaving"
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="default"
+          :disabled="!hasChanges"
+          :loading="isSaving"
+          :icon="!hasChanges ? Check : null"
+          loading-label="Saving..."
           @click="handleSave"
         >
-          <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-          <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-          {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+          {{ hasChanges ? 'Save Changes' : 'Saved' }}
         </Button>
       </div>
     </div>

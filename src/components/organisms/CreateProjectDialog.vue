@@ -267,20 +267,15 @@
         <Button
           type="button"
           @click="handleSubmit"
+          variant="default"
           :disabled="
             !formData.name.trim() ||
-            (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections) ||
-            props.isSubmitting ||
-            isLocalSubmitting
+            (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections)
           "
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          :loading="props.isSubmitting || isLocalSubmitting"
+          loading-label="Creating..."
         >
-          <Loader2
-            v-if="props.isSubmitting || isLocalSubmitting"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
-          <span v-else>Create Project</span>
+          Create Project
         </Button>
       </div>
     </template>

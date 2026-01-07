@@ -78,7 +78,7 @@
               </Select>
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 Choose whether you want your collections to be searchable on search engines (e.g. Google).
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium">Learn more</a>.
+                <a href="#" class="text-accent hover:text-accent/80 underline font-medium">Learn more</a>.
               </p>
             </div>
           </div>
@@ -115,7 +115,7 @@
               </Select>
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 This setting only applies to web display copies of your photos. Your originals are not altered.
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium">Learn more</a>.
+                <a href="#" class="text-accent hover:text-accent/80 underline font-medium">Learn more</a>.
               </p>
             </div>
 
@@ -390,17 +390,17 @@
               <span :class="theme.textSecondary">You have unsaved changes</span>
             </div>
             <div v-else class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-teal-500" />
+              <Check class="h-4 w-4 text-accent" />
               <span :class="theme.textSecondary">All changes saved</span>
             </div>
             <Button
-              :disabled="!hasChanges || isSaving || isLoading"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              variant="default"
+              :disabled="!hasChanges || isLoading"
+              :loading="isSaving"
+              loading-label="Saving..."
               @click="handleSave"
             >
-              <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-              <span v-if="isSaving">Saving...</span>
-              <span v-else>Save Changes</span>
+              Save Changes
             </Button>
           </div>
         </div>

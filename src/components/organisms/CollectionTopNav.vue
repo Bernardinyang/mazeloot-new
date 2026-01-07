@@ -65,28 +65,25 @@
                   @keydown.enter="emit('saveName')"
                   @keydown.esc="emit('cancelEditingName')"
                 />
-                <button
+                <Button
                   :disabled="props.isSavingName"
-                  class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
-                  style="height: 1.5rem; width: 1.5rem"
+                  variant="ghost"
+                  size="icon-sm"
+                  class="p-1 flex-shrink-0 hover:scale-110 active:scale-95"
+                  :loading="props.isSavingName"
+                  :icon="!props.isSavingName ? Check : null"
                   @click="emit('saveName')"
                   @mousedown.prevent
-                >
-                  <Check
-                    v-if="!props.isSavingName"
-                    class="h-4 w-4 text-accent"
-                  />
-                  <Loader2 v-else class="h-4 w-4 text-accent animate-spin" />
-                </button>
-                <button
+                />
+                <Button
                   :disabled="props.isSavingName"
-                  class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
-                  style="height: 1.5rem; width: 1.5rem"
+                  variant="ghost"
+                  size="icon-sm"
+                  class="p-1 flex-shrink-0 hover:scale-110 active:scale-95"
+                  :icon="X"
                   @click="emit('cancelEditingName')"
                   @mousedown.prevent
-                >
-                  <X :class="theme.textSecondary" class="h-4 w-4" />
-                </button>
+                />
               </div>
             </Transition>
           </div>
@@ -139,7 +136,19 @@
             </Select>
           </div>
         </div>
-        <div v-else class="h-5 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mb-1"></div>
+        <!-- Loading State for Title and Status Row -->
+        <div v-else class="flex items-center gap-3 mb-1" style="min-height: 1.5rem">
+          <div class="flex items-center gap-2 min-w-0">
+            <!-- Cover thumbnail skeleton -->
+            <div
+              class="flex-shrink-0 h-7 w-7 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 animate-pulse"
+            ></div>
+            <!-- Title skeleton -->
+            <div class="h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+          </div>
+          <!-- Status dropdown skeleton -->
+          <div class="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        </div>
 
         <!-- Date, Preset, and Watermark Row (under title/status) -->
         <div
@@ -235,7 +244,13 @@
     </div>
 
     <!-- Right Side: Theme, Preview, Share, Publish -->
-    <div class="flex items-center gap-3 flex-shrink-0">
+    <div v-if="props.isLoading" class="flex items-center gap-3 flex-shrink-0">
+      <div class="h-9 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-9 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-28 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+    </div>
+    <div v-else class="flex items-center gap-3 flex-shrink-0">
       <!-- Theme Toggle -->
       <ThemeToggle />
 
@@ -269,21 +284,22 @@
         size="sm"
         class="bg-red-500 hover:bg-red-600 text-white"
         :disabled="props.isSavingStatus"
+        :loading="props.isSavingStatus"
+        loading-label="Unpublishing..."
+        :icon="!props.isSavingStatus ? X : null"
         @click="emit('handleUnpublish')"
       >
-        <Loader2 v-if="props.isSavingStatus" class="mr-2 h-4 w-4 animate-spin" />
-        <X v-else class="mr-2 h-4 w-4" />
-        {{ props.isSavingStatus ? 'Unpublishing...' : 'Unpublish' }}
+        Unpublish
       </Button>
       <Button
         v-else
-        :disabled="props.isSavingStatus"
-        class="bg-accent hover:bg-accent/90 text-accent-foreground px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
+        variant="default"
+        :loading="props.isSavingStatus"
+        loading-label="Publishing..."
+        class="px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
         @click="emit('handlePublish')"
       >
-        <Loader2 v-if="props.isSavingStatus" class="mr-2 h-4 w-4 animate-spin" />
-        <span v-if="props.isSavingStatus">Publishing...</span>
-        <span v-else>Publish</span>
+        Publish
       </Button>
     </div>
   </nav>

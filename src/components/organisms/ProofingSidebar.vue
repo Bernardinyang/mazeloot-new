@@ -35,21 +35,17 @@
       </div>
       <!-- Proofing Image/Video/Icon -->
       <div
-        v-else
+        v-else-if="props.proofing?.coverPhotoUrl || props.proofing?.cover_photo_url"
         :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
         @click="isVideoCover ? toggleVideoPlay() : null"
       >
-        <Eye
-          v-if="!props.proofing?.coverPhotoUrl && !props.proofing?.cover_photo_url"
-          class="h-16 w-16"
-          :style="{ color: proofingColor.value }"
-        />
         <!-- Video Cover -->
-        <template v-else-if="isVideoCover">
+        <template v-if="isVideoCover">
           <video
             ref="videoRef"
             :src="coverVideoUrl"
+            :style="coverImageStyle"
             class="w-full h-full object-cover"
             autoplay
             loop
@@ -57,6 +53,18 @@
             playsinline
             @click.stop="toggleVideoPlay"
           />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
           <!-- Play/Pause Overlay -->
           <div
             class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300"
@@ -71,13 +79,43 @@
           </div>
         </template>
         <!-- Image Cover -->
-        <img
-          v-else
-          :alt="props.proofing?.name ?? ''"
-          :src="coverImageSrc"
-          class="w-full h-full object-cover transition-opacity duration-200"
-          @error="handleImageError"
-        />
+        <template v-else>
+          <img
+            :alt="props.proofing?.name ?? ''"
+            :src="coverImageSrc"
+            :style="coverImageStyle"
+            class="w-full h-full object-cover transition-opacity duration-200"
+            @error="handleImageError"
+          />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
+        </template>
+      </div>
+      <!-- No Cover Image Placeholder -->
+      <div
+        v-else
+        :class="theme.borderSecondary"
+        class="w-full aspect-square rounded-2xl bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 flex items-center justify-center border-2 shadow-md border-dashed"
+      >
+        <div class="text-center px-4">
+          <div
+            class="p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm mb-4 mx-auto w-fit shadow-sm"
+          >
+            <ImageIcon :class="theme.textTertiary" class="h-10 w-10 opacity-50" />
+          </div>
+          <p :class="theme.textPrimary" class="text-sm font-semibold mb-1">No cover image</p>
+          <p :class="theme.textTertiary" class="text-xs">Set a cover from media items</p>
+        </div>
       </div>
     </div>
 
@@ -104,8 +142,8 @@
         <button
           :class="[
             activeTab === 'photos'
-              ? 'bg-teal-500 dark:bg-teal-800 text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-teal-500 dark:hover:bg-teal-500',
+              ? 'bg-violet-500 dark:bg-violet-800 text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-violet-500 dark:hover:bg-violet-500',
             'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
           ]"
           :style="activeTab === 'photos' ? { backgroundColor: proofingColor.value } : {}"
@@ -117,8 +155,8 @@
         <button
           :class="[
             activeTab === 'settings'
-              ? 'bg-teal-500 dark:bg-teal-800 text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-teal-500 dark:hover:bg-teal-500',
+              ? 'bg-violet-500 dark:bg-violet-800 text-white shadow-sm'
+              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-violet-500 dark:hover:bg-violet-500',
             'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
           ]"
           :style="activeTab === 'settings' ? { backgroundColor: proofingColor.value } : {}"
@@ -148,6 +186,7 @@
         <video
           v-else-if="isVideoCover && coverVideoUrl"
           :src="coverVideoUrl"
+          :style="coverImageStyle"
           class="w-full h-full object-cover"
           autoplay
           loop
@@ -159,12 +198,13 @@
           v-else-if="props.proofing?.coverPhotoUrl || props.proofing?.cover_photo_url"
           :alt="props.proofing?.name ?? ''"
           :src="coverImageSrc"
+          :style="coverImageStyle"
           class="w-full h-full object-cover"
           @error="handleImageError"
         />
         <div
           v-else
-          class="w-full h-full bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center"
+          class="w-full h-full bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center"
         >
           <Eye class="h-5 w-5" :style="{ color: proofingColor.value }" />
         </div>
@@ -331,6 +371,7 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 import { useRoute, useRouter } from 'vue-router'
 import { computed, inject, ref, watch } from 'vue'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
@@ -340,11 +381,13 @@ const route = useRoute()
 const router = useRouter()
 
 // Get proofing color from parent (provided by ProofingLayout)
+import { getAccentColor } from '@/utils/colors'
+
 const proofingColor = inject(
   'proofingColor',
-  computed(() => '#10B981')
+  computed(() => getAccentColor())
 )
-const getProofingHoverColor = inject('getProofingHoverColor', () => '#059669')
+const getProofingHoverColor = inject('getProofingHoverColor', () => getAccentColor())
 
 const props = defineProps({
   activeTab: {
@@ -388,6 +431,9 @@ const coverVideoUrl = computed(() => {
   if (!isVideoCover.value) return null
   return props.proofing?.coverPhotoUrl || props.proofing?.cover_photo_url || null
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.proofing))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 const toggleVideoPlay = () => {
   if (!videoRef.value) return

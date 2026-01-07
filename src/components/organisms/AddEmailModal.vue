@@ -58,10 +58,11 @@
             backgroundColor: selectionColor,
           }"
           class="text-white"
+          :loading="isSaving"
+          loading-label="Saving..."
           @click="handleSaveAndPublish"
         >
-          <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-          {{ isSaving ? 'Saving...' : 'Save & Publish' }}
+          Save & Publish
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -102,7 +103,7 @@ const props = defineProps({
   },
   selectionColor: {
     type: String,
-    default: '#10B981',
+    default: '#8B5CF6', // Will be set dynamically, fallback for SSR
   },
   context: {
     type: String,

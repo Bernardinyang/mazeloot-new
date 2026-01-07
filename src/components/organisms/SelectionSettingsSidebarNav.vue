@@ -9,8 +9,8 @@
         v-if="props.selectionId"
         :class="[
           route.query?.tab === 'settings' && route.query?.section === 'general'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
         ]"
         :to="{
           name: 'selectionDetail',
@@ -34,7 +34,7 @@
             v-if="props.selectionId"
             :class="[
               route.query?.tab === 'settings' && route.query?.section === 'general'
-                ? 'bg-teal-500 text-white'
+                ? 'bg-violet-500 text-white'
                 : '',
             ]"
             :to="{

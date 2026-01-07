@@ -35,20 +35,17 @@
       </div>
       <!-- Selection Image/Video/Icon -->
       <div
-        v-else
+        v-else-if="props.selection?.coverPhotoUrl || props.selection?.cover_photo_url"
         :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-teal-50 to-teal-100 dark:from-teal-900/20 dark:to-teal-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
         @click="isVideoCover ? toggleVideoPlay() : null"
       >
-        <CheckSquare
-          v-if="!props.selection?.coverPhotoUrl && !props.selection?.cover_photo_url"
-          class="h-16 w-16 text-accent"
-        />
         <!-- Video Cover -->
-        <template v-else-if="isVideoCover">
+        <template v-if="isVideoCover">
           <video
             ref="videoRef"
             :src="coverVideoUrl"
+            :style="coverImageStyle"
             autoplay
             class="w-full h-full object-cover"
             loop
@@ -56,6 +53,18 @@
             playsinline
             @click.stop="toggleVideoPlay"
           />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
           <!-- Play/Pause Overlay -->
           <div
             class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300"
@@ -70,13 +79,43 @@
           </div>
         </template>
         <!-- Image Cover -->
-        <img
-          v-else
-          :alt="props.selection?.name ?? ''"
-          :src="coverImageSrc"
-          class="w-full h-full object-cover transition-opacity duration-200"
-          @error="handleImageError"
-        />
+        <template v-else>
+          <img
+            :alt="props.selection?.name ?? ''"
+            :src="coverImageSrc"
+            :style="coverImageStyle"
+            class="w-full h-full object-cover transition-opacity duration-200"
+            @error="handleImageError"
+          />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
+        </template>
+      </div>
+      <!-- No Cover Image Placeholder -->
+      <div
+        v-else
+        :class="theme.borderSecondary"
+        class="w-full aspect-square rounded-2xl bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 flex items-center justify-center border-2 shadow-md border-dashed"
+      >
+        <div class="text-center px-4">
+          <div
+            class="p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm mb-4 mx-auto w-fit shadow-sm"
+          >
+            <ImageIcon :class="theme.textTertiary" class="h-10 w-10 opacity-50" />
+          </div>
+          <p :class="theme.textPrimary" class="text-sm font-semibold mb-1">No cover image</p>
+          <p :class="theme.textTertiary" class="text-xs">Set a cover from media items</p>
+        </div>
       </div>
     </div>
 
@@ -145,6 +184,7 @@
         <video
           v-else-if="isVideoCover && coverVideoUrl"
           :src="coverVideoUrl"
+          :style="coverImageStyle"
           autoplay
           class="w-full h-full object-cover"
           loop
@@ -156,6 +196,7 @@
           v-else-if="props.selection?.coverPhotoUrl || props.selection?.cover_photo_url"
           :alt="props.selection?.name ?? ''"
           :src="coverImageSrc"
+          :style="coverImageStyle"
           class="w-full h-full object-cover"
           @error="handleImageError"
         />
@@ -298,6 +339,7 @@ import { CheckSquare, ChevronsLeft, ChevronsRight, ImageIcon, Loader2, Pause, Pl
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover/index'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from '@/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 import { useRoute, useRouter } from 'vue-router'
 import { computed, ref, watch } from 'vue'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
@@ -348,6 +390,9 @@ const coverVideoUrl = computed(() => {
   if (!isVideoCover.value) return null
   return props.selection?.coverPhotoUrl || props.selection?.cover_photo_url || null
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.selection))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 const toggleVideoPlay = () => {
   if (!videoRef.value) return

@@ -32,13 +32,13 @@
       <div class="flex items-center gap-2">
         <input
           type="color"
-          :value="modelValue || '#14B8A6'"
+          :value="modelValue || getAccentColor()"
           @input="handleColorInput"
           class="h-10 w-20 rounded-md border border-gray-300 dark:border-gray-600 cursor-pointer"
         />
         <Input
           :value="modelValue || ''"
-          placeholder="#14B8A6"
+          :placeholder="getAccentColor()"
           :class="[theme.bgInput, theme.borderInput, theme.textInput, 'flex-1']"
           @input="handleHexInput"
           maxlength="7"
@@ -52,6 +52,7 @@
 import { computed } from 'vue'
 import { Input } from '@/components/shadcn/input'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { getAccentColor } from '@/utils/colors'
 
 const props = defineProps({
   modelValue: {
@@ -65,9 +66,9 @@ const emit = defineEmits(['update:modelValue'])
 const theme = useThemeClasses()
 
 const presetColors = [
-  { value: '#14B8A6', label: 'Teal' },
+  { value: '#8B5CF6', label: 'Violet' },
   { value: '#8B5CF6', label: 'Purple' },
-  { value: '#10B981', label: 'Emerald' },
+  { value: '#8B5CF6', label: 'Violet' },
   { value: '#F59E0B', label: 'Amber' },
   { value: '#EF4444', label: 'Red' },
   { value: '#3B82F6', label: 'Blue' },

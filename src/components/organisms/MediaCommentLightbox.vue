@@ -22,9 +22,10 @@
             class="bg-red-500 hover:bg-red-600 text-white"
             @click="confirmDelete"
             :disabled="isDeletingComment"
+            :loading="isDeletingComment"
+            loading-label="Deleting..."
           >
-            <Loader2 v-if="isDeletingComment" class="w-4 h-4 mr-2 animate-spin" />
-            <span>{{ isDeletingComment ? 'Deleting...' : 'Delete Comment' }}</span>
+            Delete Comment
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -44,7 +45,7 @@
           <!-- Close Button -->
           <button
             aria-label="Close viewer"
-            class="absolute top-4 right-4 z-[102] w-12 h-12 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+            class="absolute top-4 right-4 z-[102] w-12 h-12 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
             @click.stop="handleClose"
           >
             <X class="w-5 h-5" />
@@ -168,9 +169,9 @@
               <!-- Approved Badge -->
               <div
                 v-if="currentItem?.isCompleted || currentItem?.is_completed"
-                class="ml-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-300"
+                class="ml-4 flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300"
               >
-                <CheckCircle2 class="h-4 w-4 fill-green-500 text-green-500" />
+                <CheckCircle2 class="h-4 w-4 fill-violet-500 text-violet-500" />
                 <span class="text-sm font-medium">Approved</span>
               </div>
             </div>
@@ -180,11 +181,11 @@
           <div
             v-else-if="currentItem?.isCompleted || currentItem?.is_completed"
             :class="[
-              'absolute z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-500/20 border border-green-500/30 text-green-300 backdrop-blur-md shadow-xl',
+              'absolute z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300 backdrop-blur-md shadow-xl',
               isMobile ? 'bottom-20 left-4' : 'bottom-4 left-4',
             ]"
           >
-            <CheckCircle2 class="h-4 w-4 fill-green-500 text-green-500" />
+            <CheckCircle2 class="h-4 w-4 fill-violet-500 text-violet-500" />
             <span class="text-sm font-medium">Approved</span>
           </div>
 
@@ -312,10 +313,10 @@ import {
 } from '@/components/shadcn/dialog'
 import { useMediaQuery } from '@/composables/useMediaQuery'
 import { useProofingApi } from '@/api/proofing'
-import { useRealtimeComments } from '@/composables/useRealtimeComments'
 import { toast } from '@/utils/toast'
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 import { getMediaLightboxPreviewUrl, getMediaPreviewUrl } from '@/utils/media/getMediaPreviewUrl'
+import { usePusher } from '@/composables/usePusher'
 
 const props = defineProps({
   modelValue: {
@@ -408,6 +409,8 @@ const lastTouchDistance = ref(0)
 const lastTouchCenter = ref({ x: 0, y: 0 })
 
 const proofingApi = useProofingApi()
+const { subscribe, unsubscribe } = usePusher()
+let pusherSubscription = null
 
 const currentItem = computed(() => {
   if (props.items.length === 0) return null
@@ -965,6 +968,37 @@ const handleAddComment = async commentData => {
       return
     }
 
+    const commentExists = (commentList, commentId) => {
+      for (const comment of commentList) {
+        if (comment.id === commentId) return true
+        if (comment.replies && comment.replies.length > 0) {
+          if (commentExists(comment.replies, commentId)) return true
+        }
+      }
+      return false
+    }
+
+    if (commentExists(comments.value, newComment.id)) {
+      const removeComment = (commentList, tempId) => {
+        const index = commentList.findIndex(c => c.id === tempId)
+        if (index !== -1) {
+          commentList.splice(index, 1)
+          return true
+        }
+        for (const comment of commentList) {
+          if (comment.replies && comment.replies.length > 0) {
+            if (removeComment(comment.replies, tempId)) {
+              return true
+            }
+          }
+        }
+        return false
+      }
+      removeComment(comments.value, tempId)
+      comments.value = [...comments.value]
+      return
+    }
+
     const replaceComment = (commentList, tempId, realComment) => {
       const newList = commentList.map(comment => {
         if (comment.id === tempId) {
@@ -1266,98 +1300,63 @@ const loadComments = async () => {
   }
 }
 
-const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtimeComments(
-  computed(() => currentItem.value?.id || ''),
-  {
-    onCommentCreated: newComment => {
-      if (newComment.mediaId === currentMediaId.value) {
-        const commentExists =
-          comments.value.some(c => c.id === newComment.id) ||
-          comments.value.some(c => c.replies?.some(r => r.id === newComment.id))
+const setupPusherSubscription = () => {
+  if (!currentMediaId.value) return
 
-        if (commentExists) {
-          return
-        }
+  const channelName = `media.${currentMediaId.value}.feedback`
 
-        if (newComment.parentId) {
-          const parentIndex = comments.value.findIndex(c => c.id === newComment.parentId)
-          if (parentIndex !== -1) {
-            if (!comments.value[parentIndex].replies) {
-              comments.value[parentIndex] = { ...comments.value[parentIndex], replies: [] }
+  if (pusherSubscription) {
+    unsubscribe(channelName)
+    pusherSubscription = null
+  }
+
+  pusherSubscription = subscribe(channelName, 'feedback.created', data => {
+    const feedback = data.feedback
+    if (!feedback || feedback.mediaId !== currentMediaId.value) return
+
+    const existingIds = new Set(comments.value.map(c => c.id))
+    if (existingIds.has(feedback.id)) return
+
+    if (feedback.parentId) {
+      const findAndAddReply = (commentList, parentId, reply) => {
+        for (const comment of commentList) {
+          if (comment.id === parentId) {
+            if (!comment.replies) comment.replies = []
+            if (!comment.replies.some(r => r.id === reply.id)) {
+              comment.replies = [...comment.replies, reply]
             }
-            comments.value[parentIndex].replies = [
-              ...comments.value[parentIndex].replies,
-              newComment,
-            ]
-            comments.value = [...comments.value]
-          } else {
-            const findAndAddReply = (commentList, parentId, reply) => {
-              for (let i = 0; i < commentList.length; i++) {
-                if (commentList[i].id === parentId) {
-                  if (!commentList[i].replies) {
-                    commentList[i] = { ...commentList[i], replies: [] }
-                  }
-                  commentList[i].replies = [...commentList[i].replies, reply]
-                  return true
-                }
-                if (commentList[i].replies && commentList[i].replies.length > 0) {
-                  if (findAndAddReply(commentList[i].replies, parentId, reply)) {
-                    return true
-                  }
-                }
-              }
-              return false
-            }
-            if (findAndAddReply(comments.value, newComment.parentId, newComment)) {
-              comments.value = [...comments.value]
-            } else {
-              comments.value = [...comments.value, newComment]
-            }
-          }
-        } else {
-          comments.value = [...comments.value, newComment]
-        }
-
-        emit('comment-added', {
-          mediaId: currentMediaId.value,
-          comment: newComment,
-          allComments: comments.value,
-        })
-      }
-    },
-    onCommentUpdated: updatedComment => {
-      const mediaId = currentMediaId.value
-      const commentMediaId = updatedComment.mediaId || updatedComment.media_uuid
-
-      if (commentMediaId === mediaId) {
-        const updateComment = (commentList, updated) => {
-          const index = commentList.findIndex(c => c.id === updated.id)
-          if (index !== -1) {
-            commentList[index] = updated
             return true
           }
-          for (const comment of commentList) {
-            if (comment.replies && comment.replies.length > 0) {
-              if (updateComment(comment.replies, updated)) {
-                return true
-              }
+          if (comment.replies && comment.replies.length > 0) {
+            if (findAndAddReply(comment.replies, parentId, reply)) {
+              return true
             }
           }
-          return false
         }
-        updateComment(comments.value, updatedComment)
-
-        emit('comment-updated', {
-          mediaId: mediaId,
-          commentId: updatedComment.id,
-          comment: updatedComment,
-          allComments: comments.value,
-        })
+        return false
       }
-    },
-    fetchComments: loadComments,
+      if (!findAndAddReply(comments.value, feedback.parentId, feedback)) {
+        comments.value = [...comments.value, feedback]
+      }
+    } else {
+      comments.value = [...comments.value, feedback]
+    }
+
+    emit('comment-added', {
+      mediaId: currentMediaId.value,
+      comment: feedback,
+      allComments: comments.value,
+    })
+  })
+}
+
+const cleanupPusherSubscription = () => {
+  if (pusherSubscription && currentMediaId.value) {
+    unsubscribe(`media.${currentMediaId.value}.feedback`)
+    pusherSubscription = null
   }
-)
+}
+
 
 watch(
   () => props.initialIndex,
@@ -1379,14 +1378,14 @@ watch(isOpen, (open, oldValue) => {
       if (currentItem.value) {
         updateMediaUrl()
         loadComments()
+        setupPusherSubscription()
       }
     })
-    connectRealtime()
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
   } else {
-    disconnectRealtime()
     showComments.value = false
+    cleanupPusherSubscription()
     document.removeEventListener('keydown', handleKeyDown)
     document.body.style.overflow = ''
   }
@@ -1403,6 +1402,7 @@ watch(
 
       if (oldMediaId !== newMediaId) {
         comments.value = []
+        cleanupPusherSubscription()
       }
     }
 
@@ -1410,8 +1410,7 @@ watch(
     loadComments()
     resetZoom()
     if (isOpen.value) {
-      disconnectRealtime()
-      connectRealtime()
+      setupPusherSubscription()
     }
   },
   { immediate: true }
@@ -1452,6 +1451,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   cleanupProtection()
+  cleanupPusherSubscription()
   document.removeEventListener('keydown', handleKeyDown)
   document.body.style.overflow = ''
 })

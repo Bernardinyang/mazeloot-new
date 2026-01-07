@@ -48,7 +48,7 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 The name that will appear as the sender of your emails.
-                <span v-if="isUsingBrandingName" class="block mt-1 text-teal-500">
+                <span v-if="isUsingBrandingName" class="block mt-1 text-violet-500">
                   Currently using brand name from Branding settings.
                 </span>
               </p>
@@ -73,7 +73,7 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 The email address that will appear as the sender of your emails.
-                <span v-if="isUsingBrandingEmail" class="block mt-1 text-teal-500">
+                <span v-if="isUsingBrandingEmail" class="block mt-1 text-violet-500">
                   Currently using support email from Branding settings.
                 </span>
               </p>
@@ -111,17 +111,17 @@
               <span :class="theme.textSecondary">You have unsaved changes</span>
             </div>
             <div v-else class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-teal-500" />
+              <Check class="h-4 w-4 text-violet-500" />
               <span :class="theme.textSecondary">All changes saved</span>
             </div>
             <Button
               :disabled="!hasChanges || isSaving || isLoading"
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              :loading="isSaving"
+              loading-label="Saving..."
               @click="handleSave"
             >
-              <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-              <span v-if="isSaving">Saving...</span>
-              <span v-else>Save Changes</span>
+              Save Changes
             </Button>
           </div>
         </div>

@@ -137,6 +137,30 @@
               </div>
             </div>
 
+            <!-- Cover Focal Point -->
+            <div
+              v-if="proofing?.coverPhotoUrl || proofing?.cover_photo_url"
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-5 p-6 rounded-2xl border-2 transition-shadow duration-300"
+            >
+              <div class="mb-2">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                  Cover Focal Point
+                </h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed">
+                  Choose where to focus the cover image for optimal cropping
+                </p>
+              </div>
+              <Button
+                class="w-full"
+                variant="default"
+                @click="showFocalPointModal = true"
+              >
+                <Eye class="h-4 w-4 mr-2" />
+                <span>Set Focal Point</span>
+              </Button>
+            </div>
+
             <!-- Allowed Emails -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -275,19 +299,16 @@
                     Add Email
                   </Button>
                   <Button
-                    :class="[
-                      'bg-accent hover:bg-accent/90 text-accent-foreground transition-all',
-                      isSavingAllowedEmails ? 'opacity-75 cursor-not-allowed' : '',
-                    ]"
-                    :disabled="isSavingAllowedEmails || !hasValidEmails"
+                    variant="default"
+                    :disabled="!hasValidEmails"
+                    :loading="isSavingAllowedEmails"
+                    :icon="emailsSaved ? Check : null"
+                    loading-label="Saving..."
                     size="sm"
+                    class="transition-all"
                     @click="handleAllowedEmailsChange(true)"
                   >
-                    <Loader2 v-if="isSavingAllowedEmails" class="h-4 w-4 mr-2 animate-spin" />
-                    <Check v-else-if="emailsSaved" class="h-4 w-4 mr-2" />
-                    {{
-                      isSavingAllowedEmails ? 'Saving...' : emailsSaved ? 'Saved' : 'Save Emails'
-                    }}
+                    {{ emailsSaved ? 'Saved' : 'Save Emails' }}
                   </Button>
                 </div>
                 <div class="pt-4 mt-4 border-t" :class="theme.borderSecondary">
@@ -414,12 +435,13 @@
                   </Button>
                   <Button
                     v-if="isChangingPassword && newPassword"
-                    :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
-                    :disabled="isSavingPassword"
+                    variant="default"
+                    :loading="isSavingPassword"
+                    loading-label="Saving..."
                     size="sm"
                     @click="handleSavePassword"
                   >
-                    {{ isSavingPassword ? 'Saving...' : 'Save Password' }}
+                    Save Password
                   </Button>
                 </div>
               </div>
@@ -539,26 +561,35 @@
             <!-- Save Button -->
             <div class="flex justify-end gap-3 pt-4">
               <Button
-                :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
-                :disabled="isSaving"
+                variant="default"
+                :loading="isSaving"
+                loading-label="Saving..."
                 @click="handleSaveAll"
               >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                {{ isSaving ? 'Saving...' : 'Save Changes' }}
+                Save Changes
               </Button>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- Focal Point Modal -->
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
+        :image-url="proofingCoverImage"
+        :initial-focal-point="formData?.coverFocalPoint || { x: 50, y: 50 }"
+        @update:is-open="showFocalPointModal = $event"
+        @confirm="handleFocalPointConfirm"
+      />
     </template>
   </ProofingLayout>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { Plus, X, Loader2, Info, Copy, Star } from 'lucide-vue-next'
+import { Plus, X, Loader2, Info, Copy, Star, Eye } from 'lucide-vue-next'
 import ProofingLayout from '@/layouts/ProofingLayout.vue'
 import { Input } from '@/components/shadcn/input'
 import { Textarea } from '@/components/shadcn/textarea'
@@ -566,6 +597,7 @@ import { Button } from '@/components/shadcn/button'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import { useProofingStore } from '@/stores/proofing'
 import { useProofingApi } from '@/api/proofing'
 import { toast } from '@/utils/toast'
@@ -601,6 +633,12 @@ const descriptionSaved = ref(false)
 const colorSaved = ref(false)
 const maxRevisionsSaved = ref(false)
 
+// Focal point state
+const showFocalPointModal = ref(false)
+const formData = reactive({
+  coverFocalPoint: { x: 50, y: 50 },
+})
+
 // Display preferences (from store)
 const { viewMode, gridSize, showFilename } = storeToRefs(proofingStore)
 
@@ -622,6 +660,10 @@ const hasValidEmails = computed(() => {
 
 const validEmailsCount = computed(() => {
   return allowedEmails.value.filter(email => isValidEmail(email)).length
+})
+
+const proofingCoverImage = computed(() => {
+  return proofing.value?.coverPhotoUrl || proofing.value?.cover_photo_url || null
 })
 
 const isPrimaryEmail = email => {
@@ -735,6 +777,14 @@ onMounted(async () => {
       }
     } else {
       primaryEmail.value = null
+    }
+
+    // Load focal point
+    const focalPoint = proofingData.coverFocalPoint || proofingData.cover_focal_point
+    if (focalPoint && typeof focalPoint === 'object' && focalPoint.x !== undefined && focalPoint.y !== undefined) {
+      formData.coverFocalPoint = { x: focalPoint.x, y: focalPoint.y }
+    } else {
+      formData.coverFocalPoint = { x: 50, y: 50 }
     }
   } catch (error) {
     toast.error('Failed to load proofing', {
@@ -1152,8 +1202,41 @@ const handleShowFilenameChange = () => {
 }
 
 const handleSaveAll = async () => {
+  if (!proofing.value?.id || isSaving.value) return
+
+  const projectId = proofing.value.projectId || proofing.value.project_uuid
+  if (!projectId) {
+    toast.error('Project ID missing', {
+      description: 'Cannot save settings without project ID.',
+    })
+    return
+  }
+
   isSaving.value = true
   try {
+    const updateData = {}
+
+    // Update focal point if changed
+    const currentFocalPoint = proofing.value?.coverFocalPoint || proofing.value?.cover_focal_point || { x: 50, y: 50 }
+    if (
+      formData?.coverFocalPoint &&
+      (formData.coverFocalPoint.x !== currentFocalPoint.x ||
+        formData.coverFocalPoint.y !== currentFocalPoint.y)
+    ) {
+      updateData.cover_focal_point = formData.coverFocalPoint
+      updateData.coverFocalPoint = formData.coverFocalPoint
+    }
+
+    // Save focal point if changed
+    if (Object.keys(updateData).length > 0) {
+      await proofingApi.updateProofing(projectId, proofing.value.id, updateData)
+      if (proofing.value) {
+        proofing.value.coverFocalPoint = formData.coverFocalPoint
+        proofing.value.cover_focal_point = formData.coverFocalPoint
+        proofing.value = { ...proofing.value }
+      }
+    }
+
     // Save all pending changes (force save for emails to ensure they're saved)
     await Promise.all([
       handleNameChange(),
@@ -1167,6 +1250,40 @@ const handleSaveAll = async () => {
   } catch (error) {
     toast.error('Failed to save settings', {
       description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isSaving.value = false
+  }
+}
+
+const handleFocalPointConfirm = async focalPoint => {
+  if (!proofing.value?.id || isSaving.value) return
+
+  const projectId = route.query.projectId || proofing.value?.projectId || proofing.value?.project_uuid || null
+
+  if (!formData) return
+  formData.coverFocalPoint = { ...focalPoint }
+
+  // Save immediately
+  isSaving.value = true
+  try {
+    await proofingApi.updateProofing(projectId, proofing.value.id, {
+      cover_focal_point: formData.coverFocalPoint,
+      coverFocalPoint: formData.coverFocalPoint,
+    })
+
+    if (proofing.value && formData?.coverFocalPoint) {
+      proofing.value.coverFocalPoint = formData.coverFocalPoint
+      proofing.value.cover_focal_point = formData.coverFocalPoint
+      proofing.value = { ...proofing.value }
+    }
+
+    toast.success('Focal point updated', {
+      description: 'The cover focal point has been set successfully.',
+    })
+  } catch (error) {
+    toast.error('Failed to update focal point', {
+      description: error?.message || 'An error occurred while setting the focal point.',
     })
   } finally {
     isSaving.value = false

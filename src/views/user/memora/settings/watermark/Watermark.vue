@@ -51,7 +51,7 @@
               @click="handleAddWatermark()"
             >
               <div
-                class="w-40 h-40 rounded border-2 border-dashed flex items-center justify-center transition-colors hover:border-teal-500"
+                class="w-40 h-40 rounded border-2 border-dashed flex items-center justify-center transition-colors hover:border-violet-500"
                 :class="[theme.borderSecondary, theme.bgCard]"
               >
                 <Plus class="h-8 w-8" :class="theme.textTertiary" />
@@ -63,7 +63,7 @@
           <p class="text-xs" :class="theme.textSecondary">
             Protect your photos with custom watermarks. Watermarks will not appear on prints ordered
             through Store.
-            <a href="#" class="text-teal-500 hover:text-teal-600 underline">Learn more</a>.
+            <a href="#" class="text-violet-500 hover:text-violet-600 underline">Learn more</a>.
           </p>
         </div>
       </div>

@@ -309,19 +309,14 @@
           Cancel
         </Button>
         <Button
-          :disabled="
-            !formData.name.trim() || !hasChanges || props.isSubmitting || isLocalSubmitting
-          "
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="default"
+          :disabled="!formData.name.trim() || !hasChanges"
+          :loading="props.isSubmitting || isLocalSubmitting"
+          loading-label="Updating..."
           type="button"
           @click="handleSubmit"
         >
-          <Loader2
-            v-if="props.isSubmitting || isLocalSubmitting"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          <span v-if="props.isSubmitting || isLocalSubmitting">Updating...</span>
-          <span v-else>Update Project</span>
+          Update Project
         </Button>
       </div>
     </template>

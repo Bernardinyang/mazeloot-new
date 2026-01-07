@@ -32,12 +32,12 @@
           Cancel
         </Button>
         <Button
-          :class="['bg-teal-500 hover:bg-teal-600 text-white']"
-          :disabled="isSaving"
+          variant="default"
+          :loading="isSaving"
+          loading-label="Saving..."
           @click="handleSave"
         >
-          <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-          {{ isSaving ? 'Saving...' : 'Save' }}
+          Save
         </Button>
       </DialogFooter>
     </DialogContent>
@@ -46,7 +46,6 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import {
   Dialog,

@@ -87,7 +87,7 @@ export function useSelectionsApi() {
             : null,
         project_uuid: data.projectUuid || data.project_uuid || null,
         status: data.status || 'active',
-        color: data.color || '#10B981',
+        color: data.color || '#8B5CF6', // Default accent, but use CSS classes in components
         cover_photo_url: data.coverPhotoUrl || data.cover_photo_url || null,
       })
       return response.data
@@ -117,6 +117,9 @@ export function useSelectionsApi() {
       if (data.coverPhotoUrl !== undefined || data.cover_photo_url !== undefined) {
         updateData.cover_photo_url = data.coverPhotoUrl || data.cover_photo_url
       }
+      if (data.coverFocalPoint !== undefined || data.cover_focal_point !== undefined) {
+        updateData.cover_focal_point = data.coverFocalPoint || data.cover_focal_point
+      }
       if (data.password !== undefined) updateData.password = data.password
       if (data.allowedEmails !== undefined || data.allowed_emails !== undefined) {
         updateData.allowedEmails =
@@ -126,6 +129,9 @@ export function useSelectionsApi() {
       if (data.selectionLimit !== undefined || data.selection_limit !== undefined) {
         updateData.selection_limit =
           data.selectionLimit !== undefined ? data.selectionLimit : data.selection_limit
+      }
+      if (data.display_settings !== undefined || data.displaySettings !== undefined) {
+        updateData.display_settings = data.display_settings || data.displaySettings
       }
 
       const response = await apiClient.patch(`/v1/selections/${id}`, updateData)

@@ -12,7 +12,7 @@
             Set the number of photos that can be downloaded in this collection. Note that this limit
             is shared between all visitors who can download. If you restrict downloads to contacts
             only, each client will be able to download their own set of photos up to the limit.
-            <a href="#" class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+            <a href="#" class="text-violet-600 dark:text-violet-400 hover:underline font-medium"
               >Learn more</a
             >
           </p>
@@ -234,7 +234,7 @@
         <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
           Select which sets have download enabled. This applies to Gallery Download, Video Download,
           and Single Photo Download.
-          <a href="#" class="text-teal-600 dark:text-teal-400 hover:underline font-medium"
+          <a href="#" class="text-violet-600 dark:text-violet-400 hover:underline font-medium"
             >Learn more</a
           >
         </p>
@@ -273,13 +273,14 @@
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
-          :disabled="!hasChanges || isSaving"
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="default"
+          :disabled="!hasChanges"
+          :loading="isSaving"
+          :icon="!hasChanges ? Check : null"
+          loading-label="Saving..."
           @click="handleSave"
         >
-          <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-          <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-          {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+          {{ hasChanges ? 'Save Changes' : 'Saved' }}
         </Button>
       </div>
     </div>

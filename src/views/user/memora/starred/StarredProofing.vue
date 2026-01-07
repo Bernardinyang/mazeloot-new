@@ -50,6 +50,8 @@
             :key="proofing.id"
             :proofing="proofing"
             :index="index"
+            :is-starring="starringProofingIds.has(String(proofing.id))"
+            :is-deleting="deletingProofingIds.has(String(proofing.id))"
             @click="handleProofingClick"
             @star-click="toggleStar"
             @edit="handleEditProofing"
@@ -123,6 +125,10 @@ const sortOptions = [
 ]
 
 const selectedProofing = ref([])
+
+// Loading states per proofing
+const starringProofingIds = ref(new Set())
+const deletingProofingIds = ref(new Set())
 
 const mapSortToBackend = frontendSort => {
   const mapping = {
@@ -209,12 +215,31 @@ const handleProofingClick = proofingPhase => {
 }
 
 const toggleStar = async proofingPhase => {
+  if (!proofingPhase || !proofingPhase.id) return
+  
+  const proofingId = String(proofingPhase.id)
+  if (starringProofingIds.value.has(proofingId)) return
+  
+  starringProofingIds.value.add(proofingId)
   try {
     await proofingStore.toggleStar(proofingPhase.id)
+    const index = sortedProofing.value.findIndex(p => p.id === proofingPhase.id)
+    if (index !== -1) {
+      const newStarredState = !sortedProofing.value[index].isStarred
+      sortedProofing.value[index] = {
+        ...sortedProofing.value[index],
+        isStarred: newStarredState,
+      }
+      if (!newStarredState) {
+        sortedProofing.value.splice(index, 1)
+      }
+    }
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to update star status.',
     })
+  } finally {
+    starringProofingIds.value.delete(proofingId)
   }
 }
 

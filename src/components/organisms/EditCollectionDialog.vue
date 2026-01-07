@@ -105,14 +105,14 @@
           Cancel
         </Button>
         <Button
-          :disabled="!formData.name.trim() || isSubmitting"
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="default"
+          :disabled="!formData.name.trim()"
+          :loading="isSubmitting"
+          loading-label="Updating..."
           type="button"
           @click="handleSubmit"
         >
-          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting">Updating...</span>
-          <span v-else>Update Collection</span>
+          Update Collection
         </Button>
       </div>
     </template>

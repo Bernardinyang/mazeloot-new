@@ -6,9 +6,9 @@
     >
       <div class="flex items-center gap-2">
         <div
-          class="w-8 h-8 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center"
+          class="w-8 h-8 rounded-full bg-accent/20 dark:bg-accent/30 flex items-center justify-center"
         >
-          <MessageSquare class="w-4 h-4 text-teal-600 dark:text-teal-400" />
+          <MessageSquare class="w-4 h-4 text-accent" />
         </div>
         <div>
           <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">Comments</h3>
@@ -215,7 +215,7 @@
                 :class="[
                   'px-3 py-2 cursor-pointer text-sm transition-colors',
                   selectedMentionIndex === index
-                    ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-300'
+                    ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                     : 'hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300',
                 ]"
                 @click="selectMention(email)"
@@ -223,7 +223,7 @@
               >
                 <div class="flex items-center gap-2">
                   <div
-                    class="w-6 h-6 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white text-xs font-semibold"
+                    class="w-6 h-6 rounded-full bg-accent flex items-center justify-center text-accent-foreground text-xs font-semibold"
                   >
                     {{ email.charAt(0).toUpperCase() }}
                   </div>
@@ -236,7 +236,7 @@
         <Button
           :disabled="!canSubmit || isSubmitting"
           :class="[
-            'bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg',
+            'bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg light:hover:text-white',
             'transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed',
             'hover:scale-105 active:scale-95',
           ]"

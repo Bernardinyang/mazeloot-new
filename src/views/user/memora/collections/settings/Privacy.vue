@@ -83,7 +83,7 @@
                   @click="generateCollectionPassword"
                 >
                   <RefreshCw
-                    class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+                    class="h-4 w-4 mr-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors"
                   />
                   Generate
                 </Button>
@@ -95,7 +95,7 @@
                   variant="outline"
                   @click="copyCollectionPassword"
                 >
-                  <Copy class="h-4 w-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+                  <Copy class="h-4 w-4 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" />
                 </Button>
               </div>
             </div>
@@ -112,7 +112,7 @@
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Show this collection on your Homepage. Manage Homepage in
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                       >Homepage settings</a
                     >.
                   </p>
@@ -135,7 +135,7 @@
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Give clients exclusive access to sets and the ability to mark photos private.
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -185,7 +185,7 @@
                         @click="generateClientPassword"
                       >
                         <RefreshCw
-                          class="h-4 w-4 mr-2 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors"
+                          class="h-4 w-4 mr-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors"
                         />
                         Generate
                       </Button>
@@ -197,7 +197,7 @@
                         variant="outline"
                         @click="copyClientPassword"
                       >
-                        <Copy class="h-4 w-4 group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors" />
+                        <Copy class="h-4 w-4 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors" />
                       </Button>
                     </div>
                   </div>
@@ -220,7 +220,7 @@
                       >
                         <input
                           :checked="selectedClientSets.includes(set.id)"
-                          class="w-4 h-4 rounded border-gray-300 text-teal-600 focus:ring-accent transition-all"
+                          class="w-4 h-4 rounded border-gray-300 text-violet-600 focus:ring-accent transition-all"
                           type="checkbox"
                           @change="toggleClientSet(set.id)"
                         />
@@ -243,7 +243,7 @@
                       <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                         Give clients the ability to mark photos private. Private media are not visible
                         to public guests and only clients can see them.
-                        <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                        <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                           >Learn more</a
                         >
                       </p>
@@ -265,17 +265,18 @@
                 <span :class="theme.textSecondary">You have unsaved changes</span>
               </div>
               <div v-else class="flex items-center gap-2 text-sm">
-                <Check class="h-4 w-4 text-teal-500" />
+                <Check class="h-4 w-4 text-violet-500" />
                 <span :class="theme.textSecondary">All changes saved</span>
               </div>
               <Button
-                :disabled="!hasChanges || isSaving"
-                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="default"
+                :disabled="!hasChanges"
+                :loading="isSaving"
+                :icon="!hasChanges ? Check : null"
+                loading-label="Saving..."
                 @click="handleSave"
               >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-                {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+                {{ hasChanges ? 'Save Changes' : 'Saved' }}
               </Button>
             </div>
           </div>

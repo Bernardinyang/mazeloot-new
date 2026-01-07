@@ -155,6 +155,9 @@ export function useProofingApi() {
       if (data.allowedEmails !== undefined) payload.allowedEmails = data.allowedEmails
       if (data.primaryEmail !== undefined) payload.primaryEmail = data.primaryEmail
       if (data.password !== undefined) payload.password = data.password
+      if (data.coverFocalPoint !== undefined || data.cover_focal_point !== undefined) {
+        payload.cover_focal_point = data.coverFocalPoint || data.cover_focal_point
+      }
 
       const response = await apiClient.patch(endpoint, payload)
       return response.data

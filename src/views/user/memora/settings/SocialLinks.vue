@@ -77,12 +77,14 @@
               />
             </div>
             <Button
-              :disabled="!newLink.platformUuid || !newLink.url || isCreating || isLoading"
-              class="bg-teal-500 hover:bg-teal-600 text-white w-full sm:w-auto"
+              variant="default"
+              :disabled="!newLink.platformUuid || !newLink.url || isLoading"
+              :loading="isCreating"
+              loading-label="Adding..."
+              class="w-full sm:w-auto"
               @click="handleCreateLink"
             >
-              <Loader2 v-if="isCreating" class="h-4 w-4 mr-2 animate-spin" />
-              {{ isCreating ? 'Adding...' : 'Add Link' }}
+              Add Link
             </Button>
           </div>
         </div>
@@ -148,7 +150,7 @@
                   :href="link.url"
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="text-sm text-teal-500 hover:text-teal-600 underline break-all block"
+                  class="text-sm text-accent hover:text-accent/80 underline break-all block"
                 >
                   {{ link.url }}
                 </a>
@@ -158,11 +160,10 @@
                   v-if="editingLinkId === link.id"
                   variant="ghost"
                   size="sm"
-                  :disabled="isUpdating"
+                  :loading="isUpdating"
                   @click="handleUpdateLink(link.id)"
                 >
-                  <Loader2 v-if="isUpdating" class="h-4 w-4 animate-spin" />
-                  <span v-else>Save</span>
+                  Save
                 </Button>
                 <Button
                   v-else
@@ -176,12 +177,11 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  :disabled="isDeleting === link.id"
+                  :loading="isDeleting === link.id"
                   class="text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
                   @click="handleDeleteLink(link.id)"
                 >
-                  <Loader2 v-if="isDeleting === link.id" class="h-4 w-4 animate-spin" />
-                  <span v-else>Delete</span>
+                  Delete
                 </Button>
               </div>
             </div>
@@ -192,14 +192,14 @@
         <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-teal-500" />
+              <Check class="h-4 w-4 text-accent" />
               <span :class="theme.textSecondary">All changes saved automatically</span>
             </div>
             <Button
+              variant="default"
               disabled
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              :icon="Check"
             >
-              <Check class="mr-2 h-4 w-4" />
               Saved
             </Button>
           </div>

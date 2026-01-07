@@ -5,7 +5,7 @@
         v-if="icon"
         :is="icon"
         class="h-4 w-4 flex-shrink-0"
-        :class="['text-teal-500 dark:text-teal-400']"
+        :class="['text-accent']"
       />
       <h3 :class="['text-sm font-semibold uppercase tracking-wide', theme.textPrimary]">
         {{ title }}

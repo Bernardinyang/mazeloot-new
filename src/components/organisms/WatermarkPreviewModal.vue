@@ -84,7 +84,7 @@
             v-else-if="isGeneratingPreview && !previewError"
             class="w-full h-full flex items-center justify-center"
           >
-            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500"></div>
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500"></div>
           </div>
           <div
             v-else-if="previewError"
@@ -151,7 +151,7 @@
 
     <template #footer>
       <Button variant="outline" @click="handleCancel">Cancel</Button>
-      <Button class="bg-accent hover:bg-accent/90 text-accent-foreground" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
+      <Button variant="default" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
         Apply Watermark
       </Button>
     </template>

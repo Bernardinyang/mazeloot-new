@@ -26,11 +26,11 @@
           <span
             v-for="tag in props.existingTags"
             :key="tag"
-            class="px-2 py-1 rounded-full text-xs bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300"
+            class="px-2 py-1 rounded-full text-xs bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
           >
             {{ tag }}
             <button
-              class="ml-1 hover:text-teal-900 dark:hover:text-teal-100"
+              class="ml-1 hover:text-violet-900 dark:hover:text-violet-100"
               @click="emit('remove-tag', tag)"
             >
               ×

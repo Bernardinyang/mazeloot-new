@@ -82,11 +82,11 @@
           :disabled="!formData.name.trim() || isSubmitting"
           class="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           type="button"
+          :loading="isSubmitting"
+          loading-label="Updating..."
           @click="handleSubmit"
         >
-          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting">Updating...</span>
-          <span v-else>Update Proofing</span>
+          Update Proofing
         </Button>
       </div>
     </template>

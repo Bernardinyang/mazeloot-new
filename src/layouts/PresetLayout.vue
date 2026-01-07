@@ -45,33 +45,33 @@
               @keydown.esc="cancelEditingTitle"
               @blur="handleBlur"
               :disabled="isSavingTitle"
-              class="flex-1 text-lg font-semibold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              class="flex-1 text-lg font-semibold px-3 py-1.5 rounded-lg border-2 focus:outline-none focus:ring-2 focus:ring-violet-500/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               :class="[theme.bgInput, theme.borderInput, theme.textInput, 'min-w-0']"
               placeholder="Preset name"
             />
             <div class="flex items-center gap-1 shrink-0">
-              <button
+              <Button
                 type="submit"
+                variant="ghost"
+                size="icon-sm"
                 @mousedown.prevent
                 :disabled="isSavingTitle"
-                class="p-1.5 rounded-lg hover:bg-teal-500/20 active:bg-teal-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="theme.textSecondary"
+                :loading="isSavingTitle"
+                :icon="!isSavingTitle ? Check : null"
+                class="p-1.5 hover:bg-violet-500/20 active:bg-violet-500/30"
                 title="Save (Enter)"
-              >
-                <Check v-if="!isSavingTitle" class="h-4 w-4 text-teal-500" />
-                <Loader2 v-else class="h-4 w-4 text-teal-500 animate-spin" />
-              </button>
-              <button
+              />
+              <Button
                 type="button"
+                variant="ghost"
+                size="icon-sm"
                 @mousedown.prevent
                 @click="cancelEditingTitle"
                 :disabled="isSavingTitle"
-                class="p-1.5 rounded-lg hover:bg-red-500/20 active:bg-red-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                :class="theme.textSecondary"
+                :icon="X"
+                class="p-1.5 hover:bg-red-500/20 active:bg-red-500/30"
                 title="Cancel (Esc)"
-              >
-                <X class="h-4 w-4 text-red-500" />
-              </button>
+              />
             </div>
           </form>
         </div>
@@ -114,15 +114,15 @@
             :class="[
               activeTab === item.id
                 ? [
-                    'bg-teal-500/10 dark:bg-teal-500/20',
-                    'text-teal-600 dark:text-teal-400',
+                    'bg-violet-500/10 dark:bg-violet-500/20',
+                    'text-violet-600 dark:text-violet-400',
                     'shadow-sm',
-                    'border-l-3 border-teal-500',
+                    'border-l-3 border-violet-500',
                   ]
                 : [
                     theme.textPrimary,
                     'hover:bg-gray-100/80 dark:hover:bg-gray-800/50',
-                    'hover:text-teal-600 dark:hover:text-teal-400',
+                    'hover:text-violet-600 dark:hover:text-violet-400',
                   ],
               isSidebarCollapsed ? 'justify-center px-2' : '',
             ]"
@@ -130,7 +130,7 @@
             <component
               :is="item.icon"
               class="h-5 w-5 shrink-0 transition-transform duration-200 group-hover:scale-110"
-              :class="activeTab === item.id ? 'text-teal-600 dark:text-teal-400' : ''"
+              :class="activeTab === item.id ? 'text-violet-600 dark:text-violet-400' : ''"
             />
             <span
               v-if="!isSidebarCollapsed"
@@ -148,7 +148,7 @@
             </div>
             <div
               v-if="activeTab === item.id"
-              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-teal-500 rounded-r-full"
+              class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-violet-500 rounded-r-full"
             ></div>
           </div>
         </nav>
@@ -178,6 +178,7 @@ import {
   Check,
   Loader2,
 } from 'lucide-vue-next'
+import { Button } from '@/components/shadcn/button'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { usePresetStore } from '@/stores/preset'

@@ -5,7 +5,7 @@
   >
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-semibold">PWA Debug Info</h3>
-      <button @click="showDebug = false" class="text-gray-500 hover:text-gray-700">×</button>
+      <Button variant="ghost" size="icon-sm" @click="showDebug = false" class="text-gray-500 hover:text-gray-700">×</Button>
     </div>
     <div class="space-y-1">
       <div><strong>Service Worker:</strong> {{ swStatus }}</div>
@@ -26,6 +26,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { Button } from '@/components/shadcn/button'
 import { usePWAInstall } from '@/composables/usePWAInstall'
 
 const { isInstallable, isInstalled } = usePWAInstall()

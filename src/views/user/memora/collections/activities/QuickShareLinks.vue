@@ -19,10 +19,10 @@
                 </h1>
               </div>
               <Button
-                class="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
+                variant="default"
+                :icon="Plus"
                 @click="showCreateModal = true"
               >
-                <Plus class="h-4 w-4" />
                 Create Link
               </Button>
             </div>
@@ -125,10 +125,10 @@
                     Create your first quick share link to get started
                   </p>
                   <Button
-                    class="gap-2 bg-accent hover:bg-accent/90 text-accent-foreground"
+                    variant="default"
+                    :icon="Plus"
                     @click="showCreateModal = true"
                   >
-                    <Plus class="h-4 w-4" />
                     Create Link
                   </Button>
                 </div>

@@ -21,11 +21,12 @@
           :disabled="props.isReplacing"
           class="w-full"
           variant="outline"
+          :loading="props.isReplacing"
+          loading-label="Replacing..."
+          :icon="!props.isReplacing ? ImagePlus : null"
           @click="fileInputRef?.click()"
         >
-          <Loader2 v-if="props.isReplacing" class="h-4 w-4 mr-2 animate-spin" />
-          <ImagePlus v-else class="h-4 w-4 mr-2" />
-          {{ props.isReplacing ? 'Replacing...' : 'Replace Photo' }}
+          Replace Photo
         </Button>
       </div>
     </div>

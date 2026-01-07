@@ -159,10 +159,11 @@
           <Button
             :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
             class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
+            :loading="isSubmittingEmail"
+            loading-label="Submitting..."
             @click="handleSubmitClientEmail"
           >
-            <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isSubmittingEmail ? 'Submitting...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -222,10 +223,11 @@
           <Button
             :disabled="isVerifyingClientPassword || !clientPasswordInput"
             class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
+            :loading="isVerifyingClientPassword"
+            loading-label="Verifying..."
             @click="handleVerifyClientPassword"
           >
-            <Loader2 v-if="isVerifyingClientPassword" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isVerifyingClientPassword ? 'Verifying...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -285,10 +287,11 @@
           <Button
             :disabled="isSubmittingEmail || !emailInput || !isValidEmail"
             class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
+            :loading="isSubmittingEmail"
+            loading-label="Submitting..."
             @click="handleSubmitEmail"
           >
-            <Loader2 v-if="isSubmittingEmail" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isSubmittingEmail ? 'Submitting...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -358,10 +361,11 @@
           <Button
             :disabled="isVerifyingPassword || !passwordInput"
             class="bg-accent hover:bg-accent/90 text-accent-foreground flex-1 shadow-md hover:shadow-lg transition-all"
+            :loading="isVerifyingPassword"
+            loading-label="Verifying..."
             @click="handleVerifyPassword"
           >
-            <Loader2 v-if="isVerifyingPassword" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isVerifyingPassword ? 'Verifying...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -426,10 +430,11 @@
             <Button
               :disabled="isVerifyingDownloadPin || !downloadPinInput || downloadPinInput.length !== 4"
               class="bg-accent hover:bg-accent/90 text-accent-foreground w-full h-11 shadow-md hover:shadow-lg transition-all"
+              :loading="isVerifyingDownloadPin"
+              loading-label="Verifying..."
               @click="handleVerifyDownloadPin"
             >
-              <Loader2 v-if="isVerifyingDownloadPin" class="h-4 w-4 mr-2 animate-spin" />
-              {{ isVerifyingDownloadPin ? 'Verifying...' : 'Verify PIN' }}
+              Verify PIN
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -489,6 +494,7 @@ import { useSettingsApi } from '@/api/settings'
 import { clearCollectionGuestData } from '@/utils/guestLogout'
 import mazelootLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 import { getColorPalettes } from '@/utils/colors'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 
 const { fetchSettings, fetchPublicSettings } = useSettingsApi()
 
@@ -518,12 +524,15 @@ const isVideoCover = computed(() => {
   return videoExtensions.some(ext => coverPhotoUrl.value.toLowerCase().includes(ext))
 })
 
+const focalPoint = computed(() => getFocalPointFromEntity(collection.value))
+const { imageStyle: coverImageStyle, backgroundPosition } = useFocalPoint(focalPoint)
+
 const coverPhotoStyle = computed(() => {
   if (!coverPhotoUrl.value || isVideoCover.value) return {}
   return {
     backgroundImage: `url(${coverPhotoUrl.value})`,
     backgroundSize: 'cover',
-    backgroundPosition: 'center',
+    backgroundPosition: backgroundPosition.value,
     backgroundRepeat: 'no-repeat',
   }
 })

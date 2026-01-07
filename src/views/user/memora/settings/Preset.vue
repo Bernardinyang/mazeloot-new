@@ -34,7 +34,7 @@
                     theme.bgInput,
                     theme.borderInput,
                     theme.textInput,
-                    'pl-9 pr-9 border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
+                    'pl-9 pr-9 border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50',
                   ]"
                 />
                 <button
@@ -48,12 +48,13 @@
               </div>
             </div>
             <Button
-              @click="handleAddPreset"
+              variant="default"
               size="sm"
               :disabled="presetStore.isLoading"
-              class="bg-teal-500 hover:bg-teal-600 text-white shrink-0 shadow-lg hover:shadow-xl transition-all duration-200"
+              :icon="Plus"
+              class="shrink-0 shadow-lg hover:shadow-xl transition-all duration-200"
+              @click="handleAddPreset"
             >
-              <Plus class="mr-1.5 h-3.5 w-3.5" />
               Add New
             </Button>
           </div>
@@ -75,19 +76,20 @@
             :class="[theme.borderSecondary, theme.bgCard]"
           >
             <div
-              class="w-12 h-12 rounded-full bg-teal-500/10 dark:bg-teal-500/20 flex items-center justify-center mb-3"
+              class="w-12 h-12 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center mb-3"
             >
-              <Plus class="h-6 w-6 text-teal-500" />
+              <Plus class="h-6 w-6 text-accent" />
             </div>
             <p class="text-sm text-center mb-4" :class="theme.textSecondary">
               No presets yet. Create one to get started!
             </p>
             <Button
-              @click="handleAddPreset"
+              variant="default"
               size="sm"
-              class="bg-teal-500 hover:bg-teal-600 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              :icon="Plus"
+              class="shadow-lg hover:shadow-xl transition-all duration-200"
+              @click="handleAddPreset"
             >
-              <Plus class="mr-1.5 h-3.5 w-3.5" />
               Create Your First Preset
             </Button>
           </div>
@@ -117,7 +119,7 @@
                   draggedIndex === index ? 'opacity-50' : '',
                   sortBy === 'created_at' && selectedPresets.length === 0 ? 'cursor-move' : '',
                   isPresetSelected(preset.id || preset.uuid)
-                    ? 'bg-teal-50 dark:bg-teal-950/20 border-teal-200 dark:border-teal-900/30'
+                    ? 'bg-accent/10 dark:bg-accent/20 border-accent/30'
                     : '',
                 ]"
                 :draggable="sortBy === 'created_at' && selectedPresets.length === 0"
@@ -154,7 +156,7 @@
                         </span>
                         <span
                           v-if="preset.isSelected"
-                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300 border border-teal-500/20 dark:border-teal-500/30 shrink-0"
+                          class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 dark:bg-accent/20 text-accent border border-accent/20 dark:border-accent/30 shrink-0"
                         >
                           Default
                         </span>
@@ -198,7 +200,7 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-colors duration-200',
+                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
                       ]"
                       @click.stop="handleEditPreset(preset.id || preset.uuid)"
                     >
@@ -210,7 +212,7 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-colors duration-200',
+                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
                       ]"
                       :disabled="presetStore.isLoading"
                       @click.stop="handleSetDefault(preset.id || preset.uuid)"
@@ -222,7 +224,7 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-teal-50 dark:hover:bg-teal-950/20 transition-colors duration-200',
+                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
                       ]"
                       :disabled="presetStore.isLoading"
                       @click.stop="handleDuplicatePreset(preset.id || preset.uuid)"
@@ -264,7 +266,7 @@
             once, and you're good to go!
             <a
               href="#"
-              class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 underline font-medium transition-colors"
+              class="text-accent hover:text-accent/80 underline font-medium transition-colors"
             >
               Learn more
             </a>

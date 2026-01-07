@@ -74,12 +74,12 @@
         Cancel
       </Button>
       <Button
+        variant="default"
         size="sm"
-        class="bg-accent hover:bg-accent/90 text-accent-foreground"
-        :disabled="!canSubmit || isSubmitting"
+        :loading="isSubmitting"
+        :disabled="!canSubmit"
         @click="handleSubmit"
       >
-        <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
         Submit Feedback
       </Button>
     </div>

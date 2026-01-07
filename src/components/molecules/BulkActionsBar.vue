@@ -7,13 +7,14 @@
       <!-- Left: Selection info with dropdown -->
       <div class="flex items-center gap-3">
         <!-- Close button -->
-        <button
-          class="p-1.5 rounded-lg bg-red-500 hover:bg-red-600 transition-colors text-white"
+        <Button
+          variant="destructive"
+          size="icon-sm"
+          class="bg-red-500 hover:bg-red-600 text-white"
           title="Clear selection"
+          :icon="X"
           @click="handleClearSelection"
-        >
-          <X class="h-4 w-4" />
-        </button>
+        />
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <button class="flex items-center gap-2 text-white hover:opacity-80 transition-opacity">
@@ -48,15 +49,17 @@
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
-              <button
+              <Button
+                as-child
+                variant="ghost"
+                size="icon"
                 :disabled="props.isFavoriteLoading"
-                class="p-2 rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                :loading="props.isFavoriteLoading"
+                :icon="!props.isFavoriteLoading ? Star : null"
+                class="p-2 hover:bg-gray-700 dark:hover:bg-gray-800 text-white"
                 title="Favorite"
                 @click="handleFavorite"
-              >
-                <Loader2 v-if="props.isFavoriteLoading" class="h-5 w-5 text-white animate-spin" />
-                <Star v-else class="h-5 w-5 text-white" />
-              </button>
+              />
             </TooltipTrigger>
             <TooltipContent>
               <p>Favorite</p>
@@ -201,6 +204,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu'
+import { Button } from '@/components/shadcn/button'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()

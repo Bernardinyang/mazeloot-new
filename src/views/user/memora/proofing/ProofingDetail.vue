@@ -467,10 +467,12 @@
       />
 
       <!-- Focal Point Modal -->
-      <FocalPointModal
-        v-model:is-open="showFocalPointModal"
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
         :image-url="focalPointImageUrl"
         :initial-focal-point="currentFocalPoint"
+        title="SET FOCAL POINT"
+        @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
 
@@ -481,7 +483,7 @@
         content-class="sm:max-w-md"
       >
         <div class="flex flex-col items-center justify-center py-8">
-          <Loader2 class="h-8 w-8 animate-spin text-teal-500 mb-4" />
+          <Loader2 class="h-8 w-8 animate-spin text-accent mb-4" />
           <p :class="theme.textPrimary" class="text-sm font-medium">
             Removing watermark from image...
           </p>
@@ -558,6 +560,7 @@ import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from '
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import ProofingLayout from '@/layouts/ProofingLayout.vue'
+import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import ProofingSettingsGeneral from '@/views/user/memora/proofing/settings/General.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
@@ -587,7 +590,7 @@ import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MediaCommentLightbox from '@/components/organisms/MediaCommentLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
-import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useProofingStore } from '@/stores/proofing'
@@ -606,6 +609,7 @@ import { useUserStore } from '@/stores/user'
 import { useMediaActions } from '@/composables/useMediaActions'
 import { useMediaWatermarkActions } from '@/composables/useMediaWatermarkActions'
 import { useWatermarkStore } from '@/stores/watermark'
+import { getAccentColor } from '@/utils/colors'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -613,6 +617,7 @@ const router = useRouter()
 const proofingStore = useProofingStore()
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 const userStore = useUserStore()
+const { isSidebarCollapsed } = useSidebarCollapse()
 const watermarkStore = useWatermarkStore()
 
 // Initialize download protection
@@ -624,7 +629,7 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
 // Get proofing color from parent (provided by ProofingLayout)
 const proofingColor = inject(
   'proofingColor',
-  computed(() => '#10B981')
+  computed(() => getAccentColor())
 )
 
 
@@ -740,36 +745,46 @@ const loadProofing = async (proofingId) => {
     const proofingData = await proofingStore.fetchProofing(proofingId)
     proofing.value = proofingData
 
-    // Set context and load media sets
+    // Set context and always fetch fresh media sets from API
     await mediaSetsSidebar.setContext(
       proofingId,
-      proofingData.mediaSets || null,
+      null,
       proofingData.projectId || null
     )
-    
-    // Load sets if not provided in proofing data
-    if (!proofingData.mediaSets || proofingData.mediaSets.length === 0) {
-      await mediaSetsSidebar.loadMediaSets()
-    }
 
-    // Check if setId is in route query and set it first
+    // Wait for store state to update
+    await nextTick()
+
+    // Determine which set to select: route query > store auto-selection > first set
+    let targetSetId = null
     if (route.query.setId) {
       const setIdFromRoute = route.query.setId
-      if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
-        mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+      const matchingSet = mediaSetsSidebar.mediaSets.find(s => s.id === setIdFromRoute)
+      if (matchingSet) {
+        targetSetId = setIdFromRoute
       }
     }
-
-    // Auto-select first set if none selected and sets exist
-    if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
-      mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
+    
+    // If no route query, use store's auto-selected set or first set
+    if (!targetSetId && mediaSetsSidebar.mediaSets.length > 0) {
+      targetSetId = mediaSetsSidebar.selectedSetId || mediaSetsSidebar.mediaSets[0].id
     }
 
-    // Load media items for the selected set (if one is selected)
-    if (selectedSetId.value) {
+    // Ensure the target set is selected
+    if (targetSetId && mediaSetsSidebar.selectedSetId !== targetSetId) {
+      mediaSetsSidebar.handleSelectSet(targetSetId)
+      await nextTick()
+    }
+
+    // Load media items for the selected set
+    const finalSelectedSetId = mediaSetsSidebar.selectedSetId || selectedSetId.value
+    if (finalSelectedSetId) {
       await loadMediaItems()
+    } else {
+      mediaItems.value = []
     }
   } catch (error) {
+    console.error('Error loading proofing:', error)
     // Optionally redirect back or show error message
   } finally {
     isLoading.value = false
@@ -981,7 +996,8 @@ const convertSortOrder = sortValue => {
  * Fetch function for pagination
  */
 const fetchSetMedia = async params => {
-  if (!proofing.value?.id || !selectedSetId.value) {
+  const setId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+  if (!proofing.value?.id || !setId) {
     return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
   }
 
@@ -996,7 +1012,7 @@ const fetchSetMedia = async params => {
 
   const response = await proofingApi.fetchSetMedia(
     proofing.value.id,
-    selectedSetId.value,
+    setId,
     proofing.value.projectId,
     fetchParams
   )
@@ -1004,12 +1020,12 @@ const fetchSetMedia = async params => {
   if (response && typeof response === 'object' && 'data' in response && 'pagination' in response) {
     return {
       data: Array.isArray(response.data)
-        ? response.data.map(m => ({ ...m, setId: selectedSetId.value }))
+        ? response.data.map(m => ({ ...m, setId }))
         : [],
       pagination: response.pagination,
     }
   } else if (Array.isArray(response)) {
-    const mapped = response.map(m => ({ ...m, setId: selectedSetId.value }))
+    const mapped = response.map(m => ({ ...m, setId }))
     return {
       data: mapped,
       pagination: {
@@ -1044,7 +1060,8 @@ const {
 watch(
   paginatedMediaItems,
   newItems => {
-    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
+    const currentSetId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+    const otherMedia = mediaItems.value.filter(item => item.setId !== currentSetId)
     mediaItems.value = [...otherMedia, ...newItems]
     // Load closure requests and approval requests for new items
     if (newItems.length > 0) {
@@ -1057,7 +1074,23 @@ watch(
 
 // Load media items for the selected set
 const loadMediaItems = async () => {
-  if (!proofing.value?.id || !selectedSetId.value) {
+  const setId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+  if (!proofing.value?.id || !setId) {
+    return
+  }
+
+  // Only load if set is visually active (photos tab and sidebar not collapsed)
+  const tabFromRouteName = routeName => {
+    const n = routeName?.toString?.() ?? ''
+    if (n === 'proofingPhotos' || n === 'proofingPreview') return 'photos'
+    if (n.startsWith('proofingSettings')) return 'settings'
+    if (route.query?.tab) return route.query.tab
+    return 'photos'
+  }
+  const activeTab = route.query?.tab || tabFromRouteName(route.name)
+  const isVisuallyActive = activeTab === 'photos' && !isSidebarCollapsed.value
+  
+  if (!isVisuallyActive) {
     return
   }
 
@@ -1171,22 +1204,26 @@ watch(duplicateFileActionsFromWorkflow, val => {
 })
 
 // Watch for selectedSetId changes to load media
+let isInitialLoad = true
 watch(
   selectedSetId,
-  newSetId => {
-    if (
-      proofing.value?.id &&
-      newSetId &&
-      !isUploading.value &&
-      !isLoadingMedia.value &&
-      !justUploaded.value
-    ) {
-      loadMediaItems()
+  async (newSetId, oldSetId) => {
+    // Skip if this is the initial load and we're already loading in loadProofing
+    if (isInitialLoad && oldSetId === undefined) {
+      isInitialLoad = false
+      return
+    }
+    
+    if (proofing.value?.id && newSetId) {
+      // Only skip if actively uploading to avoid interrupting upload flow
+      if (!isUploading.value && !justUploaded.value) {
+        await loadMediaItems()
+      }
     } else if (!newSetId) {
       mediaItems.value = []
     }
   },
-  { immediate: false }
+  { immediate: false } // Don't trigger on initial load, loadProofing handles it
 )
 
 // Watch for sortOrder changes to reload media
@@ -1976,43 +2013,7 @@ const handleToggleSelectAll = () => {
 const handleSetAsCover = async item => {
   if (!proofing.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
-  const isVideo = item.type === 'video' || item.file?.type === 'video'
-
-  if (isVideo) {
-    const coverUrl = item.file?.url || item.url
-    if (!coverUrl) {
-      toast.error('Invalid media', {
-        description: 'Media does not have a valid URL.',
-      })
-      return
-    }
-
-    isUpdatingCoverPhoto.value = true
-    try {
-      await proofingApi.setCoverPhoto(proofing.value.projectId, proofing.value.id, item.id, null)
-
-      if (proofing.value) {
-        proofing.value.coverPhotoUrl = coverUrl
-        proofing.value.cover_photo_url = coverUrl
-        proofing.value = { ...proofing.value }
-      }
-
-      toast.success('Cover photo updated', {
-        description: 'The cover photo has been set successfully.',
-      })
-    } catch (error) {
-      toast.error('Failed to set cover photo', {
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An error occurred while setting the cover photo.',
-      })
-    } finally {
-      isUpdatingCoverPhoto.value = false
-    }
-    return
-  }
-
+  // For both images and videos, open focal point modal
   const coverUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {
@@ -2036,8 +2037,9 @@ const handleFocalPointConfirm = async focalPoint => {
   isUpdatingCoverPhoto.value = true
 
   try {
+    const projectId = proofing.value.projectId || proofing.value.project_uuid || null
     await proofingApi.setCoverPhoto(
-      proofing.value.projectId,
+      projectId,
       proofing.value.id,
       selectedMediaForCover.value.id,
       focalPoint

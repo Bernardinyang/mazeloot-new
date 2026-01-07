@@ -5,7 +5,7 @@
   >
     <!-- Preview Container -->
     <div
-      class="w-40 h-40 rounded border-2 transition-all hover:border-teal-500 overflow-hidden relative bg-gray-100 dark:bg-gray-800"
+      class="w-40 h-40 rounded border-2 transition-all hover:border-accent overflow-hidden relative bg-gray-100 dark:bg-gray-800"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <!-- Sample Image with Watermark -->
@@ -41,7 +41,7 @@
       >
         <button
           @click.stop="$emit('edit', watermark.id)"
-          class="p-2 rounded-md bg-teal-500 hover:bg-teal-600 text-white transition-colors"
+          class="p-2 rounded-md bg-accent hover:bg-accent/90 text-accent-foreground transition-colors light:hover:text-white"
           title="Edit"
         >
           <Edit class="h-4 w-4" />
@@ -65,7 +65,7 @@
       <!-- Usage Badge -->
       <div
         v-if="usageCount !== undefined && usageCount > 0"
-        class="absolute top-2 left-2 px-2 py-1 rounded-md bg-teal-500/90 text-white text-xs font-semibold"
+        class="absolute top-2 left-2 px-2 py-1 rounded-md bg-accent/90 text-accent-foreground text-xs font-semibold"
       >
         {{ usageCount }} {{ usageCount === 1 ? 'use' : 'uses' }}
       </div>

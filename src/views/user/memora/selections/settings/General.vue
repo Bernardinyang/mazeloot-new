@@ -44,7 +44,7 @@
             <!-- Selection Name -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -55,7 +55,7 @@
                     The name of this selection as it appears in your dashboard and to customers.
                   </p>
                 </div>
-                <div v-if="nameSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="nameSaved" class="flex items-center gap-2 text-violet-500">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -63,7 +63,7 @@
               <Input
                 v-model="selectionName"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                 placeholder="My Selection"
                 @keydown.enter="handleSave"
               />
@@ -72,7 +72,7 @@
             <!-- Selection Description -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -85,7 +85,7 @@
               <Textarea
                 v-model="selectionDescription"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-violet-500/20 transition-all"
                 placeholder="Enter a description for this selection..."
                 :maxlength="1000"
                 @keydown.enter.prevent="handleSave"
@@ -103,7 +103,7 @@
             <!-- Selection Color -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -114,7 +114,7 @@
                     Choose a color to help identify this selection in your dashboard.
                   </p>
                 </div>
-                <div v-if="colorSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-if="colorSaved" class="flex items-center gap-2 text-violet-500">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -130,8 +130,8 @@
                 <Input
                   v-model="selectionColor"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  class="flex-1 focus:ring-2 focus:ring-teal-500/20 transition-all font-mono text-sm"
-                  placeholder="#10B981"
+                  class="flex-1 focus:ring-2 focus:ring-violet-500/20 transition-all font-mono text-sm"
+                  :placeholder="getAccentColor()"
                   @keydown.enter="handleSave"
                 />
                 <div
@@ -142,10 +142,34 @@
               </div>
             </div>
 
+            <!-- Cover Focal Point -->
+            <div
+              v-if="selection?.coverPhotoUrl || selection?.cover_photo_url"
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-5 p-6 rounded-2xl border-2 transition-shadow duration-300"
+            >
+              <div class="mb-2">
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                  Cover Focal Point
+                </h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed">
+                  Choose where to focus the cover image for optimal cropping
+                </p>
+              </div>
+              <Button
+                class="w-full"
+                variant="default"
+                @click="showFocalPointModal = true"
+              >
+                <Eye class="h-4 w-4 mr-2" />
+                <span>Set Focal Point</span>
+              </Button>
+            </div>
+
             <!-- Allowed Emails -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -157,11 +181,11 @@
                     to allow all emails.
                   </p>
                 </div>
-                <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-teal-500">
+                <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-violet-500">
                   <Loader2 class="h-4 w-4 animate-spin" />
                   <span class="text-xs font-medium">Saving...</span>
                 </div>
-                <div v-else-if="emailsSaved" class="flex items-center gap-2 text-teal-500">
+                <div v-else-if="emailsSaved" class="flex items-center gap-2 text-violet-500">
                   <Check class="h-4 w-4" />
                   <span class="text-xs font-medium">Saved</span>
                 </div>
@@ -221,18 +245,17 @@
                   </Button>
                   <Button
                     :class="[
-                      'bg-teal-500 hover:bg-teal-600 text-white transition-all',
+                      'bg-violet-500 hover:bg-violet-600 text-white transition-all',
                       isSavingAllowedEmails ? 'opacity-75 cursor-not-allowed' : '',
                     ]"
                     :disabled="isSavingAllowedEmails || !hasValidEmails"
                     size="sm"
+                    :loading="isSavingAllowedEmails"
+                    loading-label="Saving..."
+                    :icon="!isSavingAllowedEmails && emailsSaved ? Check : null"
                     @click="handleAllowedEmailsChange(true)"
                   >
-                    <Loader2 v-if="isSavingAllowedEmails" class="h-4 w-4 mr-2 animate-spin" />
-                    <Check v-else-if="emailsSaved" class="h-4 w-4 mr-2" />
-                    {{
-                      isSavingAllowedEmails ? 'Saving...' : emailsSaved ? 'Saved' : 'Save Emails'
-                    }}
+                    {{ emailsSaved ? 'Saved' : 'Save Emails' }}
                   </Button>
                 </div>
                 <div class="space-y-1 pt-1">
@@ -241,7 +264,7 @@
                     :class="theme.textSecondary"
                     class="text-xs"
                   >
-                    <span class="font-medium text-teal-600 dark:text-teal-400">
+                    <span class="font-medium text-violet-600 dark:text-violet-400">
                       {{ validEmailsCount }} email{{ validEmailsCount !== 1 ? 's' : '' }}
                       configured.
                     </span>
@@ -264,7 +287,7 @@
             <!-- Password Protection -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -292,7 +315,7 @@
                         theme.bgInput,
                         theme.borderInput,
                         theme.textInput,
-                        'w-full focus:ring-2 focus:ring-teal-500/20 transition-all',
+                        'w-full focus:ring-2 focus:ring-violet-500/20 transition-all',
                       ]"
                       readonly
                       placeholder="Password"
@@ -300,7 +323,7 @@
                   </div>
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="handleCopyPassword"
@@ -316,7 +339,7 @@
                     theme.bgInput,
                     theme.borderInput,
                     theme.textInput,
-                    'focus:ring-2 focus:ring-teal-500/20 transition-all',
+                    'focus:ring-2 focus:ring-violet-500/20 transition-all',
                   ]"
                   placeholder="Enter new password"
                   @blur="handlePasswordChange"
@@ -324,7 +347,7 @@
                 <div class="flex items-center gap-2">
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="isChangingPassword = !isChangingPassword"
@@ -333,12 +356,14 @@
                   </Button>
                   <Button
                     v-if="isChangingPassword && newPassword"
-                    :class="['bg-teal-500 hover:bg-teal-600 text-white']"
+                    :class="['bg-violet-500 hover:bg-violet-600 text-white']"
                     :disabled="isSavingPassword"
                     size="sm"
+                    :loading="isSavingPassword"
+                    loading-label="Saving..."
                     @click="handleSavePassword"
                   >
-                    {{ isSavingPassword ? 'Saving...' : 'Save Password' }}
+                    Save Password
                   </Button>
                 </div>
               </div>
@@ -347,7 +372,7 @@
             <!-- Selection Limit -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -379,7 +404,7 @@
                   </div>
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-teal-50 dark:hover:bg-teal-950/20 hover:border-teal-500/50 hover:text-teal-600 dark:hover:text-teal-400 transition-all duration-200"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="handleOpenSelectionLimitModal"
@@ -398,7 +423,7 @@
             <!-- Auto-Delete Settings -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -434,7 +459,7 @@
                       <Input
                         v-model.number="autoDeleteDays"
                         :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="max-w-xs focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        class="max-w-xs focus:ring-2 focus:ring-violet-500/20 transition-all"
                         max="365"
                         min="1"
                         placeholder="30"
@@ -456,7 +481,7 @@
                       <p :class="theme.textSecondary" class="text-xs font-medium">
                         Calculated Auto-Delete Date
                       </p>
-                      <div class="h-2 w-2 rounded-full bg-teal-500"></div>
+                      <div class="h-2 w-2 rounded-full bg-violet-500"></div>
                     </div>
                     <p :class="theme.textPrimary" class="text-base font-semibold mb-1">
                       {{ formatDate(autoDeleteDate) }}
@@ -481,7 +506,7 @@
             <!-- Display Preferences -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -504,7 +529,7 @@
                     <Select v-model="viewMode">
                       <SelectTrigger
                         :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="w-32 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        class="w-32 focus:ring-2 focus:ring-violet-500/20 transition-all"
                       >
                         <SelectValue />
                       </SelectTrigger>
@@ -513,7 +538,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="grid"
                           >Grid</SelectItem
@@ -522,7 +547,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="list"
                           >List</SelectItem
@@ -542,7 +567,7 @@
                     <Select v-model="gridSize">
                       <SelectTrigger
                         :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="w-32 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        class="w-32 focus:ring-2 focus:ring-violet-500/20 transition-all"
                       >
                         <SelectValue />
                       </SelectTrigger>
@@ -551,7 +576,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="small"
                           >Small</SelectItem
@@ -560,7 +585,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="medium"
                           >Medium</SelectItem
@@ -569,7 +594,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="large"
                           >Large</SelectItem
@@ -604,7 +629,7 @@
                     <Select v-model="sortOrder">
                       <SelectTrigger
                         :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="w-64 focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        class="w-64 focus:ring-2 focus:ring-violet-500/20 transition-all"
                       >
                         <SelectValue />
                       </SelectTrigger>
@@ -613,7 +638,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="uploaded-new-old"
                           >Uploaded (Newest First)</SelectItem
@@ -622,7 +647,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="uploaded-old-new"
                           >Uploaded (Oldest First)</SelectItem
@@ -631,7 +656,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="name-a-z"
                           >Name (A-Z)</SelectItem
@@ -640,7 +665,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="name-z-a"
                           >Name (Z-A)</SelectItem
@@ -649,7 +674,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="date-taken-new-old"
                           >Date Taken (Newest First)</SelectItem
@@ -658,7 +683,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="date-taken-old-new"
                           >Date Taken (Oldest First)</SelectItem
@@ -667,7 +692,7 @@
                           :class="[
                             theme.textPrimary,
                             theme.bgButtonHover,
-                            'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                            'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                           ]"
                           value="random"
                           >Random</SelectItem
@@ -687,7 +712,7 @@
                   <span :class="theme.textSecondary">You have unsaved changes</span>
                 </div>
                 <div v-else class="flex items-center gap-2 text-sm">
-                  <Check class="h-4 w-4 text-teal-500" />
+                  <Check class="h-4 w-4 text-violet-500" />
                   <span :class="theme.textSecondary">All changes saved</span>
                 </div>
                 <div class="flex items-center gap-3">
@@ -702,15 +727,16 @@
                   </Button>
                   <Button
                     :class="[
-                      'bg-teal-500 hover:bg-teal-600 text-white transition-all',
+                      'bg-violet-500 hover:bg-violet-600 text-white transition-all',
                       !hasChanges || isSaving ? 'opacity-50 cursor-not-allowed' : '',
                     ]"
                     :disabled="!hasChanges || isSaving"
+                    :loading="isSaving"
+                    loading-label="Saving..."
+                    :icon="!isSaving && !hasChanges ? Check : null"
                     @click="handleSave"
                   >
-                    <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                    <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-                    {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+                    {{ hasChanges ? 'Save Changes' : 'Saved' }}
                   </Button>
                 </div>
               </div>
@@ -718,14 +744,23 @@
           </div>
         </div>
       </div>
+
+      <!-- Focal Point Modal -->
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
+        :image-url="selectionCoverImage"
+        :initial-focal-point="formData?.coverFocalPoint || { x: 50, y: 50 }"
+        @update:is-open="showFocalPointModal = $event"
+        @confirm="handleFocalPointConfirm"
+      />
     </template>
   </SelectionLayout>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Copy, Info, Loader2, X, Plus, Settings, Check } from 'lucide-vue-next'
+import { Copy, Info, Loader2, X, Plus, Settings, Check, Eye } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
 import { Textarea } from '@/components/shadcn/textarea'
@@ -740,12 +775,14 @@ import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import SelectionLimitModal from '@/components/organisms/SelectionLimitModal.vue'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionStore } from '@/stores/selection'
 import { useSelectionsApi } from '@/api/selections'
 import { toast } from '@/utils/toast'
 import { getErrorMessage } from '@/utils/errors'
 import { storeToRefs } from 'pinia'
+import { getAccentColor } from '@/utils/colors'
 
 const route = useRoute()
 const router = useRouter()
@@ -761,7 +798,7 @@ const isSaving = ref(false)
 // Settings state
 const selectionName = ref('')
 const selectionDescription = ref('')
-const selectionColor = ref('#10B981')
+const selectionColor = ref(getAccentColor())
 const hasPassword = ref(false)
 const currentPassword = ref('') // Store the actual password value
 const isChangingPassword = ref(false)
@@ -779,11 +816,17 @@ const colorSaved = ref(false)
 const showSelectionLimitModal = ref(false)
 const isSavingSelectionLimit = ref(false)
 
+// Focal point state
+const showFocalPointModal = ref(false)
+const formData = reactive({
+  coverFocalPoint: { x: 50, y: 50 },
+})
+
 // Original values for change tracking
 const originalValues = ref({
   name: '',
   description: '',
-  color: '#10B981',
+  color: getAccentColor(),
   autoDeleteEnabled: false,
   autoDeleteDays: 30,
   viewMode: 'grid',
@@ -791,6 +834,7 @@ const originalValues = ref({
   showFilename: true,
   sortOrder: 'uploaded-new-old',
   allowedEmails: [],
+  coverFocalPoint: { x: 50, y: 50 },
 })
 
 // Display preferences (from store)
@@ -815,6 +859,10 @@ const hasValidEmails = computed(() => {
 
 const validEmailsCount = computed(() => {
   return allowedEmails.value.filter(email => isValidEmail(email)).length
+})
+
+const selectionCoverImage = computed(() => {
+  return selection.value?.coverPhotoUrl || selection.value?.cover_photo_url || null
 })
 
 const autoDeleteDate = computed(() => {
@@ -847,7 +895,11 @@ const hasChanges = computed(() => {
     viewMode.value !== originalValues.value.viewMode ||
     gridSize.value !== originalValues.value.gridSize ||
     showFilename.value !== originalValues.value.showFilename ||
-    sortOrder.value !== originalValues.value.sortOrder
+    sortOrder.value !== originalValues.value.sortOrder ||
+    (formData?.coverFocalPoint &&
+      originalValues.value?.coverFocalPoint &&
+      (formData.coverFocalPoint.x !== originalValues.value.coverFocalPoint.x ||
+        formData.coverFocalPoint.y !== originalValues.value.coverFocalPoint.y))
   )
 })
 
@@ -862,7 +914,7 @@ onMounted(async () => {
     selection.value = selectionData
     selectionName.value = selectionData.name || ''
     selectionDescription.value = selectionData.description || ''
-    selectionColor.value = selectionData.color || '#10B981'
+    selectionColor.value = selectionData.color || getAccentColor()
     hasPassword.value = !!selectionData.hasPassword || !!selectionData.password
 
     // Set password from backend response (only available for owner)
@@ -902,6 +954,14 @@ onMounted(async () => {
       selectionStore.sortOrder = displaySettings.sort_order
     }
 
+    // Load focal point
+    const focalPoint = selectionData.coverFocalPoint || selectionData.cover_focal_point
+    if (focalPoint && typeof focalPoint === 'object' && focalPoint.x !== undefined && focalPoint.y !== undefined) {
+      formData.coverFocalPoint = { x: focalPoint.x, y: focalPoint.y }
+    } else {
+      formData.coverFocalPoint = { x: 50, y: 50 }
+    }
+
     // Store original values for change tracking
     originalValues.value = {
       name: selectionName.value,
@@ -914,6 +974,7 @@ onMounted(async () => {
       showFilename: showFilename.value,
       sortOrder: sortOrder.value,
       allowedEmails: [...allowedEmails.value],
+      coverFocalPoint: formData?.coverFocalPoint ? { ...formData.coverFocalPoint } : { x: 50, y: 50 },
     }
   } catch (error) {
     toast.error('Failed to load selection', {
@@ -962,7 +1023,7 @@ const handleSave = async () => {
   const colorRegex = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/
   if (!colorRegex.test(selectionColor.value)) {
     toast.error('Invalid color format', {
-      description: 'Please use a valid hex color (e.g., #10B981)',
+      description: 'Please use a valid hex color',
     })
     return
   }
@@ -1059,6 +1120,17 @@ const handleSave = async () => {
       updateData.display_settings = displaySettings
     }
 
+    // Update focal point if changed
+    if (
+      formData?.coverFocalPoint &&
+      originalValues.value?.coverFocalPoint &&
+      (formData.coverFocalPoint.x !== originalValues.value.coverFocalPoint.x ||
+        formData.coverFocalPoint.y !== originalValues.value.coverFocalPoint.y)
+    ) {
+      updateData.cover_focal_point = formData.coverFocalPoint
+      updateData.coverFocalPoint = formData.coverFocalPoint
+    }
+
     // Update display preferences in store (keep for immediate UI updates)
     if (viewMode.value !== originalValues.value.viewMode) {
       selectionStore.setViewMode(viewMode.value)
@@ -1084,6 +1156,8 @@ const handleSave = async () => {
       gridSize: gridSize.value,
       showFilename: showFilename.value,
       sortOrder: sortOrder.value,
+      allowedEmails: [...allowedEmails.value],
+      coverFocalPoint: formData?.coverFocalPoint ? { ...formData.coverFocalPoint } : { x: 50, y: 50 },
     }
 
     toast.success('Settings saved', {
@@ -1379,5 +1453,50 @@ const handleSaveSelectionLimit = async limit => {
 
 const handleCancelSelectionLimit = () => {
   showSelectionLimitModal.value = false
+}
+
+const handleFocalPointConfirm = async focalPoint => {
+  if (!selection.value?.id || isSaving.value) return
+
+  if (!formData) return
+  formData.coverFocalPoint = { ...focalPoint }
+
+  // Save immediately
+  isSaving.value = true
+  try {
+    const updatedSelection = await selectionsApi.updateSelection(selection.value.id, {
+      cover_focal_point: formData.coverFocalPoint,
+      coverFocalPoint: formData.coverFocalPoint,
+    })
+
+    // Update local state with response
+    if (updatedSelection) {
+      selection.value = updatedSelection
+      if (formData?.coverFocalPoint) {
+        selection.value.coverFocalPoint = formData.coverFocalPoint
+        selection.value.cover_focal_point = formData.coverFocalPoint
+      }
+    } else if (selection.value && formData?.coverFocalPoint) {
+      // Fallback: update manually if response doesn't include it
+      selection.value.coverFocalPoint = formData.coverFocalPoint
+      selection.value.cover_focal_point = formData.coverFocalPoint
+      selection.value = { ...selection.value }
+    }
+
+    // Update original values for change tracking
+    if (originalValues.value && formData?.coverFocalPoint) {
+      originalValues.value.coverFocalPoint = { ...formData.coverFocalPoint }
+    }
+
+    toast.success('Focal point updated', {
+      description: 'The cover focal point has been set successfully.',
+    })
+  } catch (error) {
+    toast.error('Failed to update focal point', {
+      description: getErrorMessage(error, 'An error occurred while setting the focal point.'),
+    })
+  } finally {
+    isSaving.value = false
+  }
 }
 </script>

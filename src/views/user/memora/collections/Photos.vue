@@ -396,10 +396,12 @@
       />
 
       <!-- Focal Point Modal -->
-      <FocalPointModal
-        v-model:is-open="showFocalPointModal"
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
         :image-url="focalPointImageUrl"
         :initial-focal-point="currentFocalPoint"
+        title="SET FOCAL POINT"
+        @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
 
@@ -456,7 +458,7 @@ import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MediaDetailSidebar from '@/components/organisms/MediaDetailSidebar.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
-import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { fileToDataURL } from '@/utils/fileToDataURL'
 import { applyWatermarkToImage } from '@/utils/watermark/applyWatermarkToImage'
@@ -784,6 +786,22 @@ const loadMediaItems = async () => {
     return
   }
 
+  // Only load if set is visually active (photos tab and sidebar not collapsed)
+  const tabFromRouteName = routeName => {
+    const n = routeName?.toString?.() ?? ''
+    if (n === 'collectionPhotos' || n === 'collectionPreview') return 'photos'
+    if (n.startsWith('collectionSettings')) return 'settings'
+    if (n.startsWith('collectionActivities')) return 'activities'
+    if (n === 'collectionCover' || n === 'collectionTypography' || n === 'collectionColor' || n === 'collectionGrid') return 'design'
+    return 'photos'
+  }
+  const activeTab = route.query?.tab || tabFromRouteName(route.name)
+  const isVisuallyActive = activeTab === 'photos' && !isSidebarCollapsed.value
+  
+  if (!isVisuallyActive) {
+    return
+  }
+
   // Use pagination fetch
   await fetchMedia()
 }
@@ -795,14 +813,8 @@ const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
 const updateSetCounts = async () => {
   if (!collection.value?.id) return
   
-  // Ensure collectionId is set in the store
-  if (!mediaSetsSidebar.collectionId || mediaSetsSidebar.collectionId !== collection.value.id) {
-    mediaSetsSidebar.setContext(collection.value.id, mediaSetsSidebar.mediaSets || [])
-  }
-  
-  // Use the store's loadMediaSets which fetches fresh collection data and updates counts
-  // This will force refresh from backend and update the mediaSets reactive array
-  await mediaSetsSidebar.loadMediaSets()
+  // Always fetch fresh media sets from API
+  await mediaSetsSidebar.setContext(collection.value.id, null)
   
   // Also update the local collection ref to keep it in sync
   const updatedCollection = await galleryStore.fetchCollection(collection.value.id, true)
@@ -861,15 +873,26 @@ watch(
 )
 
 // Load media when selectedSetId changes (separate from route sync)
+let isInitialLoad = true
 watch(
   () => selectedSetId.value,
-  async (newSetId) => {
+  async (newSetId, oldSetId) => {
+    // Skip if this is the initial load and we're already loading in loadCollection
+    if (isInitialLoad && oldSetId === undefined) {
+      isInitialLoad = false
+      return
+    }
+    
     if (collection.value?.id && newSetId) {
-      await loadMediaItems()
+      // Only skip if actively uploading to avoid interrupting upload flow
+      if (!isUploading.value) {
+        await loadMediaItems()
+      }
     } else {
       mediaItems.value = []
     }
-  }
+  },
+  { immediate: false } // Don't trigger on initial load, loadCollection handles it
 )
 
 // Watch for sortOrder changes to reload media with new sorting
@@ -932,48 +955,7 @@ const isUpdatingCoverPhoto = ref(false)
 const handleSetAsCoverOriginal = async item => {
   if (!collection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
-  const isVideo = item.type === 'video' || item.file?.type === 'video'
-
-  if (isVideo) {
-    const coverUrl = item.file?.url || item.url
-    if (!coverUrl) {
-      toast.error('Invalid media', {
-        description: 'Media does not have a valid URL.',
-      })
-      return
-    }
-
-    isUpdatingCoverPhoto.value = true
-    try {
-      const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
-        thumbnail: coverUrl,
-        image: coverUrl,
-      })
-      
-      if (updatedCollection) {
-        collection.value = updatedCollection
-      } else {
-        collection.value = {
-          ...collection.value,
-          thumbnail: coverUrl,
-          image: coverUrl,
-        }
-      }
-
-      toast.success('Cover photo updated', {
-        description: 'The cover photo has been set successfully.',
-      })
-    } catch (error) {
-      toast.error('Failed to set cover photo', {
-        description:
-          getErrorMessage(error, 'An error occurred while setting the cover photo.'),
-      })
-    } finally {
-      isUpdatingCoverPhoto.value = false
-    }
-    return
-  }
-
+  // For both images and videos, open focal point modal
   const coverUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {

@@ -18,7 +18,7 @@
         :checked="selectedItems.includes(getItemId(item))"
         :disabled="getItemIsFolder(item)"
         :class="[
-          'h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500',
+          'h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent',
           getItemIsFolder(item) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
         ]"
         @change="handleSelectItem(getItemId(item), $event.target?.checked ?? false)"

@@ -159,15 +159,15 @@
                     </div>
                   </Transition>
                   <Button
-                    :disabled="isSubmitting || isSaving || !hasUnsavedChanges"
-                    class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
+                    variant="default"
+                    :disabled="!hasUnsavedChanges"
+                    :loading="isSubmitting || isSaving"
+                    :icon="!hasUnsavedChanges ? Check : null"
+                    loading-label="Saving..."
+                    class="hover:scale-105 active:scale-95 transition-all duration-200 px-6 py-2.5 font-medium"
                     @click="handleSave"
                   >
-                    <Loader2 v-if="isSubmitting || isSaving" class="mr-2 h-4 w-4 animate-spin" />
-                    <Check v-else-if="!hasUnsavedChanges" class="mr-2 h-4 w-4" />
-                    <span v-if="isSubmitting || isSaving">Saving...</span>
-                    <span v-else-if="!hasUnsavedChanges">Saved</span>
-                    <span v-else>Save Changes</span>
+                    {{ !hasUnsavedChanges ? 'Saved' : 'Save Changes' }}
                   </Button>
                 </div>
               </div>
@@ -183,7 +183,7 @@
               >
                 <div
                   :class="theme.borderSecondary"
-                  class="p-5 border-b bg-gradient-to-r from-teal-50/50 to-blue-50/50 dark:from-teal-950/30 dark:to-blue-950/30"
+                  class="p-5 border-b bg-gradient-to-r from-violet-50/50 to-blue-50/50 dark:from-violet-950/30 dark:to-blue-950/30"
                 >
                   <div class="flex items-center justify-between">
                     <div>

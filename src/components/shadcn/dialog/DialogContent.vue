@@ -27,7 +27,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <DialogOverlay
       :class="
         cn(
-          'fixed inset-0 z-50 bg-black/80 will-change-opacity data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=closed]:duration-200',
+          'fixed inset-0 z-50 bg-black/80 backdrop-blur-sm will-change-opacity data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=closed]:duration-200',
           typeof props.class === 'string' && props.class.includes('overlay-z-') ? 'z-[200]' : ''
         )
       "

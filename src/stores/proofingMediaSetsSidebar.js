@@ -66,8 +66,18 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
       // Fetch media sets from API
       try {
         const fetchedSets = await proofingApi.fetchMediaSets(id, projId)
-        mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
+        // Handle different response formats
+        let setsArray = []
+        if (Array.isArray(fetchedSets)) {
+          setsArray = fetchedSets
+        } else if (fetchedSets && Array.isArray(fetchedSets.data)) {
+          setsArray = fetchedSets.data
+        } else if (fetchedSets && fetchedSets.sets && Array.isArray(fetchedSets.sets)) {
+          setsArray = fetchedSets.sets
+        }
+        mediaSets.value = setsArray
       } catch (error) {
+        console.error('Failed to fetch media sets:', error)
         mediaSets.value = []
       }
     } else {
@@ -78,7 +88,7 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
     }
-    // Keep selected set sane too
+    // Always auto-select first set if none selected and sets exist
     if (!selectedSetId.value && mediaSets.value.length > 0) {
       selectedSetId.value = mediaSets.value[0].id
     }

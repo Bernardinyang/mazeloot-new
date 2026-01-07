@@ -16,7 +16,7 @@
               <div
                 :class="[
                   props.isUploading
-                    ? 'bg-teal-500/10 text-teal-500'
+                    ? 'bg-accent/10 text-accent'
                     : failedCount > 0
                       ? 'bg-red-500/10 text-red-500'
                       : 'bg-green-500/10 text-green-500',
@@ -47,7 +47,7 @@
           <div :class="[theme.bgInput, 'h-3 rounded-full overflow-hidden relative']">
             <div
               :class="[
-                props.isUploading ? 'bg-teal-500' : failedCount > 0 ? 'bg-red-500' : 'bg-green-500',
+                props.isUploading ? 'bg-accent' : failedCount > 0 ? 'bg-red-500' : 'bg-green-500',
                 'h-full transition-all duration-500 ease-out relative',
               ]"
               :style="{ width: `${overallProgress}%` }"

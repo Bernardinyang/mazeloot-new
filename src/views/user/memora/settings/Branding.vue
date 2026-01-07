@@ -364,7 +364,7 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 Your client galleries are always available at this address. To change your default domain, edit your username under
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium">Account Settings</a>.
+                <a href="#" class="text-accent hover:text-accent/80 underline font-medium">Account Settings</a>.
               </p>
             </div>
 
@@ -390,7 +390,7 @@
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
                 Use your own custom domain for your client galleries. This feature is available with an upgraded account.
-                <a href="#" class="text-teal-500 hover:text-teal-600 underline font-medium">Learn more</a>.
+                <a href="#" class="text-accent hover:text-accent/80 underline font-medium">Learn more</a>.
               </p>
             </div>
           </div>
@@ -413,13 +413,13 @@
             <div class="space-y-3">
               <label class="text-sm font-medium" :class="theme.textPrimary">Logo</label>
               <div
-                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-teal-500/50"
+                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
                   isDisabled || isUploadingLogo
                     ? 'cursor-not-allowed opacity-50'
-                    : 'cursor-pointer hover:bg-teal-50/5',
+                    : 'cursor-pointer hover:bg-accent/5',
                 ]"
                 @click="!isDisabled && !isUploadingLogo && handleUploadLogo()"
               >
@@ -450,13 +450,13 @@
             <div class="space-y-3">
               <label class="text-sm font-medium" :class="theme.textPrimary">Favicon</label>
               <div
-                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-teal-500/50"
+                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
                   isDisabled || isUploadingFavicon
                     ? 'cursor-not-allowed opacity-50'
-                    : 'cursor-pointer hover:bg-teal-50/5',
+                    : 'cursor-pointer hover:bg-accent/5',
                 ]"
                 @click="!isDisabled && !isUploadingFavicon && handleUploadFavicon()"
               >
@@ -530,17 +530,17 @@
             <span :class="theme.textSecondary">You have unsaved changes</span>
           </div>
           <div v-else class="flex items-center gap-2 text-sm">
-            <Check class="h-4 w-4 text-teal-500" />
+            <Check class="h-4 w-4 text-accent" />
             <span :class="theme.textSecondary">All changes saved</span>
           </div>
           <Button
-            :disabled="!hasChanges || isSaving || isLoading"
-            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="default"
+            :disabled="!hasChanges || isLoading"
+            :loading="isSaving"
+            loading-label="Saving..."
             @click="handleSave"
           >
-            <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-if="isSaving">Saving...</span>
-            <span v-else>Save Changes</span>
+            Save Changes
           </Button>
         </div>
       </div>

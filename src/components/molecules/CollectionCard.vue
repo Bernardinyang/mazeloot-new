@@ -148,6 +148,7 @@
           v-if="isVideoCover"
           ref="videoRef"
           :src="imageSrc"
+          :style="coverImageStyle"
           class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           autoplay
           loop
@@ -159,6 +160,7 @@
           v-else
           :src="imageSrc"
           :alt="altText"
+          :style="coverImageStyle"
           class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           loading="lazy"
           @error="handleImageError($event)"
@@ -175,13 +177,6 @@
           }"
           class="absolute inset-0 pointer-events-none"
         ></div>
-        <!-- Status Badge (when cover image exists) -->
-        <div
-          v-if="collectionData?.status"
-          class="absolute bottom-3 right-3 z-30"
-        >
-          <StatusBadge :status="collectionData.status" />
-        </div>
       </div>
 
       <!-- Large centered icon with unique styling (shown when no cover image) -->
@@ -197,17 +192,6 @@
           class="w-20 h-20 rounded-2xl shadow-lg flex items-center justify-center border-2"
         >
           <Image class="h-10 w-10 text-white" />
-        </div>
-        <div
-          v-if="collectionData?.status"
-          :style="{
-            backgroundColor: `${cardColor}20`,
-            color: 'white',
-            borderColor: `${cardColor}40`,
-          }"
-          class="px-3 py-1 rounded-full text-xs font-semibold border"
-        >
-          {{ capitalize(collectionData.status) }}
         </div>
       </div>
 
@@ -282,20 +266,17 @@
           v-if="showStar"
           variant="ghost"
           size="icon-sm"
-          class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-lg border transition-all duration-200 hover:scale-110"
-          :class="theme.borderSecondary"
+          class="bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-800 shadow-lg border transition-all duration-200 hover:scale-110 [&_svg]:transition-all [&_svg]:duration-200"
+          :class="[
+            theme.borderSecondary,
+            isStarred ? '[&_svg]:fill-yellow-400 [&_svg]:text-yellow-400 [&_svg]:scale-110' : '[&_svg]:text-gray-500 hover:[&_svg]:text-yellow-400',
+          ]"
+          :disabled="isStarring"
+          :loading="isStarring"
+          :icon="!isStarring ? Star : null"
           @click.stop="$emit('star-click')"
           :aria-label="isStarred ? 'Unstar item' : 'Star item'"
-        >
-          <Star
-            :class="[
-              'h-4 w-4 transition-all duration-200',
-              isStarred
-                ? 'fill-yellow-400 text-yellow-400 scale-110'
-                : 'text-gray-500 hover:text-yellow-400',
-            ]"
-          />
-        </Button>
+        />
 
         <!-- Three-dot Menu -->
         <DropdownMenu v-if="showMenu" v-model:open="isDropdownOpen">
@@ -318,18 +299,22 @@
             <slot name="menu-items">
               <DropdownMenuItem
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                :disabled="isDeleting || isDuplicating"
                 @click.stop="$emit('edit', collectionData)"
               >
                 <span>Edit</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                :disabled="isDeleting || isDuplicating"
                 @click.stop="$emit('duplicate', collectionData)"
               >
-                <span>Duplicate</span>
+                <span v-if="isDuplicating">Duplicating...</span>
+                <span v-else>Duplicate</span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                :disabled="isDeleting || isDuplicating"
                 @click.stop="$emit('share', collectionData)"
               >
                 <span>Share</span>
@@ -337,9 +322,11 @@
               <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
               <DropdownMenuItem
                 :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+                :disabled="isDeleting || isDuplicating"
                 @click.stop="$emit('delete', collectionData)"
               >
-                <span>Delete</span>
+                <span v-if="isDeleting">Deleting...</span>
+                <span v-else>Delete</span>
               </DropdownMenuItem>
             </slot>
           </DropdownMenuContent>
@@ -379,10 +366,13 @@
             {{ captionText }}
           </h3>
         </div>
-        <div :class="theme.textSecondary" class="flex items-center gap-3 text-sm mt-1">
+        <div :class="theme.textSecondary" class="flex items-center justify-between gap-3 text-sm mt-1">
           <slot name="subtitle">
             <span class="line-clamp-1">{{ getMediaAndSetCount(collectionData) }}</span>
           </slot>
+          <div v-if="collectionData?.status" class="shrink-0">
+            <StatusBadge :status="collectionData.status" />
+          </div>
         </div>
       </slot>
     </div>
@@ -402,6 +392,7 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { lightenColor, darkenColor, generateColorFromString } from '@/utils/colors'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 import { capitalize } from '@/lib/utils'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 
@@ -532,6 +523,18 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isStarring: {
+    type: Boolean,
+    default: false,
+  },
+  isDeleting: {
+    type: Boolean,
+    default: false,
+  },
+  isDuplicating: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits([
@@ -597,6 +600,9 @@ const isVideoCover = computed(() => {
   const lowerUrl = props.imageSrc.toLowerCase()
   return videoExtensions.some(ext => lowerUrl.includes(ext))
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.collectionData))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 // Tilt effect
 const cardRef = ref(null)

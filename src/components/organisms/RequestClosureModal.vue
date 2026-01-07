@@ -24,9 +24,9 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="w-10 h-10 rounded-full bg-teal-100 dark:bg-teal-900/30 flex items-center justify-center shadow-sm"
+                class="w-10 h-10 rounded-full bg-accent/20 dark:bg-accent/30 flex items-center justify-center shadow-sm"
               >
-                <MessageSquare class="w-5 h-5 text-teal-600 dark:text-teal-400" />
+                <MessageSquare class="w-5 h-5 text-accent" />
               </div>
               <div>
                 <h3 class="text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -218,17 +218,17 @@
         </Button>
         <Button
           :disabled="
-            isSubmitting ||
             isLoadingComments ||
             todos.length === 0 ||
             todos.every(t => !t.text.trim())
           "
+          :loading="isSubmitting"
+          :icon="CheckCircle2"
+          loading-label="Submitting..."
           class="bg-amber-500 hover:bg-amber-600 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleRequestClosure"
         >
-          <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
-          <CheckCircle2 v-else class="w-4 h-4 mr-2" />
-          {{ isSubmitting ? 'Submitting...' : 'Request Closure' }}
+          Request Closure
         </Button>
       </DialogFooter>
 

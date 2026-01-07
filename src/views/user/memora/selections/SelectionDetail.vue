@@ -34,7 +34,7 @@
       <!-- Main Content Area -->
       <main
         class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-950 transition-all duration-300 relative"
-        :class="isDragging ? 'ring-4 ring-teal-500/20' : ''"
+        :class="isDragging ? 'ring-4 ring-accent/20' : ''"
         @dragover.prevent="handleDragOver"
         @dragleave="handleDragLeave"
         @drop="handleDrop"
@@ -438,10 +438,12 @@
       />
 
       <!-- Focal Point Modal -->
-      <FocalPointModal
-        v-model:is-open="showFocalPointModal"
+      <CoverFocalPointModal
+        :is-open="showFocalPointModal"
         :image-url="focalPointImageUrl"
         :initial-focal-point="currentFocalPoint"
+        title="SET FOCAL POINT"
+        @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
       />
 
@@ -470,6 +472,7 @@ import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from '
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
+import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import SelectionSettingsGeneral from '@/views/user/memora/selections/settings/General.vue'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/components/molecules/BulkActionsBar.vue'
@@ -492,7 +495,7 @@ import WatermarkMediaModal from '@/components/organisms/WatermarkMediaModal.vue'
 import WatermarkPreviewModal from '@/components/organisms/WatermarkPreviewModal.vue'
 import MediaLightbox from '@/components/organisms/MediaLightbox.vue'
 import MoveCopyModal from '@/components/organisms/MoveCopyModal.vue'
-import FocalPointModal from '@/components/organisms/FocalPointModal.vue'
+import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { formatMediaDate } from '@/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/stores/selection.js'
@@ -519,6 +522,7 @@ const router = useRouter()
 const selectionStore = useSelectionStore()
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 const watermarkStore = useWatermarkStore()
+const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Initialize download protection
 const { cleanup: cleanupProtection } = useDownloadProtection({
@@ -618,35 +622,42 @@ const loadSelection = async () => {
     const selectionData = await selectionStore.fetchSelection(selectionId)
     selection.value = selectionData
 
-    // Set context and load media sets
-    await mediaSetsSidebar.setContext(
-      selectionId,
-      selectionData.mediaSets || null
-    )
-    
-    // Load sets if not provided in selection data
-    if (!selectionData.mediaSets || selectionData.mediaSets.length === 0) {
-      await mediaSetsSidebar.loadMediaSets()
-    }
+    // Set context and always fetch fresh media sets from API
+    await mediaSetsSidebar.setContext(selectionId, null)
 
-    // Check if setId is in route query and set it first
+    // Wait for store state to update
+    await nextTick()
+
+    // Determine which set to select: route query > store auto-selection > first set
+    let targetSetId = null
     if (route.query.setId) {
       const setIdFromRoute = route.query.setId
-      if (mediaSetsSidebar.mediaSets.some(s => s.id === setIdFromRoute)) {
-        mediaSetsSidebar.handleSelectSet(setIdFromRoute)
+      const matchingSet = mediaSetsSidebar.mediaSets.find(s => s.id === setIdFromRoute)
+      if (matchingSet) {
+        targetSetId = setIdFromRoute
       }
     }
-
-    // Auto-select first set if none selected and sets exist
-    if (!selectedSetId.value && mediaSetsSidebar.mediaSets.length > 0) {
-      mediaSetsSidebar.handleSelectSet(mediaSetsSidebar.mediaSets[0].id)
+    
+    // If no route query, use store's auto-selected set or first set
+    if (!targetSetId && mediaSetsSidebar.mediaSets.length > 0) {
+      targetSetId = mediaSetsSidebar.selectedSetId || mediaSetsSidebar.mediaSets[0].id
     }
 
-    // Load media items for the selected set (if one is selected)
-    if (selectedSetId.value) {
+    // Ensure the target set is selected
+    if (targetSetId && mediaSetsSidebar.selectedSetId !== targetSetId) {
+      mediaSetsSidebar.handleSelectSet(targetSetId)
+      await nextTick()
+    }
+
+    // Load media items for the selected set
+    const finalSelectedSetId = mediaSetsSidebar.selectedSetId || selectedSetId.value
+    if (finalSelectedSetId) {
       await loadMediaItems()
+    } else {
+      mediaItems.value = []
     }
   } catch (error) {
+    console.error('Error loading selection:', error)
     // Optionally redirect back or show error message
   } finally {
     isLoading.value = false
@@ -867,7 +878,8 @@ const convertSortOrder = sortValue => {
  * Fetch function for pagination
  */
 const fetchSetMedia = async params => {
-  if (!selection.value?.id || !selectedSetId.value) {
+  const setId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+  if (!selection.value?.id || !setId) {
     return { data: [], pagination: { page: 1, limit: 50, total: 0, totalPages: 1 } }
   }
 
@@ -882,7 +894,7 @@ const fetchSetMedia = async params => {
 
   const response = await selectionsApi.fetchSetMedia(
     selection.value.id,
-    selectedSetId.value,
+    setId,
     fetchParams
   )
 
@@ -891,13 +903,13 @@ const fetchSetMedia = async params => {
     // Paginated response - map items to include setId
     return {
       data: Array.isArray(response.data)
-        ? response.data.map(m => ({ ...m, setId: selectedSetId.value }))
+        ? response.data.map(m => ({ ...m, setId }))
         : [],
       pagination: response.pagination,
     }
   } else if (Array.isArray(response)) {
     // Non-paginated array response (backward compatibility)
-    const mapped = response.map(m => ({ ...m, setId: selectedSetId.value }))
+    const mapped = response.map(m => ({ ...m, setId }))
     return {
       data: mapped,
       pagination: {
@@ -933,7 +945,8 @@ watch(
   paginatedMediaItems,
   newItems => {
     // Only update mediaItems for the current set
-    const otherMedia = mediaItems.value.filter(item => item.setId !== selectedSetId.value)
+    const currentSetId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+    const otherMedia = mediaItems.value.filter(item => item.setId !== currentSetId)
     mediaItems.value = [...otherMedia, ...newItems]
   },
   { immediate: true }
@@ -941,7 +954,23 @@ watch(
 
 // Load media items for the selected set
 const loadMediaItems = async () => {
-  if (!selection.value?.id || !selectedSetId.value) {
+  const setId = selectedSetId.value || mediaSetsSidebar.selectedSetId
+  if (!selection.value?.id || !setId) {
+    return
+  }
+
+  // Only load if set is visually active (photos tab and sidebar not collapsed)
+  const tabFromRouteName = routeName => {
+    const n = routeName?.toString?.() ?? ''
+    if (n === 'selectionPhotos' || n === 'selectionPreview') return 'photos'
+    if (n.startsWith('selectionSettings')) return 'settings'
+    if (route.query?.tab) return route.query.tab
+    return 'photos'
+  }
+  const activeTab = route.query?.tab || tabFromRouteName(route.name)
+  const isVisuallyActive = activeTab === 'photos' && !isSidebarCollapsed.value
+  
+  if (!isVisuallyActive) {
     return
   }
 
@@ -980,6 +1009,29 @@ onUnmounted(() => {
 
 // Update isLoadingMedia to use pagination loading state
 const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
+
+// Watch for selectedSetId changes to load media
+let isInitialLoad = true
+watch(
+  selectedSetId,
+  async (newSetId, oldSetId) => {
+    // Skip if this is the initial load and we're already loading in loadSelection
+    if (isInitialLoad && oldSetId === undefined) {
+      isInitialLoad = false
+      return
+    }
+    
+    if (selection.value?.id && newSetId) {
+      // Only skip if actively uploading to avoid interrupting upload flow
+      if (!isUploading.value) {
+        await loadMediaItems()
+      }
+    } else if (!newSetId) {
+      mediaItems.value = []
+    }
+  },
+  { immediate: false } // Don't trigger on initial load, loadSelection handles it
+)
 
 // Initialize selection workflow for uploads
 const {
@@ -1716,45 +1768,7 @@ const handleToggleSelectAll = () => {
 const handleSetAsCover = async item => {
   if (!selection.value?.id || !item?.id || isUpdatingCoverPhoto.value) return
 
-  const isVideo = item.type === 'video' || item.file?.type === 'video'
-
-  if (isVideo) {
-    // For videos, set cover directly without focal point
-    const coverUrl = item.file?.url || item.url
-    if (!coverUrl) {
-      toast.error('Invalid media', {
-        description: 'Media does not have a valid URL.',
-      })
-      return
-    }
-
-    isUpdatingCoverPhoto.value = true
-    try {
-      await selectionsApi.setCoverPhotoFromMedia(selection.value.id, item.id)
-
-      if (selection.value) {
-        selection.value.coverPhotoUrl = coverUrl
-        selection.value.cover_photo_url = coverUrl
-        selection.value = { ...selection.value }
-      }
-
-      toast.success('Cover photo updated', {
-        description: 'The cover photo has been set successfully.',
-      })
-    } catch (error) {
-      toast.error('Failed to set cover photo', {
-        description:
-          error instanceof Error
-            ? error.message
-            : 'An error occurred while setting the cover photo.',
-      })
-    } finally {
-      isUpdatingCoverPhoto.value = false
-    }
-    return
-  }
-
-  // For images, open focal point modal
+  // For both images and videos, open focal point modal
   const coverUrl = item.file?.url || item.file?.variants?.original || item.file?.variants?.large || item.url || null
   if (!coverUrl) {
     toast.error('Invalid media', {
@@ -1778,10 +1792,12 @@ const handleFocalPointConfirm = async focalPoint => {
   isUpdatingCoverPhoto.value = true
 
   try {
+    const isVideo = selectedMediaForCover.value.type === 'video' || selectedMediaForCover.value.file?.type === 'video'
+    
     await selectionsApi.setCoverPhotoFromMedia(
       selection.value.id,
       selectedMediaForCover.value.id,
-      focalPoint
+      isVideo ? focalPoint : focalPoint
     )
 
     if (selection.value) {

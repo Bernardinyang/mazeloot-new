@@ -79,7 +79,7 @@
             :class="[
               'px-5 py-3 text-sm font-medium transition-all rounded-t-lg relative flex items-center gap-2 whitespace-nowrap',
               activeTab === tab.id
-                ? 'bg-teal-50 dark:bg-teal-900/20 text-teal-700 dark:text-teal-400 border-b-2 border-teal-500'
+                ? 'bg-accent/10 dark:bg-accent/20 text-accent border-b-2 border-accent'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800/50',
             ]"
             @click="activeTab = tab.id"
@@ -91,7 +91,7 @@
               :class="[
                 'px-2 py-0.5 rounded-full text-xs font-semibold min-w-[20px] text-center',
                 activeTab === tab.id
-                  ? 'bg-teal-100 dark:bg-teal-900/30 text-teal-700 dark:text-teal-300'
+                  ? 'bg-accent/20 dark:bg-accent/30 text-accent'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
               ]"
             >
@@ -129,7 +129,7 @@
             >
               <div class="flex items-start gap-4">
                 <div
-                  class="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center shadow-md"
+                  class="flex-shrink-0 w-10 h-10 rounded-full bg-accent flex items-center justify-center shadow-md"
                 >
                   <span class="text-white text-sm font-bold">
                     {{ getAuthorInitial(comment.createdBy || comment.created_by) }}

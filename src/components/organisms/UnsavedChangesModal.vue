@@ -24,7 +24,7 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-teal-600 dark:hover:text-teal-400 transition-colors duration-200',
+            'hover:text-accent transition-colors duration-200',
             'disabled:opacity-50 disabled:cursor-not-allowed',
           ]"
           @click="handleCancel"
@@ -40,13 +40,13 @@
             Discard Changes
           </Button>
           <Button
-            :disabled="isSaving"
-            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
+            variant="default"
+            :loading="isSaving"
+            loading-label="Saving..."
+            class="shadow-lg hover:shadow-xl transition-all duration-200"
             @click="handleSave"
           >
-            <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-if="isSaving">Saving...</span>
-            <span v-else>Save & Leave</span>
+            Save & Leave
           </Button>
         </div>
       </div>
@@ -56,7 +56,6 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import CenterModal from '@/components/molecules/CenterModal.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'

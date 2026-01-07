@@ -118,7 +118,7 @@
             Cancel
           </Button>
           <Button
-            class="bg-teal-500 hover:bg-teal-600 text-white"
+            variant="default"
             type="button"
             @click="handleConfirm"
           >

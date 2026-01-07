@@ -4,7 +4,7 @@
     <Dialog v-if="showPasswordModal" :open="true" @update:open="(val) => { if (!val) showPasswordModal = false }">
       <DialogContent class="sm:max-w-[440px] bg-white/95 backdrop-blur-xl border-0 shadow-2xl">
         <DialogHeader class="text-center space-y-2">
-          <div class="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center mb-2">
+          <div class="mx-auto w-16 h-16 rounded-full bg-gradient-to-br from-violet-500 to-violet-600 flex items-center justify-center mb-2">
             <Lock class="h-8 w-8 text-white" />
           </div>
           <DialogTitle class="text-2xl font-bold">Protected Homepage</DialogTitle>
@@ -30,10 +30,11 @@
           <Button
             @click="handleVerifyPassword"
             :disabled="!passwordInput || isVerifying"
-            class="flex-1 bg-gradient-to-r from-teal-500 to-teal-600 hover:from-teal-600 hover:to-teal-700 text-white shadow-lg"
+            class="flex-1 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white shadow-lg"
+            :loading="isVerifying"
+            loading-label="Verifying..."
           >
-            <Loader2 v-if="isVerifying" class="mr-2 h-4 w-4 animate-spin" />
-            {{ isVerifying ? 'Verifying...' : 'Enter' }}
+            Enter
           </Button>
         </DialogFooter>
       </DialogContent>

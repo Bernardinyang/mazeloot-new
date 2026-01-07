@@ -54,11 +54,11 @@
             @click="handleProgressClick"
           >
             <div
-              class="absolute top-0 left-0 h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full transition-all duration-150 shadow-sm"
+              class="absolute top-0 left-0 h-full bg-gradient-to-r from-violet-400 to-violet-500 rounded-full transition-all duration-150 shadow-sm"
               :style="{ width: `${progressPercent}%` }"
             />
             <div
-              class="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-xl opacity-0 group-hover/progress:opacity-100 transition-all duration-200 ring-2 ring-teal-400/50"
+              class="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full shadow-xl opacity-0 group-hover/progress:opacity-100 transition-all duration-200 ring-2 ring-violet-400/50"
               :style="{ left: `calc(${progressPercent}% - 8px)` }"
             />
           </div>
@@ -116,7 +116,7 @@
                   @click.stop="handleVolumeClick"
                 >
                   <div
-                    class="h-full bg-gradient-to-r from-teal-400 to-teal-500 rounded-full transition-all duration-150 shadow-sm"
+                    class="h-full bg-gradient-to-r from-violet-400 to-violet-500 rounded-full transition-all duration-150 shadow-sm"
                     :style="{ width: `${volume * 100}%` }"
                   />
                 </div>

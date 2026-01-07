@@ -2,8 +2,7 @@
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <slot name="trigger">
-        <Button size="sm" class="bg-accent/10 hover:bg-accent/20 text-accent border-0">
-          <Rocket class="h-4 w-4 mr-1.5" />
+        <Button variant="secondary" size="sm" :icon="Rocket" class="text-accent border-0">
           UPGRADE
         </Button>
       </slot>
@@ -42,10 +41,11 @@
 
           <!-- CTA Button -->
           <Button
-            class="w-full bg-accent hover:bg-accent/90 text-accent-foreground font-medium py-2.5"
+            variant="default"
+            :icon="Rocket"
+            class="w-full font-medium py-2.5"
             @click="handleUpgrade"
           >
-            <Rocket class="h-3.5 w-3.5 mr-1.5" />
             Upgrade Now
           </Button>
         </div>

@@ -17,7 +17,7 @@
           class="px-4 py-3 rounded-lg border shadow-lg"
         >
           <div class="flex items-center gap-3">
-            <Loader2 class="h-5 w-5 animate-spin text-teal-500" />
+            <Loader2 class="h-5 w-5 animate-spin text-accent" />
             <span :class="theme.textPrimary" class="text-sm font-medium">
               {{ editing ? 'Updating set...' : 'Creating set...' }}
             </span>

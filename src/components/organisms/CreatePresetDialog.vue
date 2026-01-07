@@ -19,13 +19,13 @@
               :key="template.id"
               type="button"
               @click="selectedTemplate = template"
-              class="p-4 rounded-xl border-2 transition-all duration-300 text-left hover:border-teal-500/50 hover:shadow-md"
+              class="p-4 rounded-xl border-2 transition-all duration-300 text-left hover:border-accent/50 hover:shadow-md"
               :class="[
                 theme.borderSecondary,
                 theme.bgCard,
                 selectedTemplate?.id === template.id
-                  ? 'border-teal-500/50 bg-teal-50 dark:bg-teal-950/20 shadow-sm'
-                  : 'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                  ? 'border-accent/50 bg-accent/10 dark:bg-accent/20 shadow-sm'
+                  : 'hover:bg-accent/10 dark:hover:bg-accent/20',
               ]"
             >
               <h4 class="font-semibold text-sm mb-1" :class="theme.textPrimary">
@@ -38,13 +38,13 @@
             <button
               type="button"
               @click="selectedTemplate = null"
-              class="p-4 rounded-xl border-2 transition-all duration-300 text-left hover:border-teal-500/50 hover:shadow-md"
+              class="p-4 rounded-xl border-2 transition-all duration-300 text-left hover:border-accent/50 hover:shadow-md"
               :class="[
                 theme.borderSecondary,
                 theme.bgCard,
                 selectedTemplate === null
-                  ? 'border-teal-500/50 bg-teal-50 dark:bg-teal-950/20 shadow-sm'
-                  : 'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                  ? 'border-accent/50 bg-accent/10 dark:bg-accent/20 shadow-sm'
+                  : 'hover:bg-accent/10 dark:hover:bg-accent/20',
               ]"
             >
               <h4 class="font-semibold text-sm mb-1" :class="theme.textPrimary">Blank Preset</h4>
@@ -60,7 +60,7 @@
           :class="[
             theme.borderSecondary,
             theme.bgCard,
-            'border-teal-500/30 bg-teal-50 dark:bg-teal-950/20',
+            'border-accent/30 bg-accent/10 dark:bg-accent/20',
           ]"
         >
           <div class="flex items-center justify-between gap-4">
@@ -75,7 +75,7 @@
             <button
               type="button"
               @click="selectedTemplate = null"
-              class="text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors"
+              class="text-xs font-medium text-accent hover:text-accent/80 transition-colors"
             >
               Change
             </button>
@@ -94,7 +94,7 @@
               theme.bgInput,
               theme.borderInput,
               theme.textInput,
-              'border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50',
+              'border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50',
               errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
             ]"
             @keydown.enter="handleSubmit"
@@ -119,7 +119,7 @@
               theme.bgInput,
               theme.borderInput,
               theme.textInput,
-              'w-full min-h-[100px] resize-y border-2 transition-all duration-200 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500/50 rounded-lg px-4 py-3 leading-relaxed',
+              'w-full min-h-[100px] resize-y border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50 rounded-lg px-4 py-3 leading-relaxed',
               errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
             ]"
             rows="4"
@@ -142,12 +142,14 @@
             Cancel
           </Button>
           <Button
-            :disabled="!formData.name.trim() || isSubmitting"
-            class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200"
+            variant="default"
+            :disabled="!formData.name.trim()"
+            :loading="isSubmitting"
+            loading-label="Creating..."
+            class="shadow-lg hover:shadow-xl transition-all duration-200"
             @click="handleSubmit"
           >
-            <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-            {{ isSubmitting ? 'Creating...' : 'Create Preset' }}
+            Create Preset
           </Button>
         </div>
       </template>

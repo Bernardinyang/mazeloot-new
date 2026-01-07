@@ -45,7 +45,7 @@ const statusConfig = {
     icon: CheckCircle2,
   },
   draft: {
-    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20',
+    classes: 'bg-warning/10 text-warning border-warning/20',
     icon: Clock,
   },
   archived: {

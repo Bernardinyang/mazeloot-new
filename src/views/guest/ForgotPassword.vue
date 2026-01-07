@@ -24,8 +24,8 @@
             autocomplete="email"
           />
 
-          <Button type="submit" class="w-full" :disabled="loading || !meta.valid">
-            {{ loading ? 'Sending...' : 'Send Code' }}
+          <Button type="submit" class="w-full" :disabled="loading || !meta.valid" :loading="loading" loading-label="Sending...">
+            Send Code
           </Button>
         </Form>
 
@@ -44,8 +44,8 @@
             @complete="code => handleVerifyOtp(code)"
           />
 
-          <Button type="submit" class="w-full" :disabled="otpLoading || !isOtpComplete">
-            {{ otpLoading ? 'Verifying...' : 'Verify Code' }}
+          <Button type="submit" class="w-full" :disabled="otpLoading || !isOtpComplete" :loading="otpLoading" loading-label="Verifying...">
+            Verify Code
           </Button>
         </form>
 

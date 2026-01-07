@@ -46,6 +46,7 @@
           <video
             ref="videoRef"
             :src="coverVideoUrl"
+            :style="coverImageStyle"
             class="w-full h-full object-cover"
             autoplay
             loop
@@ -53,6 +54,18 @@
             playsinline
             @click.stop="toggleVideoPlay"
           />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
           <!-- Play/Pause Overlay -->
           <div
             class="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/20 transition-all duration-300"
@@ -71,9 +84,22 @@
           <img
             :alt="props.collection?.name ?? ''"
             :src="props.collection?.thumbnail ?? props.collection?.image ?? placeholderImage"
+            :style="coverImageStyle"
             class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
             @error="handleImageError"
           />
+          <!-- Focal Point Dot -->
+          <div
+            v-if="focalPoint && focalPoint.x !== undefined && focalPoint.y !== undefined"
+            :style="{
+              left: `${focalPoint.x}%`,
+              top: `${focalPoint.y}%`,
+              transform: 'translate(-50%, -50%)',
+            }"
+            class="absolute w-6 h-6 rounded-full border-4 border-white bg-green-500 shadow-lg pointer-events-none z-10"
+          >
+            <div class="w-full h-full rounded-full bg-white/30"></div>
+          </div>
           <div
             class="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           ></div>
@@ -170,6 +196,7 @@
         <video
           v-else-if="isVideoCover && coverVideoUrl"
           :src="coverVideoUrl"
+          :style="coverImageStyle"
           class="w-full h-full object-cover"
           autoplay
           loop
@@ -320,6 +347,7 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 
 const props = defineProps({
   collection: { type: [Object, null], default: null },
@@ -354,6 +382,9 @@ const coverVideoUrl = computed(() => {
   // Use collection.image which should contain the video URL from the media item's file.url
   return props.collection?.image || null
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.collection))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 const toggleVideoPlay = () => {
   if (!videoRef.value) return

@@ -67,7 +67,7 @@
                 </label>
                 <Loader2
                   v-if="isSaving"
-                  class="h-4 w-4 animate-spin text-teal-500"
+                  class="h-4 w-4 animate-spin text-violet-500"
                 />
               </div>
             </div>
@@ -78,12 +78,12 @@
         <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
           <div class="flex items-center justify-between gap-3">
             <div class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-teal-500" />
+              <Check class="h-4 w-4 text-violet-500" />
               <span :class="theme.textSecondary">All changes saved automatically</span>
             </div>
             <Button
               disabled
-              class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              class="bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <Check class="mr-2 h-4 w-4" />
               Saved

@@ -28,10 +28,11 @@
             Share
           </Button>
           <Button
-            class="bg-accent hover:bg-accent/90 text-accent-foreground shadow-lg hover:shadow-xl transition-all duration-200"
+            variant="default"
+            :icon="Globe"
+            class="shadow-lg hover:shadow-xl transition-all duration-200"
             @click="handleViewSite"
           >
-            <Globe class="h-4 w-4 mr-2" />
             View Site
           </Button>
         </div>
@@ -362,13 +363,13 @@
             <span :class="theme.textSecondary">All changes saved</span>
           </div>
           <Button
-            :disabled="!hasChanges || isSaving || isLoading"
-            class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="default"
+            :disabled="!hasChanges || isLoading"
+            :loading="isSaving"
+            loading-label="Saving..."
             @click="handleSave"
           >
-            <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
-            <span v-if="isSaving">Saving...</span>
-            <span v-else>Save Changes</span>
+            Save Changes
           </Button>
         </div>
       </div>

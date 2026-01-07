@@ -35,7 +35,7 @@
 
           <!-- New Project Button -->
           <Button
-            :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
+            variant="default"
             @click="handleCreateProject"
           >
             New Project
@@ -71,7 +71,8 @@
             :key="project.id"
             :project="project"
             :index="index"
-            :is-deleting="isDeletingProject && projectToDelete?.id === project.id"
+            :is-deleting="deletingProjectIds.has(String(project.id))"
+            :is-starring="starringProjectIds.has(String(project.id))"
             @click="handleProjectClick"
             @star-click="toggleStar"
             @edit="handleEditProject"
@@ -219,6 +220,10 @@ const isUpdatingProject = ref(false)
 const selectedProjects = ref([])
 const showDetailSidebar = ref(false)
 const selectedProjectId = ref(null)
+
+// Loading states per project
+const starringProjectIds = ref(new Set())
+const deletingProjectIds = ref(new Set())
 
 // Delete confirmation
 const {
@@ -374,13 +379,15 @@ const handleProjectClick = project => {
 }
 
 const toggleStar = async project => {
-  // Store original state for error recovery
+  const projectId = String(project.id)
+  if (starringProjectIds.value.has(projectId)) return
+  
   const wasStarred = project.isStarred || project.starred || false
   const newStarredState = !wasStarred
   const projectIndex = projects.value.findIndex(p => p.id === project.id)
 
+  starringProjectIds.value.add(projectId)
   try {
-    // Optimistic update - update UI immediately
     if (projectIndex !== -1) {
       projects.value[projectIndex] = {
         ...projects.value[projectIndex],
@@ -389,10 +396,8 @@ const toggleStar = async project => {
       }
     }
 
-    // Sync with server
     const result = await projectStore.toggleStar(project.id)
 
-    // Update with server response if available
     const serverStarredState = result?.starred ?? result?.data?.starred ?? newStarredState
     if (projectIndex !== -1) {
       projects.value[projectIndex] = {
@@ -402,7 +407,6 @@ const toggleStar = async project => {
       }
     }
   } catch (error) {
-    // Revert on error
     if (projectIndex !== -1) {
       projects.value[projectIndex] = {
         ...projects.value[projectIndex],
@@ -413,6 +417,8 @@ const toggleStar = async project => {
     handleError(error, {
       fallbackMessage: 'Failed to update star status.',
     })
+  } finally {
+    starringProjectIds.value.delete(projectId)
   }
 }
 
@@ -449,7 +455,9 @@ const handleDeleteProject = project => {
 const handleConfirmDeleteProject = async () => {
   if (!projectToDelete.value) return
 
+  const projectId = String(projectToDelete.value.id)
   isDeletingProject.value = true
+  deletingProjectIds.value.add(projectId)
   try {
     await projectStore.deleteProject(projectToDelete.value.id)
 
@@ -459,10 +467,8 @@ const handleConfirmDeleteProject = async () => {
 
     closeDeleteModal()
 
-    // Refresh projects list
     await fetch()
 
-    // If we're on the project dashboard for the deleted project, redirect to projects list
     const currentRoute = router.currentRoute.value
     if (
       currentRoute.name === 'projectDashboard' &&
@@ -476,6 +482,7 @@ const handleConfirmDeleteProject = async () => {
     })
   } finally {
     isDeletingProject.value = false
+    deletingProjectIds.value.delete(projectId)
   }
 }
 

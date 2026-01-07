@@ -61,7 +61,7 @@
         </div>
         <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
           <div
-            class="bg-teal-500 h-full transition-all duration-300"
+            class="bg-violet-500 h-full transition-all duration-300"
             :style="{ width: `${props.progress.percentage}%` }"
           ></div>
         </div>

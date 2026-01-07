@@ -6,7 +6,7 @@
   >
     <!-- Loading State -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-16">
-      <Loader2 class="h-10 w-10 animate-spin text-teal-500 mb-4" />
+      <Loader2 class="h-10 w-10 animate-spin text-violet-500 mb-4" />
       <p :class="['text-sm font-medium', theme.textSecondary]">Loading selection details...</p>
     </div>
 
@@ -16,13 +16,13 @@
       <div v-if="project" class="pb-6">
         <div
           :class="[
-            'group rounded-xl border p-4 transition-all hover:shadow-md hover:border-teal-500/50',
+            'group rounded-xl border p-4 transition-all hover:shadow-md hover:border-violet-500/50',
             theme.bgCardSolid,
             theme.borderSecondary,
           ]"
         >
           <div class="flex items-center gap-2 mb-3">
-            <FolderKanban class="h-4 w-4 text-teal-500" />
+            <FolderKanban class="h-4 w-4 text-violet-500" />
             <h3 :class="['text-sm font-semibold', theme.textPrimary]">Project</h3>
           </div>
           <router-link
@@ -30,7 +30,7 @@
             :class="[
               'text-sm font-semibold hover:underline transition-colors inline-flex items-center gap-1.5 group/link',
               theme.textPrimary,
-              'hover:text-teal-500 dark:hover:text-teal-400',
+              'hover:text-violet-500 dark:hover:text-violet-400',
             ]"
           >
             {{ project.name }}
@@ -56,7 +56,7 @@
             </DetailField>
             <DetailField v-if="selection.hasPassword" label="Password Protected">
               <div class="flex items-center gap-2">
-                <Shield class="h-4 w-4 text-teal-500" />
+                <Shield class="h-4 w-4 text-violet-500" />
                 <span :class="['text-sm', theme.textPrimary]">Yes</span>
               </div>
             </DetailField>
@@ -110,15 +110,15 @@
               ]"
             >
               <div class="flex items-center justify-center mb-1.5">
-                <CheckSquare class="h-4 w-4 text-green-600 dark:text-green-400" />
+                <CheckSquare class="h-4 w-4 text-green-600 dark:text-violet-400" />
               </div>
-              <div :class="['text-2xl font-bold mb-1', 'text-green-600 dark:text-green-400']">
+              <div :class="['text-2xl font-bold mb-1', 'text-green-600 dark:text-violet-400']">
                 {{ selection.selectedMediaCount || 0 }}
               </div>
               <div
                 :class="[
                   'text-[10px] font-medium uppercase tracking-wide',
-                  'text-green-600/70 dark:text-green-400/70',
+                  'text-green-600/70 dark:text-violet-400/70',
                 ]"
               >
                 Selected
@@ -163,7 +163,7 @@
               v-for="set in selection.mediaSets"
               :key="set.id || set"
               :class="[
-                'group px-3.5 py-2 rounded-lg border transition-all hover:shadow-md hover:border-teal-500/50 cursor-pointer',
+                'group px-3.5 py-2 rounded-lg border transition-all hover:shadow-md hover:border-violet-500/50 cursor-pointer',
                 theme.bgCardSolid,
                 theme.borderSecondary,
               ]"
@@ -177,7 +177,7 @@
                   v-if="set.count !== undefined"
                   :class="[
                     'text-xs px-1.5 py-0.5 rounded-full',
-                    'bg-teal-500/10 text-teal-600 dark:text-teal-400',
+                    'bg-violet-500/10 text-violet-600 dark:text-violet-400',
                   ]"
                 >
                   {{ set.count }}
@@ -217,7 +217,7 @@
                   :class="[
                     'text-xs px-2.5 py-1 rounded-full font-medium',
                     getDaysUntil(selection.autoDeleteDate) > 7
-                      ? 'bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20'
+                      ? 'bg-violet-500/10 text-green-600 dark:text-violet-400 border border-violet-500/20'
                       : getDaysUntil(selection.autoDeleteDate) > 0
                         ? 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border border-yellow-500/20'
                         : 'bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20',
@@ -256,7 +256,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                   :class="[
-                    'text-sm text-teal-500 hover:text-teal-600 dark:hover:text-teal-400 hover:underline',
+                    'text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 hover:underline',
                   ]"
                 >
                   View Image
@@ -317,7 +317,7 @@
         <ActionButtonGroup>
           <Button
             variant="default"
-            class="w-full bg-teal-500 hover:bg-teal-600 text-white shadow-md hover:shadow-lg transition-all"
+            class="w-full bg-violet-500 hover:bg-violet-600 text-white shadow-md hover:shadow-lg transition-all"
             @click="handleViewSelection"
           >
             <Eye class="h-4 w-4 mr-2" />

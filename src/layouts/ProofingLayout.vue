@@ -1,85 +1,57 @@
 <template>
-  <div>
-    <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+  <PhaseLayout phase-type="proofing">
+    <template #topNav>
       <ProofingTopNav :go-back="() => $emit('goBack')" :overall-progress="props.overallProgress" />
+    </template>
 
-      <!-- Main Content Area (Sidebar + Content) -->
-      <div class="flex flex-1 overflow-hidden">
-        <!-- Left Sidebar -->
-        <ProofingSidebar
+    <template #sidebar>
+      <ProofingSidebar
+        :active-tab="activeTab"
+        :is-loading="isLoading"
+        :is-sidebar-collapsed="isSidebarCollapsed"
+        :proofing="proofing"
+        @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
+      >
+        <ProofingSidebarPanels
           :active-tab="activeTab"
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
-          :proofing="proofing"
-          @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
-        >
-          <ProofingSidebarPanels
-            :active-tab="activeTab"
-            :is-loading="isLoading"
-            :is-sidebar-collapsed="isSidebarCollapsed"
-            :proofing-id="proofing?.id || ''"
-            :project-id="proofing?.projectId || null"
-            :disable-add-set="proofing?.status === 'completed'"
-          />
-        </ProofingSidebar>
+          :proofing-id="proofing?.id || ''"
+          :project-id="proofing?.projectId || null"
+          :disable-add-set="proofing?.status === 'completed'"
+        />
+      </ProofingSidebar>
+    </template>
 
-        <!-- Main Content Slot -->
-        <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
-          <slot name="content" />
-        </main>
-      </div>
-    </div>
+    <template #content>
+      <slot name="content" />
+    </template>
 
-    <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
-    <DeleteConfirmationModal
-      v-model="showDeleteSetModal"
-      :is-deleting="isDeletingSet"
-      :item-name="setToDelete?.name || 'Media Set'"
-      description="This action cannot be undone."
-      title="Delete Media Set"
-      warning-message="Delete this media set?"
-      @cancel="mediaSetsSidebar.cancelDeleteSet"
-      @confirm="mediaSetsSidebar.confirmDeleteSet"
-    />
-
-    <!-- Create/Edit Set Modal -->
-    <CreateEditMediaSetModal
-      v-model="showCreateSetModal"
-      v-model:description="newSetDescription"
-      v-model:name="newSetName"
-      :is-creating="isCreatingSet"
-      :is-editing="!!editingSetIdInModal"
-      context="proofing"
-      @cancel="mediaSetsSidebar.handleCancelCreateSet"
-      @confirm="mediaSetsSidebar.handleCreateSet"
-    />
-
-    <!-- Share Modal -->
-    <ProofingShareModal
-      v-model="headerStore.showShareModal"
-      :proofing-id="proofing?.id || ''"
-      :proofing-name="proofing?.name || 'Proofing'"
-      :project-id="proofing?.projectId || proofing?.project_uuid || null"
-      :password="proofing?.password || ''"
-    />
-  </div>
+    <template #shareModal>
+      <ProofingShareModal
+        v-model="headerStore.showShareModal"
+        :proofing-id="proofing?.id || ''"
+        :proofing-name="proofing?.name || 'Proofing'"
+        :project-id="proofing?.projectId || proofing?.project_uuid || null"
+        :password="proofing?.password || ''"
+      />
+    </template>
+  </PhaseLayout>
 </template>
 
 <script setup>
+import PhaseLayout from '@/layouts/PhaseLayout.vue'
 import ProofingSidebar from '../components/organisms/ProofingSidebar.vue'
 import ProofingTopNav from '../components/organisms/ProofingTopNav.vue'
 import ProofingSidebarPanels from '../components/organisms/ProofingSidebarPanels.vue'
 import ProofingShareModal from '../components/organisms/ProofingShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
-import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import { useProofingMediaSetsSidebarStore } from '@/stores/proofingMediaSetsSidebar'
 import { useProofingStore } from '@/stores/proofing'
 import { useProofingHeaderStore } from '@/stores/proofingHeader'
 import { useRoute } from 'vue-router'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
-import { darkenColor } from '@/utils/colors'
+import { darkenColor, getAccentColor } from '@/utils/colors'
 
 const props = defineProps({
   proofing: { type: [Object, null], default: null },
@@ -89,9 +61,9 @@ const props = defineProps({
 
 defineEmits(['goBack'])
 
-// Get proofing theme color (with fallback to teal-500)
+// Get proofing theme color (with fallback to accent)
 const proofingColor = computed(() => {
-  return props.proofing?.color || '#10B981' // Default teal-500
+  return props.proofing?.color || getAccentColor()
 })
 
 // Get hover color (slightly darker)
@@ -149,21 +121,11 @@ const activeTab = computed(() => {
 
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 
-// Use storeToRefs for reactive properties
-const {
-  showDeleteSetModal,
-  setToDelete,
-  isDeletingSet,
-  showCreateSetModal,
-  newSetName,
-  newSetDescription,
-  isCreatingSet,
-  editingSetIdInModal,
-} = storeToRefs(mediaSetsSidebar)
-
+// Note: setContext is now handled by ProofingDetail.vue to avoid race conditions
+// The layout watcher is kept for cases where proofing changes without going through ProofingDetail
 watch(
-  () => [proofing.value?.id, proofing.value?.mediaSets, proofing.value?.projectId],
-  ([id, sets, projectId]) => {
+  () => [proofing.value?.id, proofing.value?.projectId],
+  async ([id, projectId]) => {
     if (!id) return
 
     // Only update if we're not currently saving to avoid race conditions
@@ -171,19 +133,12 @@ watch(
       return
     }
 
-    // If IDs match, update context
-    if (id === mediaSetsSidebar.proofingId) {
-      // Only update if the sets are actually different to avoid unnecessary updates
-      const currentSets = JSON.stringify(mediaSetsSidebar.mediaSets)
-      const newSets = JSON.stringify(sets || [])
-      if (currentSets !== newSets) {
-        mediaSetsSidebar.setContext(id, sets || [], projectId || null)
-      }
-    } else {
-      // If IDs don't match, always set context (new proofing loaded)
-      mediaSetsSidebar.setContext(id, sets || [], projectId || null)
+    // Always fetch fresh from API, not from cached proofing.mediaSets
+    // Only update if the ID actually changed to avoid unnecessary fetches
+    if (id && id !== mediaSetsSidebar.proofingId) {
+      await mediaSetsSidebar.setContext(id, null, projectId || null)
     }
   },
-  { immediate: true }
+  { immediate: false } // Changed to false - let detail views handle initial load
 )
 </script>

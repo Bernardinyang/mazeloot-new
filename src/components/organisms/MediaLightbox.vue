@@ -100,7 +100,7 @@
             <!-- Close Button -->
             <button
               aria-label="Close lightbox"
-              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-red-500/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
+              class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
               @click.stop="handleClose"
             >
               <X class="w-5 h-5 sm:w-4 sm:h-4" />
@@ -307,7 +307,6 @@ import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2,
 import { getMediaDisplayUrl } from '@/utils/media/getMediaDisplayUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
-import { useRealtimeComments } from '@/composables/useRealtimeComments'
 import { useProofingApi } from '@/api/proofing'
 import { useCollectionsApi } from '@/api/collections'
 import { useSelectionsApi } from '@/api/selections'
@@ -686,71 +685,6 @@ const loadComments = async () => {
   }
 }
 
-// Initialize real-time comments
-const { connect: connectRealtime, disconnect: disconnectRealtime } = useRealtimeComments(
-  computed(() => currentItem.value?.id || ''),
-  {
-    onCommentCreated: newComment => {
-      if (newComment.mediaId === currentItem.value?.id) {
-        // If it's a reply, add it to the parent comment's replies array
-        if (newComment.parentId) {
-          const parentIndex = comments.value.findIndex(c => c.id === newComment.parentId)
-          if (parentIndex !== -1) {
-            if (!comments.value[parentIndex].replies) {
-              comments.value[parentIndex].replies = []
-            }
-            comments.value[parentIndex].replies.push(newComment)
-          } else {
-            // Parent not found in top-level, search in replies
-            const findAndAddReply = (commentList, parentId, reply) => {
-              for (const comment of commentList) {
-                if (comment.id === parentId) {
-                  if (!comment.replies) comment.replies = []
-                  comment.replies.push(reply)
-                  return true
-                }
-                if (comment.replies && comment.replies.length > 0) {
-                  if (findAndAddReply(comment.replies, parentId, reply)) {
-                    return true
-                  }
-                }
-              }
-              return false
-            }
-            if (!findAndAddReply(comments.value, newComment.parentId, newComment)) {
-              // If parent not found, add as top-level comment
-              comments.value = [...comments.value, newComment]
-            }
-          }
-        } else {
-          // Top-level comment
-          comments.value = [...comments.value, newComment]
-        }
-      }
-    },
-    onCommentUpdated: updatedComment => {
-      // Update comment in the list (including nested replies)
-      const updateComment = (commentList, updated) => {
-        const index = commentList.findIndex(c => c.id === updated.id)
-        if (index !== -1) {
-          commentList[index] = updated
-          return true
-        }
-        // Search in replies
-        for (const comment of commentList) {
-          if (comment.replies && comment.replies.length > 0) {
-            if (updateComment(comment.replies, updated)) {
-              return true
-            }
-          }
-        }
-        return false
-      }
-      updateComment(comments.value, updatedComment)
-    },
-    fetchComments: loadComments,
-  }
-)
 
 const handleDownload = () => {
   if (!currentItem.value) return
@@ -997,7 +931,6 @@ watch(isOpen, open => {
       }, 500)
     }
     loadComments()
-    connectRealtime()
     document.addEventListener('keydown', handleKeyDown)
     document.addEventListener('fullscreenchange', handleFullscreenChange)
     document.addEventListener('webkitfullscreenchange', handleFullscreenChange)
@@ -1020,7 +953,6 @@ watch(isOpen, open => {
     }
   } else {
     stopSlideshow()
-    disconnectRealtime()
     showComments.value = false
     document.removeEventListener('keydown', handleKeyDown)
     document.removeEventListener('fullscreenchange', handleFullscreenChange)
@@ -1051,11 +983,6 @@ watch(
       })
     }
     
-    // Reconnect real-time for new media
-    if (isOpen.value) {
-      disconnectRealtime()
-      connectRealtime()
-    }
   },
   { immediate: false }
 )

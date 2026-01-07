@@ -4,7 +4,7 @@
     :class="[
       theme.borderSecondary,
       props.isDragging
-        ? 'border-teal-500 bg-teal-50 dark:bg-teal-900/20 scale-[1.01] shadow-xl ring-4 ring-teal-500/20'
+        ? 'border-accent bg-accent/10 dark:bg-accent/20 scale-[1.01] shadow-xl ring-4 ring-accent/20'
         : '',
       ,
     ]"
@@ -17,13 +17,13 @@
       <div
         :class="[
           props.isDragging
-            ? 'bg-teal-100 dark:bg-teal-900/40 scale-110 ring-4 ring-teal-500/30'
+            ? 'bg-accent/20 dark:bg-accent/40 scale-110 ring-4 ring-accent/30'
             : '',
         ]"
         class="p-6 rounded-full transition-all duration-300"
       >
         <ImagePlus
-          :class="[props.isDragging ? 'text-teal-600 dark:text-teal-400 scale-110 rotate-6' : '']"
+          :class="[props.isDragging ? 'text-accent scale-110 rotate-6' : '']"
           class="h-12 w-12 transition-all duration-300"
         />
       </div>
@@ -34,7 +34,7 @@
         <p :class="theme.textSecondary" class="text-sm">
           or
           <button
-            class="text-teal-500 hover:text-teal-600 dark:text-teal-400 dark:hover:text-teal-300 font-semibold underline underline-offset-4 transition-colors"
+            class="text-accent hover:text-accent/80 font-semibold underline underline-offset-4 transition-colors"
             @click="emit('browse')"
           >
             browse files

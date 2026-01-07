@@ -1,43 +1,43 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
-    <CollectionTopNav
-      v-model:is-date-picker-open="isDatePickerOpen"
-      v-model:is-preset-popover-open="isPresetPopoverOpen"
-      v-model:is-watermark-popover-open="isWatermarkPopoverOpen"
-      :collection="collection"
-      :collection-status="effectiveCollectionStatus"
-      :editing-name="editingName"
-      :event-date="effectiveEventDate"
-      :is-editing-name="isEditingName"
-      :is-loading="isLoading"
-      :is-saving-name="isSavingName"
-      :is-saving-status="isSavingStatus"
-      :presets="presets"
-      :selected-preset-id="effectiveSelectedPresetId"
-      :selected-preset-name="selectedPresetName"
-      :selected-watermark="effectiveSelectedWatermark"
-      :selected-watermark-name="selectedWatermarkName"
-      :watermarks="watermarks"
-      @go-back="$emit('goBack')"
-      @start-editing-name="startEditingName"
-      @update:editing-name="editingName = $event"
-      @save-name="saveName"
-      @cancel-editing-name="cancelEditingName"
-      @handle-name-blur="handleNameBlur"
-      @update:collection-status="collectionStatus = $event"
-      @handle-status-change="handleStatusChange"
-      @handle-date-change="handleDateChange"
-      @handle-preset-change="handlePresetChange"
-      @handle-watermark-change="handleWatermarkChange"
-      @handle-preview="handlePreview"
-      @handle-share="showShareModal = true"
-      @handle-publish="handlePublish"
-      @handle-unpublish="handleUnpublish"
-    />
+  <PhaseLayout phase-type="collection" :show-create-set-modal="false">
+    <template #topNav>
+      <CollectionTopNav
+        v-model:is-date-picker-open="isDatePickerOpen"
+        v-model:is-preset-popover-open="isPresetPopoverOpen"
+        v-model:is-watermark-popover-open="isWatermarkPopoverOpen"
+        :collection="collection"
+        :collection-status="effectiveCollectionStatus"
+        :editing-name="editingName"
+        :event-date="effectiveEventDate"
+        :is-editing-name="isEditingName"
+        :is-loading="isLoading"
+        :is-saving-name="isSavingName"
+        :is-saving-status="isSavingStatus"
+        :presets="presets"
+        :selected-preset-id="effectiveSelectedPresetId"
+        :selected-preset-name="selectedPresetName"
+        :selected-watermark="effectiveSelectedWatermark"
+        :selected-watermark-name="selectedWatermarkName"
+        :watermarks="watermarks"
+        @go-back="$emit('goBack')"
+        @start-editing-name="startEditingName"
+        @update:editing-name="editingName = $event"
+        @save-name="saveName"
+        @cancel-editing-name="cancelEditingName"
+        @handle-name-blur="handleNameBlur"
+        @update:collection-status="collectionStatus = $event"
+        @handle-status-change="handleStatusChange"
+        @handle-date-change="handleDateChange"
+        @handle-preset-change="handlePresetChange"
+        @handle-watermark-change="handleWatermarkChange"
+        @handle-preview="handlePreview"
+        @handle-share="showShareModal = true"
+        @handle-publish="handlePublish"
+        @handle-unpublish="handleUnpublish"
+      />
+    </template>
 
-    <!-- Main Content Area (Sidebar + Content) -->
-    <div class="flex flex-1 overflow-hidden">
-      <!-- Left Sidebar -->
+    <template #sidebar>
       <CollectionSidebar
         :active-tab="activeTab"
         :collection="collection"
@@ -54,36 +54,24 @@
           :is-sidebar-collapsed="isSidebarCollapsed"
         />
       </CollectionSidebar>
+    </template>
 
-      <!-- Main Content Slot -->
-      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
-        <slot name="content" />
-      </main>
-    </div>
-  </div>
+    <template #content>
+      <slot name="content" />
+    </template>
 
-  <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
-  <DeleteConfirmationModal
-    v-model="mediaSetsSidebar.showDeleteSetModal"
-    :is-deleting="mediaSetsSidebar.isDeletingSet"
-    :item-name="mediaSetsSidebar.setToDelete?.name || 'Media Set'"
-    description="This action cannot be undone."
-    title="Delete Media Set"
-    warning-message="Delete this media set?"
-    @cancel="mediaSetsSidebar.cancelDeleteSet"
-    @confirm="mediaSetsSidebar.confirmDeleteSet"
-  />
-
-  <!-- Share Modal -->
-  <CollectionShareModal v-model:open="showShareModal" :collection="collection" />
+    <template #shareModal>
+      <CollectionShareModal v-model:open="showShareModal" :collection="collection" />
+    </template>
+  </PhaseLayout>
 </template>
 
 <script setup>
+import PhaseLayout from '@/layouts/PhaseLayout.vue'
 import CollectionSidebar from '../components/organisms/CollectionSidebar.vue'
 import CollectionTopNav from '../components/organisms/CollectionTopNav.vue'
 import CollectionSidebarPanels from '../components/organisms/CollectionSidebarPanels.vue'
 import { computed, ref, watch, onMounted } from 'vue'
-import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import CollectionShareModal from '@/components/organisms/CollectionShareModal.vue'
 import { useCollectionMediaSetsSidebarStore } from '@/stores/collectionMediaSetsSidebar'
 import { usePresetStore } from '@/stores/preset'
@@ -232,9 +220,12 @@ watch(
 )
 
 watch(
-  () => [collection.value?.id, collection.value?.mediaSets],
-  ([id, sets]) => {
-    mediaSetsSidebar.setContext(id || '', sets || [])
+  () => collection.value?.id,
+  (id) => {
+    // Always fetch fresh from API, not from cached collection.mediaSets
+    if (id) {
+      mediaSetsSidebar.setContext(id, null)
+    }
   },
   { immediate: true }
 )

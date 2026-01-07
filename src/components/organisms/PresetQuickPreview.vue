@@ -30,7 +30,7 @@
           </span>
           <span
             v-if="preset.isSelected"
-            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-300"
+            class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 dark:bg-accent/20 text-accent"
           >
             Default
           </span>
@@ -97,11 +97,12 @@
             Edit
           </Button>
           <Button
+            variant="default"
             size="sm"
-            class="bg-teal-500 hover:bg-teal-600 text-white flex-1"
+            :icon="Sparkles"
+            class="flex-1"
             @click="handleUse"
           >
-            <Sparkles class="mr-1.5 h-3.5 w-3.5" />
             Use
           </Button>
         </div>

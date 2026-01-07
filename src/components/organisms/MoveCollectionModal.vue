@@ -25,7 +25,6 @@
       <ActionButtonGroup
         cancel-label="Cancel"
         confirm-label="Move"
-        confirm-button-class="bg-accent hover:bg-accent/90 text-accent-foreground"
         @cancel="handleCancel"
         @confirm="handleConfirm"
       />

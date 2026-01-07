@@ -4,11 +4,12 @@
     type="button"
     variant="outline"
     class="w-full"
+    :loading="loading"
+    loading-label="Signing in..."
+    :icon="!loading ? IconGoogle : null"
     @click="$emit('click')"
   >
-    <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-    <IconGoogle v-else class="mr-2" :size="16" />
-    {{ loading ? 'Signing in...' : text }}
+    {{ text }}
   </Button>
 </template>
 

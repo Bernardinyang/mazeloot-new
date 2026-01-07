@@ -25,7 +25,7 @@
       >
         <template #actions>
           <Button
-            :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
+            variant="default"
             @click="handleCreateProofing"
           >
             New Proofing
@@ -188,6 +188,10 @@ const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const activeProofing = ref(null)
 
+// Loading states per proofing
+const starringProofingIds = ref(new Set())
+const deletingProofingIds = ref(new Set())
+
 /**
  * Map frontend sort values to backend sort values
  */
@@ -273,23 +277,34 @@ const handleProofingClick = proofingPhase => {
 }
 
 const toggleStar = async proofingPhase => {
-  if (proofingPhase && proofingPhase.id) {
-    try {
-      const proofingId = proofingPhase.id || proofingPhase.uuid
-      const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
-      await proofingStore.toggleStar(proofingId, projectId)
-      const index = proofing.value.findIndex(p => p.id === proofingId || p.uuid === proofingId)
-      if (index !== -1) {
-        proofing.value[index] = {
-          ...proofing.value[index],
-          isStarred: !proofing.value[index].isStarred,
-        }
+  if (!proofingPhase || (!proofingPhase.id && !proofingPhase.uuid)) return
+  
+  const proofingId = proofingPhase.id || proofingPhase.uuid
+  const proofingIdStr = String(proofingId)
+  if (starringProofingIds.value.has(proofingIdStr)) return
+  
+  starringProofingIds.value.add(proofingIdStr)
+  try {
+    const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
+    const result = await proofingStore.toggleStar(proofingId, projectId)
+    const index = proofing.value.findIndex(
+      p => p.id === proofingId || p.uuid === proofingId || 
+           p.id === proofingPhase.id || p.uuid === proofingPhase.id ||
+           p.id === proofingPhase.uuid || p.uuid === proofingPhase.uuid
+    )
+    if (index !== -1 && result?.starred !== undefined) {
+      proofing.value[index] = {
+        ...proofing.value[index],
+        isStarred: result.starred,
+        starred: result.starred,
       }
-    } catch (error) {
-      handleError(error, {
-        fallbackMessage: 'Failed to update star status.',
-      })
     }
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to update star status.',
+    })
+  } finally {
+    starringProofingIds.value.delete(proofingIdStr)
   }
 }
 
@@ -314,7 +329,11 @@ const handleDeleteProofing = proofingPhase => {
 }
 
 const handleConfirmDelete = async () => {
+  if (!activeProofing.value) return
+  
+  const proofingId = String(activeProofing.value.id || activeProofing.value.uuid)
   isDeleting.value = true
+  deletingProofingIds.value.add(proofingId)
   try {
     const deleted = await proofingStore.deleteProofing(
       activeProofing.value.id || activeProofing.value.uuid
@@ -330,6 +349,7 @@ const handleConfirmDelete = async () => {
     })
   } finally {
     isDeleting.value = false
+    deletingProofingIds.value.delete(proofingId)
   }
 }
 

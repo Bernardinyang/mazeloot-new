@@ -1,7 +1,7 @@
 <template>
   <div v-if="isLoading" class="flex items-center justify-center h-screen">
     <div class="text-center space-y-4">
-      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-500 mx-auto"></div>
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-violet-500 mx-auto"></div>
       <p :class="theme.textSecondary" class="text-sm">Loading watermark...</p>
     </div>
   </div>
@@ -46,7 +46,7 @@
         </button>
         <Button
           :disabled="isSaving || !isFormValid || watermarkStore.isLoading"
-          class="bg-teal-500 hover:bg-teal-600 text-white shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-violet-500 hover:bg-violet-600 text-white shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           @click="handleSave"
         >
           <span v-if="isSaving || watermarkStore.isLoading">
@@ -74,7 +74,7 @@
             <p :class="theme.textSecondary" class="text-xs leading-relaxed">
               Watermarks will not appear on prints ordered through Store. Any watermark changes will
               only apply to photos uploaded moving forward.
-              <a class="text-teal-500 hover:text-teal-600 underline font-medium" href="#"
+              <a class="text-violet-500 hover:text-violet-600 underline font-medium" href="#"
                 >Learn more</a
               >.
             </p>
@@ -88,7 +88,7 @@
                 v-for="template in watermarkTemplates"
                 :key="template.id"
                 @click="applyTemplate(template)"
-                class="p-3 rounded-md border-2 text-left transition-all hover:border-teal-500"
+                class="p-3 rounded-md border-2 text-left transition-all hover:border-violet-500"
                 :class="[
                   theme.bgCard,
                   theme.borderSecondary,
@@ -111,7 +111,7 @@
               <button
                 :class="
                   watermarkType === 'text'
-                    ? 'bg-teal-500 text-white shadow-md'
+                    ? 'bg-violet-500 text-white shadow-md'
                     : [
                         theme.bgCard,
                         theme.borderSecondary,
@@ -128,7 +128,7 @@
               <button
                 :class="
                   watermarkType === 'image'
-                    ? 'bg-teal-500 text-white shadow-md'
+                    ? 'bg-violet-500 text-white shadow-md'
                     : [
                         theme.bgCard,
                         theme.borderSecondary,
@@ -156,7 +156,7 @@
                   theme.borderInput,
                   theme.textInput,
                   theme.placeholderInput,
-                  'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                  'focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500',
                 ]"
                 class="transition-all"
                 maxlength="50"
@@ -199,7 +199,7 @@
                       theme.bgInput,
                       theme.borderInput,
                       theme.textInput,
-                      'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                      'focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500',
                     ]"
                     class="transition-all"
                   >
@@ -226,8 +226,8 @@
                   <button
                     :class="[
                       fontColor === '#FFFFFF'
-                        ? 'border-teal-500 ring-4 ring-teal-500/20 shadow-md'
-                        : 'hover:border-teal-500/50',
+                        ? 'border-violet-500 ring-4 ring-violet-500/20 shadow-md'
+                        : 'hover:border-violet-500/50',
                     ]"
                     class="w-12 h-12 rounded-full border-2 transition-all hover:scale-110"
                     style="
@@ -253,8 +253,8 @@
                   <button
                     :class="[
                       fontColor === '#000000'
-                        ? 'border-teal-500 ring-4 ring-teal-500/20 shadow-md'
-                        : 'hover:border-teal-500/50',
+                        ? 'border-violet-500 ring-4 ring-violet-500/20 shadow-md'
+                        : 'hover:border-violet-500/50',
                     ]"
                     class="w-12 h-12 rounded-full bg-black border-2 transition-all hover:scale-110"
                     @click="fontColor = '#000000'"
@@ -275,16 +275,16 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  'hover:border-teal-500 hover:bg-teal-50/50 dark:hover:bg-teal-900/10',
+                  'hover:border-violet-500 hover:bg-violet-50/50 dark:hover:bg-violet-900/10',
                 ]"
                 class="w-full h-56 rounded-lg border-2 border-dashed flex items-center justify-center transition-all cursor-pointer group"
                 @click="handleUploadImage"
               >
                 <div v-if="!watermarkImageUrl" class="text-center space-y-2">
                   <div
-                    class="p-3 rounded-full bg-teal-500/10 group-hover:bg-teal-500/20 transition-colors inline-block"
+                    class="p-3 rounded-full bg-violet-500/10 group-hover:bg-violet-500/20 transition-colors inline-block"
                   >
-                    <Plus class="h-8 w-8 text-teal-500" />
+                    <Plus class="h-8 w-8 text-violet-500" />
                   </div>
                   <p :class="theme.textSecondary" class="text-sm font-medium">
                     Click to upload image
@@ -425,8 +425,8 @@
                   <button
                     :class="[
                       backgroundColor === null
-                        ? 'border-teal-500 ring-4 ring-teal-500/20 shadow-md'
-                        : 'hover:border-teal-500/50',
+                        ? 'border-violet-500 ring-4 ring-violet-500/20 shadow-md'
+                        : 'hover:border-violet-500/50',
                     ]"
                     aria-label="Remove background"
                     class="w-12 h-12 rounded-full border-2 transition-all hover:scale-110 flex items-center justify-center"
@@ -474,7 +474,7 @@
                       theme.bgInput,
                       theme.borderInput,
                       theme.textInput,
-                      'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                      'focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500',
                     ]"
                     class="transition-all"
                   >
@@ -584,13 +584,13 @@
                   v-for="(pos, index) in positionOptions"
                   :key="index"
                   :aria-label="`Set position to ${pos.label}`"
-                  :class="position === pos.value ? 'bg-teal-500/10' : ''"
+                  :class="position === pos.value ? 'bg-violet-500/10' : ''"
                   :title="pos.label"
                   class="relative w-full aspect-square flex items-center justify-center rounded-md transition-all hover:bg-gray-100/50 dark:hover:bg-gray-800/50"
                   @click="position = pos.value"
                 >
                   <div
-                    :class="position === pos.value ? 'w-4 h-4 bg-teal-500' : 'w-2 h-2 bg-gray-400'"
+                    :class="position === pos.value ? 'w-4 h-4 bg-violet-500' : 'w-2 h-2 bg-gray-400'"
                     class="rounded-full transition-all"
                   ></div>
                 </button>
@@ -680,7 +680,7 @@
                         theme.bgInput,
                         theme.borderInput,
                         theme.textInput,
-                        'focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500',
+                        'focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500',
                       ]"
                       class="transition-all"
                     >
@@ -758,13 +758,13 @@
             <button
               :class="
                 previewMode === 'desktop'
-                  ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
+                  ? 'bg-violet-500 text-white shadow-md hover:bg-violet-600'
                   : [
                       theme.bgCard,
                       theme.borderSecondary,
                       'border-2',
                       theme.textSecondary,
-                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-teal-500/50',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-violet-500/50',
                     ]
               "
               class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
@@ -776,13 +776,13 @@
             <button
               :class="
                 previewMode === 'mobile'
-                  ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
+                  ? 'bg-violet-500 text-white shadow-md hover:bg-violet-600'
                   : [
                       theme.bgCard,
                       theme.borderSecondary,
                       'border-2',
                       theme.textSecondary,
-                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-teal-500/50',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-violet-500/50',
                     ]
               "
               class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
@@ -794,13 +794,13 @@
             <button
               :class="
                 previewMode === 'grid'
-                  ? 'bg-teal-500 text-white shadow-md hover:bg-teal-600'
+                  ? 'bg-violet-500 text-white shadow-md hover:bg-violet-600'
                   : [
                       theme.bgCard,
                       theme.borderSecondary,
                       'border-2',
                       theme.textSecondary,
-                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-teal-500/50',
+                      'hover:bg-gray-100 dark:hover:bg-gray-800 hover:border-violet-500/50',
                     ]
               "
               class="px-5 py-2.5 rounded-lg text-sm font-semibold transition-all flex items-center gap-2"
@@ -1000,8 +1000,8 @@
             <button
               :class="
                 previewMode === 'desktop'
-                  ? 'bg-teal-500 border-teal-500 shadow-md'
-                  : 'hover:border-teal-500'
+                  ? 'bg-violet-500 border-violet-500 shadow-md'
+                  : 'hover:border-violet-500'
               "
               aria-label="Desktop preview"
               class="w-2.5 h-2.5 rounded-full border-2 transition-all hover:scale-125"
@@ -1010,8 +1010,8 @@
             <button
               :class="
                 previewMode === 'mobile'
-                  ? 'bg-teal-500 border-teal-500 shadow-md'
-                  : 'hover:border-teal-500'
+                  ? 'bg-violet-500 border-violet-500 shadow-md'
+                  : 'hover:border-violet-500'
               "
               aria-label="Mobile preview"
               class="w-2.5 h-2.5 rounded-full border-2 transition-all hover:scale-125"

@@ -265,6 +265,76 @@ export function getTextColorForAccent(accentHex) {
 }
 
 /**
+ * Convert HSL to hex color
+ * @param {number} h - Hue (0-360)
+ * @param {number} s - Saturation (0-100)
+ * @param {number} l - Lightness (0-100)
+ * @returns {string} Hex color string
+ */
+function hslToHex(h, s, l) {
+  s /= 100
+  l /= 100
+
+  const c = (1 - Math.abs(2 * l - 1)) * s
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1))
+  const m = l - c / 2
+  let r = 0, g = 0, b = 0
+
+  if (0 <= h && h < 60) {
+    r = c; g = x; b = 0
+  } else if (60 <= h && h < 120) {
+    r = x; g = c; b = 0
+  } else if (120 <= h && h < 180) {
+    r = 0; g = c; b = x
+  } else if (180 <= h && h < 240) {
+    r = 0; g = x; b = c
+  } else if (240 <= h && h < 300) {
+    r = x; g = 0; b = c
+  } else if (300 <= h && h < 360) {
+    r = c; g = 0; b = x
+  }
+
+  r = Math.round((r + m) * 255)
+  g = Math.round((g + m) * 255)
+  b = Math.round((b + m) * 255)
+
+  return `#${[r, g, b].map(x => x.toString(16).padStart(2, '0')).join('')}`
+}
+
+/**
+ * Get the accent color from CSS variables
+ * Falls back to default accent color if CSS variable is not available
+ * @returns {string} Hex color string
+ */
+export function getAccentColor() {
+  if (typeof window === 'undefined') {
+    // SSR fallback - accent is HSL(262, 83%, 58%) = #8B5CF6
+    return '#8B5CF6'
+  }
+
+  try {
+    const root = document.documentElement
+    const accentHsl = getComputedStyle(root).getPropertyValue('--accent').trim()
+    
+    if (accentHsl) {
+      // Parse HSL format: "262 83% 58%"
+      const match = accentHsl.match(/(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)%\s+(\d+(?:\.\d+)?)%/)
+      if (match) {
+        const h = parseFloat(match[1])
+        const s = parseFloat(match[2])
+        const l = parseFloat(match[3])
+        return hslToHex(h, s, l)
+      }
+    }
+  } catch (e) {
+    // Fallback on error
+  }
+  
+  // Default fallback - accent is HSL(262, 83%, 58%) = #8B5CF6
+  return '#8B5CF6'
+}
+
+/**
  * Get color palette array format for UI components
  * Format: [{ id, label, colors: [primary, secondary, background] }]
  * @returns {Array} Array of palette objects with id, label, and colors

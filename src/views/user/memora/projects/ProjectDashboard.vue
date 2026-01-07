@@ -10,7 +10,7 @@
 
     <!-- Loading State -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-16">
-      <Loader2 class="h-10 w-10 animate-spin text-teal-500 mb-4" />
+      <Loader2 class="h-10 w-10 animate-spin text-violet-500 mb-4" />
       <p :class="['text-sm font-medium', theme.textSecondary]">Loading project details...</p>
     </div>
 
@@ -67,8 +67,8 @@
           v-if="project.hasSelections"
           :class="[
             'group border rounded-xl p-6 cursor-pointer transition-all',
-            'hover:shadow-lg hover:border-teal-500/50',
-            'bg-teal-50/30 dark:bg-teal-950/10',
+            'hover:shadow-lg hover:border-violet-500/50',
+            'bg-violet-50/30 dark:bg-violet-950/10',
             theme.borderSecondary,
           ]"
           @click="navigateToPhase('selections')"
@@ -76,9 +76,9 @@
           <div class="flex items-center justify-between mb-4">
             <div class="flex items-center gap-3">
               <div
-                class="h-10 w-10 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0"
+                class="h-10 w-10 rounded-lg bg-violet-500/10 flex items-center justify-center flex-shrink-0"
               >
-                <CheckSquare class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                <CheckSquare class="h-5 w-5 text-violet-600 dark:text-violet-400" />
               </div>
               <h3 :class="theme.textPrimary" class="text-lg font-semibold">Selections</h3>
             </div>
@@ -273,7 +273,7 @@
           :class="[theme.bgCardSolid, theme.borderSecondary, 'border rounded-xl p-6 shadow-sm']"
         >
           <div class="flex items-center gap-2.5 mb-4">
-            <Settings class="h-4 w-4 text-teal-500 dark:text-teal-400" />
+            <Settings class="h-4 w-4 text-violet-500 dark:text-violet-400" />
             <h3 :class="['text-sm font-semibold uppercase tracking-wide', theme.textPrimary]">
               Configuration
             </h3>
@@ -291,9 +291,9 @@
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                   <div
-                    class="h-8 w-8 rounded-md bg-teal-500/10 flex items-center justify-center flex-shrink-0"
+                    class="h-8 w-8 rounded-md bg-violet-500/10 flex items-center justify-center flex-shrink-0"
                   >
-                    <Settings class="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                    <Settings class="h-4 w-4 text-violet-600 dark:text-violet-400" />
                   </div>
                   <div class="min-w-0 flex-1">
                     <p :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">
@@ -377,7 +377,7 @@
         <!-- Timeline Section -->
         <div :class="[theme.bgCardSolid, theme.borderSecondary, 'border rounded-xl p-6 shadow-sm']">
           <div class="flex items-center gap-2.5 mb-4">
-            <Clock class="h-4 w-4 text-teal-500 dark:text-teal-400" />
+            <Clock class="h-4 w-4 text-violet-500 dark:text-violet-400" />
             <h3 :class="['text-sm font-semibold uppercase tracking-wide', theme.textPrimary]">
               Timeline
             </h3>

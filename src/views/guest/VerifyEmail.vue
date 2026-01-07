@@ -21,8 +21,8 @@
         @complete="handleVerify"
       />
 
-      <Button type="submit" class="w-full" :disabled="loading || !isCodeComplete">
-        {{ loading ? 'Verifying...' : 'Verify Email' }}
+      <Button type="submit" class="w-full" :disabled="loading || !isCodeComplete" :loading="loading" loading-label="Verifying...">
+        Verify Email
       </Button>
     </form>
 

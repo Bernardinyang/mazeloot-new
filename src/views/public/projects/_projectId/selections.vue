@@ -45,12 +45,13 @@
               backgroundColor: selectionColor,
             }"
             class="text-white"
+            :loading="isGeneratingToken"
+            loading-label="Generating Access..."
             @click="handleSubmitEmail"
             @mouseenter="e => (e.target.style.backgroundColor = getSelectionHoverColor())"
             @mouseleave="e => (e.target.style.backgroundColor = selectionColor)"
           >
-            <Loader2 v-if="isGeneratingToken" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isGeneratingToken ? 'Generating Access...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -105,12 +106,13 @@
               backgroundColor: selectionColor,
             }"
             class="text-white"
+            :loading="isVerifyingPassword"
+            loading-label="Verifying..."
             @click="handleVerifyPassword"
             @mouseenter="e => (e.target.style.backgroundColor = getSelectionHoverColor())"
             @mouseleave="e => (e.target.style.backgroundColor = selectionColor)"
           >
-            <Loader2 v-if="isVerifyingPassword" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isVerifyingPassword ? 'Verifying...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -303,9 +305,9 @@
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6"
+            class="bg-green-50 dark:bg-violet-900/20 border border-green-200 dark:border-violet-800 rounded-lg p-4 mb-6"
           >
-            <p class="text-sm text-green-800 dark:text-green-200">
+            <p class="text-sm text-violet-800 dark:text-green-200">
               Selection has been completed. Thank you!
             </p>
           </div>
@@ -419,13 +421,14 @@
                   backgroundColor: selectionColor,
                 }"
                 class="text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                :loading="isCompleting"
+                loading-label="Completing..."
+                :icon="!isCompleting ? CheckCircle2 : null"
                 @click="handleComplete"
                 @mouseenter="e => (e.target.style.backgroundColor = getSelectionHoverColor())"
                 @mouseleave="e => (e.target.style.backgroundColor = selectionColor)"
               >
-                <Loader2 v-if="isCompleting" class="h-4 w-4 mr-2 animate-spin" />
-                <CheckCircle2 v-else class="h-4 w-4 mr-2" />
-                {{ isCompleting ? 'Completing...' : 'Complete Selection' }}
+                Complete Selection
               </Button>
             </div>
           </div>
@@ -451,7 +454,7 @@
                             ? 'opacity-50 cursor-not-allowed'
                             : 'opacity-60 hover:opacity-100 hover:shadow-lg cursor-pointer',
                 selection.status === 'completed' && item.isSelected === true
-                  ? 'ring-1 ring-green-500/50' // Subtle green ring for items selected on completion
+                  ? 'ring-1 ring-violet-500/50' // Subtle green ring for items selected on completion
                   : '',
               ]"
               :style="[
@@ -516,20 +519,20 @@
                 />
               </div>
 
+              <!-- Action Buttons (centered) -->
               <div
                 v-if="!isAuthenticatedOwner && selection.status !== 'completed'"
-                class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all duration-200 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100"
+                class="absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200 z-30 opacity-0 group-hover:opacity-100"
+                @click.stop
               >
-                <Button
-                  class="bg-white/90 hover:bg-white text-gray-900"
-                  size="sm"
-                  variant="secondary"
+                <button
+                  class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
                   @click.stop="handleViewMedia(item)"
                 >
-                  <Eye class="h-4 w-4 mr-1" />
+                  <Eye class="h-3.5 w-3.5" />
                   View
-                </Button>
-                <Button
+                </button>
+                <button
                   v-if="!item.isSelected"
                   :disabled="
                     (isAtLimit(currentMediaItems) && !item.isSelected) ||
@@ -538,9 +541,7 @@
                   :style="{
                     backgroundColor: selectionColor,
                   }"
-                  class="text-white disabled:opacity-50"
-                  size="sm"
-                  variant="secondary"
+                  class="px-3 py-1.5 rounded-md hover:opacity-90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   @mouseenter="
                     e =>
                       !e.target.disabled &&
@@ -551,22 +552,20 @@
                   "
                   @click.stop="handleToggleSelection(item.id)"
                 >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 mr-1 animate-spin" />
-                  <CheckCircle2 v-else class="h-4 w-4 mr-1" />
+                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-3.5 w-3.5 animate-spin" />
+                  <CheckCircle2 v-else class="h-3.5 w-3.5" />
                   Select
-                </Button>
-                <Button
+                </button>
+                <button
                   v-else
                   :disabled="togglingMediaIds.has(item.id)"
-                  class="bg-red-500 hover:bg-red-600 text-white disabled:opacity-50"
-                  size="sm"
-                  variant="secondary"
+                  class="px-3 py-1.5 rounded-md bg-red-500/90 hover:bg-red-600/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                   @click.stop="handleToggleSelection(item.id)"
                 >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 mr-1 animate-spin" />
-                  <X v-else class="h-4 w-4 mr-1" />
+                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-3.5 w-3.5 animate-spin" />
+                  <X v-else class="h-3.5 w-3.5" />
                   Deselect
-                </Button>
+                </button>
               </div>
 
               <!-- Currently Selected Badge (top right) -->
@@ -694,12 +693,13 @@
               backgroundColor: selectionColor,
             }"
             class="text-white"
+            :loading="isCompleting"
+            loading-label="Completing..."
             @click="confirmComplete"
             @mouseenter="e => (e.target.style.backgroundColor = getSelectionHoverColor())"
             @mouseleave="e => (e.target.style.backgroundColor = selectionColor)"
           >
-            <Loader2 v-if="isCompleting" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isCompleting ? 'Completing...' : 'Complete Selection' }}
+            Complete Selection
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -719,11 +719,12 @@
       >
         <Button
           v-if="!previewCurrentItem.isSelected"
+          variant="default"
           :disabled="isAtLimit(currentMediaItems) && !previewCurrentItem.isSelected"
-          class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 shadow-lg"
+          :icon="CheckCircle2"
+          class="shadow-lg"
           @click="handleSelectFromPreview(previewCurrentItem.id)"
         >
-          <CheckCircle2 class="h-4 w-4 mr-2" />
           Select This Item
         </Button>
         <Button
@@ -777,6 +778,7 @@ import { useSettingsApi } from '@/api/settings'
 import { toast } from '@/utils/toast'
 import { getErrorMessage } from '@/utils/errors'
 import { clearSelectionGuestData } from '@/utils/guestLogout'
+import { getAccentColor } from '@/utils/colors'
 import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
 const theme = useThemeClasses()
@@ -943,9 +945,9 @@ const isPreviewMode = computed(() => {
   return route.query.preview === 'true' && isAuthenticatedOwner.value
 })
 
-// Get selection theme color (with fallback to teal-500)
+// Get selection theme color (with fallback to accent)
 const selectionColor = computed(() => {
-  return selection.value?.color || '#10B981' // Default teal-500
+  return selection.value?.color || getAccentColor()
 })
 
 // Get selection color styles for dynamic theming
@@ -976,7 +978,11 @@ const hexToRgb = hex => {
         g: parseInt(result[2], 16),
         b: parseInt(result[3], 16),
       }
-    : { r: 16, g: 185, b: 129 } // fallback to teal
+    : (() => {
+        const accent = getAccentColor()
+        const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(accent)
+        return rgb ? { r: parseInt(rgb[1], 16), g: parseInt(rgb[2], 16), b: parseInt(rgb[3], 16) } : { r: 139, g: 92, b: 246 }
+      })()
 }
 
 // Lighten color

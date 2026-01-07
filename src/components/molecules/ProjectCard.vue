@@ -135,7 +135,7 @@
         <div class="flex items-center gap-2">
           <div
             v-if="project.hasSelections"
-            class="w-2 h-2 rounded-full bg-teal-500"
+            class="w-2 h-2 rounded-full bg-violet-500"
             title="Has Selections"
           ></div>
           <div
@@ -159,18 +159,17 @@
           v-if="showStar"
           variant="ghost"
           size="icon"
-          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 [&_svg]:transition-all"
+          :disabled="isStarring"
+          :loading="isStarring"
+          :icon="!isStarring ? Star : null"
+          :class="[
+            project.isStarred || project.starred
+              ? '[&_svg]:fill-yellow-400 [&_svg]:text-yellow-400'
+              : '[&_svg]:text-gray-600 dark:[&_svg]:text-gray-400',
+          ]"
           @click.stop="$emit('star-click', project)"
-        >
-          <Star
-            :class="[
-              'h-4 w-4',
-              project.isStarred || project.starred
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-600 dark:text-gray-400',
-            ]"
-          />
-        </Button>
+        />
         <DropdownMenu v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <Button
@@ -207,7 +206,8 @@
               :disabled="isDeleting"
               @click.stop="!isDeleting && $emit('delete', project)"
             >
-              <span>Delete</span>
+              <span v-if="isDeleting">Deleting...</span>
+              <span v-else>Delete</span>
             </DropdownMenuItem>
             <slot name="menu-items-append" />
           </DropdownMenuContent>
@@ -268,6 +268,10 @@ const props = defineProps({
     default: true,
   },
   isDeleting: {
+    type: Boolean,
+    default: false,
+  },
+  isStarring: {
     type: Boolean,
     default: false,
   },

@@ -42,7 +42,7 @@
                   cy="80"
                   r="35"
                   stroke-width="3"
-                  class="stroke-teal-500"
+                  class="stroke-accent"
                   fill="none"
                 />
                 <!-- Clock Hands -->
@@ -53,7 +53,7 @@
                   y2="60"
                   stroke-width="3"
                   stroke-linecap="round"
-                  class="stroke-teal-500"
+                  class="stroke-accent"
                 />
                 <line
                   x1="100"
@@ -62,7 +62,7 @@
                   y2="80"
                   stroke-width="2"
                   stroke-linecap="round"
-                  class="stroke-teal-500"
+                  class="stroke-accent"
                 />
                 <!-- Envelope Icon -->
                 <rect
@@ -72,7 +72,7 @@
                   height="40"
                   rx="4"
                   stroke-width="2"
-                  class="stroke-teal-500"
+                  class="stroke-accent"
                   fill="none"
                 />
                 <path
@@ -80,7 +80,7 @@
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  class="stroke-teal-500"
+                  class="stroke-accent"
                   fill="none"
                 />
               </svg>

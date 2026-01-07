@@ -53,7 +53,7 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-teal-600 dark:hover:text-teal-400',
+            'hover:text-accent',
           ]"
           :disabled="isSubmitting"
           type="button"
@@ -63,14 +63,14 @@
           Cancel
         </Button>
         <Button
-          :disabled="!formData.name.trim() || isSubmitting"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="default"
+          :disabled="!formData.name.trim()"
+          :loading="isSubmitting"
+          loading-label="Creating..."
           type="button"
           @click="handleSubmit"
         >
-          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting">Creating...</span>
-          <span v-else>Create Selection</span>
+          Create Selection
         </Button>
       </div>
     </template>

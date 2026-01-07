@@ -11,14 +11,14 @@
         <label :class="theme.textPrimary" class="text-sm font-semibold"> Action </label>
         <div class="flex gap-2">
           <button
-            :class="[props.action === 'move' ? 'bg-teal-500 text-white border-teal-500' : '']"
+            :class="[props.action === 'move' ? 'bg-accent text-accent-foreground border-accent' : '']"
             class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
             @click="emit('update:action', 'move')"
           >
             Move
           </button>
           <button
-            :class="[props.action === 'copy' ? 'bg-teal-500 text-white border-teal-500' : '']"
+            :class="[props.action === 'copy' ? 'bg-accent text-accent-foreground border-accent' : '']"
             class="flex-1 px-4 py-2 rounded-lg border-2 transition-all"
             @click="emit('update:action', 'copy')"
           >

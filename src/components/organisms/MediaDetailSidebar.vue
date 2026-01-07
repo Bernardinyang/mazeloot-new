@@ -65,10 +65,10 @@
         <Button
           variant="default"
           size="sm"
-          class="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground"
+          :icon="Eye"
+          class="flex-1"
           @click="handleViewMedia"
         >
-          <Eye class="h-4 w-4 mr-2" />
           View
         </Button>
         <Button
@@ -161,13 +161,13 @@
             :class="[
               'p-4 rounded-lg border-2 transition-all duration-200',
               media.isSelected
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800'
                 : theme.bgCardSolid + ' ' + theme.borderSecondary,
             ]"
           >
             <div class="flex items-center gap-2 mb-2">
               <div
-                :class="['w-2 h-2 rounded-full', media.isSelected ? 'bg-green-500' : 'bg-gray-400']"
+                :class="['w-2 h-2 rounded-full', media.isSelected ? 'bg-violet-500' : 'bg-gray-400']"
               ></div>
               <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
                 Selected
@@ -176,7 +176,7 @@
             <div
               :class="[
                 'text-lg font-bold',
-                media.isSelected ? 'text-green-600 dark:text-green-400' : theme.textPrimary,
+                media.isSelected ? 'text-violet-600 dark:text-violet-400' : theme.textPrimary,
               ]"
             >
               {{ media.isSelected ? 'Yes' : 'No' }}
@@ -188,7 +188,7 @@
             :class="[
               'p-4 rounded-lg border-2 transition-all duration-200',
               media.isCompleted
-                ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800'
                 : theme.bgCardSolid + ' ' + theme.borderSecondary,
             ]"
           >
@@ -196,7 +196,7 @@
               <div
                 :class="[
                   'w-2 h-2 rounded-full',
-                  media.isCompleted ? 'bg-green-500' : 'bg-gray-400',
+                  media.isCompleted ? 'bg-violet-500' : 'bg-gray-400',
                 ]"
               ></div>
               <div :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
@@ -206,7 +206,7 @@
             <div
               :class="[
                 'text-lg font-bold',
-                media.isCompleted ? 'text-green-600 dark:text-green-400' : theme.textPrimary,
+                media.isCompleted ? 'text-violet-600 dark:text-violet-400' : theme.textPrimary,
               ]"
             >
               {{ media.isCompleted ? 'Yes' : 'No' }}
@@ -364,7 +364,7 @@
               :class="['text-sm', theme.textPrimary]"
               class="flex items-start gap-2"
             >
-              <span class="text-green-500 mt-0.5">✓</span>
+              <span class="text-violet-500 mt-0.5">✓</span>
               <span>{{ todo }}</span>
             </li>
           </ul>

@@ -100,7 +100,7 @@
             <!-- Proofing Progress (when completed) -->
             <div
               v-if="proofing?.status === 'completed' && (proofing?.completedCount !== undefined || overallProgress)"
-              class="flex items-center gap-1.5 text-xs font-medium text-green-600 dark:text-green-400"
+              class="flex items-center gap-1.5 text-xs font-medium text-violet-600 dark:text-violet-400"
             >
               <svg
                 class="w-3.5 h-3.5 flex-shrink-0"
@@ -125,7 +125,14 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2 flex-shrink-0">
+    <!-- Right Side Actions -->
+    <div v-if="isLoading" class="flex items-center gap-2 flex-shrink-0">
+      <div class="h-9 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-9 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-28 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+    </div>
+    <div v-else class="flex items-center gap-2 flex-shrink-0">
       <Button
         variant="outline"
         size="sm"
@@ -154,29 +161,24 @@
         size="sm"
         class="bg-red-500 hover:bg-red-600 text-white"
         :disabled="isLoading || isPublishing"
+        :loading="isPublishing"
+        loading-label="Unpublishing..."
+        :icon="!isPublishing ? X : null"
         @click="headerStore.handlePublish()"
       >
-        <Loader2 v-if="isPublishing" class="h-4 w-4 mr-2 animate-spin" />
-        <X v-else class="h-4 w-4 mr-2" />
-        {{ isPublishing ? 'Unpublishing...' : 'Unpublish' }}
+        Unpublish
       </Button>
       <Button
         v-if="proofingStatus === 'draft' || proofingStatus === 'completed'"
         variant="default"
         size="sm"
-        class="bg-accent hover:bg-accent/90 text-accent-foreground"
-        :disabled="isLoading || isPublishing"
+        :loading="isPublishing"
+        :icon="CheckCircle2"
+        loading-label="Publishing..."
+        :disabled="isLoading"
         @click="headerStore.handlePublish()"
       >
-        <Loader2 v-if="isPublishing" class="h-4 w-4 mr-2 animate-spin" />
-        <CheckCircle2 v-else class="h-4 w-4 mr-2" />
-        {{
-          isPublishing
-            ? 'Publishing...'
-            : proofingStatus === 'completed'
-              ? 'Republish'
-              : 'Publish Proofing'
-        }}
+        {{ proofingStatus === 'completed' ? 'Republish' : 'Publish Proofing' }}
       </Button>
     </div>
 
@@ -205,15 +207,17 @@ import { useProofingHeaderStore } from '@/stores/proofingHeader'
 import { useProofingStore } from '@/stores/proofing'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
 import AddEmailModal from '@/components/organisms/AddEmailModal.vue'
+import { getAccentColor } from '@/utils/colors'
 
 const theme = useThemeClasses()
 
 // Get proofing color from parent (provided by ProofingLayout)
+
 const proofingColor = inject(
   'proofingColor',
-  computed(() => '#10B981')
+  computed(() => getAccentColor())
 )
-const getProofingHoverColor = inject('getProofingHoverColor', () => '#059669')
+const getProofingHoverColor = inject('getProofingHoverColor', () => getAccentColor())
 
 const props = defineProps({
   goBack: {

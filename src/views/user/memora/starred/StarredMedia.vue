@@ -32,7 +32,7 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  isViewMenuOpen ? 'ring-2 ring-teal-500/20' : '',
+                  isViewMenuOpen ? 'ring-2 ring-violet-500/20' : '',
                 ]"
                 class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
               >
@@ -63,7 +63,7 @@
                         <Grid3x3 class="h-4 w-4" />
                         <span>Grid View</span>
                       </div>
-                      <Check v-if="viewMode === 'grid'" class="h-4 w-4 text-teal-500" />
+                      <Check v-if="viewMode === 'grid'" class="h-4 w-4 text-violet-500" />
                     </button>
                     <button
                       :class="[
@@ -76,7 +76,7 @@
                         <List class="h-4 w-4" />
                         <span>List View</span>
                       </div>
-                      <Check v-if="viewMode === 'list'" class="h-4 w-4 text-teal-500" />
+                      <Check v-if="viewMode === 'list'" class="h-4 w-4 text-violet-500" />
                     </button>
                   </div>
                 </div>
@@ -100,7 +100,7 @@
                       @click="handleGridSizeChange(size.value)"
                     >
                       <span>{{ size.label }}</span>
-                      <Check v-if="gridSize === size.value" class="h-4 w-4 text-teal-500" />
+                      <Check v-if="gridSize === size.value" class="h-4 w-4 text-violet-500" />
                     </button>
                   </div>
                 </div>

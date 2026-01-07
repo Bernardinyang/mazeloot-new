@@ -5,7 +5,7 @@
       <button
         v-if="showPreviewOnMedia"
         @click="$emit('preview-on-media')"
-        class="text-xs text-teal-500 hover:text-teal-600 font-medium"
+        class="text-xs text-accent hover:text-accent/80 font-medium"
       >
         Preview on Your Media →
       </button>

@@ -25,8 +25,8 @@
         autocomplete="new-password"
       />
 
-      <Button type="submit" class="w-full" :disabled="loading || !meta.valid">
-        {{ loading ? 'Resetting password...' : 'Reset Password' }}
+      <Button type="submit" class="w-full" :disabled="loading || !meta.valid" :loading="loading" loading-label="Resetting password...">
+        Reset Password
       </Button>
     </Form>
 

@@ -130,10 +130,10 @@
         <ActionButtonGroup>
           <Button
             variant="default"
-            class="w-full bg-teal-500 hover:bg-teal-600 text-white"
+            :icon="Eye"
+            class="w-full"
             @click="handleViewFolder"
           >
-            <Eye class="h-4 w-4 mr-2" />
             View Folder
           </Button>
           <Button

@@ -17,7 +17,7 @@
         @change="isFolder ? null : $emit('select', $event.target?.checked ?? false)"
         @click.stop
         :class="[
-          'h-4 w-4 rounded border-gray-300 text-teal-500 focus:ring-teal-500',
+          'h-4 w-4 rounded border-gray-300 text-accent focus:ring-accent',
           isFolder ? 'cursor-not-allowed opacity-50' : 'cursor-pointer',
         ]"
       />

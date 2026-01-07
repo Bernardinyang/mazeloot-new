@@ -18,8 +18,16 @@
 
       <!-- Section 2: Title and Status Row -->
       <div class="flex flex-col min-w-0">
+        <!-- Loading State -->
         <div
-          v-if="!isLoading"
+          v-if="isLoading"
+          class="flex items-center gap-3 mb-1"
+          style="min-height: 1.5rem"
+        >
+          <div class="h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+        </div>
+        <div
+          v-else
           class="flex items-center gap-3 mb-1 group"
           style="min-height: 1.5rem"
         >
@@ -50,31 +58,25 @@
                   @keydown.enter="headerStore.saveName()"
                   @keydown.esc="headerStore.cancelEditingName()"
                 />
-                <button
+                <Button
                   :disabled="isSavingName"
-                  class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
-                  style="height: 1.5rem; width: 1.5rem"
+                  variant="ghost"
+                  size="icon-sm"
+                  class="p-1 flex-shrink-0 hover:scale-110 active:scale-95"
+                  :loading="isSavingName"
+                  :icon="!isSavingName ? Check : null"
                   @click="headerStore.saveName()"
                   @mousedown.prevent
-                >
-                  <Check
-                    v-if="!isSavingName"
-                    class="h-4 w-4 text-accent"
-                  />
-                  <Loader2
-                    v-else
-                    class="h-4 w-4 animate-spin text-accent"
-                  />
-                </button>
-                <button
+                />
+                <Button
                   :disabled="isSavingName"
-                  class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 hover:scale-110 active:scale-95"
-                  style="height: 1.5rem; width: 1.5rem"
+                  variant="ghost"
+                  size="icon-sm"
+                  class="p-1 flex-shrink-0 hover:scale-110 active:scale-95"
+                  :icon="X"
                   @click="headerStore.cancelEditingName()"
                   @mousedown.prevent
-                >
-                  <X :class="theme.textSecondary" class="h-4 w-4" />
-                </button>
+                />
               </div>
             </Transition>
           </div>
@@ -103,7 +105,14 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2 flex-shrink-0">
+    <!-- Right Side Actions -->
+    <div v-if="isLoading" class="flex items-center gap-2 flex-shrink-0">
+      <div class="h-9 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-9 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+      <div class="h-9 w-28 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+    </div>
+    <div v-else class="flex items-center gap-2 flex-shrink-0">
       <Button
         v-if="props.onCopyAllSelectedFilenames && selectionStatus === 'completed'"
         variant="outline"
@@ -143,28 +152,27 @@
         size="sm"
         class="bg-red-500 hover:bg-red-600 text-white"
         :disabled="isLoading || isPublishing"
+        :loading="isPublishing"
+        loading-label="Unpublishing..."
+        :icon="!isPublishing ? X : null"
         @click="headerStore.handlePublish()"
       >
-        <Loader2 v-if="isPublishing" class="h-4 w-4 mr-2 animate-spin" />
-        <X v-else class="h-4 w-4 mr-2" />
-        {{ isPublishing ? 'Unpublishing...' : 'Unpublish' }}
+        Unpublish
       </Button>
       <Button
         v-if="selectionStatus === 'draft' || selectionStatus === 'completed'"
         variant="default"
         size="sm"
-        class="bg-accent hover:bg-accent/90 text-accent-foreground"
-        :disabled="isLoading || isPublishing"
+        :loading="isPublishing"
+        :icon="CheckCircle2"
+        loading-label="Publishing..."
+        :disabled="isLoading"
         @click="headerStore.handlePublish()"
       >
-        <Loader2 v-if="isPublishing" class="h-4 w-4 mr-2 animate-spin" />
-        <CheckCircle2 v-else class="h-4 w-4 mr-2" />
         {{
-          isPublishing
-            ? 'Publishing...'
-            : selectionStatus === 'completed'
-              ? 'Republish'
-              : 'Publish Selection'
+          selectionStatus === 'completed'
+            ? 'Republish'
+            : 'Publish Selection'
         }}
       </Button>
     </div>

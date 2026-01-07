@@ -1,4 +1,4 @@
-import { watch } from 'vue'
+import { nextTick, watch } from 'vue'
 import { toast } from '@/utils/toast'
 
 export function useCollectionLoadFlow({
@@ -86,36 +86,61 @@ export function useCollectionLoadFlow({
           }))
         : []
 
-      mediaSets.value = mappedMediaSets
-
-      // Set context in sidebar store to ensure media sets are visible
+      // Set context in sidebar store and always fetch fresh media sets from API
       // This will auto-select the first set if none is selected
       if (mediaSetsSidebar) {
-        mediaSetsSidebar.setContext(collectionData.id || '', mappedMediaSets)
+        await mediaSetsSidebar.setContext(collectionData.id || '', null)
+        await nextTick()
+        // Update local mediaSets from store after setContext
+        if (mediaSetsSidebar.mediaSets && mediaSetsSidebar.mediaSets.length > 0) {
+          mediaSets.value = mediaSetsSidebar.mediaSets
+        } else {
+          mediaSets.value = mappedMediaSets
+        }
+      } else {
+        mediaSets.value = mappedMediaSets
       }
 
-      // Check if setId is in route query and set it first (like SelectionDetail)
-      // This overrides the auto-selection from setContext
+      // Determine which set to select: route query > store auto-selection > first set
+      let targetSetId = null
+      const availableSets = mediaSetsSidebar?.mediaSets || mediaSets.value
       if (route.query.setId) {
         const setIdFromRoute = route.query.setId
-        if (mediaSets.value.some(s => s.id === setIdFromRoute)) {
-          if (mediaSetsSidebar) {
-            mediaSetsSidebar.handleSelectSet(setIdFromRoute)
-          } else {
-            selectedSetId.value = setIdFromRoute
-          }
+        const matchingSet = availableSets.find(s => s.id === setIdFromRoute)
+        if (matchingSet) {
+          targetSetId = setIdFromRoute
         }
-      } else if (mediaSetsSidebar && !mediaSetsSidebar.selectedSetId?.value && mediaSets.value.length > 0) {
-        // If no route query and store didn't auto-select (shouldn't happen, but safety check)
-        const firstSetId = sortedMediaSets.value[0]?.id || mediaSets.value[0].id
-        mediaSetsSidebar.handleSelectSet(firstSetId)
+      }
+      
+      // If no route query, use store's auto-selected set or first set
+      if (!targetSetId && availableSets.length > 0) {
+        if (mediaSetsSidebar) {
+          targetSetId = mediaSetsSidebar.selectedSetId || availableSets[0].id
+        } else {
+          targetSetId = selectedSetId.value || availableSets[0].id
+        }
+      }
+
+      // Ensure the target set is selected
+      if (targetSetId) {
+        if (mediaSetsSidebar && mediaSetsSidebar.selectedSetId !== targetSetId) {
+          mediaSetsSidebar.handleSelectSet(targetSetId)
+        } else if (!mediaSetsSidebar && selectedSetId.value !== targetSetId) {
+          selectedSetId.value = targetSetId
+        }
       }
 
       // Load media items for the selected set (if one is selected)
-      // Use store's selectedSetId if available, otherwise fall back to local ref
-      const currentSelectedSetId = mediaSetsSidebar?.selectedSetId?.value ?? selectedSetId.value
+      // Wait for selection to be set
+      await nextTick()
+      const currentSelectedSetId = mediaSetsSidebar?.selectedSetId ?? selectedSetId.value
       if (currentSelectedSetId && loadMediaItems) {
         await loadMediaItems()
+      } else if (!currentSelectedSetId) {
+        // Clear media if no set selected
+        if (mediaItems) {
+          mediaItems.value = []
+        }
       }
     } catch (error) {
       console.error('Failed to load collection:', error)

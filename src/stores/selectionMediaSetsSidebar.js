@@ -65,8 +65,18 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
       // Fetch media sets from API
       try {
         const fetchedSets = await selectionsApi.fetchMediaSets(id)
-        mediaSets.value = Array.isArray(fetchedSets) ? fetchedSets : []
+        // Handle different response formats
+        let setsArray = []
+        if (Array.isArray(fetchedSets)) {
+          setsArray = fetchedSets
+        } else if (fetchedSets && Array.isArray(fetchedSets.data)) {
+          setsArray = fetchedSets.data
+        } else if (fetchedSets && fetchedSets.sets && Array.isArray(fetchedSets.sets)) {
+          setsArray = fetchedSets.sets
+        }
+        mediaSets.value = setsArray
       } catch (error) {
+        console.error('Failed to fetch media sets:', error)
         mediaSets.value = []
       }
     } else {
@@ -77,7 +87,7 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
     if (selectedSetId.value && !mediaSets.value.some(s => s.id === selectedSetId.value)) {
       selectedSetId.value = null
     }
-    // Keep selected set sane too
+    // Always auto-select first set if none selected and sets exist
     if (!selectedSetId.value && mediaSets.value.length > 0) {
       selectedSetId.value = mediaSets.value[0].id
     }
@@ -186,9 +196,9 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
 
   const handleAddSet = () => {
     const selection = selectionStore.selection
-    if (selection?.status === 'completed') {
+    if (selection?.status === 'completed' || selection?.status === 'active') {
       toast.info('Set creation disabled', {
-        description: 'Cannot create sets in a completed selection.',
+        description: 'Cannot create sets in a completed or active selection.',
       })
       return
     }
@@ -200,6 +210,13 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   }
 
   const handleEditSet = setId => {
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed' || selection?.status === 'active') {
+      toast.info('Set editing disabled', {
+        description: 'Cannot edit sets in a completed or active selection.',
+      })
+      return
+    }
     const set = mediaSets.value.find(s => s.id === setId)
     if (!set) return
     showCreateSetModal.value = true
@@ -221,9 +238,9 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   const handleCreateSet = async () => {
     if (!ensureSelectionId()) return
     const selection = selectionStore.selection
-    if (selection?.status === 'completed') {
+    if (selection?.status === 'completed' || selection?.status === 'active') {
       toast.info('Set creation disabled', {
-        description: 'Cannot create sets in a completed selection.',
+        description: 'Cannot create sets in a completed or active selection.',
       })
       handleCancelCreateSet()
       return
@@ -313,6 +330,13 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   const isDeletingSet = ref(false)
 
   const requestDeleteSet = setId => {
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed' || selection?.status === 'active') {
+      toast.info('Set deletion disabled', {
+        description: 'Cannot delete sets in a completed or active selection.',
+      })
+      return
+    }
     const set = mediaSets.value.find(s => s.id === setId)
     if (!set) return
     setToDelete.value = set
@@ -328,6 +352,14 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   const confirmDeleteSet = async () => {
     if (!ensureSelectionId()) return
     if (!setToDelete.value) return
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed' || selection?.status === 'active') {
+      toast.info('Set deletion disabled', {
+        description: 'Cannot delete sets in a completed or active selection.',
+      })
+      cancelDeleteSet()
+      return
+    }
 
     isDeletingSet.value = true
     try {
@@ -373,6 +405,11 @@ export const useSelectionMediaSetsSidebarStore = defineStore('selectionMediaSets
   }
 
   const handleSetDrop = async payload => {
+    const selection = selectionStore.selection
+    if (selection?.status === 'completed' || selection?.status === 'active') {
+      handleSetDragEnd()
+      return
+    }
     const fromIndex = draggedSetIndex.value
     const toIndex = payload?.index ?? null
     if (fromIndex === null || toIndex === null || fromIndex === toIndex) {

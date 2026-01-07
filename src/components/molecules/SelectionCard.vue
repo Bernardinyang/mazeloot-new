@@ -51,13 +51,6 @@
         </div>
       </div>
 
-      <!-- Status Badge (when cover image exists) -->
-      <div
-        v-if="coverImage && selection?.status"
-        class="absolute bottom-3 right-3 z-30"
-      >
-        <StatusBadge :status="selection.status" />
-      </div>
 
       <!-- Starred Badge and Lock Icon -->
       <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
@@ -81,6 +74,7 @@
         v-if="coverImage && isVideoCover"
         ref="videoRef"
         :src="coverImage"
+        :style="coverImageStyle"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         autoplay
         loop
@@ -92,6 +86,7 @@
         v-else-if="coverImage"
         :alt="selection?.name || 'Selection'"
         :src="coverImage"
+        :style="coverImageStyle"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
         @error="handleImageError"
@@ -127,17 +122,6 @@
         >
           <CheckSquare class="h-10 w-10 text-white" />
         </div>
-        <div
-          v-if="selection?.status"
-          :style="{
-            backgroundColor: `${cardColor}20`,
-            color: 'white',
-            borderColor: `${cardColor}40`,
-          }"
-          class="px-3 py-1 rounded-full text-xs font-semibold border"
-        >
-          {{ capitalize(selection.status) }}
-        </div>
       </div>
 
       <!-- Decorative elements -->
@@ -157,20 +141,19 @@
       >
         <Button
           v-if="showStar"
-          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 [&_svg]:transition-all"
           size="icon"
           variant="ghost"
+          :disabled="isStarring"
+          :loading="isStarring"
+          :icon="!isStarring ? Star : null"
+          :class="[
+            selection?.isStarred || selection?.starred
+              ? '[&_svg]:fill-yellow-400 [&_svg]:text-yellow-400'
+              : '[&_svg]:text-gray-600 dark:[&_svg]:text-gray-400',
+          ]"
           @click.stop="$emit('star-click', selection)"
-        >
-          <Star
-            :class="[
-              'h-4 w-4',
-              selection?.isStarred || selection?.starred
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-gray-600 dark:text-gray-400',
-            ]"
-          />
-        </Button>
+        />
         <DropdownMenu v-model:open="isDropdownOpen">
           <DropdownMenuTrigger as-child>
             <Button
@@ -195,15 +178,18 @@
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :disabled="isDeleting"
               @click.stop="$emit('edit', selection)"
             >
               <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+              :disabled="isDeleting"
               @click.stop="$emit('delete', selection)"
             >
-              <span>Delete</span>
+              <span v-if="isDeleting">Deleting...</span>
+              <span v-else>Delete</span>
             </DropdownMenuItem>
             <slot name="menu-items-append" />
           </DropdownMenuContent>
@@ -223,10 +209,13 @@
           {{ selection?.name || 'Untitled Selection' }}
         </h3>
       </div>
-      <div :class="theme.textSecondary" class="flex items-center gap-3 text-sm mt-1">
+      <div :class="theme.textSecondary" class="flex items-center justify-between gap-3 text-sm mt-1">
         <slot name="subtitle">
           <span class="line-clamp-1">{{ getMediaAndListCount(selection) }}</span>
         </slot>
+        <div v-if="selection?.status" class="shrink-0">
+          <StatusBadge :status="selection.status" />
+        </div>
       </div>
     </div>
   </div>
@@ -245,6 +234,7 @@ import {
 } from '@/components/shadcn/dropdown-menu'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { darkenColor, generateRandomColorFromPalette, lightenColor } from '@/utils/colors'
+import { useFocalPoint, getFocalPointFromEntity } from '@/composables/useFocalPoint'
 import { capitalize } from '@/lib/utils'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 
@@ -268,6 +258,14 @@ const props = defineProps({
   rotateAmplitude: {
     type: Number,
     default: 8,
+  },
+  isStarring: {
+    type: Boolean,
+    default: false,
+  },
+  isDeleting: {
+    type: Boolean,
+    default: false,
   },
 })
 
@@ -347,6 +345,9 @@ const isVideoCover = computed(() => {
   const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
   return videoExtensions.some(ext => url.toLowerCase().endsWith(ext))
 })
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.selection))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
 
 const cardColor = computed(() => {
   return props.selection?.color || generateRandomColorFromPalette()

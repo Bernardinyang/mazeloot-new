@@ -6,24 +6,28 @@
       :class="[
         theme.textSecondary,
         theme.bgButtonHover,
-        'hover:text-teal-600 dark:hover:text-teal-400',
+        'hover:text-accent',
       ]"
       @click="$emit('cancel')"
       :disabled="isSubmitting"
     >
       {{ cancelLabel }}
     </Button>
-    <Button :type="submitType" :disabled="disabled || isSubmitting" :class="submitButtonClass">
-      <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-      <span v-if="isSubmitting">{{ submittingLabel }}</span>
-      <span v-else>{{ submitLabel }}</span>
+    <Button
+      :type="submitType"
+      :disabled="disabled"
+      :loading="isSubmitting"
+      :loading-label="submittingLabel"
+      :class="submitButtonClass"
+      variant="default"
+    >
+      {{ submitLabel }}
     </Button>
   </div>
 </template>
 
 <script setup>
 import { Button } from '@/components/shadcn/button'
-import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const props = defineProps({
@@ -54,8 +58,7 @@ const props = defineProps({
   },
   submitButtonClass: {
     type: String,
-    default:
-      'bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed',
+    default: '',
   },
 })
 

@@ -166,14 +166,15 @@
 
       <Button
         v-if="!props.disableUpload"
-        :disabled="props.isUploading"
+        variant="default"
+        :loading="props.isUploading"
+        :icon="ImagePlus"
+        loading-label="Uploading..."
         size="sm"
-        class="bg-accent hover:bg-accent/90 text-accent-foreground shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+        class="shadow-md hover:shadow-lg transition-all duration-200 font-medium"
         @click="emit('add-media')"
       >
-        <Loader2 v-if="props.isUploading" class="h-4 w-4 mr-2 animate-spin" />
-        <ImagePlus v-else class="h-4 w-4 mr-2" />
-        {{ props.isUploading ? 'Uploading...' : 'Upload Media' }}
+        Upload Media
       </Button>
     </div>
   </div>

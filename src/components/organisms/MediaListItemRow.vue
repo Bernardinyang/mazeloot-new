@@ -9,12 +9,12 @@
           : props.selectionStatus === 'completed'
             ? 'opacity-50 grayscale'
             : 'opacity-90 hover:opacity-100',
-      props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-green-500/50' : '',
+      props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-violet-500/50' : '',
       !props.minimalActions && hasPendingClosureRequest
         ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/30 dark:bg-amber-900/10 animate-pulse'
         : '',
       !props.minimalActions && hasApprovedClosureRequest
-        ? 'ring-2 ring-green-500 border-green-500 bg-green-50/30 dark:bg-green-900/10 animate-pulse'
+        ? 'ring-2 ring-violet-500 border-green-500 bg-violet-50/30 dark:bg-violet-900/10 animate-pulse'
         : '',
       !props.minimalActions && hasRejectedClosureRequest
         ? 'ring-2 ring-red-500 border-red-500 bg-red-50/30 dark:bg-red-900/10'
@@ -115,7 +115,7 @@
           class="absolute bottom-1 right-1 z-30"
         >
           <div
-            class="flex items-center justify-center w-6 h-6 rounded-full bg-green-500/90 backdrop-blur-sm shadow-lg"
+            class="flex items-center justify-center w-6 h-6 rounded-full bg-violet-500/90 backdrop-blur-sm shadow-lg"
             title="Selected when completed"
           >
             <CheckCircle2 class="h-3 w-3 fill-white text-white" />
@@ -182,7 +182,7 @@
           <!-- Approved Badge (under date) -->
           <div
             v-if="props.item?.isCompleted || props.item?.is_completed"
-            class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-500/90 dark:bg-green-600/90 backdrop-blur-sm shadow-sm border border-green-400/50"
+            class="mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/90 dark:bg-violet-600/90 backdrop-blur-sm shadow-sm border border-violet-400/50"
             title="Approved"
           >
             <CheckCircle2 class="h-3 w-3 fill-white text-white" />
@@ -246,7 +246,7 @@
         <Tooltip>
           <TooltipTrigger as-child>
             <button
-              class="flex-shrink-0 p-2 rounded-lg bg-green-500/90 hover:bg-green-600/90 transition-all duration-200 hover:scale-110"
+              class="flex-shrink-0 p-2 rounded-lg bg-violet-500/90 hover:bg-violet-600/90 transition-all duration-200 hover:scale-110"
               @click.stop="emit('view-closure-history')"
             >
               <Clock class="h-4 w-4 text-white animate-pulse" />
@@ -361,7 +361,7 @@
               Manage
             </DropdownMenuLabel>
             <DropdownMenuItem
-              v-if="!props.minimalActions"
+              v-if="!props.minimalActions && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('move-copy')"
             >
@@ -384,7 +384,7 @@
               Set as cover photo
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions"
+              v-if="!props.minimalActions && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('rename')"
             >
@@ -392,7 +392,7 @@
               Rename
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions"
+              v-if="!props.minimalActions && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('replace')"
             >
@@ -400,7 +400,7 @@
               Replace photo
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && hasWatermark"
+              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('remove-watermark')"
             >
@@ -408,7 +408,7 @@
               Remove Watermark
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image')"
+              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('watermark')"
             >
@@ -567,7 +567,7 @@
           </template>
 
           <!-- Delete Action -->
-          <template v-if="props.showManagementActions">
+          <template v-if="props.showManagementActions && !(props.item?.isCompleted || props.item?.is_completed)">
             <DropdownMenuSeparator />
             <DropdownMenuItem
               :class="[

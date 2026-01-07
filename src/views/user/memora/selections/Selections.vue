@@ -25,7 +25,7 @@
       >
         <template #actions>
           <Button
-            :class="['bg-accent hover:bg-accent/90 text-accent-foreground']"
+            variant="default"
             @click="handleCreateSelection"
           >
             New Selection
@@ -61,6 +61,8 @@
             :key="selection.id"
             :index="index"
             :selection="selection"
+            :is-starring="starringSelectionIds.has(String(selection.id))"
+            :is-deleting="deletingSelectionIds.has(String(selection.id))"
             @click="handleSelectionClick"
             @delete="handleDeleteSelection"
             @edit="handleEditSelection"
@@ -171,6 +173,10 @@ const showDeleteModal = ref(false)
 const isDeleting = ref(false)
 const activeSelection = ref(null)
 
+// Loading states per selection
+const starringSelectionIds = ref(new Set())
+const deletingSelectionIds = ref(new Set())
+
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
   { label: 'Created (Old → New)', value: 'created-old-new' },
@@ -254,17 +260,24 @@ const handleSelectionClick = selection => {
 }
 
 const toggleStar = async selection => {
-  if (selection && selection.id) {
-    try {
-      await selectionStore.toggleStarSelection(selection.id)
-      const index = selections.value.findIndex(s => s.id === selection.id)
-      if (index !== -1) {
-        selections.value[index] = {
-          ...selections.value[index],
-          isStarred: !selections.value[index].isStarred,
-        }
+  if (!selection || !selection.id) return
+  
+  const selectionId = String(selection.id)
+  if (starringSelectionIds.value.has(selectionId)) return
+  
+  starringSelectionIds.value.add(selectionId)
+  try {
+    await selectionStore.toggleStarSelection(selection.id)
+    const index = selections.value.findIndex(s => s.id === selection.id)
+    if (index !== -1) {
+      selections.value[index] = {
+        ...selections.value[index],
+        isStarred: !selections.value[index].isStarred,
       }
-    } catch (error) {}
+    }
+  } catch (error) {
+  } finally {
+    starringSelectionIds.value.delete(selectionId)
   }
 }
 
@@ -289,7 +302,11 @@ const handleDeleteSelection = selection => {
 }
 
 const handleConfirmDelete = async () => {
+  if (!activeSelection.value) return
+  
+  const selectionId = String(activeSelection.value.id)
   isDeleting.value = true
+  deletingSelectionIds.value.add(selectionId)
   try {
     const deleted = await selectionStore.deleteSelection(activeSelection.value.id)
     if (deleted) {
@@ -300,6 +317,7 @@ const handleConfirmDelete = async () => {
   } catch (error) {
   } finally {
     isDeleting.value = false
+    deletingSelectionIds.value.delete(selectionId)
   }
 }
 

@@ -20,13 +20,14 @@
       <Button
         v-if="confirmLabel"
         type="button"
-        :class="['bg-accent hover:bg-accent/90 text-accent-foreground', confirmButtonClass]"
-        :disabled="disabled || loading"
+        variant="default"
+        :loading="loading"
+        :loading-label="loadingLabel || 'Loading...'"
+        :disabled="disabled"
+        :class="confirmButtonClass"
         @click="$emit('confirm')"
       >
-        <Loader2 v-if="loading" class="mr-2 h-4 w-4 animate-spin" />
-        <span v-if="loading">{{ loadingLabel || 'Loading...' }}</span>
-        <span v-else>{{ confirmLabel }}</span>
+        {{ confirmLabel }}
       </Button>
     </slot>
   </div>
@@ -34,7 +35,6 @@
 
 <script setup>
 import { Button } from '@/components/shadcn/button'
-import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const theme = useThemeClasses()

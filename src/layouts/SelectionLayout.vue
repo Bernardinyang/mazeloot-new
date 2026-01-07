@@ -1,6 +1,6 @@
 <template>
-  <div>
-    <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+  <PhaseLayout phase-type="selection">
+    <template #topNav>
       <SelectionTopNav
         :go-back="() => $emit('goBack')"
         :overall-progress="props.overallProgress"
@@ -9,76 +9,48 @@
         :on-copy-all-selected-filenames="props.onCopyAllSelectedFilenames"
         :selected-count="props.selectedCount"
       />
+    </template>
 
-      <!-- Main Content Area (Sidebar + Content) -->
-      <div class="flex flex-1 overflow-hidden">
-        <!-- Left Sidebar -->
-        <SelectionSidebar
+    <template #sidebar>
+      <SelectionSidebar
+        :active-tab="activeTab"
+        :is-loading="isLoading"
+        :is-sidebar-collapsed="isSidebarCollapsed"
+        :selection="selection"
+        @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
+      >
+        <SelectionSidebarPanels
           :active-tab="activeTab"
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
-          :selection="selection"
-          @update:is-sidebar-collapsed="isSidebarCollapsed = $event"
-        >
-          <SelectionSidebarPanels
-            :active-tab="activeTab"
-            :is-loading="isLoading"
-            :is-sidebar-collapsed="isSidebarCollapsed"
-            :selection-id="selection?.id || ''"
-          />
-        </SelectionSidebar>
+          :selection-id="selection?.id || ''"
+        />
+      </SelectionSidebar>
+    </template>
 
-        <!-- Main Content Slot -->
-        <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
-          <slot name="content" />
-        </main>
-      </div>
-    </div>
+    <template #content>
+      <slot name="content" />
+    </template>
 
-    <!-- Share Modal -->
-    <SelectionShareModal
-      v-model="headerStore.showShareModal"
-      :selection-id="selection?.id || ''"
-      :selection-name="selection?.name || 'Selection'"
-      :project-id="selection?.projectId || selection?.project_uuid || null"
-      :password="selection?.password || ''"
-    />
-
-    <!-- Media Set Delete Confirmation (store-driven, avoids prop-drilling) -->
-    <DeleteConfirmationModal
-      v-model="showDeleteSetModal"
-      :is-deleting="isDeletingSet"
-      :item-name="setToDelete?.name || 'Media Set'"
-      description="This action cannot be undone."
-      title="Delete Media Set"
-      warning-message="Delete this media set?"
-      @cancel="mediaSetsSidebar.cancelDeleteSet"
-      @confirm="mediaSetsSidebar.confirmDeleteSet"
-    />
-
-    <!-- Create/Edit Set Modal -->
-    <CreateEditMediaSetModal
-      v-model="showCreateSetModal"
-      v-model:description="newSetDescription"
-      v-model:name="newSetName"
-      v-model:selectionLimit="newSetSelectionLimit"
-      :is-creating="isCreatingSet"
-      :is-editing="!!editingSetIdInModal"
-      @cancel="mediaSetsSidebar.handleCancelCreateSet"
-      @confirm="mediaSetsSidebar.handleCreateSet"
-    />
-  </div>
+    <template #shareModal>
+      <SelectionShareModal
+        v-model="headerStore.showShareModal"
+        :selection-id="selection?.id || ''"
+        :selection-name="selection?.name || 'Selection'"
+        :project-id="selection?.projectId || selection?.project_uuid || null"
+        :password="selection?.password || ''"
+      />
+    </template>
+  </PhaseLayout>
 </template>
 
 <script setup>
+import PhaseLayout from '@/layouts/PhaseLayout.vue'
 import SelectionSidebar from '../components/organisms/SelectionSidebar.vue'
 import SelectionTopNav from '../components/organisms/SelectionTopNav.vue'
 import SelectionSidebarPanels from '../components/organisms/SelectionSidebarPanels.vue'
 import SelectionShareModal from '../components/organisms/SelectionShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
-import { storeToRefs } from 'pinia'
-import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
-import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import { useSelectionMediaSetsSidebarStore } from '@/stores/selectionMediaSetsSidebar'
 import { useSelectionStore } from '@/stores/selection'
 import { useSelectionHeaderStore } from '@/stores/selectionHeader'
@@ -154,22 +126,11 @@ const activeTab = computed(() => {
 
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
 
-// Use storeToRefs for reactive properties
-const {
-  showDeleteSetModal,
-  setToDelete,
-  isDeletingSet,
-  showCreateSetModal,
-  newSetName,
-  newSetDescription,
-  newSetSelectionLimit,
-  isCreatingSet,
-  editingSetIdInModal,
-} = storeToRefs(mediaSetsSidebar)
-
+// Note: setContext is now handled by SelectionDetail.vue to avoid race conditions
+// The layout watcher is kept for cases where selection changes without going through SelectionDetail
 watch(
-  () => [selection.value?.id, selection.value?.mediaSets],
-  ([id, sets]) => {
+  () => selection.value?.id,
+  async (id) => {
     if (!id) return
 
     // Only update if we're not currently saving to avoid race conditions
@@ -177,19 +138,12 @@ watch(
       return
     }
 
-    // If IDs match, update context
-    if (id === mediaSetsSidebar.selectionId) {
-      // Only update if the sets are actually different to avoid unnecessary updates
-      const currentSets = JSON.stringify(mediaSetsSidebar.mediaSets)
-      const newSets = JSON.stringify(sets || [])
-      if (currentSets !== newSets) {
-        mediaSetsSidebar.setContext(id, sets || [])
-      }
-    } else {
-      // If IDs don't match, always set context (new selection loaded)
-      mediaSetsSidebar.setContext(id, sets || [])
+    // Always fetch fresh from API, not from cached selection.mediaSets
+    // Only update if the ID actually changed to avoid unnecessary fetches
+    if (id && id !== mediaSetsSidebar.selectionId) {
+      await mediaSetsSidebar.setContext(id, null)
     }
   },
-  { immediate: true }
+  { immediate: false } // Changed to false - let detail views handle initial load
 )
 </script>

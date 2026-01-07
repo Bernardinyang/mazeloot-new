@@ -101,11 +101,11 @@
               />
             </div>
             <Button
-              :disabled="!newPlatform.name || !newPlatform.slug || isCreating"
-              class="bg-teal-500 hover:bg-teal-600 text-white"
+              variant="default"
+              :disabled="!newPlatform.name || !newPlatform.slug"
+              :loading="isCreating"
               @click="handleCreatePlatform"
             >
-              <Loader2 v-if="isCreating" class="h-4 w-4 mr-2 animate-spin" />
               Add Platform
             </Button>
           </div>
@@ -133,7 +133,7 @@
                   <h3 class="text-base font-semibold" :class="theme.textPrimary">
                     {{ platform.name }}
                   </h3>
-                  <span class="text-xs px-2 py-1 rounded-full" :class="platform.isActive ? 'bg-teal-500/10 text-teal-500' : 'bg-gray-500/10 text-gray-500'">
+                  <span class="text-xs px-2 py-1 rounded-full" :class="platform.isActive ? 'bg-accent/10 text-accent' : 'bg-gray-500/10 text-gray-500'">
                     {{ platform.isActive ? 'Active' : 'Inactive' }}
                   </span>
                 </div>
@@ -207,10 +207,10 @@
                   variant="ghost"
                   size="sm"
                   :disabled="isUpdating"
+                  :loading="isUpdating"
                   @click="handleUpdatePlatform(platform.id)"
                 >
-                  <Loader2 v-if="isUpdating" class="h-4 w-4 animate-spin" />
-                  <span v-else>Save</span>
+                  Save
                 </Button>
                 <Button
                   v-else
@@ -224,21 +224,19 @@
                 <Button
                   variant="ghost"
                   size="sm"
-                  :disabled="isToggling === platform.id"
+                  :loading="isToggling === platform.id"
                   @click="handleToggleActive(platform.id)"
                 >
-                  <Loader2 v-if="isToggling === platform.id" class="h-4 w-4 animate-spin" />
-                  <span v-else>{{ platform.isActive ? 'Deactivate' : 'Activate' }}</span>
+                  {{ platform.isActive ? 'Deactivate' : 'Activate' }}
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
-                  :disabled="isDeleting === platform.id"
+                  :loading="isDeleting === platform.id"
                   :class="theme.textSecondary"
                   @click="handleDeletePlatform(platform.id)"
                 >
-                  <Loader2 v-if="isDeleting === platform.id" class="h-4 w-4 animate-spin" />
-                  <span v-else>Delete</span>
+                  Delete
                 </Button>
               </div>
             </div>

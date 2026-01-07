@@ -7,7 +7,7 @@
   >
     <!-- Loading State -->
     <div v-if="isLoading" class="flex flex-col items-center justify-center py-16">
-      <Loader2 class="h-10 w-10 animate-spin text-teal-500 mb-4" />
+      <Loader2 class="h-10 w-10 animate-spin text-accent mb-4" />
       <p :class="['text-sm font-medium', theme.textSecondary]">Loading project details...</p>
     </div>
 
@@ -81,13 +81,13 @@
       <div
         v-if="project.hasSelections"
         class="pb-6 pt-6 border-t rounded-lg -mx-6 px-6"
-        :class="[theme.borderSecondary, 'bg-teal-50/30 dark:bg-teal-950/10']"
+        :class="[theme.borderSecondary, 'bg-accent/10 dark:bg-accent/10']"
       >
         <DetailSection title="Selections" :icon="CheckSquare">
           <div
             :class="[
               'group flex items-center justify-between p-4 rounded-lg border transition-all mb-5',
-              'hover:shadow-md hover:border-teal-500/50 cursor-pointer',
+              'hover:shadow-md hover:border-accent/50 cursor-pointer',
               'bg-white dark:bg-gray-900',
               theme.borderSecondary,
             ]"
@@ -95,9 +95,9 @@
           >
             <div class="flex items-center gap-3">
               <div
-                class="h-10 w-10 rounded-lg bg-teal-500/10 flex items-center justify-center flex-shrink-0"
+                class="h-10 w-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0"
               >
-                <CheckSquare class="h-5 w-5 text-teal-600 dark:text-teal-400" />
+                <CheckSquare class="h-5 w-5 text-accent" />
               </div>
               <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
@@ -361,10 +361,10 @@
         <div class="flex flex-col gap-2.5">
           <Button
             variant="default"
-            class="w-full bg-teal-500 hover:bg-teal-600 text-white shadow-sm hover:shadow-md transition-all"
+            :icon="Eye"
+            class="w-full shadow-sm hover:shadow-md transition-all"
             @click="handleViewProject"
           >
-            <Eye class="h-4 w-4 mr-2" />
             View Project
           </Button>
           <Button

@@ -97,7 +97,7 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-teal-600 dark:hover:text-teal-400',
+            'hover:text-violet-600 dark:hover:text-violet-400',
           ]"
           @click="handleCancel"
           :disabled="props.isSubmitting || isLocalSubmitting"
@@ -108,14 +108,11 @@
           type="button"
           @click="handleSubmit"
           :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
-          class="bg-teal-500 hover:bg-teal-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          :loading="props.isSubmitting || isLocalSubmitting"
+          loading-label="Creating..."
         >
-          <Loader2
-            v-if="props.isSubmitting || isLocalSubmitting"
-            class="mr-2 h-4 w-4 animate-spin"
-          />
-          <span v-if="props.isSubmitting || isLocalSubmitting">Creating...</span>
-          <span v-else>Create Collection</span>
+          Create Collection
         </Button>
       </div>
     </template>

@@ -51,8 +51,8 @@
                 day === null && [theme.textTertiary, 'cursor-not-allowed'],
                 day &&
                   isSelected(day) && [
-                    'bg-teal-500 text-white hover:bg-teal-600',
-                    'focus:bg-teal-500',
+                    'bg-violet-500 text-white hover:bg-violet-600',
+                    'focus:bg-violet-500',
                   ],
                 day &&
                   !isSelected(day) && [
@@ -60,7 +60,7 @@
                     theme.bgButtonHover,
                     'hover:bg-opacity-80',
                   ],
-                day && isToday(day) && !isSelected(day) && 'font-semibold ring-1 ring-teal-500/50'
+                day && isToday(day) && !isSelected(day) && 'font-semibold ring-1 ring-violet-500/50'
               )
             "
           >

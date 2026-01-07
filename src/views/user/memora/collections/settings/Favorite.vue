@@ -33,8 +33,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsGeneral'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
             ]"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -46,8 +46,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsPrivacy'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
             ]"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -59,8 +59,8 @@
             v-if="collection?.id"
             :class="[
               route.name?.toString().startsWith('collectionSettingsDownload')
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -84,8 +84,8 @@
             v-if="collection?.id"
             :class="[
               route.name === 'collectionSettingsFavorite'
-                ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+                ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+                : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
             ]"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: collection.id } }"
             class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -231,7 +231,7 @@
             <!-- Favorite Photos -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -252,7 +252,7 @@
             <!-- Favorite Notes -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -261,7 +261,7 @@
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Allow clients to add notes to photos they have favorited.
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -281,17 +281,18 @@
                 <span :class="theme.textSecondary">You have unsaved changes</span>
               </div>
               <div v-else class="flex items-center gap-2 text-sm">
-                <Check class="h-4 w-4 text-teal-500" />
+                <Check class="h-4 w-4 text-violet-500" />
                 <span :class="theme.textSecondary">All changes saved</span>
               </div>
               <Button
-                :disabled="!hasChanges || isSaving"
-                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="default"
+                :disabled="!hasChanges"
+                :loading="isSaving"
+                :icon="!hasChanges ? Check : null"
+                loading-label="Saving..."
                 @click="handleSave"
               >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-                {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+                {{ hasChanges ? 'Save Changes' : 'Saved' }}
               </Button>
             </div>
           </div>

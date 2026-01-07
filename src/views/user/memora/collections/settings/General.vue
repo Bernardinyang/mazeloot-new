@@ -36,7 +36,7 @@
             <!-- Collection URL -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Collection URL</h3>
@@ -47,7 +47,7 @@
               <Input
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                 :model-value="collectionUrl"
-                class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                 placeholder="mysamplecollection"
                 @update:model-value="collectionUrl = $event"
               />
@@ -56,13 +56,13 @@
             <!-- Category Tags -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Category Tags</h3>
                 <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                   Add tags to categorize different collections e.g. wedding, outdoor, summer.
-                  <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                  <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                     >Learn more</a
                   >
                 </p>
@@ -70,7 +70,7 @@
               <Input
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                 :model-value="categoryTags"
-                class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                 placeholder="Select or enter tags"
                 @update:model-value="categoryTags = $event"
               />
@@ -80,7 +80,7 @@
             <div
               v-if="presets && presets.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Preset</h3>
@@ -95,7 +95,7 @@
                 >
                   <SelectTrigger
                     :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                    class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                    class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                   >
                     <SelectValue :placeholder="selectedPresetName || 'No preset'" />
                   </SelectTrigger>
@@ -104,7 +104,7 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                        'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                       ]"
                       value="none"
                       >No preset
@@ -115,7 +115,7 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                        'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                       ]"
                       :value="preset.id"
                     >
@@ -125,15 +125,12 @@
                 </Select>
                 <Button
                   v-if="selectedPresetId !== 'none'"
-                  :disabled="isApplyingPreset"
-                  class="bg-accent hover:bg-accent/90 text-accent-foreground"
+                  variant="default"
+                  :loading="isApplyingPreset"
+                  :icon="Sparkles"
+                  loading-label="Applying..."
                   @click="handleApplyPreset"
                 >
-                  <Loader2
-                    v-if="isApplyingPreset"
-                    class="mr-2 h-4 w-4 animate-spin"
-                  />
-                  <Sparkles v-else class="mr-2 h-4 w-4" />
                   Apply Preset
                 </Button>
               </div>
@@ -143,7 +140,7 @@
             <div
               v-if="watermarks && watermarks.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
@@ -151,7 +148,7 @@
                 </h3>
                 <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                   Set the default watermark to apply to photos. Manage watermarks in
-                  <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                  <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                     >App settings</a
                   >.
                 </p>
@@ -162,7 +159,7 @@
               >
                 <SelectTrigger
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                  class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                 >
                   <SelectValue :placeholder="selectedWatermarkName || 'No watermark'" />
                 </SelectTrigger>
@@ -171,7 +168,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     value="none"
                     >No watermark
@@ -182,7 +179,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     :value="watermark.id"
                   >
@@ -195,14 +192,14 @@
             <!-- Auto Expiry -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Auto Expiry</h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Automatically set your collection to hidden after a specified number of days
-                    <span v-if="autoExpiryEnabled && autoExpiryDays" class="font-medium block mt-1 text-teal-600 dark:text-teal-400">
+                    <span v-if="autoExpiryEnabled && autoExpiryDays" class="font-medium block mt-1 text-violet-600 dark:text-violet-400">
                       ({{ autoExpiryDays }} {{ autoExpiryDays === 1 ? 'day' : 'days' }} until expiry)
                     </span>
                 </p>
@@ -221,7 +218,7 @@
                 <Input
                         v-model.number="autoExpiryDays"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="max-w-xs focus:ring-2 focus:ring-teal-500/20 transition-all"
+                        class="max-w-xs focus:ring-2 focus:ring-violet-500/20 transition-all"
                         max="365"
                         min="1"
                         placeholder="30"
@@ -241,7 +238,7 @@
             <!-- Email Registration -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -250,7 +247,7 @@
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Track email addresses accessing this collection.
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -264,7 +261,7 @@
             <!-- Gallery Assist -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -273,7 +270,7 @@
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
                     Add walk-through cards to help visitors use the collection.
-                    <a class="text-teal-600 dark:text-teal-400 hover:underline font-medium" href="#"
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
                       >Learn more</a
                     >
                   </p>
@@ -287,7 +284,7 @@
             <!-- Slideshow -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -296,7 +293,7 @@
                     Allow visitors to view the images in their collection as a slideshow.
                     <a
                       href="#"
-                      class="text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:underline font-medium transition-colors"
+                      class="text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:underline font-medium transition-colors"
                       >Learn more</a
                     >
                   </p>
@@ -315,7 +312,7 @@
                         class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"
                         :class="
                           slideshow
-                            ? 'bg-teal-500'
+                            ? 'bg-violet-500'
                             : 'bg-gray-300 dark:bg-gray-600'
                         "
                       ></div>
@@ -335,9 +332,9 @@
                   class="flex items-center gap-2 text-sm font-semibold transition-colors group"
                     :class="[
                     showSlideshowOptions
-                      ? 'text-teal-600 dark:text-teal-400'
+                      ? 'text-violet-600 dark:text-violet-400'
                       : theme.textPrimary,
-                    'hover:text-teal-600 dark:hover:text-teal-400',
+                    'hover:text-violet-600 dark:hover:text-violet-400',
                   ]"
                 >
                   <ChevronDown
@@ -370,7 +367,7 @@
                             type="radio"
                             v-model="slideshowSpeed"
                             value="slow"
-                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            class="w-4 h-4 text-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                             :checked="slideshowSpeed === 'slow'"
                           />
                           <span
@@ -394,7 +391,7 @@
                             type="radio"
                             v-model="slideshowSpeed"
                             value="regular"
-                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            class="w-4 h-4 text-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                             :checked="slideshowSpeed === 'regular'"
                           />
                           <span
@@ -416,7 +413,7 @@
                             type="radio"
                             v-model="slideshowSpeed"
                             value="fast"
-                            class="w-4 h-4 text-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
+                            class="w-4 h-4 text-violet-500 focus:ring-2 focus:ring-violet-500/20 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-900 transition-all cursor-pointer"
                             :checked="slideshowSpeed === 'fast'"
                           />
                           <span
@@ -435,7 +432,7 @@
 
                     <!-- Auto Loop -->
                     <div
-                      class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-teal-500/50"
+                      class="flex items-center justify-between p-4 rounded-xl border transition-all duration-200 hover:border-violet-500/50"
                       :class="[theme.borderSecondary, theme.bgCard]"
                     >
                       <div class="flex-1">
@@ -465,7 +462,7 @@
                             class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-accent"
                             :class="
                               slideshowAutoLoop
-                                ? 'bg-teal-500'
+                                ? 'bg-violet-500'
                                 : 'bg-gray-300 dark:bg-gray-600'
                             "
                           ></div>
@@ -480,7 +477,7 @@
             <!-- Social Sharing -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -500,7 +497,7 @@
             <!-- Language -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-teal-500/30"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Language</h3>
@@ -511,7 +508,7 @@
               <Select :model-value="language" @update:model-value="language = $event">
                 <SelectTrigger
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                  class="max-w-md focus:ring-2 focus:ring-teal-500/20 transition-all"
+                  class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
                 >
                   <SelectValue placeholder="English" />
                 </SelectTrigger>
@@ -520,7 +517,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     value="en"
                     >English
@@ -529,7 +526,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     value="es"
                     >Spanish
@@ -538,7 +535,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     value="fr"
                     >French
@@ -547,7 +544,7 @@
                     :class="[
                       theme.textPrimary,
                       theme.bgButtonHover,
-                      'hover:bg-teal-50 dark:hover:bg-teal-950/20',
+                      'hover:bg-violet-50 dark:hover:bg-violet-950/20',
                     ]"
                     value="de"
                     >German
@@ -565,17 +562,18 @@
                 <span :class="theme.textSecondary">You have unsaved changes</span>
               </div>
               <div v-else class="flex items-center gap-2 text-sm">
-                <Check class="h-4 w-4 text-teal-500" />
+                <Check class="h-4 w-4 text-violet-500" />
                 <span :class="theme.textSecondary">All changes saved</span>
               </div>
               <Button
-                :disabled="!hasChanges || isSaving"
-                class="bg-accent hover:bg-accent/90 text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="default"
+                :disabled="!hasChanges"
+                :loading="isSaving"
+                :icon="!hasChanges ? Check : null"
+                loading-label="Saving..."
                 @click="handleSave"
               >
-                <Loader2 v-if="isSaving" class="h-4 w-4 mr-2 animate-spin" />
-                <Check v-else-if="!hasChanges" class="h-4 w-4 mr-2" />
-                {{ isSaving ? 'Saving...' : hasChanges ? 'Save Changes' : 'Saved' }}
+                {{ hasChanges ? 'Save Changes' : 'Saved' }}
               </Button>
             </div>
           </div>

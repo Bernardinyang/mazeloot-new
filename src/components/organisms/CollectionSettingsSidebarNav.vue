@@ -9,8 +9,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsGeneral'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
         ]"
         :to="{ name: 'collectionSettingsGeneral', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -22,8 +22,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsPrivacy'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
         ]"
         :to="{ name: 'collectionSettingsPrivacy', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
@@ -35,8 +35,8 @@
         v-if="props.collectionId"
         :class="[
           route.name?.toString().startsWith('collectionSettingsDownload')
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
         ]"
         :to="{ name: 'collectionSettingsDownload', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -60,8 +60,8 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsFavorite'
-            ? 'bg-teal-50 dark:bg-teal-900/20 border-l-4 border-teal-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-teal-500/40',
+            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
+            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
         ]"
         :to="{ name: 'collectionSettingsFavorite', params: { uuid: props.collectionId } }"
         class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
@@ -91,7 +91,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsGeneral' ? 'bg-teal-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsGeneral' ? 'bg-violet-500 text-white' : '']"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -106,7 +106,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsPrivacy' ? 'bg-teal-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsPrivacy' ? 'bg-violet-500 text-white' : '']"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -123,7 +123,7 @@
             v-if="props.collectionId"
             :class="[
               route.name?.toString().startsWith('collectionSettingsDownload')
-                ? 'bg-teal-500 text-white'
+                ? 'bg-violet-500 text-white'
                 : '',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: props.collectionId } }"
@@ -144,7 +144,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsFavorite' ? 'bg-teal-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsFavorite' ? 'bg-violet-500 text-white' : '']"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200 relative"
           >

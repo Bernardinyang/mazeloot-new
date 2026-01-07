@@ -91,9 +91,8 @@
             </Label>
           </div>
 
-          <Button :disabled="loading || !meta.valid" class="w-full" type="submit">
-            <Lock v-if="!loading" :size="16" class="mr-2" />
-            <span>{{ loading ? 'Signing in...' : 'Sign in' }}</span>
+          <Button :disabled="loading || !meta.valid" class="w-full" type="submit" :loading="loading" loading-label="Signing in..." :icon="!loading ? Lock : null">
+            Sign in
           </Button>
         </Form>
 
@@ -120,15 +119,15 @@
               :variant="magicLinkSent ? 'secondary' : 'default'"
               class="w-full"
               type="submit"
+              :loading="magicLinkLoading && !magicLinkSent"
+              loading-label="Sending..."
+              :icon="!magicLinkLoading && !magicLinkSent ? Mail : magicLinkSent ? CheckCircle : null"
             >
               <template v-if="magicLinkSent">
-                <CheckCircle :size="16" class="mr-2" />
-                <span>Magic link sent!</span>
+                Magic link sent!
               </template>
               <template v-else>
-                <Loader2 v-if="magicLinkLoading" class="mr-2 h-4 w-4 animate-spin" />
-                <Mail v-else :size="16" class="mr-2" />
-                <span>{{ magicLinkLoading ? 'Sending...' : 'Send magic link' }}</span>
+                Send magic link
               </template>
             </Button>
 
@@ -155,11 +154,11 @@
                   :disabled="resendLoading || resendCooldown > 0"
                   class="w-full"
                   variant="outline"
+                  :loading="resendLoading"
+                  loading-label="Sending..."
                   @click="handleResendMagicLink"
                 >
-                  <Loader2 v-if="resendLoading" class="mr-2 h-4 w-4 animate-spin" />
-                  <span v-if="resendLoading">Sending...</span>
-                  <span v-else-if="resendCooldown > 0">Resend link ({{ resendCooldown }}s)</span>
+                  <span v-if="resendCooldown > 0">Resend link ({{ resendCooldown }}s)</span>
                   <span v-else>Resend magic link</span>
                 </Button>
               </div>

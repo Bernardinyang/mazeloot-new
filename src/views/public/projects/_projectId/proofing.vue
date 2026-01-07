@@ -46,11 +46,12 @@
             }"
             class="text-white"
             @click="handleSubmitEmail"
+            :loading="isGeneratingToken"
+            loading-label="Generating Access..."
             @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
             @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
           >
-            <Loader2 v-if="isGeneratingToken" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isGeneratingToken ? 'Generating Access...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -106,11 +107,12 @@
             }"
             class="text-white"
             @click="handleVerifyPassword"
+            :loading="isVerifyingPassword"
+            loading-label="Verifying..."
             @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
             @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
           >
-            <Loader2 v-if="isVerifyingPassword" class="h-4 w-4 mr-2 animate-spin" />
-            {{ isVerifyingPassword ? 'Verifying...' : 'Continue' }}
+            Continue
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -303,12 +305,12 @@
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 mb-6"
+            class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-green-800 rounded-lg p-4 mb-6"
           >
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-3">
                 <svg
-                  class="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0"
+                  class="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -321,7 +323,7 @@
                   />
                 </svg>
                 <div>
-                  <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                  <p class="text-sm font-semibold text-green-800 dark:text-violet-200">
                     Proofing has been completed. Thank you!
                   </p>
                   <p
@@ -451,7 +453,7 @@
                   <!-- Approved count -->
                   <span
                     v-if="getTotalApprovedCount() > 0"
-                    class="inline-flex items-center gap-1.5 text-green-600 dark:text-green-400 font-medium"
+                    class="inline-flex items-center gap-1.5 text-violet-600 dark:text-violet-400 font-medium"
                   >
                     <svg
                       class="w-4 h-4"
@@ -505,13 +507,13 @@
             class="mb-6"
           >
             <div
-              class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4"
+              class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-green-800 rounded-lg p-4"
             >
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
                     <svg
-                      class="w-6 h-6 text-green-600 dark:text-green-400"
+                      class="w-6 h-6 text-violet-600 dark:text-violet-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -525,7 +527,7 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-green-800 dark:text-green-200">
+                    <p class="text-sm font-semibold text-green-800 dark:text-violet-200">
                       All media items approved!
                     </p>
                     <p class="text-xs text-green-700 dark:text-green-300 mt-0.5">
@@ -535,8 +537,8 @@
                 </div>
                 <Button
                   :disabled="isCompletingProofing"
-                  class="bg-green-600 hover:bg-green-700 text-white border-green-700"
-                  @click="handleCompleteProofing"
+                  class="bg-violet-600 hover:bg-green-700 text-white border-green-700"
+                  @click="showCompleteConfirm = true"
                 >
                   <span v-if="!isCompletingProofing">Complete Proofing</span>
                   <span v-else class="flex items-center gap-2">
@@ -567,7 +569,7 @@
           </div>
 
           <!-- Media Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <div
               v-for="item in currentMediaItems"
               :key="item.id"
@@ -602,108 +604,6 @@
                     : ''
               "
             >
-              <!-- Context Menu Button for Clients -->
-              <div
-                v-if="!isAuthenticatedOwner && !isPreviewMode"
-                :class="[
-                  'absolute top-2 right-2 transition-opacity duration-200 z-10',
-                  getDropdownOpenState(item.id)
-                    ? 'opacity-100'
-                    : 'opacity-0 group-hover:opacity-100',
-                ]"
-                @click.stop
-              >
-                <DropdownMenu
-                  :open="getDropdownOpenState(item.id)"
-                  @update:open="val => setDropdownOpenState(item.id, val)"
-                >
-                  <DropdownMenuTrigger as-child>
-                    <button
-                      class="p-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110"
-                      @click.stop
-                    >
-                      <MoreVertical class="h-4 w-4 text-white" />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    :class="[theme.bgDropdown, theme.borderSecondary]"
-                    align="end"
-                    class="w-48"
-                    @click.stop
-                  >
-                    <DropdownMenuItem
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      @click.stop="handleViewMedia(item, false)"
-                    >
-                      <Eye class="h-4 w-4 mr-2" />
-                      View
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      @click.stop="handleViewMedia(item, true)"
-                    >
-                      <MessageSquare class="h-4 w-4 mr-2" />
-                      Comment
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      v-if="hasRevisions(item)"
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      @click.stop="handleViewRevisionHistory(item)"
-                    >
-                      <History class="h-4 w-4 mr-2" />
-                      View Revisions
-                    </DropdownMenuItem>
-                    <div
-                      v-if="!item?.isCompleted && !item?.is_completed"
-                      :class="theme.borderSecondary"
-                      class="h-px my-1"
-                    ></div>
-                    <DropdownMenuItem
-                      v-if="!item?.isCompleted && !item?.is_completed && !isRejected(item)"
-                      :class="[
-                        'text-green-600 dark:text-green-400',
-                        'hover:bg-green-50 dark:hover:bg-green-900/20',
-                        'cursor-pointer',
-                      ]"
-                      @click.stop="handleApproveMedia(item)"
-                    >
-                      <CheckCircle2 class="h-4 w-4 mr-2" />
-                      Approve
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      v-if="isRejected(item)"
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      @click.stop="handleViewApprovalRequest(item)"
-                    >
-                      <History class="h-4 w-4 mr-2" />
-                      View Approval Request
-                    </DropdownMenuItem>
-                    <div
-                      v-if="
-                        !item?.isCompleted &&
-                        !item?.is_completed &&
-                        getClosureRequestsForMedia(item) &&
-                        getClosureRequestsForMedia(item).length > 0
-                      "
-                      :class="theme.borderSecondary"
-                      class="h-px my-1"
-                    ></div>
-                    <DropdownMenuItem
-                      v-if="
-                        !item?.isCompleted &&
-                        !item?.is_completed &&
-                        getClosureRequestsForMedia(item) &&
-                        getClosureRequestsForMedia(item).length > 0
-                      "
-                      :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                      @click.stop="handleViewClosureHistory(item)"
-                    >
-                      <History class="h-4 w-4 mr-2" />
-                      View Closure History
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
               <!-- Media container with overflow-hidden to prevent scale overflow -->
               <div
                 :class="[
@@ -750,7 +650,7 @@
                 <!-- Approved Badge -->
                 <div
                   v-if="item?.isCompleted || item?.is_completed"
-                  class="px-2 py-1 rounded-full bg-green-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+                  class="px-2 py-1 rounded-full bg-violet-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
                 >
                   <CheckCircle2 class="w-3 h-3 fill-white" />
                   Approved
@@ -816,6 +716,127 @@
                   <Upload class="h-3.5 w-3.5 text-white" />
                 </button>
               </div>
+
+              <!-- Action Buttons (centered) -->
+              <div
+                v-if="!isAuthenticatedOwner && !isPreviewMode"
+                :class="[
+                  'absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200 z-30',
+                  'opacity-0 group-hover:opacity-100',
+                ]"
+                @click.stop
+              >
+              <div class="flex items-center justify-center flex-wrap gap-2">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleViewMedia(item, false)"
+                      >
+                        <Eye class="h-3.5 w-3.5" />
+                        View
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Media</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleViewMedia(item, true)"
+                      >
+                        <MessageSquare class="h-3.5 w-3.5" />
+                        Comment
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add Comment</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider v-if="hasRevisions(item)">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleViewRevisionHistory(item)"
+                      >
+                        <History class="h-3.5 w-3.5" />
+                        Revisions
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Revisions</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider v-if="!item?.isCompleted && !item?.is_completed && !isRejected(item)">
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-violet-600 hover:bg-violet-700 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleApproveMedia(item)"
+                      >
+                        <CheckCircle2 class="h-3.5 w-3.5" />
+                        Approve
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Approve Media</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider
+                  v-if="
+                    getApprovalRequestsForMedia(item) &&
+                    getApprovalRequestsForMedia(item).length > 0
+                  "
+                >
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleViewApprovalRequest(item)"
+                      >
+                        <History class="h-3.5 w-3.5" />
+                        Approval Request
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Approval Request</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider
+                  v-if="
+                    !item?.isCompleted &&
+                    !item?.is_completed &&
+                    getClosureRequestsForMedia(item) &&
+                    getClosureRequestsForMedia(item).length > 0
+                  "
+                >
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <button
+                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        @click.stop="handleViewClosureHistory(item)"
+                      >
+                        <History class="h-3.5 w-3.5" />
+                        Closure History
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>View Closure History</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -867,13 +888,51 @@
             Cancel
           </Button>
           <Button
-            class="bg-green-500 hover:bg-green-600 text-white"
+            class="bg-violet-500 hover:bg-violet-600 text-white"
             @click="confirmApproveMedia"
             :disabled="isApprovingMedia"
+            :loading="isApprovingMedia"
+            loading-label="Approving..."
+            :icon="!isApprovingMedia ? CheckCircle2 : null"
           >
-            <Loader2 v-if="isApprovingMedia" class="w-4 h-4 mr-2 animate-spin" />
-            <CheckCircle2 v-else class="w-4 h-4 mr-2" />
-            <span>{{ isApprovingMedia ? 'Approving...' : 'Approve Media' }}</span>
+            Approve Media
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Complete Proofing Confirmation Dialog -->
+    <Dialog :open="showCompleteConfirm" @update:open="val => (showCompleteConfirm = val)">
+      <DialogContent class="sm:max-w-[425px] !z-[200] overlay-z-[200]">
+        <DialogHeader>
+          <DialogTitle>Complete Proofing</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to complete this proofing? This will finalize the proofing process.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Once completed, this proofing will be marked as finished. You will no longer be able to
+            approve or comment on media items.
+          </p>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="showCompleteConfirm = false"
+            :disabled="isCompletingProofing"
+          >
+            Cancel
+          </Button>
+          <Button
+            class="bg-violet-500 hover:bg-violet-600 text-white"
+            @click="confirmCompleteProofing"
+            :disabled="isCompletingProofing"
+            :loading="isCompletingProofing"
+            loading-label="Completing..."
+            :icon="!isCompletingProofing ? CheckCircle2 : null"
+          >
+            Complete Proofing
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -953,7 +1012,6 @@ import {
   Loader2,
   X,
   CheckCircle2,
-  MoreVertical,
   History,
   Clock,
   Upload,
@@ -975,11 +1033,11 @@ import {
   DialogTitle,
 } from '@/components/shadcn/dialog'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/shadcn/dropdown-menu'
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/shadcn/tooltip'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSelectionLimits } from '@/composables/useSelectionLimits'
@@ -1030,8 +1088,8 @@ const showApproveConfirm = ref(false)
 const isApprovingMedia = ref(false)
 const mediaToApprove = ref(null)
 
-// Dropdown states for each media item
-const dropdownOpenStates = ref({})
+// Complete proofing state
+const showCompleteConfirm = ref(false)
 
 // Closure request history state
 const showClosureHistoryModal = ref(false)
@@ -1045,14 +1103,6 @@ const showRevisionHistorySidebar = ref(false)
 const revisionHistoryMediaItem = ref(null)
 const showRevisionDetailsModal = ref(false)
 const selectedRevision = ref(null)
-
-const getDropdownOpenState = itemId => {
-  return dropdownOpenStates.value[itemId] || false
-}
-
-const setDropdownOpenState = (itemId, value) => {
-  dropdownOpenStates.value[itemId] = value
-}
 
 const previewCurrentItem = computed(() => {
   if (previewMediaIndex.value >= 0 && previewMediaIndex.value < currentMediaItems.value.length) {
@@ -1332,8 +1382,13 @@ const handleMediaApproved = updatedMedia => {
   }
 }
 
-// Handle complete proofing
-const handleCompleteProofing = async () => {
+// Handle complete proofing (shows confirmation dialog)
+const handleCompleteProofing = () => {
+  showCompleteConfirm.value = true
+}
+
+// Confirm complete proofing
+const confirmCompleteProofing = async () => {
   if (!proofing.value || !guestToken.value || isCompletingProofing.value) return
 
   const proofingId = proofing.value.id || proofing.value.uuid
@@ -1341,6 +1396,7 @@ const handleCompleteProofing = async () => {
     toast.error('Missing proofing information', {
       description: 'Unable to complete proofing. Please try again.',
     })
+    showCompleteConfirm.value = false
     return
   }
 
@@ -1356,6 +1412,7 @@ const handleCompleteProofing = async () => {
         status: 'completed',
       }
 
+      showCompleteConfirm.value = false
       toast.success('Proofing completed', {
         description: 'Thank you for completing the proofing!',
       })

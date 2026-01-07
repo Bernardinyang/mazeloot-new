@@ -34,7 +34,7 @@
           </Button>
 
           <Button
-            class="bg-accent hover:bg-accent/90 text-accent-foreground"
+            variant="default"
             @click="handleCreateCollection"
           >
             New Collection
@@ -121,6 +121,9 @@
             :is-folder="collection.isFolder || false"
             :collection-data="collection"
             image-container-class="aspect-[4/3]"
+            :is-starring="starringCollectionIds.has(String(collection.id))"
+            :is-deleting="deletingCollectionIds.has(String(collection.id))"
+            :is-duplicating="duplicatingCollectionIds.has(String(collection.id))"
             @click="handleCollectionCardClick(collection)"
             @star-click="toggleStar(collection)"
             @drop="handleMoveToFolder($event, collection)"
@@ -369,6 +372,11 @@ const collectionToEdit = ref(null)
 const showShareModal = ref(false)
 const collectionToShare = ref(null)
 
+// Loading states per collection
+const starringCollectionIds = ref(new Set())
+const deletingCollectionIds = ref(new Set())
+const duplicatingCollectionIds = ref(new Set())
+
 const {
   showDeleteModal,
   itemToDelete: collectionToDelete,
@@ -572,12 +580,15 @@ const handleEditSuccess = async () => {
 }
 
 const handleDuplicateCollection = async collection => {
+  const collectionId = String(collection.id)
+  if (duplicatingCollectionIds.value.has(collectionId)) return
+  
+  duplicatingCollectionIds.value.add(collectionId)
   try {
-    await galleryStore.duplicateCollection(String(collection.id))
+    await galleryStore.duplicateCollection(collectionId)
     toast.success('Collection duplicated', {
       description: `${collection.name || collection.title} has been duplicated.`,
     })
-    // Refresh collections
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
@@ -586,6 +597,8 @@ const handleDuplicateCollection = async collection => {
     handleError(error, {
       fallbackMessage: 'Failed to duplicate collection.',
     })
+  } finally {
+    duplicatingCollectionIds.value.delete(collectionId)
   }
 }
 
@@ -606,13 +619,14 @@ const handleViewDetails = collection => {
 const handleConfirmDelete = async () => {
   if (!collectionToDelete.value) return
 
+  const collectionId = String(collectionToDelete.value.id)
   isDeleting.value = true
+  deletingCollectionIds.value.add(collectionId)
   try {
-    await galleryStore.deleteCollection(String(collectionToDelete.value.id))
+    await galleryStore.deleteCollection(collectionId)
     toast.success('Collection deleted', {
       description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
     })
-    // Refresh collections
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
@@ -624,6 +638,7 @@ const handleConfirmDelete = async () => {
     })
   } finally {
     isDeleting.value = false
+    deletingCollectionIds.value.delete(collectionId)
   }
 }
 
