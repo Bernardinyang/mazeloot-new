@@ -153,9 +153,16 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
       })
       
       const updatedCollection = await galleryStore.updateCollection(collectionId.value, { mediaSets: setsToSave })
-      // Update local mediaSets with the response from the API
+      // Always update from backend response with proper mapping
       if (updatedCollection?.mediaSets && Array.isArray(updatedCollection.mediaSets)) {
-        mediaSets.value = updatedCollection.mediaSets
+        const mappedMediaSets = updatedCollection.mediaSets.map(set => ({
+          id: set.id,
+          name: set.name,
+          description: set.description,
+          order: set.order ?? 0,
+          count: set.count ?? set.media_count ?? 0,
+        }))
+        mediaSets.value = [...mappedMediaSets]
       }
     } catch (error) {
       toast.error('Failed to save media sets', {
@@ -227,10 +234,13 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
 
     isCreatingSet.value = true
     try {
+      const wasNewSet = !editingSetIdInModal.value
+      const setName = newSetName.value.trim()
+      
       if (editingSetIdInModal.value) {
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
-          set.name = newSetName.value.trim()
+          set.name = setName
           set.description = newSetDescription.value
         }
       } else {
@@ -238,7 +248,7 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
         const id = `set_${Date.now()}_${Math.random().toString(16).slice(2)}`
         mediaSets.value.push({
           id,
-          name: newSetName.value.trim(),
+          name: setName,
           description: newSetDescription.value,
           order: maxOrder + 1,
           count: 0,
@@ -246,6 +256,12 @@ export const useCollectionMediaSetsSidebarStore = defineStore('collectionMediaSe
       }
 
       await saveMediaSets()
+      
+      // Auto-select first set if it's the only one (saveMediaSets already fetched fresh from backend)
+      if (wasNewSet && mediaSets.value.length === 1) {
+        selectedSetId.value = mediaSets.value[0].id
+      }
+      
       handleCancelCreateSet()
     } finally {
       isCreatingSet.value = false

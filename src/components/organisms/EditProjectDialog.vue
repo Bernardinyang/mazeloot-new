@@ -309,7 +309,7 @@
           Cancel
         </Button>
         <Button
-          variant="default"
+          variant="primary"
           :disabled="!formData.name.trim() || !hasChanges"
           :loading="props.isSubmitting || isLocalSubmitting"
           loading-label="Updating..."

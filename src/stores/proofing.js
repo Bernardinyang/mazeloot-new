@@ -25,7 +25,7 @@ export const useProofingStore = defineStore('proofing', () => {
 
   // View settings
   const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
-  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
+  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'medium')
   const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
   const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
   const sortBy = ref(storage.get(SORT_BY_STORAGE_KEY) || 'created-new-old')
@@ -60,7 +60,7 @@ export const useProofingStore = defineStore('proofing', () => {
     if (['small', 'medium', 'large'].includes(size)) {
       gridSize.value = size
     } else {
-      gridSize.value = 'small'
+      gridSize.value = 'medium'
     }
   }
 
@@ -415,6 +415,25 @@ export const useProofingStore = defineStore('proofing', () => {
   }
 
   /**
+   * Duplicate proofing
+   */
+  const duplicateProofing = async (proofingId, projectId = null) => {
+    isLoading.value = true
+    error.value = null
+
+    try {
+      const duplicated = await proofingApi.duplicateProofing(projectId, proofingId)
+      proofings.value.push(duplicated)
+      return duplicated
+    } catch (err) {
+      error.value = err.message || 'Failed to duplicate proofing'
+      throw err
+    } finally {
+      isLoading.value = false
+    }
+  }
+
+  /**
    * Recover deleted media
    */
   const recoverMedia = async (proofingId, mediaIds, projectId = null) => {
@@ -456,6 +475,7 @@ export const useProofingStore = defineStore('proofing', () => {
     createProofing,
     updateProofing,
     deleteProofing,
+    duplicateProofing,
     publishProofing,
     uploadRevision,
     addFeedback,

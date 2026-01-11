@@ -2,10 +2,47 @@
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-          <div class="text-center space-y-4">
-            <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm">Loading activities...</p>
+        <div v-if="isLoading" class="p-6 md:p-8 transition-all duration-300">
+          <!-- Skeleton Header -->
+          <div class="mb-10">
+            <Skeleton class="h-9 w-64 rounded-lg mb-2" />
+            <Skeleton class="h-4 w-96 rounded-md" />
+          </div>
+
+          <!-- Skeleton Activity Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+            >
+              <div class="flex items-center gap-3 mb-3">
+                <Skeleton class="h-11 w-11 rounded-xl" />
+                <div class="flex-1">
+                  <Skeleton class="h-4 w-24 rounded-md mb-1" />
+                  <Skeleton class="h-3 w-32 rounded-md" />
+                </div>
+              </div>
+              <Skeleton class="h-8 w-16 rounded-md" />
+            </div>
+          </div>
+
+          <!-- Skeleton Quick Links -->
+          <div class="space-y-4">
+            <Skeleton class="h-6 w-32 rounded-md" />
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div
+                v-for="i in 2"
+                :key="i"
+                class="p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              >
+                <div class="flex items-center gap-3 mb-2">
+                  <Skeleton class="h-5 w-5 rounded" />
+                  <Skeleton class="h-5 w-32 rounded-md" />
+                </div>
+                <Skeleton class="h-4 w-48 rounded-md" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -146,7 +183,8 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, Link, Lock, Mail } from 'lucide-vue-next'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'

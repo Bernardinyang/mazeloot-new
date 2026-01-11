@@ -49,6 +49,13 @@ router.beforeEach((to, from, next) => {
       })
       return
     }
+    
+    // Redirect new users from memora dashboard to getting started
+    if (to.name === 'memoraDashboard' && userStore.isNewUser) {
+      next({ name: 'gettingStarted' })
+      return
+    }
+    
     // User is authenticated, allow access
     next()
     return

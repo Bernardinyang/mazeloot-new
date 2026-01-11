@@ -1,33 +1,35 @@
 <template>
-  <div class="flex items-center justify-between gap-4">
-    <!-- Left: Title and Search -->
-    <div class="flex items-center gap-4 flex-1">
-      <h1 class="text-4xl font-bold tracking-tight" :class="theme.textPrimary">{{ title }}</h1>
-      <SearchBar
-        v-if="showSearch"
-        :model-value="searchQuery"
-        :is-loading="isSearching"
-        @update:model-value="updateSearchQuery"
-        @search="handleSearch"
-        @clear="handleClear"
-      />
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+    <!-- Title and Search Section -->
+    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 flex-1 min-w-0 w-full sm:w-auto">
+      <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight shrink-0" :class="theme.textPrimary">{{ title }}</h1>
+      <div v-if="showSearch" class="w-full sm:w-auto sm:max-w-xs flex-1 sm:flex-initial min-w-0">
+        <SearchBar
+          :model-value="searchQuery"
+          :is-loading="isSearching"
+          @update:model-value="updateSearchQuery"
+          @search="handleSearch"
+          @clear="handleClear"
+        />
+      </div>
     </div>
 
     <!-- Right: Actions -->
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap shrink-0 w-full sm:w-auto justify-start sm:justify-end">
       <slot name="actions" />
 
       <!-- Sort Dropdown -->
       <DropdownMenu v-if="showSort && sortOptions.length > 0">
         <DropdownMenuTrigger as-child>
-          <Button variant="ghost" :class="[theme.textSecondary, theme.bgButtonHover, 'gap-2']">
-            <ArrowDownUp class="h-4 w-4" />
-            <span class="text-sm">{{ selectedSortLabel }}</span>
+          <Button variant="ghost" :class="[theme.textSecondary, theme.bgButtonHover, 'gap-1 sm:gap-2']" size="sm">
+            <ArrowDownUp class="h-4 w-4 shrink-0" />
+            <span class="text-xs sm:text-sm hidden sm:inline">{{ selectedSortLabel }}</span>
+            <span class="text-xs sm:text-sm sm:hidden">Sort</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[200px]']"
+          :class="[theme.bgDropdown, theme.borderSecondary, 'w-[calc(100vw-2rem)] sm:min-w-[200px] sm:w-auto']"
         >
           <DropdownMenuLabel :class="theme.textTertiary">{{ sortLabel }}</DropdownMenuLabel>
           <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
@@ -62,12 +64,12 @@
               viewMode === 'grid' ? 'bg-gray-100 dark:bg-gray-800' : '',
             ]"
           >
-            <Grid3x3 class="h-5 w-5" />
+            <Grid3x3 class="h-4 w-4 sm:h-5 sm:w-5" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[160px]']"
+          :class="[theme.bgDropdown, theme.borderSecondary, 'w-[calc(100vw-2rem)] sm:min-w-[160px] sm:w-auto']"
         >
           <DropdownMenuLabel :class="theme.textTertiary">View Style</DropdownMenuLabel>
           <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />

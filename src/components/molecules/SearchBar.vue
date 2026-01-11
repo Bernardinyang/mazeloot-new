@@ -1,8 +1,8 @@
 <template>
-  <div class="relative flex-1 max-w-md flex gap-2">
-    <div class="relative flex-1">
+  <div class="relative flex-1 max-w-md flex gap-1 sm:gap-2">
+    <div class="relative flex-1 min-w-0">
       <Search
-        class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4"
+        class="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4"
         :class="theme.textTertiary"
       />
       <Input
@@ -12,7 +12,7 @@
         type="text"
         :placeholder="placeholder"
         :class="[
-          'pl-9 w-full',
+          'pl-7 sm:pl-9 w-full text-sm sm:text-base',
           theme.bgInput,
           theme.borderInput,
           theme.textInput,
@@ -24,24 +24,27 @@
       v-if="modelValue.trim()"
       variant="ghost"
       size="icon"
+      class="h-8 w-8 sm:h-9 sm:w-9 shrink-0"
       :class="[theme.textSecondary, theme.bgButtonHover]"
       @click="handleClear"
       title="Clear search"
     >
-      <X class="h-4 w-4" />
+      <X class="h-3.5 w-3.5 sm:h-4 sm:w-4" />
     </Button>
     <Button
       :disabled="isLoading"
+      size="sm"
       :class="[
-        'bg-accent hover:bg-accent/90 text-accent-foreground',
+        'bg-accent hover:bg-accent/90 text-accent-foreground shrink-0',
         { 'opacity-50 cursor-not-allowed': isLoading },
       ]"
       @click="handleSearch"
       :title="buttonLabel"
     >
-      <Loader2 v-if="isLoading" class="h-4 w-4 mr-2 animate-spin" />
-      <Search v-else class="h-4 w-4 mr-2" />
-      {{ buttonLabel }}
+      <Loader2 v-if="isLoading" class="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2 animate-spin" />
+      <Search v-else class="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+      <span class="hidden sm:inline">{{ buttonLabel }}</span>
+      <span class="sm:hidden">Search</span>
     </Button>
   </div>
 </template>

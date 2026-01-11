@@ -19,7 +19,7 @@
                 </h1>
               </div>
               <Button
-                variant="default"
+                variant="primary"
                 :icon="Plus"
                 @click="showCreateModal = true"
               >
@@ -125,7 +125,7 @@
                     Create your first quick share link to get started
                   </p>
                   <Button
-                    variant="default"
+                    variant="primary"
                     :icon="Plus"
                     @click="showCreateModal = true"
                   >

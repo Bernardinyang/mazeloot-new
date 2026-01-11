@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Palette,
+  Rocket,
   Settings,
   SparklesIcon,
   Star,
@@ -27,6 +28,16 @@ import {
 export const MEMORA_NAVIGATION = [
   {
     title: 'Summary',
+  },
+  {
+    title: 'Dashboard',
+    name: 'memoraDashboard',
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Getting Started',
+    name: 'gettingStarted',
+    icon: Rocket,
   },
   {
     title: 'Overview',
@@ -158,6 +169,7 @@ export const MEMORA_NAVIGATION = [
  * Overview/Main App Navigation
  */
 export const OVERVIEW_NAVIGATION = [
+  
   {
     title: 'Overview',
     name: 'overview',

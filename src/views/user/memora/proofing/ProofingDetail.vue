@@ -301,7 +301,7 @@
         :item-name="getItemName(itemToDelete)"
         :title="getDeleteModalTitle()"
         :warning-message="getDeleteModalWarning()"
-        description="This action cannot be undone."
+        :description="getDeleteModalDescription()"
         @cancel="closeDeleteModal"
         @confirm="handleConfirmDeleteItem"
       />
@@ -311,7 +311,7 @@
         v-model="showBulkDeleteModal"
         :is-deleting="isBulkDeleteLoading"
         :item-name="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
-        :warning-message="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
+        :warning-message="getBulkDeleteModalWarning()"
         description="This action cannot be undone."
         title="Delete Media"
         @cancel="showBulkDeleteModal = false"
@@ -476,6 +476,21 @@
         @confirm="handleFocalPointConfirm"
       />
 
+      <!-- Remove Watermark Confirmation Modal -->
+      <DeleteConfirmationModal
+        v-model="showRemoveWatermarkConfirm"
+        title="Remove Watermark"
+        question="Are you sure you want to remove the watermark from"
+        :item-name="itemToRemoveWatermark?.filename || itemToRemoveWatermark?.name"
+        fallback-name="this media"
+        description="The watermark will be removed from this media item and the original image will be restored."
+        confirm-label="Remove"
+        loading-label="Removing..."
+        :is-deleting="showRemoveWatermarkLoading"
+        @confirm="confirmRemoveWatermark"
+        @cancel="cancelRemoveWatermark"
+      />
+
       <!-- Remove Watermark Loading Modal -->
       <CenterModal
         v-model="showRemoveWatermarkLoading"
@@ -556,7 +571,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import ProofingLayout from '@/layouts/ProofingLayout.vue'
@@ -636,6 +651,51 @@ const proofingColor = inject(
 // Use store for media sets
 const { selectedSetId } = storeToRefs(mediaSetsSidebar)
 const mediaSets = computed(() => mediaSetsSidebar.mediaSets)
+
+// Helper function to filter media items to only latest revisions for a specific set
+const getFilteredMediaForSet = (setId) => {
+  if (!setId) return []
+  const setMedia = mediaItems.value.filter(item => item.setId === setId)
+  
+  // Group by original media UUID and keep only the latest revision
+  const mediaMap = new Map()
+  
+  setMedia.forEach(item => {
+    const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+    const revisionNumber = item.revisionNumber || item.revision_number || 0
+    
+    if (!mediaMap.has(originalUuid)) {
+      mediaMap.set(originalUuid, item)
+    } else {
+      const existing = mediaMap.get(originalUuid)
+      const existingRevision = existing.revisionNumber || existing.revision_number || 0
+      
+      if (revisionNumber > existingRevision) {
+        mediaMap.set(originalUuid, item)
+      }
+    }
+  })
+  
+  return Array.from(mediaMap.values())
+}
+
+// Computed property for sets with filtered counts (latest revisions only)
+const mediaSetsWithFilteredCounts = computed(() => {
+  return mediaSets.value.map(set => {
+    const hasMediaItemsForSet = mediaItems.value.some(item => item.setId === set.id)
+    // Use filtered count if we have media items loaded for this set, otherwise use API count
+    const count = hasMediaItemsForSet
+      ? getFilteredMediaForSet(set.id).length
+      : (set.count ?? set.media_count ?? 0)
+    return {
+      ...set,
+      count
+    }
+  })
+})
+
+// Provide filtered sets to child components (sidebar)
+provide('filteredMediaSets', mediaSetsWithFilteredCounts)
 
 // Proofing data
 const proofing = ref(null)
@@ -1155,6 +1215,7 @@ const {
   onUploadComplete: async results => {
     if (results.successful.length > 0) {
       await mediaSetsSidebar.loadMediaSets()
+      await loadProofing(proofing.value?.id)
     }
   },
 })
@@ -1768,8 +1829,29 @@ const overallProgress = computed(() => {
     }
   }
 
-  const completed = mediaItems.value.filter(m => m.isCompleted).length
-  const total = mediaItems.value.length
+  // Filter to only latest revisions across all sets
+  const allFilteredMedia = []
+  const mediaMap = new Map()
+  
+  mediaItems.value.forEach(item => {
+    const originalUuid = item.originalMediaId || item.original_media_uuid || item.id || item.uuid
+    const revisionNumber = item.revisionNumber || item.revision_number || 0
+    
+    if (!mediaMap.has(originalUuid)) {
+      mediaMap.set(originalUuid, item)
+    } else {
+      const existing = mediaMap.get(originalUuid)
+      const existingRevision = existing.revisionNumber || existing.revision_number || 0
+      
+      if (revisionNumber > existingRevision) {
+        mediaMap.set(originalUuid, item)
+      }
+    }
+  })
+  
+  const filteredMediaArray = Array.from(mediaMap.values())
+  const completed = filteredMediaArray.filter(m => m.isCompleted).length
+  const total = filteredMediaArray.length
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
   return {
@@ -2189,6 +2271,10 @@ const {
   handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
   handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
   handleRemoveWatermark: handleRemoveWatermarkFromComposable,
+  confirmRemoveWatermark: confirmRemoveWatermarkFromComposable,
+  cancelRemoveWatermark: cancelRemoveWatermarkFromComposable,
+  showRemoveWatermarkConfirm: showRemoveWatermarkConfirmFromComposable,
+  itemToRemoveWatermark: itemToRemoveWatermarkFromComposable,
 } = useMediaWatermarkActions({
   showWatermarkMediaModal,
   mediaToWatermark,
@@ -2241,6 +2327,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: () => mediaSetsSidebar.loadMediaSets(),
+  loadPhaseDetail: () => loadProofing(proofing.value?.id),
   getItemId,
   modals: {
     openDeleteModal: openDeleteModal,
@@ -2275,6 +2362,10 @@ const handleWatermarkMedia = handleWatermarkMediaFromComposable
 const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
 const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
 const handleRemoveWatermark = handleRemoveWatermarkFromComposable
+const confirmRemoveWatermark = confirmRemoveWatermarkFromComposable
+const cancelRemoveWatermark = cancelRemoveWatermarkFromComposable
+const showRemoveWatermarkConfirm = showRemoveWatermarkConfirmFromComposable
+const itemToRemoveWatermark = itemToRemoveWatermarkFromComposable
 
 const handlePreviewWatermark = async () => {
   if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
@@ -2330,11 +2421,75 @@ const getDeleteModalTitle = () => {
 }
 
 const getDeleteModalWarning = () => {
+  if (!itemToDelete.value) return null
+  const item = itemToDelete.value
+  
+  // For media items, show location (proofing and set)
+  if (item.setId) {
+    const locationParts = []
+    
+    if (proofing.value?.name) {
+      locationParts.push(`Proofing: ${proofing.value.name}`)
+    }
+    
+    if (item.setId && mediaSets.value) {
+      const set = mediaSets.value.find(s => s.id === item.setId)
+      if (set?.name) {
+        locationParts.push(`Set: ${set.name}`)
+      }
+    }
+    
+    return locationParts.length > 0 ? locationParts.join('\n') : null
+  }
+  
+  // For sets, don't show location info
+  return null
+}
+
+const getBulkDeleteModalWarning = () => {
+  if (selectedMediaIds.value.size === 0) return null
+  
+  const selectedItems = mediaItems.value.filter(item => 
+    selectedMediaIds.value.has(getItemId(item))
+  )
+  
+  if (selectedItems.length === 0) return null
+  
+  // Group items by set
+  const itemsBySet = new Map()
+  
+  selectedItems.forEach(item => {
+    const setId = item.setId
+    if (!setId) return
+    
+    if (!itemsBySet.has(setId)) {
+      itemsBySet.set(setId, [])
+    }
+    itemsBySet.get(setId).push(item)
+  })
+  
+  const locationParts = []
+  
+  if (proofing.value?.name) {
+    locationParts.push(`Proofing: ${proofing.value.name}`)
+  }
+  
+  itemsBySet.forEach((items, setId) => {
+    const set = mediaSets.value?.find(s => s.id === setId)
+    const setName = set?.name || 'Unknown Set'
+    const count = items.length
+    locationParts.push(`Set: ${setName} (${count} item${count > 1 ? 's' : ''})`)
+  })
+  
+  return locationParts.length > 0 ? locationParts.join('\n') : null
+}
+
+const getDeleteModalDescription = () => {
   if (!itemToDelete.value) return 'This action cannot be undone.'
   const item = itemToDelete.value
   return item.setId
-    ? 'This media item will be permanently deleted.'
-    : 'This set will be permanently deleted.'
+    ? 'This media item will be permanently deleted.\n\nThis action cannot be undone.'
+    : 'This set will be permanently deleted.\n\nThis action cannot be undone.'
 }
 
 const handleAddMedia = () => {

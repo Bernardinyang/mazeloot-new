@@ -17,6 +17,7 @@ import { apiClient } from '@/api/client'
  * @param {import('vue').ComputedRef<Array>} options.sortedMediaItems - Computed ref for sorted media items
  * @param {Function} options.loadMediaItems - Function to reload media items
  * @param {Function} options.loadMediaSets - Function to reload media sets
+ * @param {Function} options.loadPhaseDetail - Optional function to reload phase detail (for updating storage)
  * @param {Function} options.getItemId - Helper to get item ID
  * @param {Object} options.modals - Modal state refs
  * @param {Object} options.loading - Loading state refs
@@ -33,6 +34,7 @@ export function useMediaActions({
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets,
+  loadPhaseDetail,
   getItemId,
   modals = {},
   loading = {},
@@ -102,6 +104,11 @@ export function useMediaActions({
         // Reload media sets to update counts
         if (loadMediaSets) {
           await loadMediaSets()
+        }
+
+        // Reload phase detail to update storage
+        if (loadPhaseDetail) {
+          await loadPhaseDetail()
         }
 
         // Add to action history for undo
@@ -227,6 +234,11 @@ export function useMediaActions({
       // Reload media sets to update counts
       if (loadMediaSets) {
         await loadMediaSets()
+      }
+
+      // Reload phase detail to update storage
+      if (loadPhaseDetail) {
+        await loadPhaseDetail()
       }
 
       // Add to action history for undo

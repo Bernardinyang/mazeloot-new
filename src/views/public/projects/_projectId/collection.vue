@@ -76,7 +76,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[420px] p-8 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[420px] p-8 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
           <DialogHeader class="text-center space-y-1 mb-8">
             <DialogTitle :class="theme.textPrimary" class="text-2xl text-center font-serif tracking-wide">
               {{ collection?.name?.toUpperCase() || 'COLLECTION' }}
@@ -117,7 +117,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
         <DialogHeader class="text-center pb-2">
           <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Email Required
@@ -177,7 +177,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
         <DialogHeader class="text-center pb-2">
           <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Client Password Required
@@ -241,7 +241,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :hideClose="hasClientExclusiveAccess">
         <DialogHeader class="text-center pb-2">
           <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Email Required
@@ -314,7 +314,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :hideClose="hasClientExclusiveAccess">
         <DialogHeader class="text-center pb-2">
           <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
             Password Required
@@ -395,7 +395,7 @@
             © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
           </p>
         </div>
-        <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/20 shadow-2xl">
+        <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl">
           <DialogHeader class="text-center pb-2">
             <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
               Download PIN Required
@@ -458,7 +458,7 @@
         preview-mode="public"
         :preview-collection="collection"
         :preview-media="media"
-        :preview-branding="{ logoUrl: brandingLogoUrl, name: brandingName }"
+        :preview-branding="{ logoUrl: brandingLogoUrl, name: brandingName, showMazelootBranding: showMazelootBranding }"
         :preview-is-loading="isLoadingMedia"
         :downloading-media-ids="downloadingMediaIds"
         :is-client-verified="isClientVerified"
@@ -474,6 +474,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { useOpenGraphMeta } from '@/composables/useOpenGraphMeta'
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, AlertCircle, ChevronLeft, Mail, Lock, Shield, User, Users, Eye } from 'lucide-vue-next'
@@ -507,6 +508,7 @@ const collection = ref(null)
 const media = ref([])
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
+const brandingBio = ref(null)
 const showMazelootBranding = ref(true)
 const collectionPreviewRef = ref(null)
 
@@ -759,11 +761,35 @@ const fetchBranding = async (collectionId) => {
     const settings = settingsResponse.data || settingsResponse
     brandingLogoUrl.value = settings.branding?.logoUrl || null
     brandingName.value = settings.branding?.name || null
+    brandingBio.value = settings.biography || settings.bio || null
     showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
   } catch (error) {
     console.warn('Failed to fetch public branding settings:', error)
   }
 }
+
+// OpenGraph meta tags
+const ogTitle = computed(() => {
+  return collection.value?.name && brandingName.value
+    ? `${collection.value.name} - ${brandingName.value}`
+    : brandingName.value || collection.value?.name || 'Collection'
+})
+
+const ogDescription = computed(() => {
+  return brandingBio.value || collection.value?.description || 
+    `View media in this collection${brandingName.value ? ` from ${brandingName.value}` : ''}`
+})
+
+const ogImage = computed(() => {
+  return coverPhotoUrl.value || ''
+})
+
+useOpenGraphMeta({
+  title: ogTitle,
+  description: ogDescription,
+  image: ogImage,
+  isLoading,
+})
 
 // Load collection
 const loadCollection = async () => {
@@ -1280,9 +1306,11 @@ const loadMediaForSet = async (setId) => {
       headers['X-Guest-Token'] = clientToken.value
       headers['Authorization'] = `Bearer ${clientToken.value}`
     }
-    // Include client email if available
+    // Include email if available (client or guest)
     if (clientEmail.value) {
       headers['X-Collection-Email'] = clientEmail.value
+    } else if (userEmail.value) {
+      headers['X-Collection-Email'] = userEmail.value
     }
     const response = await apiClient.get(`/v1/public/collections/${collectionId}/sets/${setId}/media`, { headers })
     const mediaData = response.data?.data || response.data
@@ -1666,7 +1694,7 @@ const handleDownloadMedia = async (item) => {
     return
   }
 
-  // Check if download is enabled
+  // Check if media download is enabled
   if (!collection.value.photoDownload) {
     toast.error('Downloads are disabled for this collection')
     return

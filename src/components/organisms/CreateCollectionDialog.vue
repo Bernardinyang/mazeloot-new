@@ -97,7 +97,6 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-violet-600 dark:hover:text-violet-400',
           ]"
           @click="handleCancel"
           :disabled="props.isSubmitting || isLocalSubmitting"
@@ -106,9 +105,9 @@
         </Button>
         <Button
           type="button"
+          variant="primary"
           @click="handleSubmit"
           :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
-          class="bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           :loading="props.isSubmitting || isLocalSubmitting"
           loading-label="Creating..."
         >
@@ -136,6 +135,7 @@ import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { usePresetStore } from '@/stores/preset'
 import { useWatermarkStore } from '@/stores/watermark'
+import { useGalleryStore } from '@/stores/gallery'
 import ColorSelector from '@/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/utils/colors'
 
@@ -155,13 +155,21 @@ const emit = defineEmits(['update:open', 'create'])
 const theme = useThemeClasses()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
+const galleryStore = useGalleryStore()
+
+const getExistingColors = () => {
+  if (!galleryStore || !galleryStore.collections) {
+    return []
+  }
+  return galleryStore.collections.map(c => c.color).filter(Boolean)
+}
 
 const formData = reactive({
   name: '',
   eventDate: null,
   presetId: 'none',
   watermarkId: 'none',
-  color: generateRandomColorFromPalette(), // Random color from palette
+  color: generateRandomColorFromPalette(getExistingColors()),
 })
 
 const errors = ref({})
@@ -203,8 +211,11 @@ watch(
       formData.eventDate = null
       formData.presetId = 'none'
       formData.watermarkId = 'none'
-      formData.color = generateRandomColorFromPalette()
+      formData.color = generateRandomColorFromPalette(getExistingColors())
       errors.value = {}
+    } else {
+      // When opening, refresh color to avoid duplicates
+      formData.color = generateRandomColorFromPalette(getExistingColors())
     }
   }
 )
@@ -214,7 +225,7 @@ const handleCancel = () => {
   formData.eventDate = null
   formData.presetId = 'none'
   formData.watermarkId = 'none'
-  formData.color = generateRandomColorFromPalette()
+      formData.color = generateRandomColorFromPalette(getExistingColors())
   errors.value = {}
   emit('update:open', false)
 }

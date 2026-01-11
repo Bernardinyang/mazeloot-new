@@ -25,7 +25,8 @@
       >
         <template #actions>
           <Button
-            variant="default"
+            variant="primary"
+            :icon="Plus"
             @click="handleCreateSelection"
           >
             New Selection
@@ -42,7 +43,7 @@
         <EmptyState
           v-else-if="selections.length === 0"
           :icon="CheckSquare"
-          action-icon="Plus"
+          :action-icon="Plus"
           action-label="Create New Selection"
           description="Get started by creating your first selection to organize and manage your media."
           message="No selections found"
@@ -52,7 +53,7 @@
         <!-- Selections Grid -->
         <TransitionGroup
           v-else
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 relative"
           name="list"
           tag="div"
         >
@@ -63,8 +64,10 @@
             :selection="selection"
             :is-starring="starringSelectionIds.has(String(selection.id))"
             :is-deleting="deletingSelectionIds.has(String(selection.id))"
+            :is-duplicating="duplicatingSelectionIds.has(String(selection.id))"
             @click="handleSelectionClick"
             @delete="handleDeleteSelection"
+            @duplicate="handleDuplicateSelection"
             @edit="handleEditSelection"
             @star-click="toggleStar"
             @view-details="handleViewDetails"
@@ -127,18 +130,33 @@
       v-model="showDeleteModal"
       :is-deleting="isDeleting"
       :item-name="getItemName()"
-      description="This action cannot be undone."
+      :description="deleteModalDescription"
       title="Delete Selection"
-      warning-message="This selection and all its media will be permanently removed."
+      :warning-message="getDeleteModalWarning()"
       @cancel="showDeleteModal = false"
       @confirm="handleConfirmDelete"
+    />
+
+    <!-- Duplicate Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDuplicateModal"
+      :item-name="getDuplicateItemName()"
+      fallback-name="this selection"
+      title="Duplicate Selection"
+      question="Are you sure you want to duplicate"
+      description="This will create a copy of the selection with all its settings, media sets, and media."
+      confirm-label="Duplicate"
+      loading-label="Duplicating..."
+      :is-deleting="isDuplicating"
+      @confirm="handleConfirmDuplicate"
+      @cancel="handleCancelDuplicate"
     />
   </DashboardLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { CheckSquare } from 'lucide-vue-next'
+import { CheckSquare, Plus } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
@@ -154,9 +172,12 @@ import Pagination from '@/components/molecules/Pagination.vue'
 import { useSelectionStore } from '@/stores/selection.js'
 import { useAsyncPagination } from '@/composables/useAsyncPagination.js'
 import { useRouter } from 'vue-router'
+import { useErrorHandler } from '@/composables/useErrorHandler'
+import { toast } from '@/utils/toast'
 
 const selectionStore = useSelectionStore()
 const router = useRouter()
+const { handleError } = useErrorHandler()
 const viewMode = computed({
   get: () => selectionStore.viewMode,
   set: value => selectionStore.setViewMode(value),
@@ -170,12 +191,18 @@ const selectedSelectionId = ref(null)
 const showCreateDialog = ref(false)
 const showEditDialog = ref(false)
 const showDeleteModal = ref(false)
+const showDuplicateModal = ref(false)
 const isDeleting = ref(false)
+const isDuplicating = computed(() => {
+  if (!activeSelection.value) return false
+  return duplicatingSelectionIds.value.has(String(activeSelection.value.id))
+})
 const activeSelection = ref(null)
 
 // Loading states per selection
 const starringSelectionIds = ref(new Set())
 const deletingSelectionIds = ref(new Set())
+const duplicatingSelectionIds = ref(new Set())
 
 const sortOptions = [
   { label: 'Created (New → Old)', value: 'created-new-old' },
@@ -301,6 +328,13 @@ const handleDeleteSelection = selection => {
   }
 }
 
+const handleDuplicateSelection = selection => {
+  if (selection && selection.id) {
+    activeSelection.value = selection
+    showDuplicateModal.value = true
+  }
+}
+
 const handleConfirmDelete = async () => {
   if (!activeSelection.value) return
   
@@ -321,6 +355,35 @@ const handleConfirmDelete = async () => {
   }
 }
 
+const handleConfirmDuplicate = async () => {
+  if (!activeSelection.value) return
+
+  const selectionId = String(activeSelection.value.id)
+  if (duplicatingSelectionIds.value.has(selectionId)) return
+  
+  duplicatingSelectionIds.value.add(selectionId)
+  try {
+    await selectionStore.duplicateSelection(activeSelection.value.id)
+    toast.success('Selection duplicated', {
+      description: `${activeSelection.value.name || activeSelection.value.title} has been duplicated.`,
+    })
+    await fetch()
+    showDuplicateModal.value = false
+    activeSelection.value = null
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to duplicate selection.',
+    })
+  } finally {
+    duplicatingSelectionIds.value.delete(selectionId)
+  }
+}
+
+const handleCancelDuplicate = () => {
+  showDuplicateModal.value = false
+  activeSelection.value = null
+}
+
 const handleViewDetails = selection => {
   selectedSelectionId.value = selection?.id || selection?.uuid || null
   showDetailSidebar.value = true
@@ -332,6 +395,40 @@ const handleSelectSelection = () => {
 
 const getItemName = () => {
   return activeSelection.value?.name || 'Selection'
+}
+
+const getDuplicateItemName = () => {
+  return activeSelection.value?.name || 'Selection'
+}
+
+const deleteModalDescription = computed(() => {
+  return 'This selection and all its media will be permanently removed.\n\nThis action cannot be undone.'
+})
+
+const getDeleteModalWarning = () => {
+  if (!activeSelection.value) return null
+  
+  const locationParts = []
+  
+  // Add project information if available
+  if (activeSelection.value.project?.name) {
+    locationParts.push(`Project: ${activeSelection.value.project.name}`)
+    
+    // Add phase name if available, otherwise default to "Selections"
+    const phaseName = activeSelection.value.project.selection?.name || 'Selections'
+    locationParts.push(`Phase: ${phaseName}`)
+  } else if (activeSelection.value.projectId) {
+    locationParts.push(`Project: ${activeSelection.value.projectId}`)
+    locationParts.push('Phase: Selections')
+  }
+  
+  // If no location info, don't show the Media Location section
+  // The description already covers this
+  if (locationParts.length === 0) {
+    return null
+  }
+  
+  return locationParts.join('\n')
 }
 
 const handlePageChange = page => {

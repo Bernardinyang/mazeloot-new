@@ -1,16 +1,17 @@
 <template>
   <div :class="[theme.bgCard, theme.borderCard]" class="border rounded-lg overflow-hidden">
-    <table class="w-full">
+    <div class="overflow-x-auto">
+      <table class="w-full min-w-max">
       <!-- Table Header -->
       <thead v-if="!loading && items.length > 0">
         <tr
           :class="[theme.borderSecondary, theme.textTertiary, theme.bgCardSolid]"
-          class="border-b font-semibold text-xs uppercase tracking-wider"
+          class="border-b font-semibold text-[10px] sm:text-xs uppercase tracking-wider"
         >
           <th
             v-for="column in columns"
             :key="column.key"
-            :class="[column.width || '', 'px-4 py-3 text-left']"
+            :class="[column.width || '', 'px-2 sm:px-4 py-2 sm:py-3 text-left']"
           >
             <slot :name="`header-${column.slot || column.key}`" :column="column">
               <component
@@ -35,7 +36,7 @@
           <td
             v-for="column in columns"
             :key="column.key"
-            :class="['px-4 py-3', column.width || '']"
+            :class="['px-2 sm:px-4 py-2 sm:py-3', column.width || '']"
           >
             <slot :name="`loading-${column.slot || column.key}`" :column="column">
               <div :class="['h-4 rounded', theme.bgSkeleton, column.loadingWidth || 'w-24']"></div>
@@ -47,7 +48,7 @@
       <!-- Empty State -->
       <tbody v-else-if="items.length === 0">
         <tr>
-          <td :colspan="columns.length" class="px-4 py-16 text-center">
+          <td :colspan="columns.length" class="px-2 sm:px-4 py-8 sm:py-16 text-center">
             <slot name="empty">
               <EmptyState
                 :action-label="emptyActionLabel"
@@ -77,7 +78,7 @@
             <td
               v-for="column in columns"
               :key="column.key"
-              :class="['px-4 py-3', column.width || '']"
+              :class="['px-2 sm:px-4 py-2 sm:py-3', column.width || '']"
             >
               <slot
                 :name="`cell-${column.slot || column.key}`"
@@ -110,7 +111,8 @@
           </tr>
         </slot>
       </tbody>
-    </table>
+      </table>
+    </div>
   </div>
 </template>
 

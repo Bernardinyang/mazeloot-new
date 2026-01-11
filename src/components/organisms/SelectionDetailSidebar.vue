@@ -316,8 +316,8 @@
       <div class="pt-2 pb-2">
         <ActionButtonGroup>
           <Button
-            variant="default"
-            class="w-full bg-violet-500 hover:bg-violet-600 text-white shadow-md hover:shadow-lg transition-all"
+            variant="primary"
+            class="w-full shadow-md hover:shadow-lg transition-all"
             @click="handleViewSelection"
           >
             <Eye class="h-4 w-4 mr-2" />

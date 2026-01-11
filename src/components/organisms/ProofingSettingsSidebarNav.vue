@@ -4,7 +4,14 @@
     <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
       SETTINGS
     </h2>
-    <div class="space-y-1">
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="space-y-1">
+      <div class="flex items-center gap-3 px-4 py-2.5 rounded-lg">
+        <Skeleton class="h-4 w-4 rounded" />
+        <Skeleton class="h-4 w-20 rounded-md" />
+      </div>
+    </div>
+    <div v-else class="space-y-1">
       <router-link
         v-if="props.proofingId"
         :class="[
@@ -27,7 +34,11 @@
 
   <!-- SETTINGS Section - Collapsed -->
   <div v-else class="flex flex-col items-center gap-2 pt-4">
-    <TooltipProvider>
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="flex flex-col items-center gap-2">
+      <Skeleton class="h-10 w-10 rounded-lg" />
+    </div>
+    <TooltipProvider v-else>
       <Tooltip>
         <TooltipTrigger as-child>
           <router-link
@@ -59,6 +70,7 @@
 import { Settings } from 'lucide-vue-next'
 import { useRoute } from 'vue-router'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -72,5 +84,6 @@ const route = useRoute()
 const props = defineProps({
   proofingId: { type: String, default: '' },
   isSidebarCollapsed: { type: Boolean, required: true },
+  isLoading: { type: Boolean, default: false },
 })
 </script>

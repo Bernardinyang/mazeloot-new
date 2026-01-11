@@ -240,7 +240,7 @@
         :item-name="getItemName(itemToDelete)"
         :title="getDeleteModalTitle()"
         :warning-message="getDeleteModalWarning()"
-        description="This action cannot be undone."
+        :description="getDeleteModalDescription()"
         @cancel="closeDeleteModal"
         @confirm="handleConfirmDeleteItem"
       />
@@ -250,7 +250,7 @@
         v-model="showBulkDeleteModal"
         :is-deleting="isBulkDeleteLoading"
         :item-name="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
-        :warning-message="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
+        :warning-message="getBulkDeleteModalWarning()"
         description="This action cannot be undone."
         title="Delete Media"
         @cancel="showBulkDeleteModal = false"
@@ -403,6 +403,21 @@
         title="SET FOCAL POINT"
         @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
+      />
+
+      <!-- Remove Watermark Confirmation Modal -->
+      <DeleteConfirmationModal
+        v-model="showRemoveWatermarkConfirm"
+        title="Remove Watermark"
+        question="Are you sure you want to remove the watermark from"
+        :item-name="itemToRemoveWatermark?.filename || itemToRemoveWatermark?.name"
+        fallback-name="this media"
+        description="The watermark will be removed from this media item and the original image will be restored."
+        confirm-label="Remove"
+        loading-label="Removing..."
+        :is-deleting="showRemoveWatermarkLoading"
+        @confirm="confirmRemoveWatermark"
+        @cancel="cancelRemoveWatermark"
       />
 
       <!-- Remove Watermark Loading Modal -->
@@ -964,8 +979,11 @@ const handleSetAsCoverOriginal = async item => {
     return
   }
 
-  const existingFocalPoint = collection.value?.coverFocalPoint ||
-    collection.value?.cover_focal_point || { x: 50, y: 50 }
+  // Get existing focal point from nested settings structure
+  const existingFocalPoint = collection.value?.settings?.design?.cover?.coverFocalPoint ||
+    collection.value?.coverFocalPoint ||
+    collection.value?.cover_focal_point ||
+    { x: 50, y: 50 }
 
   selectedMediaForCover.value = item
   focalPointImageUrl.value = coverUrl
@@ -980,23 +998,46 @@ const handleFocalPointConfirm = async focalPoint => {
 
   try {
     const coverUrl = focalPointImageUrl.value
+    
+    // Get existing coverDesign to preserve other settings (like coverLayoutUuid)
+    const existingCoverDesign = collection.value?.settings?.design?.cover || {}
+    
+    // Update using coverDesign structure like Cover.vue does
+    // Preserve coverLayoutUuid if it exists
+    const coverDesignData = {
+      coverLayoutUuid: existingCoverDesign.coverLayoutUuid ?? null,
+      coverFocalPoint: { ...focalPoint },
+    }
+    
     const updatedCollection = await galleryStore.updateCollection(collection.value.id, {
       thumbnail: coverUrl,
       image: coverUrl,
-      coverFocalPoint: focalPoint,
-      cover_focal_point: focalPoint,
+      coverDesign: coverDesignData,
     })
 
     if (updatedCollection) {
       collection.value = updatedCollection
-    } else {
-      collection.value = {
-        ...collection.value,
-        thumbnail: coverUrl,
-        image: coverUrl,
-        coverFocalPoint: focalPoint,
-        cover_focal_point: focalPoint,
+      // Force reactivity
+      collection.value = { ...collection.value }
+      
+      // Update store for consistency
+      const index = galleryStore.collections.findIndex(c => c.id === collection.value?.id)
+      if (index !== -1) {
+        galleryStore.collections[index] = updatedCollection
+        galleryStore.collections = [...galleryStore.collections]
       }
+    } else {
+      // Fallback: update manually
+      if (!collection.value.settings) {
+        collection.value.settings = {}
+      }
+      if (!collection.value.settings.design) {
+        collection.value.settings.design = {}
+      }
+      collection.value.settings.design.cover = coverDesignData
+      collection.value.thumbnail = coverUrl
+      collection.value.image = coverUrl
+      collection.value = { ...collection.value }
     }
 
     toast.success('Cover photo updated', {
@@ -1011,6 +1052,7 @@ const handleFocalPointConfirm = async focalPoint => {
     isUpdatingCoverPhoto.value = false
     selectedMediaForCover.value = null
     focalPointImageUrl.value = null
+    showFocalPointModal.value = false
   }
 }
 
@@ -1061,6 +1103,10 @@ const {
   handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
   handleRemoveWatermark: handleRemoveWatermarkFromComposable,
   handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
+  confirmRemoveWatermark: confirmRemoveWatermarkFromComposable,
+  cancelRemoveWatermark: cancelRemoveWatermarkFromComposable,
+  showRemoveWatermarkConfirm: showRemoveWatermarkConfirmFromComposable,
+  itemToRemoveWatermark: itemToRemoveWatermarkFromComposable,
 } = useMediaWatermarkActions({
   showWatermarkMediaModal,
   mediaToWatermark,
@@ -1069,15 +1115,23 @@ const {
   isApplyingWatermark,
   watermarkStore,
   mediaApi,
+  collectionsApi,
+  selectionId: computed(() => collection.value?.id),
+  setId: selectedSetId,
   mediaItems,
   applyWatermarkToImage,
   description,
+  reloadMedia: loadMediaItems,
 })
 
 const handleWatermarkMedia = handleWatermarkMediaFromComposable
 const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
 const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
 const handleRemoveWatermark = handleRemoveWatermarkFromComposable
+const confirmRemoveWatermark = confirmRemoveWatermarkFromComposable
+const cancelRemoveWatermark = cancelRemoveWatermarkFromComposable
+const showRemoveWatermarkConfirm = showRemoveWatermarkConfirmFromComposable
+const itemToRemoveWatermark = itemToRemoveWatermarkFromComposable
 
 const handlePreviewWatermark = async () => {
   if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
@@ -1135,11 +1189,76 @@ const getDeleteModalTitle = () => {
 }
 
 const getDeleteModalWarning = () => {
+  if (!itemToDelete.value) return null
+  const item = itemToDelete.value
+  
+  // For media items, show location (collection and set)
+  if (item.collectionId || item.setId) {
+    const locationParts = []
+    
+    if (collection.value?.name) {
+      locationParts.push(`Collection: ${collection.value.name}`)
+    }
+    
+    if (item.setId && mediaSets.value) {
+      const set = mediaSets.value.find(s => s.id === item.setId)
+      if (set?.name) {
+        locationParts.push(`Set: ${set.name}`)
+      }
+    }
+    
+    return locationParts.length > 0 ? locationParts.join('\n') : null
+  }
+  
+  // For sets, don't show location info
+  return null
+}
+
+const getBulkDeleteModalWarning = () => {
+  if (selectedMediaIds.value.size === 0) return null
+  
+  const getItemId = item => item?.id || ''
+  const selectedItems = mediaItems.value.filter(item => 
+    selectedMediaIds.value.has(getItemId(item))
+  )
+  
+  if (selectedItems.length === 0) return null
+  
+  // Group items by set
+  const itemsBySet = new Map()
+  
+  selectedItems.forEach(item => {
+    const setId = item.setId
+    if (!setId) return
+    
+    if (!itemsBySet.has(setId)) {
+      itemsBySet.set(setId, [])
+    }
+    itemsBySet.get(setId).push(item)
+  })
+  
+  const locationParts = []
+  
+  if (collection.value?.name) {
+    locationParts.push(`Collection: ${collection.value.name}`)
+  }
+  
+  itemsBySet.forEach((items, setId) => {
+    const set = mediaSets.value?.find(s => s.id === setId)
+    const setName = set?.name || 'Unknown Set'
+    const count = items.length
+    locationParts.push(`Set: ${setName} (${count} item${count > 1 ? 's' : ''})`)
+  })
+  
+  return locationParts.length > 0 ? locationParts.join('\n') : null
+}
+
+const getDeleteModalDescription = () => {
   if (!itemToDelete.value) return 'This action cannot be undone.'
   const item = itemToDelete.value
   return item.collectionId || item.setId
-    ? 'This media item will be permanently deleted.'
-    : 'This set will be permanently deleted.'
+    ? 'This media item will be permanently deleted.\n\nThis action cannot be undone.'
+    : 'This set will be permanently deleted.\n\nThis action cannot be undone.'
 }
 
 // (moved to useMediaRenameDeleteActions)
@@ -1230,6 +1349,7 @@ const { loadCollection } = useCollectionLoadFlow({
   updateSetCounts,
   loadMediaItems,
   mediaSetsSidebar,
+  mediaItems,
 })
 
 
@@ -1338,6 +1458,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: updateSetCounts,
+  loadPhaseDetail: () => loadCollection(collection.value?.id),
   getItemId: item => item?.id || '',
   modals: {
     openDeleteModal,
@@ -1404,6 +1525,10 @@ const {
   onUploadComplete: async results => {
     if (results?.successful?.length > 0) {
       try {
+        // Reload phase detail to update storage
+        if (collection.value?.id) {
+          await loadCollection(collection.value.id)
+        }
         // Reload media items to show the newly uploaded media
         await loadMediaItems()
         // Reload media sets to update counts

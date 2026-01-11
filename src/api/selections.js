@@ -133,6 +133,9 @@ export function useSelectionsApi() {
       if (data.display_settings !== undefined || data.displaySettings !== undefined) {
         updateData.display_settings = data.display_settings || data.displaySettings
       }
+      if (data.typographyDesign !== undefined) {
+        updateData.typographyDesign = data.typographyDesign
+      }
 
       const response = await apiClient.patch(`/v1/selections/${id}`, updateData)
       return response.data
@@ -160,6 +163,18 @@ export function useSelectionsApi() {
     try {
       await apiClient.post(`/v1/selections/${id}/star`)
       return true
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Duplicate a selection
+   */
+  const duplicateSelection = async id => {
+    try {
+      const response = await apiClient.post(`/v1/selections/${id}/duplicate`)
+      return response.data
     } catch (error) {
       throw parseError(error)
     }
@@ -705,11 +720,11 @@ export function useSelectionsApi() {
   /**
    * Apply watermark to media
    */
-  const applyWatermarkToMedia = async (selectionId, setId, mediaId, watermarkUuid) => {
+  const applyWatermarkToMedia = async (selectionId, setId, mediaId, watermarkUuid, previewStyle = true) => {
     try {
       const response = await apiClient.post(
         `/v1/selections/${selectionId}/sets/${setId}/media/${mediaId}/watermark`,
-        { watermarkUuid }
+        { watermarkUuid, previewStyle }
       )
       return response.data
     } catch (error) {
@@ -979,6 +994,7 @@ export function useSelectionsApi() {
     updateSelection,
     deleteSelection,
     toggleStarSelection,
+    duplicateSelection,
     publishSelection,
     completeSelection,
     recoverDeletedMedia,

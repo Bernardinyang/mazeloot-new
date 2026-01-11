@@ -106,10 +106,11 @@ const props = defineProps({
   },
 })
 
-const emit = defineEmits(['update:isOpen', 'confirm'])
+const emit = defineEmits(['update:isOpen', 'confirm', 'update'])
 
 const focalPointImageContainer = ref(null)
 const focalPoint = ref({ x: 50, y: 50 })
+const isSyncingFromProps = ref(false)
 
 const displayUrl = computed(() => {
   return props.imageUrl || props.fallbackImageUrl || null
@@ -126,7 +127,12 @@ watch(
   () => props.initialFocalPoint,
   newPoint => {
     if (newPoint && typeof newPoint === 'object') {
+      isSyncingFromProps.value = true
       focalPoint.value = { ...newPoint }
+      // Use nextTick to reset flag after sync completes
+      setTimeout(() => {
+        isSyncingFromProps.value = false
+      }, 0)
     }
   },
   { immediate: true }
@@ -136,7 +142,11 @@ watch(
   () => props.isOpen,
   isOpen => {
     if (isOpen && props.initialFocalPoint) {
+      isSyncingFromProps.value = true
       focalPoint.value = { ...props.initialFocalPoint }
+      setTimeout(() => {
+        isSyncingFromProps.value = false
+      }, 0)
     }
   }
 )
@@ -149,9 +159,16 @@ const handleFocalPointClick = event => {
   const y = ((event.clientY - rect.top) / rect.height) * 100
 
   // Clamp values between 0 and 100
-  focalPoint.value = {
+  const newFocalPoint = {
     x: Math.min(100, Math.max(0, x)),
     y: Math.min(100, Math.max(0, y)),
+  }
+  
+  focalPoint.value = newFocalPoint
+  
+  // Only emit update if not syncing from props (user-initiated change)
+  if (!isSyncingFromProps.value && props.isOpen) {
+    emit('update', { ...newFocalPoint })
   }
 }
 

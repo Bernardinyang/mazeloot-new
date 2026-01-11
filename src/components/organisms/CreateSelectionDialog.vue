@@ -63,7 +63,7 @@
           Cancel
         </Button>
         <Button
-          variant="default"
+          variant="primary"
           :disabled="!formData.name.trim()"
           :loading="isSubmitting"
           loading-label="Creating..."
@@ -104,10 +104,14 @@ const theme = useThemeClasses()
 const selectionStore = useSelectionStore()
 const { handleError } = useErrorHandler()
 
+const getExistingColors = () => {
+  return selectionStore.selections.map(s => s.color).filter(Boolean)
+}
+
 const formData = reactive({
   name: '',
   description: '',
-  color: generateRandomColorFromPalette(), // Random color from palette
+  color: generateRandomColorFromPalette(getExistingColors()), // Random color avoiding duplicates
 })
 
 const errors = ref({})
@@ -120,8 +124,11 @@ watch(
       // Reset form when dialog closes
       formData.name = ''
       formData.description = ''
-      formData.color = generateRandomColorFromPalette()
+      formData.color = generateRandomColorFromPalette(getExistingColors())
       errors.value = {}
+    } else {
+      // When opening, refresh color to avoid duplicates
+      formData.color = generateRandomColorFromPalette(getExistingColors())
     }
   }
 )

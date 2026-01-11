@@ -23,9 +23,10 @@ export function generateRandomColor() {
 
 /**
  * Generate a random color from a curated palette of nice colors
- * @returns {string} A random color from the palette
+ * @param {Array<string>} excludeColors - Array of colors to exclude from selection
+ * @returns {string} A random color from the palette that's not in excludeColors
  */
-export function generateRandomColorFromPalette() {
+export function generateRandomColorFromPalette(excludeColors = []) {
   const palette = [
     '#14B8A6', // Teal
     '#8B5CF6', // Purple
@@ -45,7 +46,17 @@ export function generateRandomColorFromPalette() {
     '#64748B', // Slate
   ]
 
-  return palette[Math.floor(Math.random() * palette.length)]
+  // Filter out excluded colors (case-insensitive)
+  const availableColors = palette.filter(
+    color => !excludeColors.some(excluded => excluded?.toLowerCase() === color.toLowerCase())
+  )
+
+  // If all colors are excluded, return a random one anyway
+  if (availableColors.length === 0) {
+    return palette[Math.floor(Math.random() * palette.length)]
+  }
+
+  return availableColors[Math.floor(Math.random() * availableColors.length)]
 }
 
 /**

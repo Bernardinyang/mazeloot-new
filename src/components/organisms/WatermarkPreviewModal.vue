@@ -151,7 +151,7 @@
 
     <template #footer>
       <Button variant="outline" @click="handleCancel">Cancel</Button>
-      <Button variant="default" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
+      <Button variant="primary" @click="handleApply" :disabled="!watermark || isGeneratingPreview">
         Apply Watermark
       </Button>
     </template>

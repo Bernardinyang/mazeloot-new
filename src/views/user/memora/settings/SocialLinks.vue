@@ -77,7 +77,7 @@
               />
             </div>
             <Button
-              variant="default"
+              variant="primary"
               :disabled="!newLink.platformUuid || !newLink.url || isLoading"
               :loading="isCreating"
               loading-label="Adding..."
@@ -196,7 +196,7 @@
               <span :class="theme.textSecondary">All changes saved automatically</span>
             </div>
             <Button
-              variant="default"
+              variant="success"
               disabled
               :icon="Check"
             >

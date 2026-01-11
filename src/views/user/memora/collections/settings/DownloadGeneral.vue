@@ -1,15 +1,35 @@
 <template>
-  <div class="space-y-6">
-    <!-- Photo Download -->
+  <div v-if="isLoading" class="space-y-6">
+    <!-- Skeleton Loader -->
+    <div
+      v-for="i in 3"
+      :key="i"
+      class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <Skeleton class="h-6 w-40 rounded-md mb-2" />
+          <Skeleton class="h-3 w-80 rounded-md mb-3" />
+        </div>
+        <Skeleton class="h-6 w-12 rounded-md" />
+      </div>
+      <div class="space-y-3">
+        <Skeleton class="h-4 w-48 rounded-md" />
+        <Skeleton class="h-10 w-64 rounded-md" />
+      </div>
+    </div>
+  </div>
+  <div v-else class="space-y-6">
+    <!-- Media Download -->
     <div
       :class="[theme.borderSecondary, theme.bgCard]"
       class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
-          <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Photo Download</h3>
+          <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Media Download</h3>
           <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-            Allow visitors to download photos in your gallery.
+            Allow visitors to download media in your gallery.
           </p>
         </div>
         <div class="flex-shrink-0 pt-1">
@@ -17,7 +37,7 @@
         </div>
       </div>
 
-      <!-- Photo Download Sizes (Nested) -->
+      <!-- Media Download Sizes (Nested) -->
       <Transition>
         <div
           v-if="photoDownload"
@@ -25,9 +45,9 @@
           class="mt-4 pt-4 border-t space-y-4"
         >
       <div>
-        <h4 :class="theme.textPrimary" class="text-base font-semibold mb-1.5">Photo Download Sizes</h4>
+        <h4 :class="theme.textPrimary" class="text-base font-semibold mb-1.5">Media Download Sizes</h4>
         <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-4">
-          Allow photos to be downloaded in select sizes.
+          Allow media to be downloaded in select sizes.
           <a class="text-accent hover:underline font-medium" href="#"
             >Learn more</a
           >
@@ -203,7 +223,7 @@
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
-          variant="default"
+          variant="primary"
           :disabled="!hasChanges"
           :loading="isSaving"
           :icon="!hasChanges ? Check : null"
@@ -224,7 +244,8 @@ import { Button } from '@/components/shadcn/button'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { Check, Copy, Loader2, RefreshCw } from 'lucide-vue-next'
+import { Check, Copy, RefreshCw } from 'lucide-vue-next'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import { toast } from '@/utils/toast'
 import { useGalleryStore } from '@/stores/gallery'
 import { cn } from '@/lib/utils'
@@ -235,6 +256,7 @@ const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 
 const collection = ref(null)
+const isLoading = ref(true)
 
 const photoDownload = ref(true)
 const highResolutionEnabled = ref(true)
@@ -252,6 +274,8 @@ onMounted(async () => {
   const collectionId = route.params.uuid
   if (!collectionId) return
 
+  isLoading.value = true
+  
   // Check if collection is already in store (from parent component)
   const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
   if (existingCollection) {
@@ -272,6 +296,7 @@ onMounted(async () => {
       downloadPinEnabled: existingCollection.downloadPinEnabled || false,
       downloadPin: existingCollection.downloadPin || '2434',
     }
+    isLoading.value = false
     return
   }
 
@@ -294,8 +319,10 @@ onMounted(async () => {
       downloadPinEnabled: collectionData.downloadPinEnabled || false,
       downloadPin: collectionData.downloadPin || '2434',
     }
+    isLoading.value = false
   } catch (error) {
     toast.error('Failed to load collection')
+    isLoading.value = false
   }
 })
 

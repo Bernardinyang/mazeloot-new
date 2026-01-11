@@ -171,7 +171,7 @@
               </span>
             </Transition>
             <Button
-              variant="default"
+              variant="primary"
               :loading="isSubmitting || isSaving"
               :icon="ArrowRight"
               loading-label="Saving..."

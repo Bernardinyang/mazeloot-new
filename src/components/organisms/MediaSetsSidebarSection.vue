@@ -3,7 +3,7 @@
     <div class="flex items-center justify-between mb-4">
       <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
       <Button
-        variant="default"
+        variant="primary"
         size="sm"
         :disabled="props.isSavingSets || props.disableAddSet"
         :loading="props.isSavingSets"

@@ -80,7 +80,7 @@
         />
         <DetailField
           v-if="collection.photoDownload !== undefined"
-          label="Photo Download"
+          label="Media Download"
           :value="collection.photoDownload"
           format="boolean"
           layout="horizontal"

@@ -5,7 +5,7 @@
       <Button
         v-if="cancelLabel"
         type="button"
-        :variant="cancelButtonClass ? 'default' : 'ghost'"
+        :variant="cancelVariant || (cancelButtonClass ? 'default' : 'ghost')"
         :class="[
           cancelButtonClass || theme.textSecondary,
           cancelButtonClass || theme.bgButtonHover,
@@ -20,7 +20,7 @@
       <Button
         v-if="confirmLabel"
         type="button"
-        variant="default"
+        :variant="confirmVariant || 'primary'"
         :loading="loading"
         :loading-label="loadingLabel || 'Loading...'"
         :disabled="disabled"
@@ -73,9 +73,22 @@ const props = defineProps({
     type: String,
     default: '',
   },
+  confirmVariant: {
+    type: String,
+    default: 'primary',
+    validator: value =>
+      ['default', 'primary', 'destructive', 'success', 'warning', 'outline', 'secondary', 'ghost', 'link'].includes(value),
+  },
   cancelButtonClass: {
     type: String,
     default: '',
+  },
+  cancelVariant: {
+    type: String,
+    default: null,
+    validator: value =>
+      !value ||
+      ['default', 'primary', 'destructive', 'success', 'warning', 'outline', 'secondary', 'ghost', 'link'].includes(value),
   },
 })
 

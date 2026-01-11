@@ -48,7 +48,7 @@
               </div>
             </div>
             <Button
-              variant="default"
+              variant="primary"
               size="sm"
               :disabled="presetStore.isLoading"
               :icon="Plus"
@@ -84,7 +84,7 @@
               No presets yet. Create one to get started!
             </p>
             <Button
-              variant="default"
+              variant="primary"
               size="sm"
               :icon="Plus"
               class="shadow-lg hover:shadow-xl transition-all duration-200"

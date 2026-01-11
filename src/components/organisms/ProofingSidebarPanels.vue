@@ -14,12 +14,14 @@
         <ProofingSettingsSidebarNav
           :proofing-id="props.proofingId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
       <div v-else-if="tab === 'settings' && collapsed">
         <ProofingSettingsSidebarNav
           :proofing-id="props.proofingId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
     </template>

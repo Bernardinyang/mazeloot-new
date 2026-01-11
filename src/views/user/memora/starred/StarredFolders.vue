@@ -409,12 +409,22 @@ const { sortedItems: sortedCollections } = useCollectionSort(
 )
 
 const toggleStar = async collection => {
+  if (!collection || !collection.id) return
+  
   try {
-    // Store already handles optimistic update, no need to manually update
     await galleryStore.toggleStar(String(collection.id))
+    // The gallery store updates the collection in its collections array optimistically
+    // Since starredFolders is computed from galleryStore.collections and filters by isStarred/starred,
+    // the item will automatically disappear from the view when unstarred
+    // We may need to refetch if the store doesn't have the item
+    const collectionInStore = galleryStore.collections.find(c => c.id === collection.id || c.id === String(collection.id))
+    if (!collectionInStore) {
+      // Item not in store, might need to refetch to ensure sync
+      await galleryStore.fetchCollections({ starred: true })
+    }
   } catch (error) {
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to update star status.',
     })
   }
 }

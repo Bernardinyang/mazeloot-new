@@ -308,7 +308,7 @@
                     Cancel
                   </Button>
                   <Button
-                    variant="default"
+                    variant="primary"
                     type="button"
                     @click="showFocalPointModal = false"
                   >
@@ -774,7 +774,7 @@
               </span>
             </Transition>
             <Button
-              variant="default"
+              variant="primary"
               :loading="isSubmitting || isSaving"
               loading-label="Saving..."
               class="shadow-lg hover:shadow-xl transition-all duration-200 px-6"

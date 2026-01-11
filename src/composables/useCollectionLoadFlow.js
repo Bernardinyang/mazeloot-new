@@ -20,6 +20,7 @@ export function useCollectionLoadFlow({
   updateSetCounts,
   loadMediaItems,
   mediaSetsSidebar,
+  mediaItems,
 } = {}) {
   const loadCollection = async (collectionUuid) => {
     if (!collectionUuid) {

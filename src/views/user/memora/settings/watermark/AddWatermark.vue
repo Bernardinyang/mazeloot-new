@@ -168,12 +168,11 @@
           </Transition>
 
           <!-- Typography Section (for TEXT type) -->
-          <Transition name="fade">
-            <div
-              v-if="watermarkType === 'text'"
-              :class="theme.borderSecondary"
-              class="space-y-4 pt-2 border-t"
-            >
+          <div
+            v-if="watermarkType === 'text'"
+            :class="theme.borderSecondary"
+            class="space-y-4 pt-2 border-t"
+          >
               <div class="flex items-center gap-2">
                 <h3 :class="theme.textPrimary" class="text-sm font-semibold">Typography</h3>
                 <span
@@ -265,7 +264,6 @@
                 </div>
               </div>
             </div>
-          </Transition>
 
           <!-- Watermark Image (for IMAGE type) -->
           <Transition name="fade">
@@ -599,12 +597,11 @@
           </div>
 
           <!-- Border Section (for TEXT type) -->
-          <Transition name="fade">
-            <div
-              v-if="watermarkType === 'text'"
-              :class="theme.borderSecondary"
-              class="space-y-4 pt-2 border-t"
-            >
+          <div
+            v-if="watermarkType === 'text'"
+            :class="theme.borderSecondary"
+            class="space-y-4 pt-2 border-t"
+          >
               <div class="flex items-center gap-2">
                 <h3 :class="theme.textPrimary" class="text-sm font-semibold">Border & Corners</h3>
                 <span
@@ -743,7 +740,6 @@
                 </div>
               </Transition>
             </div>
-          </Transition>
         </div>
       </div>
 

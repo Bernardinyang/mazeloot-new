@@ -79,6 +79,9 @@ onMounted(async () => {
     }
     userStore.token = response.token
 
+    // Don't clear isNewUser on magic link - preserve flag if user was previously registered
+    // If user was previously registered, flag will persist; if existing user, flag is already false
+
     toast.success('Login successful!', {
       description: 'Welcome! Redirecting...',
     })

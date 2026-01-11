@@ -299,7 +299,7 @@
                     Add Email
                   </Button>
                   <Button
-                    variant="default"
+                    variant="primary"
                     :disabled="!hasValidEmails"
                     :loading="isSavingAllowedEmails"
                     :icon="emailsSaved ? Check : null"
@@ -435,7 +435,7 @@
                   </Button>
                   <Button
                     v-if="isChangingPassword && newPassword"
-                    variant="default"
+                    variant="primary"
                     :loading="isSavingPassword"
                     loading-label="Saving..."
                     size="sm"
@@ -483,6 +483,73 @@
                   Current limit:
                   <span class="font-medium">{{ proofing?.maxRevisions || 5 }} revision(s)</span>
                 </p>
+              </div>
+            </div>
+
+            <!-- Typography -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Typography</h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Select fonts that match your brand and style.
+                  </p>
+                </div>
+                <div v-if="typographySaved" class="flex items-center gap-2 text-accent">
+                  <Check class="h-4 w-4" />
+                  <span class="text-xs font-medium">Saved</span>
+                </div>
+              </div>
+              <div class="space-y-5">
+                <!-- Font Family -->
+                <div>
+                  <label
+                    :class="theme.textSecondary"
+                    class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
+                  >
+                    Font Family
+                  </label>
+                  <FontFamilySelect
+                    v-model="fontFamily"
+                    placeholder="Select font family"
+                  />
+                </div>
+                <!-- Font Style -->
+                <div>
+                  <label
+                    :class="theme.textSecondary"
+                    class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
+                  >
+                    Font Style
+                  </label>
+                  <Select v-model="fontStyle">
+                    <SelectTrigger
+                      :class="[
+                        theme.bgInput,
+                        theme.borderInput,
+                        theme.textInput,
+                        'focus:ring-2 focus:ring-accent/20 focus:border-accent',
+                      ]"
+                      class="transition-all"
+                    >
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+                    <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+                      <SelectItem
+                        v-for="style in fontStyleOptions"
+                        :key="style.value"
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        :style="getStylePreview(style.value)"
+                        :value="style.value"
+                      >
+                        {{ style.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
 
@@ -561,7 +628,7 @@
             <!-- Save Button -->
             <div class="flex justify-end gap-3 pt-4">
               <Button
-                variant="default"
+                variant="primary"
                 :loading="isSaving"
                 loading-label="Saving..."
                 @click="handleSaveAll"
@@ -594,13 +661,16 @@ import ProofingLayout from '@/layouts/ProofingLayout.vue'
 import { Input } from '@/components/shadcn/input'
 import { Textarea } from '@/components/shadcn/textarea'
 import { Button } from '@/components/shadcn/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/select'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
+import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import CoverFocalPointModal from '@/components/organisms/CoverFocalPointModal.vue'
 import { useProofingStore } from '@/stores/proofing'
 import { useProofingApi } from '@/api/proofing'
 import { toast } from '@/utils/toast'
+import { fontStyleOptions as baseFontStyleOptions } from '@/utils/designConstants'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -632,6 +702,33 @@ const nameSaved = ref(false)
 const descriptionSaved = ref(false)
 const colorSaved = ref(false)
 const maxRevisionsSaved = ref(false)
+const typographySaved = ref(false)
+
+// Typography state
+const fontFamily = ref('sans')
+const fontStyle = ref('normal')
+
+// Font style options
+const fontStyleOptions = [
+  ...baseFontStyleOptions,
+  { value: 'bold italic', label: 'Bold Italic' },
+]
+
+
+// Helper function for style preview
+const getStylePreview = styleValue => {
+  if (!styleValue) {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    }
+  }
+  const styles = styleValue.split(/[\s-]+/).filter(s => s.length > 0)
+  return {
+    fontWeight: styles.includes('bold') ? 'bold' : 'normal',
+    fontStyle: styles.includes('italic') ? 'italic' : 'normal',
+  }
+}
 
 // Focal point state
 const showFocalPointModal = ref(false)
@@ -786,6 +883,14 @@ onMounted(async () => {
     } else {
       formData.coverFocalPoint = { x: 50, y: 50 }
     }
+
+    // Load typography - backend always returns defaults
+    const proofingDesign = proofingData.design || proofingData.settings?.design || {}
+    const proofingTypography = proofingData.typographyDesign || proofingDesign.typography || {}
+    
+    fontFamily.value = proofingTypography.fontFamily || 'sans'
+    fontStyle.value = proofingTypography.fontStyle || 'normal'
+    typographyLoaded.value = true
   } catch (error) {
     toast.error('Failed to load proofing', {
       description: error?.message || 'An unknown error occurred',
@@ -1201,6 +1306,71 @@ const handleShowFilenameChange = () => {
   proofingStore.setShowFilename(showFilename.value)
 }
 
+const handleTypographyChange = async () => {
+  if (!proofing.value) {
+    typographySaved.value = false
+    return
+  }
+  
+  const proofingDesign = proofing.value.design || proofing.value.settings?.design || {}
+  const proofingTypography = proofing.value.typographyDesign || proofingDesign.typography || {}
+  const currentFontFamily = proofingTypography.fontFamily || 'sans'
+  const currentFontStyle = proofingTypography.fontStyle || 'normal'
+  
+  if (fontFamily.value === currentFontFamily && fontStyle.value === currentFontStyle) {
+    typographySaved.value = false
+    return
+  }
+  
+  try {
+    const projectId = proofing.value.projectId || proofing.value.project_uuid || null
+    await proofingApi.updateProofing(projectId, proofing.value.id, {
+      typographyDesign: {
+        fontFamily: fontFamily.value,
+        fontStyle: fontStyle.value,
+      },
+    })
+    
+    // Update local proofing object
+    if (!proofing.value.design) {
+      proofing.value.design = {}
+    }
+    if (!proofing.value.design.typography) {
+      proofing.value.design.typography = {}
+    }
+    proofing.value.design.typography.fontFamily = fontFamily.value
+    proofing.value.design.typography.fontStyle = fontStyle.value
+    proofing.value.typographyDesign = {
+      fontFamily: fontFamily.value,
+      fontStyle: fontStyle.value,
+    }
+    
+    typographySaved.value = true
+    setTimeout(() => {
+      typographySaved.value = false
+    }, 2000)
+    toast.success('Typography updated', {
+      description: 'Typography settings have been updated successfully.',
+    })
+  } catch (error) {
+    typographySaved.value = false
+    toast.error('Failed to update typography', {
+      description: error?.message || 'An unknown error occurred',
+    })
+    // Revert to original values
+    fontFamily.value = currentFontFamily
+    fontStyle.value = currentFontStyle
+  }
+}
+
+// Watch typography changes and auto-save (only after initial load)
+const typographyLoaded = ref(false)
+watch([fontFamily, fontStyle], () => {
+  if (typographyLoaded.value) {
+    handleTypographyChange()
+  }
+})
+
 const handleSaveAll = async () => {
   if (!proofing.value?.id || isSaving.value) return
 
@@ -1243,6 +1413,7 @@ const handleSaveAll = async () => {
       handleColorChange(),
       handleAllowedEmailsChange(true), // Force save
       handleMaxRevisionsChange(),
+      handleTypographyChange(),
     ])
     toast.success('Settings saved', {
       description: 'All settings have been saved successfully.',

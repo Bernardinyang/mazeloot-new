@@ -36,12 +36,28 @@
               {{ collectionName }}
             </h1>
             <p
+              v-if="collectionDescription"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ color: textColor, opacity: 0.7 }"
+              class="text-xs sm:text-sm mt-2 leading-relaxed"
+            >
+              {{ collectionDescription }}
+            </p>
+            <p
               v-if="eventDate"
               :class="[fontFamilyClass, fontStyleClass]"
               :style="{ color: textColor, opacity: 0.8 }"
               class="text-[10px] xs:text-xs sm:text-xs md:text-sm mt-1 uppercase tracking-wide"
             >
               {{ formattedDate }}
+            </p>
+            <p
+              v-if="userEmail"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ color: textColor, opacity: 0.6 }"
+              class="text-[10px] xs:text-xs sm:text-xs md:text-sm mt-1.5"
+            >
+              {{ userEmail }}
             </p>
           </div>
           <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
@@ -68,7 +84,7 @@
                         class="h-5 w-5 sm:h-6 sm:w-6"
                       />
                       <Download
-                        v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                        v-if="props.previewMode === 'public' && isPhotoDownloadEnabled && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
                         class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
                       />
                     </button>
@@ -111,7 +127,7 @@
                 </span>
               </span>
               <Download
-                v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                v-if="props.previewMode === 'public' && isPhotoDownloadEnabled && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
                 class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
               />
             </button>
@@ -195,6 +211,19 @@
             >
               {{ collectionName }}
             </h1>
+            <!-- Description -->
+            <p
+              v-if="collectionDescription"
+              :class="[fontFamilyClass, fontStyleClass]"
+              :style="{ 
+                color: 'white',
+                textShadow: '0 2px 10px rgba(0,0,0,0.3)',
+                opacity: 0.85,
+              }"
+              class="text-xs sm:text-sm md:text-base mt-2 sm:mt-3 md:mt-4 lg:mt-6 leading-relaxed max-w-2xl"
+            >
+              {{ collectionDescription }}
+            </p>
             <!-- Date -->
             <p
               v-if="eventDate"
@@ -270,6 +299,14 @@
               >
                 • {{ formattedDate }}
               </span>
+              <span
+                v-if="userEmail"
+                :class="[fontFamilyClass, fontStyleClass]"
+                :style="{ color: textColor, opacity: 0.6 }"
+                class="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium"
+              >
+                • {{ userEmail }}
+              </span>
           </div>
         </div>
 
@@ -292,7 +329,7 @@
               <Loader2 v-else class="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
           </button>
           <button
-              v-if="filteredMedia.length > 0 && (props.previewMode !== 'public' || !downloadableSets.length || isSetDownloadable(getSetIdForTab(activeTab)))"
+              v-if="filteredMedia.length > 0 && (props.previewMode !== 'public' || (isPhotoDownloadEnabled && (!downloadableSets.length || isSetDownloadable(getSetIdForTab(activeTab)))))"
               :style="{ 
                 color: textColor,
                 backgroundColor: 'transparent',
@@ -344,6 +381,20 @@
         </div>
       </div>
 
+        <!-- Email Row (before tabs) -->
+        <div
+          v-if="userEmail"
+          class="mb-3 sm:mb-4"
+        >
+          <p
+            :class="[fontFamilyClass, fontStyleClass]"
+            :style="{ color: textColor, opacity: 0.6 }"
+            class="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium"
+          >
+            {{ userEmail }}
+          </p>
+        </div>
+
         <!-- Bottom Row: Tabs -->
         <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
           <div class="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12">
@@ -367,7 +418,7 @@
                       class="h-5 w-5 sm:h-6 sm:w-6"
                     />
                     <Download
-                      v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+                      v-if="props.previewMode === 'public' && isPhotoDownloadEnabled && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
                       class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
                     />
                   </button>
@@ -408,12 +459,102 @@
               </span>
             </span>
             <Download
-              v-if="props.previewMode === 'public' && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
+              v-if="props.previewMode === 'public' && isPhotoDownloadEnabled && downloadableSets.length > 0 && isSetDownloadable(getSetIdForTab(tab))"
               class="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-70"
             />
           </button>
         </div>
       </div>
+
+      <!-- Gallery Assist Walk-through Cards -->
+      <Transition name="fade">
+        <div
+          v-if="props.previewMode === 'public' && showGalleryAssist && !isGalleryAssistDismissed"
+          class="px-3 sm:px-4 md:px-8 lg:px-12 pb-6 sm:pb-8"
+        >
+          <div
+            :style="{
+              backgroundColor: backgroundColor,
+              borderColor: borderColor,
+            }"
+            class="rounded-xl border-2 p-4 sm:p-6 space-y-4 relative shadow-lg"
+          >
+            <button
+              :style="{ color: textColor }"
+              class="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2"
+              aria-label="Dismiss Gallery Assist"
+              @click="dismissGalleryAssist"
+            >
+              <X class="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+            <div class="flex items-start gap-3 sm:gap-4 pr-8">
+              <div
+                :style="{ backgroundColor: accentColor, color: accentTextColor }"
+                class="p-2.5 rounded-lg shrink-0 shadow-md"
+              >
+                <Sparkles class="h-5 w-5 sm:h-6 sm:w-6" />
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3
+                  :class="[fontFamilyClass, fontStyleClass]"
+                  :style="{ color: textColor }"
+                  class="text-base sm:text-lg font-bold mb-1.5"
+                >
+                  Gallery Assist
+                </h3>
+                <p
+                  :style="{ color: textColor, opacity: 0.8 }"
+                  class="text-xs sm:text-sm leading-relaxed mb-5"
+                >
+                  Tips to help you navigate and use this collection
+                </p>
+                <TransitionGroup
+                  name="card"
+                  tag="div"
+                  class="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                >
+                  <div
+                    v-for="(card, index) in galleryAssistCards"
+                    :key="card.id"
+                    :style="{
+                      backgroundColor: accentColor + '15',
+                      borderColor: borderColor,
+                      '--card-delay': `${index * 50}ms`,
+                    }"
+                    class="p-3 sm:p-4 rounded-lg border transition-all duration-300 hover:shadow-md hover:scale-[1.02] hover:border-opacity-60 cursor-default group"
+                  >
+                    <div class="flex items-start gap-2 sm:gap-3">
+                      <div
+                        :style="{ backgroundColor: accentColor + '25', color: accentColor }"
+                        class="p-2 rounded-lg shrink-0 group-hover:scale-110 transition-transform duration-200"
+                      >
+                        <component
+                          :is="card.icon"
+                          class="h-4 w-4 sm:h-5 sm:w-5"
+                        />
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <h4
+                          :style="{ color: textColor }"
+                          class="text-xs sm:text-sm font-semibold mb-1.5 leading-tight"
+                        >
+                          {{ card.title }}
+                        </h4>
+                        <p
+                          :style="{ color: textColor, opacity: 0.75 }"
+                          class="text-xs leading-relaxed"
+                        >
+                          {{ card.description }}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </TransitionGroup>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
 
       <!-- Media Grid Container -->
       <div class="px-3 sm:px-4 md:px-8 lg:px-12 pb-8 sm:pb-10 md:pb-12">
@@ -445,7 +586,7 @@
         :style="gridStyles"
       >
         <MediaGridItemCard
-          v-for="item in paginatedMedia"
+          v-for="(item, index) in paginatedMedia"
           :key="item.id"
           :item="item"
           :placeholder-image="'/placeholder-image.png'"
@@ -454,10 +595,15 @@
           :show-selection-checkbox="false"
           :public-mode="props.previewMode === 'public'"
           :is-downloading="props.downloadingMediaIds?.has?.(item.id || item.uuid) || false"
-          :allow-download="isMediaItemDownloadable(item)"
+          :allow-download="props.disableActions ? false : isMediaItemDownloadable(item)"
           :is-client-verified="props.isClientVerified"
-          :allow-mark-private="collection?.allowClientsMarkPrivate && props.userMode === 'client'"
-          class="aspect-square"
+          :allow-mark-private="props.disableActions ? false : (collection?.allowClientsMarkPrivate && props.userMode === 'client')"
+          :disable-aspect-square="normalizedGridStyle === 'masonry'"
+          :hide-favorite-icon="props.previewMode === 'public' && collection?.favoritePhotos === false"
+          :class="[
+            normalizedGridStyle === 'masonry' ? thumbnailSizeClasses : '',
+          ]"
+          :style="getGridItemStyle(index)"
           @download="handleDownloadMedia"
           @share="handleShareMedia"
           @open-viewer="openMediaViewer"
@@ -537,9 +683,10 @@
       class="border-t bg-gray-900 dark:bg-black py-4 sm:py-5 md:py-6 px-3 sm:px-4"
     >
       <div class="container mx-auto text-center">
-        <p class="text-xs sm:text-sm text-white">
-          © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
+        <p class="text-xs sm:text-sm font-medium text-gray-300 mb-1">
+          © {{ new Date().getFullYear() }} {{ brandingName || 'Mazeloot' }}
         </p>
+        <p v-if="showMazelootBranding" class="text-xs text-gray-400">Powered by Mazeloot</p>
       </div>
     </footer>
 
@@ -552,10 +699,13 @@
       :collection-id="collection?.id || collectionId"
       :set-id="getSetIdForTab(activeTab)"
       :auto-start-slideshow="autoStartSlideshow"
+      :slideshow-speed="collection?.slideshowSpeed || 'regular'"
+      :slideshow-auto-loop="collection?.slideshowAutoLoop ?? true"
       :public-mode="props.previewMode === 'public'"
       :is-client-verified="props.isClientVerified"
       :allow-mark-private="collection?.allowClientsMarkPrivate && props.userMode === 'client'"
       :disable-actions="props.disableActions"
+      :hide-favorite-icon="props.previewMode === 'public' && collection?.favoritePhotos === false"
       @close="closeMediaViewer"
       @download="handleDownloadMedia"
       @share="handleShareMedia"
@@ -605,6 +755,7 @@ import {
   Grid3x3,
   Heart,
   Loader2,
+  Lock,
   MoreVertical,
   Share2,
   Sparkles,
@@ -693,6 +844,7 @@ const media = ref([])
 const isLoading = ref(true)
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
+const showMazelootBranding = ref(true)
 const selectedMedia = ref(null)
 const showMediaViewer = ref(false)
 const currentMediaIndex = ref(0)
@@ -832,6 +984,101 @@ const borderColor = computed(() => {
   const textColor = getTextColorFromBackground(bg)
   return textColor === '#000000' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)'
 })
+
+const showGalleryAssist = computed(() => {
+  const collectionToUse =
+    props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  return collectionToUse?.galleryAssist ?? collectionToUse?.settings?.general?.galleryAssist ?? false
+})
+
+const galleryAssistCards = computed(() => {
+  if (props.previewMode !== 'public') return []
+  
+  const collectionToUse =
+    props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  
+  if (!collectionToUse) return []
+  
+  const allCards = [
+    {
+      id: 'browse',
+      icon: Grid3x3,
+      title: 'Browse Photos',
+      description: 'Click on any photo to view it full-screen in the lightbox',
+      show: true,
+      priority: 1,
+    },
+    {
+      id: 'slideshow',
+      icon: Play,
+      title: 'Slideshow',
+      description: 'Use the play button to start an automatic slideshow',
+      show: true,
+      priority: 2,
+    },
+    {
+      id: 'download',
+      icon: Download,
+      title: 'Download Photos',
+      description: 'Use the download button to save photos to your device',
+      show: isPhotoDownloadEnabled.value,
+      priority: 3,
+    },
+    {
+      id: 'favorite',
+      icon: Heart,
+      title: 'Favorite Photos',
+      description: 'Click the heart icon to favorite photos you love',
+      show: collectionToUse?.favoritePhotos !== false,
+      priority: 4,
+    },
+    {
+      id: 'share',
+      icon: Share2,
+      title: 'Share Photos',
+      description: 'Use the share button to copy a link to any photo',
+      show: collectionToUse?.socialSharing !== false,
+      priority: 5,
+    },
+    {
+      id: 'make-private',
+      icon: Lock,
+      title: 'Make Private',
+      description: 'Mark photos as private to hide them from others',
+      show: collectionToUse?.allowClientsMarkPrivate && props.userMode === 'client',
+      priority: 6,
+    },
+    {
+      id: 'logout',
+      icon: LogOut,
+      title: 'Logout',
+      description: 'Use the logout button to end your session',
+      show: props.previewMode === 'public',
+      priority: 7,
+    },
+  ]
+  
+  return allCards
+    .filter(card => card.show)
+    .sort((a, b) => a.priority - b.priority)
+})
+
+const isGalleryAssistDismissed = ref(false)
+
+const getGalleryAssistDismissKey = () => {
+  const collectionToUse =
+    props.previewMode && props.previewCollection ? props.previewCollection : collection.value
+  const id = collectionToUse?.id || collectionToUse?.uuid || collectionId.value
+  return id ? `gallery-assist-dismissed-${id}` : null
+}
+
+const dismissGalleryAssist = () => {
+  isGalleryAssistDismissed.value = true
+  const key = getGalleryAssistDismissKey()
+  if (key && typeof window !== 'undefined') {
+    localStorage.setItem(key, 'true')
+  }
+}
 
 const coverType = computed(() => designConfig.value.cover || 'center')
 const coverConfig = computed(() => getCoverStyleConfig(coverType.value))
@@ -1196,6 +1443,38 @@ const coverContentClasses = computed(() => {
   return 'flex flex-col items-center justify-center h-full'
 })
 
+const collectionDescription = computed(() => {
+  const collectionToUse = props.previewCollection || collection.value
+  return collectionToUse?.description || ''
+})
+
+const userEmail = computed(() => {
+  const loggedInEmail = userStore.isAuthenticated && userStore.user?.email ? userStore.user.email : null
+  const collectionIdValue = collectionId.value || collection.value?.id
+  const guestEmail = collectionIdValue 
+    ? (localStorage.getItem(`collection_${collectionIdValue}_email`) || localStorage.getItem(`collection_email_${collectionIdValue}`))
+    : null
+  
+  // Also check client verification storage
+  let clientEmail = null
+  if (collectionIdValue) {
+    const stored = localStorage.getItem(`collection_${collectionIdValue}_client_verified`)
+    if (stored) {
+      try {
+        const data = JSON.parse(stored)
+        if (data.email) {
+          clientEmail = data.email
+        }
+      } catch (e) {
+        // Invalid data
+      }
+    }
+  }
+  
+  const emails = [loggedInEmail, guestEmail, clientEmail].filter(Boolean)
+  return emails.length > 0 ? emails.join(' • ') : null
+})
+
 const collectionName = computed(() => {
   if (props.previewMode && props.previewCollection) {
     return props.previewCollection.name || 'Collection'
@@ -1301,10 +1580,29 @@ const isSetDownloadable = (setId) => {
 
 const isMediaItemDownloadable = (item) => {
   if (props.previewMode !== 'public') return true
+  if (!isPhotoDownloadEnabled.value) return false
   if (!downloadableSets.value || downloadableSets.value.length === 0) return true
   const setId = item.setId || item.set_id || item.mediaSet?.id
   return setId && downloadableSets.value.includes(setId)
 }
+
+const isPhotoDownloadEnabled = computed(() => {
+  if (props.previewMode !== 'public') return false
+  const collectionToUse = props.previewCollection || collection.value
+  if (!collectionToUse) return false
+  
+  // Check mediaDownload (photoDownload) in various possible locations (normalized structure preferred)
+  if (collectionToUse.photoDownload !== undefined) {
+    return collectionToUse.photoDownload !== false
+  }
+  if (collectionToUse.download?.photoDownload !== undefined) {
+    return collectionToUse.download.photoDownload !== false
+  }
+  if (collectionToUse.settings?.download?.photoDownload !== undefined) {
+    return collectionToUse.settings.download.photoDownload !== false
+  }
+  return false
+})
 
 // Generate placeholder media items for empty sets
 const generatePlaceholderMedia = (count = 10) => {
@@ -1745,6 +2043,8 @@ const handlePlaySlideshow = () => {
 }
 
 const handleDownloadMedia = async item => {
+  if (props.disableActions) return
+  
   // Emit download event to parent - let parent handle it (especially for public collections with guest tokens)
   emit('download', item)
   
@@ -1762,7 +2062,26 @@ const handleDownloadMedia = async item => {
 }
 
 const handleDownloadAll = () => {
-  // Download all media items in the current filtered view
+  // For public collections, navigate to download page
+  if (props.previewMode === 'public') {
+    const collectionToUse = props.previewCollection || collection.value
+    if (!collectionToUse) return
+    
+    const collectionId = collectionToUse.id || collectionToUse.uuid
+    const projectId = collectionToUse.projectId || collectionToUse.project_uuid || route.params.projectId || 'standalone'
+    
+    router.push({
+      name: 'clientCollectionDownload',
+      params: { projectId },
+      query: {
+        collectionId,
+        ...route.query,
+      },
+    })
+    return
+  }
+  
+  // For non-public collections, download all media items
   if (filteredMedia.value && filteredMedia.value.length > 0) {
     filteredMedia.value.forEach(item => {
       emit('download', item)
@@ -1771,6 +2090,7 @@ const handleDownloadAll = () => {
 }
 
 const handleShareMedia = async (item) => {
+  if (props.disableActions) return
   if (!item || !item.id) {
     console.warn('handleShareMedia: No item or item.id', item)
     return
@@ -2438,6 +2758,12 @@ if (props.previewMode) {
     newCollection => {
       if (newCollection) {
         collection.value = newCollection
+        // Check dismissed state when collection changes
+        const key = getGalleryAssistDismissKey()
+        if (key && typeof window !== 'undefined') {
+          const dismissed = localStorage.getItem(key)
+          isGalleryAssistDismissed.value = dismissed === 'true'
+        }
       }
     },
     { immediate: true, deep: true }
@@ -2462,6 +2788,7 @@ if (props.previewMode) {
       if (newBranding) {
         brandingLogoUrl.value = newBranding.logoUrl || null
         brandingName.value = newBranding.name || null
+        showMazelootBranding.value = newBranding.showMazelootBranding ?? true
       }
     },
     { immediate: true, deep: true }
@@ -2489,6 +2816,15 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
 onMounted(async () => {
   // Setup scroll listener for scroll-to-load (works in both preview and normal mode)
   window.addEventListener('scroll', handleScroll)
+
+  // Check if Gallery Assist was previously dismissed for this collection
+  const key = getGalleryAssistDismissKey()
+  if (key && typeof window !== 'undefined') {
+    const dismissed = localStorage.getItem(key)
+    if (dismissed === 'true') {
+      isGalleryAssistDismissed.value = true
+    }
+  }
 
   if (props.previewMode) {
     // In preview mode, use provided props
@@ -2581,12 +2917,20 @@ onMounted(async () => {
       const settings = settingsResponse.data || settingsResponse
       brandingLogoUrl.value = settings.branding?.logoUrl || null
       brandingName.value = settings.branding?.name || null
+      showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
     } catch (error) {
       // Silently fail - branding is optional
     }
 
     const collectionData = await collectionsApi.fetchCollection(collectionId.value)
     collection.value = collectionData
+
+    // Check dismissed state when collection loads
+    const key = getGalleryAssistDismissKey()
+    if (key && typeof window !== 'undefined') {
+      const dismissed = localStorage.getItem(key)
+      isGalleryAssistDismissed.value = dismissed === 'true'
+    }
 
     const collectionSets = collectionData?.mediaSets || []
 
@@ -2742,6 +3086,42 @@ defineExpose({
 }
 
 .fade-in-move {
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Fade transition for Gallery Assist container */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Card transition for Gallery Assist cards */
+.card-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: var(--card-delay, 0ms);
+}
+
+.card-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-enter-from {
+  opacity: 0;
+  transform: translateY(15px) scale(0.95);
+}
+
+.card-leave-to {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.card-move {
   transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>

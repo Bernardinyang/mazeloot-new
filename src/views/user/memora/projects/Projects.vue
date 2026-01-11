@@ -35,7 +35,7 @@
 
           <!-- New Project Button -->
           <Button
-            variant="default"
+            variant="primary"
             @click="handleCreateProject"
           >
             New Project
@@ -64,7 +64,7 @@
           v-else
           name="list"
           tag="div"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 relative"
         >
           <ProjectCard
             v-for="(project, index) in sortedProjects"
@@ -145,8 +145,7 @@
       :is-deleting="isDeletingProject"
       :item-name="projectToDelete?.name"
       title="Delete Project"
-      description="This action cannot be undone."
-      warning-message="This will permanently delete the project and all associated phases (selections, proofing, collections), media sets, media, and starred items."
+      :description="deleteModalDescription"
       @cancel="closeDeleteModal"
       @confirm="handleConfirmDeleteProject"
     />
@@ -234,6 +233,10 @@ const {
   closeDeleteModal,
   getItemName,
 } = useDeleteConfirmation()
+
+const deleteModalDescription = computed(() => {
+  return 'This will permanently delete the project and all associated phases (selections, proofing, collections), media sets, media, and starred items.\n\nThis action cannot be undone.'
+})
 
 /**
  * Map frontend sort values to backend format

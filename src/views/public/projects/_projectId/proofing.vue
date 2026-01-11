@@ -119,7 +119,7 @@
     </Dialog>
 
     <!-- Main Content -->
-    <div v-else-if="proofing" class="min-h-screen">
+    <div v-else-if="proofing" :class="[fontFamilyClass, fontStyleClass]" class="min-h-screen">
       <!-- Hero Section with Cover Photo - Full Height -->
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
@@ -217,22 +217,28 @@
             <div class="flex-1">
               <h1
                 :class="[
+                  fontFamilyClass,
+                  fontStyleClass,
+                  fontSizeClassH1,
                   proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                     ? 'text-white'
                     : 'text-gray-900 dark:text-gray-100',
                 ]"
-                class="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 drop-shadow-lg"
+                class="font-light tracking-tight mb-2 drop-shadow-lg"
               >
                 {{ proofing.name || 'Proofing' }}
               </h1>
               <p
                 v-if="proofing.description"
                 :class="[
+                  fontFamilyClass,
+                  fontStyleClass,
+                  fontSizeClassP,
                   proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
                     ? 'text-white/90'
                     : 'text-gray-700 dark:text-gray-300',
                 ]"
-                class="text-base md:text-lg font-light tracking-normal drop-shadow-md max-w-2xl"
+                class="font-light tracking-normal drop-shadow-md max-w-2xl"
               >
                 {{ proofing.description }}
               </p>
@@ -293,24 +299,29 @@
         <!-- Instructions / Status -->
         <template v-else-if="proofing.status !== 'completed'">
           <div
-            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6"
+            class="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5 mb-8 shadow-sm"
           >
-            <p class="text-sm text-blue-800 dark:text-blue-200">
-              Click on media items to view and provide feedback. You can add comments and reply to
-              existing feedback.
-            </p>
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 mt-0.5">
+                <MessageSquare class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <p class="text-sm font-medium text-blue-900 dark:text-blue-100 leading-relaxed">
+                Click on media items to view and provide feedback. You can add comments and reply to
+                existing feedback.
+              </p>
+            </div>
           </div>
         </template>
 
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-green-800 rounded-lg p-4 mb-6"
+            class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-5 mb-8 shadow-lg"
           >
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-3">
                 <svg
-                  class="w-5 h-5 text-violet-600 dark:text-violet-400 flex-shrink-0"
+                  class="w-6 h-6 text-violet-600 dark:text-violet-400 flex-shrink-0"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -323,12 +334,12 @@
                   />
                 </svg>
                 <div>
-                  <p class="text-sm font-semibold text-green-800 dark:text-violet-200">
+                  <p class="text-base font-bold text-violet-900 dark:text-violet-100">
                     Proofing has been completed. Thank you!
                   </p>
                   <p
                     v-if="getTotalMediaCount() > 0"
-                    class="text-xs text-green-700 dark:text-green-300 mt-1"
+                    class="text-sm text-violet-700 dark:text-violet-300 mt-1"
                   >
                     {{ getTotalApprovedCount() }} of {{ getTotalMediaCount() }} media items approved
                   </p>
@@ -339,18 +350,18 @@
         </template>
 
         <!-- Sets as Tabs -->
-        <div v-if="mediaSets.length > 0" class="mb-6">
+        <div v-if="mediaSets.length > 0" class="mb-8">
           <div
-            class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-gray-200 dark:border-gray-700"
+            class="flex items-center gap-2 overflow-x-auto pb-2 border-b-2 border-gray-200 dark:border-gray-700"
           >
             <button
               v-for="set in sortedMediaSets"
               :key="set.id"
               :class="[
-                'px-4 py-2 rounded-t-lg font-medium text-sm transition-all relative',
+                'px-5 py-3 rounded-t-xl font-semibold text-sm transition-all relative',
                 selectedSetId === set.id
-                  ? 'bg-white dark:bg-gray-800 border-b-2'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                  ? 'bg-white dark:bg-gray-800 border-b-3 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900/50',
               ]"
               :style="
                 selectedSetId === set.id
@@ -437,10 +448,10 @@
 
         <!-- Current Set Media -->
         <div v-if="currentMediaItems.length > 0" class="space-y-6">
-          <div class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div class="flex items-center gap-4 flex-wrap">
               <div class="flex items-center gap-4 flex-wrap">
-                <p class="text-gray-700 dark:text-gray-300 font-medium">
+                <p class="text-gray-900 dark:text-gray-100 font-semibold text-lg">
                   {{ currentMediaItems.length }} media item{{
                     currentMediaItems.length !== 1 ? 's' : ''
                   }}
@@ -504,10 +515,10 @@
               !isPreviewMode &&
               guestToken
             "
-            class="mb-6"
+            class="mb-8"
           >
             <div
-              class="bg-violet-50 dark:bg-violet-900/20 border border-violet-200 dark:border-green-800 rounded-lg p-4"
+              class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-6 shadow-lg"
             >
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
@@ -527,17 +538,17 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-sm font-semibold text-green-800 dark:text-violet-200">
+                    <p class="text-base font-bold text-violet-900 dark:text-violet-100">
                       All media items approved!
                     </p>
-                    <p class="text-xs text-green-700 dark:text-green-300 mt-0.5">
+                    <p class="text-sm text-violet-700 dark:text-violet-300 mt-1">
                       You can now complete this proofing.
                     </p>
                   </div>
                 </div>
                 <Button
                   :disabled="isCompletingProofing"
-                  class="bg-violet-600 hover:bg-green-700 text-white border-green-700"
+                  class="bg-violet-600 hover:bg-violet-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3 text-base font-semibold"
                   @click="showCompleteConfirm = true"
                 >
                   <span v-if="!isCompletingProofing">Complete Proofing</span>
@@ -569,32 +580,32 @@
           </div>
 
           <!-- Media Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             <div
               v-for="item in currentMediaItems"
               :key="item.id"
               :class="[
-                'relative rounded-lg overflow-hidden transition-all group',
+                'relative rounded-xl overflow-hidden transition-all duration-300 group',
                 isAuthenticatedOwner || isPreviewMode
                   ? 'opacity-75 cursor-not-allowed'
-                  : 'opacity-90 hover:opacity-100 hover:shadow-lg cursor-pointer',
+                  : 'opacity-95 hover:opacity-100 hover:shadow-2xl hover:scale-[1.02] cursor-pointer',
                 hasPendingClosureRequest(item)
-                  ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/20 dark:bg-amber-900/10 animate-pulse'
+                  ? 'ring-2 ring-amber-500 border-2 border-amber-500 bg-amber-50/30 dark:bg-amber-900/20 animate-pulse'
                   : '',
                 hasPendingApprovalRequest(item)
-                  ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/20 dark:bg-blue-900/10 animate-pulse'
+                  ? 'ring-2 ring-blue-500 border-2 border-blue-500 bg-blue-50/30 dark:bg-blue-900/20 animate-pulse'
                   : '',
                 isRejected(item)
-                  ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/20 dark:bg-red-900/10'
+                  ? 'ring-2 ring-red-600 border-2 border-red-600 bg-red-50/30 dark:bg-red-900/20'
                   : '',
                 isReadyForRevision(item)
-                  ? 'border-2 border-gray-600 dark:border-gray-700 scale-95'
+                  ? 'border-2 border-gray-400 dark:border-gray-600'
                   : '',
                 isRejected(item)
-                  ? 'border border-red-600'
+                  ? 'border-2 border-red-600'
                   : isReadyForRevision(item)
                     ? ''
-                    : 'border border-gray-200 dark:border-gray-700',
+                    : 'border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
               ]"
               :title="
                 hasPendingClosureRequest(item)
@@ -607,9 +618,9 @@
               <!-- Media container with overflow-hidden to prevent scale overflow -->
               <div
                 :class="[
-                  'w-full aspect-square overflow-hidden rounded-lg',
+                  'w-full aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800',
                   !isAuthenticatedOwner && !isPreviewMode
-                    ? 'transition-transform duration-300 group-hover:scale-105'
+                    ? 'transition-transform duration-300 group-hover:scale-[1.03]'
                     : '',
                 ]"
               >
@@ -645,23 +656,23 @@
 
               <!-- Badges Container (bottom-left) -->
               <div
-                class="absolute bottom-2 left-2 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)] z-30"
+                class="absolute bottom-2 left-2 flex flex-wrap items-center gap-1.5 max-w-[calc(100%-4rem)] z-30"
               >
                 <!-- Approved Badge -->
                 <div
                   v-if="item?.isCompleted || item?.is_completed"
-                  class="px-2 py-1 rounded-full bg-violet-500 text-white text-xs font-bold shadow-lg flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full bg-violet-600 text-white text-xs font-semibold shadow-xl backdrop-blur-sm flex items-center gap-1.5 border border-violet-400/30"
                 >
-                  <CheckCircle2 class="w-3 h-3 fill-white" />
-                  Approved
+                  <CheckCircle2 class="w-3.5 h-3.5 fill-white" />
+                  <span>Approved</span>
                 </div>
                 <!-- Rejected Badge -->
                 <div
                   v-if="isRejected(item)"
-                  class="px-2 py-1 rounded-full bg-red-500 text-white text-xs font-bold shadow-lg flex items-center gap-1 border border-red-600"
+                  class="px-2.5 py-1 rounded-full bg-red-600 text-white text-xs font-semibold shadow-xl backdrop-blur-sm flex items-center gap-1.5 border border-red-400/30"
                 >
-                  <X class="w-3 h-3 fill-white" />
-                  Rejected
+                  <X class="w-3.5 h-3.5 fill-white" />
+                  <span>Rejected</span>
                 </div>
                 <!-- Revision Number Badge -->
                 <div
@@ -692,10 +703,10 @@
                 <!-- Comment Count Badge -->
                 <div
                   v-if="getItemCommentCount(item) > 0"
-                  class="px-2 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold shadow-lg flex items-center gap-1"
+                  class="px-2.5 py-1 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-xl backdrop-blur-sm flex items-center gap-1.5 border border-blue-400/30"
                 >
-                  <MessageSquare class="w-3 h-3" />
-                  {{ getItemCommentCount(item) }}
+                  <MessageSquare class="w-3.5 h-3.5" />
+                  <span>{{ getItemCommentCount(item) }}</span>
                 </div>
                 <!-- Pending Closure Request Indicator -->
                 <button
@@ -721,21 +732,22 @@
               <div
                 v-if="!isAuthenticatedOwner && !isPreviewMode"
                 :class="[
-                  'absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200 z-30',
+                  'absolute inset-0 flex items-center justify-center transition-all duration-300 z-30',
                   'opacity-0 group-hover:opacity-100',
+                  'bg-black/40 group-hover:bg-black/50 backdrop-blur-sm',
                 ]"
                 @click.stop
               >
-              <div class="flex items-center justify-center flex-wrap gap-2">
+              <div class="px-4 flex items-center justify-center flex-wrap gap-2">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleViewMedia(item, false)"
                       >
-                        <Eye class="h-3.5 w-3.5" />
-                        View
+                        <Eye class="h-4 w-4" />
+                        <span>View</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -747,11 +759,11 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleViewMedia(item, true)"
                       >
-                        <MessageSquare class="h-3.5 w-3.5" />
-                        Comment
+                        <MessageSquare class="h-4 w-4" />
+                        <span>Comment</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -763,15 +775,15 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleViewRevisionHistory(item)"
                       >
-                        <History class="h-3.5 w-3.5" />
-                        Revisions
+                        <History class="h-4 w-4" />
+                        <span>Revision History</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>View Revisions</p>
+                      <p>View Revision History</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -779,11 +791,11 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-violet-600 hover:bg-violet-700 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleApproveMedia(item)"
                       >
-                        <CheckCircle2 class="h-3.5 w-3.5" />
-                        Approve
+                        <CheckCircle2 class="h-4 w-4" />
+                        <span>Approve</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -800,11 +812,11 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleViewApprovalRequest(item)"
                       >
-                        <History class="h-3.5 w-3.5" />
-                        Approval Request
+                        <History class="h-4 w-4" />
+                        <span>Approval Request</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -823,11 +835,11 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
+                        class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
                         @click.stop="handleViewClosureHistory(item)"
                       >
-                        <History class="h-3.5 w-3.5" />
-                        Closure History
+                        <History class="h-4 w-4" />
+                        <span>Closure History</span>
                       </button>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -1002,8 +1014,9 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref, watch, watchEffect } from 'vue'
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
+import { useOpenGraphMeta } from '@/composables/useOpenGraphMeta'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
 import {
@@ -1080,6 +1093,7 @@ const openWithComments = ref(false)
 const useCommentLightbox = ref(false) // true = MediaCommentLightbox, false = MediaLightbox
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
+const brandingBio = ref(null)
 const showMazelootBranding = ref(true)
 const isLoadingBranding = ref(false)
 
@@ -1248,6 +1262,7 @@ const fetchBranding = async (userId) => {
     const settings = settingsResponse.data || settingsResponse
     brandingLogoUrl.value = settings.branding?.logoUrl || null
     brandingName.value = settings.branding?.name || null
+    brandingBio.value = settings.biography || settings.bio || null
     showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
   } catch (error) {
     console.warn('Failed to fetch public branding settings:', error)
@@ -1255,6 +1270,29 @@ const fetchBranding = async (userId) => {
     isLoadingBranding.value = false
   }
 }
+
+// OpenGraph meta tags
+const ogTitle = computed(() => {
+  return proofing.value?.name && brandingName.value
+    ? `${proofing.value.name} - ${brandingName.value}`
+    : brandingName.value || proofing.value?.name || 'Proofing'
+})
+
+const ogDescription = computed(() => {
+  return brandingBio.value || proofing.value?.description || 
+    `View and approve media in this proofing${brandingName.value ? ` from ${brandingName.value}` : ''}`
+})
+
+const ogImage = computed(() => {
+  return proofing.value?.coverPhotoUrl || proofing.value?.cover_photo_url || ''
+})
+
+useOpenGraphMeta({
+  title: ogTitle,
+  description: ogDescription,
+  image: ogImage,
+  isLoading,
+})
 
 // Store password verification with timestamp (30 minutes)
 const storePasswordVerification = (proofingId) => {
@@ -1559,6 +1597,121 @@ const shouldUseLightText = computed(() => {
     return true // Always use light text with cover photo
   }
   return getColorBrightness(proofingColor.value) < 128
+})
+
+// Typography config - backend always returns defaults
+const typographyConfig = computed(() => {
+  const proofingDesign = proofing.value?.design || proofing.value?.settings?.design || {}
+  const proofingTypography = proofing.value?.typographyDesign || proofingDesign?.typography || {}
+  
+  return {
+    fontFamily: proofingTypography.fontFamily || 'sans',
+    fontStyle: proofingTypography.fontStyle || 'normal',
+  }
+})
+
+// Font family class
+const fontFamilyClass = computed(() => {
+  const fontMap = {
+    sans: 'font-sans',
+    serif: 'font-serif',
+    modern: 'font-mono',
+    bebas: 'font-bebas',
+    oswald: 'font-oswald',
+    abril: 'font-abril',
+    bungee: 'font-bungee',
+    righteous: 'font-righteous',
+    playfair: 'font-playfair',
+    montserrat: 'font-montserrat',
+    lato: 'font-lato',
+    raleway: 'font-raleway',
+    opensans: 'font-opensans',
+    roboto: 'font-roboto',
+    poppins: 'font-poppins',
+    inter: 'font-inter',
+    nunito: 'font-nunito',
+    barlow: 'font-barlow',
+    worksans: 'font-worksans',
+    spacegrotesk: 'font-spacegrotesk',
+    outfit: 'font-outfit',
+    dmsans: 'font-dmsans',
+    plusjakarta: 'font-plusjakarta',
+    manrope: 'font-manrope',
+    sora: 'font-sora',
+    figtree: 'font-figtree',
+    syne: 'font-syne',
+    source: 'font-source',
+    ubuntu: 'font-ubuntu',
+    merriweather: 'font-merriweather',
+    crimson: 'font-crimson',
+    lora: 'font-lora',
+    spacemono: 'font-spacemono',
+    jetbrains: 'font-jetbrains',
+    comfortaa: 'font-comfortaa',
+    quicksand: 'font-quicksand',
+    rubik: 'font-rubik',
+    dancing: 'font-dancing',
+    pacifico: 'font-pacifico',
+    caveat: 'font-caveat',
+    kalam: 'font-kalam',
+    satisfy: 'font-satisfy',
+    greatvibes: 'font-greatvibes',
+    amatic: 'font-amatic',
+    shadows: 'font-shadows',
+    permanent: 'font-permanent',
+    indie: 'font-indie',
+  }
+  return fontMap[typographyConfig.value.fontFamily] || 'font-sans'
+})
+
+// Font style class
+const fontStyleClass = computed(() => {
+  const style = typographyConfig.value.fontStyle || 'normal'
+  if (typeof style === 'string') {
+    const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
+    const classes = []
+    if (styles.includes('bold')) {
+      classes.push('font-bold')
+    } else {
+      classes.push('font-normal')
+    }
+    if (styles.includes('italic')) {
+      classes.push('italic')
+    }
+    return classes.join(' ') || 'font-normal'
+  }
+  return 'font-normal'
+})
+
+// Auto-calculate font size based on content length for optimal display
+const fontSizeClassH1 = computed(() => {
+  const name = proofing.value?.name || 'Proofing'
+  const nameLength = name.length
+  
+  // Shorter names get larger, longer names get smaller for better readability
+  if (nameLength <= 15) {
+    return 'text-4xl md:text-5xl lg:text-6xl xl:text-7xl'
+  } else if (nameLength <= 30) {
+    return 'text-3xl md:text-4xl lg:text-5xl xl:text-6xl'
+  } else if (nameLength <= 50) {
+    return 'text-2xl md:text-3xl lg:text-4xl xl:text-5xl'
+  } else {
+    return 'text-xl md:text-2xl lg:text-3xl xl:text-4xl'
+  }
+})
+
+const fontSizeClassP = computed(() => {
+  const description = proofing.value?.description || ''
+  const descLength = description.length
+  
+  // Scale description based on length
+  if (descLength <= 100) {
+    return 'text-base md:text-lg lg:text-xl'
+  } else if (descLength <= 200) {
+    return 'text-sm md:text-base lg:text-lg'
+  } else {
+    return 'text-sm md:text-base'
+  }
 })
 
 // Email validation
@@ -2023,8 +2176,8 @@ const loadMediaItems = async () => {
     // For active/completed, use guest token if available
     const isDraft = proofing.value?.status === 'draft'
 
-    // Ensure we have a guest token for active/completed proofing
-    if (!isDraft && !guestToken.value && proofing.value?.id) {
+    // Ensure we have a guest token for active/completed proofing (skip for preview mode owners)
+    if (!isDraft && !guestToken.value && proofing.value?.id && !(isPreviewMode.value && isAuthenticatedOwner.value)) {
       const token = getStoredGuestToken(proofing.value.id)
       if (token) {
         guestToken.value = token
@@ -2041,24 +2194,21 @@ const loadMediaItems = async () => {
       try {
         let setMedia
 
-        // Preview mode - use authenticated endpoint (if available)
-        if (isPreview && isPreviewMode.value) {
-          // For proofing, we'll use guest endpoint even in preview
-          if (guestToken.value) {
-            setMedia = await proofingApi.fetchProofingSetMedia(
-              proofing.value.id,
-              set.id,
-              guestToken.value
-            )
+        // Preview mode - use authenticated endpoint for owners
+        if (isPreview && isPreviewMode.value && isAuthenticatedOwner.value) {
+          // Use authenticated endpoint for owners in preview mode
+          const response = await proofingApi.fetchSetMedia(
+            proofing.value.id,
+            set.id,
+            proofing.value.projectId || null
+          )
+          // Extract data array if response is wrapped (could be { data: [...], pagination: {...} } or just [...])
+          if (response && response.data && Array.isArray(response.data)) {
+            setMedia = response.data
+          } else if (Array.isArray(response)) {
+            setMedia = response
           } else {
-            // Try to get token first
-            const token = getStoredGuestToken(proofing.value.id)
-            if (token) {
-              guestToken.value = token
-              setMedia = await proofingApi.fetchProofingSetMedia(proofing.value.id, set.id, token)
-            } else {
-              throw new Error('No token available')
-            }
+            setMedia = []
           }
         } else if (isDraft && !guestToken.value) {
           // For draft proofing, try authenticated endpoint first (for owner preview)
@@ -2219,7 +2369,6 @@ const handleSelectSet = setId => {
 // View media in lightbox
 const handleViewMedia = (item, withComments = false) => {
   if (isAuthenticatedOwner.value || isPreviewMode.value) return
-  if (proofing.value?.status === 'completed') return // Don't allow viewing in lightbox when completed
 
   const index = currentMediaItems.value.findIndex(m => m.id === item.id)
   if (index !== -1) {

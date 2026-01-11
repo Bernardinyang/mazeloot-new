@@ -97,7 +97,7 @@
             Edit
           </Button>
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             :icon="Sparkles"
             class="flex-1"

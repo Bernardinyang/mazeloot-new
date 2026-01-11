@@ -29,7 +29,7 @@
 
       <!-- Empty State -->
       <EmptyState
-        v-else-if="sortedProofing.length === 0"
+        v-else-if="proofing.length === 0"
         message="No starred proofing found"
         description="Star proofing instances to quickly access them from this page."
         action-label="Browse Proofing"
@@ -46,12 +46,12 @@
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
         >
           <ProofingCard
-            v-for="(proofing, index) in sortedProofing"
-            :key="proofing.id"
-            :proofing="proofing"
+            v-for="(proofingPhase, index) in proofing"
+            :key="proofingPhase.id || proofingPhase.uuid"
+            :proofing="proofingPhase"
             :index="index"
-            :is-starring="starringProofingIds.has(String(proofing.id))"
-            :is-deleting="deletingProofingIds.has(String(proofing.id))"
+            :is-starring="starringProofingIds.has(String(proofingPhase.id || proofingPhase.uuid))"
+            :is-deleting="deletingProofingIds.has(String(proofingPhase.id || proofingPhase.uuid))"
             @click="handleProofingClick"
             @star-click="toggleStar"
             @edit="handleEditProofing"
@@ -64,7 +64,7 @@
       <!-- Proofing List View -->
       <ProofingTable
         v-else
-        :items="sortedProofing"
+        :items="proofing"
         :loading="isLoading"
         :selected-items="selectedProofing"
         empty-message="No starred proofing found"
@@ -161,6 +161,7 @@ const fetchStarredProofing = async params => {
 
 const {
   data: proofing,
+  pagination,
   isLoading,
   fetch,
   resetToFirstPage,
@@ -200,9 +201,7 @@ const getSubtitle = proofingPhase => {
   return parts.join(' • ')
 }
 
-const sortedProofing = computed(() => {
-  return [...proofing.value]
-})
+// Use proofing from useAsyncPagination directly - no need for sortedProofing computed
 
 const handleProofingClick = proofingPhase => {
   if (proofingPhase && proofingPhase.id) {
@@ -222,16 +221,28 @@ const toggleStar = async proofingPhase => {
   
   starringProofingIds.value.add(proofingId)
   try {
-    await proofingStore.toggleStar(proofingPhase.id)
-    const index = sortedProofing.value.findIndex(p => p.id === proofingPhase.id)
+    const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
+    const result = await proofingStore.toggleStar(proofingPhase.id, projectId)
+    const index = proofing.value.findIndex(p => p.id === proofingPhase.id || p.id === proofingId || p.uuid === proofingPhase.id || p.uuid === proofingId)
+    
     if (index !== -1) {
-      const newStarredState = !sortedProofing.value[index].isStarred
-      sortedProofing.value[index] = {
-        ...sortedProofing.value[index],
-        isStarred: newStarredState,
-      }
+      const currentStarred = proofing.value[index].isStarred || proofing.value[index].starred || false
+      const newStarredState = result?.starred ?? result?.data?.starred ?? !currentStarred
+      
+      // If unstarred in starred view, remove from list
       if (!newStarredState) {
-        sortedProofing.value.splice(index, 1)
+        proofing.value.splice(index, 1)
+        // Update pagination total if available
+        if (pagination && pagination.value && pagination.value.total > 0) {
+          pagination.value.total -= 1
+        }
+      } else {
+        // Update the item state
+        proofing.value[index] = {
+          ...proofing.value[index],
+          isStarred: newStarredState,
+          starred: newStarredState,
+        }
       }
     }
   } catch (error) {

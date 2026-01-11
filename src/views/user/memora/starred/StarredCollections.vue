@@ -24,87 +24,6 @@
         @clear="handleClearSearch"
       />
 
-      <!-- Filter/Sort Bar -->
-      <div class="flex items-center gap-3 flex-wrap">
-        <!-- Status Filter -->
-        <Select v-model="filterStatus">
-          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >All Status</SelectItem
-            >
-            <SelectItem value="active" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Active</SelectItem
-            >
-            <SelectItem value="archived" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Archived</SelectItem
-            >
-            <SelectItem value="draft" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Draft</SelectItem
-            >
-          </SelectContent>
-        </Select>
-
-        <!-- Category Tag Filter -->
-        <Select v-model="filterCategory">
-          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
-            <SelectValue placeholder="Category Tag" />
-          </SelectTrigger>
-          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >All Categories</SelectItem
-            >
-            <SelectItem value="wedding" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Wedding</SelectItem
-            >
-            <SelectItem value="portrait" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Portrait</SelectItem
-            >
-            <SelectItem value="event" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Event</SelectItem
-            >
-          </SelectContent>
-        </Select>
-
-        <!-- Event Date Filter -->
-        <Select v-model="filterEventDate">
-          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
-            <SelectValue placeholder="Event Date" />
-          </SelectTrigger>
-          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >All Dates</SelectItem
-            >
-            <SelectItem value="recent" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Recent</SelectItem
-            >
-            <SelectItem value="oldest" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Oldest</SelectItem
-            >
-          </SelectContent>
-        </Select>
-
-        <!-- Expiry Date Filter -->
-        <Select v-model="filterExpiryDate">
-          <SelectTrigger :class="['w-[140px]', theme.bgInput, theme.borderInput, theme.textInput]">
-            <SelectValue placeholder="Expiry Date" />
-          </SelectTrigger>
-          <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-            <SelectItem value="all" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >All Expiry</SelectItem
-            >
-            <SelectItem value="soon" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Expiring Soon</SelectItem
-            >
-            <SelectItem value="expired" :class="[theme.textPrimary, theme.bgButtonHover]"
-              >Expired</SelectItem
-            >
-          </SelectContent>
-        </Select>
-      </div>
-
       <!-- Collections Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
@@ -232,7 +151,8 @@
       :item-name="getItemName(collectionToDelete)"
       fallback-name="this collection"
       title="Delete Collection"
-      warning-message="This collection will be permanently removed from your account."
+      :description="deleteModalDescription"
+      :warning-message="getDeleteModalWarning()"
       :is-deleting="isDeleting"
       @confirm="handleConfirmDelete"
       @cancel="handleCancelDelete"
@@ -245,15 +165,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Folder, Star } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useCollectionSort } from '@/composables/useCollectionSort'
 import { COLLECTION_SORT_OPTIONS } from '@/constants/sortOptions'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import CollectionCard from '@/components/molecules/CollectionCard.vue'
@@ -281,12 +193,6 @@ const searchQuery = ref('')
 const isSearching = ref(false)
 const sortOptions = COLLECTION_SORT_OPTIONS
 
-// Filter states
-const filterStatus = ref('all')
-const filterCategory = ref('all')
-const filterEventDate = ref('all')
-const filterExpiryDate = ref('all')
-
 // Subtitle separator (can be customized)
 const subtitleSeparator = ref('•')
 
@@ -301,6 +207,35 @@ const {
   closeDeleteModal,
   getItemName,
 } = useDeleteConfirmation()
+
+const deleteModalDescription = computed(() => {
+  return 'This collection and all its media will be permanently removed.\n\nThis action cannot be undone.'
+})
+
+const getDeleteModalWarning = () => {
+  if (!collectionToDelete.value) return null
+  
+  const locationParts = []
+  
+  // Add project information if available
+  if (collectionToDelete.value.project?.name) {
+    locationParts.push(`Project: ${collectionToDelete.value.project.name}`)
+    
+    // Add phase name if available, otherwise default to "Collections"
+    const phaseName = collectionToDelete.value.project.collection?.name || 'Collections'
+    locationParts.push(`Phase: ${phaseName}`)
+  } else if (collectionToDelete.value.projectId) {
+    locationParts.push(`Project: ${collectionToDelete.value.projectId}`)
+    locationParts.push('Phase: Collections')
+  }
+  
+  // If no location info, don't show the Media Location section
+  if (locationParts.length === 0) {
+    return null
+  }
+  
+  return locationParts.join('\n')
+}
 
 const getSubtitle = (collection, separator = '•') => {
   const parts = []
@@ -371,29 +306,36 @@ const {
 })
 
 const toggleStar = async collection => {
-  if (collection && collection.id) {
-    try {
-      await galleryStore.toggleStar(String(collection.id))
-      const index = sortedCollections.value.findIndex(c => c.id === collection.id)
-      if (index !== -1) {
-        const newStarredState = !sortedCollections.value[index].isStarred
+  if (!collection || !collection.id) return
+  
+  try {
+    const result = await galleryStore.toggleStar(String(collection.id))
+    const index = sortedCollections.value.findIndex(c => c.id === collection.id || c.id === String(collection.id))
+    
+    if (index !== -1) {
+      // Get new starred state from API result or toggle current state
+      const currentStarred = sortedCollections.value[index].isStarred || sortedCollections.value[index].starred || false
+      const newStarredState = result?.starred ?? result?.data?.starred ?? !currentStarred
+      
+      // If unstarred in starred view, remove from list
+      if (!newStarredState) {
+        sortedCollections.value.splice(index, 1)
+        if (pagination.value && pagination.value.total > 0) {
+          pagination.value.total -= 1
+        }
+      } else {
+        // Update the item state
         sortedCollections.value[index] = {
           ...sortedCollections.value[index],
           isStarred: newStarredState,
-        }
-        // If unstarred in starred view, remove from list
-        if (!newStarredState) {
-          sortedCollections.value.splice(index, 1)
-          if (pagination.value.total > 0) {
-            pagination.value.total -= 1
-          }
+          starred: newStarredState,
         }
       }
-    } catch (error) {
-      handleError(error, {
-        fallbackMessage: 'Failed to update star status.',
-      })
     }
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to update star status.',
+    })
   }
 }
 

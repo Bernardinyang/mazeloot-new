@@ -74,7 +74,7 @@
         Cancel
       </Button>
       <Button
-        variant="default"
+        variant="primary"
         size="sm"
         :loading="isSubmitting"
         :disabled="!canSubmit"

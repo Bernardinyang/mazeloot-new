@@ -80,13 +80,13 @@
         </Button>
         <Button
           :disabled="!formData.name.trim() || isSubmitting"
-          class="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
           type="button"
+          :loading="isSubmitting"
+          loading-label="Creating..."
           @click="handleSubmit"
         >
-          <Loader2 v-if="isSubmitting" class="mr-2 h-4 w-4 animate-spin" />
-          <span v-if="isSubmitting">Creating...</span>
-          <span v-else>Create Proofing</span>
+          Create Proofing
         </Button>
       </div>
     </template>
@@ -99,7 +99,6 @@ import SidebarModal from '@/components/molecules/SidebarModal.vue'
 import { Input } from '@/components/shadcn/input'
 import { Textarea } from '@/components/shadcn/textarea'
 import { Button } from '@/components/shadcn/button'
-import { Loader2 } from 'lucide-vue-next'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import ColorSelector from '@/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/utils/colors'
@@ -120,11 +119,15 @@ const theme = useThemeClasses()
 const proofingStore = useProofingStore()
 const { handleError } = useErrorHandler()
 
+const getExistingColors = () => {
+  return proofingStore.proofings.map(p => p.color).filter(Boolean)
+}
+
 const formData = reactive({
   name: '',
   description: '',
   maxRevisions: 5,
-  color: generateRandomColorFromPalette(), // Random color from palette
+  color: generateRandomColorFromPalette(getExistingColors()), // Random color avoiding duplicates
 })
 
 const errors = ref({})
@@ -138,8 +141,11 @@ watch(
       formData.name = ''
       formData.description = ''
       formData.maxRevisions = 5
-      formData.color = generateRandomColorFromPalette()
+      formData.color = generateRandomColorFromPalette(getExistingColors())
       errors.value = {}
+    } else {
+      // When opening, refresh color to avoid duplicates
+      formData.color = generateRandomColorFromPalette(getExistingColors())
     }
   }
 )

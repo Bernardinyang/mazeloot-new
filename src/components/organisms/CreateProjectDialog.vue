@@ -267,7 +267,7 @@
         <Button
           type="button"
           @click="handleSubmit"
-          variant="default"
+          variant="primary"
           :disabled="
             !formData.name.trim() ||
             (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections)

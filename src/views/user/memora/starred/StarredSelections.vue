@@ -112,8 +112,8 @@
       :is-deleting="isDeleting"
       :item-name="getItemName()"
       title="Delete Selection"
-      description="This action cannot be undone."
-      warning-message="This selection and all its media will be permanently removed."
+      :description="deleteModalDescription"
+      :warning-message="getDeleteModalWarning()"
       @cancel="showDeleteModal = false"
       @confirm="handleConfirmDelete"
     />
@@ -121,7 +121,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { CheckSquare, ArrowRight } from 'lucide-vue-next'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import PageHeader from '@/components/molecules/PageHeader.vue'
@@ -244,25 +244,36 @@ const handleSelectionClick = selection => {
 }
 
 const toggleStar = async selection => {
-  if (selection && selection.id) {
-    try {
-      await selectionStore.toggleStarSelection(selection.id)
-      const index = sortedSelections.value.findIndex(s => s.id === selection.id)
-      if (index !== -1) {
-        const newStarredState = !sortedSelections.value[index].isStarred
+  if (!selection || !selection.id) return
+  
+  try {
+    await selectionStore.toggleStarSelection(selection.id)
+    const index = sortedSelections.value.findIndex(s => s.id === selection.id || s.id === String(selection.id))
+    
+    if (index !== -1) {
+      // API doesn't return starred state, so toggle it manually
+      const currentStarred = sortedSelections.value[index].isStarred || sortedSelections.value[index].starred || false
+      const newStarredState = !currentStarred
+      
+      // If unstarred in starred view, remove from list
+      if (!newStarredState) {
+        sortedSelections.value.splice(index, 1)
+        if (pagination.value && pagination.value.total > 0) {
+          pagination.value.total -= 1
+        }
+      } else {
+        // Update the item state
         sortedSelections.value[index] = {
           ...sortedSelections.value[index],
           isStarred: newStarredState,
-        }
-        // If unstarred in starred view, remove from list
-        if (!newStarredState) {
-          sortedSelections.value.splice(index, 1)
-          if (pagination.value.total > 0) {
-            pagination.value.total -= 1
-          }
+          starred: newStarredState,
         }
       }
-    } catch (error) {}
+    }
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to update star status.',
+    })
   }
 }
 
@@ -339,6 +350,36 @@ const handleSearch = async () => {
 const handleClearSearch = async () => {
   searchQuery.value = ''
   await resetToFirstPage()
+}
+
+const deleteModalDescription = computed(() => {
+  return 'This selection and all its media will be permanently removed.\n\nThis action cannot be undone.'
+})
+
+const getDeleteModalWarning = () => {
+  const selection = activeSelection.value || itemToDelete.value
+  if (!selection) return null
+  
+  const locationParts = []
+  
+  // Add project information if available
+  if (selection.project?.name) {
+    locationParts.push(`Project: ${selection.project.name}`)
+    
+    // Add phase name if available, otherwise default to "Selections"
+    const phaseName = selection.project.selection?.name || 'Selections'
+    locationParts.push(`Phase: ${phaseName}`)
+  } else if (selection.projectId) {
+    locationParts.push(`Project: ${selection.projectId}`)
+    locationParts.push('Phase: Selections')
+  }
+  
+  // If no location info, don't show the Media Location section
+  if (locationParts.length === 0) {
+    return null
+  }
+  
+  return locationParts.join('\n')
 }
 
 const getItemName = () => {

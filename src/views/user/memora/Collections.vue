@@ -34,7 +34,8 @@
           </Button>
 
           <Button
-            variant="default"
+            variant="primary"
+            :icon="Plus"
             @click="handleCreateCollection"
           >
             New Collection
@@ -81,6 +82,7 @@
             message="No collections found"
             action-label="Create New Collection"
             :icon="Folder"
+            :action-icon="Plus"
             @action="handleCreateCollection"
           />
         </div>
@@ -90,7 +92,7 @@
           v-else
           name="list"
           tag="div"
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 relative"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 relative"
         >
           <CollectionCard
             v-for="(collection, index) in sortedCollections"
@@ -131,35 +133,8 @@
             @duplicate="handleDuplicateCollection(collection)"
             @delete="handleDeleteCollection(collection)"
             @share="handleShareCollection(collection)"
-          >
-            <template #menu-items>
-              <DropdownMenuItem
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click.stop="handleViewDetails(collection)"
-              >
-                <span>View Details</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-              <DropdownMenuItem
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click.stop="handleEditCollection(collection)"
-              >
-                <span>Edit</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click.stop="handleDuplicateCollection(collection)"
-              >
-                <span>Duplicate</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
-                @click.stop="handleDeleteCollection(collection)"
-              >
-                <span>Delete</span>
-              </DropdownMenuItem>
-            </template>
-          </CollectionCard>
+            @view-details="handleViewDetails"
+          />
         </TransitionGroup>
       </div>
 
@@ -251,10 +226,26 @@
       :item-name="getItemName(collectionToDelete)"
       fallback-name="this collection"
       title="Delete Collection"
-      warning-message="This collection will be permanently removed from your account."
+      :description="deleteModalDescription"
+      :warning-message="getDeleteModalWarning()"
       :is-deleting="isDeleting"
       @confirm="handleConfirmDelete"
       @cancel="handleCancelDelete"
+    />
+
+    <!-- Duplicate Collection Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDuplicateModal"
+      :item-name="getItemName(collectionToDuplicate)"
+      fallback-name="this collection"
+      title="Duplicate Collection"
+      question="Are you sure you want to duplicate"
+      description="This will create a copy of the collection with all its settings, media sets, and media."
+      confirm-label="Duplicate"
+      loading-label="Duplicating..."
+      :is-deleting="isDuplicating"
+      @confirm="handleConfirmDuplicate"
+      @cancel="handleCancelDuplicate"
     />
   </DashboardLayout>
 </template>
@@ -266,7 +257,6 @@ import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
 import LoadingState from '@/components/molecules/LoadingState.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
-import { useCollectionSort } from '@/composables/useCollectionSort'
 import { COLLECTION_SORT_OPTIONS } from '@/constants/sortOptions'
 import PageHeader from '@/components/molecules/PageHeader.vue'
 import CollectionCard from '@/components/molecules/CollectionCard.vue'
@@ -336,28 +326,24 @@ const getSubtitle = (collection, separator = '•') => {
   return parts.join(`  ${separator}  `)
 }
 
-// Filter and sort collections
-const filteredCollections = computed(() => {
-  let filtered = [...collections.value]
-
-  // Search filter
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(collection => {
-      const name = (collection.name || collection.title || '').toLowerCase()
-      const desc = (collection.description || '').toLowerCase()
-      return name.includes(query) || desc.includes(query)
-    })
+/**
+ * Map frontend sort values to backend sort values
+ */
+const mapSortToBackend = frontendSort => {
+  const mapping = {
+    'created-new-old': 'created-desc',
+    'created-old-new': 'created-asc',
+    'name-a-z': 'name-asc',
+    'name-z-a': 'name-desc',
+    status: 'status-asc',
   }
+  return mapping[frontendSort] || 'created-desc'
+}
 
-  return filtered
+// Collections are already filtered and sorted by the backend
+const sortedCollections = computed(() => {
+  return isLoadingCollections.value ? [] : collections.value
 })
-
-// Only sort when not loading to prevent sorting before data is ready
-const { sortedItems: sortedCollections } = useCollectionSort(
-  computed(() => (isLoadingCollections.value ? [] : filteredCollections.value)),
-  sortBy
-)
 
 const showCreateDialog = ref(false)
 const showCreateProjectDialog = ref(false)
@@ -385,6 +371,43 @@ const {
   closeDeleteModal,
   getItemName,
 } = useDeleteConfirmation()
+
+// Duplicate confirmation state
+const showDuplicateModal = ref(false)
+const collectionToDuplicate = ref(null)
+const isDuplicating = computed(() => {
+  if (!collectionToDuplicate.value) return false
+  return duplicatingCollectionIds.value.has(String(collectionToDuplicate.value.id))
+})
+
+const deleteModalDescription = computed(() => {
+  return 'This collection and all its media will be permanently removed.\n\nThis action cannot be undone.'
+})
+
+const getDeleteModalWarning = () => {
+  if (!collectionToDelete.value) return null
+  
+  const locationParts = []
+  
+  // Add project information if available
+  if (collectionToDelete.value.project?.name) {
+    locationParts.push(`Project: ${collectionToDelete.value.project.name}`)
+    
+    // Add phase name if available, otherwise default to "Collections"
+    const phaseName = collectionToDelete.value.project.collection?.name || 'Collections'
+    locationParts.push(`Phase: ${phaseName}`)
+  } else if (collectionToDelete.value.projectId) {
+    locationParts.push(`Project: ${collectionToDelete.value.projectId}`)
+    locationParts.push('Phase: Collections')
+  }
+  
+  // If no location info, don't show the Media Location section
+  if (locationParts.length === 0) {
+    return null
+  }
+  
+  return locationParts.join('\n')
+}
 
 const handleCreateCollection = async () => {
   showCreateDialog.value = true
@@ -579,20 +602,29 @@ const handleEditSuccess = async () => {
   })
 }
 
-const handleDuplicateCollection = async collection => {
-  const collectionId = String(collection.id)
+const handleDuplicateCollection = collection => {
+  collectionToDuplicate.value = collection
+  showDuplicateModal.value = true
+}
+
+const handleConfirmDuplicate = async () => {
+  if (!collectionToDuplicate.value) return
+
+  const collectionId = String(collectionToDuplicate.value.id)
   if (duplicatingCollectionIds.value.has(collectionId)) return
   
   duplicatingCollectionIds.value.add(collectionId)
   try {
     await galleryStore.duplicateCollection(collectionId)
     toast.success('Collection duplicated', {
-      description: `${collection.name || collection.title} has been duplicated.`,
+      description: `${collectionToDuplicate.value.name || collectionToDuplicate.value.title} has been duplicated.`,
     })
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
     })
+    showDuplicateModal.value = false
+    collectionToDuplicate.value = null
   } catch (error) {
     handleError(error, {
       fallbackMessage: 'Failed to duplicate collection.',
@@ -600,6 +632,11 @@ const handleDuplicateCollection = async collection => {
   } finally {
     duplicatingCollectionIds.value.delete(collectionId)
   }
+}
+
+const handleCancelDuplicate = () => {
+  showDuplicateModal.value = false
+  collectionToDuplicate.value = null
 }
 
 const handleDeleteCollection = collection => {
@@ -748,7 +785,7 @@ const handleSearch = async () => {
   try {
     await galleryStore.fetchCollections({
       search: searchQuery.value.trim(),
-      sortBy: sortBy.value,
+      sortBy: mapSortToBackend(sortBy.value),
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
@@ -767,7 +804,7 @@ const handleClearSearch = async () => {
   try {
     await galleryStore.fetchCollections({
       search: '',
-      sortBy: sortBy.value,
+      sortBy: mapSortToBackend(sortBy.value),
     })
   } catch (error) {
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
@@ -785,7 +822,7 @@ onMounted(async () => {
   try {
     await galleryStore.fetchCollections({
       search: searchQuery.value,
-      sortBy: sortBy.value,
+      sortBy: mapSortToBackend(sortBy.value),
     })
   } catch (error) {
     // Only show error if not aborted
@@ -802,7 +839,7 @@ watch([sortBy], async () => {
   try {
     await galleryStore.fetchCollections({
       search: searchQuery.value,
-      sortBy: sortBy.value,
+      sortBy: mapSortToBackend(sortBy.value),
     })
   } catch (error) {
     // Only show error if not aborted

@@ -118,7 +118,7 @@
             Cancel
           </Button>
           <Button
-            variant="default"
+            variant="primary"
             type="button"
             @click="handleConfirm"
           >

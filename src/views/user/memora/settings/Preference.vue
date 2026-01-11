@@ -394,7 +394,7 @@
               <span :class="theme.textSecondary">All changes saved</span>
             </div>
             <Button
-              variant="default"
+              variant="primary"
               :disabled="!hasChanges || isLoading"
               :loading="isSaving"
               loading-label="Saving..."
@@ -575,6 +575,7 @@ const handleSave = async () => {
       enableCookieBanner: enableCookieBanner.value,
       language: language.value,
       timezone: timezone.value,
+      usePreviewWatermark: usePreviewWatermark.value,
     }
 
     toast.success('Settings saved successfully')

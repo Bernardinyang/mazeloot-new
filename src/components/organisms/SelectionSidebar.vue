@@ -1,10 +1,10 @@
 <template>
   <aside
     :class="[
-      'relative border-r transition-all duration-300',
+      'relative border-r transition-all duration-300 h-full flex flex-col',
       'bg-white dark:bg-gray-900',
       theme.borderSecondary,
-      props.isSidebarCollapsed ? 'w-16 p-0 overflow-visible' : 'w-80 p-3 overflow-y-auto',
+      props.isSidebarCollapsed ? 'w-16 p-0 overflow-visible' : 'w-80 p-3',
     ]"
     :style="
       props.isSidebarCollapsed
@@ -328,7 +328,7 @@
     </div>
 
     <!-- Sidebar Content Panels (only show when expanded) -->
-    <div v-if="!props.isSidebarCollapsed">
+    <div v-if="!props.isSidebarCollapsed" class="flex-1 overflow-y-auto min-h-0">
       <slot />
     </div>
   </aside>

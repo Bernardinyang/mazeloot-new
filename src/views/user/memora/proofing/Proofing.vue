@@ -25,7 +25,8 @@
       >
         <template #actions>
           <Button
-            variant="default"
+            variant="primary"
+            :icon="Plus"
             @click="handleCreateProofing"
           >
             New Proofing
@@ -42,7 +43,7 @@
         <EmptyState
           v-else-if="proofing.length === 0"
           :icon="Eye"
-          action-icon="Plus"
+          :action-icon="Plus"
           action-label="Create New Proofing"
           description="Create a proofing phase to allow clients to review and provide feedback on media."
           message="No proofing found"
@@ -52,7 +53,7 @@
         <!-- Proofing Grid -->
         <TransitionGroup
           v-else
-          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 relative"
+          class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5 md:gap-6 relative"
           name="list"
           tag="div"
         >
@@ -61,8 +62,10 @@
             :key="proofingItem.id"
             :index="index"
             :proofing="proofingItem"
+            :is-duplicating="duplicatingProofingIds.has(String(proofingItem.id))"
             @click="handleProofingClick"
             @delete="handleDeleteProofing"
+            @duplicate="handleDuplicateProofing"
             @edit="handleEditProofing"
             @star-click="toggleStar"
             @view-details="handleViewDetails"
@@ -125,18 +128,33 @@
       v-model="showDeleteModal"
       :is-deleting="isDeleting"
       :item-name="getItemName()"
-      description="This action cannot be undone."
+      :description="deleteModalDescription"
       title="Delete Proofing"
-      warning-message="This proofing and all its media will be permanently removed."
+      :warning-message="getDeleteModalWarning()"
       @cancel="showDeleteModal = false"
       @confirm="handleConfirmDelete"
+    />
+
+    <!-- Duplicate Confirmation Modal -->
+    <DeleteConfirmationModal
+      v-model="showDuplicateModal"
+      :item-name="getDuplicateItemName()"
+      fallback-name="this proofing"
+      title="Duplicate Proofing"
+      question="Are you sure you want to duplicate"
+      description="This will create a copy of the proofing with all its settings, media sets, and media."
+      confirm-label="Duplicate"
+      loading-label="Duplicating..."
+      :is-deleting="isDuplicating"
+      @confirm="handleConfirmDuplicate"
+      @cancel="handleCancelDuplicate"
     />
   </DashboardLayout>
 </template>
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Eye } from 'lucide-vue-next'
+import { Eye, Plus } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/layouts/DashboardLayout.vue'
 import { Button } from '@/components/shadcn/button'
@@ -185,12 +203,18 @@ const showDetailSidebar = ref(false)
 const selectedProofingId = ref(null)
 const showEditDialog = ref(false)
 const showDeleteModal = ref(false)
+const showDuplicateModal = ref(false)
 const isDeleting = ref(false)
+const isDuplicating = computed(() => {
+  if (!activeProofing.value) return false
+  return duplicatingProofingIds.value.has(String(activeProofing.value.id))
+})
 const activeProofing = ref(null)
 
 // Loading states per proofing
 const starringProofingIds = ref(new Set())
 const deletingProofingIds = ref(new Set())
+const duplicatingProofingIds = ref(new Set())
 
 /**
  * Map frontend sort values to backend sort values
@@ -328,6 +352,13 @@ const handleDeleteProofing = proofingPhase => {
   }
 }
 
+const handleDuplicateProofing = proofingPhase => {
+  if (proofingPhase && proofingPhase.id) {
+    activeProofing.value = proofingPhase
+    showDuplicateModal.value = true
+  }
+}
+
 const handleConfirmDelete = async () => {
   if (!activeProofing.value) return
   
@@ -353,7 +384,71 @@ const handleConfirmDelete = async () => {
   }
 }
 
+const handleConfirmDuplicate = async () => {
+  if (!activeProofing.value) return
+
+  const proofingId = activeProofing.value.id || activeProofing.value.uuid
+  const proofingIdStr = String(proofingId)
+  if (duplicatingProofingIds.value.has(proofingIdStr)) return
+  
+  duplicatingProofingIds.value.add(proofingIdStr)
+  try {
+    const projectId = activeProofing.value.projectId || activeProofing.value.project_uuid || null
+    await proofingStore.duplicateProofing(proofingId, projectId)
+    toast.success('Proofing duplicated', {
+      description: `${activeProofing.value.name || activeProofing.value.title} has been duplicated.`,
+    })
+    await fetch()
+    showDuplicateModal.value = false
+    activeProofing.value = null
+  } catch (error) {
+    handleError(error, {
+      fallbackMessage: 'Failed to duplicate proofing.',
+    })
+  } finally {
+    duplicatingProofingIds.value.delete(proofingIdStr)
+  }
+}
+
+const handleCancelDuplicate = () => {
+  showDuplicateModal.value = false
+  activeProofing.value = null
+}
+
+const deleteModalDescription = computed(() => {
+  return 'This proofing and all its media will be permanently removed.\n\nThis action cannot be undone.'
+})
+
+const getDeleteModalWarning = () => {
+  if (!activeProofing.value) return null
+  
+  const locationParts = []
+  
+  // Add project information if available
+  if (activeProofing.value.project?.name) {
+    locationParts.push(`Project: ${activeProofing.value.project.name}`)
+    
+    // Add phase name if available, otherwise default to "Proofing"
+    const phaseName = activeProofing.value.project.proofing?.name || 'Proofing'
+    locationParts.push(`Phase: ${phaseName}`)
+  } else if (activeProofing.value.projectId) {
+    locationParts.push(`Project: ${activeProofing.value.projectId}`)
+    locationParts.push('Phase: Proofing')
+  }
+  
+  // If no location info, don't show the Media Location section
+  if (locationParts.length === 0) {
+    return null
+  }
+  
+  return locationParts.join('\n')
+}
+
 const getItemName = () => {
+  return activeProofing.value?.name || 'Proofing'
+}
+
+const getDuplicateItemName = () => {
   return activeProofing.value?.name || 'Proofing'
 }
 

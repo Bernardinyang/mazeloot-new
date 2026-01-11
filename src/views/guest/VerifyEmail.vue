@@ -81,7 +81,7 @@ const handleVerify = async verificationCode => {
       description: 'Your email has been verified successfully',
     })
 
-    // Redirect to overview
+    // Redirect to overview (new user flag already set during registration)
     const redirect = route.query.redirect
     router.push(redirect || { name: 'overview' })
   } catch (error) {

@@ -1,4 +1,5 @@
 import Overview from '@/views/user/Overview.vue'
+import GettingStarted from '@/views/user/GettingStarted.vue'
 
 export const userRoutes = [
   {

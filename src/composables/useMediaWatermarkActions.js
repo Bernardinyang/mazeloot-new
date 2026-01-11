@@ -1,4 +1,4 @@
-import { nextTick } from 'vue'
+import { nextTick, ref } from 'vue'
 import { toast } from '@/utils/toast'
 
 function blobToDataURL(blob) {
@@ -20,6 +20,7 @@ export function useMediaWatermarkActions({
   mediaApi,
   selectionsApi,
   proofingApi,
+  collectionsApi,
   selectionId,
   setId,
   mediaItems,
@@ -29,7 +30,7 @@ export function useMediaWatermarkActions({
   showRemoveWatermarkLoading,
 } = {}) {
   const handleWatermarkMedia = item => {
-    if (item.type !== 'image') {
+    if (item.type !== 'image' && item.type !== 'video') {
       toast.error('Invalid media type', {
         description,
       })
@@ -51,18 +52,31 @@ export function useMediaWatermarkActions({
     selectedWatermarkForMedia.value = 'none'
   }
 
-  const handleRemoveWatermark = async item => {
-    if (item.type !== 'image') {
+  const showRemoveWatermarkConfirm = ref(false)
+  const itemToRemoveWatermark = ref(null)
+
+  const handleRemoveWatermark = item => {
+    if (item.type !== 'image' && item.type !== 'video') {
       toast.error('Invalid media type', {
         description,
       })
       return
     }
 
+    itemToRemoveWatermark.value = item
+    showRemoveWatermarkConfirm.value = true
+  }
+
+  const confirmRemoveWatermark = async () => {
+    const item = itemToRemoveWatermark.value
+    if (!item) return
+
+    showRemoveWatermarkConfirm.value = false
+
     const selectionIdValue = typeof selectionId === 'function' ? selectionId() : selectionId?.value ?? selectionId
     const setIdValue = typeof setId === 'function' ? setId() : setId?.value ?? setId
     
-    if ((!proofingApi || !proofingApi.removeWatermarkFromMedia) && (!selectionsApi || !selectionsApi.removeWatermarkFromMedia)) {
+    if ((!proofingApi || !proofingApi.removeWatermarkFromMedia) && (!selectionsApi || !selectionsApi.removeWatermarkFromMedia) && (!collectionsApi || !collectionsApi.removeWatermarkFromMedia)) {
       toast.error('API not available', {
         description,
       })
@@ -78,6 +92,8 @@ export function useMediaWatermarkActions({
       let updatedMedia
       if (proofingApi && proofingApi.removeWatermarkFromMedia) {
         updatedMedia = await proofingApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, item.id)
+      } else if (collectionsApi && collectionsApi.removeWatermarkFromMedia) {
+        updatedMedia = await collectionsApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, item.id)
       } else {
         updatedMedia = await selectionsApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, item.id)
       }
@@ -112,7 +128,7 @@ export function useMediaWatermarkActions({
         await nextTick()
       }
 
-      // Reload media to ensure UI is updated
+      // Always reload media to ensure UI is updated with latest data from server
       if (reloadMedia && typeof reloadMedia === 'function') {
         await reloadMedia()
       }
@@ -130,7 +146,13 @@ export function useMediaWatermarkActions({
       if (showRemoveWatermarkLoading) {
         showRemoveWatermarkLoading.value = false
       }
+      itemToRemoveWatermark.value = null
     }
+  }
+
+  const cancelRemoveWatermark = () => {
+    showRemoveWatermarkConfirm.value = false
+    itemToRemoveWatermark.value = null
   }
 
   const handleConfirmWatermarkMedia = async () => {
@@ -147,14 +169,28 @@ export function useMediaWatermarkActions({
         const selectionIdValue = typeof selectionId === 'function' ? selectionId() : selectionId?.value ?? selectionId
         const setIdValue = typeof setId === 'function' ? setId() : setId?.value ?? setId
         
-        if (!selectionsApi || !selectionIdValue || !setIdValue) {
+        if ((!selectionsApi || !selectionsApi.removeWatermarkFromMedia) && (!collectionsApi || !collectionsApi.removeWatermarkFromMedia) && (!proofingApi || !proofingApi.removeWatermarkFromMedia)) {
           toast.error('API not available', {
             description,
           })
           return
         }
 
-        const updatedMedia = await selectionsApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, mediaToWatermark.value.id)
+        if (!selectionIdValue || !setIdValue) {
+          toast.error('Collection ID and Set ID are required', {
+            description,
+          })
+          return
+        }
+
+        let updatedMedia
+        if (proofingApi && proofingApi.removeWatermarkFromMedia) {
+          updatedMedia = await proofingApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, mediaToWatermark.value.id)
+        } else if (collectionsApi && collectionsApi.removeWatermarkFromMedia) {
+          updatedMedia = await collectionsApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, mediaToWatermark.value.id)
+        } else {
+          updatedMedia = await selectionsApi.removeWatermarkFromMedia(selectionIdValue, setIdValue, mediaToWatermark.value.id)
+        }
         
         const index = mediaItems.value.findIndex(m => m.id === mediaToWatermark.value?.id)
         if (index !== -1 && updatedMedia?.data) {
@@ -196,7 +232,7 @@ export function useMediaWatermarkActions({
       mediaToWatermark.value = null
       selectedWatermarkForMedia.value = 'none'
 
-      // Reload media to ensure UI is updated
+      // Always reload media to ensure UI is updated with latest data from server
       if (reloadMedia && typeof reloadMedia === 'function') {
         await reloadMedia()
       }
@@ -233,20 +269,34 @@ export function useMediaWatermarkActions({
       const selectionIdValue = typeof selectionId === 'function' ? selectionId() : selectionId?.value ?? selectionId
       const setIdValue = typeof setId === 'function' ? setId() : setId?.value ?? setId
       
+      // Use UUID for watermark (id might be numeric, UUID is required)
+      const watermarkUuid = watermark.uuid || watermark.id
+      
       let updatedMedia
+      // Use preview style (full-width background) for watermark
       if (proofingApi && proofingApi.applyWatermarkToMedia) {
         updatedMedia = await proofingApi.applyWatermarkToMedia(
           selectionIdValue,
           setIdValue,
           mediaToWatermark.value.id,
-          watermark.id
+          watermarkUuid,
+          true // previewStyle = true
+        )
+      } else if (collectionsApi && collectionsApi.applyWatermarkToMedia) {
+        updatedMedia = await collectionsApi.applyWatermarkToMedia(
+          selectionIdValue,
+          setIdValue,
+          mediaToWatermark.value.id,
+          watermarkUuid,
+          true // previewStyle = true
         )
       } else if (selectionsApi && selectionsApi.applyWatermarkToMedia) {
         updatedMedia = await selectionsApi.applyWatermarkToMedia(
           selectionIdValue,
           setIdValue,
           mediaToWatermark.value.id,
-          watermark.id
+          watermarkUuid,
+          true // previewStyle = true
         )
       } else {
         toast.error('API not available', {
@@ -320,5 +370,9 @@ export function useMediaWatermarkActions({
     handleCancelWatermarkMedia,
     handleRemoveWatermark,
     handleConfirmWatermarkMedia,
+    confirmRemoveWatermark,
+    cancelRemoveWatermark,
+    showRemoveWatermarkConfirm,
+    itemToRemoveWatermark,
   }
 }

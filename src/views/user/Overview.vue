@@ -95,59 +95,7 @@
         <ThemeToggle />
 
         <!-- Notifications -->
-        <DropdownMenu>
-          <DropdownMenuTrigger as-child>
-            <Button
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
-              size="icon"
-              variant="ghost"
-            >
-              <Bell class="h-5 w-5" />
-              <span
-                class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse"
-              ></span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            :class="['w-80', theme.bgDropdown, theme.borderSecondary]"
-            align="end"
-          >
-            <DropdownMenuLabel :class="theme.textPrimary">Notifications</DropdownMenuLabel>
-            <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <div class="max-h-96 overflow-y-auto">
-              <div
-                v-if="notifications.length === 0"
-                :class="['p-4 text-center text-sm', theme.textSecondary]"
-              >
-                No notifications
-              </div>
-              <DropdownMenuItem
-                v-for="notification in notifications"
-                :key="notification.id"
-                :class="[
-                  theme.textPrimary,
-                  theme.bgButtonHover,
-                  'cursor-pointer flex flex-col items-start p-3',
-                ]"
-              >
-                <div class="flex items-start gap-2 w-full">
-                  <component
-                    :is="notification.icon"
-                    :class="notification.iconColor"
-                    class="h-4 w-4 mt-0.5 shrink-0"
-                  />
-                  <div class="flex-1 min-w-0">
-                    <p class="text-sm font-medium">{{ notification.title }}</p>
-                    <p :class="['text-xs mt-0.5', theme.textSecondary]">
-                      {{ notification.message }}
-                    </p>
-                    <p :class="['text-xs mt-1', theme.textTertiary]">{{ notification.time }}</p>
-                  </div>
-                </div>
-              </DropdownMenuItem>
-            </div>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NotificationDropdown />
 
         <!-- User Menu -->
         <DropdownMenu>
@@ -192,73 +140,363 @@
     </header>
 
     <!-- Main Content -->
-    <main class="px-6 pb-8 pt-6">
-      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 max-w-7xl mx-auto">
-        <!-- User Profile Widget -->
-        <UserProfileCard
-          :avatar="userData.avatar"
-          :email="userData.email"
-          :loading="isLoading"
-          :name="userData.name"
-          @logout="handleSignOut"
-          @view-profile="handleViewProfile"
-        />
+    <main class="px-4 sm:px-6 pb-12 pt-8">
+      <div class="max-w-7xl mx-auto space-y-8">
+        <!-- Welcome Section -->
+        <div class="space-y-2">
+          <h1 :class="['text-4xl sm:text-5xl font-bold bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent']">
+            Welcome back, {{ userData.name.split(' ')[0] }} 👋
+          </h1>
+          <p :class="['text-base sm:text-lg', theme.textSecondary]">
+            Manage your photo galleries, projects, and client workflows
+          </p>
+        </div>
 
+        <!-- User Profile Cover Card -->
+        <div
+          :class="[
+            'group relative overflow-hidden rounded-2xl',
+            'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600',
+            'dark:from-blue-700 dark:via-purple-700 dark:to-pink-700',
+            'light:from-blue-500 light:via-purple-500 light:to-pink-500',
+            'backdrop-blur-md',
+            'border border-blue-500/30 dark:border-blue-500/40 light:border-blue-300/50',
+            'shadow-2xl dark:shadow-2xl dark:shadow-blue-500/20',
+            'hover:shadow-3xl transition-all duration-300',
+            'animate-in fade-in slide-in-from-top-4 duration-500',
+          ]"
+        >
+          <!-- Cover Photo Background with Pattern -->
+          <div class="absolute inset-0 opacity-20">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"></div>
+            <div class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+            <div class="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl -ml-40 -mb-40"></div>
+          </div>
+
+          <!-- Content -->
+          <div class="relative z-10 p-6 sm:p-8">
+            <div v-if="isLoading" class="animate-pulse">
+              <div class="flex flex-col sm:flex-row items-center sm:items-end gap-6">
+                <div :class="['h-32 w-32 rounded-full', theme.bgSkeleton]"></div>
+                <div class="flex-1 space-y-3 text-center sm:text-left">
+                  <div :class="['h-8 w-48 rounded mx-auto sm:mx-0', theme.bgSkeleton]"></div>
+                  <div :class="['h-5 w-64 rounded mx-auto sm:mx-0', theme.bgSkeleton]"></div>
+                  <div class="flex gap-3 justify-center sm:justify-start mt-4">
+                    <div :class="['h-10 w-24 rounded', theme.bgSkeleton]"></div>
+                    <div :class="['h-10 w-24 rounded', theme.bgSkeleton]"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div v-else class="flex flex-col sm:flex-row items-center sm:items-end gap-6">
+              <!-- Avatar -->
+              <div class="relative shrink-0">
+                <!-- Outer glow ring -->
+                <div class="absolute inset-0 rounded-full bg-white/30 dark:bg-white/20 blur-xl scale-110"></div>
+                <!-- Avatar container -->
+                <div
+                  :class="[
+                    'relative w-32 h-32 rounded-full overflow-hidden',
+                    'ring-4 ring-white/40 dark:ring-white/20',
+                    'shadow-2xl',
+                    'border-4 border-white/50 dark:border-white/30',
+                    'group-hover:scale-105 transition-transform duration-300',
+                  ]"
+                >
+                  <img 
+                    v-if="userData.avatar" 
+                    :src="userData.avatar" 
+                    :alt="userData.name" 
+                    class="w-full h-full object-cover"
+                  />
+                  <div
+                    v-else
+                    :class="[
+                      'w-full h-full bg-gradient-to-br from-white/90 to-white/70',
+                      'dark:from-gray-800 dark:to-gray-900',
+                      'flex items-center justify-center',
+                    ]"
+                  >
+                    <span class="text-5xl font-bold bg-gradient-to-br from-blue-600 to-purple-600 bg-clip-text text-transparent dark:from-blue-400 dark:to-purple-400">
+                      {{ userData.name.charAt(0).toUpperCase() }}
+                    </span>
+                  </div>
+                  <!-- Status indicator -->
+                  <div class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg"></div>
+                </div>
+              </div>
+
+              <!-- User Info -->
+              <div class="flex-1 text-center sm:text-left space-y-3">
+                <div>
+                  <h2 :class="['text-3xl sm:text-4xl font-bold text-white drop-shadow-lg']">{{ userData.name }}</h2>
+                  <p :class="['text-base sm:text-lg text-white/90 mt-1']">
+                    {{ userData.email }}
+                  </p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex flex-wrap items-center gap-3 justify-center sm:justify-start mt-4">
+                  <Button
+                    @click="handleViewProfile"
+                    size="sm"
+                    :class="[
+                      'bg-white/20 dark:bg-white/10 light:bg-white/30',
+                      'backdrop-blur-sm',
+                      'border border-white/30 dark:border-white/20 light:border-white/40',
+                      'text-white hover:bg-white/30 dark:hover:bg-white/20 light:hover:bg-white/40',
+                      'transition-all duration-300 hover:scale-105 active:scale-95',
+                    ]"
+                  >
+                    <UserIcon class="mr-2 h-4 w-4" />
+                    View Profile
+                  </Button>
+                  <Button
+                    @click="handleSignOut"
+                    size="sm"
+                    :class="[
+                      'bg-red-500/30 dark:bg-red-500/30 light:bg-red-500/40',
+                      'backdrop-blur-sm',
+                      'border border-red-400/50 dark:border-red-400/50 light:border-red-400/60',
+                      'text-white hover:bg-red-500/40 dark:hover:bg-red-500/40 light:hover:bg-red-500/50',
+                      'transition-all duration-300 hover:scale-105 active:scale-95 group',
+                    ]"
+                  >
+                    <LogOut class="mr-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+                    Sign Out
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <!-- Collections Stat -->
+            <div
+              :class="[
+                'group relative overflow-hidden rounded-2xl p-5',
+                'bg-gradient-to-br from-blue-500/20 via-blue-500/10 to-transparent',
+                'dark:from-blue-500/20 dark:via-blue-500/10',
+                'light:from-blue-50 light:to-blue-100/50',
+                'border border-blue-500/30 dark:border-blue-500/30 light:border-blue-200',
+                'backdrop-blur-sm',
+                'hover:scale-[1.02] transition-all duration-300',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/20',
+              ]"
+            >
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <p :class="['text-sm font-medium', theme.textSecondary]">Collections</p>
+                  <p :class="['text-2xl font-bold', theme.textPrimary]">
+                    {{ isLoadingCollections ? '...' : (galleryStore.collections.filter(c => !c.isFolder).length || 0) }}
+                  </p>
+                </div>
+                <div class="p-2 rounded-xl bg-blue-500/20 dark:bg-blue-500/20 light:bg-blue-100">
+                  <Folder class="h-5 w-5 text-blue-400 dark:text-blue-400 light:text-blue-600" />
+                </div>
+              </div>
+              <div class="absolute bottom-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mb-10"></div>
+            </div>
+
+            <!-- Storage Stat -->
+            <div
+              :class="[
+                'group relative overflow-hidden rounded-2xl p-5',
+                'bg-gradient-to-br from-purple-500/20 via-purple-500/10 to-transparent',
+                'dark:from-purple-500/20 dark:via-purple-500/10',
+                'light:from-purple-50 light:to-purple-100/50',
+                'border border-purple-500/30 dark:border-purple-500/30 light:border-purple-200',
+                'backdrop-blur-sm',
+                'hover:scale-[1.02] transition-all duration-300',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-purple-500/20',
+              ]"
+            >
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <p :class="['text-sm font-medium', theme.textSecondary]">Storage</p>
+                  <p :class="['text-2xl font-bold', theme.textPrimary]">
+                    {{ isLoadingStorage ? '...' : storagePercentage }}%
+                  </p>
+                </div>
+                <div class="p-2 rounded-xl bg-purple-500/20 dark:bg-purple-500/20 light:bg-purple-100">
+                  <Database class="h-5 w-5 text-purple-400 dark:text-purple-400 light:text-purple-600" />
+                </div>
+              </div>
+              <div class="absolute bottom-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mb-10"></div>
+            </div>
+
+            <!-- Projects Stat -->
+            <div
+              :class="[
+                'group relative overflow-hidden rounded-2xl p-5',
+                'bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent',
+                'dark:from-green-500/20 dark:via-green-500/10',
+                'light:from-green-50 light:to-green-100/50',
+                'border border-green-500/30 dark:border-green-500/30 light:border-green-200',
+                'backdrop-blur-sm',
+                'hover:scale-[1.02] transition-all duration-300',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-green-500/20',
+              ]"
+            >
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <p :class="['text-sm font-medium', theme.textSecondary]">Projects</p>
+                  <p :class="['text-2xl font-bold', theme.textPrimary]">
+                    {{ isLoadingProjects ? '...' : (projectStore.projects.length || 0) }}
+                  </p>
+                </div>
+                <div class="p-2 rounded-xl bg-green-500/20 dark:bg-green-500/20 light:bg-green-100">
+                  <FolderKanban class="h-5 w-5 text-green-400 dark:text-green-400 light:text-green-600" />
+                </div>
+              </div>
+              <div class="absolute bottom-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -mr-10 -mb-10"></div>
+            </div>
+
+            <!-- Selections Stat -->
+            <div
+              :class="[
+                'group relative overflow-hidden rounded-2xl p-5',
+                'bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent',
+                'dark:from-pink-500/20 dark:via-pink-500/10',
+                'light:from-pink-50 light:to-pink-100/50',
+                'border border-pink-500/30 dark:border-pink-500/30 light:border-pink-200',
+                'backdrop-blur-sm',
+                'hover:scale-[1.02] transition-all duration-300',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-pink-500/20',
+              ]"
+            >
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <p :class="['text-sm font-medium', theme.textSecondary]">Selections</p>
+                  <p :class="['text-2xl font-bold', theme.textPrimary]">
+                    {{ isLoadingSelections ? '...' : (selectionStore.selections.length || 0) }}
+                  </p>
+                </div>
+                <div class="p-2 rounded-xl bg-pink-500/20 dark:bg-pink-500/20 light:bg-pink-100">
+                  <CheckSquare class="h-5 w-5 text-pink-400 dark:text-pink-400 light:text-pink-600" />
+                </div>
+              </div>
+              <div class="absolute bottom-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full -mr-10 -mb-10"></div>
+            </div>
+
+            <!-- Proofing Stat -->
+            <div
+              :class="[
+                'group relative overflow-hidden rounded-2xl p-5',
+                'bg-gradient-to-br from-orange-500/20 via-orange-500/10 to-transparent',
+                'dark:from-orange-500/20 dark:via-orange-500/10',
+                'light:from-orange-50 light:to-orange-100/50',
+                'border border-orange-500/30 dark:border-orange-500/30 light:border-orange-200',
+                'backdrop-blur-sm',
+                'hover:scale-[1.02] transition-all duration-300',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-orange-500/20',
+              ]"
+            >
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <p :class="['text-sm font-medium', theme.textSecondary]">Proofing</p>
+                  <p :class="['text-2xl font-bold', theme.textPrimary]">
+                    {{ isLoadingProofing ? '...' : (proofingStore.proofings.length || 0) }}
+                  </p>
+                </div>
+                <div class="p-2 rounded-xl bg-orange-500/20 dark:bg-orange-500/20 light:bg-orange-100">
+                  <Eye class="h-5 w-5 text-orange-400 dark:text-orange-400 light:text-orange-600" />
+                </div>
+              </div>
+              <div class="absolute bottom-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mb-10"></div>
+            </div>
+          </div>
+
+        <!-- Products and Storage Row -->
+        <div class="grid gap-6 md:grid-cols-2">
         <!-- App Launcher Card -->
-        <ListItemCard
+        <DashboardCard
           :loading="isLoadingApps"
-          :show-footer="false"
-          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
-          description="Switch between Mazeloot products"
-          title="Mazeloot Products"
+          animation-class="animate-in fade-in slide-in-from-bottom-4 duration-500"
+          description="Access all your Mazeloot products"
+          title="Quick Access"
         >
           <template #loading>
-            <div class="animate-pulse">
-              <div :class="['h-6 w-32 rounded mb-4', theme.bgSkeleton]"></div>
-              <div class="grid grid-cols-4 gap-6">
-                <div v-for="i in 12" :key="i" class="flex flex-col items-center gap-2">
-                  <div :class="['h-16 w-16 rounded-xl', theme.bgSkeleton]"></div>
-                  <div :class="['h-4 w-12 rounded', theme.bgSkeleton]"></div>
+            <div class="animate-pulse space-y-4">
+              <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
+                <div v-for="i in mazelootProducts.length" :key="i" class="flex flex-col items-center gap-3">
+                  <div :class="['h-20 w-20 sm:h-16 sm:w-16 rounded-2xl', theme.bgSkeleton]"></div>
+                  <div :class="['h-3 w-12 rounded', theme.bgSkeleton]"></div>
                 </div>
               </div>
             </div>
           </template>
-          <div class="grid grid-cols-4 gap-6">
-            <div
-              v-for="product in mazelootProducts"
+          <div class="relative">
+            <!-- Decorative background gradient -->
+            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/5 via-purple-500/5 to-pink-500/5 rounded-xl -m-4"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 dark:bg-indigo-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-2xl -ml-12 -mb-12"></div>
+            
+            <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6 relative z-10">
+              <div
+                v-for="(product, index) in mazelootProducts"
               :key="product.id"
               :class="[
-                'flex flex-col items-center gap-2 cursor-pointer hover:opacity-90 active:scale-95',
+                  'group flex flex-col items-center gap-3 cursor-pointer',
                 theme.transition,
-                theme.hoverScaleLarge,
               ]"
+                :style="{ animationDelay: `${index * 50}ms` }"
               @click="handleProductClick(product)"
             >
               <div
                 :class="[
-                  'rounded-xl flex items-center justify-center relative overflow-hidden',
-                  'bg-gradient-to-br from-gray-900/50 to-gray-800/50 dark:from-gray-800/50 dark:to-gray-900/50 light:from-gray-50 light:to-white',
-                  'border border-gray-700/30 dark:border-gray-700/30 light:border-gray-200/50',
-                  'shadow-sm dark:shadow-md dark:shadow-black/20 light:shadow-sm',
-                  'hover:shadow-md dark:hover:shadow-lg dark:hover:shadow-black/30 light:hover:shadow-md',
-                  'transition-all duration-300',
-                  'h-16 w-16',
-                ]"
-              >
+                    'relative rounded-2xl flex items-center justify-center overflow-hidden',
+                    'bg-gradient-to-br from-gray-900/80 to-gray-800/80',
+                    'dark:from-gray-800/80 dark:to-gray-900/80',
+                    'light:from-white light:to-gray-50',
+                    'border-2 border-gray-700/50 dark:border-gray-700/50 light:border-gray-200/80',
+                    'shadow-lg dark:shadow-xl dark:shadow-black/40 light:shadow-md',
+                    'group-hover:shadow-2xl dark:group-hover:shadow-2xl dark:group-hover:shadow-indigo-500/30',
+                    'group-hover:scale-110 group-hover:-translate-y-1 group-active:scale-95',
+                    'transition-all duration-300 ease-out',
+                    'h-20 w-20 sm:h-16 sm:w-16',
+                  ]"
+                >
+                  <!-- Glow effect on hover -->
+                  <div
+                    class="absolute inset-0 bg-gradient-to-br from-indigo-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-indigo-500/30 group-hover:via-purple-500/30 group-hover:to-pink-500/30 transition-all duration-300 rounded-2xl blur-sm"
+                  ></div>
+                  
+                  <!-- Icon -->
+                  <div class="relative z-10">
                 <AppIcon :custom-type="product.customType" />
               </div>
-              <span :class="['text-xs text-center font-medium mt-1', theme.textPrimary]">{{
+                  
+                  <!-- Shine effect on hover -->
+                  <div
+                    class="absolute inset-0 bg-gradient-to-br from-white/0 via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
+                  ></div>
+                  
+                  <!-- Active indicator for Memora -->
+                  <div
+                    v-if="product.id === 'memora'"
+                    class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg animate-pulse"
+                  ></div>
+                </div>
+                <span :class="[
+                  'text-xs text-center font-semibold',
+                  theme.textPrimary,
+                  'group-hover:text-accent transition-colors duration-300',
+                  'max-w-[80px] truncate'
+                ]">{{
                 product.displayName
               }}</span>
             </div>
           </div>
-        </ListItemCard>
+          </div>
+        </DashboardCard>
 
         <!-- Storage Space Section -->
-        <ListItemCard
+        <DashboardCard
           :loading="isLoadingStorage"
-          :show-footer="false"
-          animation-class="animate-in fade-in slide-in-from-bottom-8 duration-700"
+          animation-class="animate-in fade-in slide-in-from-bottom-4 duration-500"
           description="Manage your cloud storage space"
           title="Storage"
         >
@@ -269,95 +507,205 @@
               <div :class="['h-20 rounded-lg', theme.bgSkeleton]"></div>
             </div>
           </template>
-          <div class="space-y-4">
-            <!-- Storage Info -->
-            <div class="flex items-center justify-between">
-              <div>
-                <h3 :class="['text-2xl font-bold mb-1', theme.textPrimary]">
-                  {{ formatBytes(usedStorage) }} / {{ formatBytes(totalStorage) }}
-                </h3>
-                <p :class="['text-sm', theme.textSecondary]">
-                  {{ formatBytes(freeStorage) }} free • {{ formatBytes(usedStorage) }} used
-                </p>
+          <div class="relative">
+            <!-- Decorative background -->
+            <div class="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-blue-500/5 to-pink-500/5 rounded-xl -m-4"></div>
+            <div class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 dark:bg-purple-500/20 rounded-full blur-3xl -mr-16 -mt-16"></div>
+            <div class="absolute bottom-0 left-0 w-24 h-24 bg-blue-500/10 dark:bg-blue-500/20 rounded-full blur-2xl -ml-12 -mb-12"></div>
+            
+            <div class="relative z-10 space-y-6">
+              <!-- Storage Info with Icon -->
+              <div class="flex items-start justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center gap-3">
+                    <div
+                      :class="[
+                        'p-3 rounded-2xl',
+                        'bg-gradient-to-br from-purple-500/20 to-blue-500/20',
+                        'dark:from-purple-500/30 dark:to-blue-500/30',
+                        'light:from-purple-100 light:to-blue-100',
+                        'border border-purple-500/30 dark:border-purple-500/40 light:border-purple-200',
+                        'shadow-lg',
+                      ]"
+                    >
+                      <Database
+                        :class="[
+                          'h-6 w-6',
+                          storagePercentage >= 90
+                            ? 'text-red-400 dark:text-red-400 light:text-red-600'
+                            : storagePercentage >= 70
+                              ? 'text-yellow-400 dark:text-yellow-400 light:text-yellow-600'
+                              : 'text-green-400 dark:text-green-400 light:text-green-600',
+                        ]"
+                      />
+                    </div>
+                    <div>
+                      <p :class="['text-xs font-medium uppercase tracking-wide', theme.textSecondary]">
+                        Cloud Storage
+                      </p>
+                      <div class="flex items-baseline gap-2 mt-1">
+                        <h3 :class="['text-3xl font-bold', theme.textPrimary]">
+                          {{ formatBytes(usedStorage) }}
+                        </h3>
+                        <span :class="['text-lg', theme.textSecondary]">
+                          / {{ formatBytes(totalStorage) }}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  :class="[
+                    'text-right px-4 py-2 rounded-xl',
+                    'bg-white/10 dark:bg-white/5 light:bg-white/60',
+                    'backdrop-blur-sm border',
+                    'border-white/20 dark:border-white/10 light:border-gray-200/50',
+                  ]"
+                >
+                  <p :class="['text-xs font-medium', theme.textSecondary]">Used</p>
+                  <p
+                    :class="[
+                      'text-2xl font-bold mt-0.5',
+                      storagePercentage >= 90
+                        ? 'text-red-400 dark:text-red-400 light:text-red-600'
+                        : storagePercentage >= 70
+                          ? 'text-yellow-400 dark:text-yellow-400 light:text-yellow-600'
+                          : 'text-green-400 dark:text-green-400 light:text-green-600',
+                    ]"
+                  >
+                    {{ storagePercentage }}%
+                  </p>
+                </div>
               </div>
-            </div>
 
-            <!-- Storage Slider -->
-            <div class="space-y-2">
-              <div :class="theme.textSecondary" class="flex items-center justify-between text-xs">
-                <span>Storage Usage</span>
-                <span>{{ storagePercentage }}%</span>
+              <!-- Enhanced Progress Bar -->
+              <div class="space-y-3">
+                <div class="flex items-center justify-between text-xs font-medium">
+                  <span :class="theme.textSecondary">{{ formatBytes(freeStorage) }} available</span>
+                  <span :class="theme.textSecondary">{{ storagePercentage }}% used</span>
+                </div>
+                <div
+                  :class="[
+                    'h-4 rounded-full overflow-hidden relative',
+                    'bg-gray-200/50 dark:bg-gray-800/50',
+                    'backdrop-blur-sm',
+                    'shadow-inner',
+                  ]"
+                >
+                  <div
+                    :class="[
+                      'h-full rounded-full transition-all duration-1000 ease-out relative',
+                      'shadow-lg',
+                      storagePercentage >= 90
+                        ? 'bg-gradient-to-r from-red-500 via-red-600 to-red-700'
+                        : storagePercentage >= 70
+                          ? 'bg-gradient-to-r from-yellow-500 via-yellow-600 to-orange-500'
+                          : 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500',
+                    ]"
+                    :style="{ width: `${storagePercentage}%` }"
+                  >
+                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                    <div class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-current to-transparent opacity-50"></div>
+                  </div>
+                </div>
               </div>
+
+              <!-- Storage Breakdown -->
+              <div class="grid grid-cols-2 gap-3">
+                <div
+                  :class="[
+                    'p-4 rounded-xl',
+                    'bg-white/10 dark:bg-white/5 light:bg-white/60',
+                    'backdrop-blur-sm border',
+                    'border-white/20 dark:border-white/10 light:border-gray-200/50',
+                    'hover:bg-white/15 dark:hover:bg-white/10 light:hover:bg-white/70',
+                    'transition-all duration-300',
+                  ]"
+                >
+                  <p :class="['text-xs font-medium', theme.textSecondary]">Used</p>
+                  <p :class="['text-lg font-bold mt-1', theme.textPrimary]">
+                    {{ formatBytes(usedStorage) }}
+                  </p>
+                </div>
+                <div
+                  :class="[
+                    'p-4 rounded-xl',
+                    'bg-white/10 dark:bg-white/5 light:bg-white/60',
+                    'backdrop-blur-sm border',
+                    'border-white/20 dark:border-white/10 light:border-gray-200/50',
+                    'hover:bg-white/15 dark:hover:bg-white/10 light:hover:bg-white/70',
+                    'transition-all duration-300',
+                  ]"
+                >
+                  <p :class="['text-xs font-medium', theme.textSecondary]">Available</p>
+                  <p :class="['text-lg font-bold mt-1', theme.textPrimary]">
+                    {{ formatBytes(freeStorage) }}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Warning/Upgrade Message -->
               <div
+                v-if="storagePercentage >= 80"
                 :class="[
-                  'h-3 rounded-full overflow-hidden relative',
-                  theme.bgCard,
-                  theme.borderPrimary,
+                  'rounded-xl p-4 flex items-start gap-3 transition-all duration-300',
+                  'backdrop-blur-sm border',
+                  'hover:scale-[1.01]',
+                  storagePercentage >= 90
+                    ? 'bg-gradient-to-br from-red-500/20 to-red-600/10 dark:from-red-500/20 dark:to-red-600/10 light:from-red-50 light:to-red-100/50 border-red-500/40 dark:border-red-500/40 light:border-red-300'
+                    : 'bg-gradient-to-br from-yellow-500/20 to-yellow-600/10 dark:from-yellow-500/20 dark:to-yellow-600/10 light:from-yellow-50 light:to-yellow-100/50 border-yellow-500/40 dark:border-yellow-500/40 light:border-yellow-300',
                 ]"
               >
                 <div
                   :class="[
-                    'h-full rounded-full transition-all duration-500 ease-out',
+                    'p-2 rounded-lg',
                     storagePercentage >= 90
-                      ? 'bg-red-500'
-                      : storagePercentage >= 70
-                        ? 'bg-yellow-500'
-                        : 'bg-green-500',
-                  ]"
-                  :style="{ width: `${storagePercentage}%` }"
-                ></div>
-              </div>
-            </div>
-
-            <!-- Warning/Upgrade Message -->
-            <div
-              v-if="storagePercentage >= 80"
-              :class="[
-                'rounded-lg p-4 flex items-start gap-3 transition-all duration-300',
-                storagePercentage >= 90
-                  ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-50 border border-red-500/30 dark:border-red-500/30 light:border-red-200'
-                  : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-50 border border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-200',
-              ]"
-            >
-              <AlertCircle
-                :class="[
-                  'h-5 w-5 shrink-0 mt-0.5',
-                  storagePercentage >= 90
-                    ? 'text-red-400 dark:text-red-400 light:text-red-600 animate-pulse'
-                    : 'text-yellow-400 dark:text-yellow-400 light:text-yellow-600',
-                ]"
-              />
-              <div class="flex-1">
-                <p
-                  :class="[
-                    'text-sm font-medium',
-                    storagePercentage >= 90
-                      ? 'text-red-200 dark:text-red-200 light:text-red-800'
-                      : 'text-yellow-200 dark:text-yellow-200 light:text-yellow-800',
+                      ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-100'
+                      : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100',
                   ]"
                 >
-                  {{
-                    storagePercentage >= 90
-                      ? 'Storage Space is Full. Upgrade to Premium to make sure your data keeps syncing to the cloud.'
-                      : 'Storage space is running low. Consider upgrading to Premium for more space.'
-                  }}
-                </p>
-                <Button
-                  :class="[
-                    'mt-2 transition-all duration-300 hover:scale-110 active:scale-95',
-                    storagePercentage >= 90
-                      ? 'bg-red-500/20 dark:bg-red-500/20 light:bg-red-100 border-red-500/30 dark:border-red-500/30 light:border-red-300 text-red-200 dark:text-red-200 light:text-red-800 hover:bg-red-500/30 dark:hover:bg-red-500/30 light:hover:bg-red-200'
-                      : 'bg-yellow-500/20 dark:bg-yellow-500/20 light:bg-yellow-100 border-yellow-500/30 dark:border-yellow-500/30 light:border-yellow-300 text-yellow-200 dark:text-yellow-200 light:text-yellow-800 hover:bg-yellow-500/30 dark:hover:bg-yellow-500/30 light:hover:bg-yellow-200',
-                  ]"
-                  size="sm"
-                  variant="outline"
-                >
-                  Upgrade for ₦900.00/month
-                </Button>
+                  <AlertCircle
+                    :class="[
+                      'h-5 w-5',
+                      storagePercentage >= 90
+                        ? 'text-red-400 dark:text-red-400 light:text-red-600'
+                        : 'text-yellow-400 dark:text-yellow-400 light:text-yellow-600',
+                    ]"
+                  />
+                </div>
+                <div class="flex-1 space-y-2.5">
+                  <p
+                    :class="[
+                      'text-sm font-medium leading-relaxed',
+                      storagePercentage >= 90
+                        ? 'text-red-200 dark:text-red-200 light:text-red-800'
+                        : 'text-yellow-200 dark:text-yellow-200 light:text-yellow-800',
+                    ]"
+                  >
+                    {{
+                      storagePercentage >= 90
+                        ? 'Storage space is full. Upgrade to Premium to keep your data syncing.'
+                        : 'Storage space is running low. Consider upgrading for more space.'
+                    }}
+                  </p>
+                  <Button
+                    :class="[
+                      'transition-all duration-300 hover:scale-105 active:scale-95',
+                      storagePercentage >= 90
+                        ? 'bg-red-500/30 dark:bg-red-500/30 light:bg-red-100 border-red-500/50 dark:border-red-500/50 light:border-red-300 text-red-100 dark:text-red-100 light:text-red-800 hover:bg-red-500/40 dark:hover:bg-red-500/40 light:hover:bg-red-200'
+                        : 'bg-yellow-500/30 dark:bg-yellow-500/30 light:bg-yellow-100 border-yellow-500/50 dark:border-yellow-500/50 light:border-yellow-300 text-yellow-100 dark:text-yellow-100 light:text-yellow-800 hover:bg-yellow-500/40 dark:hover:bg-yellow-500/40 light:hover:bg-yellow-200',
+                    ]"
+                    size="sm"
+                    variant="outline"
+                  >
+                    Upgrade for ₦900.00/month
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </ListItemCard>
+        </DashboardCard>
+        </div>
 
         <!-- Recent Collections Widget -->
         <DashboardCard
@@ -379,20 +727,28 @@
             </div>
           </template>
           <div v-if="recentCollections.length === 0">
-            <EmptyState action-label="Create Collection" message="No collections yet" />
+            <EmptyState
+              :icon="Folder"
+              icon-class="text-blue-400"
+              icon-bg-class="bg-blue-500/20"
+              action-label="Create Collection"
+              message="No collections yet"
+              description="Start organizing your photos by creating your first collection"
+            />
           </div>
           <div v-else class="space-y-2">
             <div
               v-for="(collection, index) in recentCollections.slice(0, 3)"
               :key="collection.id"
               :class="[
-                'group relative flex items-center gap-4 p-3 rounded-lg cursor-pointer',
+                'group relative flex items-center gap-4 p-4 rounded-xl cursor-pointer',
                 'transition-all duration-300 ease-out',
-                'hover:scale-[1.01] active:scale-[0.99]',
+                'hover:scale-[1.02] active:scale-[0.98]',
                 theme.bgCard,
                 theme.borderCard,
                 'border hover:border-opacity-100',
-                'hover:shadow-lg dark:hover:shadow-xl dark:hover:shadow-black/20',
+                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/30',
+                'backdrop-blur-sm',
               ]"
               :style="{ animationDelay: `${index * 100}ms` }"
               @click="navigateTo({ name: 'collectionPhotos', params: { uuid: collection.id } })"
@@ -400,8 +756,8 @@
               <!-- Hover effect background -->
               <div
                 :class="[
-                  'absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                  'bg-gradient-to-r from-white/5 via-transparent to-transparent dark:from-white/5',
+                  'absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300',
+                  'bg-gradient-to-r from-accent/5 via-transparent to-transparent',
                 ]"
               ></div>
 
@@ -409,8 +765,8 @@
               <div class="relative shrink-0 z-10">
                 <div
                   :class="[
-                    'rounded-lg overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-50 transition-all duration-300',
-                    'group-hover:ring-gray-400/30 dark:group-hover:ring-gray-500/30',
+                    'rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-60 transition-all duration-300',
+                    'group-hover:ring-accent/30 shadow-md group-hover:shadow-lg',
                   ]"
                 >
                   <ThumbnailImage
@@ -420,19 +776,15 @@
                     size="md"
                   />
                 </div>
-                <!-- Overlay on hover -->
-                <div
-                  class="absolute inset-0 rounded-lg bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-                ></div>
               </div>
 
               <!-- Content -->
               <div class="flex-1 min-w-0 z-10">
-                <div class="flex items-start justify-between gap-3 mb-1.5">
-                  <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between gap-3">
+                  <div class="flex-1 min-w-0 space-y-1">
                     <h3
                       :class="[
-                        'text-sm font-semibold truncate mb-0.5 group-hover:text-opacity-90 transition-opacity',
+                        'text-sm font-semibold truncate group-hover:text-accent transition-colors',
                         theme.textPrimary,
                       ]"
                     >
@@ -441,7 +793,7 @@
                     <div :class="['flex items-center gap-2 text-xs', theme.textSecondary]">
                       <span class="font-medium">{{ collection.itemCount || 0 }} items</span>
                       <span class="opacity-40">•</span>
-                      <span class="opacity-70">
+                      <span>
                         {{
                           formatDate(
                             collection.updatedAt || collection.createdAt || collection.date || ''
@@ -458,33 +810,34 @@
               <div
                 :class="[
                   'opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-[-4px] group-hover:translate-x-0',
-                  theme.textSecondary,
+                  'text-accent',
                 ]"
               >
-                <ChevronRight class="h-4 w-4" />
+                <ChevronRight class="h-5 w-5" />
               </div>
             </div>
           </div>
           <template #footer>
             <Button
-              :class="['w-full', theme.textSecondary, theme.bgButtonHover]"
+              :class="['w-full', theme.textSecondary, theme.bgButtonHover, 'hover:text-accent']"
               size="sm"
               variant="ghost"
               @click="handleViewAllCollections"
             >
               View All Collections
+              <ChevronRight class="ml-2 h-4 w-4" />
             </Button>
           </template>
         </DashboardCard>
 
-        <!-- Recent Orders Widget -->
+        <!-- Recent Projects Widget -->
         <ListItemCard
-          :loading="isLoadingOrders"
+          :loading="isLoadingProjects"
           :show-footer="true"
-          description="Your latest purchases and transactions"
-          footer-label="View All Orders"
-          title="Recent Orders"
-          @footer-click="handleViewAllOrders"
+          description="Organize your work into projects"
+          footer-label="View All Projects"
+          title="Recent Projects"
+          @footer-click="handleViewAllProjects"
         >
           <template #loading>
             <div class="animate-pulse space-y-3">
@@ -493,61 +846,67 @@
                 <div class="flex-1 space-y-2">
                   <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
                   <div :class="['h-3 w-48 rounded', theme.bgSkeleton]"></div>
-                  <div class="flex items-center justify-between mt-1">
-                    <div :class="['h-3 w-16 rounded', theme.bgSkeleton]"></div>
-                    <div :class="['h-5 w-16 rounded', theme.bgSkeleton]"></div>
-                  </div>
                 </div>
               </div>
             </div>
           </template>
-          <div v-if="recentOrders.length === 0" class="text-center py-8">
-            <EmptyState message="No orders yet" />
+          <div v-if="recentProjects.length === 0" class="text-center py-8">
+            <EmptyState
+              :icon="FolderKanban"
+              icon-class="text-green-400"
+              icon-bg-class="bg-green-500/20"
+              action-label="Create Project"
+              message="No projects yet"
+              description="Organize your work by creating your first project"
+            />
           </div>
           <div v-else class="space-y-3">
             <div
-              v-for="(order, index) in recentOrders.slice(0, 3)"
-              :key="order.id"
-              :class="[theme.listItem]"
+              v-for="(project, index) in recentProjects.slice(0, 3)"
+              :key="project.id"
+              :class="[
+                theme.listItem,
+                'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
+                'hover:scale-[1.01] active:scale-[0.99]',
+              ]"
               :style="{ animationDelay: `${index * 50}ms` }"
-              class="flex gap-3 flex-wrap"
-              @click="handleOrderClick(order)"
+              @click="handleProjectClick(project)"
             >
+              <div class="flex gap-3 items-start">
               <div
-                v-if="order.iconBg"
                 :class="[
-                  order.iconBg,
-                  'flex items-center justify-center p-2 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3',
-                ]"
-              >
-                <component :is="order.icon" class="h-4 w-4 text-white" />
+                    'flex items-center justify-center p-2.5 rounded-xl shrink-0 transition-all duration-300',
+                    'bg-gradient-to-br from-green-500/20 to-green-500/10',
+                    'border border-green-500/20',
+                    'group-hover:scale-110 group-hover:rotate-3 shadow-md group-hover:shadow-lg',
+                  ]"
+                >
+                  <FolderKanban class="h-4 w-4 text-green-400" />
               </div>
-              <div class="flex-1 min-w-0">
-                <p :class="['text-sm font-medium truncate', theme.textPrimary]">
-                  {{ order.product }}
+                <div class="flex-1 min-w-0 space-y-1">
+                  <p :class="['text-sm font-semibold truncate group-hover:text-accent transition-colors', theme.textPrimary]">
+                    {{ project.name }}
                 </p>
                 <p :class="['text-xs', theme.textSecondary]">
-                  {{ order.orderId }} • {{ order.time }}
-                </p>
-                <div class="flex items-center justify-between mt-1">
-                  <span :class="['text-sm font-semibold', theme.textPrimary]">{{
-                    order.price
-                  }}</span>
-                  <StatusBadge :status="order.status" />
+                    {{ formatDate(project.updatedAt || project.createdAt) }}
+                  </p>
+                  <div class="pt-1">
+                    <StatusBadge :status="project.status || 'active'" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </ListItemCard>
 
-        <!-- Wishlist Widget -->
+        <!-- Recent Selections Widget -->
         <ListItemCard
-          :loading="isLoadingWishlist"
+          :loading="isLoadingSelections"
           :show-footer="true"
-          description="Items you want to purchase later"
-          footer-label="View All Wishlist Items"
-          title="Wishlist"
-          @footer-click="handleViewAllWishlist"
+          description="Client photo selection workflows"
+          footer-label="View All Selections"
+          title="Recent Selections"
+          @footer-click="handleViewAllSelections"
         >
           <template #loading>
             <div class="animate-pulse space-y-3">
@@ -561,48 +920,60 @@
               </div>
             </div>
           </template>
-          <div v-if="wishlist.length === 0" class="text-center py-8">
-            <EmptyState message="Your wishlist is empty" />
+          <div v-if="recentSelections.length === 0" class="text-center py-8">
+            <EmptyState
+              :icon="CheckSquare"
+              icon-class="text-pink-400"
+              icon-bg-class="bg-pink-500/20"
+              message="No selections yet"
+              description="Create a selection to let clients choose their favorite photos"
+            />
           </div>
           <div v-else class="space-y-3">
             <div
-              v-for="(item, index) in wishlist.slice(0, 3)"
-              :key="item.id"
-              :class="[theme.listItem, 'p-2']"
+              v-for="(selection, index) in recentSelections.slice(0, 3)"
+              :key="selection.id"
+              :class="[
+                theme.listItem,
+                'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
+                'hover:scale-[1.01] active:scale-[0.99]',
+              ]"
               :style="{ animationDelay: `${index * 50}ms` }"
-              class="flex gap-3 flex-wrap"
-              @click="handleWishlistItemClick(item)"
+              @click="handleSelectionClick(selection)"
             >
+              <div class="flex gap-3 items-start">
               <div
                 :class="[
-                  'flex items-center justify-center p-3 rounded-lg shrink-0 group-hover:scale-110 group-hover:rotate-3',
-                  theme.bgCard,
-                  theme.transition,
-                  'group-hover:opacity-80',
-                ]"
-              >
-                <component :is="item.icon" :class="['h-4 w-4', theme.textPrimary]" />
+                    'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
+                    'bg-gradient-to-br from-pink-500/20 to-pink-500/10',
+                    'border border-pink-500/20',
+                    'group-hover:scale-110 group-hover:rotate-3',
+                    'group-hover:border-pink-500/40 shadow-md group-hover:shadow-lg',
+                  ]"
+                >
+                  <CheckSquare class="h-4 w-4 text-pink-400" />
               </div>
-              <div class="flex-1 min-w-0">
-                <p :class="['text-sm font-medium truncate', theme.textPrimary]">{{ item.name }}</p>
-                <p :class="['text-xs', theme.textSecondary]">{{ item.type }}</p>
-                <div class="mt-1">
-                  <StatusBadge :status="item.status" />
+                <div class="flex-1 min-w-0 space-y-1">
+                  <p :class="['text-sm font-semibold truncate group-hover:text-accent transition-colors', theme.textPrimary]">{{ selection.name }}</p>
+                  <p :class="['text-xs', theme.textSecondary]">{{ formatDate(selection.updatedAt || selection.createdAt) }}</p>
+                  <div class="pt-1">
+                    <StatusBadge :status="selection.status || 'active'" />
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </ListItemCard>
 
-        <!-- Recent Posts Widget -->
+        <!-- Recent Proofing Widget -->
         <ListItemCard
-          :loading="isLoadingPosts"
+          :loading="isLoadingProofing"
           :show-footer="true"
           animation-class="animate-in fade-in slide-in-from-left-4"
-          description="Your latest blog posts and articles"
-          footer-label="View All Posts"
-          title="Recent Posts"
-          @footer-click="handleViewAllPosts"
+          description="Client approval and feedback workflows"
+          footer-label="View All Proofing"
+          title="Recent Proofing"
+          @footer-click="handleViewAllProofing"
         >
           <template #loading>
             <div class="animate-pulse space-y-3">
@@ -618,81 +989,34 @@
               </div>
             </div>
           </template>
-          <div v-if="recentPosts.length === 0" class="text-center py-8">
-            <EmptyState message="No posts yet" />
+          <div v-if="recentProofing.length === 0" class="text-center py-8">
+            <EmptyState
+              :icon="Eye"
+              icon-class="text-orange-400"
+              icon-bg-class="bg-orange-500/20"
+              message="No proofing yet"
+              description="Create a proofing phase to collect client feedback and approvals"
+            />
           </div>
           <div v-else class="space-y-3">
             <div
-              v-for="(post, index) in recentPosts.slice(0, 3)"
-              :key="post.id"
+              v-for="(proofing, index) in recentProofing.slice(0, 3)"
+              :key="proofing.id"
               :class="[
                 theme.listItem,
-                'flex flex-col gap-1 pb-3 border-b',
+                'group flex flex-col gap-1.5 pb-4 border-b rounded-lg px-2 -mx-2 cursor-pointer',
                 theme.borderPrimary,
                 'last:border-0 last:pb-0',
+                'hover:bg-opacity-50 transition-all duration-300',
+                'hover:scale-[1.01] active:scale-[0.99]',
               ]"
               :style="{ animationDelay: `${index * 50}ms` }"
-              @click="handlePostClick(post)"
+              @click="handleProofingClick(proofing)"
             >
-              <p :class="['text-sm font-medium truncate', theme.textPrimary]">{{ post.title }}</p>
-              <p :class="['text-xs', theme.textSecondary]">{{ post.source }} • {{ post.date }}</p>
-              <div class="mt-1">
-                <StatusBadge :status="post.status" />
-              </div>
-            </div>
-          </div>
-        </ListItemCard>
-
-        <!-- Products Widget -->
-        <ListItemCard
-          :loading="isLoadingProducts"
-          :show-footer="true"
-          animation-class="animate-in fade-in slide-in-from-right-4"
-          description="Your available products and services"
-          footer-label="Manage Products"
-          title="Products"
-          @footer-click="handleManageProducts"
-        >
-          <template #loading>
-            <div class="animate-pulse space-y-3">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-2">
-                <div :class="['h-12 w-12 rounded-lg', theme.bgSkeleton]"></div>
-                <div class="flex-1 space-y-2">
-                  <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
-                  <div :class="['h-3 w-40 rounded', theme.bgSkeleton]"></div>
-                  <div :class="['h-5 w-16 rounded', theme.bgSkeleton]"></div>
-                </div>
-              </div>
-            </div>
-          </template>
-          <div v-if="products.length === 0" class="text-center py-8">
-            <EmptyState message="No products yet" />
-          </div>
-          <div v-else class="space-y-3">
-            <div
-              v-for="(product, index) in products.slice(0, 3)"
-              :key="product.id"
-              :class="[theme.listItem, 'p-2']"
-              :style="{ animationDelay: `${index * 50}ms` }"
-              class="flex gap-3 flex-wrap"
-              @click="handleServiceProductClick(product)"
-            >
-              <ThumbnailImage
-                :alt="product.name"
-                :src="product.thumbnail"
-                fallback-text="IMG"
-                size="sm"
-              />
-              <div class="flex-1 min-w-0">
-                <p :class="['text-sm font-medium truncate', theme.textPrimary]">
-                  {{ product.name }}
-                </p>
-                <p :class="['text-xs', theme.textSecondary]">
-                  {{ product.type }} • {{ product.price }}
-                </p>
-                <div class="mt-1">
-                  <StatusBadge :status="product.status" />
-                </div>
+              <p :class="['text-sm font-semibold truncate group-hover:text-accent transition-colors', theme.textPrimary]">{{ proofing.name }}</p>
+              <p :class="['text-xs', theme.textSecondary]">{{ formatDate(proofing.updatedAt || proofing.createdAt) }}</p>
+              <div class="pt-0.5">
+                <StatusBadge :status="proofing.status || 'active'" />
               </div>
             </div>
           </div>
@@ -701,10 +1025,10 @@
     </main>
 
     <!-- Footer -->
-    <footer :class="['backdrop-blur-md mt-8', theme.borderPrimary, 'border-t', theme.bgFooter]">
-      <div class="max-w-7xl mx-auto px-6 py-6">
-        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-          <div class="flex items-center gap-2">
+    <footer :class="['backdrop-blur-md mt-12', theme.borderPrimary, 'border-t', theme.bgFooter]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="flex items-center gap-3">
             <MazelootLogo :show-text="true" size="sm" container-class="h-8" />
             <span :class="['text-xs', theme.textTertiary]">© {{ new Date().getFullYear() }}</span>
           </div>
@@ -715,10 +1039,10 @@
               theme.transitionColors,
             ]"
           >
-            <a class="hover:opacity-100 opacity-70" href="#">Privacy</a>
-            <a class="hover:opacity-100 opacity-70" href="#">Terms</a>
-            <a class="hover:opacity-100 opacity-70" href="#">Support</a>
-            <a class="hover:opacity-100 opacity-70" href="#">About</a>
+            <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#">Privacy</a>
+            <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#">Terms</a>
+            <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#">Support</a>
+            <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#">About</a>
           </div>
         </div>
       </div>
@@ -727,10 +1051,9 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onActivated, ref } from 'vue'
 import {
   AlertCircle,
-  Bell,
   Calendar,
   ChevronRight,
   FileEdit,
@@ -738,18 +1061,26 @@ import {
   Grid3x3,
   ListTodo,
   LogOut,
-  Mail,
   Plus,
   Presentation,
   Settings,
   ShoppingCart,
   StickyNote,
   Zap,
+  Folder,
+  Heart,
+  FileText,
+  Package,
+  Database,
+  TrendingUp,
+  Sparkles,
+  CheckSquare,
+  Eye,
+  FolderKanban,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import AvatarDisplay from '@/components/atoms/AvatarDisplay.vue'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
-import UserProfileCard from '@/components/organisms/UserProfileCard.vue'
 import DashboardCard from '@/components/organisms/DashboardCard.vue'
 import EmptyState from '@/components/molecules/EmptyState.vue'
 import ListItemCard from '@/components/molecules/ListItemCard.vue'
@@ -762,16 +1093,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/shadcn/dropdown-menu/index'
+import NotificationDropdown from '@/components/organisms/NotificationDropdown.vue'
 import { useNavigation } from '@/composables/useNavigation'
 import { useThemeStore } from '@/stores/theme'
 import { useUserStore } from '@/stores/user'
 import { useLogout } from '@/composables/useLogout'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useLoadingStates } from '@/composables/useLoadingStates'
+import { useAuthApi } from '@/api/auth'
 import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import ThumbnailImage from '@/components/atoms/ThumbnailImage.vue'
 import { MAZELOOT_PRODUCTS } from '@/constants/products'
 import { useGalleryStore } from '@/stores/gallery'
+import { useProjectStore } from '@/stores/project'
+import { useSelectionStore } from '@/stores/selection'
+import { useProofingStore } from '@/stores/proofing'
 import MazelootLogo from '@/components/atoms/MazelootLogo.vue'
 
 const { navigateTo } = useNavigation()
@@ -781,45 +1117,23 @@ const theme = useThemeClasses()
 // Loading states - consolidated
 // Start with loading=true to show skeleton loaders initially
 const loadingKeys = [
-  'user',
   'collections',
-  'orders',
-  'wishlist',
-  'posts',
-  'products',
-  'apps',
+  'projects',
+  'selections',
+  'proofing',
   'storage',
 ]
 const { states: loadingStates, setAllLoading } = useLoadingStates(loadingKeys, true)
 // Vue templates automatically unwrap refs, so we can use them directly
-const isLoading = loadingStates.user
+// User and apps don't need loading states - data is immediately available
+const isLoading = ref(false)
+const isLoadingApps = ref(false)
 const isLoadingCollections = loadingStates.collections
-const isLoadingOrders = loadingStates.orders
-const isLoadingWishlist = loadingStates.wishlist
-const isLoadingPosts = loadingStates.posts
-const isLoadingProducts = loadingStates.products
-const isLoadingApps = loadingStates.apps
+const isLoadingProjects = loadingStates.projects
+const isLoadingSelections = loadingStates.selections
+const isLoadingProofing = loadingStates.proofing
 const isLoadingStorage = loadingStates.storage
 
-// Notifications
-const notifications = ref([
-  {
-    id: 'notif-1',
-    title: 'Welcome back',
-    message: 'Your recent uploads are ready.',
-    time: 'Just now',
-    icon: Mail,
-    iconColor: 'text-blue-500',
-  },
-  {
-    id: 'notif-2',
-    title: 'Reminder',
-    message: 'You have items waiting to be organized.',
-    time: '2h ago',
-    icon: Bell,
-    iconColor: 'text-yellow-400',
-  },
-])
 
 const { logout } = useLogout()
 
@@ -829,21 +1143,29 @@ const handleSignOut = async () => {
 
 const handleViewProfile = () => {}
 
-const handleViewAllOrders = () => {}
+const handleViewAllProjects = () => {
+  navigateTo({ name: 'projects' })
+}
 
-const handleOrderClick = _order => {}
+const handleProjectClick = project => {
+  navigateTo({ name: 'projectDashboard', params: { projectId: project.id } })
+}
 
-const handleViewAllWishlist = () => {}
+const handleViewAllSelections = () => {
+  navigateTo({ name: 'selections' })
+}
 
-const handleWishlistItemClick = _item => {}
+const handleSelectionClick = selection => {
+  navigateTo({ name: 'selectionDetail', params: { uuid: selection.id } })
+}
 
-const handleViewAllPosts = () => {}
+const handleViewAllProofing = () => {
+  navigateTo({ name: 'proofing' })
+}
 
-const handlePostClick = _post => {}
-
-const handleManageProducts = () => {}
-
-const handleServiceProductClick = _product => {}
+const handleProofingClick = proofing => {
+  navigateTo({ name: 'proofingDetail', params: { uuid: proofing.id } })
+}
 
 // Mazeloot Products
 const mazelootProducts = MAZELOOT_PRODUCTS
@@ -857,6 +1179,18 @@ const handleAppSwitch = product => {
 }
 
 const handleProductClick = product => {
+  // Handle memora product specially
+  if (product.id === 'memora') {
+    if (userStore.isNewUser) {
+      // New user: redirect to getting started
+      navigateTo({ name: 'gettingStarted' })
+      return
+    } else {
+      // Existing user: redirect to memora dashboard
+      navigateTo({ name: 'memoraDashboard' })
+      return
+    }
+  }
   handleAppSwitch(product)
 }
 
@@ -866,6 +1200,10 @@ const handleProductClick = product => {
 
 const userStore = useUserStore()
 const galleryStore = useGalleryStore()
+const projectStore = useProjectStore()
+const selectionStore = useSelectionStore()
+const proofingStore = useProofingStore()
+const authApi = useAuthApi()
 
 // User data - use logged-in user from store, fallback to default if not available
 const userData = computed(() => {
@@ -900,11 +1238,50 @@ const recentCollections = computed(() => {
     .slice(0, 3)
 })
 
-// Storage data
-const totalStorage = ref(5 * 1024 * 1024 * 1024) // 5 GB in bytes
-const usedStorage = ref(4.5 * 1024 * 1024 * 1024) // 4.5 GB used
+// Recent Projects - get from store
+const recentProjects = computed(() => {
+  const allProjects = projectStore.projects || []
+  return allProjects
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 3)
+})
+
+// Recent Selections - get from store
+const recentSelections = computed(() => {
+  const allSelections = selectionStore.selections || []
+  return allSelections
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 3)
+})
+
+// Recent Proofing - get from store
+const recentProofing = computed(() => {
+  const allProofing = proofingStore.proofings || []
+  return allProofing
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 3)
+})
+
+// Storage data - default to 5GB, will be updated from backend if available
+const totalStorage = ref(5 * 1024 * 1024 * 1024) // 5 GB in bytes (default)
+const usedStorage = ref(0)
 const freeStorage = computed(() => totalStorage.value - usedStorage.value)
-const storagePercentage = computed(() => Math.round((usedStorage.value / totalStorage.value) * 100))
+const storagePercentage = computed(() => {
+  if (totalStorage.value === 0) return 0
+  return Math.round((usedStorage.value / totalStorage.value) * 100)
+})
 
 // Format bytes helper
 const formatBytes = bytes => {
@@ -922,83 +1299,103 @@ const formatDate = dateString => {
   return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-// Fetch collections on mount
-onMounted(async () => {
-  setAllLoading(true)
-  // Fetch collections
+// Fetch collections independently
+const fetchCollections = async () => {
   try {
+    loadingStates.collections.value = true
     await galleryStore.fetchCollections()
-  } catch (error) {}
-  // Simulate data fetch - keep loading for 2 seconds to see skeleton loaders
-  setTimeout(() => {
-    setAllLoading(false)
-  }, 2000)
+  } catch (error) {
+    console.error('Failed to fetch collections:', error)
+  } finally {
+    loadingStates.collections.value = false
+  }
+}
+
+// Fetch projects independently
+const fetchProjects = async () => {
+  try {
+    loadingStates.projects.value = true
+    await projectStore.fetchProjects({ perPage: 10 })
+  } catch (error) {
+    console.error('Failed to fetch projects:', error)
+  } finally {
+    loadingStates.projects.value = false
+  }
+}
+
+// Fetch selections independently
+const fetchSelections = async () => {
+  try {
+    loadingStates.selections.value = true
+    await selectionStore.fetchAllSelections({ perPage: 10 })
+  } catch (error) {
+    console.error('Failed to fetch selections:', error)
+  } finally {
+    loadingStates.selections.value = false
+  }
+}
+
+// Fetch proofing independently
+const fetchProofing = async () => {
+  try {
+    loadingStates.proofing.value = true
+    await proofingStore.fetchAllProofing({ perPage: 10 })
+  } catch (error) {
+    console.error('Failed to fetch proofing:', error)
+  } finally {
+    loadingStates.proofing.value = false
+  }
+}
+
+// Fetch storage usage independently
+const fetchStorage = async () => {
+  try {
+    loadingStates.storage.value = true
+    const storageData = await authApi.getStorage()
+    usedStorage.value = storageData.total_used_bytes || 0
+    // Backend now returns total_storage_bytes from quota config
+    if (storageData.total_storage_bytes) {
+      totalStorage.value = storageData.total_storage_bytes
+    }
+  } catch (error) {
+    console.error('Failed to fetch storage usage:', error)
+    // On error, keep default values (5GB)
+  } finally {
+    loadingStates.storage.value = false
+  }
+}
+
+// Fetch data on mount - each section loads independently
+onMounted(async () => {
+  // Start loading all sections in parallel
+  fetchCollections()
+  fetchProjects()
+  fetchSelections()
+  fetchProofing()
+  fetchStorage()
+})
+
+// Refresh storage when page is activated (user navigates back)
+onActivated(() => {
+  fetchStorage()
 })
 
 const handleViewAllCollections = () => {
   navigateTo({ name: 'manageCollections' })
 }
-
-// Recent Orders
-const recentOrders = [
-  {
-    id: 'order-1',
-    product: 'Premium Subscription',
-    orderId: 'INV-0001',
-    time: '3 days ago',
-    price: '₦4,500.00',
-    status: 'completed',
-    icon: ShoppingCart,
-    iconBg: 'bg-green-500',
-  },
-  {
-    id: 'order-2',
-    product: 'Photo Prints',
-    orderId: 'INV-0002',
-    time: '1 week ago',
-    price: '₦2,200.00',
-    status: 'processing',
-    icon: ShoppingCart,
-    iconBg: 'bg-blue-500',
-  },
-]
-
-// Wishlist
-const wishlist = [
-  {
-    id: 'wish-1',
-    name: 'Premium Template Pack',
-    type: 'Template',
-    status: 'available',
-    icon: Zap,
-  },
-  {
-    id: 'wish-2',
-    name: 'Extra Storage',
-    type: 'Storage',
-    status: 'available',
-    icon: Zap,
-  },
-]
-
-// Recent Posts
-const recentPosts = [
-  {
-    id: 'post-1',
-    title: 'How to organize your photos',
-    source: 'Mazeloot Blog',
-    date: 'Nov 10, 2025',
-    status: 'published',
-  },
-  {
-    id: 'post-2',
-    title: 'New features in Mazeloot',
-    source: 'Mazeloot News',
-    date: 'Oct 21, 2025',
-    status: 'published',
-  },
-]
-
-// Products
-const products = []
 </script>
+
+<style scoped>
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+</style>

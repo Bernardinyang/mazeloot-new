@@ -19,7 +19,7 @@
       :loading="isSubmitting"
       :loading-label="submittingLabel"
       :class="submitButtonClass"
-      variant="default"
+      variant="primary"
     >
       {{ submitLabel }}
     </Button>

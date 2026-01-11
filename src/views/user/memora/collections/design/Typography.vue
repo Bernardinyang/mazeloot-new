@@ -1,7 +1,80 @@
 <template>
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
-      <div
+      <div v-if="isLoading"
+        :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
+        class="p-8 pb-16 transition-all duration-300 h-full overflow-y-auto"
+      >
+        <!-- Skeleton Header -->
+        <div class="mb-10">
+          <div class="flex items-start justify-between mb-4">
+            <div>
+              <Skeleton class="h-9 w-40 rounded-lg mb-2" />
+              <Skeleton class="h-4 w-96 rounded-md" />
+            </div>
+            <Skeleton class="h-16 w-24 rounded-lg" />
+          </div>
+        </div>
+
+        <!-- Skeleton Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 h-[calc(100vh-12rem)]">
+          <!-- Skeleton Main Content -->
+          <div class="lg:col-span-2 flex flex-col min-h-0">
+            <div class="flex-1 overflow-y-auto space-y-12 pr-2 min-h-0">
+              <div class="space-y-6 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-2">
+                  <div class="flex-1">
+                    <Skeleton class="h-6 w-32 rounded-md mb-2" />
+                    <Skeleton class="h-3 w-64 rounded-md" />
+                  </div>
+                </div>
+                <div class="space-y-5">
+                  <div>
+                    <Skeleton class="h-4 w-24 rounded-md mb-3" />
+                    <Skeleton class="h-10 w-full rounded-md" />
+                  </div>
+                  <div>
+                    <Skeleton class="h-4 w-24 rounded-md mb-3" />
+                    <Skeleton class="h-10 w-full rounded-md" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Skeleton Bottom Navigation -->
+            <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-800 flex-shrink-0">
+              <div class="flex justify-between items-center">
+                <Skeleton class="h-10 w-20 rounded-lg" />
+                <Skeleton class="h-10 w-32 rounded-lg" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Skeleton Preview Panel -->
+          <div class="lg:col-span-3">
+            <div class="sticky top-24">
+              <div class="rounded-xl border-2 border-gray-200 dark:border-gray-800 overflow-hidden">
+                <div class="p-5 border-b border-gray-200 dark:border-gray-800">
+                  <Skeleton class="h-6 w-32 rounded-md mb-1" />
+                  <Skeleton class="h-3 w-48 rounded-md" />
+                </div>
+                <div class="h-[800px] bg-gray-50/50 dark:bg-gray-950/50">
+                  <div class="p-8 space-y-4">
+                    <Skeleton class="h-64 w-full rounded-lg" />
+                    <div class="grid grid-cols-3 gap-4">
+                      <Skeleton
+                        v-for="i in 9"
+                        :key="i"
+                        class="h-32 rounded-lg aspect-square"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div v-else
         :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-full'"
         class="p-8 pb-16 transition-all duration-300 h-full overflow-y-auto"
       >
@@ -155,7 +228,7 @@
                     </div>
                   </Transition>
                   <Button
-                    variant="default"
+                    variant="primary"
                     :disabled="!hasUnsavedChanges"
                     :loading="isSubmitting || isSaving"
                     :icon="!hasUnsavedChanges ? Check : null"
@@ -237,10 +310,12 @@
                   <!-- Full Collection Preview -->
                   <CollectionPreview
                     v-if="!isLoading"
-                    :preview-collection="mockPreviewCollection"
+                    :preview-collection="previewCollection"
                     :preview-design-config="previewDesignConfig"
-                    :preview-media="mockPreviewMedia"
+                    :preview-media="previewMedia"
+                    :preview-is-loading="isLoadingMedia"
                     :preview-mode="true"
+                    :disable-actions="true"
                   />
                 </div>
               </div>
@@ -269,12 +344,14 @@ import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shadcn/select'
 import CollectionLayout from '@/layouts/CollectionLayout.vue'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import UnsavedChangesModal from '@/components/organisms/UnsavedChangesModal.vue'
 import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import CollectionPreview from '@/views/user/memora/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/stores/gallery'
+import { useCollectionsApi } from '@/api/collections'
 import { toast } from '@/utils/toast'
 import { fontStyleOptions as baseFontStyleOptions } from '@/utils/designConstants'
 
@@ -282,10 +359,13 @@ const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
+const collectionsApi = useCollectionsApi()
 
 // Collection data
 const collection = ref(null)
 const isLoading = ref(false)
+const previewMedia = ref([])
+const isLoadingMedia = ref(false)
 
 // UI State
 // Sidebar collapse state with persistence
@@ -314,55 +394,64 @@ const hasUnsavedChanges = computed(() => {
 })
 
 const previewDesignConfig = computed(() => {
+  const defaults = {
+    cover: 'none',
+    coverLayoutUuid: null,
+    coverFocalPoint: { x: 50, y: 50 },
+    fontFamily: 'sans',
+    fontStyle: 'normal',
+    colorPalette: 'light',
+    gridStyle: 'vertical',
+    gridColumns: 3,
+    thumbnailSize: 'medium',
+    gridSpacing: 16,
+    navigationStyle: 'icon-text',
+  }
+
   if (!collection.value) {
-    // Fallback to formData if collection not loaded
     return {
-      cover: 'left',
-      coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: formData.fontFamily,
-      fontStyle: formData.fontStyle,
-      colorPalette: 'light',
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      ...defaults,
+      fontFamily: formData.fontFamily ?? defaults.fontFamily,
+      fontStyle: formData.fontStyle ?? defaults.fontStyle,
     }
   }
 
   const collectionInStore = galleryStore.collections.find(c => c.id === collection.value?.id)
   if (!collectionInStore) {
-    // Fallback to formData if not in store
     return {
-      cover: 'left',
-      coverFocalPoint: { x: 50, y: 50 },
-      fontFamily: formData.fontFamily,
-      fontStyle: formData.fontStyle,
-      colorPalette: 'light',
-      gridStyle: 'vertical',
-      gridColumns: 3,
-      thumbnailSize: 'regular',
-      gridSpacing: 16,
-      navigationStyle: 'icon-only',
+      ...defaults,
+      fontFamily: formData.fontFamily ?? defaults.fontFamily,
+      fontStyle: formData.fontStyle ?? defaults.fontStyle,
     }
   }
 
-  // Use organized design structure from API response
+  // Merge all design configs from store, with current tab's formData taking priority
   const coverDesign = collectionInStore.design?.cover || collectionInStore.coverDesign || {}
+  const typographyDesign = collectionInStore.design?.typography || collectionInStore.typographyDesign || {}
   const colorDesign = collectionInStore.design?.color || collectionInStore.colorDesign || {}
   const gridDesign = collectionInStore.design?.grid || collectionInStore.gridDesign || {}
 
+  // If collection has cover image but no cover design set, default to 'center' instead of 'none'
+  const hasCoverImage = collectionInStore?.image || collectionInStore?.thumbnail
+  const defaultCoverType = hasCoverImage ? 'center' : 'none'
+
   return {
-    cover: coverDesign.cover || 'left',
-    coverFocalPoint: coverDesign.coverFocalPoint || { x: 50, y: 50 },
-    fontFamily: formData.fontFamily || 'sans',
-    fontStyle: formData.fontStyle || 'normal',
-    colorPalette: colorDesign.colorPalette || 'light',
-    gridStyle: gridDesign.gridStyle || 'vertical',
-    gridColumns: gridDesign.gridColumns || 3,
-    thumbnailSize: gridDesign.thumbnailOrientation || gridDesign.thumbnailSize || 'regular',
-    gridSpacing: gridDesign.gridSpacing || 16,
-    navigationStyle: gridDesign.tabStyle || gridDesign.navigationStyle || 'icon-only',
+    ...defaults,
+    // Cover config from store - use 'center' as default if image exists, otherwise 'none'
+    cover: coverDesign.cover ?? defaultCoverType,
+    coverLayoutUuid: coverDesign.coverLayoutUuid ?? defaults.coverLayoutUuid,
+    coverFocalPoint: coverDesign.coverFocalPoint ?? defaults.coverFocalPoint,
+    // Typography config: current formData takes priority over store
+    fontFamily: formData.fontFamily ?? typographyDesign.fontFamily ?? defaults.fontFamily,
+    fontStyle: formData.fontStyle ?? typographyDesign.fontStyle ?? defaults.fontStyle,
+    // Color config from store
+    colorPalette: colorDesign.colorPalette ?? defaults.colorPalette,
+    // Grid config from store
+    gridStyle: gridDesign.gridStyle ?? defaults.gridStyle,
+    gridColumns: gridDesign.gridColumns ?? defaults.gridColumns,
+    thumbnailSize: gridDesign.thumbnailOrientation ?? gridDesign.thumbnailSize ?? defaults.thumbnailSize,
+    gridSpacing: gridDesign.gridSpacing ?? defaults.gridSpacing,
+    navigationStyle: gridDesign.tabStyle ?? gridDesign.navigationStyle ?? defaults.navigationStyle,
   }
 })
 
@@ -466,6 +555,65 @@ watch(
   { immediate: true }
 )
 
+// Load preview media
+const loadPreviewMedia = async () => {
+  if (!collection.value?.id) {
+    previewMedia.value = []
+    return
+  }
+
+  isLoadingMedia.value = true
+  try {
+    const mediaSets = collection.value?.mediaSets || []
+    
+    if (mediaSets.length === 0) {
+      previewMedia.value = []
+      return
+    }
+
+    const allMedia = []
+    for (const set of mediaSets) {
+      try {
+        const response = await collectionsApi.fetchSetMedia(collection.value.id, set.id, {
+          perPage: 50,
+        })
+        
+        const mediaItems = Array.isArray(response?.data) 
+          ? response.data 
+          : (Array.isArray(response) ? response : [])
+        
+        allMedia.push(...mediaItems.map(item => ({
+          ...item,
+          setId: set.id,
+          setName: set.name,
+        })))
+      } catch (error) {
+        console.error(`Failed to load media for set ${set.id}:`, error)
+      }
+    }
+    
+    previewMedia.value = allMedia
+  } catch (error) {
+    console.error('Failed to load preview media:', error)
+    previewMedia.value = []
+  } finally {
+    isLoadingMedia.value = false
+  }
+}
+
+// Watch collection and load media
+watch(
+  () => collection.value?.id,
+  async (newId) => {
+    if (newId) {
+      await loadPreviewMedia()
+    } else {
+      previewMedia.value = []
+    }
+  },
+  { immediate: true }
+)
+
 // Save typography design
 const saveTypographyDesign = async () => {
   if (!collection.value) {
@@ -558,50 +706,23 @@ const handleOpenPreviewInNewTab = async () => {
   }
 }
 
-// Fallback image URL
-const fallbackImageUrl =
-  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1920&h=1080&fit=crop'
-
-// Mock data for preview
-const mockPreviewCollection = computed(() => ({
-  id: collection.value?.id || 'preview',
-  name: collection.value?.name || 'My Sample Collection',
-  date: collection.value?.eventDate || '2025-09-01',
-  eventDate: collection.value?.eventDate || '2025-09-01',
-  thumbnail: collection.value?.thumbnail || fallbackImageUrl,
-  createdAt: collection.value?.createdAt || new Date().toISOString(),
-  updatedAt: collection.value?.updatedAt || new Date().toISOString(),
-  status: collection.value?.status || 'active',
-  category: collection.value?.category || 'event',
-}))
-
-const mockPreviewMedia = computed(() => {
-  const photoIds = [
-    '1519741497674-611481863552',
-    '1516589178581-6cd7833ae3b2',
-    '1511285560929-80b456fea0bc',
-    '1521119989659-a83eee488004',
-    '1475721027785-f74eccf877e2',
-    '1511578314322-379afb476865',
-    '1494790008762-728dbb2e86b0',
-    '1500648767791-00dcc994a43e',
-    '1505373877841-8d25f7d46678',
-    '1478147427282-58a87a120781',
-    '1515934751635-c81c6bc9a2d8',
-    '1522673607200-164d1b6ce486',
-  ]
-
-  return photoIds.map((id, index) => ({
-    id: `preview-${index}`,
-    collectionId: collection.value?.id || 'preview',
-    url: `https://images.unsplash.com/photo-${id}?w=1200&h=800&fit=crop`,
-    thumbnail: `https://images.unsplash.com/photo-${id}?w=400&h=300&fit=crop`,
-    type: 'image',
-    title: `Photo ${index + 1}`,
-    order: index,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  }))
+// Preview collection - use real collection data
+const previewCollection = computed(() => {
+  if (!collection.value) return null
+  
+  return {
+    id: collection.value.id,
+    name: collection.value.name,
+    date: collection.value.date,
+    eventDate: collection.value.eventDate,
+    image: collection.value.image,
+    thumbnail: collection.value.thumbnail,
+    createdAt: collection.value.createdAt,
+    updatedAt: collection.value.updatedAt,
+    status: collection.value.status,
+    category: collection.value.category,
+    mediaSets: collection.value.mediaSets,
+  }
 })
 </script>
 

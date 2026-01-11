@@ -7,8 +7,8 @@
     <div class="space-y-4 py-4">
       <div class="space-y-3">
         <p :class="theme.textSecondary" class="text-sm">
-          Are you sure you want to delete
-          <span :class="theme.textPrimary" class="font-semibold">
+          {{ question }}
+          <span v-if="itemName || fallbackName" :class="theme.textPrimary" class="font-semibold">
             {{ itemName || fallbackName }} </span
           >?
         </p>
@@ -23,7 +23,7 @@
           <p :class="theme.textSecondary" class="text-xs whitespace-pre-line">{{ warningMessage }}</p>
         </div>
         
-        <p :class="theme.textTertiary" class="text-xs whitespace-pre-line">
+        <p v-if="description" :class="theme.textTertiary" class="text-xs whitespace-pre-line">
           {{ description }}
         </p>
       </div>
@@ -34,9 +34,9 @@
         :disabled="isDeleting"
         :loading="isDeleting"
         cancel-label="Cancel"
-        confirm-button-class="bg-red-500 hover:bg-red-600 text-white"
-        confirm-label="Delete"
-        loading-label="Deleting..."
+        confirm-variant="destructive"
+        :confirm-label="confirmLabel"
+        :loading-label="loadingLabel"
         @cancel="handleCancel"
         @confirm="handleConfirm"
       />
@@ -55,11 +55,14 @@ const props = defineProps({
   itemName: { type: String, default: undefined },
   fallbackName: { type: String, default: 'this item' },
   title: { type: String, default: 'Delete Item' },
-  description: { type: String, default: 'This action cannot be undone.' },
+  question: { type: String, default: 'Are you sure you want to delete' },
+  description: { type: String, default: undefined },
   warningMessage: {
     type: String,
-    default: 'This item will be permanently removed from your account.',
+    default: undefined,
   },
+  confirmLabel: { type: String, default: 'Delete' },
+  loadingLabel: { type: String, default: 'Deleting...' },
   isDeleting: { type: Boolean, default: false },
 })
 

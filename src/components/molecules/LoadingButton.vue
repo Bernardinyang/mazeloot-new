@@ -41,7 +41,7 @@ const props = defineProps({
     type: String,
     default: 'default',
     validator: value =>
-      ['default', 'destructive', 'outline', 'secondary', 'ghost', 'link'].includes(value),
+      ['default', 'primary', 'destructive', 'success', 'warning', 'outline', 'secondary', 'ghost', 'link'].includes(value),
   },
   buttonClass: {
     type: String,

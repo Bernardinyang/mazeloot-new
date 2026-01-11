@@ -18,7 +18,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import Toaster from './components/organisms/Toaster.vue'
 import UploadQueueButton from './components/organisms/UploadQueueButton.vue'
@@ -27,6 +27,9 @@ import PWAInstallPrompt from './components/molecules/PWAInstallPrompt.vue'
 import PWADebugInfo from './components/molecules/PWADebugInfo.vue'
 import { useActionHistoryStore } from './stores/actionHistory'
 import { useBackgroundUploadManager } from './composables/useBackgroundUploadManager'
+import { useNotificationsStore } from './stores/notifications'
+import { usePusher } from './composables/usePusher'
+import { useUserStore } from './stores/user'
 import { toast } from './utils/toast'
 
 const route = useRoute()
@@ -43,9 +46,87 @@ const hasActiveOrFailedUploads = computed(() => {
 })
 
 let keyDownHandler = null
+let notificationChannel = null
+
+const userStore = useUserStore()
+const notificationsStore = useNotificationsStore()
+const { subscribePrivate, unsubscribe } = usePusher()
+
+// Initialize notifications and Pusher subscription
+const initializeNotifications = async () => {
+  if (!userStore.isAuthenticated) return
+
+  try {
+    // Always initialize store first (fetch from API)
+    await notificationsStore.initialize()
+    console.log('Notifications initialized, count:', notificationsStore.allNotifications.length)
+
+    // Subscribe to notification channel for real-time updates
+    const userId = userStore.user?.uuid || userStore.user?.id
+    if (userId) {
+      const channelName = `private-user.${userId}`
+      try {
+        notificationChannel = await subscribePrivate(channelName, 'notification.created', (data) => {
+          console.log('Notification received via Pusher:', data)
+          if (data?.notification) {
+            notificationsStore.addNotification(data.notification)
+            // Show toast notification
+            toast.success(data.notification.title, {
+              description: data.notification.message,
+            })
+          }
+        })
+        if (notificationChannel) {
+          console.log('Successfully subscribed to notification channel:', channelName)
+        } else {
+          console.warn('Failed to subscribe to notification channel (returned null)')
+        }
+      } catch (error) {
+        console.error('Failed to subscribe to notification channel:', error)
+        // Continue even if Pusher fails - notifications will still be fetched via API
+      }
+    } else {
+      console.warn('No user ID found, cannot subscribe to notification channel')
+    }
+  } catch (error) {
+    console.error('Failed to initialize notifications:', error)
+  }
+}
+
+// Watch for authentication changes
+watch(
+  () => userStore.isAuthenticated,
+  (isAuthenticated) => {
+    if (isAuthenticated) {
+      initializeNotifications()
+    } else {
+      // Cleanup on logout
+      if (notificationChannel) {
+        const userId = userStore.user?.uuid || userStore.user?.id
+        if (userId) {
+          unsubscribe(`private-user.${userId}`)
+          notificationChannel = null
+        }
+      }
+      notificationsStore.notifications.value = []
+      notificationsStore.unreadCounts.value = {
+        memora: 0,
+        profolio: 0,
+        general: 0,
+        total: 0,
+      }
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(() => {
   const actionHistory = useActionHistoryStore()
+  
+  // Initialize notifications if authenticated
+  if (userStore.isAuthenticated) {
+    initializeNotifications()
+  }
 
   keyDownHandler = e => {
     const isInputFocused =
@@ -92,6 +173,15 @@ onMounted(() => {
 onUnmounted(() => {
   if (keyDownHandler) {
     window.removeEventListener('keydown', keyDownHandler)
+  }
+  
+  // Cleanup notification channel
+  if (notificationChannel) {
+    const userId = userStore.user?.uuid || userStore.user?.id
+    if (userId) {
+      unsubscribe(`private-user.${userId}`)
+      notificationChannel = null
+    }
   }
 })
 </script>

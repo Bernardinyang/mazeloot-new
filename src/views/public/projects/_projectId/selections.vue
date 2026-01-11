@@ -119,7 +119,7 @@
     </Dialog>
 
     <!-- Main Content -->
-    <div v-else-if="selection" class="min-h-screen">
+    <div v-else-if="selection" :class="[fontFamilyClass, fontStyleClass]" class="min-h-screen">
       <!-- Hero Section with Cover Photo - Full Height -->
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
@@ -219,22 +219,28 @@
             <div class="flex-1">
               <h1
                 :class="[
+                  fontFamilyClass,
+                  fontStyleClass,
+                  fontSizeClassH1,
                   selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'text-white'
                     : 'text-gray-900 dark:text-gray-100',
                 ]"
-                class="text-4xl md:text-5xl lg:text-6xl font-light tracking-tight mb-2 drop-shadow-lg"
+                class="font-light tracking-tight mb-2 drop-shadow-lg"
               >
                 {{ selection.name || 'Selection' }}
               </h1>
               <p
                 v-if="selection.description"
                 :class="[
+                  fontFamilyClass,
+                  fontStyleClass,
+                  fontSizeClassP,
                   selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
                     ? 'text-white/90'
                     : 'text-gray-700 dark:text-gray-300',
                 ]"
-                class="text-base md:text-lg font-light tracking-normal drop-shadow-md max-w-2xl"
+                class="font-light tracking-normal drop-shadow-md max-w-2xl"
               >
                 {{ selection.description }}
               </p>
@@ -294,38 +300,58 @@
         <!-- Instructions / Status -->
         <template v-else-if="selection.status !== 'completed'">
           <div
-            class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6"
+            class="bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 border-2 border-blue-200 dark:border-blue-800 rounded-xl p-5 mb-8 shadow-sm"
           >
-            <p class="text-sm text-blue-800 dark:text-blue-200">
-              Click on media items to select them. Selected items will be marked with a checkmark.
-            </p>
+            <div class="flex items-start gap-3">
+              <div class="flex-shrink-0 mt-0.5">
+                <CheckCircle2 class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
+              <p class="text-sm font-medium text-blue-900 dark:text-blue-100 leading-relaxed">
+                Click on media items to select them. Selected items will be marked with a checkmark.
+              </p>
+            </div>
           </div>
         </template>
 
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-green-50 dark:bg-violet-900/20 border border-green-200 dark:border-violet-800 rounded-lg p-4 mb-6"
+            class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-5 mb-8 shadow-lg"
           >
-            <p class="text-sm text-violet-800 dark:text-green-200">
-              Selection has been completed. Thank you!
-            </p>
+            <div class="flex items-center gap-3">
+              <svg
+                class="w-6 h-6 text-violet-600 dark:text-violet-400 flex-shrink-0"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+              <p class="text-base font-bold text-violet-900 dark:text-violet-100">
+                Selection has been completed. Thank you!
+              </p>
+            </div>
           </div>
         </template>
 
         <!-- Sets as Tabs -->
-        <div v-if="mediaSets.length > 0" class="mb-6">
+        <div v-if="mediaSets.length > 0" class="mb-8">
           <div
-            class="flex items-center gap-2 overflow-x-auto pb-2 border-b border-gray-200 dark:border-gray-700"
+            class="flex items-center gap-2 overflow-x-auto pb-2 border-b-2 border-gray-200 dark:border-gray-700"
           >
             <button
               v-for="set in sortedMediaSets"
               :key="set.id"
               :class="[
-                'px-4 py-2 rounded-t-lg font-medium text-sm transition-all relative',
+                'px-5 py-3 rounded-t-xl font-semibold text-sm transition-all relative',
                 selectedSetId === set.id
-                  ? 'bg-white dark:bg-gray-800 border-b-2'
-                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200',
+                  ? 'bg-white dark:bg-gray-800 border-b-3 shadow-sm'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900/50',
               ]"
               :style="
                 selectedSetId === set.id
@@ -373,9 +399,9 @@
 
         <!-- Current Set Media -->
         <div v-if="currentMediaItems.length > 0" class="space-y-6">
-          <div class="flex items-center justify-between flex-wrap gap-4">
+          <div class="flex items-center justify-between flex-wrap gap-4 mb-6">
             <div class="flex items-center gap-4 flex-wrap">
-              <p class="text-gray-700 dark:text-gray-300 font-medium">
+              <p class="text-gray-900 dark:text-gray-100 font-semibold text-lg">
                 <span>{{ currentSelectedCount }} of {{ currentMediaItems.length }} selected</span>
                 <span v-if="getEffectiveLimit !== null" class="text-gray-500 dark:text-gray-400">
                   <span class="mx-2">•</span>
@@ -395,9 +421,9 @@
               <!-- Limit Warning -->
               <div
                 v-if="isAtLimit(currentMediaItems)"
-                class="px-3 py-1.5 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800"
+                class="px-4 py-2 rounded-xl bg-gradient-to-r from-yellow-50 to-amber-50 dark:from-yellow-900/30 dark:to-amber-900/30 border-2 border-yellow-200 dark:border-yellow-800 shadow-sm"
               >
-                <p class="text-xs font-medium text-yellow-800 dark:text-yellow-200">
+                <p class="text-sm font-semibold text-yellow-900 dark:text-yellow-100">
                   Selection limit reached
                 </p>
               </div>
@@ -420,7 +446,7 @@
                 :style="{
                   backgroundColor: selectionColor,
                 }"
-                class="text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                class="text-white disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3 text-base font-semibold"
                 :loading="isCompleting"
                 loading-label="Completing..."
                 :icon="!isCompleting ? CheckCircle2 : null"
@@ -434,12 +460,12 @@
           </div>
 
           <!-- Media Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
             <div
               v-for="item in currentMediaItems"
               :key="item.id"
               :class="[
-                'relative rounded-lg overflow-hidden transition-all group',
+                'relative rounded-xl overflow-hidden transition-all duration-300 group',
                 isPreviewMode
                   ? 'opacity-100 hover:opacity-100 cursor-pointer'
                   : isAuthenticatedOwner
@@ -452,7 +478,7 @@
                           ? 'opacity-50 grayscale' // Unselected in completed, dimmed & grayscale
                           : isAtLimit(currentMediaItems) && !item.isSelected
                             ? 'opacity-50 cursor-not-allowed'
-                            : 'opacity-60 hover:opacity-100 hover:shadow-lg cursor-pointer',
+                            : 'opacity-95 hover:opacity-100 hover:shadow-2xl hover:scale-[1.02] cursor-pointer',
                 selection.status === 'completed' && item.isSelected === true
                   ? 'ring-1 ring-violet-500/50' // Subtle green ring for items selected on completion
                   : '',
@@ -471,13 +497,13 @@
               <!-- Media container with overflow-hidden to prevent scale overflow -->
               <div
                 :class="[
-                  'w-full aspect-square overflow-hidden rounded-lg transition-transform duration-300',
+                  'w-full aspect-square overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 transition-transform duration-300',
                   (isPreviewMode ||
                     (!isAuthenticatedOwner &&
                       selection.status !== 'completed' &&
                       !item.isSelected &&
                       !isAtLimit(currentMediaItems)))
-                    ? 'group-hover:scale-105'
+                    ? 'group-hover:scale-[1.03]'
                     : '',
                 ]"
               >
@@ -522,59 +548,65 @@
               <!-- Action Buttons (centered) -->
               <div
                 v-if="!isAuthenticatedOwner && selection.status !== 'completed'"
-                class="absolute inset-0 flex items-center justify-center gap-2 transition-opacity duration-200 z-30 opacity-0 group-hover:opacity-100"
+                :class="[
+                  'absolute inset-0 flex items-center justify-center transition-all duration-300 z-30',
+                  'opacity-0 group-hover:opacity-100',
+                  'bg-black/40 group-hover:bg-black/50 backdrop-blur-sm',
+                ]"
                 @click.stop
               >
-                <button
-                  class="px-3 py-1.5 rounded-md bg-black/60 hover:bg-black/80 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium"
-                  @click.stop="handleViewMedia(item)"
-                >
-                  <Eye class="h-3.5 w-3.5" />
-                  View
-                </button>
-                <button
-                  v-if="!item.isSelected"
-                  :disabled="
-                    (isAtLimit(currentMediaItems) && !item.isSelected) ||
-                    togglingMediaIds.has(item.id)
-                  "
-                  :style="{
-                    backgroundColor: selectionColor,
-                  }"
-                  class="px-3 py-1.5 rounded-md hover:opacity-90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  @mouseenter="
-                    e =>
-                      !e.target.disabled &&
-                      (e.target.style.backgroundColor = getSelectionHoverColor())
-                  "
-                  @mouseleave="
-                    e => !e.target.disabled && (e.target.style.backgroundColor = selectionColor)
-                  "
-                  @click.stop="handleToggleSelection(item.id)"
-                >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-3.5 w-3.5 animate-spin" />
-                  <CheckCircle2 v-else class="h-3.5 w-3.5" />
-                  Select
-                </button>
-                <button
-                  v-else
-                  :disabled="togglingMediaIds.has(item.id)"
-                  class="px-3 py-1.5 rounded-md bg-red-500/90 hover:bg-red-600/90 backdrop-blur-md transition-all duration-200 shadow-lg hover:scale-110 flex items-center gap-1.5 text-white text-xs font-medium disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
-                  @click.stop="handleToggleSelection(item.id)"
-                >
-                  <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-3.5 w-3.5 animate-spin" />
-                  <X v-else class="h-3.5 w-3.5" />
-                  Deselect
-                </button>
+                <div class="px-4 flex items-center justify-center flex-wrap gap-2">
+                  <button
+                    class="px-4 py-2 rounded-lg bg-white/95 hover:bg-white text-gray-900 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
+                    @click.stop="handleViewMedia(item)"
+                  >
+                    <Eye class="h-4 w-4" />
+                    <span>View</span>
+                  </button>
+                  <button
+                    v-if="!item.isSelected"
+                    :disabled="
+                      (isAtLimit(currentMediaItems) && !item.isSelected) ||
+                      togglingMediaIds.has(item.id)
+                    "
+                    :style="{
+                      backgroundColor: selectionColor,
+                    }"
+                    class="px-4 py-2 rounded-lg hover:opacity-90 transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    @mouseenter="
+                      e =>
+                        !e.target.disabled &&
+                        (e.target.style.backgroundColor = getSelectionHoverColor())
+                    "
+                    @mouseleave="
+                      e => !e.target.disabled && (e.target.style.backgroundColor = selectionColor)
+                    "
+                    @click.stop="handleToggleSelection(item.id)"
+                  >
+                    <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 animate-spin" />
+                    <CheckCircle2 v-else class="h-4 w-4" />
+                    <span>Select</span>
+                  </button>
+                  <button
+                    v-else
+                    :disabled="togglingMediaIds.has(item.id)"
+                    class="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                    @click.stop="handleToggleSelection(item.id)"
+                  >
+                    <Loader2 v-if="togglingMediaIds.has(item.id)" class="h-4 w-4 animate-spin" />
+                    <X v-else class="h-4 w-4" />
+                    <span>Deselect</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Currently Selected Badge (top right) -->
               <div
                 v-if="item.isSelected"
                 :style="{ backgroundColor: selectionColor }"
-                class="absolute top-2 right-2 text-white rounded-full p-1 z-10"
+                class="absolute top-2 right-2 text-white rounded-full p-1.5 z-10 shadow-xl backdrop-blur-sm border-2 border-white/30"
               >
-                <CheckCircle2 class="h-5 w-5" />
+                <CheckCircle2 class="h-5 w-5 fill-white" />
               </div>
               <!-- Loading indicator -->
               <div
@@ -719,7 +751,7 @@
       >
         <Button
           v-if="!previewCurrentItem.isSelected"
-          variant="default"
+          variant="primary"
           :disabled="isAtLimit(currentMediaItems) && !previewCurrentItem.isSelected"
           :icon="CheckCircle2"
           class="shadow-lg"
@@ -742,6 +774,8 @@
       v-model="showMediaLightbox"
       :initial-index="previewMediaIndex"
       :items="currentMediaItems"
+      :selection-id="selection?.id || selection?.uuid"
+      :guest-token="guestToken"
       @close="showMediaLightbox = false"
       @update:current-index="previewMediaIndex = $event"
     />
@@ -750,6 +784,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useOpenGraphMeta } from '@/composables/useOpenGraphMeta'
 import { useDownloadProtection } from '@/composables/useDownloadProtection'
 import { useThemeStore } from '@/stores/theme'
 import { useRoute } from 'vue-router'
@@ -778,7 +813,6 @@ import { useSettingsApi } from '@/api/settings'
 import { toast } from '@/utils/toast'
 import { getErrorMessage } from '@/utils/errors'
 import { clearSelectionGuestData } from '@/utils/guestLogout'
-import { getAccentColor } from '@/utils/colors'
 import mazelootPrimaryLogo from '@/assets/images/logos/mazelootPrimaryLogo.svg'
 
 const theme = useThemeClasses()
@@ -809,6 +843,7 @@ const showMediaLightbox = ref(false)
 const previewMediaIndex = ref(0)
 const brandingLogoUrl = ref(null)
 const brandingName = ref(null)
+const brandingBio = ref(null)
 const showMazelootBranding = ref(true)
 const isLoadingBranding = ref(true)
 
@@ -877,6 +912,7 @@ const fetchBranding = async (userId) => {
     const settings = settingsResponse.data || settingsResponse
     brandingLogoUrl.value = settings.branding?.logoUrl || null
     brandingName.value = settings.branding?.name || null
+    brandingBio.value = settings.biography || settings.bio || null
     showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true
   } catch (error) {
     console.warn('Failed to fetch public branding settings:', error)
@@ -884,6 +920,29 @@ const fetchBranding = async (userId) => {
     isLoadingBranding.value = false
   }
 }
+
+// OpenGraph meta tags
+const ogTitle = computed(() => {
+  return selection.value?.name && brandingName.value
+    ? `${selection.value.name} - ${brandingName.value}`
+    : brandingName.value || selection.value?.name || 'Selection'
+})
+
+const ogDescription = computed(() => {
+  return brandingBio.value || selection.value?.description || 
+    `View and select media in this selection${brandingName.value ? ` from ${brandingName.value}` : ''}`
+})
+
+const ogImage = computed(() => {
+  return selection.value?.coverPhotoUrl || selection.value?.cover_photo_url || ''
+})
+
+useOpenGraphMeta({
+  title: ogTitle,
+  description: ogDescription,
+  image: ogImage,
+  isLoading,
+})
 
 // Store password verification with timestamp (30 minutes)
 const storePasswordVerification = (selectionId) => {
@@ -945,9 +1004,124 @@ const isPreviewMode = computed(() => {
   return route.query.preview === 'true' && isAuthenticatedOwner.value
 })
 
-// Get selection theme color (with fallback to accent)
+// Get selection theme color (with fallback to blue-500 for selections)
 const selectionColor = computed(() => {
-  return selection.value?.color || getAccentColor()
+  return selection.value?.color || '#3B82F6' // Default blue-500 for selections
+})
+
+// Typography config - backend always returns defaults
+const typographyConfig = computed(() => {
+  const selectionDesign = selection.value?.design || selection.value?.settings?.design || {}
+  const selectionTypography = selection.value?.typographyDesign || selectionDesign?.typography || {}
+  
+  return {
+    fontFamily: selectionTypography.fontFamily || 'sans',
+    fontStyle: selectionTypography.fontStyle || 'normal',
+  }
+})
+
+// Font family class
+const fontFamilyClass = computed(() => {
+  const fontMap = {
+    sans: 'font-sans',
+    serif: 'font-serif',
+    modern: 'font-mono',
+    bebas: 'font-bebas',
+    oswald: 'font-oswald',
+    abril: 'font-abril',
+    bungee: 'font-bungee',
+    righteous: 'font-righteous',
+    playfair: 'font-playfair',
+    montserrat: 'font-montserrat',
+    lato: 'font-lato',
+    raleway: 'font-raleway',
+    opensans: 'font-opensans',
+    roboto: 'font-roboto',
+    poppins: 'font-poppins',
+    inter: 'font-inter',
+    nunito: 'font-nunito',
+    barlow: 'font-barlow',
+    worksans: 'font-worksans',
+    spacegrotesk: 'font-spacegrotesk',
+    outfit: 'font-outfit',
+    dmsans: 'font-dmsans',
+    plusjakarta: 'font-plusjakarta',
+    manrope: 'font-manrope',
+    sora: 'font-sora',
+    figtree: 'font-figtree',
+    syne: 'font-syne',
+    source: 'font-source',
+    ubuntu: 'font-ubuntu',
+    merriweather: 'font-merriweather',
+    crimson: 'font-crimson',
+    lora: 'font-lora',
+    spacemono: 'font-spacemono',
+    jetbrains: 'font-jetbrains',
+    comfortaa: 'font-comfortaa',
+    quicksand: 'font-quicksand',
+    rubik: 'font-rubik',
+    dancing: 'font-dancing',
+    pacifico: 'font-pacifico',
+    caveat: 'font-caveat',
+    kalam: 'font-kalam',
+    satisfy: 'font-satisfy',
+    greatvibes: 'font-greatvibes',
+    amatic: 'font-amatic',
+    shadows: 'font-shadows',
+    permanent: 'font-permanent',
+    indie: 'font-indie',
+  }
+  return fontMap[typographyConfig.value.fontFamily] || 'font-sans'
+})
+
+// Font style class
+const fontStyleClass = computed(() => {
+  const style = typographyConfig.value.fontStyle || 'normal'
+  if (typeof style === 'string') {
+    const styles = style.split(/[\s-]+/).filter(s => s.length > 0)
+    const classes = []
+    if (styles.includes('bold')) {
+      classes.push('font-bold')
+    } else {
+      classes.push('font-normal')
+    }
+    if (styles.includes('italic')) {
+      classes.push('italic')
+    }
+    return classes.join(' ') || 'font-normal'
+  }
+  return 'font-normal'
+})
+
+// Auto-calculate font size based on content length for optimal display
+const fontSizeClassH1 = computed(() => {
+  const name = selection.value?.name || 'Selection'
+  const nameLength = name.length
+  
+  // Shorter names get larger, longer names get smaller for better readability
+  if (nameLength <= 15) {
+    return 'text-4xl md:text-5xl lg:text-6xl xl:text-7xl'
+  } else if (nameLength <= 30) {
+    return 'text-3xl md:text-4xl lg:text-5xl xl:text-6xl'
+  } else if (nameLength <= 50) {
+    return 'text-2xl md:text-3xl lg:text-4xl xl:text-5xl'
+  } else {
+    return 'text-xl md:text-2xl lg:text-3xl xl:text-4xl'
+  }
+})
+
+const fontSizeClassP = computed(() => {
+  const description = selection.value?.description || ''
+  const descLength = description.length
+  
+  // Scale description based on length
+  if (descLength <= 100) {
+    return 'text-base md:text-lg lg:text-xl'
+  } else if (descLength <= 200) {
+    return 'text-sm md:text-base lg:text-lg'
+  } else {
+    return 'text-sm md:text-base'
+  }
 })
 
 // Get selection color styles for dynamic theming
@@ -979,9 +1153,9 @@ const hexToRgb = hex => {
         b: parseInt(result[3], 16),
       }
     : (() => {
-        const accent = getAccentColor()
-        const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(accent)
-        return rgb ? { r: parseInt(rgb[1], 16), g: parseInt(rgb[2], 16), b: parseInt(rgb[3], 16) } : { r: 139, g: 92, b: 246 }
+        const color = selectionColor.value
+        const rgb = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color)
+        return rgb ? { r: parseInt(rgb[1], 16), g: parseInt(rgb[2], 16), b: parseInt(rgb[3], 16) } : { r: 59, g: 130, b: 246 } // blue-500 fallback
       })()
 }
 

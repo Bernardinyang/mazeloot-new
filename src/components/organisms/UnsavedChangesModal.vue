@@ -34,16 +34,15 @@
         <div class="flex items-center gap-2">
           <Button
             :disabled="isSaving"
-            class="bg-red-500 hover:bg-red-600 text-white border-red-500 hover:border-red-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            variant="destructive"
             @click="handleDiscard"
           >
             Discard Changes
           </Button>
           <Button
-            variant="default"
+            variant="primary"
             :loading="isSaving"
             loading-label="Saving..."
-            class="shadow-lg hover:shadow-xl transition-all duration-200"
             @click="handleSave"
           >
             Save & Leave

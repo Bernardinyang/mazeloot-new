@@ -173,14 +173,22 @@
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              :disabled="isDeleting"
+              :disabled="isDeleting || isDuplicating"
               @click.stop="$emit('edit', proofing)"
             >
               <span>Edit</span>
             </DropdownMenuItem>
             <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :disabled="isDeleting || isDuplicating"
+              @click.stop="$emit('duplicate', proofing)"
+            >
+              <span v-if="isDuplicating">Duplicating...</span>
+              <span v-else>Duplicate</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
               :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
-              :disabled="isDeleting"
+              :disabled="isDeleting || isDuplicating"
               @click.stop="$emit('delete', proofing)"
             >
               <span v-if="isDeleting">Deleting...</span>
@@ -262,9 +270,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  isDuplicating: {
+    type: Boolean,
+    default: false,
+  },
 })
 
-const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'view-details'])
+const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'duplicate', 'view-details'])
 
 const theme = useThemeClasses()
 const isDropdownOpen = ref(false)

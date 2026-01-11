@@ -47,7 +47,7 @@
 
             <!-- Heart/Favorite Button (public mode) -->
             <button
-              v-if="publicMode"
+              v-if="publicMode && !hideFavoriteIcon"
               aria-label="Favorite"
               class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
               :class="isFavorite ? 'text-red-500' : 'text-white'"
@@ -379,6 +379,18 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  slideshowSpeed: {
+    type: String,
+    default: 'regular', // 'slow' | 'regular' | 'fast'
+  },
+  slideshowAutoLoop: {
+    type: Boolean,
+    default: true,
+  },
+  hideFavoriteIcon: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'update:currentIndex', 'close', 'download', 'image-error', 'open-comments', 'share', 'favorite', 'slideshow', 'toggle-private'])
@@ -401,7 +413,17 @@ const isFavorite = ref(false)
 const isPrivate = ref(false)
 const isSlideshowPlaying = ref(false)
 const slideshowInterval = ref(null)
-const slideshowDelay = 3000 // 3 seconds
+const slideshowDelay = computed(() => {
+  switch (props.slideshowSpeed) {
+    case 'slow':
+      return 5000 // 5 seconds
+    case 'fast':
+      return 1500 // 1.5 seconds
+    case 'regular':
+    default:
+      return 3000 // 3 seconds
+  }
+})
 const isFullscreen = ref(false)
 const fullscreenElement = ref(null)
 
@@ -508,6 +530,17 @@ const getMediaUrl = item => {
   const mediaType = item.type || item.file?.type
 
   if (mediaType === 'image') {
+    // Use preview variant for public selection (has selectionId and guestToken)
+    if (props.selectionId && props.guestToken) {
+      if (item.file?.variants?.preview) {
+        return item.file.variants.preview
+      }
+      // Fallback to file.url which should be preview variant for public selection
+      if (item.file?.url) {
+        return item.file.url
+      }
+    }
+    
     if (item.largeImageUrl) {
       return item.largeImageUrl
     }
@@ -814,11 +847,14 @@ const slideshowNext = () => {
   if (hasNext.value) {
     currentIndex.value++
     isLoading.value = true
-  } else {
-    // Loop back to start
+  } else if (props.slideshowAutoLoop) {
+    // Loop back to start if auto loop is enabled
     currentIndex.value = 0
     isLoading.value = true
     updateMediaUrl()
+  } else {
+    // Stop slideshow if auto loop is disabled
+    stopSlideshow()
   }
 }
 
@@ -833,7 +869,7 @@ const startSlideshow = async () => {
   
   slideshowInterval.value = setInterval(() => {
     slideshowNext()
-  }, slideshowDelay)
+  }, slideshowDelay.value)
 }
 
 const stopSlideshow = async () => {

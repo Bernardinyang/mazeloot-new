@@ -4,7 +4,19 @@
     <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
       SETTINGS
     </h2>
-    <div class="space-y-1">
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="space-y-1">
+      <div
+        v-for="i in 4"
+        :key="i"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg"
+      >
+        <Skeleton class="h-4 w-4 rounded" />
+        <Skeleton class="h-4 w-20 rounded-md" />
+        <Skeleton v-if="i > 2" class="h-5 w-10 rounded-full ml-auto" />
+      </div>
+    </div>
+    <div v-else class="space-y-1">
       <router-link
         v-if="props.collectionId"
         :class="[
@@ -86,7 +98,15 @@
 
   <!-- SETTINGS Section - Collapsed -->
   <div v-else class="flex flex-col items-center gap-2 pt-4">
-    <TooltipProvider>
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="flex flex-col items-center gap-2">
+      <Skeleton
+        v-for="i in 4"
+        :key="i"
+        class="h-10 w-10 rounded-lg"
+      />
+    </div>
+    <TooltipProvider v-else>
       <Tooltip>
         <TooltipTrigger as-child>
           <router-link
@@ -173,12 +193,14 @@ import {
   TooltipTrigger,
 } from '@/components/shadcn/tooltip'
 import { useThemeClasses } from '@/composables/useThemeClasses'
+import { Skeleton } from '@/components/shadcn/skeleton'
 
 const props = defineProps({
   collectionId: { type: String, default: '' },
   isSidebarCollapsed: { type: Boolean, required: true },
   downloadEnabled: { type: Boolean, default: false },
   favoriteEnabled: { type: Boolean, default: false },
+  isLoading: { type: Boolean, default: false },
 })
 
 const theme = useThemeClasses()

@@ -225,7 +225,7 @@
           :loading="isSubmitting"
           :icon="CheckCircle2"
           loading-label="Submitting..."
-          class="bg-amber-500 hover:bg-amber-600 text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="warning"
           @click="handleRequestClosure"
         >
           Request Closure

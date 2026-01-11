@@ -101,7 +101,7 @@
               />
             </div>
             <Button
-              variant="default"
+              variant="primary"
               :disabled="!newPlatform.name || !newPlatform.slug"
               :loading="isCreating"
               @click="handleCreatePlatform"

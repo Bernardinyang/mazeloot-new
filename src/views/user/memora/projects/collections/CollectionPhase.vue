@@ -28,7 +28,7 @@
         </div>
         <div class="flex items-center gap-2">
           <Button
-            variant="default"
+            variant="primary"
             size="sm"
             @click="handleCreateCollection"
           >
@@ -101,7 +101,7 @@
       <div v-else-if="!isLoadingCollections" class="text-center py-12">
         <p :class="theme.textSecondary" class="mb-4">No collections created yet</p>
         <Button
-          variant="default"
+          variant="primary"
           @click="handleCreateCollection"
         >
           Create First Collection

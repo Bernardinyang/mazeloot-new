@@ -1,3 +1,4 @@
+import GettingStarted from '@/views/user/GettingStarted.vue'
 import DashboardView from '@/views/user/memora/Dashboard.vue'
 import CollectionsView from '@/views/user/memora/Collections.vue'
 import StarredCollectionsView from '@/views/user/memora/starred/StarredCollections.vue'
@@ -50,6 +51,14 @@ export const memoraRoutes = [
     path: '/dashboard',
     name: 'dashboard',
     redirect: { name: 'memoraDashboard' },
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/getting-started',
+    name: 'gettingStarted',
+    component: GettingStarted,
     meta: {
       requiresAuth: true,
     },

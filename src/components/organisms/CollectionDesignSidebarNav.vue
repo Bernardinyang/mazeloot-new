@@ -1,8 +1,19 @@
 <template>
   <!-- DESIGN Section - Expanded -->
   <div v-if="!props.isSidebarCollapsed" class="space-y-5">
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="space-y-1">
+      <div
+        v-for="i in 4"
+        :key="i"
+        class="flex items-center gap-3 px-3 py-2.5 rounded-lg"
+      >
+        <Skeleton class="h-4 w-4 rounded" />
+        <Skeleton class="h-4 w-24 rounded-md" />
+      </div>
+    </div>
     <!-- Cover Sub-Navigation -->
-    <div class="space-y-1">
+    <div v-else class="space-y-1">
       <router-link
         v-if="hasCoverPhoto"
         :class="[
@@ -64,7 +75,16 @@
 
   <!-- DESIGN Section - Collapsed (Icon Only) -->
   <div v-else class="flex flex-col items-center gap-2 pt-4">
-    <TooltipProvider v-if="hasCoverPhoto">
+    <!-- Skeleton Loader -->
+    <div v-if="props.isLoading" class="flex flex-col items-center gap-2">
+      <Skeleton
+        v-for="i in 4"
+        :key="i"
+        class="h-10 w-10 rounded-lg"
+      />
+    </div>
+    <template v-else>
+      <TooltipProvider v-if="hasCoverPhoto">
       <Tooltip>
         <TooltipTrigger as-child>
           <router-link
@@ -160,6 +180,7 @@
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
+    </template>
   </div>
 </template>
 
@@ -175,10 +196,12 @@ import {
 } from '@/components/shadcn/tooltip'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 import { useGalleryStore } from '@/stores/gallery'
+import { Skeleton } from '@/components/shadcn/skeleton'
 
 const props = defineProps({
   collectionId: { type: String, default: '' },
   isSidebarCollapsed: { type: Boolean, required: true },
+  isLoading: { type: Boolean, default: false },
 })
 
 const theme = useThemeClasses()

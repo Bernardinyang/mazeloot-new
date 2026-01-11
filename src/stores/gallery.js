@@ -22,7 +22,7 @@ export const useGalleryStore = defineStore('gallery', () => {
   
   // View settings
   const viewMode = ref(storage.get(VIEW_MODE_STORAGE_KEY) || 'grid')
-  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'small')
+  const gridSize = ref(storage.get(GRID_SIZE_STORAGE_KEY) || 'medium')
   const showFilename = ref(storage.get(SHOW_FILENAME_STORAGE_KEY) ?? true)
   const sortOrder = ref(storage.get(SORT_ORDER_STORAGE_KEY) || 'uploaded-new-old')
 
@@ -572,7 +572,7 @@ export const useGalleryStore = defineStore('gallery', () => {
     if (['small', 'medium', 'large'].includes(size)) {
       gridSize.value = size
     } else {
-      gridSize.value = 'small'
+      gridSize.value = 'medium'
     }
   }
 

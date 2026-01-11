@@ -198,10 +198,32 @@
 
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-          <div class="text-center space-y-4">
-            <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm">Loading settings...</p>
+        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+          <!-- Skeleton Header -->
+          <div class="mb-10">
+            <div class="flex items-center gap-3 mb-2">
+              <Skeleton class="h-9 w-64 rounded-lg" />
+              <Skeleton class="h-5 w-5 rounded-full" />
+            </div>
+            <Skeleton class="h-4 w-96 rounded-md" />
+          </div>
+
+          <!-- Skeleton Settings Sections -->
+          <div class="space-y-6">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+            >
+              <div>
+                <Skeleton class="h-6 w-40 rounded-md mb-2" />
+                <Skeleton class="h-3 w-80 rounded-md mb-3" />
+              </div>
+              <div class="flex items-center gap-3">
+                <Skeleton class="h-5 w-5 rounded" />
+                <Skeleton class="h-4 w-48 rounded-md" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -265,7 +287,8 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Info, Loader2, Lock, Settings } from 'lucide-vue-next'
+import { Download, Heart, Info, Lock, Settings } from 'lucide-vue-next'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -287,7 +310,7 @@ const presetStore = usePresetStore()
 
 // Collection data
 const collection = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 const collectionStatus = ref('draft')
 const eventDate = ref(null)
 const selectedPresetId = ref('none')
@@ -322,7 +345,20 @@ const downloadPin = ref('2434')
 // Load collection data
 onMounted(async () => {
   const collectionId = route.params.uuid
-  if (!collectionId) return
+  if (!collectionId) {
+    isLoading.value = false
+    return
+  }
+
+  // Check if collection is already in store
+  const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
+  if (existingCollection) {
+    collection.value = existingCollection
+    collectionStatus.value = existingCollection.status === 'active' ? 'published' : 'draft'
+    eventDate.value = existingCollection.eventDate ? new Date(existingCollection.eventDate) : null
+    isLoading.value = false
+    return
+  }
 
   isLoading.value = true
   try {

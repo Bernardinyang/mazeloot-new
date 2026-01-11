@@ -1,5 +1,9 @@
 import Home from '@/views/public/Home.vue'
 import About from '@/views/public/About.vue'
+import Products from '@/views/public/Products.vue'
+import Pricing from '@/views/public/Pricing.vue'
+import ContactUs from '@/views/public/ContactUs.vue'
+import Waitlist from '@/views/public/Waitlist.vue'
 import ClientSelectionView from '@/views/public/projects/_projectId/selections.vue'
 import ClientProofingView from '@/views/public/projects/_projectId/proofing.vue'
 import BrandHomepage from '@/views/public/BrandHomepage.vue'
@@ -9,11 +13,49 @@ export const publicRoutes = [
     path: '/',
     name: 'home',
     component: Home,
+    meta: {
+      requiresAuth: false,
+    },
   },
   {
     path: '/about',
     name: 'about',
     component: About,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/products',
+    name: 'products',
+    component: Products,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/pricing',
+    name: 'pricing',
+    component: Pricing,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: ContactUs,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/waitlist',
+    name: 'waitlist',
+    component: Waitlist,
+    meta: {
+      requiresAuth: false,
+    },
   },
   // Client project routes
   {
@@ -36,6 +78,22 @@ export const publicRoutes = [
     path: '/p/:projectId/collection',
     name: 'clientCollection',
     component: () => import('@/views/public/projects/_projectId/collection.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/p/:projectId/collection/download',
+    name: 'clientCollectionDownload',
+    component: () => import('@/views/public/projects/_projectId/download.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/cloud-storage/oauth/callback',
+    name: 'cloudStorageOAuthCallback',
+    component: () => import('@/views/public/CloudStorageOAuthCallback.vue'),
     meta: {
       requiresAuth: false,
     },

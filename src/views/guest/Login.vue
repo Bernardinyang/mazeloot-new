@@ -225,6 +225,9 @@ const handleLogin = async values => {
   try {
     await userStore.login(values.email, values.password, values.remember)
 
+    // Don't clear isNewUser on login - it should only be cleared after visiting getting started
+    // If user was previously registered, flag will persist; if existing user, flag is already false
+
     toast.success('Welcome back! Redirecting...')
 
     // Redirect to the original destination or overview

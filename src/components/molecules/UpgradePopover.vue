@@ -41,7 +41,7 @@
 
           <!-- CTA Button -->
           <Button
-            variant="default"
+            variant="primary"
             :icon="Rocket"
             class="w-full font-medium py-2.5"
             @click="handleUpgrade"

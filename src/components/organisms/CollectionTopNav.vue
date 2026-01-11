@@ -1,12 +1,10 @@
 <template>
   <nav
-    :class="theme.borderSecondary"
-    class="flex items-center justify-between px-6 py-3.5 border-b bg-white dark:bg-gray-900 shadow-sm"
-    style="min-height: 3.5rem"
+    :class="[theme.borderSecondary, 'flex flex-col sm:flex-row items-start sm:items-center justify-between px-3 sm:px-4 md:px-6 py-2 sm:py-3 md:py-3.5 border-b bg-white dark:bg-gray-950/95 shadow-sm gap-3 sm:gap-0 min-h-auto sm:min-h-[3.5rem]']"
   >
 
     <!-- Left Side: Back Button, Title/Status Section, Date/Preset/Watermark -->
-    <div class="flex items-start gap-3 min-w-0">
+    <div class="flex items-start gap-2 sm:gap-3 min-w-0 flex-1 w-full sm:w-auto">
       <!-- Section 1: Back Button -->
       <button
         :class="[theme.borderSecondary, theme.bgCard]"
@@ -28,7 +26,7 @@
           <div class="flex items-center gap-2 min-w-0">
             <!-- Cover thumbnail -->
             <div
-              class="flex-shrink-0 h-7 w-7 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700"
+              class="flex-shrink-0 h-7 w-7 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-800/90 border border-gray-200 dark:border-gray-600/70"
               title="Cover photo - Set from media items"
             >
               <img
@@ -42,7 +40,7 @@
               <h1
                 v-if="!props.isEditingName"
                 key="title"
-                class="text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text hover:text-accent transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95"
+                class="text-base sm:text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text hover:text-accent transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95 truncate"
                 style="line-height: 1.5rem"
                 @click="emit('startEditingName')"
               >
@@ -88,52 +86,9 @@
             </Transition>
           </div>
 
-          <!-- Status Dropdown (next to title) -->
+          <!-- Status Badge (next to title) -->
           <div class="flex-shrink-0">
-            <Select
-              :disabled="props.isSavingStatus"
-              :model-value="props.collectionStatus"
-              @update:model-value="emit('update:collectionStatus', $event)"
-            >
-              <SelectTrigger
-                :class="[
-                  'h-6 px-2.5 text-xs font-semibold rounded-full border-0',
-                  'bg-gray-100 dark:bg-gray-800',
-                  'text-gray-700 dark:text-gray-300 uppercase tracking-wide',
-                  'hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors',
-                  'w-auto min-w-[70px]',
-                  props.isSavingStatus ? 'opacity-50 cursor-wait' : '',
-                ]"
-              >
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  label="DRAFT"
-                  value="draft"
-                  @click="emit('handleStatusChange', 'draft')"
-                >
-                  DRAFT
-                </SelectItem>
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  label="PUBLISHED"
-                  value="published"
-                  @click="emit('handleStatusChange', 'published')"
-                >
-                  PUBLISHED
-                </SelectItem>
-                <SelectItem
-                  :class="[theme.textPrimary, theme.bgButtonHover]"
-                  label="ARCHIVED"
-                  value="archived"
-                  @click="emit('handleStatusChange', 'archived')"
-                >
-                  ARCHIVED
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <StatusBadge :status="collectionStatusDisplay" />
           </div>
         </div>
         <!-- Loading State for Title and Status Row -->
@@ -144,31 +99,31 @@
               class="flex-shrink-0 h-7 w-7 rounded-lg bg-gray-200 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 animate-pulse"
             ></div>
             <!-- Title skeleton -->
-            <div class="h-6 w-48 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+            <div class="h-6 w-48 rounded bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
           </div>
-          <!-- Status dropdown skeleton -->
-          <div class="h-6 w-20 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+          <!-- Status badge skeleton -->
+          <div class="h-6 w-16 rounded-full bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
         </div>
 
         <!-- Date, Preset, and Watermark Row (under title/status) -->
         <div
           v-if="!props.isLoading"
-          class="flex items-center gap-2.5 flex-wrap"
+          class="flex items-center gap-1.5 sm:gap-2.5 flex-wrap mt-1"
           style="min-height: 1.25rem"
         >
           <!-- Inline Date Picker -->
           <Popover v-model:open="isDatePickerOpen">
             <PopoverTrigger as-child>
               <button
-                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
+                class="text-xs text-left text-gray-500 dark:text-gray-300 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1 sm:gap-1.5 group px-1.5 sm:px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:scale-[1.02] active:scale-95"
                 style="line-height: 1.25rem"
               >
-                <span class="opacity-70 transition-opacity duration-200">Date:</span>
-                <span class="font-medium transition-colors duration-200">{{
-                  props.eventDate ? formatDate(props.eventDate) : 'Add event date'
+                <span class="opacity-70 transition-opacity duration-200 hidden sm:inline">Date:</span>
+                <span class="font-medium transition-colors duration-200 truncate">{{
+                  props.eventDate ? formatDate(props.eventDate) : 'Add date'
                 }}</span>
                 <ChevronDown
-                  class="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200"
+                  class="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200 shrink-0"
                 />
               </button>
             </PopoverTrigger>
@@ -190,15 +145,15 @@
           <Popover v-if="props.watermarks && props.watermarks.length > 0" v-model:open="isWatermarkPopoverOpen">
             <PopoverTrigger as-child>
               <button
-                class="text-xs text-left text-gray-500 dark:text-gray-400 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1.5 group px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:scale-[1.02] active:scale-95"
+                class="text-xs text-left text-gray-500 dark:text-gray-300 hover:text-accent transition-all duration-200 ease-out flex items-center gap-1 sm:gap-1.5 group px-1.5 sm:px-2 py-0.5 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/60 hover:scale-[1.02] active:scale-95"
                 style="line-height: 1.25rem"
               >
-                <span class="opacity-70 transition-opacity duration-200">Watermark:</span>
-                <span class="font-medium transition-colors duration-200">{{
+                <span class="opacity-70 transition-opacity duration-200 hidden sm:inline">Watermark:</span>
+                <span class="font-medium transition-colors duration-200 truncate">{{
                   props.selectedWatermarkName || 'No watermark'
                 }}</span>
                 <ChevronDown
-                  class="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200"
+                  class="h-3 w-3 opacity-0 group-hover:opacity-60 transition-opacity duration-200 shrink-0"
                 />
               </button>
             </PopoverTrigger>
@@ -213,7 +168,7 @@
                       ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                       : theme.textPrimary,
                   ]"
-                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors"
                   @click="handleWatermarkSelect('none')"
                 >
                   No watermark
@@ -226,7 +181,7 @@
                       ? 'bg-accent/10 dark:bg-accent/20 text-accent'
                       : theme.textPrimary,
                   ]"
-                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  class="w-full text-left px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors"
                   @click="handleWatermarkSelect(watermark.id)"
                 >
                   {{ watermark.name }}
@@ -234,6 +189,7 @@
               </div>
             </PopoverContent>
           </Popover>
+
         </div>
         <div
           v-else
@@ -244,24 +200,41 @@
     </div>
 
     <!-- Right Side: Theme, Preview, Share, Publish -->
-    <div v-if="props.isLoading" class="flex items-center gap-3 flex-shrink-0">
-      <div class="h-9 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-      <div class="h-9 w-9 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-      <div class="h-9 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
-      <div class="h-9 w-28 rounded bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+    <div v-if="props.isLoading" class="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap">
+      <div class="h-8 sm:h-9 w-16 sm:w-24 rounded bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
+      <div class="h-8 sm:h-9 w-8 sm:w-9 rounded bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
+      <div class="h-8 sm:h-9 w-16 sm:w-20 rounded bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
+      <div class="h-8 sm:h-9 w-20 sm:w-28 rounded bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
     </div>
-    <div v-else class="flex items-center gap-3 flex-shrink-0">
+    <div v-else class="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
+      <!-- Storage indicator -->
+      <div
+        v-if="props.collection"
+        :class="[
+          'flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
+          'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-800/50',
+          'hover:bg-purple-100/50 dark:hover:bg-purple-900/40',
+        ]"
+      >
+        <HardDrive class="h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
+        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300">
+          {{ formatBytes(props.collection.storageUsedBytes ?? 0) }}
+        </span>
+      </div>
+      
       <!-- Theme Toggle -->
       <ThemeToggle />
 
       <!-- Preview Button -->
       <Button
         :class="[theme.textSecondary, theme.bgButtonHover]"
-        class="px-4 py-2 text-sm font-medium"
+        class="px-2 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium shrink-0"
         variant="ghost"
+        size="sm"
         @click="emit('handlePreview')"
       >
-        Preview
+        <span class="hidden sm:inline">Preview</span>
+        <Eye class="h-4 w-4 sm:hidden" />
       </Button>
 
       <!-- Share Button (when published) -->
@@ -269,12 +242,12 @@
         v-if="props.collectionStatus === 'published'"
         variant="outline"
         size="sm"
-        :class="[theme.borderSecondary, theme.textPrimary]"
+        :class="[theme.borderSecondary, theme.textPrimary, 'shrink-0']"
         :disabled="props.isLoading"
         @click="emit('handleShare')"
       >
-        <Share2 class="h-4 w-4 mr-2" />
-        Share
+        <Share2 class="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2" />
+        <span class="hidden sm:inline">Share</span>
       </Button>
 
       <!-- Publish/Unpublish Buttons -->
@@ -282,21 +255,24 @@
         v-if="props.collectionStatus === 'published'"
         variant="destructive"
         size="sm"
-        class="bg-red-500 hover:bg-red-600 text-white"
+        :class="['shrink-0']"
         :disabled="props.isSavingStatus"
         :loading="props.isSavingStatus"
         loading-label="Unpublishing..."
         :icon="!props.isSavingStatus ? X : null"
         @click="emit('handleUnpublish')"
       >
-        Unpublish
+        <span class="hidden sm:inline">Unpublish</span>
+        <span class="sm:hidden">Unpub</span>
       </Button>
       <Button
         v-else
-        variant="default"
+        variant="primary"
+        size="sm"
+        :class="['shrink-0']"
         :loading="props.isSavingStatus"
         loading-label="Publishing..."
-        class="px-5 py-2 text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
+        class="px-3 sm:px-5 py-1.5 sm:py-2 text-xs sm:text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200"
         @click="emit('handlePublish')"
       >
         Publish
@@ -314,18 +290,14 @@ import {
   Loader2,
   Share2,
   X,
+  HardDrive,
+  Eye,
 } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button/index'
 import { Calendar } from '@/components/shadcn/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/shadcn/popover/index'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/shadcn/select/index'
 import ThemeToggle from '@/components/organisms/ThemeToggle.vue'
+import StatusBadge from '@/components/atoms/StatusBadge.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
 
 const props = defineProps({
@@ -400,7 +372,19 @@ const handleWatermarkSelect = watermarkId => {
   emit('handleWatermarkChange', watermarkId)
 }
 
+const collectionStatusDisplay = computed(() => {
+  return props.collectionStatus?.toUpperCase() || 'DRAFT'
+})
+
 const formatDate = date => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+}
+
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 </script>

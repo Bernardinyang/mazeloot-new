@@ -160,6 +160,7 @@ const fetchStarredProjects = async params => {
 
 const {
   data: projects,
+  pagination,
   isLoading,
   fetch,
   resetToFirstPage,
@@ -204,30 +205,34 @@ const handleProjectClick = project => {
 }
 
 const toggleStar = async project => {
+  if (!project || !project.id) return
+  
   const wasStarred = project.isStarred || project.starred || false
   const newStarredState = !wasStarred
-  const projectIndex = projects.value.findIndex(p => p.id === project.id)
+  const projectIndex = projects.value.findIndex(p => p.id === project.id || p.id === String(project.id))
 
   try {
-    // Optimistic update - update UI immediately
-    if (projectIndex !== -1) {
-      projects.value[projectIndex] = {
-        ...projects.value[projectIndex],
-        isStarred: newStarredState,
-        starred: newStarredState,
-      }
-    }
-
     // Sync with server
     const result = await projectStore.toggleStar(project.id)
 
-    // Update with server response if available
-    const serverStarredState = result?.starred ?? result?.data?.starred ?? newStarredState
+    // Update with server response - check multiple possible response formats
+    const serverStarredState = result?.starred ?? result?.data?.starred ?? result?.data?.data?.starred ?? newStarredState
+    
     if (projectIndex !== -1) {
-      projects.value[projectIndex] = {
-        ...projects.value[projectIndex],
-        isStarred: serverStarredState,
-        starred: serverStarredState,
+      // If unstarred in starred view, remove from list
+      if (!serverStarredState) {
+        projects.value.splice(projectIndex, 1)
+        // Update pagination total if available
+        if (pagination && pagination.value && pagination.value.total > 0) {
+          pagination.value.total -= 1
+        }
+      } else {
+        // Update the item state
+        projects.value[projectIndex] = {
+          ...projects.value[projectIndex],
+          isStarred: serverStarredState,
+          starred: serverStarredState,
+        }
       }
     }
   } catch (error) {

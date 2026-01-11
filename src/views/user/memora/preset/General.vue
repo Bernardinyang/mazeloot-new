@@ -561,7 +561,7 @@
               </span>
             </Transition>
             <Button
-              variant="default"
+              variant="primary"
               :disabled="false"
               :loading="isSubmitting || isSaving"
               loading-label="Saving..."

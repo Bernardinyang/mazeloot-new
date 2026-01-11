@@ -400,7 +400,7 @@
               Replace photo
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
+              v-if="!props.minimalActions && ((props.item?.type === 'image' || props.item?.file?.type === 'image') || (props.item?.type === 'video' || props.item?.file?.type === 'video')) && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('remove-watermark')"
             >
@@ -408,7 +408,7 @@
               Remove Watermark
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.file?.type === 'image') && !(props.item?.isCompleted || props.item?.is_completed)"
+              v-if="!props.minimalActions && ((props.item?.type === 'image' || props.item?.file?.type === 'image') || (props.item?.type === 'video' || props.item?.file?.type === 'video')) && !(props.item?.isCompleted || props.item?.is_completed)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('watermark')"
             >

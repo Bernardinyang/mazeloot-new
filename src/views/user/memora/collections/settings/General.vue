@@ -3,10 +3,42 @@
     <!-- Sidebar is unified in CollectionLayout -->
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
-          <div class="text-center space-y-4">
-            <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
-            <p :class="theme.textSecondary" class="text-sm">Loading settings...</p>
+        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+          <!-- Skeleton Header -->
+          <div class="mb-10">
+            <div class="flex items-center gap-3 mb-2">
+              <Skeleton class="h-9 w-64 rounded-lg" />
+              <Skeleton class="h-5 w-5 rounded-full" />
+            </div>
+            <Skeleton class="h-4 w-96 rounded-md" />
+          </div>
+
+          <!-- Skeleton Settings Sections -->
+          <div class="space-y-6">
+            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+              <div>
+                <Skeleton class="h-6 w-32 rounded-md mb-2" />
+                <Skeleton class="h-3 w-80 rounded-md mb-3" />
+              </div>
+              <Skeleton class="h-10 w-64 rounded-md" />
+            </div>
+            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+              <div>
+                <Skeleton class="h-6 w-40 rounded-md mb-2" />
+                <Skeleton class="h-3 w-72 rounded-md mb-3" />
+              </div>
+              <Skeleton class="h-10 w-64 rounded-md" />
+            </div>
+            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+              <div>
+                <Skeleton class="h-6 w-36 rounded-md mb-2" />
+                <Skeleton class="h-3 w-96 rounded-md mb-3" />
+              </div>
+              <div class="flex items-center gap-3">
+                <Skeleton class="h-5 w-5 rounded" />
+                <Skeleton class="h-4 w-48 rounded-md" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -33,49 +65,6 @@
 
           <!-- Settings Sections -->
           <div class="space-y-6">
-            <!-- Collection URL -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
-            >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Collection URL</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Choose a unique url for visitors to access your collection.
-                </p>
-              </div>
-              <Input
-                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                :model-value="collectionUrl"
-                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
-                placeholder="mysamplecollection"
-                @update:model-value="collectionUrl = $event"
-              />
-            </div>
-
-            <!-- Category Tags -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
-            >
-              <div>
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Category Tags</h3>
-                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
-                  Add tags to categorize different collections e.g. wedding, outdoor, summer.
-                  <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#"
-                    >Learn more</a
-                  >
-                </p>
-              </div>
-              <Input
-                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                :model-value="categoryTags"
-                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
-                placeholder="Select or enter tags"
-                @update:model-value="categoryTags = $event"
-              />
-            </div>
-
             <!-- Preset -->
             <div
               v-if="presets && presets.length > 0"
@@ -125,7 +114,7 @@
                 </Select>
                 <Button
                   v-if="selectedPresetId !== 'none'"
-                  variant="default"
+                  variant="primary"
                   :loading="isApplyingPreset"
                   :icon="Sparkles"
                   loading-label="Applying..."
@@ -235,6 +224,37 @@
               </Transition>
             </div>
 
+            <!-- Description -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Description</h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Optional description shown to clients viewing this collection.
+                  </p>
+                </div>
+              </div>
+              <Textarea
+                v-model="collectionDescription"
+                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-violet-500/20 transition-all"
+                placeholder="Enter a description for this collection..."
+                :maxlength="1000"
+                @keydown.enter.prevent="handleSave"
+              />
+              <div class="flex items-center justify-between max-w-2xl">
+                <p :class="theme.textTertiary" class="text-xs">
+                  Description is shown to clients viewing this collection.
+                </p>
+                <span :class="theme.textTertiary" class="text-xs">
+                  {{ (collectionDescription || '').length }}/1000
+                </span>
+              </div>
+            </div>
+
             <!-- Email Registration -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -253,7 +273,7 @@
                   </p>
                 </div>
                 <div class="flex-shrink-0 pt-1">
-                  <ToggleSwitch v-model="emailRegistration" label="" />
+                  <ToggleSwitch v-model="emailRegistration" label="" :disabled="true" />
                 </div>
               </div>
             </div>
@@ -566,7 +586,7 @@
                 <span :class="theme.textSecondary">All changes saved</span>
               </div>
               <Button
-                variant="default"
+                variant="primary"
                 :disabled="!hasChanges"
                 :loading="isSaving"
                 :icon="!hasChanges ? Check : null"
@@ -586,9 +606,10 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Check, ChevronDown, Download, Heart, Info, Loader2, Lock, Settings, Sparkles } from 'lucide-vue-next'
+import { Check, ChevronDown, Download, Heart, Info, Lock, Settings, Sparkles } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
 import { Input } from '@/components/shadcn/input'
+import { Textarea } from '@/components/shadcn/textarea'
 import {
   Select,
   SelectContent,
@@ -623,7 +644,7 @@ const presetsApi = usePresetsApi()
 
 // Collection data
 const collection = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 const collectionStatus = ref('draft')
 const eventDate = ref(null)
 const selectedPresetId = ref('none')
@@ -646,11 +667,10 @@ const watermarks = computed(() => watermarkStore.watermarks || [])
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Settings state
-const collectionUrl = ref('')
-const categoryTags = ref('')
+const collectionDescription = ref('')
 const autoExpiryEnabled = ref(false)
 const autoExpiryDays = ref(30)
-const emailRegistration = ref(false)
+const emailRegistration = ref(true)
 const galleryAssist = ref(false)
 const slideshow = ref(true)
 const showSlideshowOptions = ref(true)
@@ -695,8 +715,7 @@ onMounted(async () => {
     eventDate.value = existingCollection.eventDate ? new Date(existingCollection.eventDate) : null
     selectedPresetId.value = existingCollection.presetId || 'none'
     selectedWatermark.value = existingCollection.watermarkId || 'none'
-    collectionUrl.value = existingCollection.url || ''
-    categoryTags.value = existingCollection.tags?.join(', ') || ''
+    isLoading.value = false
     // Use expiryDays from backend if available, otherwise calculate from expiryDate
     if (existingCollection.expiryDays) {
       autoExpiryEnabled.value = true
@@ -712,7 +731,8 @@ onMounted(async () => {
       autoExpiryEnabled.value = false
       autoExpiryDays.value = 30
     }
-    emailRegistration.value = existingCollection.emailRegistration || false
+    collectionDescription.value = existingCollection.description || ''
+    emailRegistration.value = true
     galleryAssist.value = existingCollection.galleryAssist || false
     slideshow.value = existingCollection.slideshow !== false
     slideshowSpeed.value = existingCollection.slideshowSpeed || 'regular'
@@ -724,12 +744,11 @@ onMounted(async () => {
     
     // Store original data for change detection
     originalData.value = {
-      url: existingCollection.url || '',
-      tags: existingCollection.tags?.join(', ') || '',
       expiryDate: existingCollection.expiryDate || null,
       autoExpiryEnabled: autoExpiryEnabled.value,
       autoExpiryDays: autoExpiryDays.value,
-      emailRegistration: existingCollection.emailRegistration || false,
+      description: existingCollection.description || '',
+      emailRegistration: true,
       galleryAssist: existingCollection.galleryAssist || false,
       slideshow: existingCollection.slideshow !== false,
       slideshowSpeed: existingCollection.slideshowSpeed || 'regular',
@@ -737,6 +756,7 @@ onMounted(async () => {
       socialSharing: existingCollection.socialSharing !== false,
       language: existingCollection.language || 'en',
     }
+    isLoading.value = false
     return
   }
 
@@ -748,8 +768,6 @@ onMounted(async () => {
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
     selectedPresetId.value = collectionData.presetId || 'none'
     selectedWatermark.value = collectionData.watermarkId || 'none'
-    collectionUrl.value = collectionData.url || ''
-    categoryTags.value = collectionData.tags?.join(', ') || ''
     // Use expiryDays from backend if available, otherwise calculate from expiryDate
     if (collectionData.expiryDays) {
       autoExpiryEnabled.value = true
@@ -765,7 +783,8 @@ onMounted(async () => {
       autoExpiryEnabled.value = false
       autoExpiryDays.value = 30
     }
-    emailRegistration.value = collectionData.emailRegistration || false
+    collectionDescription.value = collectionData.description || ''
+    emailRegistration.value = true
     galleryAssist.value = collectionData.galleryAssist || false
     slideshow.value = collectionData.slideshow !== false
     slideshowSpeed.value = collectionData.slideshowSpeed || 'regular'
@@ -777,12 +796,11 @@ onMounted(async () => {
     
     // Store original data for change detection
     originalData.value = {
-      url: collectionData.url || '',
-      tags: collectionData.tags?.join(', ') || '',
       expiryDate: collectionData.expiryDate || null,
       autoExpiryEnabled: autoExpiryEnabled.value,
       autoExpiryDays: autoExpiryDays.value,
-      emailRegistration: collectionData.emailRegistration || false,
+      description: collectionData.description || '',
+      emailRegistration: true,
       galleryAssist: collectionData.galleryAssist || false,
       slideshow: collectionData.slideshow !== false,
       slideshowSpeed: collectionData.slideshowSpeed || 'regular',
@@ -823,12 +841,10 @@ const hasChanges = computed(() => {
   if (!originalData.value) return false
   const currentExpiryDate = calculateExpiryDate()
   return (
-    collectionUrl.value !== originalData.value.url ||
-    categoryTags.value !== originalData.value.tags ||
     autoExpiryEnabled.value !== originalData.value.autoExpiryEnabled ||
     autoExpiryDays.value !== originalData.value.autoExpiryDays ||
     currentExpiryDate !== originalData.value.expiryDate ||
-    emailRegistration.value !== originalData.value.emailRegistration ||
+    (collectionDescription.value || '') !== (originalData.value.description || '') ||
     galleryAssist.value !== originalData.value.galleryAssist ||
     slideshow.value !== originalData.value.slideshow ||
     slideshowSpeed.value !== originalData.value.slideshowSpeed ||
@@ -844,19 +860,13 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    const tagsArray = categoryTags.value
-      .split(',')
-      .map(tag => tag.trim())
-      .filter(tag => tag.length > 0)
-
     const expiryDate = calculateExpiryDate()
     
     await galleryStore.updateCollection(collection.value.id, {
-      url: collectionUrl.value,
-      tags: tagsArray,
       expiryDate: expiryDate,
       expiryDays: autoExpiryEnabled.value ? autoExpiryDays.value : null,
-      emailRegistration: emailRegistration.value,
+      description: collectionDescription.value || null,
+      emailRegistration: true,
       galleryAssist: galleryAssist.value,
       slideshow: slideshow.value,
       slideshowSpeed: slideshowSpeed.value,
@@ -867,12 +877,11 @@ const handleSave = async () => {
 
     // Update original data
     originalData.value = {
-      url: collectionUrl.value,
-      tags: categoryTags.value,
       expiryDate: expiryDate,
       autoExpiryEnabled: autoExpiryEnabled.value,
       autoExpiryDays: autoExpiryDays.value,
-      emailRegistration: emailRegistration.value,
+      description: collectionDescription.value || '',
+      emailRegistration: true,
       galleryAssist: galleryAssist.value,
       slideshow: slideshow.value,
       slideshowSpeed: slideshowSpeed.value,
@@ -965,7 +974,7 @@ const handleApplyPreset = async () => {
     }
 
     // Copy preset settings to collection form fields
-    emailRegistration.value = preset.emailRegistration ?? false
+    emailRegistration.value = true
     galleryAssist.value = preset.galleryAssist ?? false
     slideshow.value = preset.slideshow ?? true
     slideshowSpeed.value = preset.slideshowSpeed || 'regular'
@@ -999,10 +1008,9 @@ const handleApplyPreset = async () => {
       // Update all form fields with new values from backend
       collectionStatus.value = updatedCollection.status === 'active' ? 'published' : 'draft'
       eventDate.value = updatedCollection.eventDate ? new Date(updatedCollection.eventDate) : null
+      collectionDescription.value = updatedCollection.description || ''
       selectedPresetId.value = updatedCollection.presetId || 'none'
       selectedWatermark.value = updatedCollection.watermarkId || 'none'
-      collectionUrl.value = updatedCollection.url || ''
-      categoryTags.value = updatedCollection.tags?.join(', ') || ''
       // Update expiry days from backend
       if (updatedCollection.expiryDays) {
         autoExpiryEnabled.value = true
@@ -1018,7 +1026,7 @@ const handleApplyPreset = async () => {
         autoExpiryEnabled.value = false
         autoExpiryDays.value = 30
       }
-      emailRegistration.value = updatedCollection.emailRegistration ?? false
+      emailRegistration.value = true
       galleryAssist.value = updatedCollection.galleryAssist ?? false
       slideshow.value = updatedCollection.slideshow !== false
       slideshowSpeed.value = updatedCollection.slideshowSpeed || 'regular'
@@ -1031,12 +1039,11 @@ const handleApplyPreset = async () => {
       // Update originalData to reflect saved state (no unsaved changes)
       const currentExpiryDate = calculateExpiryDate()
       originalData.value = {
-        url: updatedCollection.url || '',
-        tags: updatedCollection.tags?.join(', ') || '',
         expiryDate: currentExpiryDate,
         autoExpiryEnabled: autoExpiryEnabled.value,
         autoExpiryDays: autoExpiryDays.value,
-        emailRegistration: updatedCollection.emailRegistration ?? false,
+        description: updatedCollection.description || '',
+        emailRegistration: true,
         galleryAssist: updatedCollection.galleryAssist ?? false,
         slideshow: updatedCollection.slideshow !== false,
         slideshowSpeed: updatedCollection.slideshowSpeed || 'regular',

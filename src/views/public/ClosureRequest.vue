@@ -281,11 +281,12 @@
                 <div class="flex gap-3">
                   <Button
                     :disabled="!email || isSubmitting"
-                    class="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    variant="success"
+                    class="flex-1"
+                    :loading="isSubmitting"
+                    :icon="CheckCircle2"
                     @click="handleApprove"
                   >
-                    <CheckCircle2 v-if="!isSubmitting" class="w-4 h-4 mr-2" />
-                    <Loader2 v-else class="w-4 h-4 mr-2 animate-spin" />
                     Approve
                   </Button>
                   <Button

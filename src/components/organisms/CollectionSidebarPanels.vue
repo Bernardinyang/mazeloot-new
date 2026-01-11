@@ -14,12 +14,14 @@
         <CollectionDesignSidebarNav
           :collection-id="props.collectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
       <div v-else-if="tab === 'design' && collapsed">
         <CollectionDesignSidebarNav
           :collection-id="props.collectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
 
@@ -30,6 +32,7 @@
           :download-enabled="props.downloadEnabled"
           :favorite-enabled="props.favoriteEnabled"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
       <div v-else-if="tab === 'settings' && collapsed">
@@ -38,6 +41,7 @@
           :download-enabled="props.downloadEnabled"
           :favorite-enabled="props.favoriteEnabled"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
 
@@ -46,12 +50,14 @@
         <CollectionActivitiesSidebarNav
           :collection-id="props.collectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
       <div v-else-if="tab === 'activities' && collapsed">
         <CollectionActivitiesSidebarNav
           :collection-id="props.collectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
     </template>

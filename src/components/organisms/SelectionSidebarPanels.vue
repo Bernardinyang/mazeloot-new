@@ -12,12 +12,14 @@
         <SelectionSettingsSidebarNav
           :selection-id="props.selectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
       <div v-else-if="tab === 'settings' && collapsed">
         <SelectionSettingsSidebarNav
           :selection-id="props.selectionId"
           :is-sidebar-collapsed="collapsed"
+          :is-loading="props.isLoading"
         />
       </div>
     </template>

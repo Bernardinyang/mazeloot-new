@@ -119,6 +119,9 @@ const handleRegister = async values => {
     // Register user
     const response = await userStore.register(values.name, values.email, values.password)
 
+    // Mark as new user
+    userStore.isNewUser = true
+
     if (response.requires_verification) {
       toast.success('Account created successfully!', {
         description: 'Please verify your email to continue',

@@ -284,7 +284,7 @@
         :item-name="getItemName(itemToDelete)"
         :title="getDeleteModalTitle()"
         :warning-message="getDeleteModalWarning()"
-        description="This action cannot be undone."
+        :description="getDeleteModalDescription()"
         @cancel="closeDeleteModal"
         @confirm="handleConfirmDeleteItem"
       />
@@ -303,7 +303,7 @@
         v-model="showBulkDeleteModal"
         :is-deleting="isBulkDeleteLoading"
         :item-name="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
-        :warning-message="`${selectedMediaIds.size} item${selectedMediaIds.size > 1 ? 's' : ''}`"
+        :warning-message="getBulkDeleteModalWarning()"
         description="This action cannot be undone."
         title="Delete Media"
         @cancel="showBulkDeleteModal = false"
@@ -445,6 +445,21 @@
         title="SET FOCAL POINT"
         @update:is-open="showFocalPointModal = $event"
         @confirm="handleFocalPointConfirm"
+      />
+
+      <!-- Remove Watermark Confirmation Modal -->
+      <DeleteConfirmationModal
+        v-model="showRemoveWatermarkConfirm"
+        title="Remove Watermark"
+        question="Are you sure you want to remove the watermark from"
+        :item-name="itemToRemoveWatermark?.filename || itemToRemoveWatermark?.name"
+        fallback-name="this media"
+        description="The watermark will be removed from this media item and the original image will be restored."
+        confirm-label="Remove"
+        loading-label="Removing..."
+        :is-deleting="showRemoveWatermarkLoading"
+        @confirm="confirmRemoveWatermark"
+        @cancel="cancelRemoveWatermark"
       />
 
       <!-- Remove Watermark Loading Modal -->
@@ -1055,10 +1070,11 @@ const {
   selectionId: () => selection.value?.id,
   loadMediaItems,
   existingMedia: () => mediaItems.value,
-  // Reload media sets after successful upload to update counts
+  // Reload media sets and phase detail after successful upload to update counts and storage
   onUploadComplete: async results => {
     if (results.successful.length > 0) {
       await mediaSetsSidebar.loadMediaSets()
+      await loadSelection()
     }
   },
 })
@@ -1248,6 +1264,10 @@ const {
   handleCancelWatermarkMedia: handleCancelWatermarkMediaFromComposable,
   handleConfirmWatermarkMedia: handleConfirmWatermarkMediaFromComposable,
   handleRemoveWatermark: handleRemoveWatermarkFromComposable,
+  confirmRemoveWatermark: confirmRemoveWatermarkFromComposable,
+  cancelRemoveWatermark: cancelRemoveWatermarkFromComposable,
+  showRemoveWatermarkConfirm: showRemoveWatermarkConfirmFromComposable,
+  itemToRemoveWatermark: itemToRemoveWatermarkFromComposable,
 } = useMediaWatermarkActions({
   showWatermarkMediaModal,
   mediaToWatermark,
@@ -1299,6 +1319,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: () => mediaSetsSidebar.loadMediaSets(),
+  loadPhaseDetail: loadSelection,
   getItemId,
   modals: {
     openDeleteModal,
@@ -1943,6 +1964,10 @@ const handleWatermarkMedia = handleWatermarkMediaFromComposable
 const handleCancelWatermarkMedia = handleCancelWatermarkMediaFromComposable
 const handleConfirmWatermarkMedia = handleConfirmWatermarkMediaFromComposable
 const handleRemoveWatermark = handleRemoveWatermarkFromComposable
+const confirmRemoveWatermark = confirmRemoveWatermarkFromComposable
+const cancelRemoveWatermark = cancelRemoveWatermarkFromComposable
+const showRemoveWatermarkConfirm = showRemoveWatermarkConfirmFromComposable
+const itemToRemoveWatermark = itemToRemoveWatermarkFromComposable
 
 const handlePreviewWatermark = async () => {
   if (!mediaToWatermark.value || !selectedWatermarkForMedia.value || selectedWatermarkForMedia.value === 'none') {
@@ -1998,11 +2023,75 @@ const getDeleteModalTitle = () => {
 }
 
 const getDeleteModalWarning = () => {
+  if (!itemToDelete.value) return null
+  const item = itemToDelete.value
+  
+  // For media items, show location (selection and set)
+  if (item.collectionId || item.setId) {
+    const locationParts = []
+    
+    if (selection.value?.name) {
+      locationParts.push(`Selection: ${selection.value.name}`)
+    }
+    
+    if (item.setId && mediaSets.value) {
+      const set = mediaSets.value.find(s => s.id === item.setId)
+      if (set?.name) {
+        locationParts.push(`Set: ${set.name}`)
+      }
+    }
+    
+    return locationParts.length > 0 ? locationParts.join('\n') : null
+  }
+  
+  // For sets, don't show location info
+  return null
+}
+
+const getBulkDeleteModalWarning = () => {
+  if (selectedMediaIds.value.size === 0) return null
+  
+  const selectedItems = mediaItems.value.filter(item => 
+    selectedMediaIds.value.has(getItemId(item))
+  )
+  
+  if (selectedItems.length === 0) return null
+  
+  // Group items by set
+  const itemsBySet = new Map()
+  
+  selectedItems.forEach(item => {
+    const setId = item.setId
+    if (!setId) return
+    
+    if (!itemsBySet.has(setId)) {
+      itemsBySet.set(setId, [])
+    }
+    itemsBySet.get(setId).push(item)
+  })
+  
+  const locationParts = []
+  
+  if (selection.value?.name) {
+    locationParts.push(`Selection: ${selection.value.name}`)
+  }
+  
+  itemsBySet.forEach((items, setId) => {
+    const set = mediaSets.value?.find(s => s.id === setId)
+    const setName = set?.name || 'Unknown Set'
+    const count = items.length
+    locationParts.push(`Set: ${setName} (${count} item${count > 1 ? 's' : ''})`)
+  })
+  
+  return locationParts.length > 0 ? locationParts.join('\n') : null
+}
+
+const getDeleteModalDescription = () => {
   if (!itemToDelete.value) return 'This action cannot be undone.'
   const item = itemToDelete.value
   return item.collectionId || item.setId
-    ? 'This media item will be permanently deleted.'
-    : 'This set will be permanently deleted.'
+    ? 'This media item will be permanently deleted.\n\nThis action cannot be undone.'
+    : 'This set will be permanently deleted.\n\nThis action cannot be undone.'
 }
 
 const handleAddMedia = () => {

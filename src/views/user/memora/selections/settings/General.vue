@@ -142,6 +142,73 @@
               </div>
             </div>
 
+            <!-- Typography -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Typography</h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                    Select fonts that match your brand and style.
+                  </p>
+                </div>
+                <div v-if="typographySaved" class="flex items-center gap-2 text-violet-500">
+                  <Check class="h-4 w-4" />
+                  <span class="text-xs font-medium">Saved</span>
+                </div>
+              </div>
+              <div class="space-y-5">
+                <!-- Font Family -->
+                <div>
+                  <label
+                    :class="theme.textSecondary"
+                    class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
+                  >
+                    Font Family
+                  </label>
+                  <FontFamilySelect
+                    v-model="fontFamily"
+                    placeholder="Select font family"
+                  />
+                </div>
+                <!-- Font Style -->
+                <div>
+                  <label
+                    :class="theme.textSecondary"
+                    class="text-xs font-semibold mb-2.5 block uppercase tracking-wide"
+                  >
+                    Font Style
+                  </label>
+                  <Select v-model="fontStyle">
+                    <SelectTrigger
+                      :class="[
+                        theme.bgInput,
+                        theme.borderInput,
+                        theme.textInput,
+                        'focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500',
+                      ]"
+                      class="transition-all"
+                    >
+                      <SelectValue placeholder="Select style" />
+                    </SelectTrigger>
+                    <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
+                      <SelectItem
+                        v-for="style in fontStyleOptions"
+                        :key="style.value"
+                        :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                        :style="getStylePreview(style.value)"
+                        :value="style.value"
+                      >
+                        {{ style.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
             <!-- Cover Focal Point -->
             <div
               v-if="selection?.coverPhotoUrl || selection?.cover_photo_url"
@@ -772,6 +839,7 @@ import {
   SelectValue,
 } from '@/components/shadcn/select'
 import PasswordInput from '@/components/molecules/PasswordInput.vue'
+import FontFamilySelect from '@/components/organisms/FontFamilySelect.vue'
 import SelectionLayout from '@/layouts/SelectionLayout.vue'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import SelectionLimitModal from '@/components/organisms/SelectionLimitModal.vue'
@@ -783,6 +851,7 @@ import { toast } from '@/utils/toast'
 import { getErrorMessage } from '@/utils/errors'
 import { storeToRefs } from 'pinia'
 import { getAccentColor } from '@/utils/colors'
+import { fontStyleOptions as baseFontStyleOptions } from '@/utils/designConstants'
 
 const route = useRoute()
 const router = useRouter()
@@ -811,6 +880,33 @@ const isSavingAllowedEmails = ref(false)
 const emailsSaved = ref(false)
 const nameSaved = ref(false)
 const colorSaved = ref(false)
+const typographySaved = ref(false)
+
+// Typography state
+const fontFamily = ref('sans')
+const fontStyle = ref('normal')
+
+// Font style options
+const fontStyleOptions = [
+  ...baseFontStyleOptions,
+  { value: 'bold italic', label: 'Bold Italic' },
+]
+
+
+// Helper function for style preview
+const getStylePreview = styleValue => {
+  if (!styleValue) {
+    return {
+      fontWeight: 'normal',
+      fontStyle: 'normal',
+    }
+  }
+  const styles = styleValue.split(/[\s-]+/).filter(s => s.length > 0)
+  return {
+    fontWeight: styles.includes('bold') ? 'bold' : 'normal',
+    fontStyle: styles.includes('italic') ? 'italic' : 'normal',
+  }
+}
 
 // Selection limit modal state
 const showSelectionLimitModal = ref(false)
@@ -830,11 +926,13 @@ const originalValues = ref({
   autoDeleteEnabled: false,
   autoDeleteDays: 30,
   viewMode: 'grid',
-  gridSize: 'small',
+  gridSize: 'medium',
   showFilename: true,
   sortOrder: 'uploaded-new-old',
   allowedEmails: [],
   coverFocalPoint: { x: 50, y: 50 },
+  fontFamily: 'sans',
+  fontStyle: 'normal',
 })
 
 // Display preferences (from store)
@@ -896,6 +994,8 @@ const hasChanges = computed(() => {
     gridSize.value !== originalValues.value.gridSize ||
     showFilename.value !== originalValues.value.showFilename ||
     sortOrder.value !== originalValues.value.sortOrder ||
+    fontFamily.value !== originalValues.value.fontFamily ||
+    fontStyle.value !== originalValues.value.fontStyle ||
     (formData?.coverFocalPoint &&
       originalValues.value?.coverFocalPoint &&
       (formData.coverFocalPoint.x !== originalValues.value.coverFocalPoint.x ||
@@ -962,6 +1062,13 @@ onMounted(async () => {
       formData.coverFocalPoint = { x: 50, y: 50 }
     }
 
+    // Load typography - backend always returns defaults
+    const selectionDesign = selectionData.design || selectionData.settings?.design || {}
+    const selectionTypography = selectionData.typographyDesign || selectionDesign.typography || {}
+    
+    fontFamily.value = selectionTypography.fontFamily || 'sans'
+    fontStyle.value = selectionTypography.fontStyle || 'normal'
+
     // Store original values for change tracking
     originalValues.value = {
       name: selectionName.value,
@@ -975,6 +1082,8 @@ onMounted(async () => {
       sortOrder: sortOrder.value,
       allowedEmails: [...allowedEmails.value],
       coverFocalPoint: formData?.coverFocalPoint ? { ...formData.coverFocalPoint } : { x: 50, y: 50 },
+      fontFamily: fontFamily.value,
+      fontStyle: fontStyle.value,
     }
   } catch (error) {
     toast.error('Failed to load selection', {
@@ -1086,17 +1195,61 @@ const handleSave = async () => {
       updateData.autoDeleteDate = autoDeleteDateValue
     }
 
+    // Update typography if changed
+    if (
+      fontFamily.value !== originalValues.value.fontFamily ||
+      fontStyle.value !== originalValues.value.fontStyle
+    ) {
+      updateData.typographyDesign = {
+        fontFamily: fontFamily.value,
+        fontStyle: fontStyle.value,
+      }
+      typographySaved.value = true
+      setTimeout(() => {
+        typographySaved.value = false
+      }, 2000)
+    }
+
     // Save selection updates
     if (Object.keys(updateData).length > 0) {
-      await selectionsApi.updateSelection(selection.value.id, updateData)
-
+      const updatedSelection = await selectionsApi.updateSelection(selection.value.id, updateData)
+      
       // Update local selection object
-      if (updateData.name) selection.value.name = updateData.name
-      if ('description' in updateData) selection.value.description = updateData.description
-      if (updateData.color) selection.value.color = updateData.color
-      if (updateData.autoDeleteDate !== undefined) {
-        selection.value.autoDeleteDate = updateData.autoDeleteDate
-        selection.value.auto_delete_date = updateData.autoDeleteDate
+      if (updatedSelection) {
+        selection.value = updatedSelection
+        // Reload typography from updated selection - backend always returns defaults
+        const updatedDesign = updatedSelection.design || updatedSelection.settings?.design || {}
+        const updatedTypography = updatedSelection.typographyDesign || updatedDesign.typography || {}
+        
+        fontFamily.value = updatedTypography.fontFamily || 'sans'
+        fontStyle.value = updatedTypography.fontStyle || 'normal'
+        
+        // Update original values to reflect saved state
+        originalValues.value.fontFamily = fontFamily.value
+        originalValues.value.fontStyle = fontStyle.value
+      } else {
+        if (updateData.name) selection.value.name = updateData.name
+        if ('description' in updateData) selection.value.description = updateData.description
+        if (updateData.color) selection.value.color = updateData.color
+        if (updateData.autoDeleteDate !== undefined) {
+          selection.value.autoDeleteDate = updateData.autoDeleteDate
+          selection.value.auto_delete_date = updateData.autoDeleteDate
+        }
+        if (updateData.typographyDesign) {
+          if (!selection.value.design) {
+            selection.value.design = {}
+          }
+          if (!selection.value.design.typography) {
+            selection.value.design.typography = {}
+          }
+          selection.value.design.typography = { ...updateData.typographyDesign }
+          selection.value.typographyDesign = { ...updateData.typographyDesign }
+          // Update local refs and original values
+          if (updateData.typographyDesign.fontFamily !== undefined) fontFamily.value = updateData.typographyDesign.fontFamily
+          if (updateData.typographyDesign.fontStyle !== undefined) fontStyle.value = updateData.typographyDesign.fontStyle
+          originalValues.value.fontFamily = fontFamily.value
+          originalValues.value.fontStyle = fontStyle.value
+        }
       }
     }
 
@@ -1158,6 +1311,8 @@ const handleSave = async () => {
       sortOrder: sortOrder.value,
       allowedEmails: [...allowedEmails.value],
       coverFocalPoint: formData?.coverFocalPoint ? { ...formData.coverFocalPoint } : { x: 50, y: 50 },
+      fontFamily: fontFamily.value,
+      fontStyle: fontStyle.value,
     }
 
     toast.success('Settings saved', {

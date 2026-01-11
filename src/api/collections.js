@@ -588,6 +588,10 @@ export function useCollectionsApi() {
           queryParams.append('search', params.search.trim())
         }
 
+        if (params?.sortBy) {
+          queryParams.append('sort_by', params.sortBy)
+        }
+
         if (params?.starred !== undefined && params.starred !== null) {
           queryParams.append('starred', params.starred.toString())
         }
@@ -1235,7 +1239,23 @@ export function useCollectionsApi() {
   /**
    * Duplicate collection
    */
-  const duplicateCollection = async id => {
+  const duplicateCollection = async (id, projectId = null) => {
+    // Use real API if configured
+    if (API_CONFIG.USE_REAL_API) {
+      try {
+        const queryParams = new URLSearchParams()
+        if (projectId) {
+          queryParams.append('projectId', projectId)
+        }
+        const endpoint = `/v1/memora/collections/${id}/duplicate${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+        const response = await apiClient.post(endpoint)
+        return addDefaultSettings(response.data)
+      } catch (error) {
+        throw parseError(error)
+      }
+    }
+
+    // Fallback to localStorage implementation
     await delay(1000)
 
     const collections = await getAllCollections()
@@ -1438,6 +1458,46 @@ export function useCollectionsApi() {
   }
 
   /**
+   * Apply watermark to media in a collection set
+   * @param {string} collectionId - Collection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   * @param {string} watermarkUuid - Watermark UUID
+   * @param {boolean} previewStyle - Use preview style (default: false)
+   */
+  const applyWatermarkToMedia = async (collectionId, setId, mediaId, watermarkUuid, previewStyle = false) => {
+    try {
+      const response = await apiClient.post(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media/${mediaId}/watermark`,
+        {
+          watermarkUuid,
+          previewStyle,
+        }
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Remove watermark from media in a collection set
+   * @param {string} collectionId - Collection ID
+   * @param {string} setId - Set ID
+   * @param {string} mediaId - Media ID
+   */
+  const removeWatermarkFromMedia = async (collectionId, setId, mediaId) => {
+    try {
+      const response = await apiClient.delete(
+        `/v1/memora/collections/${collectionId}/sets/${setId}/media/${mediaId}/watermark`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Track email registration
    */
   const trackEmailRegistration = async (collectionId, email, name = null) => {
@@ -1583,6 +1643,8 @@ export function useCollectionsApi() {
     deleteMedia,
     starMedia,
     renameMedia,
+    applyWatermarkToMedia,
+    removeWatermarkFromMedia,
     trackEmailRegistration,
     trackShareLinkClick,
     trackPrivatePhotoAccess,

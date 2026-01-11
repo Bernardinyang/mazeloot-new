@@ -5,19 +5,49 @@
 
     <!-- Main Content Area (Sidebar + Content) -->
     <div class="flex flex-1 overflow-hidden">
-      <!-- Left Sidebar -->
-      <slot name="sidebar">
-        <div class="w-64 border-r border-gray-200 dark:border-gray-800">
-          <slot name="sidebarContent" />
-        </div>
-      </slot>
+      <!-- Desktop Sidebar (hidden on mobile) -->
+      <div class="hidden md:block shrink-0 h-full">
+        <slot name="sidebar">
+          <div class="w-64 h-full border-r border-gray-200 dark:border-gray-800">
+            <slot name="sidebarContent" />
+          </div>
+        </slot>
+      </div>
 
       <!-- Main Content Slot -->
-      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden">
+      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+        <!-- Mobile Sidebar Trigger Button -->
+        <Button
+          v-if="isMobile && !isMobileSidebarOpen"
+          :class="['md:hidden mb-4', theme.bgButtonHover, theme.textPrimary]"
+          size="sm"
+          variant="outline"
+          @click="isMobileSidebarOpen = true"
+        >
+          <Menu class="h-4 w-4 mr-2" />
+          Menu
+        </Button>
+        
         <slot name="content" />
       </main>
     </div>
   </div>
+
+  <!-- Mobile Sidebar (Sheet/Drawer) -->
+  <Sheet v-model:open="isMobileSidebarOpen">
+    <SheetContent
+      :class="[theme.bgCard, theme.borderSecondary, 'w-80 p-0']"
+      side="left"
+    >
+      <div class="h-full overflow-y-auto">
+        <slot name="sidebar">
+          <div class="w-full border-r border-gray-200 dark:border-gray-800">
+            <slot name="sidebarContent" />
+          </div>
+        </slot>
+      </div>
+    </SheetContent>
+  </Sheet>
 
   <!-- Media Set Delete Confirmation (store-driven) -->
   <DeleteConfirmationModal
@@ -50,7 +80,12 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
+import { Menu } from 'lucide-vue-next'
+import { Button } from '@/components/shadcn/button'
+import { Sheet, SheetContent } from '@/components/shadcn/sheet'
+import { useThemeClasses } from '@/composables/useThemeClasses'
 import DeleteConfirmationModal from '@/components/organisms/DeleteConfirmationModal.vue'
 import CreateEditMediaSetModal from '@/components/organisms/CreateEditMediaSetModal.vue'
 import { usePhaseMediaSetsStore } from '@/composables/usePhaseMediaSetsStore'
@@ -68,4 +103,8 @@ const props = defineProps({
 })
 
 const mediaSetsStore = usePhaseMediaSetsStore(props.phaseType)
+const theme = useThemeClasses()
+
+const isMobile = useMediaQuery('(max-width: 768px)')
+const isMobileSidebarOpen = ref(false)
 </script>

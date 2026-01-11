@@ -120,6 +120,22 @@ const statusConfig = {
     variant: 'info',
     classes: 'bg-purple-500/30 text-purple-700 dark:text-purple-300 border border-purple-500/50 font-semibold',
   },
+  done: {
+    variant: 'success',
+    classes: 'bg-success/10 text-success border border-success/20 font-semibold',
+  },
+  'Done': {
+    variant: 'success',
+    classes: 'bg-success/10 text-success border border-success/20 font-semibold',
+  },
+  'To do': {
+    variant: 'default',
+    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20 font-semibold',
+  },
+  'todo': {
+    variant: 'default',
+    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20 font-semibold',
+  },
 }
 
 const badgeClasses = computed(() => {

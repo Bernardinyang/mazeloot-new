@@ -1,9 +1,9 @@
 <template>
-  <div class="flex items-center justify-between mb-8">
-    <h2 :class="theme.textPrimary" class="text-3xl font-bold tracking-tight">
+  <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
+    <h2 :class="[theme.textPrimary, 'text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1 sm:flex-initial']">
       {{ props.title }}
     </h2>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-start sm:justify-end">
       <!-- Sort Menu -->
       <Popover v-model:open="isSortMenuOpen">
         <PopoverTrigger as-child>
@@ -13,16 +13,16 @@
               theme.bgCard,
               isSortMenuOpen ? 'ring-2 ring-accent/20' : '',
             ]"
-            class="px-3 py-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-2"
+            class="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-1 sm:gap-2 shrink-0"
           >
-            <ArrowUpDown :class="theme.textSecondary" class="h-4 w-4" />
-            <span :class="theme.textPrimary" class="text-sm">{{ selectedSortLabel }}</span>
+            <ArrowUpDown :class="theme.textSecondary" class="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
+            <span :class="[theme.textPrimary, 'text-xs sm:text-sm truncate']">{{ selectedSortLabel }}</span>
           </button>
         </PopoverTrigger>
         <PopoverContent
           :class="[theme.bgCard, theme.borderSecondary]"
           align="end"
-          class="w-56 p-0"
+          class="w-[calc(100vw-2rem)] sm:w-56 max-w-[calc(100vw-2rem)] sm:max-w-none p-0"
           @click.stop
         >
           <div class="p-2">
@@ -62,7 +62,7 @@
         <PopoverContent
           :class="[theme.bgCard, theme.borderSecondary]"
           align="end"
-          class="w-56 p-0"
+          class="w-[calc(100vw-2rem)] sm:w-56 max-w-[calc(100vw-2rem)] sm:max-w-none p-0"
           @click.stop
         >
           <div class="p-2 space-y-4">
@@ -156,25 +156,27 @@
         v-if="props.onCopySelectedFilenamesInSet && props.selectionStatus === 'completed'"
         variant="outline"
         size="sm"
-        :class="[theme.borderSecondary, theme.textPrimary]"
+        :class="[theme.borderSecondary, theme.textPrimary, 'shrink-0']"
         :disabled="props.isUploading || props.selectedCount === 0"
         @click="handleCopySelectedFilenames"
       >
-        <Copy class="h-4 w-4 mr-2" />
-        Copy Selected ({{ props.selectedCount }})
+        <Copy class="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2 shrink-0" />
+        <span class="hidden sm:inline">Copy Selected ({{ props.selectedCount }})</span>
+        <span class="sm:hidden">Copy ({{ props.selectedCount }})</span>
       </Button>
 
       <Button
         v-if="!props.disableUpload"
-        variant="default"
+        variant="primary"
         :loading="props.isUploading"
         :icon="ImagePlus"
         loading-label="Uploading..."
         size="sm"
-        class="shadow-md hover:shadow-lg transition-all duration-200 font-medium"
+        class="shadow-md hover:shadow-lg transition-all duration-200 font-medium shrink-0"
         @click="emit('add-media')"
       >
-        Upload Media
+        <span class="hidden sm:inline">Upload Media</span>
+        <span class="sm:hidden">Upload</span>
       </Button>
     </div>
   </div>

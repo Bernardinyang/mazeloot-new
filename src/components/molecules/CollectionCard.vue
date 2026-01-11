@@ -294,9 +294,16 @@
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="end"
-            :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[160px]']"
+            :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[180px]']"
           >
             <slot name="menu-items">
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click.stop="$emit('view-details', collectionData)"
+              >
+                <span>View Details</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
               <DropdownMenuItem
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 :disabled="isDeleting || isDuplicating"
@@ -547,6 +554,7 @@ const emit = defineEmits([
   'duplicate',
   'delete',
   'share',
+  'view-details',
 ])
 
 // Color support

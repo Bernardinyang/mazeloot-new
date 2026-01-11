@@ -125,10 +125,10 @@ onUnmounted(() => {
 
 <template>
   <div :class="[theme.bgPage, 'grid min-h-svh lg:grid-cols-2']">
-    <div :class="[theme.bgPage, 'flex flex-col p-6 md:p-10']">
+    <div :class="[theme.bgPage, 'flex flex-col p-4 sm:p-6 md:p-10']">
       <!-- Header with Logo and Theme Toggle -->
-      <div class="flex justify-between items-center mb-8">
-        <div class="flex justify-center gap-2 md:justify-start">
+      <div class="flex justify-between items-center mb-6 md:mb-8 gap-4">
+        <div class="flex justify-center gap-2 md:justify-start shrink-0">
           <RouterLink
             to="/"
             :class="[
@@ -140,17 +140,17 @@ onUnmounted(() => {
             <MazelootLogo :show-text="false" size="sm" />
           </RouterLink>
         </div>
-        <ThemeToggle />
+        <ThemeToggle class="shrink-0" />
       </div>
 
       <!-- Form Content -->
-      <div class="flex flex-1 items-center justify-center">
-        <div class="w-full max-w-md space-y-6">
+      <div class="flex flex-1 items-center justify-center py-4">
+        <div class="w-full max-w-md space-y-4 sm:space-y-6">
           <div v-if="title || description" class="text-center space-y-2">
-            <h1 v-if="title" :class="[theme.textPrimary, 'text-3xl font-bold tracking-tight']">
+            <h1 v-if="title" :class="[theme.textPrimary, 'text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight']">
               {{ title }}
             </h1>
-            <p v-if="description" :class="[theme.textSecondary, 'text-sm']">
+            <p v-if="description" :class="[theme.textSecondary, 'text-xs sm:text-sm md:text-base']">
               {{ description }}
             </p>
           </div>
@@ -162,15 +162,15 @@ onUnmounted(() => {
       <div
         :class="[
           theme.textMuted,
-          'mt-auto pt-6 flex flex-col md:flex-row justify-between items-center text-sm',
+          'mt-auto pt-4 sm:pt-6 flex flex-col md:flex-row justify-between items-center text-xs sm:text-sm gap-2 md:gap-0',
         ]"
       >
         <div>© MazeLoot {{ new Date().getFullYear() }}</div>
-        <div class="flex items-center gap-2 mt-2 md:mt-0">
-          <IconMail class="w-4 h-4" :size="16" />
+        <div class="flex items-center gap-2">
+          <IconMail class="w-3 h-3 sm:w-4 sm:h-4 shrink-0" :size="16" />
           <a
             href="mailto:help@mazeloot.com"
-            :class="[theme.textMuted, theme.transitionColors, 'hover:text-foreground']"
+            :class="[theme.textMuted, theme.transitionColors, 'hover:text-foreground break-all sm:break-normal']"
             >help@mazeloot.com</a
           >
         </div>

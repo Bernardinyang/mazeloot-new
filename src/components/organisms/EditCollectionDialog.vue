@@ -105,7 +105,7 @@
           Cancel
         </Button>
         <Button
-          variant="default"
+          variant="primary"
           :disabled="!formData.name.trim()"
           :loading="isSubmitting"
           loading-label="Updating..."

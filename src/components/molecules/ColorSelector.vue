@@ -66,9 +66,9 @@ const emit = defineEmits(['update:modelValue'])
 const theme = useThemeClasses()
 
 const presetColors = [
+  { value: '#14B8A6', label: 'Teal' },
   { value: '#8B5CF6', label: 'Violet' },
-  { value: '#8B5CF6', label: 'Purple' },
-  { value: '#8B5CF6', label: 'Violet' },
+  { value: '#10B981', label: 'Emerald' },
   { value: '#F59E0B', label: 'Amber' },
   { value: '#EF4444', label: 'Red' },
   { value: '#3B82F6', label: 'Blue' },

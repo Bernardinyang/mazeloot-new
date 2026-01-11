@@ -237,7 +237,7 @@
             <h4 class="font-bold text-sm" :class="theme.textPrimary">Download</h4>
             <div
               v-for="field in [
-                { label: 'Photo Download', key: 'photoDownload', path: 'download' },
+                { label: 'Media Download', key: 'photoDownload', path: 'download' },
                 {
                   label: 'High Resolution',
                   key: 'enabled',

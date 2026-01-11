@@ -13,6 +13,7 @@ export const useUserStore = defineStore('user', () => {
   const token = ref(null)
   const isAuthenticated = computed(() => !!user.value && !!token.value)
   const isLoading = ref(false)
+  const isNewUser = ref(false)
 
   const authApi = useAuthApi()
 
@@ -150,7 +151,16 @@ export const useUserStore = defineStore('user', () => {
   const clearAuth = () => {
     user.value = null
     token.value = null
+    isNewUser.value = false
     // Persistence is handled by watchers
+  }
+
+  /**
+   * Mark user as not new (after they've been through onboarding)
+   */
+  const markUserAsExisting = () => {
+    isNewUser.value = false
+    storage.remove('mazeloot_new_user')
   }
 
   /**
@@ -163,18 +173,46 @@ export const useUserStore = defineStore('user', () => {
     }
   }
 
+  /**
+   * Initialize user from localStorage
+   */
+  const initNewUserFlag = () => {
+    const storedNewUser = storage.get('mazeloot_new_user')
+    if (storedNewUser === true) {
+      isNewUser.value = true
+    } else {
+      // Only set to false if explicitly false, otherwise keep default
+      // This prevents clearing the flag on page refresh for new users
+      if (storedNewUser === false) {
+        isNewUser.value = false
+      }
+    }
+  }
+
+  // Watch isNewUser and persist to localStorage
+  watch(isNewUser, newValue => {
+    if (newValue) {
+      storage.set('mazeloot_new_user', true)
+    } else {
+      storage.remove('mazeloot_new_user')
+    }
+  })
+
   // Initialize on store creation
   init()
+  initNewUserFlag()
 
   return {
     user,
     token,
     isAuthenticated,
     isLoading,
+    isNewUser,
     login,
     register,
     logout,
     updateUser,
     clearAuth,
+    markUserAsExisting,
   }
 })

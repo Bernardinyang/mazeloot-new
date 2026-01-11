@@ -38,15 +38,7 @@ export function useProductNavigation() {
 
   const navigationItems = computed(() => {
     const items = PRODUCT_NAVIGATION[currentProduct.value] || PRODUCT_NAVIGATION.default
-    return items.map(item => {
-      if (item.name === 'presetSettings' && (!presetStore.presets || presetStore.presets.length === 0)) {
-        return null
-      }
-      if (item.name === 'watermarkSettings' && (!watermarkStore.watermarks || watermarkStore.watermarks.length === 0)) {
-        return null
-      }
-      return item
-    }).filter(Boolean)
+    return items
   })
 
   const navigationLabel = computed(() => {

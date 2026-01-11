@@ -69,7 +69,6 @@
           :class="[
             theme.textSecondary,
             theme.bgButtonHover,
-            'hover:text-amber-600 dark:hover:text-amber-400',
           ]"
           :disabled="isSubmitting"
           type="button"
@@ -80,7 +79,7 @@
         </Button>
         <Button
           :disabled="!formData.name.trim() || isSubmitting"
-          class="bg-amber-500 hover:bg-amber-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          variant="primary"
           type="button"
           :loading="isSubmitting"
           loading-label="Updating..."

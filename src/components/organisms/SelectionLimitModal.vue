@@ -32,7 +32,7 @@
           Cancel
         </Button>
         <Button
-          variant="default"
+          variant="primary"
           :loading="isSaving"
           loading-label="Saving..."
           @click="handleSave"

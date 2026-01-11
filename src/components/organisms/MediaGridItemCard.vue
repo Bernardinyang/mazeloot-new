@@ -25,7 +25,8 @@
         !props.minimalActions && isRejected
           ? 'ring-2 ring-red-600 border border-red-600 bg-red-50/20 dark:bg-red-900/10'
           : '',
-        'relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl will-change-transform',
+        'relative rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-800 transition-all duration-300 ease-out hover:scale-[1.02] hover:shadow-xl will-change-transform',
+        !props.disableAspectSquare ? 'aspect-square' : '',
         !props.minimalActions && isRejected ? 'border border-red-600' : 'border border-gray-200 dark:border-gray-700',
       ]"
     >
@@ -316,7 +317,7 @@
       <!-- Centered Action Buttons (Public Mode) -->
       <div
         v-if="props.publicMode"
-        class="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out"
+        class="absolute inset-0 flex items-center justify-center z-20 opacity-0 group-hover:opacity-100 transition-all duration-300 ease-out pointer-events-none group-hover:pointer-events-auto"
         @click.stop
       >
         <!-- Backdrop overlay for better visibility -->
@@ -377,7 +378,7 @@
             </Tooltip>
           </TooltipProvider>
           
-          <TooltipProvider>
+          <TooltipProvider v-if="!props.hideFavoriteIcon">
             <Tooltip>
               <TooltipTrigger as-child>
                 <button
@@ -540,7 +541,7 @@
                 Replace photo
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions && props.item?.type === 'image' && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
+                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('remove-watermark')"
               >
@@ -548,7 +549,7 @@
                 Remove Watermark
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions && props.item?.type === 'image' && !(props.item?.isCompleted || props.item?.is_completed)"
+                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && !(props.item?.isCompleted || props.item?.is_completed)"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('watermark')"
               >
@@ -867,6 +868,14 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  disableAspectSquare: {
+    type: Boolean,
+    default: false,
+  },
+  hideFavoriteIcon: {
+    type: Boolean,
+    default: false,
+  },
 })
 
 const imageSrc = ref(props.placeholderImage)
@@ -933,6 +942,10 @@ const hasRevisions = computed(() => {
     !!props.item?.originalMediaId ||
     !!props.item?.original_media_uuid
   )
+})
+
+const isCollectionContext = computed(() => {
+  return true // Always true for media cards displayed in collections
 })
 
 const pendingClosureRequest = computed(() => {

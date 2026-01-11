@@ -219,6 +219,15 @@ export function useAuthApi() {
     }
   }
 
+  const getStorage = async () => {
+    try {
+      const response = await apiClient.get('/v1/auth/storage')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const logout = async () => {
     try {
       // TODO: Call backend logout endpoint if needed
@@ -240,6 +249,7 @@ export function useAuthApi() {
     sendMagicLink,
     verifyMagicLink,
     getUser,
+    getStorage,
     logout,
   }
 }

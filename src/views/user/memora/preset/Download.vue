@@ -83,7 +83,7 @@
           </div>
         </div>
 
-        <!-- Photo Download Section -->
+        <!-- Media Download Section -->
         <div
           :class="[
             theme.borderSecondary,
@@ -96,7 +96,7 @@
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
-              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Photo Download</h3>
+              <h3 :class="theme.textPrimary" class="text-lg font-bold mb-2">Media Download</h3>
             </div>
             <div class="flex-shrink-0 pt-1">
               <ToggleSwitch
@@ -130,7 +130,7 @@
               />
             </button>
 
-            <!-- Photo Downloadable Sizes -->
+            <!-- Media Downloadable Sizes -->
             <Transition
               enter-active-class="transition-all duration-300 ease-out"
               enter-from-class="opacity-0 max-h-0"
@@ -142,7 +142,7 @@
               <div v-if="showPhotoOptions" class="space-y-4 overflow-hidden">
                 <div>
                   <h4 :class="theme.textPrimary" class="text-base font-semibold mb-3">
-                    Photo Downloadable Sizes
+                    Media Downloadable Sizes
                   </h4>
 
                   <!-- High Resolution -->
@@ -217,7 +217,7 @@
                               >Original</span
                             >
                             <span
-                              class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
+                              class="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-700/80 text-gray-600 dark:text-gray-300"
                             >
                               Premium
                             </span>
@@ -477,7 +477,7 @@
               </span>
             </Transition>
             <Button
-              variant="default"
+              variant="primary"
               :loading="isSubmitting || isSaving"
               :icon="ArrowRight"
               loading-label="Saving..."
@@ -622,7 +622,7 @@ const loadPresetData = () => {
     }
     Object.assign(formData, loadedData)
     originalData.value = { ...loadedData }
-    // Auto-expand photo options if photo download is enabled
+    // Auto-expand media options if media download is enabled
     showPhotoOptions.value = loadedData.photoDownload
     presetStore.setCurrentPreset(currentPreset.value.id)
     isLoadingData.value = false
@@ -656,7 +656,7 @@ watch(
   { immediate: true }
 )
 
-// Auto-expand photo options when photo download is enabled
+// Auto-expand media options when media download is enabled
 watch(
   () => formData.photoDownload,
   enabled => {

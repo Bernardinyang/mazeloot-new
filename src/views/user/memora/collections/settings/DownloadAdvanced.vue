@@ -1,13 +1,33 @@
 <template>
-  <div class="space-y-6">
-    <!-- Limit Photo Downloads -->
+  <div v-if="isLoading" class="space-y-6">
+    <!-- Skeleton Loader -->
+    <div
+      v-for="i in 2"
+      :key="i"
+      class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70"
+    >
+      <div class="flex items-start justify-between gap-4">
+        <div class="flex-1">
+          <Skeleton class="h-6 w-40 rounded-md mb-2" />
+          <Skeleton class="h-3 w-96 rounded-md mb-3" />
+        </div>
+        <Skeleton class="h-6 w-12 rounded-md" />
+      </div>
+      <div class="space-y-3">
+        <Skeleton class="h-10 w-32 rounded-md" />
+        <Skeleton class="h-24 w-full rounded-md" />
+      </div>
+    </div>
+  </div>
+  <div v-else class="space-y-6">
+    <!-- Limit Media Downloads -->
     <div
       class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
-          <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">Limit Photo Downloads</h3>
+          <h3 class="text-lg font-bold mb-1.5" :class="theme.textPrimary">Limit Media Downloads</h3>
           <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
             Set the number of photos that can be downloaded in this collection. Note that this limit
             is shared between all visitors who can download. If you restrict downloads to contacts
@@ -233,7 +253,7 @@
         </h3>
         <p class="text-xs leading-relaxed mb-3" :class="theme.textSecondary">
           Select which sets have download enabled. This applies to Gallery Download, Video Download,
-          and Single Photo Download.
+          and Single Media Download.
           <a href="#" class="text-violet-600 dark:text-violet-400 hover:underline font-medium"
             >Learn more</a
           >
@@ -273,7 +293,7 @@
           <span :class="theme.textSecondary">All changes saved</span>
         </div>
         <Button
-          variant="default"
+          variant="primary"
           :disabled="!hasChanges"
           :loading="isSaving"
           :icon="!hasChanges ? Check : null"
@@ -292,6 +312,7 @@ import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Mail, Plus, X } from 'lucide-vue-next'
 import { Button } from '@/components/shadcn/button'
+import { Skeleton } from '@/components/shadcn/skeleton'
 import { Input } from '@/components/shadcn/input'
 import ToggleSwitch from '@/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/composables/useThemeClasses'
@@ -303,6 +324,7 @@ const theme = useThemeClasses()
 const galleryStore = useGalleryStore()
 
 const collection = ref(null)
+const isLoading = ref(true)
 
 const limitDownloads = ref(true)
 const downloadLimit = ref(1)
@@ -331,6 +353,8 @@ onMounted(async () => {
   const collectionId = route.params.uuid
   if (!collectionId) return
 
+  isLoading.value = true
+
   // Check if collection is already in store (from parent component)
   const existingCollection = galleryStore.collections.find(c => c.id === collectionId)
   if (existingCollection) {
@@ -357,6 +381,7 @@ onMounted(async () => {
           : [],
       downloadableSets: [...(existingCollection.downloadableSets || [])],
     }
+    isLoading.value = false
     isInitializing.value = false
     return
   }
@@ -386,9 +411,11 @@ onMounted(async () => {
           : [],
       downloadableSets: [...(collectionData.downloadableSets || [])],
     }
+    isLoading.value = false
     isInitializing.value = false
   } catch (error) {
     toast.error('Failed to load collection')
+    isLoading.value = false
     isInitializing.value = false
   }
 })

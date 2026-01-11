@@ -45,6 +45,9 @@ import { storeToRefs } from 'pinia'
 import MediaSetsSidebarSection from '@/components/organisms/MediaSetsSidebarSection.vue'
 import { usePhaseMediaSetsStore } from '@/composables/usePhaseMediaSetsStore'
 
+// Try to inject filtered media sets (for proofing detail to show only latest revisions)
+const filteredMediaSets = inject('filteredMediaSets', null)
+
 const props = defineProps({
   phaseType: {
     type: String,
@@ -69,10 +72,19 @@ const {
   editingSetId,
   editingSetName,
   isSavingSets,
-  mediaSets,
+  mediaSets: storeMediaSets,
   selectedSetId: selectedSetIdRef,
-  sortedMediaSets,
+  sortedMediaSets: storeSortedMediaSets,
 } = storeToRefs(mediaSetsStore)
+
+// Use filtered sets if provided (for proofing detail), otherwise use store sets
+const mediaSets = computed(() => filteredMediaSets?.value || storeMediaSets.value)
+const sortedMediaSets = computed(() => {
+  if (filteredMediaSets?.value) {
+    return [...filteredMediaSets.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
+  }
+  return storeSortedMediaSets.value
+})
 
 // Ensure selectedSetId is reactive
 const selectedSetId = computed(() => selectedSetIdRef.value)

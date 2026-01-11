@@ -158,6 +158,9 @@ export function useProofingApi() {
       if (data.coverFocalPoint !== undefined || data.cover_focal_point !== undefined) {
         payload.cover_focal_point = data.coverFocalPoint || data.cover_focal_point
       }
+      if (data.typographyDesign !== undefined) {
+        payload.typographyDesign = data.typographyDesign
+      }
 
       const response = await apiClient.patch(endpoint, payload)
       return response.data
@@ -456,6 +459,23 @@ export function useProofingApi() {
   const toggleStar = async (projectId, id) => {
     try {
       let endpoint = `/v1/memora/proofing/${id}/star`
+      if (projectId) {
+        endpoint += `?projectId=${projectId}`
+      }
+
+      const response = await apiClient.post(endpoint)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Duplicate proofing (standalone or project-based)
+   */
+  const duplicateProofing = async (projectId, id) => {
+    try {
+      let endpoint = `/v1/memora/proofing/${id}/duplicate`
       if (projectId) {
         endpoint += `?projectId=${projectId}`
       }
@@ -1368,6 +1388,7 @@ export function useProofingApi() {
     fetchAllProofing,
     updateProofing,
     deleteProofing,
+    duplicateProofing,
     publishProofing,
     uploadRevision,
     addFeedback,

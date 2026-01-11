@@ -152,7 +152,7 @@
         v-if="props.isUploading"
         cancel-label="Cancel Upload"
         confirm-label=""
-        cancel-button-class="bg-red-500 hover:bg-red-600 text-white border-red-500 hover:border-red-600"
+        cancel-variant="destructive"
         @cancel="emit('cancel')"
       />
       <ActionButtonGroup v-else cancel-label="Close" confirm-label="" @cancel="emit('close')" />

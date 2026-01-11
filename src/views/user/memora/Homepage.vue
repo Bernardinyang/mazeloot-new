@@ -363,7 +363,7 @@
             <span :class="theme.textSecondary">All changes saved</span>
           </div>
           <Button
-            variant="default"
+            variant="primary"
             :disabled="!hasChanges || isLoading"
             :loading="isSaving"
             loading-label="Saving..."

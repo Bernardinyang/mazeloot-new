@@ -15,6 +15,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue'
 import { useAuthApi } from '@/api/auth'
 import { useUserStore } from '@/stores/user'
 import { useErrorHandler } from '@/composables/useErrorHandler'
+import { storage } from '@/utils/storage'
 
 const route = useRoute()
 const router = useRouter()
@@ -59,6 +60,12 @@ onMounted(async () => {
       }
     } catch (error) {
       throw new Error('Failed to fetch user data. Please try logging in again.')
+    }
+
+    // Check if user is newly registered - if flag exists from localStorage, preserve it
+    // Otherwise assume existing user (OAuth typically links to existing accounts)
+    if (storage.get('mazeloot_new_user') !== true) {
+      userStore.isNewUser = false
     }
 
     toast.success('Login successful!', {
