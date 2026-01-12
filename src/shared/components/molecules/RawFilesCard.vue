@@ -1,0 +1,389 @@
+<template>
+  <div
+    ref="cardRef"
+    :class="[
+      'group relative rounded-xl overflow-hidden cursor-pointer',
+      'transform-gpu',
+      'hover:shadow-2xl dark:hover:shadow-2xl dark:hover:shadow-black/40',
+      'transition-shadow duration-300 ease-out',
+      'hover:border-opacity-100',
+      'border-2',
+      theme.bgCard,
+      theme.shadowCard,
+    ]"
+    :style="{
+      ...tiltStyle,
+      '--index': index,
+      '--card-color': cardColor,
+      '--card-color-light': cardColorLight,
+      '--card-color-dark': cardColorDark,
+      borderColor: `${cardColor}33`,
+    }"
+    role="button"
+    tabindex="0"
+    @click="$emit('click', rawFiles)"
+    @keydown.enter="$emit('click', rawFiles)"
+    @keydown.space.prevent="$emit('click', rawFiles)"
+    @mouseenter="handleMouseEnter"
+    @mouseleave="handleMouseLeave"
+    @mousemove="handleMouseMove"
+  >
+    <div
+      v-if="!coverImage"
+      :style="{
+        background: `linear-gradient(to bottom right, ${cardColorLight}, ${cardColorDark})`,
+        opacity: '0.6',
+      }"
+      class="absolute inset-0 dark:opacity-40"
+    ></div>
+
+    <div class="relative aspect-[4/3] flex items-center justify-center overflow-hidden">
+      <div
+        v-if="rawFiles?.project?.name || rawFiles?.projectId"
+        class="absolute top-3 left-3 z-30 px-2.5 py-1 rounded-md bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm shadow-lg border border-gray-200/50 dark:border-gray-700/50"
+      >
+        <div class="flex items-center gap-1.5">
+          <FolderKanban class="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
+          <span class="text-xs font-medium text-gray-700 dark:text-gray-300 line-clamp-1 max-w-[120px]">
+            {{ rawFiles?.project?.name || 'Project' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="absolute bottom-3 left-3 z-30 flex items-center gap-2">
+        <div
+          v-if="rawFiles?.isStarred || rawFiles?.starred"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-yellow-400/90 dark:bg-yellow-500/90 backdrop-blur-sm shadow-lg"
+          title="Starred"
+        >
+          <Star class="h-4 w-4 fill-white text-white" />
+        </div>
+        <div
+          v-if="rawFiles?.hasPassword || rawFiles?.password"
+          class="flex items-center justify-center w-8 h-8 rounded-full bg-gray-600/90 dark:bg-gray-500/90 backdrop-blur-sm shadow-lg"
+          title="Password protected"
+        >
+          <Lock class="h-4 w-4 text-white" />
+        </div>
+      </div>
+      <video
+        v-if="coverImage && isVideoCover"
+        ref="videoRef"
+        :src="coverImage"
+        :style="coverImageStyle"
+        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        autoplay
+        loop
+        muted
+        playsinline
+      />
+      <img
+        v-else-if="coverImage"
+        :alt="rawFiles?.name || 'Raw Files'"
+        :src="coverImage"
+        :style="coverImageStyle"
+        class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+        loading="lazy"
+        @error="handleImageError"
+      />
+
+      <div
+        v-if="coverImage"
+        :class="isHovering || isDropdownOpen ? 'opacity-100' : 'opacity-70'"
+        class="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent transition-opacity duration-300"
+      ></div>
+
+      <div
+        v-if="coverImage"
+        :style="{
+          background: `linear-gradient(to bottom right, ${cardColor}15, transparent)`,
+        }"
+        class="absolute inset-0 pointer-events-none"
+      ></div>
+
+      <div
+        v-if="!coverImage"
+        class="relative z-10 flex flex-col items-center justify-center gap-3 p-8 transition-transform duration-300 group-hover:scale-110"
+      >
+        <div
+          :style="{
+            background: `linear-gradient(to bottom right, ${cardColor}, ${cardColorDark})`,
+            borderColor: `${cardColor}80`,
+          }"
+          class="w-20 h-20 rounded-2xl shadow-lg flex items-center justify-center border-2"
+        >
+          <Download class="h-10 w-10 text-white" />
+        </div>
+      </div>
+
+      <div
+        class="absolute top-4 right-4 w-16 h-16 rounded-full bg-accent/30 dark:bg-accent/30 blur-xl"
+      ></div>
+      <div
+        class="absolute bottom-4 left-4 w-12 h-12 rounded-full bg-blue-200/30 dark:bg-blue-800/30 blur-lg"
+      ></div>
+
+      <div
+        :class="[
+          'absolute top-3 right-3 z-40 flex items-center gap-2 transition-all duration-300',
+          isDropdownOpen || isHovering ? 'opacity-100' : 'opacity-0 group-hover:opacity-100',
+        ]"
+      >
+        <Button
+          v-if="showStar"
+          class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700 [&_svg]:transition-all"
+          size="icon"
+          variant="ghost"
+          :disabled="isStarring"
+          :loading="isStarring"
+          :icon="!isStarring ? Star : null"
+          :class="[
+            rawFiles?.isStarred || rawFiles?.starred
+              ? '[&_svg]:fill-yellow-400 [&_svg]:text-yellow-400'
+              : '[&_svg]:text-gray-600 dark:[&_svg]:text-gray-400',
+          ]"
+          @click.stop="$emit('star-click', rawFiles)"
+        />
+        <DropdownMenu v-model:open="isDropdownOpen">
+          <DropdownMenuTrigger as-child>
+            <Button
+              class="h-8 w-8 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm hover:bg-white dark:hover:bg-gray-700"
+              size="icon"
+              variant="ghost"
+              @click.stop
+            >
+              <MoreVertical class="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            :class="[theme.bgDropdown, theme.borderSecondary, 'min-w-[180px]']"
+            align="end"
+          >
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click.stop="$emit('view-details', rawFiles)"
+            >
+              <span>View Details</span>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :disabled="isDeleting || isDuplicating"
+              @click.stop="$emit('edit', rawFiles)"
+            >
+              <span>Edit</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              :disabled="isDeleting || isDuplicating"
+              @click.stop="$emit('duplicate', rawFiles)"
+            >
+              <span v-if="isDuplicating">Duplicating...</span>
+              <span v-else>Duplicate</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              :class="['text-red-500 hover:bg-red-500/10 cursor-pointer']"
+              :disabled="isDeleting || isDuplicating"
+              @click.stop="$emit('delete', rawFiles)"
+            >
+              <span v-if="isDeleting">Deleting...</span>
+              <span v-else>Delete</span>
+            </DropdownMenuItem>
+            <slot name="menu-items-append" />
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+
+    <div class="relative p-4 pt-3 space-y-1.5 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
+      <div class="flex items-start gap-2.5 min-h-[24px]">
+        <Download :style="{ color: cardColor }" class="h-4 w-4 mt-0.5 shrink-0" />
+        <h3
+          :class="theme.textPrimary"
+          :title="rawFiles?.name || 'Untitled Raw Files'"
+          class="font-semibold text-base leading-tight line-clamp-2"
+        >
+          {{ rawFiles?.name || 'Untitled Raw Files' }}
+        </h3>
+      </div>
+      <div :class="theme.textSecondary" class="flex items-center justify-between gap-3 text-sm mt-1">
+        <slot name="subtitle">
+          <span class="line-clamp-1">{{ getMediaAndSetCount(rawFiles) }}</span>
+        </slot>
+        <div v-if="rawFiles?.status" class="shrink-0">
+          <StatusBadge :status="rawFiles.status" />
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { computed, ref, watch } from 'vue'
+import { Download, Lock, MoreVertical, Star, FolderKanban } from 'lucide-vue-next'
+import { Button } from '@/shared/components/shadcn/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/shadcn/dropdown-menu'
+import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { darkenColor, generateRandomColorFromPalette, lightenColor } from '@/shared/utils/colors'
+import { useFocalPoint, getFocalPointFromEntity } from '@/shared/composables/useFocalPoint'
+import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
+
+const props = defineProps({
+  rawFiles: {
+    type: Object,
+    required: true,
+  },
+  index: {
+    type: Number,
+    default: 0,
+  },
+  subtitle: {
+    type: String,
+    default: null,
+  },
+  showStar: {
+    type: Boolean,
+    default: true,
+  },
+  rotateAmplitude: {
+    type: Number,
+    default: 8,
+  },
+  isStarring: {
+    type: Boolean,
+    default: false,
+  },
+  isDeleting: {
+    type: Boolean,
+    default: false,
+  },
+  isDuplicating: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const emit = defineEmits(['click', 'star-click', 'edit', 'delete', 'duplicate', 'view-details'])
+
+const theme = useThemeClasses()
+const isDropdownOpen = ref(false)
+const isHovering = ref(false)
+
+const cardRef = ref(null)
+const rotateX = ref(0)
+const rotateY = ref(0)
+const videoRef = ref(null)
+
+const handleMouseMove = e => {
+  if (!cardRef.value) return
+
+  const rect = cardRef.value.getBoundingClientRect()
+  const x = e.clientX - rect.left
+  const y = e.clientY - rect.top
+
+  const centerX = rect.width / 2
+  const centerY = rect.height / 2
+
+  const rotateXValue = ((y - centerY) / centerY) * -props.rotateAmplitude
+  const rotateYValue = ((x - centerX) / centerX) * props.rotateAmplitude
+
+  rotateX.value = rotateXValue
+  rotateY.value = rotateYValue
+}
+
+const handleMouseEnter = () => {
+  isHovering.value = true
+}
+
+const handleMouseLeave = () => {
+  if (!isDropdownOpen.value) {
+    isHovering.value = false
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+}
+
+watch(isDropdownOpen, isOpen => {
+  if (!isOpen && !isHovering.value) {
+    rotateX.value = 0
+    rotateY.value = 0
+  }
+})
+
+const tiltStyle = computed(() => ({
+  transform: `perspective(1000px) rotateX(${rotateX.value}deg) rotateY(${rotateY.value}deg) translateZ(0)`,
+  transition:
+    isHovering.value || isDropdownOpen.value
+      ? 'none'
+      : 'transform 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
+  willChange: isHovering.value || isDropdownOpen.value ? 'transform' : 'auto',
+}))
+
+const coverImage = computed(() => {
+  return (
+    props.rawFiles?.coverPhotoUrl ||
+    props.rawFiles?.cover_photo_url ||
+    props.rawFiles?.thumbnail ||
+    props.rawFiles?.image ||
+    null
+  )
+})
+
+const isVideoCover = computed(() => {
+  const url = coverImage.value
+  if (!url) return false
+  const videoExtensions = ['.mp4', '.webm', '.ogg', '.mov', '.avi', '.mkv']
+  return videoExtensions.some(ext => url.toLowerCase().endsWith(ext))
+})
+
+const focalPoint = computed(() => getFocalPointFromEntity(props.rawFiles))
+const { imageStyle: coverImageStyle } = useFocalPoint(focalPoint)
+
+const cardColor = computed(() => {
+  return props.rawFiles?.color || generateRandomColorFromPalette()
+})
+
+const cardColorLight = computed(() => {
+  return lightenColor(cardColor.value, 80)
+})
+
+const cardColorDark = computed(() => {
+  return darkenColor(cardColor.value, 30)
+})
+
+const handleImageError = event => {
+  event.target.style.display = 'none'
+}
+
+const getMediaAndSetCount = rawFiles => {
+  if (!rawFiles) return ''
+  const parts = []
+
+  if (rawFiles.mediaCount !== undefined) {
+    const mediaCount = rawFiles.mediaCount
+    const mediaLabel = mediaCount === 1 ? 'file' : 'files'
+    parts.push(`${mediaCount} ${mediaLabel}`)
+  }
+
+  const setCount =
+    rawFiles.setCount ||
+    rawFiles.setsCount ||
+    rawFiles.mediaSetsCount ||
+    rawFiles.mediaSetCount ||
+    (Array.isArray(rawFiles.mediaSets) ? rawFiles.mediaSets.length : 0) ||
+    (Array.isArray(rawFiles.sets) ? rawFiles.sets.length : 0) ||
+    0
+  if (setCount > 0 || rawFiles.mediaSets !== undefined || rawFiles.sets !== undefined) {
+    const setLabel = setCount === 1 ? 'set' : 'sets'
+    parts.push(`${setCount} ${setLabel}`)
+  }
+
+  return parts.join(' • ')
+}
+</script>

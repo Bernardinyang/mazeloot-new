@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
-import router from './router'
+import router from './shared/router'
 import './assets/main.css'
 import './assets/styles/animations.css'
 import 'vue-sonner/style.css'
@@ -14,7 +14,7 @@ app.use(pinia)
 app.use(router)
 app.component('apexchart', VueApexCharts)
 
-import { useThemeStore } from './stores/theme'
+import { useThemeStore } from './shared/stores/theme'
 useThemeStore()
 
 app.mount('#app')

@@ -14,7 +14,26 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: undefined,
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('vue') || id.includes('vue-router') || id.includes('pinia')) {
+              return 'vendor-vue'
+            }
+            if (id.includes('@radix-ui') || id.includes('radix-vue') || id.includes('reka-ui')) {
+              return 'vendor-ui'
+            }
+            if (id.includes('date-fns') || id.includes('clsx') || id.includes('tailwind-merge')) {
+              return 'vendor-utils'
+            }
+            return 'vendor'
+          }
+          if (id.includes('/domains/memora/')) {
+            return 'memora'
+          }
+          if (id.includes('/shared/')) {
+            return 'shared'
+          }
+        },
       },
     },
   },
