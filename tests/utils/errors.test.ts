@@ -7,7 +7,7 @@ import {
   isAuthError,
   isValidationError,
   AppError,
-} from '@/utils/errors'
+} from '@/shared/utils/errors'
 
 describe('Error Utilities', () => {
   describe('parseError', () => {

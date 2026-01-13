@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useProofingStore } from '@/stores/proofing'
+import { useProofingStore } from '@/domains/memora/stores/proofing'
 
 const mockApi = {
   fetchProofing: vi.fn(),
@@ -9,7 +9,7 @@ const mockApi = {
   deleteProofing: vi.fn(),
 }
 
-vi.mock('@/api/proofing', () => ({
+vi.mock('@/domains/memora/api/proofing', () => ({
   useProofingApi: () => mockApi,
 }))
 

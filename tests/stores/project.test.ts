@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useProjectStore } from '@/stores/project'
+import { useProjectStore } from '@/domains/memora/stores/project'
 
 const mockApi = {
   fetchProjects: vi.fn(),
@@ -10,7 +10,7 @@ const mockApi = {
   deleteProject: vi.fn(),
 }
 
-vi.mock('@/api/projects', () => ({
+vi.mock('@/domains/memora/api/projects', () => ({
   useProjectsApi: () => mockApi,
 }))
 

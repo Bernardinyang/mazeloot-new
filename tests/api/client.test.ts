@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { apiClient } from '@/api/client'
+import { apiClient } from '@/shared/api/client'
 import { setActivePinia, createPinia } from 'pinia'
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/shared/stores/user'
 
 // Mock fetch
 global.fetch = vi.fn()

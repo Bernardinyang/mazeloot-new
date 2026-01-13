@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { useAuthApi } from '@/api/auth'
+import { useAuthApi } from '@/shared/api/auth'
 
 // Mock apiClient
-vi.mock('@/api/client', () => ({
+vi.mock('@/shared/api/client', () => ({
   apiClient: {
     post: vi.fn(),
   },
@@ -15,7 +15,7 @@ describe('Auth API', () => {
 
   describe('login', () => {
     it('should login user successfully', async () => {
-      const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
       const mockResponse = {
         data: {
           user: {
@@ -45,7 +45,7 @@ describe('Auth API', () => {
 
   describe('register', () => {
     it('should register user successfully', async () => {
-      const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
       const mockResponse = {
         data: {
           user: {
@@ -78,7 +78,7 @@ describe('Auth API', () => {
 
   describe('verifyEmail', () => {
     it('should verify email successfully', async () => {
-      const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
       const mockResponse = {
         data: {
           user: {
@@ -101,7 +101,7 @@ describe('Auth API', () => {
 
   describe('forgotPassword', () => {
     it('should send password reset email', async () => {
-      const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
       vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true } })
 
       const authApi = useAuthApi()
@@ -112,7 +112,7 @@ describe('Auth API', () => {
 
   describe('resetPassword', () => {
     it('should reset password successfully', async () => {
-      const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
       vi.mocked(apiClient.post).mockResolvedValue({ data: { success: true } })
 
       const authApi = useAuthApi()

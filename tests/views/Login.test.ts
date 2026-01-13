@@ -1,10 +1,10 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi, beforeEach } from 'vitest'
-import Login from '@/views/guest/Login.vue'
+import Login from '@/shared/views/guest/Login.vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router'
 
-vi.mock('@/api/auth', () => ({
+vi.mock('@/shared/api/auth', () => ({
   useAuthApi: () => ({
     login: vi.fn().mockResolvedValue({
       user: { id: '1', uuid: '1', email: 'bernardinyang.bci@gmail.com', name: 'Test User', first_name: 'Test', last_name: 'User' },

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useGalleryStore } from '@/stores/gallery'
+import { useGalleryStore } from '@/shared/stores/gallery'
 
 const mockApi = {
   toggleStar: vi.fn(),
@@ -8,7 +8,7 @@ const mockApi = {
   deleteCollection: vi.fn(),
 }
 
-vi.mock('@/api/collections', () => ({
+vi.mock('@/domains/memora/api/collections', () => ({
   useCollectionsApi: () => mockApi,
   addDefaultSettings: (collection) => collection,
 }))

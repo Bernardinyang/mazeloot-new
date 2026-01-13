@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useUserStore } from '@/stores/user'
+import { useUserStore } from '@/shared/stores/user'
 
-vi.mock('@/api/auth', () => ({
+vi.mock('@/shared/api/auth', () => ({
   useAuthApi: () => ({
     login: vi.fn().mockResolvedValue({
       user: { id: '1', uuid: '1', email: 'john@example.com', name: 'John', first_name: 'John', last_name: 'Doe' },

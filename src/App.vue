@@ -20,17 +20,17 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
-import Toaster from './components/organisms/Toaster.vue'
-import UploadQueueButton from './components/organisms/UploadQueueButton.vue'
-import BackgroundUploadQueueModal from './components/organisms/BackgroundUploadQueueModal.vue'
-import PWAInstallPrompt from './components/molecules/PWAInstallPrompt.vue'
-import PWADebugInfo from './components/molecules/PWADebugInfo.vue'
-import { useActionHistoryStore } from './stores/actionHistory'
-import { useBackgroundUploadManager } from './composables/useBackgroundUploadManager'
-import { useNotificationsStore } from './stores/notifications'
-import { usePusher } from './composables/usePusher'
-import { useUserStore } from './stores/user'
-import { toast } from './utils/toast'
+import Toaster from '@/shared/components/organisms/Toaster.vue'
+import UploadQueueButton from '@/shared/components/organisms/UploadQueueButton.vue'
+import BackgroundUploadQueueModal from '@/shared/components/organisms/BackgroundUploadQueueModal.vue'
+import PWAInstallPrompt from '@/shared/components/molecules/PWAInstallPrompt.vue'
+import PWADebugInfo from '@/shared/components/molecules/PWADebugInfo.vue'
+import { useActionHistoryStore } from '@/shared/stores/actionHistory'
+import { useBackgroundUploadManager } from '@/shared/composables/useBackgroundUploadManager'
+import { useNotificationsStore } from '@/shared/stores/notifications'
+import { usePusher } from '@/shared/composables/usePusher'
+import { useUserStore } from '@/shared/stores/user'
+import { toast } from '@/shared/utils/toast'
 
 const route = useRoute()
 const showUploadQueueModal = ref(false)

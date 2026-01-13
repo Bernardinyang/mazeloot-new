@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { useForm } from '@/composables/useForm'
+import { useForm } from '@/shared/composables/useForm'
 
 describe('useForm Composable', () => {
   it('should initialize with initial values', () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { usePagination } from '@/composables/usePagination'
+import { usePagination } from '@/shared/composables/usePagination'
 
 describe('usePagination Composable', () => {
   it('should initialize with default values', () => {

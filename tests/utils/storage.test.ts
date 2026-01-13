@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { storage } from '@/utils/storage'
+import { storage } from '@/shared/utils/storage'
 
 describe('Storage Utilities', () => {
   beforeEach(() => {

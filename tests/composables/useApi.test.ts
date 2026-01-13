@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { defineComponent } from 'vue'
-import { useApi } from '@/composables/useApi'
+import { useApi } from '@/shared/composables/useApi'
 
 // Mock apiClient
-vi.mock('@/api/client', () => ({
+vi.mock('@/shared/api/client', () => ({
   apiClient: {
     get: vi.fn(),
     post: vi.fn(),
@@ -35,7 +35,7 @@ describe('useApi Composable', () => {
   })
 
   it('should handle successful request', async () => {
-    const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
     ;(apiClient.get as any).mockResolvedValueOnce({
       data: { id: 1, name: 'Test' },
       status: 200,
@@ -63,7 +63,7 @@ describe('useApi Composable', () => {
   })
 
   it('should handle request errors', async () => {
-    const { apiClient } = await import('@/api/client')
+      const { apiClient } = await import('@/shared/api/client')
     ;(apiClient.get as any).mockRejectedValueOnce(new Error('Request failed'))
 
     const TestComponent = defineComponent({

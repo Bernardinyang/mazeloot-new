@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { RequestCanceller } from '@/utils/abortController'
+import { RequestCanceller } from '@/shared/utils/abortController'
 
 describe('RequestCanceller', () => {
   it('should create abort signal', () => {

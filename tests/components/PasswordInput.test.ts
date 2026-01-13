@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { shallowMount } from '@vue/test-utils'
-import PasswordInput from '../../src/components/molecules/PasswordInput.vue'
+import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 
 describe('PasswordInput', () => {
   it('toggles input type when button clicked', async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
-import { useWatermarkStore } from '@/stores/watermark'
+import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 
 const mockApi = {
   fetchWatermarks: vi.fn(),
@@ -9,7 +9,7 @@ const mockApi = {
   deleteWatermark: vi.fn(),
 }
 
-vi.mock('@/api/watermarks', () => ({
+vi.mock('@/domains/memora/api/watermarks', () => ({
   useWatermarksApi: () => mockApi,
 }))
 
