@@ -97,6 +97,7 @@
           ></div>
           <!-- Status Content -->
           <template v-else>
+            <PhaseBadge :phase="phaseType" />
             <StatusBadge :status="proofingStatus || 'draft'" />
             <!-- Proofing Progress (when completed) -->
             <div
@@ -228,6 +229,7 @@ import { computed, inject } from 'vue'
 import { Check, CheckCircle2, ChevronLeft, Eye, HardDrive, Loader2, Share2, X, } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
+import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { storeToRefs } from 'pinia'
 import { useProofingHeaderStore } from '@/domains/memora/stores/proofingHeader'
@@ -255,6 +257,11 @@ const props = defineProps({
   overallProgress: {
     type: Object,
     default: null,
+  },
+  phaseType: {
+    type: String,
+    default: 'proofing',
+    validator: value => ['collection', 'selection', 'proofing'].includes(value),
   },
 })
 

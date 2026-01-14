@@ -87,7 +87,8 @@
           </div>
 
           <!-- Status Badge (next to title) -->
-          <div class="flex-shrink-0">
+          <div class="flex-shrink-0 flex items-center gap-2">
+            <PhaseBadge :phase="phaseType" />
             <StatusBadge :status="collectionStatusDisplay" />
           </div>
         </div>
@@ -298,6 +299,7 @@ import { Calendar } from '@/shared/components/shadcn/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover/index'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
+import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const props = defineProps({
@@ -318,6 +320,11 @@ const props = defineProps({
   isDatePickerOpen: { type: Boolean, required: true },
   isPresetPopoverOpen: { type: Boolean, required: true },
   isWatermarkPopoverOpen: { type: Boolean, required: true },
+  phaseType: {
+    type: String,
+    default: 'collection',
+    validator: value => ['collection', 'selection', 'proofing'].includes(value),
+  },
 })
 
 const emit = defineEmits([

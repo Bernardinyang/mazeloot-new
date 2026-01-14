@@ -1,5 +1,5 @@
 <template>
-  <PhaseLayout phase-type="selection">
+  <PhaseLayout :phase-type="phaseType">
     <template #topNav>
       <SelectionTopNav
         :go-back="() => $emit('goBack')"
@@ -8,6 +8,7 @@
         :is-resetting-limit="props.isResettingLimit"
         :on-copy-all-selected-filenames="props.onCopyAllSelectedFilenames"
         :selected-count="props.selectedCount"
+        :phase-type="phaseType"
       />
     </template>
 
@@ -51,9 +52,9 @@
 
 <script setup>
 import PhaseLayout from '@/shared/layouts/PhaseLayout.vue'
-import SelectionSidebar from '@/shared/components/organisms/SelectionSidebar.vue'
-import SelectionTopNav from '@/shared/components/organisms/SelectionTopNav.vue'
-import SelectionSidebarPanels from '@/shared/components/organisms/SelectionSidebarPanels.vue'
+import SelectionSidebar from '@/domains/memora/components/organisms/SelectionSidebar.vue'
+import SelectionTopNav from '@/domains/memora/components/organisms/SelectionTopNav.vue'
+import SelectionSidebarPanels from '@/domains/memora/components/organisms/SelectionSidebarPanels.vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
 import { useSelectionMediaSetsSidebarStore } from '@/domains/memora/stores/selectionMediaSetsSidebar'
@@ -130,6 +131,8 @@ const activeTab = computed(() => {
 })
 
 const mediaSetsSidebar = useSelectionMediaSetsSidebarStore()
+
+const phaseType = 'selection'
 
 // Note: setContext is now handled by SelectionDetail.vue to avoid race conditions
 // The layout watcher is kept for cases where selection changes without going through SelectionDetail

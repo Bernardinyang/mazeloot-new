@@ -275,7 +275,7 @@ import { useCollectionSort } from '@/domains/memora/composables/useCollectionSor
 import { COLLECTION_SORT_OPTIONS } from '@/shared/constants/sortOptions'
 import PageHeader from '@/shared/components/molecules/PageHeader.vue'
 import CollectionCard from '@/shared/components/molecules/CollectionCard.vue'
-import CollectionsTable from '@/shared/components/organisms/CollectionsTable.vue'
+import CollectionsTable from '@/domains/memora/components/organisms/CollectionsTable.vue'
 import EmptyState from '@/shared/components/molecules/EmptyState.vue'
 import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 import { Button } from '@/shared/components/shadcn/button'

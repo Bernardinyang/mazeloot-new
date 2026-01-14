@@ -66,9 +66,9 @@
 
 <script setup>
 import PhaseSidebarPanels from '@/shared/components/organisms/PhaseSidebarPanels.vue'
-import CollectionDesignSidebarNav from '@/shared/components/organisms/CollectionDesignSidebarNav.vue'
-import CollectionSettingsSidebarNav from '@/shared/components/organisms/CollectionSettingsSidebarNav.vue'
-import CollectionActivitiesSidebarNav from '@/shared/components/organisms/CollectionActivitiesSidebarNav.vue'
+import CollectionDesignSidebarNav from '@/domains/memora/components/organisms/CollectionDesignSidebarNav.vue'
+import CollectionSettingsSidebarNav from '@/domains/memora/components/organisms/CollectionSettingsSidebarNav.vue'
+import CollectionActivitiesSidebarNav from '@/domains/memora/components/organisms/CollectionActivitiesSidebarNav.vue'
 
 const props = defineProps({
   collectionId: { type: String, default: '' },

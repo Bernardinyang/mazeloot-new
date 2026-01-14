@@ -28,7 +28,7 @@
 
 <script setup>
 import PhaseSidebarPanels from '@/shared/components/organisms/PhaseSidebarPanels.vue'
-import SelectionSettingsSidebarNav from '@/shared/components/organisms/SelectionSettingsSidebarNav.vue'
+import SelectionSettingsSidebarNav from '@/domains/memora/components/organisms/SelectionSettingsSidebarNav.vue'
 
 const props = defineProps({
   selectionId: { type: String, default: '' },

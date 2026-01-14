@@ -30,7 +30,7 @@
 
 <script setup>
 import PhaseSidebarPanels from '@/shared/components/organisms/PhaseSidebarPanels.vue'
-import ProofingSettingsSidebarNav from '@/shared/components/organisms/ProofingSettingsSidebarNav.vue'
+import ProofingSettingsSidebarNav from '@/domains/memora/components/organisms/ProofingSettingsSidebarNav.vue'
 
 const props = defineProps({
   proofingId: { type: String, default: '' },

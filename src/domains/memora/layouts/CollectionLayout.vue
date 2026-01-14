@@ -6,6 +6,7 @@
         v-model:is-preset-popover-open="isPresetPopoverOpen"
         v-model:is-watermark-popover-open="isWatermarkPopoverOpen"
         :collection="collection"
+        :phase-type="phaseType"
         :collection-status="effectiveCollectionStatus"
         :editing-name="editingName"
         :event-date="effectiveEventDate"
@@ -81,9 +82,9 @@
 
 <script setup>
 import PhaseLayout from '@/shared/layouts/PhaseLayout.vue'
-import CollectionSidebar from '@/shared/components/organisms/CollectionSidebar.vue'
-import CollectionTopNav from '@/shared/components/organisms/CollectionTopNav.vue'
-import CollectionSidebarPanels from '@/shared/components/organisms/CollectionSidebarPanels.vue'
+import CollectionSidebar from '@/domains/memora/components/organisms/CollectionSidebar.vue'
+import CollectionTopNav from '@/domains/memora/components/organisms/CollectionTopNav.vue'
+import CollectionSidebarPanels from '@/domains/memora/components/organisms/CollectionSidebarPanels.vue'
 import { computed, ref, watch, onMounted } from 'vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { useCollectionMediaSetsSidebarStore } from '@/domains/memora/stores/collectionMediaSetsSidebar'
@@ -191,6 +192,8 @@ const collectionDownloadPin = computed(() => {
 const mediaSetsSidebar = useCollectionMediaSetsSidebarStore()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
+
+const phaseType = 'collection'
 
 const presets = computed(() => presetStore.presets || [])
 const watermarks = computed(() => watermarkStore.watermarks || [])

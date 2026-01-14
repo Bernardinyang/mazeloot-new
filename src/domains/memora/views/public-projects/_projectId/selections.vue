@@ -353,6 +353,32 @@
           </div>
         </Transition>
 
+        <!-- Recommended Items Notice (shown when gallery assist is off) -->
+        <Transition name="fade">
+          <div
+            v-if="!showGalleryAssist && hasRecommendedItems && !isAuthenticatedOwner"
+            :style="{
+              backgroundColor: selectionColor + '10',
+              borderColor: selectionColor + '40',
+            }"
+            class="rounded-xl border-2 p-4 mb-6 shadow-sm"
+          >
+            <div class="flex items-start gap-3">
+              <div
+                :style="{ backgroundColor: selectionColor, color: 'white' }"
+                class="p-2 rounded-lg shrink-0"
+              >
+                <ThumbsUp class="h-4 w-4" />
+              </div>
+              <div class="flex-1">
+                <p class="text-sm font-medium leading-relaxed" :style="{ color: selectionColor }">
+                  <strong>Recommended Items:</strong> Look for the thumbs-up icon on recommended items. These are recommended media selected by the creative.
+                </p>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
         <!-- Owner Preview Alert / Instructions / Status -->
         <template v-if="isAuthenticatedOwner || isPreviewMode">
           <div
@@ -691,7 +717,7 @@
               <div
                 v-if="(item.isRecommended || item.is_recommended) && !isAuthenticatedOwner"
                 class="absolute top-2 left-2 bg-violet-500 text-white rounded-full p-1.5 z-10 shadow-xl backdrop-blur-sm border-2 border-white/30"
-                title="Recommended"
+                title="Recommended: This is recommended media selected by the creative"
               >
                 <ThumbsUp class="h-5 w-5 fill-white" />
               </div>
@@ -981,6 +1007,10 @@ const currentSelectedCount = computed(() => {
   return currentMediaItems.value.filter(item => item.isSelected).length
 })
 
+const hasRecommendedItems = computed(() => {
+  return currentMediaItems.value.some(item => item.isRecommended || item.is_recommended)
+})
+
 const totalSelectedCount = computed(() => {
   return mediaItems.value.filter(item => item.isSelected).length
 })
@@ -1149,7 +1179,7 @@ const galleryAssistCards = computed(() => {
       id: 'recommended',
       icon: ThumbsUp,
       title: 'Recommended Items',
-      description: 'Look for the thumbs-up icon on recommended items',
+      description: 'Look for the thumbs-up icon on recommended items. These are recommended media selected by the creative.',
       show: true,
       priority: 4,
     },

@@ -1035,8 +1035,8 @@ import { Input } from '@/shared/components/shadcn/input'
 import MediaCommentLightbox from '@/shared/components/organisms/MediaCommentLightbox.vue'
 import MediaLightbox from '@/shared/components/organisms/MediaLightbox.vue'
 import ClosureHistoryModal from '@/shared/components/organisms/ClosureHistoryModal.vue'
-import RevisionHistorySidebar from '@/shared/components/organisms/RevisionHistorySidebar.vue'
-import RevisionDetailsModal from '@/shared/components/organisms/RevisionDetailsModal.vue'
+import RevisionHistorySidebar from '@/domains/memora/components/organisms/RevisionHistorySidebar.vue'
+import RevisionDetailsModal from '@/domains/memora/components/organisms/RevisionDetailsModal.vue'
 import {
   Dialog,
   DialogContent,

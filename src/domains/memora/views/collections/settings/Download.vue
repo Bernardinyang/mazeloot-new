@@ -295,7 +295,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/shared/stores/gallery'

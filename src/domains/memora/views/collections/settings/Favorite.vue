@@ -336,7 +336,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'

@@ -284,7 +284,7 @@ import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGu
 import { Check, ExternalLink, Eye, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
 import CoverFocalPointModal from '@/shared/components/organisms/CoverFocalPointModal.vue'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/shared/components/organisms/UnsavedChangesModal.vue'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import CollectionPreview from '@/domains/memora/views/preview/CollectionPreview.vue'

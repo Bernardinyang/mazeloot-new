@@ -485,7 +485,7 @@
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
-import SelectionLayout from '@/shared/layouts/SelectionLayout.vue'
+import SelectionLayout from '@/domains/memora/layouts/SelectionLayout.vue'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
 import SelectionSettingsGeneral from '@/domains/memora/views/selections/settings/General.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
@@ -529,7 +529,7 @@ import { toast } from '@/shared/utils/toast'
 import Pagination from '@/shared/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
-import SelectionLimitModal from '@/shared/components/organisms/SelectionLimitModal.vue'
+import SelectionLimitModal from '@/domains/memora/components/organisms/SelectionLimitModal.vue'
 
 const theme = useThemeClasses()
 const route = useRoute()

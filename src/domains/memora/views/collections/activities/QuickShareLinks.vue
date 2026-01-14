@@ -155,7 +155,7 @@ import {
   Plus,
 } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import DataTable from '@/shared/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'

@@ -77,6 +77,7 @@
 
         <!-- Status Badge Row -->
         <div v-if="!isLoading" class="flex items-center gap-2 flex-wrap">
+          <PhaseBadge :phase="phaseType" />
           <StatusBadge :status="selectionStatus || 'draft'" />
           <!-- Selection Progress (when completed) -->
           <span
@@ -139,6 +140,7 @@
           <span class="md:hidden">Copy</span>
         </Button>
         <Button
+          v-if="selectionStatus !== 'completed'"
           :class="[theme.borderSecondary, theme.textPrimary]"
           :disabled="isLoading"
           size="sm"
@@ -218,6 +220,7 @@ import { computed } from 'vue'
 import { Check, CheckCircle2, ChevronLeft, Copy, Eye, HardDrive, Share2, X } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
+import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { storeToRefs } from 'pinia'
 import { useSelectionHeaderStore } from '@/domains/memora/stores/selectionHeader'
@@ -252,6 +255,11 @@ const props = defineProps({
   selectedCount: {
     type: Number,
     default: 0,
+  },
+  phaseType: {
+    type: String,
+    default: 'selection',
+    validator: value => ['collection', 'selection', 'proofing'].includes(value),
   },
 })
 

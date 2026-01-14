@@ -257,7 +257,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/shadcn/select'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import MediaLightbox from '@/shared/components/organisms/MediaLightbox.vue'
 import DataTable from '@/shared/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

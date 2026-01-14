@@ -343,7 +343,7 @@ import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGu
 import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/shadcn/select'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import UnsavedChangesModal from '@/shared/components/organisms/UnsavedChangesModal.vue'
 import FontFamilySelect from '@/shared/components/organisms/FontFamilySelect.vue'

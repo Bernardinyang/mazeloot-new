@@ -571,7 +571,7 @@ import {
 } from '@/shared/utils/designConstants'
 import { Button } from '@/shared/components/shadcn/button'
 import { Slider } from '@/shared/components/shadcn/slider'
-import CollectionLayout from '@/shared/layouts/CollectionLayout.vue'
+import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import UnsavedChangesModal from '@/shared/components/organisms/UnsavedChangesModal.vue'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import CollectionPreview from '@/domains/memora/views/preview/CollectionPreview.vue'

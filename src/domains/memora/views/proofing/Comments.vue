@@ -39,7 +39,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import ProofingLayout from '@/shared/layouts/ProofingLayout.vue'
+import ProofingLayout from '@/domains/memora/layouts/ProofingLayout.vue'
 import CommentsDashboard from '@/shared/components/organisms/CommentsDashboard.vue'
 import MediaCommentLightbox from '@/shared/components/organisms/MediaCommentLightbox.vue'
 import { useProofingStore } from '@/domains/memora/stores/proofing'

@@ -356,7 +356,7 @@
             {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
           </DropdownMenuItem>
           <DropdownMenuItem
-            v-if="props.selectionStatus"
+            v-if="props.selectionStatus && props.selectionStatus !== 'completed'"
             :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
             @select.prevent="emit('toggle-recommended')"
           >

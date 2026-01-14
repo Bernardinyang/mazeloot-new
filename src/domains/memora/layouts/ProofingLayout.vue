@@ -1,7 +1,7 @@
 <template>
   <PhaseLayout phase-type="proofing">
     <template #topNav>
-      <ProofingTopNav :go-back="() => $emit('goBack')" :overall-progress="props.overallProgress" />
+      <ProofingTopNav :go-back="() => $emit('goBack')" :overall-progress="props.overallProgress" :phase-type="phaseType" />
     </template>
 
     <template #sidebar>
@@ -46,9 +46,9 @@
 
 <script setup>
 import PhaseLayout from '@/shared/layouts/PhaseLayout.vue'
-import ProofingSidebar from '@/shared/components/organisms/ProofingSidebar.vue'
-import ProofingTopNav from '@/shared/components/organisms/ProofingTopNav.vue'
-import ProofingSidebarPanels from '@/shared/components/organisms/ProofingSidebarPanels.vue'
+import ProofingSidebar from '@/domains/memora/components/organisms/ProofingSidebar.vue'
+import ProofingTopNav from '@/domains/memora/components/organisms/ProofingTopNav.vue'
+import ProofingSidebarPanels from '@/domains/memora/components/organisms/ProofingSidebarPanels.vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
 import { useProofingMediaSetsSidebarStore } from '@/domains/memora/stores/proofingMediaSetsSidebar'
@@ -125,6 +125,8 @@ const activeTab = computed(() => {
 })
 
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
+
+const phaseType = 'proofing'
 
 // Note: setContext is now handled by ProofingDetail.vue to avoid race conditions
 // The layout watcher is kept for cases where proofing changes without going through ProofingDetail
