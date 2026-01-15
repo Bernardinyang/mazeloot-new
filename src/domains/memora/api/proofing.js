@@ -161,6 +161,9 @@ export function useProofingApi() {
       if (data.typographyDesign !== undefined) {
         payload.typographyDesign = data.typographyDesign
       }
+      if (data.galleryAssist !== undefined) {
+        payload.galleryAssist = data.galleryAssist
+      }
 
       const response = await apiClient.patch(endpoint, payload)
       return response.data

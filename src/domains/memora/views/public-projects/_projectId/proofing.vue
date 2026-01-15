@@ -124,12 +124,20 @@
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-          <div v-if="isLoadingBranding" class="h-14 w-32 flex items-center justify-center">
+          <div
+            v-if="isLoadingBranding"
+            class="h-14 w-32 flex items-center justify-center rounded-lg"
+            :class="[
+              proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                ? 'bg-white/10 backdrop-blur-sm'
+                : 'bg-gray-100/50 dark:bg-gray-800/50',
+            ]"
+          >
             <Loader2
               :class="[
                 'h-5 w-5 animate-spin',
                 proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
-                  ? 'text-white/70'
+                  ? 'text-white/90'
                   : 'text-gray-600 dark:text-gray-400',
               ]"
             />
@@ -148,23 +156,34 @@
         </div>
 
         <!-- Theme Toggle and Logout (Top Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-3">
+        <div
+          class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-2"
+        >
           <button
             v-if="!isAuthenticatedOwner && !isPreviewMode"
             :class="[
               proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
-                ? 'text-white/90 hover:text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+                ? 'text-white/90 hover:text-white bg-white/10 hover:bg-white/20'
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/50 dark:hover:bg-gray-700/50',
             ]"
-            class="p-2 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10"
+            class="p-2 rounded-lg transition-all duration-200 backdrop-blur-sm"
             title="Logout"
             @click="handleLogout"
           >
             <LogOut class="h-5 w-5" />
           </button>
-          <ThemeToggle
-            :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText)"
-          />
+          <div
+            :class="[
+              proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
+                ? 'bg-white/10 backdrop-blur-sm'
+                : 'bg-gray-100/50 dark:bg-gray-800/50',
+            ]"
+            class="rounded-lg"
+          >
+            <ThemeToggle
+              :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText)"
+            />
+          </div>
         </div>
 
         <!-- Cover Photo Background -->
@@ -248,13 +267,14 @@
             <div class="flex-shrink-0">
               <Button
                 v-if="!isAuthenticatedOwner && !isPreviewMode"
-                :class="[
-                  proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText
-                    ? 'bg-white/90 hover:bg-white text-gray-900 border-white/20 shadow-lg hover:shadow-xl'
-                    : 'bg-gray-900 hover:bg-gray-800 text-white border-gray-700 shadow-lg hover:shadow-xl',
-                ]"
-                class="px-6 py-3 text-sm md:text-base font-medium tracking-wider uppercase border backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95"
+                :style="{
+                  backgroundColor: proofingColor,
+                  color: 'white',
+                }"
+                class="px-8 py-6 text-base md:text-lg font-medium tracking-wider uppercase border backdrop-blur-sm transition-all duration-300 hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
                 @click="scrollToGallery"
+                @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
+                @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
               >
                 View Gallery
               </Button>
@@ -265,6 +285,92 @@
 
       <!-- Content Section -->
       <div id="gallery-section" class="container mx-auto px-4 md:px-8 py-8 md:py-12">
+        <!-- Gallery Assist Walk-through Cards -->
+        <Transition name="fade">
+          <div
+            v-if="showGalleryAssist && !isGalleryAssistDismissed && !isAuthenticatedOwner"
+            class="mb-6 sm:mb-8"
+          >
+            <div
+              :style="{
+                backgroundColor: proofingColor + '10',
+                borderColor: proofingColor + '40',
+              }"
+              class="rounded-xl border-2 p-4 sm:p-6 space-y-4 relative shadow-lg"
+            >
+              <button
+                :style="{ color: proofingColor }"
+                class="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 transition-all duration-200 hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-offset-2"
+                aria-label="Dismiss Gallery Assist"
+                @click="dismissGalleryAssist"
+              >
+                <X class="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+              <div class="flex items-start gap-3 sm:gap-4 pr-8">
+                <div
+                  :style="{ backgroundColor: proofingColor, color: 'white' }"
+                  class="p-2.5 rounded-lg shrink-0 shadow-md"
+                >
+                  <Sparkles class="h-5 w-5 sm:h-6 sm:w-6" />
+                </div>
+                <div class="flex-1 min-w-0">
+                  <h3
+                    class="text-base sm:text-lg font-bold mb-1.5"
+                    :style="{ color: proofingColor }"
+                  >
+                    Gallery Assist
+                  </h3>
+                  <p
+                    class="text-xs sm:text-sm leading-relaxed mb-5 text-gray-700 dark:text-gray-300"
+                  >
+                    Tips to help you navigate and provide feedback on this proofing
+                  </p>
+                  <TransitionGroup
+                    name="card"
+                    tag="div"
+                    class="grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-3"
+                  >
+                    <div
+                      v-for="(card, index) in galleryAssistCards"
+                      :key="card.id"
+                      :style="{
+                        backgroundColor: proofingColor + '15',
+                        borderColor: proofingColor + '40',
+                        '--card-delay': `${index * 50}ms`,
+                      }"
+                      class="p-3 sm:p-4 rounded-lg border transition-all duration-300 hover:shadow-md hover:scale-[1.02] hover:border-opacity-60 cursor-default group"
+                    >
+                      <div class="flex items-start gap-2 sm:gap-3">
+                        <div
+                          :style="{ backgroundColor: proofingColor + '25', color: proofingColor }"
+                          class="p-2 rounded-lg shrink-0 group-hover:scale-110 transition-transform duration-200"
+                        >
+                          <component
+                            :is="card.icon"
+                            class="h-4 w-4 sm:h-5 sm:w-5"
+                          />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                          <h4
+                            class="text-xs sm:text-sm font-semibold leading-tight text-gray-900 dark:text-gray-100"
+                          >
+                            {{ card.title }}
+                          </h4>
+                          <p
+                            class="text-xs leading-relaxed text-gray-700 dark:text-gray-300"
+                          >
+                            {{ card.description }}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </TransitionGroup>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Transition>
+
         <!-- Owner Preview Alert / Instructions / Status -->
         <template v-if="isAuthenticatedOwner || isPreviewMode">
           <div
@@ -316,12 +422,17 @@
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-5 mb-8 shadow-lg"
+            class="rounded-xl p-5 mb-8 shadow-lg border-2"
+            :style="{
+              background: `linear-gradient(to right, ${getProofingColorVariant(0.1)}, ${getProofingColorVariant(0.15)})`,
+              borderColor: getProofingColorVariant(0.3),
+            }"
           >
             <div class="flex items-center justify-between gap-4">
               <div class="flex items-center gap-3">
                 <svg
-                  class="w-6 h-6 text-violet-600 dark:text-violet-400 flex-shrink-0"
+                  class="w-6 h-6 flex-shrink-0"
+                  :style="{ color: proofingColor }"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -334,12 +445,13 @@
                   />
                 </svg>
                 <div>
-                  <p class="text-base font-bold text-violet-900 dark:text-violet-100">
+                  <p class="text-base font-bold" :style="{ color: proofingColor }">
                     Proofing has been completed. Thank you!
                   </p>
                   <p
                     v-if="getTotalMediaCount() > 0"
-                    class="text-sm text-violet-700 dark:text-violet-300 mt-1"
+                    class="text-sm mt-1"
+                    :style="{ color: getProofingColorVariant(0.8) }"
                   >
                     {{ getTotalApprovedCount() }} of {{ getTotalMediaCount() }} media items approved
                   </p>
@@ -464,7 +576,8 @@
                   <!-- Approved count -->
                   <span
                     v-if="getTotalApprovedCount() > 0"
-                    class="inline-flex items-center gap-1.5 text-violet-600 dark:text-violet-400 font-medium"
+                    class="inline-flex items-center gap-1.5 font-medium"
+                    :style="{ color: proofingColor }"
                   >
                     <svg
                       class="w-4 h-4"
@@ -518,13 +631,18 @@
             class="mb-8"
           >
             <div
-              class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-6 shadow-lg"
+              class="rounded-xl p-6 shadow-lg border-2"
+              :style="{
+                background: `linear-gradient(to right, ${getProofingColorVariant(0.1)}, ${getProofingColorVariant(0.15)})`,
+                borderColor: getProofingColorVariant(0.3),
+              }"
             >
               <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                   <div class="flex-shrink-0">
                     <svg
-                      class="w-6 h-6 text-violet-600 dark:text-violet-400"
+                      class="w-6 h-6"
+                      :style="{ color: proofingColor }"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -538,17 +656,22 @@
                     </svg>
                   </div>
                   <div>
-                    <p class="text-base font-bold text-violet-900 dark:text-violet-100">
+                    <p class="text-base font-bold" :style="{ color: proofingColor }">
                       All media items approved!
                     </p>
-                    <p class="text-sm text-violet-700 dark:text-violet-300 mt-1">
+                    <p class="text-sm mt-1" :style="{ color: getProofingColorVariant(0.8) }">
                       You can now complete this proofing.
                     </p>
                   </div>
                 </div>
                 <Button
                   :disabled="isCompletingProofing"
-                  class="bg-violet-600 hover:bg-violet-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3 text-base font-semibold"
+                  class="text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105 active:scale-95 px-6 py-3 text-base font-semibold"
+                  :style="{
+                    backgroundColor: proofingColor,
+                  }"
+                  @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
+                  @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
                   @click="showCompleteConfirm = true"
                 >
                   <span v-if="!isCompletingProofing">Complete Proofing</span>
@@ -661,7 +784,11 @@
                 <!-- Approved Badge -->
                 <div
                   v-if="item?.isCompleted || item?.is_completed"
-                  class="px-2.5 py-1 rounded-full bg-violet-600 text-white text-xs font-semibold shadow-xl backdrop-blur-sm flex items-center gap-1.5 border border-violet-400/30"
+                  class="px-2.5 py-1 rounded-full text-white text-xs font-semibold shadow-xl backdrop-blur-sm flex items-center gap-1.5 border"
+                  :style="{
+                    backgroundColor: proofingColor,
+                    borderColor: getProofingColorVariant(0.3),
+                  }"
                 >
                   <CheckCircle2 class="w-3.5 h-3.5 fill-white" />
                   <span>Approved</span>
@@ -791,7 +918,12 @@
                   <Tooltip>
                     <TooltipTrigger as-child>
                       <button
-                        class="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
+                        class="px-4 py-2 rounded-lg text-white transition-all duration-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 flex items-center gap-2 text-sm font-semibold"
+                        :style="{
+                          backgroundColor: proofingColor,
+                        }"
+                        @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
+                        @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
                         @click.stop="handleApproveMedia(item)"
                       >
                         <CheckCircle2 class="h-4 w-4" />
@@ -900,7 +1032,12 @@
             Cancel
           </Button>
           <Button
-            class="bg-violet-500 hover:bg-violet-600 text-white"
+            class="text-white"
+            :style="{
+              backgroundColor: proofingColor,
+            }"
+            @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
+            @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
             @click="confirmApproveMedia"
             :disabled="isApprovingMedia"
             :loading="isApprovingMedia"
@@ -937,7 +1074,12 @@
             Cancel
           </Button>
           <Button
-            class="bg-violet-500 hover:bg-violet-600 text-white"
+            class="text-white"
+            :style="{
+              backgroundColor: proofingColor,
+            }"
+            @mouseenter="e => (e.target.style.backgroundColor = getProofingHoverColor())"
+            @mouseleave="e => (e.target.style.backgroundColor = proofingColor)"
             @click="confirmCompleteProofing"
             :disabled="isCompletingProofing"
             :loading="isCompletingProofing"
@@ -1029,6 +1171,7 @@ import {
   Clock,
   Upload,
   LogOut,
+  Sparkles,
 } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
@@ -1096,6 +1239,7 @@ const brandingName = ref(null)
 const brandingBio = ref(null)
 const showMazelootBranding = ref(true)
 const isLoadingBranding = ref(false)
+const isGalleryAssistDismissed = ref(false)
 
 // Approval state
 const showApproveConfirm = ref(false)
@@ -1512,6 +1656,81 @@ const isPreviewMode = computed(() => {
 const proofingColor = computed(() => {
   return proofing.value?.color || '#F59E0B' // Default amber-500
 })
+
+// Helper to convert hex to rgba with opacity
+const hexToRgba = (hex, opacity = 1) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
+
+// Helper to get lighter/darker variants
+const getProofingColorVariant = (opacity) => {
+  return hexToRgba(proofingColor.value, opacity)
+}
+
+const showGalleryAssist = computed(() => {
+  if (!proofing.value) return false
+  const galleryAssist = proofing.value.galleryAssist ?? proofing.value.settings?.general?.galleryAssist ?? false
+  return galleryAssist === true
+})
+
+const galleryAssistCards = computed(() => {
+  if (!proofing.value) return []
+  
+  const cards = [
+    {
+      id: 'view',
+      icon: Eye,
+      title: 'View Full Screen',
+      description: 'Click on any media item to view it full-screen in the lightbox',
+      show: true,
+      priority: 1,
+    },
+    {
+      id: 'comment',
+      icon: MessageSquare,
+      title: 'Add Comments',
+      description: 'Click on media items to add comments and provide feedback',
+      show: true,
+      priority: 2,
+    },
+    {
+      id: 'approve',
+      icon: CheckCircle2,
+      title: 'Approve Media',
+      description: 'Click "Approve" on media items you\'re happy with',
+      show: proofing.value?.status !== 'completed',
+      priority: 3,
+    },
+    {
+      id: 'revisions',
+      icon: History,
+      title: 'View Revisions',
+      description: 'Click "Revision History" to see updated versions of media',
+      show: true,
+      priority: 4,
+    },
+  ]
+  
+  return cards
+    .filter(card => card.show)
+    .sort((a, b) => a.priority - b.priority)
+})
+
+const getGalleryAssistDismissKey = () => {
+  const id = proofing.value?.id || proofing.value?.uuid
+  return id ? `gallery-assist-dismissed-proofing-${id}` : null
+}
+
+const dismissGalleryAssist = () => {
+  isGalleryAssistDismissed.value = true
+  const key = getGalleryAssistDismissKey()
+  if (key && typeof window !== 'undefined') {
+    localStorage.setItem(key, 'true')
+  }
+}
 
 // Get proofing color styles for dynamic theming
 const getProofingColorStyles = (type = 'bg') => {
@@ -2774,6 +2993,21 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
   showWarnings: false,
 })
 
+// Check if Gallery Assist was previously dismissed
+watch(
+  () => proofing.value?.id || proofing.value?.uuid,
+  (id) => {
+    if (id && typeof window !== 'undefined') {
+      const key = `gallery-assist-dismissed-proofing-${id}`
+      const dismissed = localStorage.getItem(key)
+      if (dismissed === 'true') {
+        isGalleryAssistDismissed.value = true
+      }
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
   // Check if we have a stored password verification for this proofing
   const proofingId = route.query.proofingId
@@ -2798,3 +3032,37 @@ onUnmounted(() => {
   cleanupProtection()
 })
 </script>
+
+<style scoped>
+/* Fade transition for Gallery Assist container */
+.fade-enter-active,
+.fade-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+/* Card transition for Gallery Assist cards */
+.card-enter-active {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: var(--card-delay, 0ms);
+}
+
+.card-leave-active {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-enter-from {
+  opacity: 0;
+  transform: translateY(15px) scale(0.95);
+}
+
+.card-leave-to {
+  opacity: 0;
+  transform: translateY(-10px) scale(0.9);
+}
+</style>

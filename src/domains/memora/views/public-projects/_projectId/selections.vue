@@ -124,12 +124,20 @@
       <div class="relative w-full h-screen">
         <!-- Logo (Top Left) -->
         <div class="absolute top-4 left-4 md:top-6 md:left-6 z-20">
-          <div v-if="isLoadingBranding" class="h-14 w-32 flex items-center justify-center">
+          <div
+            v-if="isLoadingBranding"
+            class="h-14 w-32 flex items-center justify-center rounded-lg"
+            :class="[
+              selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
+                ? 'bg-white/10 backdrop-blur-sm'
+                : 'bg-gray-100/50 dark:bg-gray-800/50',
+            ]"
+          >
             <Loader2
               :class="[
                 'h-5 w-5 animate-spin',
                 selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
-                  ? 'text-white/70'
+                  ? 'text-white/90'
                   : 'text-gray-600 dark:text-gray-400',
               ]"
             />
@@ -148,25 +156,36 @@
         </div>
 
         <!-- Theme Toggle and Logout (Top Right) -->
-        <div class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-3">
+        <div
+          class="absolute top-4 right-4 md:top-6 md:right-6 z-20 flex items-center gap-2"
+        >
           <button
             v-if="!isAuthenticatedOwner && !isPreviewMode"
             :class="[
               selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
-                ? 'text-white/90 hover:text-white'
-                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100',
+                ? 'text-white/90 hover:text-white bg-white/10 hover:bg-white/20'
+                : 'text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 bg-gray-100/50 dark:bg-gray-800/50 hover:bg-gray-200/50 dark:hover:bg-gray-700/50',
             ]"
-            class="p-2 rounded-lg transition-all duration-200 hover:bg-black/10 dark:hover:bg-white/10"
+            class="p-2 rounded-lg transition-all duration-200 backdrop-blur-sm"
             title="Logout"
             @click="handleLogout"
           >
             <LogOut class="h-5 w-5" />
           </button>
-          <ThemeToggle
-            :contrast="
-              !!(selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText)
-            "
-          />
+          <div
+            :class="[
+              selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText
+                ? 'bg-white/10 backdrop-blur-sm'
+                : 'bg-gray-100/50 dark:bg-gray-800/50',
+            ]"
+            class="rounded-lg"
+          >
+            <ThemeToggle
+              :contrast="
+                !!(selection.coverPhotoUrl || selection.cover_photo_url || shouldUseLightText)
+              "
+            />
+          </div>
         </div>
 
         <!-- Cover Photo Background -->
@@ -253,7 +272,7 @@
                   backgroundColor: selectionColor,
                   color: 'white',
                 }"
-                class="px-6 py-3 text-sm md:text-base font-light tracking-wider uppercase border backdrop-blur-sm hover:opacity-90 transition-all duration-200"
+                class="px-8 py-6 text-base md:text-lg font-light tracking-wider uppercase border backdrop-blur-sm hover:opacity-90 transition-all duration-200"
                 @click="scrollToGallery"
                 @mouseenter="e => (e.target.style.backgroundColor = getSelectionHoverColor())"
                 @mouseleave="e => (e.target.style.backgroundColor = selectionColor)"
@@ -429,11 +448,16 @@
         <!-- Completed Message -->
         <template v-else>
           <div
-            class="bg-gradient-to-r from-violet-50 to-purple-50 dark:from-violet-900/30 dark:to-purple-900/30 border-2 border-violet-200 dark:border-violet-800 rounded-xl p-5 mb-8 shadow-lg"
+            class="rounded-xl p-5 mb-8 shadow-lg border-2"
+            :style="{
+              background: `linear-gradient(to right, ${getSelectionColorVariant(0.1)}, ${getSelectionColorVariant(0.15)})`,
+              borderColor: getSelectionColorVariant(0.3),
+            }"
           >
             <div class="flex items-center gap-3">
               <svg
-                class="w-6 h-6 text-violet-600 dark:text-violet-400 flex-shrink-0"
+                class="w-6 h-6 flex-shrink-0"
+                :style="{ color: selectionColor }"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -445,7 +469,7 @@
                   d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p class="text-base font-bold text-violet-900 dark:text-violet-100">
+              <p class="text-base font-bold" :style="{ color: selectionColor }">
                 Selection has been completed. Thank you!
               </p>
             </div>
@@ -716,7 +740,10 @@
               <!-- Recommended Badge (top left, visible to clients) -->
               <div
                 v-if="(item.isRecommended || item.is_recommended) && !isAuthenticatedOwner"
-                class="absolute top-2 left-2 bg-violet-500 text-white rounded-full p-1.5 z-10 shadow-xl backdrop-blur-sm border-2 border-white/30"
+                class="absolute top-2 left-2 text-white rounded-full p-1.5 z-10 shadow-xl backdrop-blur-sm border-2 border-white/30"
+                :style="{
+                  backgroundColor: selectionColor,
+                }"
                 title="Recommended: This is recommended media selected by the creative"
               >
                 <ThumbsUp class="h-5 w-5 fill-white" />
@@ -1139,6 +1166,19 @@ const isPreviewMode = computed(() => {
 const selectionColor = computed(() => {
   return selection.value?.color || '#3B82F6' // Default blue-500 for selections
 })
+
+// Helper to convert hex to rgba with opacity
+const hexToRgba = (hex, opacity = 1) => {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  return `rgba(${r}, ${g}, ${b}, ${opacity})`
+}
+
+// Helper to get lighter/darker variants
+const getSelectionColorVariant = (opacity) => {
+  return hexToRgba(selectionColor.value, opacity)
+}
 
 const showGalleryAssist = computed(() => {
   if (!selection.value) return false

@@ -44,18 +44,12 @@
                     The name of this proofing as it appears in your dashboard and to customers.
                   </p>
                 </div>
-                <div v-if="nameSaved" class="flex items-center gap-2 text-accent">
-                  <Check class="h-4 w-4" />
-                  <span class="text-xs font-medium">Saved</span>
-                </div>
               </div>
               <Input
                 v-model="proofingName"
                 :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                 class="max-w-md focus:ring-2 focus:ring-accent/20 transition-all"
                 placeholder="My Proofing"
-                @blur="handleNameChange"
-                @keydown.enter="handleNameChange"
               />
             </div>
 
@@ -71,10 +65,6 @@
                     Optional description shown to clients viewing this proofing.
                   </p>
                 </div>
-                <div v-if="descriptionSaved" class="flex items-center gap-2 text-accent">
-                  <Check class="h-4 w-4" />
-                  <span class="text-xs font-medium">Saved</span>
-                </div>
               </div>
               <Textarea
                 v-model="proofingDescription"
@@ -82,7 +72,6 @@
                 class="max-w-2xl min-h-[100px] resize-none focus:ring-2 focus:ring-accent/20 transition-all"
                 placeholder="Enter a description for this proofing..."
                 :maxlength="1000"
-                @blur="handleDescriptionChange"
               />
               <div class="flex items-center justify-between max-w-2xl">
                 <p :class="theme.textTertiary" class="text-xs">
@@ -108,10 +97,6 @@
                     Choose a color to help identify this proofing in your dashboard.
                   </p>
                 </div>
-                <div v-if="colorSaved" class="flex items-center gap-2 text-accent">
-                  <Check class="h-4 w-4" />
-                  <span class="text-xs font-medium">Saved</span>
-                </div>
               </div>
               <div class="flex items-center gap-3 max-w-md">
                 <input
@@ -119,15 +104,12 @@
                   :class="theme.borderSecondary"
                   class="h-12 w-20 rounded-lg border-2 cursor-pointer transition-all hover:scale-105"
                   type="color"
-                  @change="handleColorChange"
                 />
                 <Input
                   v-model="proofingColor"
                   :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                   class="flex-1 focus:ring-2 focus:ring-accent/20 transition-all font-mono text-sm"
                   placeholder="#F59E0B"
-                  @blur="handleColorChange"
-                  @keydown.enter="handleColorChange"
                 />
                 <div
                   class="h-12 w-12 rounded-lg border-2 transition-all"
@@ -172,8 +154,8 @@
                     Allowed Emails
                   </h3>
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                    Specify which email addresses are allowed to access this proofing. Mark one as
-                    primary to identify the main contact.
+                    Specify which email addresses are allowed to access this proofing.
+                    <span class="font-medium text-accent">Click the star icon</span> next to a valid email to set it as primary.
                   </p>
                 </div>
                 <div v-if="isSavingAllowedEmails" class="flex items-center gap-2 text-accent">
@@ -186,49 +168,18 @@
                   v-for="(email, index) in allowedEmails || []"
                   :key="`email-${index}`"
                   :class="[
-                    'group relative flex items-center gap-3 rounded-lg border transition-all duration-200 px-3 py-2',
+                    'group relative flex items-center gap-3 rounded-lg border transition-all duration-200 px-4 py-3',
                     isPrimaryEmail(email) && isValidEmail(email)
-                      ? 'bg-accent/10 dark:bg-accent/20 border-accent/40 dark:border-accent/30'
-                      : 'border-transparent hover:border-gray-200 dark:hover:border-gray-700',
+                      ? 'bg-accent/10 dark:bg-accent/20 border-accent/40 dark:border-accent/30 shadow-sm'
+                      : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600',
                     theme.bgCard,
                   ]"
                 >
                   <!-- Primary Indicator Bar -->
                   <div
                     v-if="isPrimaryEmail(email) && isValidEmail(email)"
-                    class="absolute left-0 top-0 bottom-0 w-1 rounded-l-lg bg-accent"
+                    class="absolute left-0 top-0 bottom-0 w-1.5 rounded-l-lg bg-accent"
                   ></div>
-
-                  <!-- Radio Button for Primary Selection -->
-                  <div class="flex-shrink-0">
-                    <label
-                      v-if="email && isValidEmail(email)"
-                      class="relative flex items-center cursor-pointer"
-                      :title="isPrimaryEmail(email) ? 'Primary email' : 'Set as primary'"
-                    >
-                      <input
-                        type="radio"
-                        :checked="isPrimaryEmail(email)"
-                        :name="`primary-email-${proofing?.id || 'default'}`"
-                        class="sr-only peer"
-                        @change="setPrimaryEmail(email)"
-                      />
-                      <div
-                        :class="[
-                          'w-4 h-4 rounded-full border-2 transition-all duration-200 flex items-center justify-center',
-                          isPrimaryEmail(email)
-                            ? 'border-accent bg-accent shadow-sm ring-2 ring-accent/20'
-                            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:border-accent dark:hover:border-accent',
-                        ]"
-                      >
-                        <div
-                          v-if="isPrimaryEmail(email)"
-                          class="w-2 h-2 rounded-full bg-white transition-all duration-200"
-                        ></div>
-                      </div>
-                    </label>
-                    <div v-else class="w-4 h-4"></div>
-                  </div>
 
                   <!-- Email Input -->
                   <div class="flex-1 relative min-w-0">
@@ -252,14 +203,6 @@
                         "
                         @keydown.enter="handleAllowedEmailsChange(true)"
                       />
-                      <!-- Primary Badge -->
-                      <span
-                        v-if="email && isValidEmail(email) && isPrimaryEmail(email)"
-                        class="flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold bg-accent/10 dark:bg-accent/20 text-accent whitespace-nowrap"
-                      >
-                        <Star class="h-3 w-3 fill-accent flex-shrink-0" />
-                        <span>Primary</span>
-                      </span>
                     </div>
                     <p
                       v-if="touchedEmailIndices.has(index) && email && !isValidEmail(email)"
@@ -267,6 +210,37 @@
                     >
                       Please enter a valid email address
                     </p>
+                  </div>
+
+                  <!-- Primary Button -->
+                  <div class="flex-shrink-0">
+                    <button
+                      v-if="email && isValidEmail(email)"
+                      :class="[
+                        'flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200',
+                        isPrimaryEmail(email)
+                          ? 'bg-accent text-white shadow-md hover:bg-accent/90'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-accent dark:hover:text-accent',
+                      ]"
+                      :title="isPrimaryEmail(email) ? 'Primary email - Click to change' : 'Click to set as primary email'"
+                      @click="setPrimaryEmail(email)"
+                    >
+                      <Star
+                        :class="[
+                          'h-3.5 w-3.5 transition-all duration-200',
+                          isPrimaryEmail(email) ? 'fill-white' : 'fill-gray-400 dark:fill-gray-500',
+                        ]"
+                      />
+                      <span>{{ isPrimaryEmail(email) ? 'Primary' : 'Set Primary' }}</span>
+                    </button>
+                    <div
+                      v-else
+                      class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-900/50"
+                      title="Enter a valid email to set as primary"
+                    >
+                      <Star class="h-3.5 w-3.5 fill-gray-300 dark:fill-gray-700" />
+                      <span class="hidden sm:inline">Set Primary</span>
+                    </div>
                   </div>
 
                   <!-- Remove Button -->
@@ -297,18 +271,6 @@
                   >
                     <Plus class="h-4 w-4 mr-2" />
                     Add Email
-                  </Button>
-                  <Button
-                    variant="accent"
-                    :disabled="!hasValidEmails"
-                    :loading="isSavingAllowedEmails"
-                    :icon="emailsSaved ? Check : null"
-                    loading-label="Saving..."
-                    size="sm"
-                    class="transition-all"
-                    @click="handleAllowedEmailsChange(true)"
-                  >
-                    {{ emailsSaved ? 'Saved' : 'Save Emails' }}
                   </Button>
                 </div>
                 <div class="pt-4 mt-4 border-t" :class="theme.borderSecondary">
@@ -394,7 +356,7 @@
                         theme.bgInput,
                         theme.borderInput,
                         theme.textInput,
-                        'w-full focus:ring-2 focus:ring-accent/20 transition-all',
+                        'w-full focus:ring-2 focus:ring-violet-500/20 transition-all',
                       ]"
                       readonly
                       placeholder="Password"
@@ -402,7 +364,7 @@
                   </div>
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="handleCopyPassword"
@@ -411,22 +373,32 @@
                     Copy
                   </Button>
                 </div>
-                <PasswordInput
-                  v-else
-                  v-model="newPassword"
-                  :input-class="[
-                    theme.bgInput,
-                    theme.borderInput,
-                    theme.textInput,
-                    'focus:ring-2 focus:ring-accent/20 transition-all',
-                  ]"
-                  placeholder="Enter new password"
-                  @blur="handlePasswordChange"
-                />
+                <div v-else class="flex items-center gap-2">
+                  <PasswordInput
+                    v-model="newPassword"
+                    :input-class="[
+                      theme.bgInput,
+                      theme.borderInput,
+                      theme.textInput,
+                      'flex-1 focus:ring-2 focus:ring-violet-500/20 transition-all',
+                    ]"
+                    placeholder="Enter new password"
+                  />
+                  <Button
+                    :class="[theme.borderSecondary, theme.textPrimary]"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
+                    size="sm"
+                    variant="outline"
+                    @click="handleGeneratePassword"
+                  >
+                    <RefreshCw class="h-4 w-4 mr-2" />
+                    Generate
+                  </Button>
+                </div>
                 <div class="flex items-center gap-2">
                   <Button
                     :class="[theme.borderSecondary, theme.textPrimary]"
-                    class="group hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent/50 hover:text-accent transition-all duration-200"
+                    class="group hover:bg-violet-50 dark:hover:bg-violet-950/20 hover:border-violet-500/50 hover:text-violet-600 dark:hover:text-violet-400 transition-all duration-200"
                     size="sm"
                     variant="outline"
                     @click="isChangingPassword = !isChangingPassword"
@@ -435,10 +407,11 @@
                   </Button>
                   <Button
                     v-if="isChangingPassword && newPassword"
-                    variant="accent"
+                    :class="['bg-violet-500 hover:bg-violet-600 text-white']"
+                    :disabled="isSavingPassword"
+                    size="sm"
                     :loading="isSavingPassword"
                     loading-label="Saving..."
-                    size="sm"
                     @click="handleSavePassword"
                   >
                     Save Password
@@ -459,10 +432,6 @@
                     Set the maximum number of revision rounds allowed for this proofing.
                   </p>
                 </div>
-                <div v-if="maxRevisionsSaved" class="flex items-center gap-2 text-accent">
-                  <Check class="h-4 w-4" />
-                  <span class="text-xs font-medium">Saved</span>
-                </div>
               </div>
               <div class="space-y-3 max-w-md">
                 <div class="flex items-center gap-3">
@@ -474,8 +443,6 @@
                     type="number"
                     min="1"
                     max="50"
-                    @blur="handleMaxRevisionsChange"
-                    @keydown.enter="handleMaxRevisionsChange"
                   />
                   <span :class="theme.textSecondary" class="text-sm">revision(s)</span>
                 </div>
@@ -497,10 +464,6 @@
                   <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
                     Select fonts that match your brand and style.
                   </p>
-                </div>
-                <div v-if="typographySaved" class="flex items-center gap-2 text-accent">
-                  <Check class="h-4 w-4" />
-                  <span class="text-xs font-medium">Saved</span>
                 </div>
               </div>
               <div class="space-y-5">
@@ -553,6 +516,27 @@
               </div>
             </div>
 
+            <!-- Gallery Assist -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+            >
+              <div class="flex items-start justify-between gap-4">
+                <div class="flex-1">
+                  <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
+                    Gallery Assist
+                  </h3>
+                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
+                    Add walk-through cards to help visitors use the proofing.
+                    <a class="text-violet-600 dark:text-violet-400 hover:underline font-medium" href="#">Learn more</a>
+                  </p>
+                </div>
+                <div class="flex-shrink-0 pt-1">
+                  <ToggleSwitch v-model="galleryAssist" label="" />
+                </div>
+              </div>
+            </div>
+
             <!-- Display Preferences -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
@@ -578,7 +562,6 @@
                       v-model="viewMode"
                       :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                       class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-accent/20 transition-all"
-                      @change="handleViewModeChange"
                     >
                       <option value="grid">Grid</option>
                       <option value="list">List</option>
@@ -597,7 +580,6 @@
                       v-model="gridSize"
                       :class="[theme.bgInput, theme.borderInput, theme.textInput]"
                       class="px-3 py-2 rounded-lg border focus:ring-2 focus:ring-accent/20 transition-all"
-                      @change="handleGridSizeChange"
                     >
                       <option value="small">Small</option>
                       <option value="medium">Medium</option>
@@ -630,10 +612,15 @@
               <Button
                 variant="accent"
                 :loading="isSaving"
+                :disabled="!hasUnsavedChanges"
                 loading-label="Saving..."
                 @click="handleSaveAll"
               >
-                Save Changes
+                <span v-if="hasUnsavedChanges" class="flex items-center gap-2">
+                  <span class="h-2 w-2 rounded-full bg-white animate-pulse"></span>
+                  Save Changes
+                </span>
+                <span v-else>Save Changes</span>
               </Button>
             </div>
           </div>
@@ -656,7 +643,7 @@
 import { ref, computed, onMounted, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { Plus, X, Loader2, Info, Copy, Star, Eye } from 'lucide-vue-next'
+import { Plus, X, Loader2, Info, Copy, Star, Eye, RefreshCw } from 'lucide-vue-next'
 import ProofingLayout from '@/domains/memora/layouts/ProofingLayout.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -671,6 +658,7 @@ import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { toast } from '@/shared/utils/toast'
 import { fontStyleOptions as baseFontStyleOptions } from '@/shared/utils/designConstants'
+import { generatePassword } from '@/shared/utils/generatePassword'
 
 const theme = useThemeClasses()
 const route = useRoute()
@@ -703,6 +691,7 @@ const descriptionSaved = ref(false)
 const colorSaved = ref(false)
 const maxRevisionsSaved = ref(false)
 const typographySaved = ref(false)
+const galleryAssist = ref(false)
 
 // Typography state
 const fontFamily = ref('sans')
@@ -736,6 +725,23 @@ const formData = reactive({
   coverFocalPoint: { x: 50, y: 50 },
 })
 
+// Track original values for change detection
+const originalValues = reactive({
+  name: '',
+  description: '',
+  color: '#F59E0B',
+  maxRevisions: 5,
+  fontFamily: 'sans',
+  fontStyle: 'normal',
+  galleryAssist: false,
+  allowedEmails: [],
+  primaryEmail: null,
+  viewMode: 'grid',
+  gridSize: 'medium',
+  showFilename: false,
+  coverFocalPoint: { x: 50, y: 50 },
+})
+
 // Display preferences (from store)
 const { viewMode, gridSize, showFilename } = storeToRefs(proofingStore)
 
@@ -763,28 +769,53 @@ const proofingCoverImage = computed(() => {
   return proofing.value?.coverPhotoUrl || proofing.value?.cover_photo_url || null
 })
 
+const hasUnsavedChanges = computed(() => {
+  if (!proofing.value) return false
+  
+  const normalizedAllowedEmails = allowedEmails.value
+    .map(e => e?.toLowerCase().trim())
+    .filter(Boolean)
+    .sort()
+  const normalizedOriginalEmails = (originalValues.allowedEmails || [])
+    .map(e => e?.toLowerCase().trim())
+    .filter(Boolean)
+    .sort()
+  
+  const emailsChanged = JSON.stringify(normalizedAllowedEmails) !== JSON.stringify(normalizedOriginalEmails)
+  const primaryEmailChanged = (primaryEmail.value?.toLowerCase().trim() || null) !== (originalValues.primaryEmail?.toLowerCase().trim() || null)
+  
+  const focalPointChanged = formData?.coverFocalPoint && (
+    formData.coverFocalPoint.x !== originalValues.coverFocalPoint.x ||
+    formData.coverFocalPoint.y !== originalValues.coverFocalPoint.y
+  )
+  
+  return (
+    proofingName.value !== originalValues.name ||
+    (proofingDescription.value || '') !== (originalValues.description || '') ||
+    proofingColor.value !== originalValues.color ||
+    maxRevisions.value !== originalValues.maxRevisions ||
+    fontFamily.value !== originalValues.fontFamily ||
+    fontStyle.value !== originalValues.fontStyle ||
+    galleryAssist.value !== originalValues.galleryAssist ||
+    emailsChanged ||
+    primaryEmailChanged ||
+    focalPointChanged ||
+    viewMode.value !== originalValues.viewMode ||
+    gridSize.value !== originalValues.gridSize ||
+    showFilename.value !== originalValues.showFilename
+  )
+})
+
 const isPrimaryEmail = email => {
   if (!email || !primaryEmail.value) {
     return false
   }
   const normalizedEmail = (email || '').trim().toLowerCase()
   const normalizedPrimary = (primaryEmail.value || '').trim().toLowerCase()
-  const isMatch = normalizedEmail === normalizedPrimary && normalizedEmail !== ''
-
-  // Debug: log when checking primary email
-  if (normalizedEmail && normalizedPrimary && normalizedEmail === normalizedPrimary) {
-    console.log('✅ Primary email match found', {
-      email,
-      normalizedEmail,
-      primaryEmail: primaryEmail.value,
-      normalizedPrimary,
-    })
-  }
-
-  return isMatch
+  return normalizedEmail === normalizedPrimary && normalizedEmail !== ''
 }
 
-const setPrimaryEmail = async email => {
+const setPrimaryEmail = email => {
   if (!email || !isValidEmail(email)) return
 
   const normalizedEmail = email.trim().toLowerCase()
@@ -794,31 +825,8 @@ const setPrimaryEmail = async email => {
     return
   }
 
-  const previousPrimary = primaryEmail.value
-  // Update primary email locally
+  // Update primary email locally (will be saved when user clicks Save Changes)
   primaryEmail.value = normalizedEmail
-
-  try {
-    // Save immediately
-    await handleAllowedEmailsChange(true)
-
-    // Show success toast
-    if (previousPrimary) {
-      toast.success('Primary email updated', {
-        description: `${normalizedEmail} is now the primary email.`,
-      })
-    } else {
-      toast.success('Primary email set', {
-        description: `${normalizedEmail} has been set as the primary email.`,
-      })
-    }
-  } catch (error) {
-    // Revert on error
-    primaryEmail.value = previousPrimary
-    toast.error('Failed to set primary email', {
-      description: error?.message || 'An unknown error occurred',
-    })
-  }
 }
 
 const goBack = () => {
@@ -890,7 +898,26 @@ onMounted(async () => {
     
     fontFamily.value = proofingTypography.fontFamily || 'sans'
     fontStyle.value = proofingTypography.fontStyle || 'normal'
-    typographyLoaded.value = true
+
+    // Load gallery assist
+    galleryAssist.value = proofingData.galleryAssist ?? proofingData.settings?.general?.galleryAssist ?? false
+    
+    // Set original values for change detection
+    originalValues.name = proofingName.value
+    originalValues.description = proofingDescription.value || ''
+    originalValues.color = proofingColor.value
+    originalValues.maxRevisions = maxRevisions.value
+    originalValues.fontFamily = fontFamily.value
+    originalValues.fontStyle = fontStyle.value
+    originalValues.galleryAssist = galleryAssist.value
+    originalValues.allowedEmails = Array.isArray(emails) && emails.length > 0
+      ? emails.map(e => e?.toLowerCase().trim()).filter(Boolean)
+      : []
+    originalValues.primaryEmail = primaryEmail.value
+    originalValues.viewMode = viewMode.value
+    originalValues.gridSize = gridSize.value
+    originalValues.showFilename = showFilename.value
+    originalValues.coverFocalPoint = { ...formData.coverFocalPoint }
   } catch (error) {
     toast.error('Failed to load proofing', {
       description: error?.message || 'An unknown error occurred',
@@ -1016,7 +1043,6 @@ const removeAllowedEmail = index => {
       }
     })
     touchedEmailIndices.value = newTouched
-    handleAllowedEmailsChange()
   }
 }
 
@@ -1222,26 +1248,47 @@ const handlePasswordToggle = async value => {
   }
 }
 
-const handlePasswordChange = async () => {
-  if (!proofing.value || !newPassword.value || isSavingPassword.value) return
+const handleSavePassword = async () => {
+  if (!proofing.value || !newPassword.value.trim()) {
+    toast.error('Password required', {
+      description: 'Please enter a password.',
+    })
+    return
+  }
 
   isSavingPassword.value = true
   try {
-    const projectId = proofing.value.projectId || proofing.value.project_uuid || null
-    const updatedProofing = await proofingApi.updateProofing(projectId, proofing.value.id, {
+    const projectId = proofing.value.projectId || proofing.value.project_uuid || route.query?.projectId || null
+    const proofingId = proofing.value.id || proofing.value.uuid
+    
+    const updatedProofing = await proofingApi.updateProofing(projectId, proofingId, {
       password: newPassword.value,
     })
-    currentPassword.value = newPassword.value
-    newPassword.value = ''
-    isChangingPassword.value = false
+    
+    hasPassword.value = true
+    
+    // Update password from backend response
+    if (updatedProofing?.password) {
+      currentPassword.value = updatedProofing.password
+    } else {
+      currentPassword.value = newPassword.value // Fallback to the value we just set
+    }
+    
     // Update proofing object to keep state in sync
     if (updatedProofing) {
       proofing.value = updatedProofing
+      proofing.value.password = currentPassword.value
+      proofing.value.hasPassword = true
     } else {
       // Fallback: update local properties
-      proofing.value.password = newPassword.value
+      proofing.value.password = currentPassword.value
       proofing.value.hasPassword = true
     }
+    
+    // Reset state after successful save
+    isChangingPassword.value = false
+    newPassword.value = ''
+    
     toast.success('Password updated', {
       description: 'Password has been updated successfully.',
     })
@@ -1254,10 +1301,6 @@ const handlePasswordChange = async () => {
   }
 }
 
-const handleSavePassword = async () => {
-  await handlePasswordChange()
-}
-
 const handleCopyPassword = () => {
   if (currentPassword.value) {
     navigator.clipboard.writeText(currentPassword.value)
@@ -1265,6 +1308,13 @@ const handleCopyPassword = () => {
       description: 'Password has been copied to clipboard.',
     })
   }
+}
+
+const handleGeneratePassword = () => {
+  newPassword.value = generatePassword()
+  toast.success('Password generated', {
+    description: 'A new password has been generated.',
+  })
 }
 
 const handleMaxRevisionsChange = async () => {
@@ -1363,62 +1413,139 @@ const handleTypographyChange = async () => {
   }
 }
 
-// Watch typography changes and auto-save (only after initial load)
-const typographyLoaded = ref(false)
-watch([fontFamily, fontStyle], () => {
-  if (typographyLoaded.value) {
-    handleTypographyChange()
-  }
-})
 
 const handleSaveAll = async () => {
-  if (!proofing.value?.id || isSaving.value) return
+  if (!proofing.value?.id || isSaving.value || !hasUnsavedChanges.value) return
 
-  const projectId = proofing.value.projectId || proofing.value.project_uuid
-  if (!projectId) {
-    toast.error('Project ID missing', {
-      description: 'Cannot save settings without project ID.',
-    })
-    return
-  }
+  const projectId = proofing.value.projectId || proofing.value.project_uuid || route.query?.projectId || null
+  const proofingId = proofing.value.id || proofing.value.uuid
 
   isSaving.value = true
   try {
     const updateData = {}
 
-    // Update focal point if changed
-    const currentFocalPoint = proofing.value?.coverFocalPoint || proofing.value?.cover_focal_point || { x: 50, y: 50 }
-    if (
-      formData?.coverFocalPoint &&
-      (formData.coverFocalPoint.x !== currentFocalPoint.x ||
-        formData.coverFocalPoint.y !== currentFocalPoint.y)
-    ) {
+    // Name
+    if (proofingName.value !== originalValues.name) {
+      updateData.name = proofingName.value
+    }
+
+    // Description
+    if ((proofingDescription.value || '') !== (originalValues.description || '')) {
+      updateData.description = proofingDescription.value || null
+    }
+
+    // Color
+    if (proofingColor.value !== originalValues.color) {
+      updateData.color = proofingColor.value
+    }
+
+    // Max revisions
+    if (maxRevisions.value !== originalValues.maxRevisions) {
+      updateData.maxRevisions = maxRevisions.value
+    }
+
+    // Typography
+    if (fontFamily.value !== originalValues.fontFamily || fontStyle.value !== originalValues.fontStyle) {
+      updateData.typographyDesign = {
+        fontFamily: fontFamily.value,
+        fontStyle: fontStyle.value,
+      }
+    }
+
+    // Gallery assist
+    if (galleryAssist.value !== originalValues.galleryAssist) {
+      updateData.galleryAssist = galleryAssist.value
+    }
+
+    // Allowed emails and primary email
+    const normalizedAllowedEmails = allowedEmails.value
+      .map(e => e?.toLowerCase().trim())
+      .filter(Boolean)
+    const normalizedOriginalEmails = (originalValues.allowedEmails || [])
+      .map(e => e?.toLowerCase().trim())
+      .filter(Boolean)
+    
+    if (JSON.stringify(normalizedAllowedEmails.sort()) !== JSON.stringify(normalizedOriginalEmails.sort())) {
+      updateData.allowedEmails = normalizedAllowedEmails
+    }
+
+    const normalizedPrimaryEmail = primaryEmail.value?.toLowerCase().trim() || null
+    const normalizedOriginalPrimary = originalValues.primaryEmail?.toLowerCase().trim() || null
+    if (normalizedPrimaryEmail !== normalizedOriginalPrimary) {
+      updateData.primaryEmail = normalizedPrimaryEmail
+    }
+
+    // Focal point
+    if (formData?.coverFocalPoint && (
+      formData.coverFocalPoint.x !== originalValues.coverFocalPoint.x ||
+      formData.coverFocalPoint.y !== originalValues.coverFocalPoint.y
+    )) {
       updateData.cover_focal_point = formData.coverFocalPoint
       updateData.coverFocalPoint = formData.coverFocalPoint
     }
 
-    // Save focal point if changed
-    if (Object.keys(updateData).length > 0) {
-      await proofingApi.updateProofing(projectId, proofing.value.id, updateData)
-      if (proofing.value) {
-        proofing.value.coverFocalPoint = formData.coverFocalPoint
-        proofing.value.cover_focal_point = formData.coverFocalPoint
-        proofing.value = { ...proofing.value }
-      }
+    // View mode, grid size, show filename (store preferences)
+    if (viewMode.value !== originalValues.viewMode) {
+      proofingStore.setViewMode(viewMode.value)
+    }
+    if (gridSize.value !== originalValues.gridSize) {
+      proofingStore.setGridSize(gridSize.value)
+    }
+    if (showFilename.value !== originalValues.showFilename) {
+      proofingStore.setShowFilename(showFilename.value)
     }
 
-    // Save all pending changes (force save for emails to ensure they're saved)
-    await Promise.all([
-      handleNameChange(),
-      handleColorChange(),
-      handleAllowedEmailsChange(true), // Force save
-      handleMaxRevisionsChange(),
-      handleTypographyChange(),
-    ])
+    // Save all changes
+    if (Object.keys(updateData).length > 0) {
+      const updatedProofing = await proofingApi.updateProofing(projectId, proofingId, updateData)
+      
+      if (updatedProofing) {
+        proofing.value = updatedProofing
+        
+        // Update original values from saved data
+        originalValues.name = updatedProofing.name || proofingName.value
+        originalValues.description = updatedProofing.description || ''
+        originalValues.color = updatedProofing.color || proofingColor.value
+        originalValues.maxRevisions = updatedProofing.maxRevisions || maxRevisions.value
+        originalValues.fontFamily = updatedProofing.typographyDesign?.fontFamily || fontFamily.value
+        originalValues.fontStyle = updatedProofing.typographyDesign?.fontStyle || fontStyle.value
+        originalValues.galleryAssist = updatedProofing.galleryAssist ?? updatedProofing.settings?.general?.galleryAssist ?? galleryAssist.value
+        originalValues.allowedEmails = (updatedProofing.allowedEmails || []).map(e => e?.toLowerCase().trim()).filter(Boolean)
+        originalValues.primaryEmail = updatedProofing.primaryEmail?.toLowerCase().trim() || null
+        originalValues.viewMode = viewMode.value
+        originalValues.gridSize = gridSize.value
+        originalValues.showFilename = showFilename.value
+        
+        if (updatedProofing.coverFocalPoint || updatedProofing.cover_focal_point) {
+          const savedFocalPoint = updatedProofing.coverFocalPoint || updatedProofing.cover_focal_point
+          originalValues.coverFocalPoint = { ...savedFocalPoint }
+          formData.coverFocalPoint = { ...savedFocalPoint }
+        }
+
+        // Update local reactive values to match saved data
+        proofingName.value = originalValues.name
+        proofingDescription.value = originalValues.description
+        proofingColor.value = originalValues.color
+        maxRevisions.value = originalValues.maxRevisions
+        fontFamily.value = originalValues.fontFamily
+        fontStyle.value = originalValues.fontStyle
+        galleryAssist.value = originalValues.galleryAssist
+        
+        // Update allowed emails array
+        if (originalValues.allowedEmails.length > 0) {
+          allowedEmails.value = [...originalValues.allowedEmails, '']
+        } else {
+          allowedEmails.value = ['']
+        }
+        primaryEmail.value = originalValues.primaryEmail
+      }
+    }
+    
     toast.success('Settings saved', {
       description: 'All settings have been saved successfully.',
     })
   } catch (error) {
+    console.error('Failed to save settings', error)
     toast.error('Failed to save settings', {
       description: error?.message || 'An unknown error occurred',
     })

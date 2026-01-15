@@ -934,7 +934,6 @@ const handleStarMediaFromLightbox = async ({ item }) => {
 }
 
 const { handleQuickShare, handleCopyLink, handleDownloadMedia: handleDownloadMediaFromShare, handleCopyFilenames: handleCopyFilenamesFromShare } = useMediaShareDownloadActions({
-    getMediaShareUrl,
     getMediaDownloadUrl,
     getDownloadFilename,
     fetchDownloadBlob,
@@ -942,9 +941,9 @@ const { handleQuickShare, handleCopyLink, handleDownloadMedia: handleDownloadMed
     triggerFallbackDownloadLink,
     copyTextToClipboard,
     getMediaFilename,
-    getCollectionShareLink,
     route,
     description,
+    collectionId: collection.value?.id || collection.value?.uuid,
   })
 
 // Override download and copy handlers from useMediaActions with collection-specific versions

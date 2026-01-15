@@ -1,7 +1,7 @@
 <template>
   <aside
     :class="[
-      'relative border-r transition-all duration-300',
+      'relative border-r transition-all duration-300 h-full',
       'bg-white dark:bg-gray-900',
       theme.borderSecondary,
       props.isSidebarCollapsed ? 'w-16 p-0 overflow-visible' : 'w-80 p-3 overflow-y-auto',

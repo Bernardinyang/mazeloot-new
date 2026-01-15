@@ -452,7 +452,11 @@ const handleCollectionClick = collection => {
 
 const handleCopyLink = async collection => {
   const collectionId = collection.id || collection.name || collection.title
-  const link = `${window.location.origin}/collections/${collectionId}`
+  const resolvedRoute = router.resolve({
+    name: 'collectionPhotos',
+    params: { uuid: collectionId },
+  })
+  const link = `${window.location.origin}${resolvedRoute.href}`
 
   try {
     await navigator.clipboard.writeText(link)
@@ -572,7 +576,11 @@ const handlePublishCollection = async collection => {
 const handlePreviewCollection = collection => {
   // Open preview in new tab
   const collectionId = collection.id || collection.name || collection.title
-  const previewUrl = `${window.location.origin}/preview/${collectionId}`
+  const resolvedRoute = router.resolve({
+    name: 'collectionPreview',
+    params: { id: collectionId },
+  })
+  const previewUrl = `${window.location.origin}${resolvedRoute.href}`
   window.open(previewUrl, '_blank')
 }
 

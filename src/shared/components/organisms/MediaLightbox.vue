@@ -27,6 +27,7 @@
           <div class="flex items-center gap-3 sm:gap-1.5 md:gap-3">
             <!-- Share Button -->
             <button
+              v-if="!disableShare"
               aria-label="Share"
               class="w-10 h-10 sm:w-9 sm:h-9 rounded-full bg-black/70 hover:bg-black/90 backdrop-blur-md text-white flex items-center justify-center transition-all duration-300 shadow-xl hover:scale-110 active:scale-95 border border-white/10 hover:border-white/20 focus:outline-none focus:ring-2 focus:ring-white/50 focus:ring-offset-2 focus:ring-offset-black/50"
               @click.stop="handleShare"
@@ -386,6 +387,10 @@ const props = defineProps({
   slideshowAutoLoop: {
     type: Boolean,
     default: true,
+  },
+  disableShare: {
+    type: Boolean,
+    default: false,
   },
   hideFavoriteIcon: {
     type: Boolean,

@@ -352,7 +352,7 @@
             </Tooltip>
           </TooltipProvider>
           
-          <TooltipProvider>
+          <TooltipProvider v-if="!props.disableShare">
             <Tooltip>
               <TooltipTrigger as-child>
                 <button
@@ -891,6 +891,10 @@ const props = defineProps({
     default: false,
   },
   hideFavoriteIcon: {
+    type: Boolean,
+    default: false,
+  },
+  disableShare: {
     type: Boolean,
     default: false,
   },

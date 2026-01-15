@@ -76,17 +76,17 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[420px] p-8 bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent class="sm:max-w-[420px] p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
           <DialogHeader class="text-center space-y-1 mb-8">
-            <DialogTitle :class="theme.textPrimary" class="text-2xl text-center font-serif tracking-wide">
+            <DialogTitle class="text-2xl text-center font-serif tracking-wide text-gray-900 dark:text-gray-100">
               {{ collection?.name?.toUpperCase() || 'COLLECTION' }}
             </DialogTitle>
-            <DialogDescription :class="theme.textSecondary" class="text-sm text-center font-sans">
+            <DialogDescription class="text-sm text-center font-sans text-gray-600 dark:text-gray-300">
               {{ brandingName || 'MAZELOOT' }}
             </DialogDescription>
           </DialogHeader>
 
-        <p :class="theme.textSecondary" class="text-sm text-center mb-8">
+        <p class="text-sm text-center mb-8 text-gray-600 dark:text-gray-300">
           Welcome. Choose one to continue:
         </p>
 
@@ -117,24 +117,23 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white dark:bg-gray-900 backdrop-blur-xl border border-gray-200 dark:border-gray-700 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
         <DialogHeader class="text-center pb-2">
-          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+          <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Email Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+          <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-300">
             Please enter your email address to continue as a client
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Email Address </label>
+            <label class="text-sm font-semibold block text-gray-900 dark:text-gray-100"> Email Address </label>
             <Input
               v-model="emailInput"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput, emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
-              :disabled="isSubmittingEmail"
-              class="w-full h-11"
+              :class="[emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
+              class="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-violet-500/20 dark:focus:ring-violet-400/20"
               placeholder="your.email@example.com"
               type="email"
               @keydown.enter="handleSubmitClientEmail"
@@ -142,6 +141,9 @@
             <p v-if="emailError" class="text-xs text-red-600 dark:text-red-400 flex items-center gap-1 mt-1">
               <AlertCircle class="h-3 w-3" />
               {{ emailError }}
+            </p>
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Your email will be used to access this collection.
             </p>
           </div>
         </div>
@@ -177,19 +179,19 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent class="sm:max-w-[440px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
         <DialogHeader class="text-center pb-2">
-          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+          <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Client Password Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+          <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-300">
             Enter the client password to access exclusive content
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Client Password </label>
+            <label class="text-sm font-semibold block text-gray-900 dark:text-gray-100"> Client Password </label>
             <PasswordInput
               v-model="clientPasswordInput"
               :input-class="[
@@ -241,24 +243,23 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+      <DialogContent class="sm:max-w-[440px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :hideClose="hasClientExclusiveAccess">
         <DialogHeader class="text-center pb-2">
-          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+          <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Email Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+          <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-300">
             Please enter your email address to access this collection
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Email Address </label>
+            <label class="text-sm font-semibold block text-gray-900 dark:text-gray-100"> Email Address </label>
             <Input
               v-model="emailInput"
-              :class="[theme.bgInput, theme.borderInput, theme.textInput, emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
-              :disabled="isSubmittingEmail"
-              class="w-full h-11"
+              :class="[emailError ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '']"
+              class="w-full h-11 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:ring-2 focus:ring-violet-500/20 dark:focus:ring-violet-400/20"
               placeholder="your.email@example.com"
               type="email"
               @keydown.enter="handleSubmitEmail"
@@ -267,7 +268,7 @@
               <AlertCircle class="h-3 w-3" />
               {{ emailError }}
             </p>
-            <p :class="theme.textSecondary" class="text-xs mt-1">
+            <p class="text-xs mt-1 text-gray-500 dark:text-gray-400">
               Your email will be used to access this collection.
             </p>
           </div>
@@ -314,19 +315,19 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl" :hideClose="hasClientExclusiveAccess">
+      <DialogContent class="sm:max-w-[440px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :hideClose="hasClientExclusiveAccess">
         <DialogHeader class="text-center pb-2">
-          <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+          <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Password Required
           </DialogTitle>
-          <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+          <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-300">
             This collection is password protected. Please enter the password to continue.
           </DialogDescription>
         </DialogHeader>
 
         <div class="space-y-5 mt-6">
           <div class="space-y-2">
-            <label :class="theme.textPrimary" class="text-sm font-semibold block"> Password </label>
+            <label class="text-sm font-semibold block text-gray-900 dark:text-gray-100"> Password </label>
             <PasswordInput
               v-model="passwordInput"
               :input-class="[
@@ -395,12 +396,12 @@
             © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
           </p>
         </div>
-        <DialogContent :class="[theme.borderSecondary]" class="sm:max-w-[440px] bg-white/10 dark:bg-gray-900/10 backdrop-blur-xl border border-white/20 dark:border-gray-600/60 shadow-2xl">
+        <DialogContent class="sm:max-w-[440px] bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl">
           <DialogHeader class="text-center pb-2">
-            <DialogTitle :class="theme.textPrimary" class="text-2xl font-bold">
+            <DialogTitle class="text-2xl font-bold text-gray-900 dark:text-gray-100">
               Download PIN Required
             </DialogTitle>
-            <DialogDescription :class="theme.textSecondary" class="text-sm mt-2">
+            <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-300">
               Please enter the 4-digit download PIN to download media from this collection
             </DialogDescription>
           </DialogHeader>

@@ -64,10 +64,39 @@
             </div>
           </div>
 
+          <!-- Filters -->
+          <div
+            :class="[theme.borderSecondary, theme.bgCard]"
+            class="p-4 rounded-2xl border-2 mb-6 flex flex-wrap items-center gap-4"
+          >
+            <Input
+              v-model="searchQuery"
+              :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+              class="flex-1 min-w-[200px]"
+              placeholder="Search by URL or description..."
+            />
+            <Select v-model="statusFilter">
+              <SelectTrigger :class="[theme.bgInput, theme.borderInput]" class="w-[180px]">
+                <SelectValue placeholder="All links" />
+              </SelectTrigger>
+              <SelectContent :class="[theme.bgCard, theme.borderCard]">
+                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="all">
+                  All links
+                </SelectItem>
+                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="active">
+                  Active
+                </SelectItem>
+                <SelectItem :class="[theme.textPrimary, theme.bgButtonHover]" value="inactive">
+                  Inactive
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
           <!-- Links List -->
           <div :class="[theme.borderSecondary, theme.bgCard]" class="rounded-2xl border-2 overflow-hidden">
             <DataTable
-              :items="shareLinks"
+              :items="filteredLinks"
               :columns="tableColumns"
               :loading="isLoading"
               :empty-message="'No quick share links yet'"
@@ -155,6 +184,14 @@ import {
   Plus,
 } from 'lucide-vue-next'
 import { Button } from '@/shared/components/shadcn/button'
+import { Input } from '@/shared/components/shadcn/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/shadcn/select'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import DataTable from '@/shared/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
@@ -177,6 +214,8 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 // Share links data
 const shareLinks = ref([])
 const showCreateModal = ref(false)
+const searchQuery = ref('')
+const statusFilter = ref('all')
 
 // Table columns
 const tableColumns = [
@@ -194,6 +233,29 @@ const thisWeekClicks = computed(() => {
   const weekAgo = new Date()
   weekAgo.setDate(weekAgo.getDate() - 7)
   return shareLinks.value.filter(l => l.lastUsedAt && new Date(l.lastUsedAt) >= weekAgo).length
+})
+
+// Filtered links
+const filteredLinks = computed(() => {
+  let filtered = [...shareLinks.value]
+
+  // Search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(
+      l =>
+        l.url?.toLowerCase().includes(query) ||
+        l.description?.toLowerCase().includes(query) ||
+        l.name?.toLowerCase().includes(query)
+    )
+  }
+
+  // Status filter
+  if (statusFilter.value !== 'all') {
+    filtered = filtered.filter(l => l.active === (statusFilter.value === 'active'))
+  }
+
+  return filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 })
 
 // Generate demo data

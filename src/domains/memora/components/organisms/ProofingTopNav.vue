@@ -166,7 +166,6 @@
         <Eye class="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-2 shrink-0" />
         <span class="hidden sm:inline">Preview</span>
       </Button>
-      <ThemeToggle class="shrink-0" />
       <Button
         v-if="proofingStatus === 'active'"
         :class="[theme.borderSecondary, theme.textPrimary, 'shrink-0']"
@@ -208,6 +207,7 @@
         </span>
         <span class="sm:hidden">Publish</span>
       </Button>
+      <ThemeToggle class="shrink-0" />
     </div>
 
     <!-- Add Email Modal -->

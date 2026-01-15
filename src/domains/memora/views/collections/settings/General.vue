@@ -65,6 +65,56 @@
 
           <!-- Settings Sections -->
           <div class="space-y-6">
+            <!-- Name -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+            >
+              <div>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Name</h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                  The name of this collection.
+                </p>
+              </div>
+              <Input
+                v-model="collectionName"
+                :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                class="max-w-md focus:ring-2 focus:ring-violet-500/20 transition-all"
+                placeholder="Enter collection name"
+                @keydown.enter="handleSave"
+              />
+            </div>
+
+            <!-- Event Date -->
+            <div
+              :class="[theme.borderSecondary, theme.bgCard]"
+              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+            >
+              <div>
+                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Event Date</h3>
+                <p :class="theme.textSecondary" class="text-xs leading-relaxed mb-3">
+                  The date associated with this collection.
+                </p>
+              </div>
+              <Popover v-model:open="isDatePickerOpen">
+                <PopoverTrigger as-child>
+                  <button
+                    :class="[theme.bgInput, theme.borderInput, theme.textInput]"
+                    class="max-w-md text-left px-3 py-2 rounded-md focus:ring-2 focus:ring-violet-500/20 transition-all flex items-center justify-between"
+                  >
+                    <span>{{ eventDate ? formatDate(eventDate) : 'Select date' }}</span>
+                    <ChevronDown class="h-4 w-4 opacity-50" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent :class="[theme.bgCard, theme.borderCard, 'w-auto p-0']" align="start">
+                  <Calendar
+                    :model-value="eventDate"
+                    @update:model-value="handleDatePickerChange"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
             <!-- Preset -->
             <div
               v-if="presets && presets.length > 0"
@@ -176,52 +226,6 @@
                   </SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <!-- Auto Expiry -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Auto Expiry</h3>
-                  <p :class="theme.textSecondary" class="text-xs leading-relaxed">
-                    Automatically set your collection to hidden after a specified number of days
-                    <span v-if="autoExpiryEnabled && autoExpiryDays" class="font-medium block mt-1 text-violet-600 dark:text-violet-400">
-                      ({{ autoExpiryDays }} {{ autoExpiryDays === 1 ? 'day' : 'days' }} until expiry)
-                    </span>
-                </p>
-              </div>
-                <div class="flex-shrink-0 pt-1">
-                  <ToggleSwitch v-model="autoExpiryEnabled" label="" />
-                </div>
-              </div>
-              <Transition>
-                <div v-if="autoExpiryEnabled" class="space-y-4 max-w-md">
-                  <div>
-                    <label :class="theme.textPrimary" class="text-sm font-medium mb-2 block">
-                      Days Until Expiry
-                    </label>
-                    <div class="flex items-center gap-3">
-                <Input
-                        v-model.number="autoExpiryDays"
-                  :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-                        class="max-w-xs focus:ring-2 focus:ring-violet-500/20 transition-all"
-                        max="365"
-                        min="1"
-                        placeholder="30"
-                        type="number"
-                        @keydown.enter="handleSave"
-                      />
-                      <span :class="theme.textSecondary" class="text-sm">days</span>
-              </div>
-                    <p :class="theme.textSecondary" class="text-xs mt-2">
-                      Collection will be hidden this many days after creation.
-                    </p>
-                  </div>
-                </div>
-              </Transition>
             </div>
 
             <!-- Description -->
@@ -623,6 +627,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
+import { Calendar } from '@/shared/components/shadcn/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover/index'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
@@ -667,10 +673,10 @@ const watermarks = computed(() => watermarkStore.watermarks || [])
 const { isSidebarCollapsed } = useSidebarCollapse()
 
 // Settings state
+const collectionName = ref('')
 const collectionDescription = ref('')
-const autoExpiryEnabled = ref(false)
-const autoExpiryDays = ref(30)
 const emailRegistration = ref(true)
+const isDatePickerOpen = ref(false)
 const galleryAssist = ref(false)
 const slideshow = ref(true)
 const showSlideshowOptions = ref(true)
@@ -716,21 +722,7 @@ onMounted(async () => {
     selectedPresetId.value = existingCollection.presetId || 'none'
     selectedWatermark.value = existingCollection.watermarkId || 'none'
     isLoading.value = false
-    // Use expiryDays from backend if available, otherwise calculate from expiryDate
-    if (existingCollection.expiryDays) {
-      autoExpiryEnabled.value = true
-      autoExpiryDays.value = existingCollection.expiryDays
-    } else if (existingCollection.expiryDate && existingCollection.createdAt) {
-      const expiryDate = new Date(existingCollection.expiryDate)
-      const createdDate = new Date(existingCollection.createdAt)
-      const diffTime = expiryDate - createdDate
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      autoExpiryEnabled.value = diffDays > 0
-      autoExpiryDays.value = diffDays > 0 ? diffDays : 30
-    } else {
-      autoExpiryEnabled.value = false
-      autoExpiryDays.value = 30
-    }
+    collectionName.value = existingCollection.name || ''
     collectionDescription.value = existingCollection.description || ''
     emailRegistration.value = true
     galleryAssist.value = existingCollection.galleryAssist || false
@@ -744,9 +736,8 @@ onMounted(async () => {
     
     // Store original data for change detection
     originalData.value = {
-      expiryDate: existingCollection.expiryDate || null,
-      autoExpiryEnabled: autoExpiryEnabled.value,
-      autoExpiryDays: autoExpiryDays.value,
+      name: existingCollection.name || '',
+      eventDate: existingCollection.eventDate || null,
       description: existingCollection.description || '',
       emailRegistration: true,
       galleryAssist: existingCollection.galleryAssist || false,
@@ -768,21 +759,7 @@ onMounted(async () => {
     eventDate.value = collectionData.eventDate ? new Date(collectionData.eventDate) : null
     selectedPresetId.value = collectionData.presetId || 'none'
     selectedWatermark.value = collectionData.watermarkId || 'none'
-    // Use expiryDays from backend if available, otherwise calculate from expiryDate
-    if (collectionData.expiryDays) {
-      autoExpiryEnabled.value = true
-      autoExpiryDays.value = collectionData.expiryDays
-    } else if (collectionData.expiryDate && collectionData.createdAt) {
-      const expiryDate = new Date(collectionData.expiryDate)
-      const createdDate = new Date(collectionData.createdAt)
-      const diffTime = expiryDate - createdDate
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-      autoExpiryEnabled.value = diffDays > 0
-      autoExpiryDays.value = diffDays > 0 ? diffDays : 30
-    } else {
-      autoExpiryEnabled.value = false
-      autoExpiryDays.value = 30
-    }
+    collectionName.value = collectionData.name || ''
     collectionDescription.value = collectionData.description || ''
     emailRegistration.value = true
     galleryAssist.value = collectionData.galleryAssist || false
@@ -796,9 +773,8 @@ onMounted(async () => {
     
     // Store original data for change detection
     originalData.value = {
-      expiryDate: collectionData.expiryDate || null,
-      autoExpiryEnabled: autoExpiryEnabled.value,
-      autoExpiryDays: autoExpiryDays.value,
+      name: collectionData.name || '',
+      eventDate: collectionData.eventDate || null,
       description: collectionData.description || '',
       emailRegistration: true,
       galleryAssist: collectionData.galleryAssist || false,
@@ -817,33 +793,14 @@ onMounted(async () => {
   }
 })
 
-// Calculate expiry date from days
-const calculateExpiryDate = () => {
-  if (!autoExpiryEnabled.value || !autoExpiryDays.value || !collection.value?.createdAt) {
-    return null
-  }
-  const createdDate = new Date(collection.value.createdAt)
-  const expiryDate = new Date(createdDate)
-  expiryDate.setDate(expiryDate.getDate() + autoExpiryDays.value)
-  return expiryDate.toISOString()
-}
-
-// Format expiry date for display
-const formatExpiryDate = () => {
-  const expiryDate = calculateExpiryDate()
-  if (!expiryDate) return ''
-  const date = new Date(expiryDate)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
 // Check for unsaved changes
 const hasChanges = computed(() => {
   if (!originalData.value) return false
-  const currentExpiryDate = calculateExpiryDate()
+  const currentEventDate = eventDate.value ? (eventDate.value instanceof Date ? eventDate.value.toISOString() : eventDate.value) : null
+  const originalEventDate = originalData.value.eventDate ? (originalData.value.eventDate instanceof Date ? originalData.value.eventDate.toISOString() : originalData.value.eventDate) : null
   return (
-    autoExpiryEnabled.value !== originalData.value.autoExpiryEnabled ||
-    autoExpiryDays.value !== originalData.value.autoExpiryDays ||
-    currentExpiryDate !== originalData.value.expiryDate ||
+    (collectionName.value || '') !== (originalData.value.name || '') ||
+    currentEventDate !== originalEventDate ||
     (collectionDescription.value || '') !== (originalData.value.description || '') ||
     galleryAssist.value !== originalData.value.galleryAssist ||
     slideshow.value !== originalData.value.slideshow ||
@@ -860,11 +817,10 @@ const handleSave = async () => {
 
   isSaving.value = true
   try {
-    const expiryDate = calculateExpiryDate()
-    
+    const dateString = eventDate.value instanceof Date ? eventDate.value.toISOString() : (eventDate.value || null)
     await galleryStore.updateCollection(collection.value.id, {
-      expiryDate: expiryDate,
-      expiryDays: autoExpiryEnabled.value ? autoExpiryDays.value : null,
+      name: collectionName.value || null,
+      eventDate: dateString,
       description: collectionDescription.value || null,
       emailRegistration: true,
       galleryAssist: galleryAssist.value,
@@ -875,11 +831,19 @@ const handleSave = async () => {
       language: language.value,
     })
 
+    // Update collection ref
+    if (collection.value) {
+      collection.value = {
+        ...collection.value,
+        name: collectionName.value || collection.value.name,
+        eventDate: dateString || collection.value.eventDate,
+      }
+    }
+
     // Update original data
     originalData.value = {
-      expiryDate: expiryDate,
-      autoExpiryEnabled: autoExpiryEnabled.value,
-      autoExpiryDays: autoExpiryDays.value,
+      name: collectionName.value || '',
+      eventDate: dateString,
       description: collectionDescription.value || '',
       emailRegistration: true,
       galleryAssist: galleryAssist.value,
@@ -921,6 +885,11 @@ const handleStatusChange = async newStatus => {
       description,
     })
   }
+}
+
+const handleDatePickerChange = date => {
+  eventDate.value = date
+  isDatePickerOpen.value = false
 }
 
 const handleDateChange = async newDate => {
@@ -1008,24 +977,10 @@ const handleApplyPreset = async () => {
       // Update all form fields with new values from backend
       collectionStatus.value = updatedCollection.status === 'active' ? 'published' : 'draft'
       eventDate.value = updatedCollection.eventDate ? new Date(updatedCollection.eventDate) : null
+      collectionName.value = updatedCollection.name || ''
       collectionDescription.value = updatedCollection.description || ''
       selectedPresetId.value = updatedCollection.presetId || 'none'
       selectedWatermark.value = updatedCollection.watermarkId || 'none'
-      // Update expiry days from backend
-      if (updatedCollection.expiryDays) {
-        autoExpiryEnabled.value = true
-        autoExpiryDays.value = updatedCollection.expiryDays
-      } else if (updatedCollection.expiryDate && updatedCollection.createdAt) {
-        const expiryDate = new Date(updatedCollection.expiryDate)
-        const createdDate = new Date(updatedCollection.createdAt)
-        const diffTime = expiryDate - createdDate
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-        autoExpiryEnabled.value = diffDays > 0
-        autoExpiryDays.value = diffDays > 0 ? diffDays : 30
-      } else {
-        autoExpiryEnabled.value = false
-        autoExpiryDays.value = 30
-      }
       emailRegistration.value = true
       galleryAssist.value = updatedCollection.galleryAssist ?? false
       slideshow.value = updatedCollection.slideshow !== false
@@ -1037,11 +992,10 @@ const handleApplyPreset = async () => {
       favoriteEnabled.value = updatedCollection.favoriteEnabled !== false
       
       // Update originalData to reflect saved state (no unsaved changes)
-      const currentExpiryDate = calculateExpiryDate()
+      const currentEventDate = updatedCollection.eventDate || null
       originalData.value = {
-        expiryDate: currentExpiryDate,
-        autoExpiryEnabled: autoExpiryEnabled.value,
-        autoExpiryDays: autoExpiryDays.value,
+        name: updatedCollection.name || '',
+        eventDate: currentEventDate,
         description: updatedCollection.description || '',
         emailRegistration: true,
         galleryAssist: updatedCollection.galleryAssist ?? false,
@@ -1085,9 +1039,9 @@ const handleWatermarkChange = async watermarkId => {
 
 
 // Format date helper
-const formatDate = dateString => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+const formatDate = date => {
+  if (!date) return ''
+  const dateObj = date instanceof Date ? date : new Date(date)
+  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 </script>

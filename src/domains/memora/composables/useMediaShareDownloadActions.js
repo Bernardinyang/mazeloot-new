@@ -1,7 +1,7 @@
 import { toast } from '@/shared/utils/toast'
+import { useRouter } from 'vue-router'
 
 export function useMediaShareDownloadActions({
-  getMediaShareUrl,
   getMediaDownloadUrl,
   getDownloadFilename,
   fetchDownloadBlob,
@@ -9,15 +9,23 @@ export function useMediaShareDownloadActions({
   triggerFallbackDownloadLink,
   copyTextToClipboard,
   getMediaFilename,
-  getCollectionShareLink,
   route,
   description,
   collectionId,
   publicMode = false,
 } = {}) {
+  const router = useRouter()
+  
   const handleQuickShare = async item => {
     try {
-      const shareUrl = getMediaShareUrl(window.location.origin, item.id)
+      const resolvedRoute = router.resolve({
+        name: 'clientCollection',
+        query: {
+          collectionId: collectionId || route.params.uuid,
+          mediaId: item.id,
+        },
+      })
+      const shareUrl = `${window.location.origin}${resolvedRoute.href}`
       await copyTextToClipboard(shareUrl)
       
       // Track share link click (only in public mode)
@@ -76,7 +84,11 @@ export function useMediaShareDownloadActions({
 
   const handleCopyLink = () => {
     const uuid = route.params.uuid
-    const link = getCollectionShareLink(window.location.origin, uuid)
+    const resolvedRoute = router.resolve({
+      name: 'collectionPhotos',
+      params: { uuid },
+    })
+    const link = `${window.location.origin}${resolvedRoute.href}`
 
     copyTextToClipboard(link)
       .then(() => {

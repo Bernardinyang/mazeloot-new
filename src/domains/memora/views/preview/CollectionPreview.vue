@@ -246,7 +246,7 @@
               backgroundColor: accentColor,
               color: accentTextColor,
             }"
-            class="w-full sm:w-auto px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium uppercase tracking-wider rounded-lg transition-all duration-300 hover:opacity-90 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap"
+            class="w-full sm:w-auto px-6 sm:px-8 md:px-10 py-6 sm:py-5 md:py-6 text-xs sm:text-sm md:text-base font-medium uppercase tracking-wider rounded-lg transition-all duration-300 hover:opacity-90 active:scale-95 shadow-lg hover:shadow-xl whitespace-nowrap"
             @click="scrollToGallery"
           >
             VIEW GALLERY
@@ -342,6 +342,7 @@
               <Download class="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <button
+              v-if="collection?.socialSharing !== false"
               :style="{ 
                 color: textColor,
                 backgroundColor: 'transparent',
@@ -380,20 +381,6 @@
             </button>
         </div>
       </div>
-
-        <!-- Email Row (before tabs) -->
-        <div
-          v-if="userEmail"
-          class="mb-3 sm:mb-4"
-        >
-          <p
-            :class="[fontFamilyClass, fontStyleClass]"
-            :style="{ color: textColor, opacity: 0.6 }"
-            class="text-[10px] xs:text-xs sm:text-xs md:text-sm font-medium"
-          >
-            {{ userEmail }}
-          </p>
-        </div>
 
         <!-- Bottom Row: Tabs -->
         <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
@@ -600,6 +587,7 @@
           :allow-mark-private="props.disableActions ? false : (collection?.allowClientsMarkPrivate && props.userMode === 'client')"
           :disable-aspect-square="normalizedGridStyle === 'masonry'"
           :hide-favorite-icon="props.previewMode === 'public' && collection?.favoritePhotos === false"
+          :disable-share="collection?.socialSharing === false"
           :class="[
             normalizedGridStyle === 'masonry' ? thumbnailSizeClasses : '',
           ]"
@@ -701,6 +689,7 @@
       :auto-start-slideshow="autoStartSlideshow"
       :slideshow-speed="collection?.slideshowSpeed || 'regular'"
       :slideshow-auto-loop="collection?.slideshowAutoLoop ?? true"
+      :disable-share="collection?.socialSharing === false"
       :public-mode="props.previewMode === 'public'"
       :is-client-verified="props.isClientVerified"
       :allow-mark-private="collection?.allowClientsMarkPrivate && props.userMode === 'client'"
@@ -2091,40 +2080,32 @@ const handleDownloadAll = () => {
 
 const handleShareMedia = async (item) => {
   if (props.disableActions) return
+  if (collection.value?.socialSharing === false) return
   if (!item || !item.id) {
     console.warn('handleShareMedia: No item or item.id', item)
     return
   }
   
   try {
-    // Build share URL with media ID parameter
-    const baseUrl = window.location.origin
-    
     // Get collection ID - check multiple sources
-    let collectionId = null
+    let shareCollectionId = null
     
     // First, check collection object (works for both public and non-public)
     const collectionToUse = props.previewMode && props.previewCollection ? props.previewCollection : collection.value
-    collectionId = collectionToUse?.id || collectionToUse?.uuid
+    shareCollectionId = collectionToUse?.id || collectionToUse?.uuid
     
     // If not found, check route query (for public mode)
-    if (!collectionId && props.previewMode === 'public') {
-      collectionId = route.query.collectionId
+    if (!shareCollectionId && props.previewMode === 'public') {
+      shareCollectionId = route.query.collectionId
     }
     
     // If still not found, check route params (for non-public mode)
-    if (!collectionId && !props.previewMode) {
+    if (!shareCollectionId && !props.previewMode) {
       const computedCollectionId = collectionId.value
-      collectionId = route.params.id || computedCollectionId
+      shareCollectionId = route.params.id || computedCollectionId
     }
     
-    // Get project ID
-    let projectId = collectionToUse?.projectId || collectionToUse?.project_uuid
-    if (!projectId) {
-      projectId = route.params.projectId || 'standalone'
-    }
-    
-    if (!collectionId) {
+    if (!shareCollectionId) {
       console.error('Collection ID not found', {
         previewMode: props.previewMode,
         previewCollection: props.previewCollection,
@@ -2136,7 +2117,15 @@ const handleShareMedia = async (item) => {
       return
     }
     
-    const shareUrl = `${baseUrl}/p/${projectId}/collection?collectionId=${collectionId}&mediaId=${item.id}`
+    // Build share URL using router.resolve
+    const resolvedRoute = router.resolve({
+      name: 'clientCollection',
+      query: {
+        collectionId: shareCollectionId,
+        mediaId: item.id,
+      },
+    })
+    const shareUrl = `${window.location.origin}${resolvedRoute.href}`
     console.log('Sharing URL:', shareUrl)
     
     // Use browser's native share API
@@ -2148,11 +2137,11 @@ const handleShareMedia = async (item) => {
           url: shareUrl,
         })
         // Track share link click (only in public mode)
-        if (props.previewMode === 'public' && collectionId) {
+        if (props.previewMode === 'public' && shareCollectionId) {
           try {
             const { useCollectionsApi } = await import('@/domains/memora/api/collections')
             const { trackShareLinkClick } = useCollectionsApi()
-            await trackShareLinkClick(collectionId, null, shareUrl)
+            await trackShareLinkClick(shareCollectionId, null, shareUrl)
           } catch (err) {
             console.warn('Failed to track share link click:', err)
           }
@@ -2181,11 +2170,11 @@ const handleShareMedia = async (item) => {
           console.log('Clipboard API: Success')
           
           // Track share link click (only in public mode)
-          if (props.previewMode === 'public' && collectionId) {
+          if (props.previewMode === 'public' && shareCollectionId) {
             try {
               const { useCollectionsApi } = await import('@/domains/memora/api/collections')
               const { trackShareLinkClick } = useCollectionsApi()
-              await trackShareLinkClick(collectionId, null, shareUrl)
+              await trackShareLinkClick(shareCollectionId, null, shareUrl)
             } catch (err) {
               console.warn('Failed to track share link click:', err)
             }
@@ -2249,11 +2238,11 @@ const handleShareMedia = async (item) => {
       
       if (successful) {
         // Track share link click (only in public mode)
-        if (props.previewMode === 'public' && collectionId) {
+        if (props.previewMode === 'public' && shareCollectionId) {
           try {
             const { useCollectionsApi } = await import('@/domains/memora/api/collections')
             const { trackShareLinkClick } = useCollectionsApi()
-            await trackShareLinkClick(collectionId, null, shareUrl)
+            await trackShareLinkClick(shareCollectionId, null, shareUrl)
           } catch (err) {
             console.warn('Failed to track share link click:', err)
           }
