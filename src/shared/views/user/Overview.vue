@@ -941,146 +941,240 @@
           </div>
         </ListItemCard>
 
-        <!-- Recent Selections Widget -->
-        <ListItemCard
-          :loading="isLoadingSelections"
-          :show-footer="true"
-          description="Client photo selection workflows"
-          footer-label="View All Selections"
-          title="Recent Selections"
-          @footer-click="handleViewAllSelections"
-        >
-          <template #loading>
-            <div class="animate-pulse space-y-3">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-2">
-                <div :class="['h-12 w-12 rounded-lg', theme.bgSkeleton]"></div>
-                <div class="flex-1 space-y-2">
-                  <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
-                  <div :class="['h-3 w-24 rounded', theme.bgSkeleton]"></div>
-                  <div :class="['h-5 w-16 rounded', theme.bgSkeleton]"></div>
+        <!-- Recent Phase Cards - 3 Column Grid -->
+        <div class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+          <!-- Recent Selections Widget -->
+          <ListItemCard
+            :loading="isLoadingSelections"
+            :show-footer="true"
+            animation-class="animate-in fade-in slide-in-from-bottom-4"
+            description="Client photo selection workflows"
+            footer-label="View All Selections"
+            title="Recent Selections"
+            @footer-click="handleViewAllSelections"
+          >
+            <template #loading>
+              <div class="animate-pulse space-y-3">
+                <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-2">
+                  <div :class="['h-12 w-12 rounded-lg', theme.bgSkeleton]"></div>
+                  <div class="flex-1 space-y-2">
+                    <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
+                    <div :class="['h-3 w-24 rounded', theme.bgSkeleton]"></div>
+                    <div :class="['h-5 w-16 rounded', theme.bgSkeleton]"></div>
+                  </div>
                 </div>
               </div>
+            </template>
+            <div v-if="recentSelections.length === 0" class="text-center py-8">
+              <EmptyState
+                :icon="CheckSquare"
+                description="Create a selection to let clients choose their favorite photos"
+                icon-bg-class="bg-pink-500/20"
+                icon-class="text-pink-400"
+                message="No selections yet"
+              />
             </div>
-          </template>
-          <div v-if="recentSelections.length === 0" class="text-center py-8">
-            <EmptyState
-              :icon="CheckSquare"
-              description="Create a selection to let clients choose their favorite photos"
-              icon-bg-class="bg-pink-500/20"
-              icon-class="text-pink-400"
-              message="No selections yet"
-            />
-          </div>
-          <div v-else class="space-y-3">
-            <div
-              v-for="(selection, index) in recentSelections.slice(0, 3)"
-              :key="selection.id"
-              :class="[
-                theme.listItem,
-                'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
-                'hover:scale-[1.01] active:scale-[0.99]',
-              ]"
-              :style="{ animationDelay: `${index * 50}ms` }"
-              @click="handleSelectionClick(selection)"
-            >
-              <div class="flex gap-3 items-start">
-                <div
-                  :class="[
-                    'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
-                    'bg-gradient-to-br from-pink-500/20 to-pink-500/10',
-                    'border border-pink-500/20',
-                    'group-hover:scale-110 group-hover:rotate-3',
-                    'group-hover:border-pink-500/40 shadow-md group-hover:shadow-lg',
-                  ]"
-                >
-                  <CheckSquare class="h-4 w-4 text-pink-400" />
-                </div>
-                <div class="flex-1 min-w-0 space-y-1">
-                  <p
+            <div v-else class="space-y-3">
+              <div
+                v-for="(selection, index) in recentSelections.slice(0, 3)"
+                :key="selection.id"
+                :class="[
+                  theme.listItem,
+                  'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
+                  'hover:scale-[1.01] active:scale-[0.99]',
+                ]"
+                :style="{ animationDelay: `${index * 50}ms` }"
+                @click="handleSelectionClick(selection)"
+              >
+                <div class="flex gap-3 items-start">
+                  <div
                     :class="[
-                      'text-sm font-semibold truncate group-hover:text-accent transition-colors',
-                      theme.textPrimary,
+                      'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
+                      'bg-gradient-to-br from-pink-500/20 to-pink-500/10',
+                      'border border-pink-500/20',
+                      'group-hover:scale-110 group-hover:rotate-3',
+                      'group-hover:border-pink-500/40 shadow-md group-hover:shadow-lg',
                     ]"
                   >
-                    {{ selection.name }}
-                  </p>
-                  <p :class="['text-xs', theme.textSecondary]">
-                    {{ formatDate(selection.updatedAt || selection.createdAt) }}
-                  </p>
-                  <div class="pt-1">
-                    <StatusBadge :status="selection.status || 'active'" />
+                    <CheckSquare class="h-4 w-4 text-pink-400" />
+                  </div>
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <p
+                      :class="[
+                        'text-sm font-semibold truncate group-hover:text-accent transition-colors',
+                        theme.textPrimary,
+                      ]"
+                    >
+                      {{ selection.name }}
+                    </p>
+                    <p :class="['text-xs', theme.textSecondary]">
+                      {{ formatDate(selection.updatedAt || selection.createdAt) }}
+                    </p>
+                    <div class="pt-1">
+                      <StatusBadge :status="selection.status || 'active'" />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        </ListItemCard>
+          </ListItemCard>
 
-        <!-- Recent Proofing Widget -->
-        <ListItemCard
-          :loading="isLoadingProofing"
-          :show-footer="true"
-          animation-class="animate-in fade-in slide-in-from-left-4"
-          description="Client approval and feedback workflows"
-          footer-label="View All Proofing"
-          title="Recent Proofing"
-          @footer-click="handleViewAllProofing"
-        >
-          <template #loading>
-            <div class="animate-pulse space-y-3">
+          <!-- Recent Proofing Widget -->
+          <ListItemCard
+            :loading="isLoadingProofing"
+            :show-footer="true"
+            animation-class="animate-in fade-in slide-in-from-bottom-4"
+            description="Client approval and feedback workflows"
+            footer-label="View All Proofing"
+            title="Recent Proofing"
+            @footer-click="handleViewAllProofing"
+          >
+            <template #loading>
+              <div class="animate-pulse space-y-3">
+                <div
+                  v-for="i in 3"
+                  :key="i"
+                  :class="theme.borderPrimary"
+                  class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
+                >
+                  <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
+                  <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
+                  <div :class="['h-5 w-20 rounded', theme.bgSkeleton]"></div>
+                </div>
+              </div>
+            </template>
+            <div v-if="recentProofing.length === 0" class="text-center py-8">
+              <EmptyState
+                :icon="Eye"
+                description="Create a proofing phase to collect client feedback and approvals"
+                icon-bg-class="bg-orange-500/20"
+                icon-class="text-orange-400"
+                message="No proofing yet"
+              />
+            </div>
+            <div v-else class="space-y-3">
               <div
-                v-for="i in 3"
-                :key="i"
-                :class="theme.borderPrimary"
-                class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
-              >
-                <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
-                <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
-                <div :class="['h-5 w-20 rounded', theme.bgSkeleton]"></div>
-              </div>
-            </div>
-          </template>
-          <div v-if="recentProofing.length === 0" class="text-center py-8">
-            <EmptyState
-              :icon="Eye"
-              description="Create a proofing phase to collect client feedback and approvals"
-              icon-bg-class="bg-orange-500/20"
-              icon-class="text-orange-400"
-              message="No proofing yet"
-            />
-          </div>
-          <div v-else class="space-y-3">
-            <div
-              v-for="(proofing, index) in recentProofing.slice(0, 3)"
-              :key="proofing.id"
-              :class="[
-                theme.listItem,
-                'group flex flex-col gap-1.5 pb-4 border-b rounded-lg px-2 -mx-2 cursor-pointer',
-                theme.borderPrimary,
-                'last:border-0 last:pb-0',
-                'hover:bg-opacity-50 transition-all duration-300',
-                'hover:scale-[1.01] active:scale-[0.99]',
-              ]"
-              :style="{ animationDelay: `${index * 50}ms` }"
-              @click="handleProofingClick(proofing)"
-            >
-              <p
+                v-for="(proofing, index) in recentProofing.slice(0, 3)"
+                :key="proofing.id"
                 :class="[
-                  'text-sm font-semibold truncate group-hover:text-accent transition-colors',
-                  theme.textPrimary,
+                  theme.listItem,
+                  'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
+                  'hover:scale-[1.01] active:scale-[0.99]',
                 ]"
+                :style="{ animationDelay: `${index * 50}ms` }"
+                @click="handleProofingClick(proofing)"
               >
-                {{ proofing.name }}
-              </p>
-              <p :class="['text-xs', theme.textSecondary]">
-                {{ formatDate(proofing.updatedAt || proofing.createdAt) }}
-              </p>
-              <div class="pt-0.5">
-                <StatusBadge :status="proofing.status || 'active'" />
+                <div class="flex gap-3 items-start">
+                  <div
+                    :class="[
+                      'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
+                      'bg-gradient-to-br from-orange-500/20 to-orange-500/10',
+                      'border border-orange-500/20',
+                      'group-hover:scale-110 group-hover:rotate-3',
+                      'group-hover:border-orange-500/40 shadow-md group-hover:shadow-lg',
+                    ]"
+                  >
+                    <Eye class="h-4 w-4 text-orange-400" />
+                  </div>
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <p
+                      :class="[
+                        'text-sm font-semibold truncate group-hover:text-accent transition-colors',
+                        theme.textPrimary,
+                      ]"
+                    >
+                      {{ proofing.name }}
+                    </p>
+                    <p :class="['text-xs', theme.textSecondary]">
+                      {{ formatDate(proofing.updatedAt || proofing.createdAt) }}
+                    </p>
+                    <div class="pt-1">
+                      <StatusBadge :status="proofing.status || 'active'" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-        </ListItemCard>
+          </ListItemCard>
+
+          <!-- Recent Raw Files Widget -->
+          <ListItemCard
+            :loading="isLoadingRawFiles"
+            :show-footer="true"
+            animation-class="animate-in fade-in slide-in-from-bottom-4"
+            description="Client raw file upload workflows"
+            footer-label="View All Raw Files"
+            title="Recent Raw Files"
+            @footer-click="handleViewAllRawFiles"
+          >
+            <template #loading>
+              <div class="animate-pulse space-y-3">
+                <div
+                  v-for="i in 3"
+                  :key="i"
+                  :class="theme.borderPrimary"
+                  class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
+                >
+                  <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
+                  <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
+                  <div :class="['h-5 w-20 rounded', theme.bgSkeleton]"></div>
+                </div>
+              </div>
+            </template>
+            <div v-if="recentRawFiles.length === 0" class="text-center py-8">
+              <EmptyState
+                :icon="FileText"
+                description="Create a raw file to let clients upload their photos"
+                icon-bg-class="bg-teal-500/20"
+                icon-class="text-teal-400"
+                message="No raw files yet"
+              />
+            </div>
+            <div v-else class="space-y-3">
+              <div
+                v-for="(rawFile, index) in recentRawFiles.slice(0, 3)"
+                :key="rawFile.id"
+                :class="[
+                  theme.listItem,
+                  'group rounded-xl p-3 hover:bg-opacity-80 transition-all duration-300 cursor-pointer',
+                  'hover:scale-[1.01] active:scale-[0.99]',
+                ]"
+                :style="{ animationDelay: `${index * 50}ms` }"
+                @click="handleRawFileClick(rawFile)"
+              >
+                <div class="flex gap-3 items-start">
+                  <div
+                    :class="[
+                      'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
+                      'bg-gradient-to-br from-teal-500/20 to-teal-500/10',
+                      'border border-teal-500/20',
+                      'group-hover:scale-110 group-hover:rotate-3',
+                      'group-hover:border-teal-500/40 shadow-md group-hover:shadow-lg',
+                    ]"
+                  >
+                    <FileText class="h-4 w-4 text-teal-400" />
+                  </div>
+                  <div class="flex-1 min-w-0 space-y-1">
+                    <p
+                      :class="[
+                        'text-sm font-semibold truncate group-hover:text-accent transition-colors',
+                        theme.textPrimary,
+                      ]"
+                    >
+                      {{ rawFile.name }}
+                    </p>
+                    <p :class="['text-xs', theme.textSecondary]">
+                      {{ formatDate(rawFile.updatedAt || rawFile.createdAt) }}
+                    </p>
+                    <div class="pt-1">
+                      <StatusBadge :status="rawFile.status || 'active'" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </ListItemCard>
+        </div>
       </div>
     </main>
 
@@ -1129,6 +1223,7 @@ import {
   Eye,
   FileEdit,
   FileSpreadsheet,
+  FileText,
   Folder,
   FolderKanban,
   Grid3x3,
@@ -1171,6 +1266,7 @@ import { useGalleryStore } from '@/shared/stores/gallery'
 import { useProjectStore } from '@/domains/memora/stores/project'
 import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
+import { useRawFileStore } from '@/domains/memora/stores/rawFile'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 
 const { navigateTo } = useNavigation()
@@ -1179,7 +1275,7 @@ const theme = useThemeClasses()
 
 // Loading states - consolidated
 // Start with loading=true to show skeleton loaders initially
-const loadingKeys = ['collections', 'projects', 'selections', 'proofing', 'storage']
+const loadingKeys = ['collections', 'projects', 'selections', 'proofing', 'rawFiles', 'storage']
 const { states: loadingStates, setAllLoading } = useLoadingStates(loadingKeys, true)
 // Vue templates automatically unwrap refs, so we can use them directly
 // User and apps don't need loading states - data is immediately available
@@ -1189,6 +1285,7 @@ const isLoadingCollections = loadingStates.collections
 const isLoadingProjects = loadingStates.projects
 const isLoadingSelections = loadingStates.selections
 const isLoadingProofing = loadingStates.proofing
+const isLoadingRawFiles = loadingStates.rawFiles
 const isLoadingStorage = loadingStates.storage
 
 const { logout } = useLogout()
@@ -1221,6 +1318,14 @@ const handleViewAllProofing = () => {
 
 const handleProofingClick = proofing => {
   navigateTo({ name: 'proofingDetail', params: { uuid: proofing.id } })
+}
+
+const handleViewAllRawFiles = () => {
+  navigateTo({ name: 'rawFiles' })
+}
+
+const handleRawFileClick = rawFile => {
+  navigateTo({ name: 'rawFileDetail', params: { uuid: rawFile.id } })
 }
 
 // Mazeloot Products
@@ -1259,6 +1364,7 @@ const galleryStore = useGalleryStore()
 const projectStore = useProjectStore()
 const selectionStore = useSelectionStore()
 const proofingStore = useProofingStore()
+const rawFileStore = useRawFileStore()
 const authApi = useAuthApi()
 
 // User data - use logged-in user from store, fallback to default if not available
@@ -1322,6 +1428,18 @@ const recentSelections = computed(() => {
 const recentProofing = computed(() => {
   const allProofing = proofingStore.proofings || []
   return allProofing
+    .sort((a, b) => {
+      const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
+      const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
+      return dateB - dateA
+    })
+    .slice(0, 3)
+})
+
+// Recent Raw Files - get from store
+const recentRawFiles = computed(() => {
+  const allRawFiles = rawFileStore.rawFiles || []
+  return allRawFiles
     .sort((a, b) => {
       const dateA = new Date(a.updatedAt || a.createdAt || 0).getTime()
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
@@ -1403,6 +1521,18 @@ const fetchProofing = async () => {
   }
 }
 
+// Fetch raw files independently
+const fetchRawFiles = async () => {
+  try {
+    loadingStates.rawFiles.value = true
+    await rawFileStore.fetchAllRawFiles({ perPage: 10 })
+  } catch (error) {
+    console.error('Failed to fetch raw files:', error)
+  } finally {
+    loadingStates.rawFiles.value = false
+  }
+}
+
 // Fetch storage usage independently
 const fetchStorage = async () => {
   try {
@@ -1428,6 +1558,7 @@ onMounted(async () => {
   fetchProjects()
   fetchSelections()
   fetchProofing()
+  fetchRawFiles()
   fetchStorage()
 })
 
