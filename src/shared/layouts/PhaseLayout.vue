@@ -82,7 +82,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
-import { Menu } from 'lucide-vue-next'
+import { Menu } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent } from '@/shared/components/shadcn/sheet'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

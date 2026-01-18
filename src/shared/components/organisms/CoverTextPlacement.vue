@@ -155,7 +155,7 @@
 </template>
 
 <script setup>
-import { Heart, Share2, Download } from 'lucide-vue-next'
+import { Heart, Share2, Download } from '@/shared/utils/lucideAnimated'
 
 defineProps({
   type: {

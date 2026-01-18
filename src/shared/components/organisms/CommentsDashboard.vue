@@ -79,7 +79,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
-import { Play } from 'lucide-vue-next'
+import { Play } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 
 const props = defineProps({

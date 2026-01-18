@@ -462,7 +462,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Laptop, Check, Download, Loader2, Cloud, HardDrive, Folder, Upload, Image as ImageIcon, Box as BoxIcon, ChevronLeft, ArrowLeft, ArrowRight, X } from 'lucide-vue-next'
+import { Laptop, Check, Download, Loader2, Cloud, HardDrive, Folder, Upload, Image as ImageIcon, Box as BoxIcon, ChevronLeft, ArrowLeft, ArrowRight, X } from '@/shared/utils/lucideAnimated'
 import { apiClient } from '@/shared/api/client'
 import { API_CONFIG } from '@/shared/api/config'
 import { toast } from '@/shared/utils/toast'
@@ -556,6 +556,37 @@ const formatFileSize = (bytes) => {
   const sizes = ['Bytes', 'KB', 'MB', 'GB']
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
+}
+
+// Validate access token for download page
+const validateDownloadPageAccess = (collectionId, accessToken) => {
+  if (!accessToken || !collectionId) return false
+  
+  try {
+    const stored = localStorage.getItem(`download_page_access_${collectionId}`)
+    if (!stored) return false
+    
+    const data = JSON.parse(stored)
+    const { token, expiresAt } = data
+    
+    // Check if expired
+    if (Date.now() > expiresAt) {
+      localStorage.removeItem(`download_page_access_${collectionId}`)
+      return false
+    }
+    
+    // Check if token matches
+    if (token === accessToken) {
+      // Remove token after validation (one-time use)
+      localStorage.removeItem(`download_page_access_${collectionId}`)
+      return true
+    }
+    
+    return false
+  } catch (error) {
+    localStorage.removeItem(`download_page_access_${collectionId}`)
+    return false
+  }
 }
 
 onMounted(async () => {
@@ -841,6 +872,7 @@ onMounted(async () => {
 
   const collectionId = route.query.collectionId
   const token = route.query.token
+  const accessToken = route.query.accessToken
   
   // Check for stored download token from OAuth flow (persisted across navigation)
   if (collectionId && !downloadToken.value && !oauthProcessed.value) {
@@ -1039,6 +1071,23 @@ onMounted(async () => {
       isInitialLoading.value = false
       isLoadingState.value = false
       toast.error('Failed to load download status')
+    }
+  }
+
+  // Validate access token for download page (unless coming from email link with token or OAuth)
+  if (!token && !oauthProcessed.value && collectionId) {
+    // Allow stored download tokens to bypass access check
+    const storedToken = localStorage.getItem(`download_token_${collectionId}`)
+    const hasValidAccess = validateDownloadPageAccess(collectionId, accessToken)
+    
+    if (!hasValidAccess && !storedToken) {
+      // No valid access, redirect back to collection view
+      toast.error('Access denied', {
+        description: 'Please access the download page from the collection view.'
+      })
+      const projectId = route.params.projectId || 'default'
+      router.push(`/p/${projectId}/collection?collectionId=${collectionId}`)
+      return
     }
   }
 

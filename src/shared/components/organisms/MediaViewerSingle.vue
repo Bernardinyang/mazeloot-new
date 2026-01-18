@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { X } from 'lucide-vue-next'
+import { X } from '@/shared/utils/lucideAnimated'
 
 const props = defineProps({
   media: { type: Object, required: true },

@@ -245,7 +245,7 @@ import {
   Check,
   Loader2,
   Menu,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent } from '@/shared/components/shadcn/sheet'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'

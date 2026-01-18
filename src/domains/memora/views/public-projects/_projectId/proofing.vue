@@ -1172,7 +1172,7 @@ import {
   Upload,
   LogOut,
   Sparkles,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import MediaCommentLightbox from '@/shared/components/organisms/MediaCommentLightbox.vue'
@@ -1999,8 +1999,14 @@ const handleSubmitEmail = async () => {
     showEmailModal.value = false
     emailInput.value = ''
 
-    // Now load the proofing
-    await loadProofing()
+    // Only reload if proofing is not already loaded or ID changed
+    const currentProofingId = proofing.value?.id
+    if (!currentProofingId || currentProofingId !== proofingId) {
+      await loadProofing()
+    } else {
+      // Just ensure media is loaded
+      await loadMediaItems()
+    }
   } catch (error) {
     // Check if error is about email not being allowed
     const errorMessage = error?.message || ''
@@ -2018,16 +2024,34 @@ const handleSubmitEmail = async () => {
   }
 }
 
+// Loading guard to prevent duplicate requests
+const isLoadingProofing = ref(false)
+
 // Load proofing and media sets
 const loadProofing = async () => {
+  const proofingId = route.query.proofingId
+  
+  if (!proofingId) {
+    throw new Error('Proofing ID is required in the URL')
+  }
+
+  // Prevent duplicate concurrent requests
+  if (isLoadingProofing.value) {
+    return
+  }
+
+  // If proofing is already loaded with the same ID and we're not forcing a refresh, skip
+  if (proofing.value?.id === proofingId && !isLoading.value) {
+    // Just ensure media is loaded if not already
+    if (mediaSets.value.length === 0) {
+      await loadMediaItems()
+    }
+    return
+  }
+
+  isLoadingProofing.value = true
   isLoading.value = true
   try {
-    // Get proofing ID from query parameter (route is /p/:projectId/proofing?proofingId=...)
-    const proofingId = route.query.proofingId
-
-    if (!proofingId) {
-      throw new Error('Proofing ID is required in the URL')
-    }
 
     // STEP 1: IMMEDIATELY CHECK PROOFING STATUS
     // Use dedicated status endpoint to check if proofing is accessible
@@ -2316,11 +2340,14 @@ const loadProofing = async () => {
       }
     }
 
-    // Load media sets
+    // Load media sets - only fetch if not already in response and not already loaded
     if (proofingData.mediaSets && proofingData.mediaSets.length > 0) {
-      mediaSets.value = proofingData.mediaSets
-    } else {
-      // If no media sets in response, try to fetch them
+      // Use media sets from response if available
+      if (mediaSets.value.length === 0 || mediaSets.value[0]?.proofingId !== proofingId) {
+        mediaSets.value = proofingData.mediaSets
+      }
+    } else if (mediaSets.value.length === 0 || mediaSets.value[0]?.proofingId !== proofingId) {
+      // Only fetch if not already loaded for this proofing
       try {
         let sets
         if (isPreview && statusCheck?.isOwner === true) {
@@ -2381,6 +2408,7 @@ const loadProofing = async () => {
     }
   } finally {
     isLoading.value = false
+    isLoadingProofing.value = false
   }
 }
 
@@ -2560,7 +2588,14 @@ const handleVerifyPassword = async () => {
     isPasswordVerified.value = true
     storePasswordVerification(proofingId)
     passwordInput.value = ''
-    await loadProofing()
+    
+    // Only reload if proofing is not already loaded
+    if (!proofing.value?.id) {
+      await loadProofing()
+    } else {
+      // Just ensure media is loaded now that password is verified
+      await loadMediaItems()
+    }
   } catch (error) {
     const errorMessage = error?.message || ''
     const errorCode = error?.code || ''

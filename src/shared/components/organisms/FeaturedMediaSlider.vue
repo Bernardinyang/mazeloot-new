@@ -104,7 +104,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { ArrowRight } from 'lucide-vue-next'
+import { ArrowRight } from '@/shared/utils/lucideAnimated'
 
 const props = defineProps({
   featuredMedia: {

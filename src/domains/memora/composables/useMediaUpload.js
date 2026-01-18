@@ -165,21 +165,24 @@ export function useMediaUpload(options = {}) {
       return { hasDuplicates: false, filesToUpload: [] }
     }
 
-    // Filter valid files
-    const validFiles = filterValidUploadFiles(Array.from(files))
+    // Filter valid files (raw files allow all file types)
+    const validFiles = filterValidUploadFiles(Array.from(files), contextType)
 
     if (validFiles.length === 0) {
       const fileTypes = Array.from(files)
         .map(f => f.type || 'unknown')
         .join(', ')
+      const errorMsg = contextType === 'rawFile'
+        ? `The selected files are not supported. (Received types: ${fileTypes})`
+        : `The selected files are not supported. Please select valid image or video files. (Received types: ${fileTypes})`
       toast.error('Invalid files', {
-        description: `The selected files are not supported. Please select valid image or video files. (Received types: ${fileTypes})`,
+        description: errorMsg,
       })
       return { hasDuplicates: false, filesToUpload: [] }
     }
 
-    // If some files were filtered out, notify user
-    if (validFiles.length < files.length) {
+    // If some files were filtered out, notify user (only for non-raw files)
+    if (contextType !== 'rawFile' && validFiles.length < files.length) {
       const filteredCount = files.length - validFiles.length
       toast.warning(`${filteredCount} file(s) skipped`, {
         description: 'Some files were not valid image or video files and were skipped.',
@@ -646,6 +649,7 @@ export function useMediaUpload(options = {}) {
             const validation = await validateUploadFile(file, {
               existingMedia: existingMediaList,
               skipDuplicateCheck: true, // Duplicates already handled by processFiles
+              contextType, // Pass contextType for raw file type validation
               ...validationOptions,
             })
 

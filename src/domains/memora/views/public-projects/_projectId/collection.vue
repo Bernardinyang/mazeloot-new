@@ -478,7 +478,7 @@ import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useOpenGraphMeta } from '@/shared/composables/useOpenGraphMeta'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, AlertCircle, ChevronLeft, Mail, Lock, Shield, User, Users, Eye } from 'lucide-vue-next'
+import { Loader2, AlertCircle, ChevronLeft, Mail, Lock, Shield, User, Users, Eye } from '@/shared/utils/lucideAnimated'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/shadcn/dialog'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
@@ -793,17 +793,31 @@ useOpenGraphMeta({
 })
 
 // Load collection
+// Loading guard to prevent duplicate requests
+const isLoadingCollection = ref(false)
+
 const loadCollection = async () => {
+  const collectionId = route.query.collectionId
+  
+  if (!collectionId) {
+    throw new Error('Collection ID is required in the URL')
+  }
+
+  // Prevent duplicate concurrent requests
+  if (isLoadingCollection.value) {
+    return
+  }
+
+  // If collection is already loaded with the same ID and we're not forcing a refresh, skip
+  if (collection.value?.id === collectionId && !isLoading.value) {
+    return
+  }
+
+  isLoadingCollection.value = true
   isLoading.value = true
   error.value = null
 
   try {
-    // Get collection ID from query parameter (route is /p/:projectId/collection?collectionId=...)
-    const collectionId = route.query.collectionId
-
-    if (!collectionId) {
-      throw new Error('Collection ID is required in the URL')
-    }
 
     // Check for stored guest token FIRST, before any other checks
     // This ensures the token is available for all subsequent operations
@@ -1049,7 +1063,10 @@ const loadCollection = async () => {
 
     // No password required, fetch collection and check for email registration
     try {
-      await fetchCollection()
+      const currentCollectionId = collection.value?.id
+      if (!currentCollectionId || currentCollectionId !== collectionId) {
+        await fetchCollection()
+      }
     } catch (fetchErr) {
       // If fetchCollection throws, it means it's not a password error
       // Re-throw to be caught by outer catch
@@ -1422,7 +1439,10 @@ const handleVerifyPassword = async () => {
       const collectionId = route.query.collectionId
       storeGuestToken(collectionId, token)
       // After password is verified, fetch collection and check for email registration
-      await fetchCollection()
+      const currentCollectionId = collection.value?.id
+      if (!currentCollectionId || currentCollectionId !== collectionId) {
+        await fetchCollection()
+      }
       
       // Check if client exclusive access is enabled (after password verification)
       if (collection.value?.clientExclusiveAccess && !isAuthenticatedOwner.value && !isPreviewMode.value) {

@@ -176,6 +176,7 @@
                 :approval-requests="getApprovalRequestsForMedia(item)"
                 :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
                 :is-revision-limit-exceeded="isRevisionLimitExceededForMedia(item)"
+                phase="proofing"
               />
             </TransitionGroup>
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
@@ -218,6 +219,7 @@
                 :approval-requests="getApprovalRequestsForMedia(item)"
                 :max-revisions="proofing?.maxRevisions || proofing?.max_revisions || null"
                 :is-revision-limit-exceeded="isRevisionLimitExceededForMedia(item)"
+                phase="proofing"
               />
             </TransitionGroup>
 
@@ -611,7 +613,7 @@ import { formatMediaDate } from '@/domains/memora/utils/media/formatMediaDate'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useProofingMediaSetsSidebarStore } from '@/domains/memora/stores/proofingMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Plus, Loader2 } from 'lucide-vue-next'
+import { FolderPlus, ImagePlus, Plus, Loader2 } from '@/shared/utils/lucideAnimated'
 import { triggerFileInputClick } from '@/domains/memora/utils/media/triggerFileInputClick'
 import { useProofingWorkflow } from '@/domains/memora/composables/useProofingWorkflow'
 import { useProofingApi } from '@/domains/memora/api/proofing'

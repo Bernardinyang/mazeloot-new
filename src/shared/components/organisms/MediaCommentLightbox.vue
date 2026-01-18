@@ -299,7 +299,7 @@ import {
   ZoomOut,
   RotateCcw,
   CheckCircle2,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
 import { Button } from '@/shared/components/shadcn/button'

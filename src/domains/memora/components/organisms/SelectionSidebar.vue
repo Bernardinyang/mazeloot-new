@@ -335,7 +335,7 @@
 </template>
 
 <script setup>
-import { CheckSquare, ChevronsLeft, ChevronsRight, ImageIcon, Loader2, Pause, Play, Settings, } from 'lucide-vue-next'
+import { CheckSquare, ChevronsLeft, ChevronsRight, ImageIcon, Loader2, Pause, Play, Settings, } from '@/shared/utils/lucideAnimated'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover/index'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger, } from '@/shared/components/shadcn/tooltip/index'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

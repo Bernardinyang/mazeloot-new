@@ -70,6 +70,9 @@
         <div v-if="proofing.feedbackCount !== undefined" class="mt-3">
           <DetailField label="Feedback Count" :value="proofing.feedbackCount" format="number" />
         </div>
+        <div v-if="proofing.storageUsedBytes !== undefined" class="mt-3">
+          <DetailField label="Storage Used" :value="formatBytes(proofing.storageUsedBytes || 0)" />
+        </div>
       </DetailSection>
 
       <!-- Revision Information Section -->
@@ -156,7 +159,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Loader2, FolderKanban, Eye, CheckCircle2, AlertCircle } from 'lucide-vue-next'
+import { Loader2, FolderKanban, Eye, CheckCircle2, AlertCircle } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
 import DetailField from '@/shared/components/molecules/DetailField.vue'
@@ -240,6 +243,14 @@ const loadData = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
 const formatKey = key => {

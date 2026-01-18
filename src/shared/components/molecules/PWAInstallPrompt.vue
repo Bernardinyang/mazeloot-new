@@ -58,7 +58,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Download, X } from 'lucide-vue-next'
+import { Download, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { usePWAInstall } from '@/shared/composables/usePWAInstall'
 

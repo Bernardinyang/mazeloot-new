@@ -109,7 +109,7 @@ import CardHeader from '@/shared/components/shadcn/CardHeader.vue'
 import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import CardDescription from '@/shared/components/shadcn/CardDescription.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
-import { Bell, Gift, Mail, Loader2 } from 'lucide-vue-next'
+import { Bell, Gift, Mail, Loader2 } from '@/shared/utils/lucideAnimated'
 import { apiClient } from '@/shared/api/client'
 import { toast } from '@/shared/utils/toast'
 

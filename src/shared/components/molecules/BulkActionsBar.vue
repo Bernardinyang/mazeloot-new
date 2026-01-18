@@ -68,7 +68,7 @@
         </TooltipProvider>
 
         <!-- Eye (View) -->
-        <TooltipProvider>
+        <TooltipProvider v-if="props.canPreview">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -86,7 +86,7 @@
         </TooltipProvider>
 
         <!-- Watermark -->
-        <TooltipProvider v-if="!props.disableActions">
+        <TooltipProvider v-if="!props.disableActions && !props.hideWatermark">
           <Tooltip>
             <TooltipTrigger as-child>
               <button
@@ -191,7 +191,7 @@ import {
   Star,
   Trash2,
   X,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import {
   Tooltip,
   TooltipContent,
@@ -225,6 +225,14 @@ const props = defineProps({
   disableActions: {
     type: Boolean,
     default: false,
+  },
+  hideWatermark: {
+    type: Boolean,
+    default: false,
+  },
+  canPreview: {
+    type: Boolean,
+    default: true,
   },
 })
 

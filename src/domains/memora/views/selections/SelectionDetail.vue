@@ -165,6 +165,7 @@
                 @star-click="handleStarMedia(item)"
                 @toggle-featured="handleToggleFeatured(item)"
                 @toggle-recommended="handleToggleRecommended(item)"
+                phase="selection"
               />
             </TransitionGroup>
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
@@ -198,6 +199,7 @@
                 @star-click="handleStarMedia(item)"
                 @toggle-featured="handleToggleFeatured(item)"
                 @toggle-recommended="handleToggleRecommended(item)"
+                phase="selection"
               />
             </TransitionGroup>
 
@@ -515,7 +517,7 @@ import { formatMediaDate } from '@/domains/memora/utils/media/formatMediaDate'
 import { useSelectionStore } from '@/domains/memora/stores/selection.js'
 import { useSelectionMediaSetsSidebarStore } from '@/domains/memora/stores/selectionMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Loader2, Plus } from 'lucide-vue-next'
+import { FolderPlus, ImagePlus, Loader2, Plus } from '@/shared/utils/lucideAnimated'
 import { triggerFileInputClick } from '@/domains/memora/utils/media/triggerFileInputClick'
 import { useSelectionWorkflow } from '@/domains/memora/composables/useSelectionWorkflow'
 import { useSelectionActions } from '@/domains/memora/composables/useSelectionActions'
@@ -620,16 +622,30 @@ const handleImageError = event => {
 
 // Load selection data
 const isLoading = ref(false)
+// Loading guard to prevent duplicate requests
+const isLoadingSelection = ref(false)
+
 const loadSelection = async () => {
   const selectionId = route.params.id
   if (!selectionId) {
     return
   }
 
+  // Prevent duplicate concurrent requests
+  if (isLoadingSelection.value) {
+    return
+  }
+
+  // If selection is already loaded with the same ID, skip unless switching phases
+  const previousSelectionId = selection.value?.id
+  if (previousSelectionId === selectionId && !isLoading.value) {
+    return
+  }
+
+  isLoadingSelection.value = true
   isLoading.value = true
   try {
     // Clear media items when switching to a different phase
-    const previousSelectionId = selection.value?.id
     if (previousSelectionId && previousSelectionId !== selectionId) {
       mediaItems.value = []
     }
@@ -676,6 +692,7 @@ const loadSelection = async () => {
     // Optionally redirect back or show error message
   } finally {
     isLoading.value = false
+    isLoadingSelection.value = false
   }
 }
 
@@ -781,13 +798,6 @@ watch(
 )
 
 // Watch route params to reload when selection ID changes
-watch(
-  () => route.params.id,
-  () => {
-    loadSelection()
-  }
-)
-
 // Watch for route changes to handle navigation between different selections
 watch(
   () => route.params.id,

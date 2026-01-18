@@ -119,7 +119,7 @@
 <script setup>
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import EmptyState from '@/shared/components/molecules/EmptyState.vue'
-import { CheckSquare } from 'lucide-vue-next'
+import { CheckSquare } from '@/shared/utils/lucideAnimated'
 
 const theme = useThemeClasses()
 

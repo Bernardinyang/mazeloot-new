@@ -171,7 +171,7 @@
 
 <script setup>
 import { computed, watch, ref } from 'vue'
-import { Copy, Download, Mail, Loader2, Eye, EyeOff } from 'lucide-vue-next'
+import { Copy, Download, Mail, Loader2, Eye, EyeOff } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   Dialog,

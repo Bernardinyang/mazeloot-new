@@ -27,7 +27,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Copy, Eye, EyeOff } from 'lucide-vue-next'
+import { Copy, Eye, EyeOff } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
 

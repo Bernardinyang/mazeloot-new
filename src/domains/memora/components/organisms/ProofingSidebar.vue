@@ -362,7 +362,7 @@ import {
   Play,
   Settings,
   Eye,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover/index'
 import {
   Tooltip,

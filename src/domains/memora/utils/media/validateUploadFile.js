@@ -3,6 +3,7 @@
  */
 
 import { VALID_UPLOAD_MIME_TYPES } from './filterValidUploadFiles'
+import { RAW_FILE_MEDIA_TYPES } from './rawFileMediaTypes'
 
 /**
  * Validate file size
@@ -25,9 +26,27 @@ export const validateFileSize = (file, maxSize = 250 * 1024 * 1024) => {
  * Validate file type
  * @param {File} file - File to validate
  * @param {string[]} allowedTypes - Allowed MIME types (default: VALID_UPLOAD_MIME_TYPES)
+ * @param {string} contextType - Context type (e.g., 'rawFile') - if 'rawFile', allows all file types
  * @returns {{ valid: boolean, error?: string }}
  */
-export const validateFileType = (file, allowedTypes = VALID_UPLOAD_MIME_TYPES) => {
+export const validateFileType = (file, allowedTypes = VALID_UPLOAD_MIME_TYPES, contextType = null) => {
+  // For raw files, use media/camera file types
+  if (contextType === 'rawFile') {
+    if (!file.type || file.type === '') {
+      return {
+        valid: false,
+        error: `File "${file.name}" has no file type specified`,
+      }
+    }
+    if (!RAW_FILE_MEDIA_TYPES.includes(file.type)) {
+      return {
+        valid: false,
+        error: `File "${file.name}" has unsupported type: ${file.type}. Only media and camera recorder file types are allowed.`,
+      }
+    }
+    return { valid: true }
+  }
+  
   if (!allowedTypes.includes(file.type)) {
     return {
       valid: false,
@@ -139,6 +158,7 @@ export const checkDuplicateFilename = (filename, existingMedia = []) => {
  * @param {object} options.dimensions - Image dimension constraints
  * @param {Array} options.existingMedia - Existing media items for duplicate check
  * @param {boolean} options.skipDuplicateCheck - Skip duplicate checking (duplicates already handled)
+ * @param {string} options.contextType - Context type (e.g., 'rawFile') - if 'rawFile', allows all file types
  * @returns {Promise<{ valid: boolean, errors: string[], width?: number, height?: number }>}
  */
 export const validateUploadFile = async (file, options = {}) => {
@@ -157,6 +177,7 @@ export const validateUploadFile = async (file, options = {}) => {
     dimensions = {},
     existingMedia = [],
     skipDuplicateCheck = false,
+    contextType = null,
   } = options
 
   const errors = []
@@ -167,8 +188,8 @@ export const validateUploadFile = async (file, options = {}) => {
     errors.push(sizeCheck.error)
   }
 
-  // Type validation
-  const typeCheck = validateFileType(file, allowedTypes)
+  // Type validation (skip for raw files)
+  const typeCheck = validateFileType(file, allowedTypes, contextType)
   if (!typeCheck.valid) {
     errors.push(typeCheck.error)
   }

@@ -262,7 +262,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
-import { ChevronDown, Folder, FolderPlus, Plus } from 'lucide-vue-next'
+import { ChevronDown, Folder, FolderPlus, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import LoadingState from '@/shared/components/molecules/LoadingState.vue'

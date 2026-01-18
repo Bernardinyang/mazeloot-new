@@ -185,12 +185,13 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ArrowUpDown, Check, Copy, Grid3x3, ImagePlus, List, Loader2 } from 'lucide-vue-next'
+import { ArrowUpDown, Check, Copy, Grid3x3, ImagePlus, List, Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
+import { useRawFileStore } from '@/domains/memora/stores/rawFile'
 import { useGalleryStore } from '@/shared/stores/gallery'
 
 const theme = useThemeClasses()
@@ -222,8 +223,8 @@ const props = defineProps({
   },
   storeType: {
     type: String,
-    default: 'selection', // 'selection', 'proofing', or 'collection'
-    validator: value => ['selection', 'proofing', 'collection'].includes(value),
+    default: 'selection', // 'selection', 'proofing', 'collection', or 'rawFile'
+    validator: value => ['selection', 'proofing', 'collection', 'rawFile'].includes(value),
   },
   disableUpload: {
     type: Boolean,
@@ -234,11 +235,13 @@ const props = defineProps({
 // Use the appropriate store based on storeType prop
 const selectionStore = useSelectionStore()
 const proofingStore = useProofingStore()
+const rawFileStore = useRawFileStore()
 const galleryStore = useGalleryStore()
 
 // Get refs from stores
 const selectionRefs = storeToRefs(selectionStore)
 const proofingRefs = storeToRefs(proofingStore)
+const rawFileRefs = storeToRefs(rawFileStore)
 const galleryRefs = storeToRefs(galleryStore)
 
 // Use computed refs that switch based on storeType
@@ -246,32 +249,52 @@ const gridSize = computed(() => {
   if (props.storeType === 'collection') {
     return galleryRefs?.gridSize?.value ?? props.gridSize
   }
-  return props.storeType === 'proofing' ? proofingRefs.gridSize.value : selectionRefs.gridSize.value
+  if (props.storeType === 'proofing') {
+    return proofingRefs.gridSize.value
+  }
+  if (props.storeType === 'rawFile') {
+    return rawFileRefs.gridSize.value
+  }
+  return selectionRefs.gridSize.value
 })
 
 const viewMode = computed(() => {
   if (props.storeType === 'collection') {
     return galleryRefs?.viewMode?.value ?? props.viewMode
   }
-  return props.storeType === 'proofing' ? proofingRefs.viewMode.value : selectionRefs.viewMode.value
+  if (props.storeType === 'proofing') {
+    return proofingRefs.viewMode.value
+  }
+  if (props.storeType === 'rawFile') {
+    return rawFileRefs.viewMode.value
+  }
+  return selectionRefs.viewMode.value
 })
 
 const showFilename = computed(() => {
   if (props.storeType === 'collection') {
     return galleryRefs?.showFilename?.value ?? props.showFilename
   }
-  return props.storeType === 'proofing'
-    ? proofingRefs.showFilename.value
-    : selectionRefs.showFilename.value
+  if (props.storeType === 'proofing') {
+    return proofingRefs.showFilename.value
+  }
+  if (props.storeType === 'rawFile') {
+    return rawFileRefs.showFilename.value
+  }
+  return selectionRefs.showFilename.value
 })
 
 const sortOrder = computed(() => {
   if (props.storeType === 'collection') {
     return galleryRefs?.sortOrder?.value ?? props.sortOrder
   }
-  return props.storeType === 'proofing'
-    ? proofingRefs.sortOrder.value
-    : selectionRefs.sortOrder.value
+  if (props.storeType === 'proofing') {
+    return proofingRefs.sortOrder.value
+  }
+  if (props.storeType === 'rawFile') {
+    return rawFileRefs.sortOrder.value
+  }
+  return selectionRefs.sortOrder.value
 })
 
 const gridSizeOptions = [
@@ -307,6 +330,8 @@ const handleGridSizeChange = value => {
     galleryStore.setGridSize(value)
   } else if (props.storeType === 'proofing') {
     proofingStore.setGridSize(value)
+  } else if (props.storeType === 'rawFile') {
+    rawFileStore.setGridSize(value)
   } else {
     selectionStore.setGridSize(value)
   }
@@ -318,6 +343,8 @@ const handleSortChange = value => {
     galleryStore.setSortOrder(value)
   } else if (props.storeType === 'proofing') {
     proofingStore.setSortOrder(value)
+  } else if (props.storeType === 'rawFile') {
+    rawFileStore.setSortOrder(value)
   } else {
     selectionStore.setSortOrder(value)
   }
@@ -329,6 +356,8 @@ const handleFilenameToggle = event => {
     galleryStore.setShowFilename(event.target.checked)
   } else if (props.storeType === 'proofing') {
     proofingStore.setShowFilename(event.target.checked)
+  } else if (props.storeType === 'rawFile') {
+    rawFileStore.setShowFilename(event.target.checked)
   } else {
     selectionStore.setShowFilename(event.target.checked)
   }
@@ -339,6 +368,8 @@ const handleViewModeChange = mode => {
     galleryStore.setViewMode(mode)
   } else if (props.storeType === 'proofing') {
     proofingStore.setViewMode(mode)
+  } else if (props.storeType === 'rawFile') {
+    rawFileStore.setViewMode(mode)
   } else {
     selectionStore.setViewMode(mode)
   }

@@ -163,7 +163,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Folder, Star } from 'lucide-vue-next'
+import { Folder, Star } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { COLLECTION_SORT_OPTIONS } from '@/shared/constants/sortOptions'

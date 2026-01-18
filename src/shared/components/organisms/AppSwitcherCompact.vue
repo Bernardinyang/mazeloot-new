@@ -54,7 +54,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { Plus } from 'lucide-vue-next'
+import { Plus } from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

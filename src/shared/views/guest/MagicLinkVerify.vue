@@ -33,7 +33,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { AlertCircle, Loader2 } from 'lucide-vue-next'
+import { AlertCircle, Loader2 } from '@/shared/utils/lucideAnimated'
 import { toast } from '@/shared/utils/toast'
 import AuthLayout from '@/shared/layouts/AuthLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'

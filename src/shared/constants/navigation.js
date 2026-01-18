@@ -3,7 +3,7 @@
  * @deprecated Use product-specific navigation from productNavigation.js instead
  * This file is kept for backward compatibility
  */
-import { LayoutDashboard, Images, Upload, Users } from 'lucide-vue-next'
+import { LayoutDashboard, Images, Upload, Users } from '@/shared/utils/lucideAnimated'
 
 /**
  * @deprecated Use PRODUCT_NAVIGATION from productNavigation.js

@@ -182,7 +182,7 @@ import {
   Lock,
   Mail,
   Plus,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import {

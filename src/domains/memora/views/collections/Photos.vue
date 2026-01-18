@@ -114,6 +114,7 @@
                 :placeholder-image="placeholderImage"
                 :show-filename="showFilename"
                 :selection-status="'collection'"
+                phase="collection"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -143,6 +144,7 @@
                 :show-filename="showFilename"
                 :selection-status="'collection'"
                 :subtitle="formatMediaDate(item.createdAt)"
+                phase="collection"
                 @delete="handleDeleteMedia(item)"
                 @download="handleDownloadMedia(item)"
                 @open="handleOpenMedia(item)"
@@ -444,7 +446,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, FolderPlus, Plus } from 'lucide-vue-next'
+import { Loader2, FolderPlus, Plus } from '@/shared/utils/lucideAnimated'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/shared/components/molecules/BulkActionsBar.vue'

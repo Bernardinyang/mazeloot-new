@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { MessageSquare, Video, Mic } from 'lucide-vue-next'
+import { MessageSquare, Video, Mic } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const props = defineProps({

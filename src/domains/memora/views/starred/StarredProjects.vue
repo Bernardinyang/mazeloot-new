@@ -94,7 +94,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { Folder, ArrowRight } from 'lucide-vue-next'
+import { Folder, ArrowRight } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import PageHeader from '@/shared/components/molecules/PageHeader.vue'
 import ProjectCard from '@/shared/components/molecules/ProjectCard.vue'

@@ -122,7 +122,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { CheckSquare, ArrowRight } from 'lucide-vue-next'
+import { CheckSquare, ArrowRight } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import PageHeader from '@/shared/components/molecules/PageHeader.vue'
 import SelectionCard from '@/shared/components/molecules/SelectionCard.vue'

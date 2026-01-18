@@ -174,7 +174,7 @@ import {
   Pencil,
   Star,
   Trash2,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

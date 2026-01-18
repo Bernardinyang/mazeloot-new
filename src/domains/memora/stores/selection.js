@@ -83,6 +83,16 @@ export const useSelectionStore = defineStore('selection', () => {
    * Fetch selection by ID
    */
   const fetchSelection = async id => {
+    // Skip if already loading the same selection
+    if (isLoading.value && currentSelection.value?.id === id) {
+      return currentSelection.value
+    }
+
+    // Skip if already loaded with same ID
+    if (currentSelection.value?.id === id && !error.value) {
+      return currentSelection.value
+    }
+
     isLoading.value = true
     error.value = null
 

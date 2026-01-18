@@ -20,7 +20,7 @@ import {
   Star,
   Upload,
   Users,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 
 /**
  * Memora (Photo Gallery) Navigation
@@ -63,6 +63,11 @@ export const MEMORA_NAVIGATION = [
     icon: CheckSquare,
   },
   {
+    title: 'Raw Files',
+    name: 'rawFiles',
+    icon: FileImage,
+  },
+  {
     title: 'Proofing',
     name: 'proofing',
     icon: Eye,
@@ -90,6 +95,10 @@ export const MEMORA_NAVIGATION = [
       {
         title: 'Selections',
         name: 'starredSelections',
+      },
+      {
+        title: 'Raw Files',
+        name: 'starredRawFiles',
       },
       {
         title: 'Proofing',

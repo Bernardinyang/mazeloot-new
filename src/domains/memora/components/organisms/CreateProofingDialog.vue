@@ -84,7 +84,7 @@
           type="button"
           :loading="isSubmitting"
           loading-label="Creating..."
-          @click="handleSubmit"
+          @click.stop="handleSubmit"
         >
           Create Proofing
         </Button>

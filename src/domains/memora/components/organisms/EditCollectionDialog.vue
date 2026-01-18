@@ -110,7 +110,7 @@
           :loading="isSubmitting"
           loading-label="Updating..."
           type="button"
-          @click="handleSubmit"
+          @click.stop="handleSubmit"
         >
           Update Collection
         </Button>
@@ -132,7 +132,7 @@ import {
 } from '@/shared/components/shadcn/select'
 import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import ColorSelector from '@/shared/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/shared/utils/colors'

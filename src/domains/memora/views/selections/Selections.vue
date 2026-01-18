@@ -157,7 +157,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { CheckSquare, Plus } from 'lucide-vue-next'
+import { CheckSquare, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import LoadingState from '@/shared/components/molecules/LoadingState.vue'
@@ -298,7 +298,7 @@ const toggleStar = async selection => {
   starringSelectionIds.value.add(selectionId)
   try {
     await selectionStore.toggleStarSelection(selection.id)
-    const index = selections.value.findIndex(s => s.id === selection.id)
+    const index = selections.value.findIndex(s => String(s.id) === String(selection.id))
     if (index !== -1) {
       selections.value[index] = {
         ...selections.value[index],

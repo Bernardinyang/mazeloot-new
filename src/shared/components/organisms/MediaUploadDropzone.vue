@@ -46,7 +46,7 @@
 </template>
 
 <script setup>
-import { ImagePlus } from 'lucide-vue-next'
+import { ImagePlus } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const theme = useThemeClasses()

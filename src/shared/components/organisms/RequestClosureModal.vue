@@ -252,7 +252,7 @@
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
-import { MessageSquare, CheckCircle2, X, Loader2, Plus } from 'lucide-vue-next'
+import { MessageSquare, CheckCircle2, X, Loader2, Plus } from '@/shared/utils/lucideAnimated'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
 import {

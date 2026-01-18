@@ -231,7 +231,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { CheckSquare, Lock, MoreVertical, Star, FolderKanban } from 'lucide-vue-next'
+import { CheckSquare, Lock, MoreVertical, Star, FolderKanban } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   DropdownMenu,

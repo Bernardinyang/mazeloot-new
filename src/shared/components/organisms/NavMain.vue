@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { ChevronRight } from 'lucide-vue-next'
+import { ChevronRight } from '@/shared/utils/lucideAnimated'
 import {
   Collapsible,
   CollapsibleContent,

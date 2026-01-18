@@ -266,7 +266,7 @@
         </Button>
         <Button
           type="button"
-          @click="handleSubmit"
+          @click.stop="handleSubmit"
           variant="accent"
           :disabled="
             !formData.name.trim() ||
@@ -295,7 +295,7 @@ import {
 } from '@/shared/components/shadcn/select'
 import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'

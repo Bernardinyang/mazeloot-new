@@ -90,7 +90,7 @@
 import { computed, ref } from 'vue'
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Button } from '@/shared/components/shadcn/button'
-import { Upload } from 'lucide-vue-next'
+import { Upload } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const props = defineProps({

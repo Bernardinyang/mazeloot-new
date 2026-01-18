@@ -286,7 +286,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRouter } from 'vue-router'
-import { Grid3x3, Image, Check, List } from 'lucide-vue-next'
+import { Grid3x3, Image, Check, List } from '@/shared/utils/lucideAnimated'
 import { storage } from '@/shared/utils/storage'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'

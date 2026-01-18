@@ -23,13 +23,14 @@
             :src="mediaPreviewUrl"
             :alt="media.title || media.filename || 'Media preview'"
             draggable="false"
-            class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105 cursor-pointer protected-content"
+            :class="['w-full h-full object-cover transition-transform duration-300 protected-content', canPreviewFile(media?.file || media) ? 'group-hover:scale-105 cursor-pointer' : 'cursor-default']"
             @error="handleImageError"
             @load="isImageLoading = false"
-            @click="handleViewMedia"
+            @click="canPreviewFile(media?.file || media) ? handleViewMedia() : null"
           />
           <!-- Click to view overlay -->
           <div
+            v-if="canPreviewFile(media?.file || media)"
             class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer"
             @click="handleViewMedia"
           >
@@ -63,6 +64,7 @@
       <!-- Quick Actions Bar -->
       <div class="flex gap-2">
         <Button
+          v-if="canPreviewFile(media?.file || media)"
           variant="default"
           size="sm"
           :icon="Eye"
@@ -669,7 +671,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
-import { Loader2, Eye, Download, AlertCircle, Copy, Check } from 'lucide-vue-next'
+import { Loader2, Eye, Download, AlertCircle, Copy, Check } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
 import DetailField from '@/shared/components/molecules/DetailField.vue'
@@ -678,6 +680,7 @@ import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { getMediaDisplayUrl, getMediaDisplayUrlSync } from '@/domains/memora/utils/media/getMediaDisplayUrl'
 import { toast } from '@/shared/utils/toast'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
+import { canPreviewFile } from '@/shared/utils/media/getFileTypeCover'
 
 const props = defineProps({
   modelValue: {

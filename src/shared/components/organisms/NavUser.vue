@@ -1,5 +1,5 @@
 <script setup>
-import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from 'lucide-vue-next'
+import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

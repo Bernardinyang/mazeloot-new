@@ -240,7 +240,7 @@ import {
   ListChecks,
   X,
   ExternalLink,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   Dialog,

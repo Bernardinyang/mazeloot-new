@@ -91,7 +91,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { Dialog, DialogContent, DialogClose } from '@/shared/components/shadcn/dialog'
 import { Button } from '@/shared/components/shadcn/button'
-import { X, ChevronLeft, ChevronRight, Download } from 'lucide-vue-next'
+import { X, ChevronLeft, ChevronRight, Download } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
 

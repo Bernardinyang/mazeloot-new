@@ -56,7 +56,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { ChevronLeft, ChevronsRight, X } from 'lucide-vue-next'
+import { ChevronLeft, ChevronsRight, X } from '@/shared/utils/lucideAnimated'
 
 const props = defineProps({
   items: { type: Array, required: true },

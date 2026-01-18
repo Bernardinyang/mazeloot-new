@@ -29,7 +29,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Upload } from 'lucide-vue-next'
+import { Upload } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { useBackgroundUploadManager } from '@/shared/composables/useBackgroundUploadManager'
 

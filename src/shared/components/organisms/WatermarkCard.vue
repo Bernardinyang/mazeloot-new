@@ -80,7 +80,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Edit, Copy, X } from 'lucide-vue-next'
+import { Edit, Copy, X } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const props = defineProps({

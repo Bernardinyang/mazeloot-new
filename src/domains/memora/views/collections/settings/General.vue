@@ -610,7 +610,7 @@
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Check, ChevronDown, Download, Heart, Info, Lock, Settings, Sparkles } from 'lucide-vue-next'
+import { Check, ChevronDown, Download, Heart, Info, Lock, Settings, Sparkles } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'

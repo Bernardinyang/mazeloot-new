@@ -941,7 +941,7 @@ import { useOpenGraphMeta } from '@/shared/composables/useOpenGraphMeta'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useThemeStore } from '@/shared/stores/theme'
 import { useRoute } from 'vue-router'
-import { CheckCircle2, Copy, Eye, Loader2, X, LogOut, ThumbsUp, Sparkles, Grid3x3, Play, Download, Heart, Share2, Lock } from 'lucide-vue-next'
+import { CheckCircle2, Copy, Eye, Loader2, X, LogOut, ThumbsUp, Sparkles, Grid3x3, Play, Download, Heart, Share2, Lock } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import MediaLightbox from '@/shared/components/organisms/MediaLightbox.vue'
@@ -1514,8 +1514,14 @@ const handleSubmitEmail = async () => {
     showEmailModal.value = false
     emailInput.value = ''
 
-    // Now load the selection
-    await loadSelection()
+    // Only reload if selection is not already loaded or ID changed
+    const currentSelectionId = selection.value?.id
+    if (!currentSelectionId || currentSelectionId !== selectionId) {
+      await loadSelection()
+    } else {
+      // Just ensure media is loaded
+      await loadMediaItems()
+    }
   } catch (error) {
     // Check if error is about email not being allowed
     const errorMessage = error?.message || ''
@@ -1533,16 +1539,34 @@ const handleSubmitEmail = async () => {
   }
 }
 
+// Loading guard to prevent duplicate requests
+const isLoadingSelection = ref(false)
+
 // Load selection and media sets
 const loadSelection = async () => {
+  const selectionId = route.query.selectionId
+  
+  if (!selectionId) {
+    throw new Error('Selection ID is required in the URL')
+  }
+
+  // Prevent duplicate concurrent requests
+  if (isLoadingSelection.value) {
+    return
+  }
+
+  // If selection is already loaded with the same ID and we're not forcing a refresh, skip
+  if (selection.value?.id === selectionId && !isLoading.value) {
+    // Just ensure media is loaded if not already
+    if (mediaSets.value.length === 0) {
+      await loadMediaItems()
+    }
+    return
+  }
+
+  isLoadingSelection.value = true
   isLoading.value = true
   try {
-    // Get selection ID from query parameter (route is /p/:projectId/selections?selectionId=...)
-    const selectionId = route.query.selectionId
-
-    if (!selectionId) {
-      throw new Error('Selection ID is required in the URL')
-    }
 
     // STEP 1: IMMEDIATELY CHECK SELECTION STATUS
     // Use dedicated status endpoint to check if selection is accessible
@@ -1830,11 +1854,14 @@ const loadSelection = async () => {
       }
     }
 
-    // Load media sets
+    // Load media sets - only fetch if not already in response and not already loaded
     if (selectionData.mediaSets && selectionData.mediaSets.length > 0) {
-      mediaSets.value = selectionData.mediaSets
-    } else {
-      // If no media sets in response, try to fetch them
+      // Use media sets from response if available
+      if (mediaSets.value.length === 0 || mediaSets.value[0]?.selectionId !== selectionId) {
+        mediaSets.value = selectionData.mediaSets
+      }
+    } else if (mediaSets.value.length === 0 || mediaSets.value[0]?.selectionId !== selectionId) {
+      // Only fetch if not already loaded for this selection
       try {
         let sets
         if (isPreview && statusCheck?.isOwner === true) {
@@ -1893,6 +1920,7 @@ const loadSelection = async () => {
     }
   } finally {
     isLoading.value = false
+    isLoadingSelection.value = false
   }
 }
 
@@ -2030,7 +2058,14 @@ const handleVerifyPassword = async () => {
     isPasswordVerified.value = true
     storePasswordVerification(selection.value.id)
     passwordInput.value = ''
-    await loadSelection()
+    
+    // Only reload if selection is not already loaded
+    if (!selection.value?.id) {
+      await loadSelection()
+    } else {
+      // Just ensure media is loaded now that password is verified
+      await loadMediaItems()
+    }
   } catch (error) {
     const errorMessage = error?.message || ''
     const errorCode = error?.code || ''

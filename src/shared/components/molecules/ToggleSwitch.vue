@@ -33,7 +33,7 @@
 </template>
 
 <script setup>
-import { Info } from 'lucide-vue-next'
+import { Info } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 const props = defineProps({

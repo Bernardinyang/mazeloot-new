@@ -12,7 +12,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { CheckCircle2, XCircle, Clock, AlertCircle, Circle } from 'lucide-vue-next'
+import { CheckCircle2, XCircle, Clock, AlertCircle, Circle } from '@/shared/utils/lucideAnimated'
 import { capitalize } from '@/shared/lib/utils'
 
 const props = defineProps({

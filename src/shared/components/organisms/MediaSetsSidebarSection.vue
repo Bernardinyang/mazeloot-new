@@ -193,7 +193,7 @@ import {
   Trash2,
   GripVertical,
   ImageIcon,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -198,7 +198,7 @@
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
-import { Play, ChevronDown, Pencil } from 'lucide-vue-next'
+import { Play, ChevronDown, Pencil } from '@/shared/utils/lucideAnimated'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
 import CommentItem from './CommentItem.vue'

@@ -7,7 +7,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ChevronRightIcon } from '@radix-icons/vue'
-import { ChevronRight, ChevronLeft, Slash, Circle } from 'lucide-vue-next'
+import { ChevronRight, ChevronLeft, Slash, Circle } from '@/shared/utils/lucideAnimated'
 import { BreadcrumbSeparator } from '@/shared/components/shadcn/breadcrumb'
 
 const props = defineProps({

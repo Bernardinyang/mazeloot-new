@@ -121,7 +121,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, ChevronRight } from 'lucide-vue-next'
+import { Loader2, ChevronRight } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import CreateCollectionDialog from '@/domains/memora/components/organisms/CreateCollectionDialog.vue'

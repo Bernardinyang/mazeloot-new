@@ -146,6 +146,9 @@
               </div>
             </div>
           </div>
+          <div v-if="selection.storageUsedBytes !== undefined" class="mt-4">
+            <DetailField label="Storage Used" :value="formatBytes(selection.storageUsedBytes || 0)" />
+          </div>
         </DetailSection>
       </div>
 
@@ -363,7 +366,7 @@ import {
   CheckSquare,
   XSquare,
   Star,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
 import DetailField from '@/shared/components/molecules/DetailField.vue'
@@ -507,6 +510,14 @@ const getDaysUntil = dateStr => {
   const now = new Date()
   const diff = date - now
   return Math.ceil(diff / (1000 * 60 * 60 * 24))
+}
+
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
 const formatKey = key => {

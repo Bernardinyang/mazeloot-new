@@ -26,6 +26,16 @@ export const clearSelectionGuestData = (selectionId) => {
 }
 
 /**
+ * Clear all guest data for a raw file
+ */
+export const clearRawFileGuestData = (rawFileId) => {
+  if (!rawFileId) return
+  
+  localStorage.removeItem(`guest_token_${rawFileId}`)
+  localStorage.removeItem(`guest_email_${rawFileId}`)
+}
+
+/**
  * Clear all guest data for a proofing
  */
 export const clearProofingGuestData = (proofingId) => {

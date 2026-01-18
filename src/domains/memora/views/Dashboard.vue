@@ -98,6 +98,14 @@
           title="Watermarks"
         />
         <StatCard
+          key="rawFiles"
+          :description="`${stats.activeRawFiles} active`"
+          :icon="FileText"
+          :value="stats.rawFiles"
+          color="teal"
+          title="Raw Files"
+        />
+        <StatCard
           key="storage"
           :description="`${stats.storagePercentage}% used`"
           :icon="HardDrive"
@@ -113,7 +121,7 @@
         v-if="isLoadingStats"
         class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
       >
-        <Card v-for="i in 8" :key="i" class="h-36 border-border/50 overflow-hidden">
+        <Card v-for="i in 9" :key="i" class="h-36 border-border/50 overflow-hidden">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-3">
             <Skeleton class="h-4 w-24 rounded-md" />
             <Skeleton class="h-10 w-10 rounded-xl" />
@@ -242,9 +250,9 @@
                   class="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 cursor-pointer"
                 >
                   <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 group-hover:bg-primary/20 transition-colors duration-200 shrink-0"
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/40 group-hover:bg-primary/20 dark:group-hover:bg-accent/50 transition-colors duration-200 shrink-0"
                   >
-                    <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-primary" />
+                    <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-primary dark:text-white" />
                   </div>
                   <div class="flex-1 min-w-0 space-y-0.5">
                     <p class="text-sm font-medium leading-none text-foreground">
@@ -263,33 +271,43 @@
 
         <!-- Quick Actions Card -->
         <Card
-          class="col-span-1 lg:col-span-3 border-border/50 hover:shadow-lg transition-shadow duration-300"
+          class="col-span-1 lg:col-span-3 border-border/50 hover:shadow-xl transition-all duration-300 flex flex-col overflow-hidden relative"
         >
-          <CardHeader class="pb-4">
+          <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 dark:from-primary/20 dark:via-transparent dark:to-primary/20"></div>
+          <CardHeader class="relative pb-5">
             <div class="flex items-center justify-between">
-              <div class="flex-1">
-                <CardTitle class="text-lg font-semibold">Quick Actions</CardTitle>
-                <CardDescription class="mt-1">Common tasks and shortcuts</CardDescription>
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-full bg-primary/20 dark:bg-accent/50 flex items-center justify-center shrink-0 ring-2 ring-primary/20 dark:ring-primary/50">
+                  <Zap class="h-5 w-5 text-primary dark:text-white brightness-110" />
+                </div>
+                <div>
+                  <CardTitle class="text-lg font-bold">Quick Actions</CardTitle>
+                  <CardDescription class="mt-0 text-xs">Common tasks and shortcuts</CardDescription>
+                </div>
               </div>
-              <Zap class="h-5 w-5 text-muted-foreground" />
             </div>
           </CardHeader>
-          <CardContent class="pt-0 space-y-2">
-            <Button
+          <CardContent class="relative pt-0 flex-1 flex flex-col gap-2 px-5 pb-5">
+            <button
               v-for="(action, index) in quickActions"
               :key="action.label"
               :style="{ 'animation-delay': `${index * 30}ms` }"
-              class="w-full justify-start group hover:scale-[1.02] transition-transform duration-200 text-sm sm:text-base"
-              size="sm"
-              variant="outline"
+              class="group relative w-full flex-1 min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 dark:hover:bg-muted/40 hover:border-l-4 border-l-primary dark:border-l-primary dark:brightness-125 transition-all duration-200 text-left cursor-pointer"
               @click="navigateTo(action.route)"
             >
-              <component
-                :is="action.icon"
-                class="h-4 w-4 group-hover:scale-110 transition-transform duration-200 shrink-0"
-              />
-              <span class="font-medium truncate">{{ action.label }}</span>
-            </Button>
+              <div class="h-8 w-8 rounded-md bg-primary/15 dark:bg-accent/40 group-hover:bg-primary/25 dark:group-hover:bg-accent/50 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:rotate-3">
+                <component
+                  :is="action.icon"
+                  class="h-4 w-4 text-primary dark:text-white dark:brightness-110 transition-transform duration-200"
+                />
+              </div>
+              <span class="font-medium text-xs text-foreground/90 group-hover:text-foreground transition-colors duration-200 flex-1">
+                {{ action.label }}
+              </span>
+              <div class="h-5 w-5 rounded-full bg-primary/20 dark:bg-accent/40 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <ArrowRight class="h-2.5 w-2.5 text-primary dark:text-white dark:brightness-110" />
+              </div>
+            </button>
           </CardContent>
         </Card>
       </div>
@@ -301,9 +319,11 @@
 import { onActivated, onMounted, ref } from 'vue'
 import {
   Activity,
+  ArrowRight,
   CheckSquare,
   Clock,
   Eye,
+  FileText,
   FolderKanban,
   FolderOpen,
   HardDrive,
@@ -315,7 +335,7 @@ import {
   RefreshCw,
   TrendingUp,
   Zap,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Card from '@/shared/components/shadcn/Card.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
@@ -356,6 +376,8 @@ const stats = ref({
   activePresets: 0,
   watermarks: 0,
   activeWatermarks: 0,
+  rawFiles: 0,
+  activeRawFiles: 0,
   storage: '0 GB',
   storagePercentage: 0,
 })
@@ -365,11 +387,12 @@ const distributionData = ref([])
 const recentActivity = ref([])
 
 const quickActions = [
+  { route: { name: 'rawFiles' }, label: 'View Raw Files', icon: FileText },
   { route: { name: 'manageCollections' }, label: 'View Collections', icon: FolderOpen },
   { route: { name: 'projects' }, label: 'View Projects', icon: FolderKanban },
   { route: { name: 'selections' }, label: 'View Selections', icon: CheckSquare },
   { route: { name: 'proofing' }, label: 'View Proofing', icon: Eye },
-  { route: { name: 'manageCollections' }, label: 'Create Collection', icon: Plus },
+  { route: { name: 'rawFiles' }, label: 'Create Raw File', icon: Plus },
 ]
 
 const getActivityIcon = type => {
@@ -378,6 +401,7 @@ const getActivityIcon = type => {
     project: FolderKanban,
     selection: CheckSquare,
     proofing: Eye,
+    rawFile: FileText,
   }
   return icons[type] || FolderOpen
 }
@@ -400,7 +424,7 @@ const fetchDashboard = async () => {
 
     // Single API call to get all dashboard data
     const response = await apiClient.get('/v1/memora/dashboard')
-    const dashboardData = response?.data?.data || response?.data
+    const dashboardData = response?.data
 
     if (dashboardData) {
       // Update stats
@@ -419,6 +443,8 @@ const fetchDashboard = async () => {
         stats.value.activePresets = dashboardData.stats.activePresets || 0
         stats.value.watermarks = dashboardData.stats.watermarks || 0
         stats.value.activeWatermarks = dashboardData.stats.activeWatermarks || 0
+        stats.value.rawFiles = dashboardData.stats.rawFiles || 0
+        stats.value.activeRawFiles = dashboardData.stats.activeRawFiles || 0
       }
 
       // Update activity chart data
@@ -429,6 +455,7 @@ const fetchDashboard = async () => {
           projects: d.projects || 0,
           selections: d.selections || 0,
           proofing: d.proofing || 0,
+          rawFiles: d.rawFiles || 0,
         }))
       }
 
@@ -442,10 +469,11 @@ const fetchDashboard = async () => {
 
       // Update distribution data (chart depends on stats)
       distributionData.value = [
-        { label: 'Collections', value: stats.value.collections, color: '#3b82f6' },
-        { label: 'Projects', value: stats.value.projects, color: '#8b5cf6' },
-        { label: 'Selections', value: stats.value.selections, color: '#10b981' },
-        { label: 'Proofing', value: stats.value.proofing, color: '#f59e0b' },
+        { label: 'Collections', value: stats.value.collections, color: '#3b82f6' }, // Blue
+        { label: 'Projects', value: stats.value.projects, color: '#a855f7' }, // Purple
+        { label: 'Selections', value: stats.value.selections, color: '#10b981' }, // Green
+        { label: 'Proofing', value: stats.value.proofing, color: '#f59e0b' }, // Orange
+        { label: 'Raw Files', value: stats.value.rawFiles, color: '#06b6d4' }, // Cyan
       ]
     }
   } catch (error) {

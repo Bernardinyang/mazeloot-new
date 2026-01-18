@@ -308,7 +308,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Check, Copy, RefreshCw } from 'lucide-vue-next'
+import { Check, Copy, RefreshCw } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'

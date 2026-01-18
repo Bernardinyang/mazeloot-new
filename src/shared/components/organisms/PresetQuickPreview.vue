@@ -113,7 +113,7 @@
 
 <script setup>
 import { Button } from '@/shared/components/shadcn/button'
-import { Pencil, Sparkles } from 'lucide-vue-next'
+import { Pencil, Sparkles } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useRouter } from 'vue-router'
 

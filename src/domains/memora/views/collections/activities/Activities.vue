@@ -183,7 +183,7 @@
 <script setup>
 import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Link, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, Link, Lock, Mail } from '@/shared/utils/lucideAnimated'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

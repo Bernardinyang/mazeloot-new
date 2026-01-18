@@ -214,7 +214,7 @@ import {
   Volume1,
   Volume2,
   VolumeX,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

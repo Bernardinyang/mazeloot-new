@@ -1,5 +1,5 @@
 <script setup>
-import { ChevronsUpDown, Plus } from 'lucide-vue-next'
+import { ChevronsUpDown, Plus } from '@/shared/utils/lucideAnimated'
 import { computed, ref, watch } from 'vue'
 import {
   DropdownMenu,

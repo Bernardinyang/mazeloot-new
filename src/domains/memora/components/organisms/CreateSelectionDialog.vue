@@ -68,7 +68,7 @@
           :loading="isSubmitting"
           loading-label="Creating..."
           type="button"
-          @click="handleSubmit"
+          @click.stop="handleSubmit"
         >
           Create Selection
         </Button>
@@ -83,7 +83,7 @@ import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Button } from '@/shared/components/shadcn/button'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import ColorSelector from '@/shared/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/shared/utils/colors'

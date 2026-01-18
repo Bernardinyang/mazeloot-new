@@ -154,7 +154,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { Eye, Plus } from 'lucide-vue-next'
+import { Eye, Plus } from '@/shared/utils/lucideAnimated'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -312,9 +312,7 @@ const toggleStar = async proofingPhase => {
     const projectId = proofingPhase.projectId || proofingPhase.project_uuid || null
     const result = await proofingStore.toggleStar(proofingId, projectId)
     const index = proofing.value.findIndex(
-      p => p.id === proofingId || p.uuid === proofingId || 
-           p.id === proofingPhase.id || p.uuid === proofingPhase.id ||
-           p.id === proofingPhase.uuid || p.uuid === proofingPhase.uuid
+      p => String(p.id) === String(proofingId) || String(p.uuid) === String(proofingId)
     )
     if (index !== -1 && result?.starred !== undefined) {
       proofing.value[index] = {

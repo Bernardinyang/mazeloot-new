@@ -299,7 +299,7 @@
 <script setup>
 import { ref, computed, onMounted, watchEffect, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Phone, Mail, MapPin, Globe, Facebook, Instagram, Loader2, Lock, AlertCircle, ArrowRight, ImageIcon, Eye, Sun, Moon } from 'lucide-vue-next'
+import { Phone, Mail, MapPin, Globe, Facebook, Instagram, Loader2, Lock, AlertCircle, ArrowRight, ImageIcon, Eye, Sun, Moon } from '@/shared/utils/lucideAnimated'
 import FeaturedMediaSlider from '@/shared/components/organisms/FeaturedMediaSlider.vue'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/shadcn/dialog'
 import { Button } from '@/shared/components/shadcn/button'

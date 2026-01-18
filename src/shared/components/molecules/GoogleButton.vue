@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import IconGoogle from '@/shared/icons/IconGoogle.vue'
 

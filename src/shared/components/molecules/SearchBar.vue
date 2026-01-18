@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { Search, X, Loader2 } from 'lucide-vue-next'
+import { Search, X, Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

@@ -1,4 +1,4 @@
-import { Grid3x3, LayoutGrid, Type, Image as ImageIcon } from 'lucide-vue-next'
+import { Grid3x3, LayoutGrid, Type, Image as ImageIcon } from '@/shared/utils/lucideAnimated'
 
 // Grid layout options
 export const gridStyles = [

@@ -106,7 +106,7 @@
         <Button
           type="button"
           variant="accent"
-          @click="handleSubmit"
+          @click.stop="handleSubmit"
           :disabled="!formData.name.trim() || props.isSubmitting || isLocalSubmitting"
           :loading="props.isSubmitting || isLocalSubmitting"
           loading-label="Creating..."
@@ -131,7 +131,7 @@ import {
 } from '@/shared/components/shadcn/select'
 import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'

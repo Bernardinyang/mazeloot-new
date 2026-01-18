@@ -3,7 +3,7 @@ import { computed, useAttrs, useSlots } from 'vue'
 import { Primitive } from 'reka-ui'
 import { cn } from '@/shared/lib/utils'
 import { buttonVariants } from '.'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 
 const emit = defineEmits(['click'])
 

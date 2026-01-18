@@ -182,7 +182,7 @@
 
 <script setup>
 import { computed, reactive } from 'vue'
-import { Eye, Info, Lock, MoreVertical, Pencil, Star, Trash2 } from 'lucide-vue-next'
+import { Eye, Info, Lock, MoreVertical, Pencil, Star, Trash2 } from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,

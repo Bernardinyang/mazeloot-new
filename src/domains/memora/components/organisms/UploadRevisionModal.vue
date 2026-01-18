@@ -205,7 +205,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { Upload, Loader2, CheckCircle2 } from 'lucide-vue-next'
+import { Upload, Loader2, CheckCircle2 } from '@/shared/utils/lucideAnimated'
 import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'

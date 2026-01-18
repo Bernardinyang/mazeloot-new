@@ -82,6 +82,16 @@ export const useProofingStore = defineStore('proofing', () => {
    * Fetch proofing by ID
    */
   const fetchProofing = async id => {
+    // Skip if already loading the same proofing
+    if (isLoading.value && currentProofing.value?.id === id) {
+      return currentProofing.value
+    }
+
+    // Skip if already loaded with same ID
+    if (currentProofing.value?.id === id && !error.value) {
+      return currentProofing.value
+    }
+
     isLoading.value = true
     error.value = null
 
@@ -330,10 +340,13 @@ export const useProofingStore = defineStore('proofing', () => {
    * Toggle star status with optimistic update
    */
   const toggleStar = async (proofingId, projectId = null) => {
-    const proofing = proofings.value.find(p => p.id === proofingId || p.uuid === proofingId)
+    const proofingIdStr = String(proofingId)
+    const proofing = proofings.value.find(
+      p => String(p.id) === proofingIdStr || String(p.uuid) === proofingIdStr
+    )
     const isCurrentProofing =
       currentProofing.value &&
-      (currentProofing.value.id === proofingId || currentProofing.value.uuid === proofingId)
+      (String(currentProofing.value.id) === proofingIdStr || String(currentProofing.value.uuid) === proofingIdStr)
 
     // Need at least one to update
     if (!proofing && !isCurrentProofing) return

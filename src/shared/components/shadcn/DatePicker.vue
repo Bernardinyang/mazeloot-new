@@ -28,7 +28,7 @@
 import type { HTMLAttributes } from 'vue'
 import { computed, ref } from 'vue'
 import { format } from 'date-fns'
-import { CalendarIcon } from 'lucide-vue-next'
+import { CalendarIcon } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Calendar } from '@/shared/components/shadcn/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'

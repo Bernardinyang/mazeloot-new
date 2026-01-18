@@ -50,9 +50,12 @@ class ApiClient {
         currentPath.includes('/forgot-password') ||
         currentPath.includes('/reset-password')
 
-      // Check if it's a public route (client selection/proofing/collection routes)
+      // Check if it's a public route (client selection/proofing/collection/raw-files routes)
       const isPublicRoute =
-        currentPath.startsWith('/p/') || currentPath === '/' || currentPath === '/about'
+        currentPath.startsWith('/p/') ||
+        currentPath.startsWith('/memora/client/') ||
+        currentPath === '/' ||
+        currentPath === '/about'
 
       if (!isOnAuthPage && !isPublicRoute) {
         window.location.href = '/login'

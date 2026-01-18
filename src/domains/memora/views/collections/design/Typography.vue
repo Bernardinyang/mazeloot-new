@@ -340,7 +340,7 @@
 import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGuard'
-import { Check, ExternalLink, Loader2 } from 'lucide-vue-next'
+import { Check, ExternalLink, Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/shadcn/select'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'

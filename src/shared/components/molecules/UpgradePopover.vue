@@ -56,7 +56,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Rocket } from 'lucide-vue-next'
+import { Rocket } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

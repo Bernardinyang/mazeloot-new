@@ -252,7 +252,7 @@
 
 <script setup>
 import { computed, nextTick, ref, watch } from 'vue'
-import { MessageSquare, Play, Loader2, X, CheckCircle2 } from 'lucide-vue-next'
+import { MessageSquare, Play, Loader2, X, CheckCircle2 } from '@/shared/utils/lucideAnimated'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
 import CommentItem from '@/shared/components/molecules/CommentItem.vue'

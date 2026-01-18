@@ -211,7 +211,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Loader2, CheckCircle2, XCircle, Pause, Play, RefreshCw, X, AlertCircle, Trash2 } from 'lucide-vue-next'
+import { Loader2, CheckCircle2, XCircle, Pause, Play, RefreshCw, X, AlertCircle, Trash2 } from '@/shared/utils/lucideAnimated'
 import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

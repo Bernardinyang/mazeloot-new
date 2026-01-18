@@ -7,7 +7,7 @@
         </DialogTitle>
         <DialogDescription :class="theme.textSecondary" class="text-sm mt-1">
           At least one email address must be added before publishing this
-          {{ context === 'proofing' ? 'proofing' : 'selection' }}.
+          {{ context === 'proofing' ? 'proofing' : context === 'rawFile' ? 'raw file' : 'selection' }}.
         </DialogDescription>
       </DialogHeader>
 
@@ -81,11 +81,12 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
-import { Plus, X, Loader2 } from 'lucide-vue-next'
+import { Plus, X, Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useRouter } from 'vue-router'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { useProofingApi } from '@/domains/memora/api/proofing'
+import { useRawFilesApi } from '@/domains/memora/api/rawFiles'
 import { toast } from '@/shared/utils/toast'
 
 const props = defineProps({
@@ -107,8 +108,8 @@ const props = defineProps({
   },
   context: {
     type: String,
-    default: 'selection', // 'selection' or 'proofing'
-    validator: value => ['selection', 'proofing'].includes(value),
+    default: 'selection', // 'selection', 'proofing', or 'rawFile'
+    validator: value => ['selection', 'proofing', 'rawFile'].includes(value),
   },
   projectId: {
     type: String,
@@ -122,6 +123,7 @@ const theme = useThemeClasses()
 const router = useRouter()
 const selectionsApi = useSelectionsApi()
 const proofingApi = useProofingApi()
+const rawFilesApi = useRawFilesApi()
 
 const emails = ref([''])
 const isSaving = ref(false)
@@ -160,6 +162,12 @@ const handleGoToSettings = () => {
   if (props.context === 'proofing') {
     router.push({
       name: 'proofingDetail',
+      params: { id: props.selectionId },
+      query: { tab: 'settings', section: 'general' },
+    })
+  } else if (props.context === 'rawFile') {
+    router.push({
+      name: 'rawFileDetail',
       params: { id: props.selectionId },
       query: { tab: 'settings', section: 'general' },
     })
@@ -205,6 +213,10 @@ const handleSave = async () => {
     let updatedItem = null
     if (props.context === 'proofing') {
       updatedItem = await proofingApi.updateProofing(props.projectId, props.selectionId, {
+        allowedEmails: uniqueEmails,
+      })
+    } else if (props.context === 'rawFile') {
+      updatedItem = await rawFilesApi.updateRawFile(props.selectionId, {
         allowedEmails: uniqueEmails,
       })
     } else {

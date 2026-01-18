@@ -304,7 +304,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause, Heart, Lock, LockOpen } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause, Heart, Lock, LockOpen } from '@/shared/utils/lucideAnimated'
 import { getMediaDisplayUrl } from '@/domains/memora/utils/media/getMediaDisplayUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'

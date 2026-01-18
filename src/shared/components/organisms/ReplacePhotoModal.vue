@@ -42,7 +42,7 @@
 
 <script setup>
 import { ref, watch } from 'vue'
-import { ImagePlus, Loader2 } from 'lucide-vue-next'
+import { ImagePlus, Loader2 } from '@/shared/utils/lucideAnimated'
 import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

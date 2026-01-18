@@ -187,7 +187,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { Grid3x3, ImageIcon } from 'lucide-vue-next'
+import { Grid3x3, ImageIcon } from '@/shared/utils/lucideAnimated'
 import {
   Tooltip,
   TooltipContent,

@@ -236,7 +236,7 @@ import {
   X,
   HardDrive,
   Eye,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button/index'
 import { Calendar } from '@/shared/components/shadcn/calendar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover/index'

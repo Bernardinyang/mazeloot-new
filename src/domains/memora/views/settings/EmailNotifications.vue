@@ -98,7 +98,7 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { Check, Loader2 } from 'lucide-vue-next'
+import { Check, Loader2 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'

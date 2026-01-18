@@ -128,7 +128,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { ArrowDownUp, Check, Grid3x3, List } from 'lucide-vue-next'
+import { ArrowDownUp, Check, Grid3x3, List } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import SearchBar from '@/shared/components/molecules/SearchBar.vue'
 import {

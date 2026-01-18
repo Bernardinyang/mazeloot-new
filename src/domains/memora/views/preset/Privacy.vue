@@ -171,7 +171,7 @@
 import { computed, inject, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGuard'
-import { ArrowLeft, ArrowRight } from 'lucide-vue-next'
+import { ArrowLeft, ArrowRight } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import PresetLayout from '@/shared/layouts/PresetLayout.vue'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'

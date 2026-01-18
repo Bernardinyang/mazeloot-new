@@ -56,7 +56,7 @@ import {
   Compass,
   Eye,
   Search,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 
 /**
  * Comprehensive icon matcher for media sets

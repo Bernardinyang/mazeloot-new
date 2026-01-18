@@ -296,7 +296,7 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { Loader2, History, X, Eye, Download, CheckCircle2 } from 'lucide-vue-next'
+import { Loader2, History, X, Eye, Download, CheckCircle2 } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

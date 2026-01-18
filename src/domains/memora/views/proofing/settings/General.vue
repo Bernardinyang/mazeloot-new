@@ -643,7 +643,7 @@
 import { ref, computed, onMounted, watch, nextTick, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
-import { Plus, X, Loader2, Info, Copy, Star, Eye, RefreshCw } from 'lucide-vue-next'
+import { Plus, X, Loader2, Info, Copy, Star, Eye, RefreshCw } from '@/shared/utils/lucideAnimated'
 import ProofingLayout from '@/domains/memora/layouts/ProofingLayout.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'

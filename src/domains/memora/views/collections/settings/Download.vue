@@ -287,7 +287,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Info, Lock, Settings } from 'lucide-vue-next'
+import { Download, Heart, Info, Lock, Settings } from '@/shared/utils/lucideAnimated'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import {
   Tooltip,

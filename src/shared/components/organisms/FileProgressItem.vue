@@ -141,7 +141,7 @@ import {
   FileImage,
   FileVideo,
   AlertCircle,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 

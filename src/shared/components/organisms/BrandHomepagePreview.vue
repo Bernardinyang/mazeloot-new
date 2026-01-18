@@ -163,7 +163,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { Globe, Phone, Mail, MapPin } from 'lucide-vue-next'
+import { Globe, Phone, Mail, MapPin } from '@/shared/utils/lucideAnimated'
 import FeaturedMediaSlider from '@/shared/components/organisms/FeaturedMediaSlider.vue'
 
 const isVideoCover = url => {

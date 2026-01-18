@@ -62,6 +62,11 @@
           label="Item Count"
           :value="`${collection.itemCount} ${collection.itemCount === 1 ? 'item' : 'items'}`"
         />
+        <DetailField
+          v-if="collection.storageUsedBytes !== undefined"
+          label="Storage Used"
+          :value="formatBytes(collection.storageUsedBytes || 0)"
+        />
         <DetailField v-if="collection.url" label="URL" :value="collection.url" />
       </DetailSection>
 
@@ -322,7 +327,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Loader2, FolderKanban, Eye, Pencil, AlertCircle } from 'lucide-vue-next'
+import { Loader2, FolderKanban, Eye, Pencil, AlertCircle } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
 import DetailField from '@/shared/components/molecules/DetailField.vue'
@@ -480,6 +485,14 @@ const loadData = async () => {
   } finally {
     isLoading.value = false
   }
+}
+
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
 const formatKey = key => {

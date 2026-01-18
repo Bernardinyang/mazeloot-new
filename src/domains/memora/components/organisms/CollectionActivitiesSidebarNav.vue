@@ -195,7 +195,7 @@
 
 <script setup>
 import { useRoute } from 'vue-router'
-import { Download, Heart, Link, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, Link, Lock, Mail } from '@/shared/utils/lucideAnimated'
 import {
   Tooltip,
   TooltipContent,

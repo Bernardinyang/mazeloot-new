@@ -238,7 +238,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { Folder, Star, MoreVertical, Lock, Loader2 } from 'lucide-vue-next'
+import { Folder, Star, MoreVertical, Lock, Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   DropdownMenu,

@@ -590,7 +590,7 @@
 import { ref, reactive, computed, watch, onMounted, onUnmounted, Transition } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGuard'
-import { ChevronDown, Loader2, Check, X } from 'lucide-vue-next'
+import { ChevronDown, Loader2, Check, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import PresetLayout from '@/shared/layouts/PresetLayout.vue'
 import UnsavedChangesModal from '@/shared/components/organisms/UnsavedChangesModal.vue'

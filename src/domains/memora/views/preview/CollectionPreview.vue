@@ -751,7 +751,7 @@ import {
   Star,
   X,
   LogOut,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { useCollectionsApi } from '@/domains/memora/api/collections'
 import { useMediaApi } from '@/shared/api/media'
 import { apiClient } from '@/shared/api/client'

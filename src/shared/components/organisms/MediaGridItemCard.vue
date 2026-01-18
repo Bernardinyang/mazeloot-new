@@ -10,16 +10,16 @@
               ? 'opacity-50 grayscale'
               : 'opacity-90 hover:opacity-100',
         props.wasSelectedOnCompletion && !props.isSelected ? 'ring-1 ring-violet-500/50' : '',
-        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasPendingClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && props.phase === 'proofing' && hasPendingClosureRequest
           ? 'ring-1 ring-amber-500 border-amber-500 bg-amber-50/20 dark:bg-amber-900/10 animate-pulse'
           : '',
-        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasApprovedClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && props.phase === 'proofing' && hasApprovedClosureRequest
           ? 'ring-2 ring-violet-500 border-violet-500 bg-violet-50/20 dark:bg-violet-900/10 animate-pulse'
           : '',
-        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasRejectedClosureRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && props.phase === 'proofing' && hasRejectedClosureRequest
           ? 'ring-2 ring-red-500 border-red-500 bg-red-50/20 dark:bg-red-900/10'
           : '',
-        !props.minimalActions && props.showManagementActions && !props.selectionStatus && hasPendingApprovalRequest
+        !props.minimalActions && props.showManagementActions && !props.selectionStatus && props.phase === 'proofing' && hasPendingApprovalRequest
           ? 'ring-1 ring-blue-500 border-blue-500 bg-blue-50/20 dark:bg-blue-900/10 animate-pulse'
           : '',
         !props.minimalActions && isRejected
@@ -65,7 +65,10 @@
         </button>
       </div>
 
-      <div class="w-full h-full cursor-pointer relative" @click="emit('open-viewer', props.item)">
+      <div 
+        :class="['w-full h-full relative', canPreviewFile(props.item?.file || props.item) ? 'cursor-pointer' : 'cursor-default']" 
+        @click="canPreviewFile(props.item?.file || props.item) ? emit('open-viewer', props.item) : null"
+      >
         <!-- Image thumbnail -->
         <img
           v-if="(item?.type || item?.file?.type) !== 'video'"
@@ -132,8 +135,8 @@
         :class="(props.item?.isStarred || props.item?.isFeatured || props.item?.is_featured || props.item?.isRecommended || props.item?.is_recommended) ? 'bottom-12' : 'bottom-2'"
         class="absolute left-2 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-4rem)]"
       >
-        <!-- Proofing Badges (only show when NOT in selection context, NOT in public mode, and management actions are enabled) -->
-        <template v-if="!props.minimalActions && !props.selectionStatus && !props.publicMode && props.showManagementActions">
+        <!-- Proofing Badges (only show in proofing phase) -->
+        <template v-if="!props.minimalActions && !props.selectionStatus && !props.publicMode && props.showManagementActions && props.phase === 'proofing'">
           <!-- Draft/Revision Badge -->
           <div v-if="!(props.item?.isCompleted || props.item?.is_completed)">
             <div
@@ -181,8 +184,8 @@
             <span class="text-xs font-semibold text-white">Rejected</span>
           </div>
         </template>
-        <!-- Closure Request Indicators (only show when NOT in selection context and NOT in collection) -->
-        <template v-if="!props.minimalActions && !props.selectionStatus && props.showManagementActions">
+        <!-- Closure Request Indicators (only show in proofing phase) -->
+        <template v-if="!props.minimalActions && !props.selectionStatus && props.showManagementActions && props.phase === 'proofing'">
           <!-- Pending Closure Request Indicator -->
           <TooltipProvider v-if="hasPendingClosureRequest">
             <Tooltip>
@@ -232,8 +235,8 @@
             </Tooltip>
           </TooltipProvider>
         </template>
-        <!-- Revision Indicator (only show when NOT in selection context) -->
-        <TooltipProvider v-if="!props.minimalActions && !props.selectionStatus && hasRevisions">
+        <!-- Revision Indicator (only show in proofing phase) -->
+        <TooltipProvider v-if="!props.minimalActions && !props.selectionStatus && props.phase === 'proofing' && hasRevisions">
           <Tooltip>
             <TooltipTrigger as-child>
               <div
@@ -301,8 +304,8 @@
             <Sparkles class="h-4 w-4 fill-white text-white" />
           </div>
         </div>
-        <!-- Recommended Badge (always visible when recommended, shown in both admin and public mode) -->
-        <div v-if="props.item?.isRecommended || props.item?.is_recommended" class="flex items-center justify-center">
+        <!-- Recommended Badge (only show in selection phase) -->
+        <div v-if="props.phase === 'selection' && (props.item?.isRecommended || props.item?.is_recommended)" class="flex items-center justify-center">
           <div
             class="flex items-center justify-center w-8 h-8 rounded-full bg-violet-500/90 dark:bg-violet-600/90 backdrop-blur-sm shadow-lg"
             title="Recommended"
@@ -338,6 +341,7 @@
             <Tooltip>
               <TooltipTrigger as-child>
                 <button
+                  v-if="canPreviewFile(props.item?.file || props.item)"
                   class="flex items-center justify-center w-10 h-10 rounded-full bg-black/80 hover:bg-black dark:bg-gray-900/90 dark:hover:bg-gray-800 transition-all duration-300 ease-out shadow-md hover:shadow-xl hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-0.5"
                   style="animation: fadeInUp 0.4s ease-out 0.1s both"
                   @click.stop="emit('open-viewer', props.item)"
@@ -477,6 +481,7 @@
               View Details
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="canPreviewFile(props.item?.file || props.item)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
               @click.stop="emit('open')"
             >
@@ -494,16 +499,17 @@
               Download
             </DropdownMenuItem>
             <DropdownMenuItem
+              v-if="props.phase !== 'rawFile' && canPreviewFile(props.item?.file || props.item)"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @select.prevent="emit('toggle-featured')"
+              @select.prevent.stop="emit('toggle-featured')"
             >
               <Sparkles :class="['h-4 w-4 mr-2', (props.item?.isFeatured || props.item?.is_featured) ? 'fill-yellow-400 text-yellow-400' : '']" />
               {{ (props.item?.isFeatured || props.item?.is_featured) ? 'Remove from Featured List' : 'Add to Featured List' }}
             </DropdownMenuItem>
             <DropdownMenuItem
-              v-if="props.selectionStatus && props.selectionStatus !== 'completed'"
+              v-if="props.phase === 'selection' && props.selectionStatus && props.selectionStatus !== 'completed'"
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @select.prevent="emit('toggle-recommended')"
+              @select.prevent.stop="emit('toggle-recommended')"
             >
               <ThumbsUp :class="['h-4 w-4 mr-2', (props.item?.isRecommended || props.item?.is_recommended) ? 'fill-violet-400 text-violet-400' : '']" />
               {{ (props.item?.isRecommended || props.item?.is_recommended) ? 'Remove Recommendation' : 'Mark as Recommended' }}
@@ -534,7 +540,7 @@
                 Copy filenames
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions"
+                v-if="!props.minimalActions && canPreviewFile(props.item?.file || props.item) && props.phase !== 'rawFile'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('set-as-cover')"
               >
@@ -550,7 +556,7 @@
                 Rename
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions && !(props.item?.isCompleted || props.item?.is_completed)"
+                v-if="!props.minimalActions && !(props.item?.isCompleted || props.item?.is_completed) && props.phase !== 'rawFile'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('replace')"
               >
@@ -558,7 +564,7 @@
                 Replace photo
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed)"
+                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && hasWatermark && !(props.item?.isCompleted || props.item?.is_completed) && props.phase !== 'rawFile'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('remove-watermark')"
               >
@@ -566,7 +572,7 @@
                 Remove Watermark
               </DropdownMenuItem>
               <DropdownMenuItem
-                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && !(props.item?.isCompleted || props.item?.is_completed)"
+                v-if="!props.minimalActions && (props.item?.type === 'image' || props.item?.type === 'video') && !(props.item?.isCompleted || props.item?.is_completed) && props.phase !== 'rawFile'"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click.stop="emit('watermark')"
               >
@@ -575,12 +581,13 @@
               </DropdownMenuItem>
             </template>
 
-            <!-- Closure Actions (only show when NOT in selection context and management actions enabled) -->
+            <!-- Closure Actions (only show in proofing phase) -->
             <template
               v-if="
                 props.showManagementActions &&
                 !props.minimalActions &&
                 !props.selectionStatus &&
+                props.phase === 'proofing' &&
                 (hasPendingClosureRequest ||
                   (closureRequests && closureRequests.length > 0) ||
                   (!props.item?.isCompleted && !props.item?.is_completed) ||
@@ -641,11 +648,12 @@
               </DropdownMenuItem>
             </template>
 
-            <!-- Revision History (only show when NOT in selection context) -->
+            <!-- Revision History (only show in proofing phase) -->
             <template
               v-if="
                 !props.minimalActions &&
                 !props.selectionStatus &&
+                props.phase === 'proofing' &&
                 (props.item?.originalMediaId ||
                   props.item?.original_media_uuid ||
                   props.item?.revisionNumber ||
@@ -662,8 +670,8 @@
               </DropdownMenuItem>
             </template>
 
-            <!-- Approval Request (only show when NOT in selection context) -->
-            <template v-if="!props.minimalActions && !props.selectionStatus && hasAnyApprovalRequest">
+            <!-- Approval Request (only show in proofing phase) -->
+            <template v-if="!props.minimalActions && !props.selectionStatus && props.phase === 'proofing' && hasAnyApprovalRequest">
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 v-if="hasPendingApprovalRequest"
@@ -686,8 +694,8 @@
                 View Approval Request
               </DropdownMenuItem>
             </template>
-            <!-- Request Approval (only show when NOT in selection context) -->
-            <template v-else-if="!props.minimalActions && !props.selectionStatus && props.isRevisionLimitExceeded">
+            <!-- Request Approval (only show in proofing phase) -->
+            <template v-else-if="!props.minimalActions && !props.selectionStatus && props.phase === 'proofing' && props.isRevisionLimitExceeded">
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 :class="[
@@ -702,11 +710,12 @@
               </DropdownMenuItem>
             </template>
 
-            <!-- Upload Revision - Only when media is ready for revision (only show when NOT in selection context) -->
+            <!-- Upload Revision - Only when media is ready for revision (only show in proofing phase) -->
             <template
               v-if="
                 !props.minimalActions &&
                 !props.selectionStatus &&
+                props.phase === 'proofing' &&
                 (props.item?.isReadyForRevision || props.item?.is_ready_for_revision)
               "
             >
@@ -763,6 +772,7 @@ import {
   getMediaDisplayUrlSync,
   revokeMediaBlobUrl,
 } from '@/domains/memora/utils/media/getMediaDisplayUrl'
+import { canPreviewFile, getFileTypeCover } from '@/shared/utils/media/getFileTypeCover'
 import {
   CheckCircle2,
   CheckSquare2,
@@ -790,7 +800,7 @@ import {
   Trash2,
   Upload,
   X,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -897,6 +907,11 @@ const props = defineProps({
   disableShare: {
     type: Boolean,
     default: false,
+  },
+  phase: {
+    type: String,
+    default: null,
+    validator: (value) => !value || ['proofing', 'selection', 'rawFile', 'collection'].includes(value),
   },
 })
 
@@ -1068,7 +1083,17 @@ const getThumbnailUrl = () => {
 }
 const updateImageSrc = async () => {
   const url = getThumbnailUrl()
-  if (!url) {
+  
+  // Check if file can be previewed
+  const canPreview = canPreviewFile(props.item?.file || props.item)
+  
+  if (!url || !canPreview) {
+    // Use default file type cover for non-previewable files
+    if (!canPreview && props.item) {
+      imageSrc.value = getFileTypeCover(props.item?.file || props.item)
+      isImageLoaded.value = true
+      return
+    }
     imageSrc.value = props.placeholderImage
     return
   }
@@ -1094,7 +1119,13 @@ const checkImageLoaded = () => {
 
 onMounted(() => {
   const url = getThumbnailUrl()
-  if (url) {
+  const canPreview = canPreviewFile(props.item?.file || props.item)
+  
+  if (!canPreview && props.item) {
+    // Use default file type cover for non-previewable files
+    imageSrc.value = getFileTypeCover(props.item?.file || props.item)
+    isImageLoaded.value = true
+  } else if (url) {
     imageSrc.value = getMediaDisplayUrlSync(url, props.placeholderImage)
     updateImageSrc().then(() => {
       checkImageLoaded()
@@ -1130,11 +1161,41 @@ watch(imageSrc, () => {
   }
 })
 
+// Watch theme changes to regenerate file type covers
+let themeObserver = null
+onMounted(() => {
+  if (typeof document === 'undefined') return
+  
+  let currentTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+  
+  themeObserver = new MutationObserver(() => {
+    const newTheme = document.documentElement.classList.contains('dark') ? 'dark' : 'light'
+    if (newTheme !== currentTheme) {
+      currentTheme = newTheme
+      const canPreview = canPreviewFile(props.item?.file || props.item)
+      if (!canPreview && props.item) {
+        // Regenerate file type cover with new theme
+        imageSrc.value = getFileTypeCover(props.item?.file || props.item)
+      }
+    }
+  })
+  
+  themeObserver.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class']
+  })
+})
+
 onUnmounted(() => {
+  if (themeObserver) {
+    themeObserver.disconnect()
+    themeObserver = null
+  }
   if (imageSrc.value && imageSrc.value.startsWith('blob:')) {
     revokeMediaBlobUrl(imageSrc.value)
   }
 })
+
 
 const emit = defineEmits([
   'request-approval',

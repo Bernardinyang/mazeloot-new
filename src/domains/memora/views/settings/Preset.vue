@@ -317,7 +317,7 @@
 <script setup>
 import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Copy, Loader2, MoreVertical, Pencil, Plus, Search, Star, Trash2, X } from 'lucide-vue-next'
+import { Copy, Loader2, MoreVertical, Pencil, Plus, Search, Star, Trash2, X } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'

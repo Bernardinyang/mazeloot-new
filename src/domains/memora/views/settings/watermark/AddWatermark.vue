@@ -1023,7 +1023,7 @@
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Grid3x3, Monitor, MoreVertical, Plus, Smartphone, X } from 'lucide-vue-next'
+import { Grid3x3, Monitor, MoreVertical, Plus, Smartphone, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import {

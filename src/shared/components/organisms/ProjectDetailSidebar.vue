@@ -415,7 +415,7 @@ import {
   Info,
   Clock,
   Settings,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
 import DetailField from '@/shared/components/molecules/DetailField.vue'

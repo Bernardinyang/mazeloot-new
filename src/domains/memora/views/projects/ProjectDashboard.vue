@@ -461,7 +461,7 @@ import {
   Pencil,
   AlertCircle,
   Image,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'

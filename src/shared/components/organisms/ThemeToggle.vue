@@ -62,7 +62,7 @@
 </template>
 
 <script setup>
-import { Check, Monitor, Moon, Sun } from 'lucide-vue-next'
+import { Check, Monitor, Moon, Sun } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   DropdownMenu,

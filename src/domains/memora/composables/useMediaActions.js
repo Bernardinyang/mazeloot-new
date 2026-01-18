@@ -717,7 +717,7 @@ export function useMediaActions({
 
   // ==================== Download Actions ====================
 
-  const handleDownloadMedia = async item => {
+  const handleDownloadMedia = async (item, downloadPin = null) => {
     if (!item?.id) {
       toast.error('Media not found', {
         description: 'Unable to download media. Please try again.',
@@ -730,7 +730,7 @@ export function useMediaActions({
         id: 'download-media',
       })
 
-      const { blob, filename } = await api.downloadMedia(item.id)
+      const { blob, filename } = await api.downloadMedia(item.id, downloadPin)
 
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')

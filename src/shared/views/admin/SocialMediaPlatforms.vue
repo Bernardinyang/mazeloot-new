@@ -249,7 +249,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import Input from '@/shared/components/shadcn/input/Input.vue'

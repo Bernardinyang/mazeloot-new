@@ -411,7 +411,7 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { Bold, Italic, Underline, Link, Unlink, Loader2, Check } from 'lucide-vue-next'
+import { Bold, Italic, Underline, Link, Unlink, Loader2, Check } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import {

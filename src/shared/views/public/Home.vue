@@ -457,7 +457,7 @@ import CardHeader from '@/shared/components/shadcn/CardHeader.vue'
 import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import CardDescription from '@/shared/components/shadcn/CardDescription.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
-import { Zap, Lock, History, Calendar, BarChart, Activity, CheckCircle, Check } from 'lucide-vue-next'
+import { Zap, Lock, History, Calendar, BarChart, Activity, CheckCircle, Check } from '@/shared/utils/lucideAnimated'
 
 const router = useRouter()
 </script>

@@ -162,7 +162,7 @@ import { useRouter } from 'vue-router'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Card from '@/shared/components/shadcn/Card.vue'
-import { Check, ImageIcon, Globe, Calendar, ShoppingBag } from 'lucide-vue-next'
+import { Check, ImageIcon, Globe, Calendar, ShoppingBag } from '@/shared/utils/lucideAnimated'
 
 const router = useRouter()
 </script>

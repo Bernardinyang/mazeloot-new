@@ -292,7 +292,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Loader2, CheckCircle2, X, MessageSquare } from 'lucide-vue-next'
+import { ArrowLeft, Loader2, CheckCircle2, X, MessageSquare } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'

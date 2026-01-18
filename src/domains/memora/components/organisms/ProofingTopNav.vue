@@ -226,7 +226,7 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { Check, CheckCircle2, ChevronLeft, Eye, HardDrive, Loader2, Share2, X, } from 'lucide-vue-next'
+import { Check, CheckCircle2, ChevronLeft, Eye, HardDrive, Loader2, Share2, X, } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'

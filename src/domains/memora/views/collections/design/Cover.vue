@@ -281,7 +281,7 @@
 import { computed, ref, reactive, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useUnsavedChangesGuard } from '@/shared/composables/useUnsavedChangesGuard'
-import { Check, ExternalLink, Eye, Loader2 } from 'lucide-vue-next'
+import { Check, ExternalLink, Eye, Loader2 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import CoverFocalPointModal from '@/shared/components/organisms/CoverFocalPointModal.vue'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'

@@ -12,7 +12,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Folder, Image as ImageIcon, CheckSquare } from 'lucide-vue-next'
+import { Folder, Image as ImageIcon, CheckSquare } from '@/shared/utils/lucideAnimated'
 import { capitalize } from '@/shared/lib/utils'
 
 const props = defineProps({

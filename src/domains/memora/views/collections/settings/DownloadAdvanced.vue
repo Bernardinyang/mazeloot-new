@@ -310,7 +310,7 @@
 <script setup>
 import { computed, ref, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { Mail, Plus, X } from 'lucide-vue-next'
+import { Mail, Plus, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import { Input } from '@/shared/components/shadcn/input'

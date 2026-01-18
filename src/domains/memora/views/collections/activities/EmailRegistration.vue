@@ -194,7 +194,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Download, Heart, Link, Loader2, Lock, Mail } from 'lucide-vue-next'
+import { Download, Heart, Link, Loader2, Lock, Mail } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import {

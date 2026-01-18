@@ -52,7 +52,7 @@ const props = defineProps({
   phaseType: {
     type: String,
     required: true,
-    validator: value => ['collection', 'selection', 'proofing'].includes(value),
+    validator: value => ['collection', 'selection', 'rawFile', 'proofing'].includes(value),
   },
   phaseId: { type: String, default: '' },
   activeTab: { type: String, required: true },

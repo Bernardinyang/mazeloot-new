@@ -159,7 +159,7 @@
 </template>
 
 <script setup>
-import { LogOut, UserIcon } from 'lucide-vue-next'
+import { LogOut, UserIcon } from '@/shared/utils/lucideAnimated'
 import Card from '@/shared/components/shadcn/Card.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
 import { Button } from '@/shared/components/shadcn/button'

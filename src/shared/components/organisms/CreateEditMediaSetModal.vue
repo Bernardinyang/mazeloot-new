@@ -96,7 +96,7 @@ import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import SelectionLimitInput from '@/shared/components/molecules/SelectionLimitInput.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { computed } from 'vue'
 
 const theme = useThemeClasses()

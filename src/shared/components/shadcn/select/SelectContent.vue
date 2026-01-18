@@ -7,7 +7,7 @@ import { SelectContent, SelectPortal, SelectViewport, useForwardPropsEmits } fro
 import { cn } from '@/shared/lib/utils'
 import { SelectScrollDownButton, SelectScrollUpButton } from '.'
 import { Input } from '@/shared/components/shadcn/input'
-import { Search, X } from 'lucide-vue-next'
+import { Search, X } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
 defineOptions({

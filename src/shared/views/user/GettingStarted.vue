@@ -237,7 +237,7 @@ import {
   Shield,
   Users,
   Sparkles,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Card from '@/shared/components/shadcn/Card.vue'
 import { Button } from '@/shared/components/shadcn/button'

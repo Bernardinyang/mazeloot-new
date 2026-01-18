@@ -127,7 +127,7 @@
 
 <script setup>
 import { computed, h, ref } from 'vue'
-import { Search, ShoppingCart } from 'lucide-vue-next'
+import { Search, ShoppingCart } from '@/shared/utils/lucideAnimated'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/shared/components/shadcn/sidebar'
 import { Separator } from '@/shared/components/shadcn/separator'
 import {

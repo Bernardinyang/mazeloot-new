@@ -1140,7 +1140,7 @@ import {
   Settings,
   StickyNote,
   Users2,
-} from 'lucide-vue-next'
+} from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import AvatarDisplay from '@/shared/components/atoms/AvatarDisplay.vue'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'

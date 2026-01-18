@@ -10,10 +10,18 @@
 <script setup>
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 
 const route = useRoute()
 const router = useRouter()
+
+// Generate access token for download page
+const generateDownloadPageAccessToken = (collectionId) => {
+  const token = `access_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  const expiresAt = Date.now() + 5 * 60 * 1000 // 5 minutes
+  localStorage.setItem(`download_page_access_${collectionId}`, JSON.stringify({ token, expiresAt }))
+  return token
+}
 
 onMounted(() => {
   // #region agent log
@@ -37,12 +45,19 @@ onMounted(() => {
   fetch('http://127.0.0.1:7242/ingest/0c1f4b73-4437-4f70-a7a0-856984785a37',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CloudStorageOAuthCallback.vue:onMounted',message:'Redirecting to download page',data:{collectionId,projectId,hasSuccess:!!query.success,hasService:!!query.service},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'C'})}).catch(()=>{});
   // #endregion
 
+  // Generate access token for OAuth callback redirect
+  let accessToken = null
+  if (collectionId) {
+    accessToken = generateDownloadPageAccessToken(collectionId)
+  }
+
   // If we have collection_id and project_id, redirect to download page
   if (collectionId && projectId) {
     router.replace({
       path: `/p/${projectId}/collection/download`,
       query: {
         collectionId,
+        accessToken,
         success: query.success,
         service: query.service,
         download_token: query.download_token,
@@ -61,6 +76,7 @@ onMounted(() => {
       path: `/p/default/collection/download`,
       query: {
         collectionId,
+        accessToken,
         success: query.success,
         service: query.service,
         download_token: query.download_token,

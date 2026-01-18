@@ -307,7 +307,7 @@
 
 <script setup>
 import { computed, ref, watch } from 'vue'
-import { Copy, Download, Eye, EyeOff, Loader2, Mail, Check } from 'lucide-vue-next'
+import { Copy, Download, Eye, EyeOff, Loader2, Mail, Check } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

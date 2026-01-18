@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { Settings } from 'lucide-vue-next'
+import { Settings } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useRoute } from 'vue-router'
 import {

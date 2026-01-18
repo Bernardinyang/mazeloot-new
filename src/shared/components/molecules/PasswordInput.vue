@@ -31,7 +31,7 @@
 
 <script setup>
 import { ref, computed, useAttrs } from 'vue'
-import { Eye, EyeOff } from 'lucide-vue-next'
+import { Eye, EyeOff } from '@/shared/utils/lucideAnimated'
 import { cn } from '@/shared/lib/utils'
 
 const props = defineProps({

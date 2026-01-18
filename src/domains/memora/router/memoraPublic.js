@@ -1,4 +1,5 @@
 import ClientSelectionView from '@/domains/memora/views/public-projects/_projectId/selections.vue'
+import ClientRawFileView from '@/domains/memora/views/public-projects/_projectId/raw-files.vue'
 import ClientProofingView from '@/domains/memora/views/public-projects/_projectId/proofing.vue'
 import BrandHomepage from '@/shared/views/public/BrandHomepage.vue'
 
@@ -7,6 +8,14 @@ export const memoraPublicRoutes = [
     path: '/memora/client/selections',
     name: 'clientSelections',
     component: ClientSelectionView,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/memora/client/raw-files',
+    name: 'clientRawFiles',
+    component: ClientRawFileView,
     meta: {
       requiresAuth: false,
     },
@@ -31,6 +40,14 @@ export const memoraPublicRoutes = [
     path: '/memora/client/collection/download',
     name: 'clientCollectionDownload',
     component: () => import('@/domains/memora/views/public-projects/_projectId/download.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/memora/client/raw-files/download',
+    name: 'clientRawFileDownload',
+    component: () => import('@/domains/memora/views/public-projects/_projectId/download-raw-file.vue'),
     meta: {
       requiresAuth: false,
     },

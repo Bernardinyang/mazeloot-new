@@ -87,7 +87,7 @@ import {
   endOfWeek,
   isToday as isTodayDate,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { ChevronLeft, ChevronRight } from '@/shared/utils/lucideAnimated'
 import { cn } from '@/shared/lib/utils'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import type { HTMLAttributes } from 'vue'

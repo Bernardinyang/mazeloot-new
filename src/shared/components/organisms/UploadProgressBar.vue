@@ -162,7 +162,7 @@
 
 <script setup>
 import { computed, ref, Transition } from 'vue'
-import { CheckCircle2, Loader2, RefreshCw, XCircle, ChevronDown } from 'lucide-vue-next'
+import { CheckCircle2, Loader2, RefreshCw, XCircle, ChevronDown } from '@/shared/utils/lucideAnimated'
 import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 import ActionButtonGroup from '@/shared/components/molecules/ActionButtonGroup.vue'
 import { Button } from '@/shared/components/shadcn/button'

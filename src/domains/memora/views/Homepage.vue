@@ -394,7 +394,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check, Share2 } from 'lucide-vue-next'
+import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check, Share2 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Input from '@/shared/components/shadcn/input/Input.vue'

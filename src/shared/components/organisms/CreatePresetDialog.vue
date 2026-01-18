@@ -160,7 +160,7 @@
 import { ref, reactive, watch } from 'vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
-import { Loader2 } from 'lucide-vue-next'
+import { Loader2 } from '@/shared/utils/lucideAnimated'
 import {
   Select,
   SelectContent,

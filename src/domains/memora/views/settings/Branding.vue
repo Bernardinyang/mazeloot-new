@@ -550,7 +550,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Plus, Loader2, Check } from 'lucide-vue-next'
+import { Plus, Loader2, Check } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import { Textarea } from '@/shared/components/shadcn/textarea'

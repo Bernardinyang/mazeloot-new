@@ -140,7 +140,7 @@ import CardHeader from '@/shared/components/shadcn/CardHeader.vue'
 import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import CardDescription from '@/shared/components/shadcn/CardDescription.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
-import { Mail, Phone, MapPin, Loader2 } from 'lucide-vue-next'
+import { Mail, Phone, MapPin, Loader2 } from '@/shared/utils/lucideAnimated'
 import { toast } from '@/shared/utils/toast'
 
 const router = useRouter()

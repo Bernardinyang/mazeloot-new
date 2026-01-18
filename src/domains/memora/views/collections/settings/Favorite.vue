@@ -327,7 +327,7 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Check, Download, Heart, Info, Lock, Settings } from 'lucide-vue-next'
+import { Check, Download, Heart, Info, Lock, Settings } from '@/shared/utils/lucideAnimated'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import { Button } from '@/shared/components/shadcn/button'
 import {

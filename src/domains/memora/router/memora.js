@@ -42,6 +42,8 @@ import ProjectDashboardView from '@/domains/memora/views/projects/ProjectDashboa
 import CollectionPhaseView from '@/domains/memora/views/projects/collections/CollectionPhase.vue'
 import SelectionsListView from '@/domains/memora/views/selections/Selections.vue'
 import SelectionDetailView from '@/domains/memora/views/selections/SelectionDetail.vue'
+import RawFilesListView from '@/domains/memora/views/raw-files/RawFiles.vue'
+import RawFileDetailView from '@/domains/memora/views/raw-files/RawFileDetail.vue'
 import ProofingListView from '@/domains/memora/views/proofing/Proofing.vue'
 import ProofingDetailView from '@/domains/memora/views/proofing/ProofingDetail.vue'
 import ProofingCommentsView from '@/domains/memora/views/proofing/Comments.vue'
@@ -131,6 +133,14 @@ export const memoraRoutes = [
     path: '/memora/selections/starred',
     name: 'starredSelections',
     component: () => import('@/domains/memora/views/starred/StarredSelections.vue'),
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/raw-files/starred',
+    name: 'starredRawFiles',
+    component: () => import('@/domains/memora/views/starred/StarredRawFiles.vue'),
     meta: {
       requiresAuth: true,
     },
@@ -465,7 +475,7 @@ export const memoraRoutes = [
       requiresAuth: true,
     },
   },
-  // Standalone Selections and Proofing Routes
+  // Standalone Selections, Raw Files and Proofing Routes
   {
     path: '/memora/selections',
     name: 'selections',
@@ -478,6 +488,22 @@ export const memoraRoutes = [
     path: '/memora/selections/:id',
     name: 'selectionDetail',
     component: SelectionDetailView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/raw-files',
+    name: 'rawFiles',
+    component: RawFilesListView,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
+    path: '/memora/raw-files/:id',
+    name: 'rawFileDetail',
+    component: RawFileDetailView,
     meta: {
       requiresAuth: true,
     },
