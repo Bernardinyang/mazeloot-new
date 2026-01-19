@@ -7,6 +7,16 @@ import { Loader2 } from '@/shared/utils/lucideAnimated'
 
 const emit = defineEmits(['click'])
 
+const handleClick = (event) => {
+  // Prevent click when loading or disabled
+  if (props.loading || attrs.disabled) {
+    event.preventDefault()
+    event.stopPropagation()
+    return
+  }
+  emit('click', event)
+}
+
 const props = defineProps({
   as: {
     type: String,
@@ -90,7 +100,7 @@ const isIconOnly = computed(() => {
     :class="buttonClasses"
     :disabled="isDisabled"
     v-bind="$attrs"
-    @click="emit('click', $event)"
+    @click="handleClick"
   >
     <template v-if="isIconOnly">
       <Loader2 v-if="loading" class="h-4 w-4 animate-spin" />

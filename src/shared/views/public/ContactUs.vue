@@ -3,14 +3,14 @@
     <PublicNav />
     
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-      <div class="text-center mb-16">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6">Contact Us</h1>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+      <div class="text-center mb-12 sm:mb-16">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Contact Us</h1>
+        <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
           Have questions? We'd love to hear from you. Send us a message and we'll respond as soon as possible.
         </p>
       </div>
 
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 max-w-6xl mx-auto px-4 sm:px-0">
         <!-- Contact Form -->
         <Card class="p-8">
           <CardHeader>

@@ -7,7 +7,7 @@
     <div class="relative z-10">
     <!-- Header with Branding -->
     <header :class="[theme.borderSecondary, 'sticky top-0 z-40 backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/80 border-b']">
-      <div class="container mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
         <div class="flex items-center gap-3">
           <button
             v-if="!zipFile"
@@ -42,8 +42,8 @@
 
     <!-- Initial Loading State -->
     <div v-if="isInitialLoading && !isLoadingState" class="min-h-[calc(100vh-200px)] flex items-center justify-center py-20 animate-fade-in">
-      <div class="container mx-auto px-6 max-w-6xl">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           <!-- Left Section: Skeleton -->
           <div class="flex flex-col justify-center space-y-6 animate-slide-up">
             <div class="space-y-4">
@@ -73,26 +73,26 @@
 
     <!-- Download Processing Loading State -->
     <div v-else-if="isLoadingState" class="min-h-[calc(100vh-200px)] flex items-center justify-center py-20 animate-fade-in">
-      <div class="container mx-auto px-6 max-w-6xl">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           <!-- Left Section: Collection Info -->
           <div class="flex flex-col justify-center space-y-6 animate-slide-up">
             <div>
-              <h1 :class="[theme.textPrimary, 'text-6xl lg:text-7xl font-bold mb-3 leading-tight tracking-tight drop-shadow-lg']">
+              <h1 :class="[theme.textPrimary, 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-3 leading-tight tracking-tight drop-shadow-lg']">
                 {{ collectionName }}
               </h1>
-              <p :class="[theme.textSecondary, 'text-xl font-medium drop-shadow-md']">{{ brandName }}</p>
+              <p :class="[theme.textSecondary, 'text-base sm:text-lg md:text-xl font-medium drop-shadow-md']">{{ brandName }}</p>
             </div>
           </div>
 
           <!-- Right Section: Loading -->
-          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 flex flex-col items-center justify-center space-y-8 rounded-2xl shadow-2xl p-12 animate-slide-up animation-delay-100">
+          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 flex flex-col items-center justify-center space-y-6 sm:space-y-8 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-12 animate-slide-up animation-delay-100">
             <div class="relative w-20 h-20">
               <div :class="[theme.borderSecondary, 'absolute inset-0 border-4 rounded-full opacity-30']"></div>
               <div class="absolute inset-0 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
             </div>
             <div class="text-center space-y-3">
-              <h2 :class="[theme.textPrimary, 'text-2xl lg:text-3xl font-bold tracking-tight']">
+              <h2 :class="[theme.textPrimary, 'text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight']">
                 <template v-if="selectedDestination !== 'device'">
                   WE'RE SENDING YOUR MEDIA TO<br>
                   <span class="text-accent">{{ getDestinationLabel(selectedDestination).toUpperCase() }}</span>
@@ -166,8 +166,8 @@
 
     <!-- Success State with ZIP Download -->
     <div v-else-if="zipFile" class="min-h-[calc(100vh-200px)] flex items-center justify-center py-20">
-      <div class="container mx-auto px-6 max-w-6xl">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+      <div class="container mx-auto px-4 sm:px-6 max-w-6xl">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center">
           <!-- Left Section: Collection Info -->
           <div class="flex flex-col justify-center space-y-6">
             <div>

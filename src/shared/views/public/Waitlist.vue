@@ -4,17 +4,17 @@
     
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div class="max-w-2xl mx-auto">
-        <div class="text-center mb-12">
-          <h1 class="text-5xl md:text-6xl font-bold mb-6">Join the Waitlist</h1>
-          <p class="text-xl text-gray-600 dark:text-gray-400">
+        <div class="text-center mb-8 sm:mb-12">
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Join the Waitlist</h1>
+          <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 px-4">
             Be the first to know when we officially launch. Get early access and exclusive updates.
           </p>
         </div>
 
-        <Card class="p-8 md:p-12">
-          <CardHeader class="text-center mb-8">
-            <CardTitle class="text-3xl mb-2">Get Notified</CardTitle>
-            <CardDescription class="text-base">
+        <Card class="p-6 sm:p-8 md:p-12">
+          <CardHeader class="text-center mb-6 sm:mb-8">
+            <CardTitle class="text-2xl sm:text-3xl mb-2">Get Notified</CardTitle>
+            <CardDescription class="text-sm sm:text-base">
               Enter your details below and we'll notify you as soon as we're ready to launch
             </CardDescription>
           </CardHeader>
@@ -63,7 +63,7 @@
         </Card>
 
         <div class="mt-12 text-center">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             <div class="p-6">
               <div class="w-12 h-12 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                 <Bell class="h-6 w-6 text-gray-600 dark:text-gray-400" />

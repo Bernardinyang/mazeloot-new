@@ -1,8 +1,8 @@
 <template>
-  <div class="max-w-4xl mx-auto space-y-8">
-    <div class="text-center space-y-4">
-      <h1 class="text-4xl md:text-5xl font-bold">About</h1>
-      <p class="text-xl text-muted-foreground">Learn more about this modern web application</p>
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6 sm:space-y-8">
+    <div class="text-center space-y-3 sm:space-y-4">
+      <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold">About</h1>
+      <p class="text-base sm:text-lg md:text-xl text-muted-foreground">Learn more about this modern web application</p>
     </div>
 
     <Card>

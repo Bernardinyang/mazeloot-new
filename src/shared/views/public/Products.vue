@@ -3,19 +3,19 @@
     <PublicNav />
     
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-      <div class="text-center mb-16">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6">Our Products</h1>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+      <div class="text-center mb-12 sm:mb-16">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Our Products</h1>
+        <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
           A complete suite of tools designed to help photographers grow their business
         </p>
       </div>
 
       <div class="space-y-24">
         <!-- Client Gallery -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
           <div>
-            <h2 class="text-4xl font-bold mb-4">Client Gallery</h2>
-            <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
+            <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Client Gallery</h2>
+            <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
               Share, deliver, proof and sell photos online with beautiful photo galleries. Trusted by more than a million photographers worldwide.
             </p>
             <ul class="space-y-3 mb-8">

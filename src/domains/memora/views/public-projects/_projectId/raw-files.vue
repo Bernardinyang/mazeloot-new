@@ -215,11 +215,11 @@
 
         <!-- Content Overlay - Positioned at Bottom -->
         <div
-          class="absolute bottom-0 left-0 right-0 z-10 container mx-auto px-4 md:px-8 pb-12 md:pb-16"
+          class="absolute bottom-0 left-0 right-0 z-10 container mx-auto px-4 sm:px-6 md:px-8 pb-8 sm:pb-12 md:pb-16"
         >
-          <div class="flex items-end justify-between gap-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-4 sm:gap-6">
             <!-- Title and Description (Bottom Left) -->
-            <div class="flex-1">
+            <div class="flex-1 min-w-0">
               <h1
                 v-if="!isLoading"
                 :class="[
@@ -230,17 +230,17 @@
                     ? 'text-white'
                     : 'text-gray-900 dark:text-gray-100',
                 ]"
-                class="font-light tracking-tight mb-2 drop-shadow-lg"
+                class="font-light tracking-tight mb-2 drop-shadow-lg break-words"
               >
                 {{ rawFile.name || 'RawFile' }}
               </h1>
               <Skeleton
                 v-else
                 :class="[
-                  'h-8 md:h-10 lg:h-12 mb-2',
+                  'h-6 sm:h-8 md:h-10 lg:h-12 mb-2',
                   shouldUseLightText ? 'bg-white/20' : 'bg-gray-300 dark:bg-gray-700',
                 ]"
-                class="w-64 md:w-80"
+                class="w-48 sm:w-64 md:w-80"
               />
               <p
                 v-if="rawFile.description && !isLoading"
@@ -252,28 +252,28 @@
                     ? 'text-white/90'
                     : 'text-gray-700 dark:text-gray-300',
                 ]"
-                class="font-light tracking-normal drop-shadow-md max-w-2xl"
+                class="font-light tracking-normal drop-shadow-md max-w-2xl break-words"
               >
                 {{ rawFile.description }}
               </p>
               <Skeleton
                 v-else-if="isLoading"
                 :class="[
-                  'h-4 md:h-5',
+                  'h-3 sm:h-4 md:h-5',
                   shouldUseLightText ? 'bg-white/20' : 'bg-gray-300 dark:bg-gray-700',
                 ]"
-                class="w-48 md:w-64"
+                class="w-40 sm:w-48 md:w-64"
               />
             </div>
 
             <!-- Action Button (Bottom Right) -->
-            <div class="flex-shrink-0">
+            <div class="flex-shrink-0 w-full sm:w-auto">
               <Button
                 :style="{
                   backgroundColor: rawFileColor,
                   color: 'white',
                 }"
-                class="px-8 py-6 text-base md:text-lg font-light tracking-wider uppercase border backdrop-blur-sm hover:opacity-90 transition-all duration-200"
+                class="w-full sm:w-auto px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-base md:text-lg font-light tracking-wider uppercase border backdrop-blur-sm hover:opacity-90 transition-all duration-200"
                 @click="scrollToGallery"
                 @mouseenter="e => (e.target.style.backgroundColor = getRawFileHoverColor())"
                 @mouseleave="e => (e.target.style.backgroundColor = rawFileColor)"
@@ -286,7 +286,7 @@
       </div>
 
       <!-- Content Section -->
-      <div id="gallery-section" class="container mx-auto px-4 md:px-8 py-8 md:py-12">
+      <div id="gallery-section" class="container mx-auto px-4 sm:px-6 md:px-8 py-6 sm:py-8 md:py-12">
         <!-- Gallery Assist Walk-through Cards -->
         <Transition name="fade">
           <div
@@ -463,7 +463,7 @@
             <Skeleton class="h-9 w-32" />
             <Skeleton class="h-9 w-36" />
           </div>
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <Skeleton v-for="i in 8" :key="i" class="aspect-square rounded-lg" />
           </div>
         </div>
@@ -501,7 +501,7 @@
           </div>
 
           <!-- Media Grid -->
-          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
             <MediaGridItemCard
               v-for="item in currentMediaItems"
               :key="item.id"

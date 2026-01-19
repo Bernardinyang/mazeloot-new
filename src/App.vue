@@ -28,7 +28,6 @@ import PWADebugInfo from '@/shared/components/molecules/PWADebugInfo.vue'
 import { useActionHistoryStore } from '@/shared/stores/actionHistory'
 import { useBackgroundUploadManager } from '@/shared/composables/useBackgroundUploadManager'
 import { useNotificationsStore } from '@/shared/stores/notifications'
-import { usePusher } from '@/shared/composables/usePusher'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
 
@@ -46,48 +45,18 @@ const hasActiveOrFailedUploads = computed(() => {
 })
 
 let keyDownHandler = null
-let notificationChannel = null
 
 const userStore = useUserStore()
 const notificationsStore = useNotificationsStore()
-const { subscribePrivate, unsubscribe } = usePusher()
 
 // Initialize notifications and Pusher subscription
 const initializeNotifications = async () => {
   if (!userStore.isAuthenticated) return
 
   try {
-    // Always initialize store first (fetch from API)
+    // Initialize store (fetches from API and sets up Pusher subscription)
     await notificationsStore.initialize()
     console.log('Notifications initialized, count:', notificationsStore.allNotifications.length)
-
-    // Subscribe to notification channel for real-time updates
-    const userId = userStore.user?.uuid || userStore.user?.id
-    if (userId) {
-      const channelName = `private-user.${userId}`
-      try {
-        notificationChannel = await subscribePrivate(channelName, 'notification.created', (data) => {
-          console.log('Notification received via Pusher:', data)
-          if (data?.notification) {
-            notificationsStore.addNotification(data.notification)
-            // Show toast notification
-            toast.success(data.notification.title, {
-              description: data.notification.message,
-            })
-          }
-        })
-        if (notificationChannel) {
-          console.log('Successfully subscribed to notification channel:', channelName)
-        } else {
-          console.warn('Failed to subscribe to notification channel (returned null)')
-        }
-      } catch (error) {
-        console.error('Failed to subscribe to notification channel:', error)
-        // Continue even if Pusher fails - notifications will still be fetched via API
-      }
-    } else {
-      console.warn('No user ID found, cannot subscribe to notification channel')
-    }
   } catch (error) {
     console.error('Failed to initialize notifications:', error)
   }
@@ -101,20 +70,7 @@ watch(
       initializeNotifications()
     } else {
       // Cleanup on logout
-      if (notificationChannel) {
-        const userId = userStore.user?.uuid || userStore.user?.id
-        if (userId) {
-          unsubscribe(`private-user.${userId}`)
-          notificationChannel = null
-        }
-      }
-      notificationsStore.notifications.value = []
-      notificationsStore.unreadCounts.value = {
-        memora: 0,
-        profolio: 0,
-        general: 0,
-        total: 0,
-      }
+      notificationsStore.reset()
     }
   },
   { immediate: true }
@@ -175,14 +131,8 @@ onUnmounted(() => {
     window.removeEventListener('keydown', keyDownHandler)
   }
   
-  // Cleanup notification channel
-  if (notificationChannel) {
-    const userId = userStore.user?.uuid || userStore.user?.id
-    if (userId) {
-      unsubscribe(`private-user.${userId}`)
-      notificationChannel = null
-    }
-  }
+  // Cleanup notification subscription
+  notificationsStore.cleanupPusherSubscription()
 })
 </script>
 

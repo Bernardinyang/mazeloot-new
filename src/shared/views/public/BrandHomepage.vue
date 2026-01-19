@@ -98,18 +98,18 @@
       </header>
 
       <!-- Hero Section -->
-      <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24 text-center">
-        <div v-if="branding?.name" class="mb-8 fade-in">
-          <h1 class="text-5xl md:text-7xl font-bold tracking-tight mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-gray-200 dark:to-gray-100 bg-clip-text text-transparent">
+      <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 md:py-24 text-center">
+        <div v-if="branding?.name" class="mb-6 sm:mb-8 fade-in">
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tight mb-3 sm:mb-4 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-gray-100 dark:via-gray-200 dark:to-gray-100 bg-clip-text text-transparent">
             {{ branding.name }}
           </h1>
-          <p v-if="branding?.tagline" class="text-xl md:text-2xl text-gray-600 dark:text-gray-300 font-light">{{ branding.tagline }}</p>
+          <p v-if="branding?.tagline" class="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-600 dark:text-gray-300 font-light px-2">{{ branding.tagline }}</p>
         </div>
 
         <!-- Biography -->
         <p
           v-if="homepageInfo?.includes('biography') && biography"
-          class="text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mt-8 leading-relaxed"
+          class="text-sm sm:text-base md:text-lg lg:text-xl text-gray-700 dark:text-gray-300 max-w-3xl mx-auto mt-6 sm:mt-8 px-4 leading-relaxed"
         >
           {{ biography }}
         </p>
@@ -123,49 +123,49 @@
               homepageInfo.includes('email') ||
               homepageInfo.includes('address'))
           "
-          class="flex flex-wrap items-center justify-center gap-4 md:gap-6 mt-10"
+          class="flex flex-wrap items-center justify-center gap-3 sm:gap-4 md:gap-6 mt-6 sm:mt-8 md:mt-10 px-4"
         >
           <a
             v-if="homepageInfo.includes('website') && branding?.website"
             :href="branding.website"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md text-xs sm:text-sm"
           >
-            <Globe class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ branding.website }}</span>
+            <Globe class="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors break-all">{{ branding.website }}</span>
           </a>
           <div
             v-if="homepageInfo.includes('phone') && contactInfo.phone"
-            class="flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm"
+            class="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-sm text-xs sm:text-sm"
           >
-            <Phone class="h-4 w-4 text-gray-600 dark:text-gray-400" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ contactInfo.phone }}</span>
+            <Phone class="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400" />
+            <span class="font-medium text-gray-700 dark:text-gray-300 break-all">{{ contactInfo.phone }}</span>
           </div>
           <a
             v-if="homepageInfo.includes('email') && contactInfo.email"
             :href="`mailto:${contactInfo.email}`"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md text-xs sm:text-sm"
           >
-            <Mail class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ contactInfo.email }}</span>
+            <Mail class="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors break-all">{{ contactInfo.email }}</span>
           </a>
           <a
             v-if="homepageInfo.includes('address') && contactInfo.address"
             :href="`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(contactInfo.address)}`"
             target="_blank"
             rel="noopener noreferrer"
-            class="group flex items-center gap-2 px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group flex items-center gap-2 px-3 sm:px-4 py-2 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-accent hover:bg-accent/10 dark:hover:bg-accent/20 transition-all duration-300 shadow-sm hover:shadow-md text-xs sm:text-sm"
           >
-            <MapPin class="h-4 w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors">{{ contactInfo.address }}</span>
+            <MapPin class="h-3 w-3 sm:h-4 sm:w-4 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
+            <span class="font-medium text-gray-700 dark:text-gray-300 group-hover:text-accent transition-colors break-all">{{ contactInfo.address }}</span>
           </a>
         </div>
 
         <!-- Social Links -->
         <div
           v-if="homepageInfo?.includes('socialLinks') && socialLinks.length > 0"
-          class="flex items-center justify-center gap-3 mt-8"
+          class="flex items-center justify-center gap-2 sm:gap-3 mt-6 sm:mt-8 px-4"
         >
           <a
             v-for="link in socialLinks.filter(l => l.isActive)"
@@ -173,7 +173,7 @@
             :href="link.url"
             target="_blank"
             rel="noopener noreferrer"
-            class="group w-10 h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent transition-all duration-300 shadow-sm hover:shadow-md"
+            class="group w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 flex items-center justify-center hover:bg-accent/10 dark:hover:bg-accent/20 hover:border-accent transition-all duration-300 shadow-sm hover:shadow-md"
           >
             <Globe v-if="!link.platform" class="h-5 w-5 text-gray-600 dark:text-gray-400 group-hover:text-accent transition-colors" />
             <component
@@ -200,8 +200,8 @@
       />
 
       <!-- Collections Grid -->
-      <section class="container mx-auto px-4 sm:px-6 lg:px-8 pb-20">
-        <div v-if="isLoadingCollections" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+      <section class="container mx-auto px-4 sm:px-6 lg:px-8 pb-12 sm:pb-16 md:pb-20">
+        <div v-if="isLoadingCollections" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           <div
             v-for="i in 8"
             :key="i"
@@ -215,7 +215,7 @@
             </div>
           </div>
         </div>
-        <div v-else-if="collections.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 md:gap-8">
+        <div v-else-if="collections.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
           <div
             v-for="(collection, index) in collections"
             :key="collection.id"
@@ -265,9 +265,9 @@
                 <ArrowRight class="h-4 w-4 text-gray-900" />
               </div>
             </div>
-            <div class="text-center">
-              <p class="text-base font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ collection.name || collection.title }}</p>
-              <p v-if="collection.eventDate" class="text-sm text-gray-500 dark:text-gray-400">
+            <div class="text-center px-2">
+              <p class="text-sm sm:text-base font-semibold text-gray-900 dark:text-gray-100 mb-1 break-words">{{ collection.name || collection.title }}</p>
+              <p v-if="collection.eventDate" class="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 {{ formatDate(collection.eventDate) }}
               </p>
             </div>

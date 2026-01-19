@@ -3,14 +3,14 @@
     <!-- Login Form (shown when creative is not authenticated and password not verified) -->
     <div
       v-if="!canViewContent && !isLoading"
-      class="flex items-center justify-center min-h-screen px-4"
+      class="flex items-center justify-center min-h-screen px-4 sm:px-6"
     >
       <div
-        class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-8"
+        class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6 sm:p-8"
       >
         <div class="mb-6 text-center">
-          <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Sign In Required</h1>
-          <p class="text-sm text-gray-600 dark:text-gray-400">
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">Sign In Required</h1>
+          <p class="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
             Please sign in to view this closure request
           </p>
         </div>
@@ -71,26 +71,27 @@
         </div>
       </div>
 
-      <div v-else-if="closureRequest" class="max-w-6xl mx-auto px-4 py-8">
+      <div v-else-if="closureRequest" class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <!-- Header -->
-        <div class="mb-8">
-          <div class="flex items-center gap-4 mb-4">
+        <div class="mb-6 sm:mb-8">
+          <div class="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
             <Button
               v-if="proofingUrl"
               variant="ghost"
-              class="flex items-center gap-2"
+              class="flex items-center gap-2 text-sm sm:text-base"
               @click="handleGoToProofing"
             >
               <ArrowLeft class="h-4 w-4" />
-              Back to Proofing
+              <span class="hidden sm:inline">Back to Proofing</span>
+              <span class="sm:hidden">Back</span>
             </Button>
-            <Button variant="ghost" class="flex items-center gap-2" @click="handleGoBack">
+            <Button variant="ghost" class="flex items-center gap-2 text-sm sm:text-base" @click="handleGoBack">
               <ArrowLeft class="h-4 w-4" />
               Go Back
             </Button>
           </div>
-          <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Closure Request</h1>
-          <p class="text-gray-600 dark:text-gray-400">
+          <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Closure Request</h1>
+          <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">
             Review comments and action items for this revision
           </p>
         </div>
@@ -132,10 +133,10 @@
           </p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           <!-- Left: Comments -->
           <div
-            class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
+            class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm order-2 md:order-1"
           >
             <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
               <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
@@ -191,7 +192,7 @@
           </div>
 
           <!-- Right: Action Items & Media -->
-          <div class="space-y-6">
+          <div class="space-y-4 sm:space-y-6 order-1 md:order-2">
             <!-- Action Items -->
             <div
               class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
@@ -278,11 +279,11 @@
                     readonly
                   />
                 </div>
-                <div class="flex gap-3">
+                <div class="flex flex-col sm:flex-row gap-3">
                   <Button
                     :disabled="!email || isSubmitting"
                     variant="success"
-                    class="flex-1"
+                    class="flex-1 text-sm sm:text-base"
                     :loading="isSubmitting"
                     :icon="CheckCircle2"
                     @click="handleApprove"
@@ -292,7 +293,7 @@
                   <Button
                     :disabled="!email || isSubmitting"
                     variant="outline"
-                    class="flex-1"
+                    class="flex-1 text-sm sm:text-base"
                     @click="showRejectModal = true"
                   >
                     <X v-if="!isSubmitting" class="w-4 h-4 mr-2" />

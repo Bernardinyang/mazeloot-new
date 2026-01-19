@@ -3,14 +3,14 @@
     <PublicNav />
     
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
-      <div class="text-center mb-16">
-        <h1 class="text-5xl md:text-6xl font-bold mb-6">Pricing</h1>
-        <p class="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+      <div class="text-center mb-12 sm:mb-16">
+        <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Pricing</h1>
+        <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
           Choose the plan that works best for your photography business
         </p>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto px-4 sm:px-0">
         <!-- Free Plan -->
         <Card class="p-8">
           <CardHeader>

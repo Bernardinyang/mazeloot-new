@@ -41,7 +41,7 @@
     
     <!-- Initial Loading State with Skeleton -->
     <div v-if="isLoading && !collection && !hasPassword && !showEmailModal && !showGuestClientModal && !showClientEmailModal && !showClientPasswordModal" class="min-h-screen">
-      <div class="container mx-auto px-4 py-8">
+      <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <!-- Header Skeleton -->
         <div class="mb-8">
           <Skeleton class="h-8 w-64 mb-2" />
@@ -54,7 +54,7 @@
           <Skeleton class="h-10 w-24" />
         </div>
         <!-- Media Grid Skeleton -->
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
           <Skeleton v-for="i in 12" :key="i" class="aspect-square rounded-lg" />
         </div>
       </div>

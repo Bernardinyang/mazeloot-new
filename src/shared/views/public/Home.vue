@@ -6,17 +6,17 @@
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
         <div>
-          <h1 class="text-5xl md:text-6xl font-bold mb-6 leading-tight">
+          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 leading-tight">
             Empowering Your Photography Business, One Click at a Time
           </h1>
-          <p class="text-lg text-gray-600 dark:text-gray-400 mb-8 leading-relaxed">
+          <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-6 sm:mb-8 leading-relaxed">
             We offer the best photography services for you in terms that our services are secure. We offer the best photography services for you in terms that our services are secure.
           </p>
-          <div class="flex gap-4">
-            <Button size="lg" class="text-lg px-8" @click="router.push({ name: 'register' })">
+          <div class="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Button size="lg" class="text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto" @click="router.push({ name: 'register' })">
               Get Started
             </Button>
-            <Button size="lg" variant="outline" class="text-lg px-8" @click="router.push({ name: 'waitlist' })">
+            <Button size="lg" variant="outline" class="text-base sm:text-lg px-6 sm:px-8 w-full sm:w-auto" @click="router.push({ name: 'waitlist' })">
               Join Waitlist
             </Button>
           </div>
@@ -55,7 +55,7 @@
 
     <!-- Stats Box (Top Right Position) -->
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-      <div class="max-w-md ml-auto">
+      <div class="max-w-md mx-auto sm:ml-auto">
         <Card class="p-6 bg-gradient-to-br from-purple-500 to-blue-600 text-white border-0">
           <CardHeader>
             <CardTitle class="text-white mb-4">Gallery Statistics</CardTitle>
@@ -106,7 +106,7 @@
           </div>
         </div>
         <div>
-          <h2 class="text-4xl font-bold mb-4">Optimized Photography Management System</h2>
+          <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Optimized Photography Management System</h2>
           <p class="text-lg text-gray-600 dark:text-gray-400 mb-6">
             Streamline your photography workflow with powerful tools designed for modern photographers.
           </p>
@@ -147,18 +147,18 @@
     <section class="bg-gray-50 dark:bg-gray-900 py-20">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-          <h2 class="text-4xl font-bold mb-4">Essential Features for Smart Photography</h2>
+          <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Essential Features for Smart Photography</h2>
           <p class="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
             We offer the best photography services for you in terms that our services are secure. We offer the best photography services for you in terms that our services are secure.
           </p>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
           <Card class="p-8 hover:shadow-lg transition-shadow">
             <div class="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mb-6">
               <Calendar class="h-8 w-8 text-purple-600 dark:text-purple-400" />
             </div>
             <CardHeader>
-              <CardTitle class="text-2xl mb-3">Project Planning</CardTitle>
+              <CardTitle class="text-xl sm:text-2xl mb-2 sm:mb-3">Project Planning</CardTitle>
               <CardDescription class="text-base">
                 Set and track project timelines with personalized recommendations, ensuring you stay on top of deadlines.
               </CardDescription>
@@ -172,7 +172,7 @@
               <BarChart class="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </div>
             <CardHeader>
-              <CardTitle class="text-2xl mb-3">Monitor Performance</CardTitle>
+              <CardTitle class="text-xl sm:text-2xl mb-2 sm:mb-3">Monitor Performance</CardTitle>
               <CardDescription class="text-base">
                 Get detailed insights into your gallery views and client engagement. Track metrics across projects and identify growth opportunities.
               </CardDescription>
@@ -186,7 +186,7 @@
               <Activity class="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <CardHeader>
-              <CardTitle class="text-2xl mb-3">Real-Time Tracking</CardTitle>
+              <CardTitle class="text-xl sm:text-2xl mb-2 sm:mb-3">Real-Time Tracking</CardTitle>
               <CardDescription class="text-base">
                 Stay updated on your gallery views, client selections, and all photography activities in real time.
               </CardDescription>
@@ -205,7 +205,7 @@
         <Card class="p-8 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-900">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 class="text-2xl font-bold mb-4">Gallery Platform</h3>
+              <h3 class="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">Gallery Platform</h3>
               <div class="space-y-2 mb-4">
                 <div class="flex justify-between">
                   <span class="text-gray-600 dark:text-gray-400">Active Galleries</span>
@@ -222,8 +222,8 @@
               </div>
             </div>
             <div class="text-right">
-              <div class="text-3xl font-bold mb-2">Global Users</div>
-              <div class="text-5xl font-bold text-purple-600 dark:text-purple-400">200k+</div>
+              <div class="text-xl sm:text-2xl md:text-3xl font-bold mb-2">Global Users</div>
+              <div class="text-3xl sm:text-4xl md:text-5xl font-bold text-purple-600 dark:text-purple-400">200k+</div>
             </div>
           </div>
         </Card>
