@@ -89,9 +89,20 @@ class ApiClient {
    * Make request
    */
   async request(endpoint, options = {}) {
-    const { skipAuth = false, skipErrorHandling = false, signal, ...fetchOptions } = options
+    const { skipAuth = false, skipErrorHandling = false, signal, params, ...fetchOptions } = options
 
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
+    let url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
+
+    // Handle query parameters
+    if (params && Object.keys(params).length > 0) {
+      const searchParams = new URLSearchParams()
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== null && value !== undefined) {
+          searchParams.append(key, value)
+        }
+      })
+      url += (url.includes('?') ? '&' : '?') + searchParams.toString()
+    }
 
     const headers = {
       'Content-Type': 'application/json',

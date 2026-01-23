@@ -7,96 +7,130 @@
 
     <div class="space-y-10">
       <!-- Header Section -->
-      <div class="space-y-4">
-        <div>
-          <h1 class="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-            Welcome to Memora, {{ userName }}
+      <div class="space-y-6">
+        <div class="relative animate-fade-in">
+          <div class="space-y-1">
+            <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-gray-600 dark:text-gray-400">
+              Welcome to Memora
           </h1>
-          <p :class="['text-lg mt-2', theme.textSecondary]">Let's get you started on your photography journey.</p>
+            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-accent">
+              {{ userName }}
+            </h2>
+          </div>
+          <p class="text-sm md:text-base mt-3 text-gray-600 dark:text-gray-400 leading-relaxed">
+            Let's get you started with Memora, your professional photo gallery platform.
+          </p>
         </div>
         
         <!-- Progress Indicator -->
-        <div class="space-y-2">
+        <Card class="p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg animate-fade-in-up" style="animation-delay: 100ms;">
+          <div class="space-y-4">
           <div class="flex items-center justify-between">
-            <span :class="['text-sm font-medium', theme.textPrimary]">Setup Progress</span>
-            <span :class="['text-sm font-semibold', theme.textPrimary]">{{ completedCount }}/{{ totalActions }} completed</span>
+              <div class="flex items-center gap-2">
+                <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Setup Progress</span>
+              </div>
+              <span class="text-sm font-bold text-gray-900 dark:text-gray-100 px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20 text-primary">
+                {{ completedCount }}/{{ totalActions }} completed
+              </span>
           </div>
-          <div :class="['h-2 rounded-full overflow-hidden', theme.bgCard]">
-            <div
-              :class="['h-full rounded-full transition-all duration-500 ease-out', progressColor]"
+            <div class="relative h-3 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 shadow-inner">
+              <div
+                :class="[
+                  'h-full rounded-full transition-all duration-700 ease-out shadow-lg',
+                  progressColor,
+                  'relative overflow-hidden',
+                ]"
               :style="{ width: `${progressPercentage}%` }"
-            ></div>
+              >
+                <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+              </div>
+            </div>
+            <p v-if="progressPercentage === 0" class="text-xs text-gray-500 dark:text-gray-400 text-center">
+              Start by completing your first quick action below
+            </p>
+            <p v-else-if="progressPercentage < 100" class="text-xs text-gray-500 dark:text-gray-400 text-center">
+              {{ totalActions - completedCount }} more {{ totalActions - completedCount === 1 ? 'action' : 'actions' }} to complete setup
+            </p>
+            <p v-else class="text-xs text-green-600 dark:text-green-400 font-semibold text-center">
+              ✓ Setup complete! You're all set to use Memora.
+            </p>
           </div>
-        </div>
+        </Card>
       </div>
 
       <!-- Quick Actions -->
       <div class="space-y-6">
-        <div class="flex items-center gap-3">
-          <Zap :class="['h-6 w-6', theme.textPrimary]" />
-          <h2 :class="['text-2xl font-bold', theme.textPrimary]">Quick Actions</h2>
+        <div class="flex items-center gap-3 animate-fade-in" style="animation-delay: 200ms;">
+          <div class="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
+            <Zap class="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Quick Actions</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Get started with these essential setup steps</p>
+          </div>
         </div>
-        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card
             v-for="(action, index) in quickActions"
             :key="action.id"
             :class="[
               'group relative overflow-hidden cursor-pointer transition-all duration-300',
-              'hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/20',
-              'hover:-translate-y-1 hover:scale-[1.02]',
-              'border-2 hover:border-primary/50',
-              theme.bgCard,
-              theme.borderPrimary,
+              'bg-white dark:bg-gray-900',
+              'border-2 border-gray-200 dark:border-gray-800',
+              'hover:border-primary/60 dark:hover:border-primary/60',
+              'hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20',
+              'hover:-translate-y-2 hover:scale-[1.02]',
+              'animate-fade-in-up',
             ]"
-            :style="{ animationDelay: `${index * 50}ms` }"
+            :style="{ animationDelay: `${300 + index * 50}ms` }"
             @click="handleActionClick(action)"
           >
             <!-- Gradient Background -->
             <div
               :class="[
                 'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                'bg-gradient-to-br from-primary/5 via-transparent to-transparent',
+                'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent',
               ]"
             ></div>
             
+            <div class="absolute right-4 top-4 z-10">
+              <StatusBadge :status="action.status" />
+            </div>
+            
             <div class="relative p-6 space-y-4">
-              <div class="flex items-start gap-4">
+              <div class="flex flex-col items-center gap-3">
                 <div
                   :class="[
-                    'flex items-center justify-center w-14 h-14 rounded-xl shrink-0',
-                    'transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3',
-                    'shadow-lg',
+                    'flex items-center justify-center w-16 h-16 rounded-xl',
+                    'transition-all duration-300 group-hover:scale-110 group-hover:rotate-3',
+                    'shadow-lg group-hover:shadow-xl',
                     action.iconBg,
                   ]"
                 >
-                  <component :is="action.icon" class="h-7 w-7 text-white" />
+                  <component :is="action.icon" class="h-8 w-8 text-white" />
                 </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-start justify-between gap-2 mb-2">
-                    <h3 :class="['font-semibold text-base leading-tight', theme.textPrimary]">
+                <h3 class="font-bold text-base leading-tight text-center text-gray-900 dark:text-gray-100">
                       {{ action.title }}
                     </h3>
-                    <StatusBadge :status="action.status" />
-                  </div>
-                </div>
               </div>
-              <p :class="['text-sm leading-relaxed', theme.textSecondary]">
+              <p class="text-sm leading-relaxed text-gray-600 dark:text-gray-400 text-center">
                 {{ action.description }}
               </p>
               <Button
                 :variant="getActionVariant(action.status)"
                 size="sm"
                 :class="[
-                  'w-full transition-all duration-300',
+                  'w-full transition-all duration-300 font-semibold',
                   action.status === 'done'
-                    ? 'group-hover:bg-success/10'
-                    : 'group-hover:shadow-lg group-hover:shadow-primary/20',
+                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                    : 'group-hover:shadow-lg group-hover:shadow-primary/30',
                 ]"
                 @click.stop="handleActionClick(action)"
               >
                 {{ action.buttonText }}
                 <ChevronRight
-                  :class="['ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1']"
+                  class="ml-2 h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
                 />
               </Button>
             </div>
@@ -106,7 +140,7 @@
 
       <!-- Knowledge Base -->
       <div class="space-y-6">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3 animate-fade-in" style="animation-delay: 600ms;">
           <BookOpen :class="['h-6 w-6', theme.textPrimary]" />
           <h2 :class="['text-2xl font-bold', theme.textPrimary]">Knowledge Base</h2>
         </div>
@@ -121,8 +155,9 @@
               'border-2 hover:border-primary/50',
               theme.bgCard,
               theme.borderPrimary,
+              'animate-fade-in-up',
             ]"
-            :style="{ animationDelay: `${index * 50}ms` }"
+            :style="{ animationDelay: `${700 + index * 30}ms` }"
             @click="handleKnowledgeBaseClick(item)"
           >
             <!-- Gradient Background -->
@@ -163,49 +198,6 @@
         </div>
       </div>
 
-      <!-- Explore our services -->
-      <div class="space-y-6">
-        <div class="flex items-center gap-3">
-          <Sparkles :class="['h-6 w-6', theme.textPrimary]" />
-          <h2 :class="['text-2xl font-bold', theme.textPrimary]">Explore Our Services</h2>
-        </div>
-        <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          <Card
-            v-for="(service, index) in services"
-            :key="service.id"
-            :class="[
-              'group relative overflow-hidden cursor-pointer transition-all duration-300',
-              'hover:shadow-lg hover:shadow-primary/10 dark:hover:shadow-primary/20',
-              'hover:-translate-y-0.5 hover:scale-[1.01]',
-              'border-2 hover:border-primary/50',
-              theme.bgCard,
-              theme.borderPrimary,
-            ]"
-            :style="{ animationDelay: `${index * 30}ms` }"
-            @click="handleServiceClick(service)"
-          >
-            <!-- Gradient Background -->
-            <div
-              :class="[
-                'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                'bg-gradient-to-br from-primary/5 via-transparent to-transparent',
-              ]"
-            ></div>
-            
-            <div class="relative p-5 flex items-center justify-between">
-              <span :class="['font-medium text-sm leading-snug', theme.textPrimary]">
-                {{ service.title }}
-              </span>
-              <ChevronRight
-                :class="[
-                  'h-5 w-5 shrink-0 transition-transform duration-300 group-hover:translate-x-1',
-                  theme.textSecondary,
-                ]"
-              />
-            </div>
-          </Card>
-        </div>
-      </div>
     </div>
   </DashboardLayout>
 </template>
@@ -236,7 +228,6 @@ import {
   Zap,
   Shield,
   Users,
-  Sparkles,
 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Card from '@/shared/components/shadcn/Card.vue'
@@ -245,55 +236,171 @@ import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useUserStore } from '@/shared/stores/user'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useCollectionsApi } from '@/domains/memora/api/collections'
+import { useProjectsApi } from '@/domains/memora/api/projects'
+import { useSelectionsApi } from '@/domains/memora/api/selections'
+import { usePresetStore } from '@/domains/memora/stores/preset'
+import { useWatermarkStore } from '@/domains/memora/stores/watermark'
+import { apiClient } from '@/shared/api/client'
 
 const theme = useThemeClasses()
 const userStore = useUserStore()
 const { navigateTo } = useNavigation()
 
+const collectionsApi = useCollectionsApi()
+const projectsApi = useProjectsApi()
+const selectionsApi = useSelectionsApi()
+const presetStore = usePresetStore()
+const watermarkStore = useWatermarkStore()
+
 const userName = computed(() => userStore.user?.name || 'User')
 
 // Mark user as existing when they visit getting started
-onMounted(() => {
+onMounted(async () => {
   if (userStore.isNewUser) {
     userStore.markUserAsExisting()
   }
+  
+  // Check completion status for all actions
+  await checkCompletionStatus()
 })
+
+// Check completion status for each action
+const checkCompletionStatus = async () => {
+  try {
+    // Check collections (for "Upload photos" and "Create a collection")
+    const collectionsResponse = await collectionsApi.fetchCollections({ perPage: 1 })
+    const collections = collectionsResponse?.data || collectionsResponse || []
+    const hasCollections = collections.length > 0
+    
+    // Check if collections have media (for "Upload photos")
+    let hasMedia = false
+    if (hasCollections) {
+      const fullCollectionsResponse = await collectionsApi.fetchCollections({ perPage: 100 })
+      const allCollections = fullCollectionsResponse?.data || fullCollectionsResponse || []
+      hasMedia = allCollections.some(c => {
+        const mediaCount = c.mediaCount || c.media_count || 0
+        const setCount = c.setCount || c.set_count || 0
+        return mediaCount > 0 || setCount > 0
+      })
+    }
+    
+    // Check projects (for "Create a project")
+    const projectsResponse = await projectsApi.fetchProjects({ perPage: 1 })
+    const projects = projectsResponse?.data || projectsResponse || []
+    const hasProjects = projects.length > 0
+    
+    // Check selections (for "Create a selection")
+    const selectionsResponse = await selectionsApi.fetchAllSelections({ perPage: 1 })
+    const selections = selectionsResponse?.data || selectionsResponse || []
+    const hasSelections = selections.length > 0
+    
+    // Check presets (for "Create a preset" - id: 6)
+    let hasPresets = false
+    try {
+      if (presetStore.presets.length === 0 && presetStore.loadPresets) {
+        await presetStore.loadPresets()
+      }
+      hasPresets = presetStore.presets?.length > 0
+    } catch (e) {
+      console.warn('Failed to check presets:', e)
+    }
+    
+    // Check watermarks (for "Setup watermark" - id: 7)
+    let hasWatermarks = false
+    try {
+      if (watermarkStore.watermarks.length === 0 && watermarkStore.fetchWatermarks) {
+        await watermarkStore.fetchWatermarks()
+      }
+      hasWatermarks = watermarkStore.watermarks?.length > 0
+    } catch (e) {
+      console.warn('Failed to check watermarks:', e)
+    }
+    
+    // Check branding (for "Customize branding" - id: 5)
+    let hasBranding = false
+    try {
+      const brandingResponse = await apiClient.get('/v1/branding')
+      hasBranding = brandingResponse?.data && Object.keys(brandingResponse.data).length > 0
+    } catch (e) {
+      // 404 is expected if branding not configured, other errors are logged
+      if (e.response?.status !== 404) {
+        console.warn('Failed to check branding:', e)
+      }
+    }
+    
+    // Check homepage (for "Setup homepage" - id: 4)
+    let hasHomepage = false
+    try {
+      const homepageResponse = await apiClient.get('/v1/homepage')
+      hasHomepage = homepageResponse?.data && Object.keys(homepageResponse.data).length > 0
+    } catch (e) {
+      // 404 is expected if homepage not configured, other errors are logged
+      if (e.response?.status !== 404) {
+        console.warn('Failed to check homepage:', e)
+      }
+    }
+    
+    // Update status for all actions
+    quickActions.value.forEach(action => {
+      switch (action.id) {
+        case 1: // Upload photos
+          action.status = hasMedia ? 'done' : 'To do'
+          break
+        case 2: // Create a collection
+          action.status = hasCollections ? 'done' : 'To do'
+          break
+        case 3: // Create a project
+          action.status = hasProjects ? 'done' : 'To do'
+          break
+        case 4: // Setup homepage
+          action.status = hasHomepage ? 'done' : 'To do'
+          break
+        case 5: // Customize branding
+          action.status = hasBranding ? 'done' : 'To do'
+          break
+        case 6: // Create a preset
+          action.status = hasPresets ? 'done' : 'To do'
+          break
+        case 7: // Setup watermark
+          action.status = hasWatermarks ? 'done' : 'To do'
+          break
+        case 8: // Create a selection
+          action.status = hasSelections ? 'done' : 'To do'
+          break
+      }
+    })
+  } catch (error) {
+    console.error('Failed to check completion status:', error)
+    // Keep default "To do" status on error
+  }
+}
 
 const quickActions = ref([
   {
     id: 1,
-    title: 'Create your first collection',
-    description: 'Start organizing your photos by creating your first photo collection.',
-    status: 'done',
-    icon: FolderOpen,
-    iconBg: 'bg-blue-500',
-    buttonText: 'Create collection >',
-    route: { name: 'manageCollections' },
-  },
-  {
-    id: 2,
-    title: 'Upload your first photos',
-    description: 'Add photos to your gallery and start building your portfolio.',
-    status: 'done',
+    title: 'Upload photos',
+    description: 'Add photos to your Memora gallery. You can upload directly or create collections first.',
+    status: 'To do',
     icon: Upload,
     iconBg: 'bg-indigo-500',
     buttonText: 'Upload photos >',
     route: { name: 'manageCollections' },
   },
   {
-    id: 3,
-    title: 'Setup your homepage',
-    description: 'Configure your public homepage to showcase your work to clients.',
-    status: 'done',
-    icon: Globe,
-    iconBg: 'bg-purple-500',
-    buttonText: 'Setup homepage',
-    route: { name: 'homepageConfig' },
+    id: 2,
+    title: 'Create a collection',
+    description: 'Organize your photos into collections. Create empty collections or upload photos directly.',
+    status: 'To do',
+    icon: FolderOpen,
+    iconBg: 'bg-blue-500',
+    buttonText: 'Create collection >',
+    route: { name: 'manageCollections' },
   },
   {
-    id: 4,
-    title: 'Create your first project',
-    description: 'Organize your work into projects for better client management.',
+    id: 3,
+    title: 'Create a project',
+    description: 'Organize your work into projects for client management. Projects can be created anytime.',
     status: 'To do',
     icon: FolderKanban,
     iconBg: 'bg-orange-500',
@@ -301,30 +408,19 @@ const quickActions = ref([
     route: { name: 'projects' },
   },
   {
+    id: 4,
+    title: 'Setup homepage',
+    description: 'Configure your public Memora homepage. Showcase your work to clients independently.',
+    status: 'To do',
+    icon: Globe,
+    iconBg: 'bg-purple-500',
+    buttonText: 'Setup homepage',
+    route: { name: 'homepageConfig' },
+  },
+  {
     id: 5,
-    title: 'Setup watermark protection',
-    description: 'Protect your photos with custom watermarks before sharing.',
-    status: 'To do',
-    icon: ImageIcon,
-    iconBg: 'bg-teal-500',
-    buttonText: 'Setup watermark',
-    route: { name: 'watermarkSettings' },
-  },
-  {
-    id: 6,
-    title: 'Configure email templates',
-    description: 'Customize email notifications sent to your clients.',
-    status: 'To do',
-    icon: Mail,
-    iconBg: 'bg-pink-500',
-    buttonText: 'Configure emails',
-    route: { name: 'emailTemplateSettings' },
-  },
-  {
-    id: 7,
-    title: 'Customize your branding',
-    description:
-      'Personalize your gallery with custom branding, colors, and design settings.',
+    title: 'Customize branding',
+    description: 'Personalize your gallery with custom branding and colors. Works independently.',
     status: 'To do',
     icon: Palette,
     iconBg: 'bg-green-500',
@@ -332,14 +428,34 @@ const quickActions = ref([
     route: { name: 'brandingSettings' },
   },
   {
-    id: 8,
+    id: 6,
     title: 'Create a preset',
-    description: 'Save time by creating reusable design presets for your collections.',
+    description: 'Save time with reusable design presets. Create presets anytime for future collections.',
     status: 'To do',
     icon: Settings,
     iconBg: 'bg-cyan-500',
     buttonText: 'Create preset',
     route: { name: 'presetSettings' },
+  },
+  {
+    id: 7,
+    title: 'Setup watermark',
+    description: 'Protect your photos with watermarks. Configure independently and apply when needed.',
+    status: 'To do',
+    icon: ImageIcon,
+    iconBg: 'bg-teal-500',
+    buttonText: 'Setup watermark',
+    route: { name: 'watermarkSettings' },
+  },
+  {
+    id: 8,
+    title: 'Create a selection',
+    description: 'Curate your best photos into selections. Works independently from collections.',
+    status: 'To do',
+    icon: CheckSquare,
+    iconBg: 'bg-pink-500',
+    buttonText: 'Create selection',
+    route: { name: 'selections' },
   },
 ])
 
@@ -360,16 +476,18 @@ const knowledgeBase = ref([
   {
     id: 1,
     title: 'Documentation',
-    description: 'Expand your knowledge, dive into our comprehensive documentation.',
+    description: 'Comprehensive documentation covering all Memora features and capabilities.',
     icon: Code,
     iconBg: 'bg-blue-500',
+    route: { name: 'knowledgeBaseDocumentation' },
   },
   {
     id: 2,
     title: 'User Guides',
-    description: "Guides serves to help you on specific request for every 'How tos'.",
+    description: 'Step-by-step guides to help you master every Memora feature.',
     icon: BookOpen,
     iconBg: 'bg-green-500',
+    route: { name: 'knowledgeBaseUserGuides' },
   },
   {
     id: 3,
@@ -377,119 +495,95 @@ const knowledgeBase = ref([
     description: 'Watch step-by-step video guides to master Memora features.',
     icon: Video,
     iconBg: 'bg-red-500',
+    route: { name: 'knowledgeBaseVideoTutorials' },
   },
   {
     id: 4,
-    title: 'FAQs',
-    description: 'Frequently asked questions about Memora, everything you should know.',
-    icon: HelpCircle,
-    iconBg: 'bg-purple-500',
-  },
-  {
-    id: 5,
-    title: 'Best Practices',
-    description: 'Learn professional tips and tricks for managing your photo gallery.',
-    icon: Lightbulb,
-    iconBg: 'bg-yellow-500',
-  },
-  {
-    id: 6,
-    title: 'Getting Started Guide',
-    description: 'A comprehensive guide to help you get started with Memora.',
-    icon: GraduationCap,
+    title: 'Collections Guide',
+    description: 'Learn how to create, design, and share photo collections with clients.',
+    icon: FolderOpen,
     iconBg: 'bg-indigo-500',
-  },
-  {
-    id: 7,
-    title: 'API Documentation',
-    description: 'Integrate Memora with your applications using our API.',
-    icon: Code,
-    iconBg: 'bg-teal-500',
-  },
-  {
-    id: 8,
-    title: 'Community Forum',
-    description: 'Connect with other photographers and share your experiences.',
-    icon: MessageSquare,
-    iconBg: 'bg-pink-500',
-  },
-])
-
-const services = ref([
-  {
-    id: 1,
-    title: 'Create a project: Organize your work',
-    route: { name: 'projects' },
-  },
-  {
-    id: 2,
-    title: 'Manage collections: Organize your photos',
-    route: { name: 'manageCollections' },
-  },
-  {
-    id: 3,
-    title: 'Manage selections: Curate your best photos',
-    route: { name: 'selections' },
-  },
-  {
-    id: 4,
-    title: 'Client proofing: Get client feedback',
-    route: { name: 'proofing' },
+    route: { name: 'knowledgeBaseCollectionsGuide' },
   },
   {
     id: 5,
-    title: 'Customize homepage: Showcase your work',
-    route: { name: 'homepageConfig' },
+    title: 'Projects & Workflow',
+    description: 'Master project management and organize your work with client projects.',
+    icon: FolderKanban,
+    iconBg: 'bg-purple-500',
+    route: { name: 'knowledgeBaseProjectsWorkflow' },
   },
   {
     id: 6,
-    title: 'Watermark settings: Protect your photos',
-    route: { name: 'watermarkSettings' },
+    title: 'Selections Guide',
+    description: 'Create curated selections of your best photos for client review and delivery.',
+    icon: CheckSquare,
+    iconBg: 'bg-yellow-500',
+    route: { name: 'knowledgeBaseSelectionsGuide' },
   },
   {
     id: 7,
-    title: 'Design presets: Save time with templates',
-    route: { name: 'presetSettings' },
+    title: 'Proofing & Feedback',
+    description: 'Set up client proofing sessions and manage revision workflows.',
+    icon: Eye,
+    iconBg: 'bg-teal-500',
+    route: { name: 'knowledgeBaseProofingFeedback' },
   },
   {
     id: 8,
-    title: 'Branding settings: Personalize your gallery',
-    route: { name: 'brandingSettings' },
+    title: 'Design Presets',
+    description: 'Create reusable design presets to save time on collection styling.',
+    icon: Settings,
+    iconBg: 'bg-pink-500',
+    route: { name: 'knowledgeBaseDesignPresets' },
   },
   {
     id: 9,
-    title: 'Email templates: Customize notifications',
-    route: { name: 'emailTemplateSettings' },
+    title: 'Watermark Protection',
+    description: 'Protect your photos with custom watermarks before sharing.',
+    icon: ImageIcon,
+    iconBg: 'bg-orange-500',
+    route: { name: 'knowledgeBaseWatermarkProtection' },
   },
   {
     id: 10,
-    title: 'Email notifications: Manage alerts',
-    route: { name: 'emailNotificationsSettings' },
+    title: 'Homepage Setup',
+    description: 'Configure your public Memora homepage to showcase your portfolio.',
+    icon: Globe,
+    iconBg: 'bg-cyan-500',
+    route: { name: 'knowledgeBaseHomepageSetup' },
   },
   {
     id: 11,
-    title: 'Social links: Connect your profiles',
-    route: { name: 'socialLinksSettings' },
+    title: 'Raw Files Management',
+    description: 'Organize and manage your RAW files alongside your processed photos.',
+    icon: FileImage,
+    iconBg: 'bg-emerald-500',
+    route: { name: 'knowledgeBaseRawFilesManagement' },
   },
   {
     id: 12,
-    title: 'View starred items: Your favorites',
-    route: { name: 'starredCollections' },
+    title: 'FAQs',
+    description: 'Frequently asked questions about Memora, everything you should know.',
+    icon: HelpCircle,
+    iconBg: 'bg-violet-500',
+    route: { name: 'knowledgeBaseFAQs' },
   },
   {
     id: 13,
-    title: 'Featured media: Highlight your best work',
-    route: { name: 'featuredMedias' },
+    title: 'Best Practices',
+    description: 'Learn professional tips and tricks for managing your Memora gallery.',
+    icon: Lightbulb,
+    iconBg: 'bg-amber-500',
+    route: { name: 'knowledgeBaseBestPractices' },
   },
   {
     id: 14,
-    title: 'My media: Browse all your photos',
-    route: { name: 'myMedia' },
-  },
-  {
-    id: 15,
-    title: 'Preferences: Configure your settings',
-    route: { name: 'preferenceSettings' },
+    title: 'Branding & Customization',
+    description: 'Personalize your Memora gallery with custom branding and design settings.',
+    icon: Palette,
+    iconBg: 'bg-rose-500',
+    route: { name: 'knowledgeBaseBrandingCustomization' },
   },
 ])
 
@@ -500,12 +594,8 @@ const handleActionClick = action => {
 }
 
 const handleKnowledgeBaseClick = item => {
-  // TODO: Implement navigation
-}
-
-const handleServiceClick = service => {
-  if (service.route) {
-    navigateTo(service.route)
+  if (item.route) {
+    navigateTo(item.route)
   }
 }
 
@@ -520,3 +610,56 @@ const getActionVariant = status => {
   }
 }
 </script>
+
+<style scoped>
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-in-up {
+    animation: none;
+    opacity: 1;
+  }
+}
+</style>

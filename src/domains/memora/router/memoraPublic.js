@@ -5,7 +5,7 @@ import BrandHomepage from '@/shared/views/public/BrandHomepage.vue'
 
 export const memoraPublicRoutes = [
   {
-    path: '/memora/client/selections',
+    path: '/memora/:domain/selections/:selectionId',
     name: 'clientSelections',
     component: ClientSelectionView,
     meta: {
@@ -13,7 +13,7 @@ export const memoraPublicRoutes = [
     },
   },
   {
-    path: '/memora/client/raw-files',
+    path: '/memora/:domain/raw-files/:rawFileId',
     name: 'clientRawFiles',
     component: ClientRawFileView,
     meta: {
@@ -21,7 +21,7 @@ export const memoraPublicRoutes = [
     },
   },
   {
-    path: '/memora/client/proofing',
+    path: '/memora/:domain/proofing/:proofingId',
     name: 'clientProofing',
     component: ClientProofingView,
     meta: {
@@ -29,7 +29,7 @@ export const memoraPublicRoutes = [
     },
   },
   {
-    path: '/memora/client/collection',
+    path: '/memora/:domain/collection/:collectionId',
     name: 'clientCollection',
     component: () => import('@/domains/memora/views/public-projects/_projectId/collection.vue'),
     meta: {
@@ -37,7 +37,7 @@ export const memoraPublicRoutes = [
     },
   },
   {
-    path: '/memora/client/collection/download',
+    path: '/memora/:domain/collection/:collectionId/download',
     name: 'clientCollectionDownload',
     component: () => import('@/domains/memora/views/public-projects/_projectId/download.vue'),
     meta: {
@@ -45,7 +45,7 @@ export const memoraPublicRoutes = [
     },
   },
   {
-    path: '/memora/client/raw-files/download',
+    path: '/memora/:domain/raw-files/:rawFileId/download',
     name: 'clientRawFileDownload',
     component: () => import('@/domains/memora/views/public-projects/_projectId/download-raw-file.vue'),
     meta: {

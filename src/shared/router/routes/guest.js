@@ -3,8 +3,18 @@ import Register from '@/shared/views/guest/Register.vue'
 import VerifyEmail from '@/shared/views/guest/VerifyEmail.vue'
 import ForgotPassword from '@/shared/views/guest/ForgotPassword.vue'
 import ResetPassword from '@/shared/views/guest/ResetPassword.vue'
+import ProductSelection from '@/shared/views/guest/ProductSelection.vue'
 
 export const guestRoutes = [
+  {
+    path: '/product-selection/:token',
+    name: 'productSelection',
+    component: ProductSelection,
+    meta: {
+      requiresAuth: false,
+      isGuestRoute: true,
+    },
+  },
   {
     path: '/login',
     name: 'login',

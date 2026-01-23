@@ -25,7 +25,7 @@ const props = defineProps({
 const { isMobile, state } = useSidebar()
 const { navigateTo } = useNavigation()
 const userStore = useUserStore()
-const activeTeam = ref(props.teams[0])
+const activeTeam = ref(props.teams?.[0] || null)
 
 // TODO: Replace with actual admin check from user store/API
 const isAdmin = computed(() => {
@@ -56,18 +56,19 @@ watch(activeTeam, newTeam => {
             size="lg"
           >
             <div
+              v-if="activeTeam"
               class="flex aspect-square size-10 items-center justify-center rounded-lg border border-sidebar-border bg-sidebar-background shadow-sm"
             >
               <component :is="activeTeam.logo" class="size-10" />
             </div>
             <div
-              v-if="state !== 'collapsed' || isMobile"
+              v-if="(state !== 'collapsed' || isMobile) && activeTeam"
               class="grid flex-1 text-left text-sm leading-tight gap-0.5"
             >
               <span class="truncate font-semibold text-white">
-                {{ activeTeam.name }}
+                {{ activeTeam?.name }}
               </span>
-              <span class="truncate text-xs text-gray-300">{{ activeTeam.plan }}</span>
+              <span class="truncate text-xs text-gray-300">{{ activeTeam?.plan }}</span>
             </div>
             <ChevronsUpDown
               v-if="state !== 'collapsed' || isMobile"
@@ -85,17 +86,17 @@ watch(activeTeam, newTeam => {
             Apps
           </DropdownMenuLabel>
           <DropdownMenuItem
-            v-for="(team, index) in teams"
+            v-for="(team, index) in (teams || [])"
             :key="team.name"
             :class="{
-              'bg-sidebar-accent text-gray-300': activeTeam.name === team.name,
+              'bg-sidebar-accent text-gray-300': activeTeam?.name === team.name,
             }"
             class="gap-2.5 p-2.5 mx-1 rounded-md group"
             @click="activeTeam = team"
           >
             <div
               :class="{
-                'border-gray-400': activeTeam.name === team.name,
+                'border-gray-400': activeTeam?.name === team.name,
               }"
               class="flex size-10 items-center justify-center rounded-md border border-sidebar-border group-hover:border-gray-400 bg-sidebar-background"
             >
@@ -105,7 +106,7 @@ watch(activeTeam, newTeam => {
               <div class="font-medium truncate">{{ team.name }}</div>
               <div
                 :class="{
-                  'text-gray-100': activeTeam.name === team.name,
+                  'text-gray-100': activeTeam?.name === team.name,
                 }"
                 class="text-xs text-gray-500 truncate group-hover:text-gray-100"
               >

@@ -394,6 +394,9 @@ const emit = defineEmits(['update:modelValue', 'update:open'])
 const theme = useThemeClasses()
 const router = useRouter()
 
+const domain = ref(null)
+const isDomainLoading = ref(false)
+
 const isOpen = computed({
   get: () => {
     if (props.open !== undefined) return props.open
@@ -408,15 +411,80 @@ const isOpen = computed({
   },
 })
 
+const routesRequiringDomain = ['clientSelections', 'clientRawFiles', 'clientProofing', 'clientCollection', 'clientCollectionDownload', 'clientRawFileDownload']
+
+const fetchDomain = async () => {
+  if (domain.value) return domain.value
+  if (isDomainLoading.value) return null
+  if (!routesRequiringDomain.includes(props.routeName)) return null
+
+  isDomainLoading.value = true
+  try {
+    const { useSettingsApi } = await import('@/domains/memora/api/settings')
+    const { fetchSettings } = useSettingsApi()
+    const response = await fetchSettings()
+    const settings = response.data || response
+    domain.value = settings.branding?.domain || null
+    return domain.value
+  } catch (error) {
+    console.error('Failed to fetch domain:', error)
+    return null
+  } finally {
+    isDomainLoading.value = false
+  }
+}
+
 const computedShareLink = computed(() => {
   if (props.shareLink) return props.shareLink
   if (props.routeName) {
-    const route = router.resolve({
-      name: props.routeName,
-      params: props.routeParams,
-      query: props.routeQuery,
-    })
-    return `${window.location.origin}${route.href}`
+    try {
+      const params = { ...props.routeParams }
+      const query = { ...props.routeQuery }
+      
+      if (routesRequiringDomain.includes(props.routeName)) {
+        if (!params.domain) {
+          if (domain.value) {
+            params.domain = domain.value
+          } else {
+            return ''
+          }
+        }
+        
+        // Extract IDs from query params and move to route params
+        if (props.routeName === 'clientSelections' && query.selectionId && !params.selectionId) {
+          params.selectionId = query.selectionId
+          delete query.selectionId
+        } else if (props.routeName === 'clientRawFiles' && query.rawFileId && !params.rawFileId) {
+          params.rawFileId = query.rawFileId
+          delete query.rawFileId
+        } else if (props.routeName === 'clientProofing' && query.proofingId && !params.proofingId) {
+          params.proofingId = query.proofingId
+          delete query.proofingId
+        } else if (props.routeName === 'clientCollection' && query.collectionId && !params.collectionId) {
+          params.collectionId = query.collectionId
+          delete query.collectionId
+        } else if (props.routeName === 'clientCollectionDownload' && query.collectionId && !params.collectionId) {
+          params.collectionId = query.collectionId
+          delete query.collectionId
+        } else if (props.routeName === 'clientRawFileDownload' && query.rawFileId && !params.rawFileId) {
+          params.rawFileId = query.rawFileId
+          delete query.rawFileId
+        }
+      }
+      
+      const route = router.resolve({
+        name: props.routeName,
+        params,
+        query,
+      })
+      return `${window.location.origin}${route.href}`
+    } catch (error) {
+      if (error.message?.includes('domain') || error.message?.includes('rawFileId') || error.message?.includes('selectionId') || error.message?.includes('proofingId') || error.message?.includes('collectionId')) {
+        return ''
+      }
+      console.error('Failed to resolve route:', error)
+      return ''
+    }
   }
   return ''
 })
@@ -449,8 +517,11 @@ const generateQRCode = async () => {
 
 watch(
   () => isOpen.value,
-  open => {
+  async open => {
     if (open) {
+      if (routesRequiringDomain.includes(props.routeName)) {
+        await fetchDomain()
+      }
       generateQRCode()
     }
   }

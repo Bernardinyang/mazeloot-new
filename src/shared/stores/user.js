@@ -7,6 +7,8 @@ import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { storage } from '@/shared/utils/storage'
 import { useAuthApi } from '@/shared/api/auth'
+import { useProductsApi } from '@/shared/api/products'
+import { useOnboardingApi } from '@/shared/api/onboarding'
 
 export const useUserStore = defineStore('user', () => {
   const user = ref(null)
@@ -14,8 +16,12 @@ export const useUserStore = defineStore('user', () => {
   const isAuthenticated = computed(() => !!user.value && !!token.value)
   const isLoading = ref(false)
   const isNewUser = ref(false)
+  const selectedProducts = ref([])
+  const onboardingStatus = ref([])
 
   const authApi = useAuthApi()
+  const productsApi = useProductsApi()
+  const onboardingApi = useOnboardingApi()
 
   /**
    * Initialize user from localStorage
@@ -146,16 +152,6 @@ export const useUserStore = defineStore('user', () => {
   }
 
   /**
-   * Clear authentication data
-   */
-  const clearAuth = () => {
-    user.value = null
-    token.value = null
-    isNewUser.value = false
-    // Persistence is handled by watchers
-  }
-
-  /**
    * Mark user as not new (after they've been through onboarding)
    */
   const markUserAsExisting = () => {
@@ -198,6 +194,130 @@ export const useUserStore = defineStore('user', () => {
     }
   })
 
+  /**
+   * Fetch user's selected products
+   */
+  const fetchSelectedProducts = async () => {
+    if (!isAuthenticated.value) {
+      selectedProducts.value = []
+      return []
+    }
+    try {
+      const data = await productsApi.getSelectedProducts()
+      selectedProducts.value = data || []
+      return selectedProducts.value
+    } catch (error) {
+      console.error('Failed to fetch selected products:', error)
+      selectedProducts.value = []
+      return []
+    }
+  }
+
+  /**
+   * Fetch user's onboarding status
+   */
+  const fetchOnboardingStatus = async () => {
+    if (!isAuthenticated.value) {
+      onboardingStatus.value = []
+      return []
+    }
+    try {
+      const data = await onboardingApi.getStatus()
+      onboardingStatus.value = data || []
+      return onboardingStatus.value
+    } catch (error) {
+      console.error('Failed to fetch onboarding status:', error)
+      onboardingStatus.value = []
+      return []
+    }
+  }
+
+  /**
+   * Check if user needs product selection
+   */
+  const needsProductSelection = computed(() => {
+    return isAuthenticated.value && selectedProducts.value.length === 0
+  })
+
+  /**
+   * Check if user needs onboarding
+   */
+  const needsOnboarding = computed(() => {
+    if (!isAuthenticated.value || selectedProducts.value.length === 0) {
+      return false
+    }
+
+    // Check if all selected products have completed onboarding
+    const selectedProductUuids = selectedProducts.value.map((p) => p.uuid || p.product?.uuid)
+    const completedProductUuids = onboardingStatus.value
+      .filter((s) => s.completed_at)
+      .map((s) => s.product_uuid)
+
+    // If any selected product doesn't have completed onboarding, user needs onboarding
+    return selectedProductUuids.some((uuid) => !completedProductUuids.includes(uuid))
+  })
+
+  /**
+   * Check if user is admin
+   */
+  const isAdmin = computed(() => {
+    return user.value?.role === 'admin' || user.value?.role === 'super_admin'
+  })
+
+  /**
+   * Check if user is super admin
+   */
+  const isSuperAdmin = computed(() => {
+    return user.value?.role === 'super_admin'
+  })
+
+  /**
+   * Check if user has early access
+   */
+  const hasEarlyAccess = computed(() => {
+    return user.value?.early_access?.is_active ?? false
+  })
+
+  /**
+   * Get early access rewards
+   */
+  const earlyAccessRewards = computed(() => {
+    return user.value?.early_access ?? null
+  })
+
+  /**
+   * Get early access feature flags
+   */
+  const earlyAccessFeatures = computed(() => {
+    return user.value?.early_access?.feature_flags ?? []
+  })
+
+  /**
+   * Get storage multiplier
+   */
+  const storageMultiplier = computed(() => {
+    return user.value?.early_access?.storage_multiplier ?? 1.0
+  })
+
+  /**
+   * Check if user has priority support
+   */
+  const hasPrioritySupport = computed(() => {
+    return user.value?.early_access?.priority_support ?? false
+  })
+
+  /**
+   * Clear product selection and onboarding status on logout
+   */
+  const clearAuth = () => {
+    user.value = null
+    token.value = null
+    isNewUser.value = false
+    selectedProducts.value = []
+    onboardingStatus.value = []
+    // Persistence is handled by watchers
+  }
+
   // Initialize on store creation
   init()
   initNewUserFlag()
@@ -208,11 +328,24 @@ export const useUserStore = defineStore('user', () => {
     isAuthenticated,
     isLoading,
     isNewUser,
+    selectedProducts,
+    onboardingStatus,
+    needsProductSelection,
+    needsOnboarding,
+    isAdmin,
+    isSuperAdmin,
+    hasEarlyAccess,
+    earlyAccessRewards,
+    earlyAccessFeatures,
+    storageMultiplier,
+    hasPrioritySupport,
     login,
     register,
     logout,
     updateUser,
     clearAuth,
     markUserAsExisting,
+    fetchSelectedProducts,
+    fetchOnboardingStatus,
   }
 })

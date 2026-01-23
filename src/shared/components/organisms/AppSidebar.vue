@@ -67,13 +67,35 @@ const isAdmin = computed(() => {
   return userStore.user?.email?.includes('admin') || false
 })
 
-// Convert Mazeloot products to teams format
-const teams = MAZELOOT_PRODUCTS.map(product => ({
-  name: product.displayName,
-  logo: () => h(ProductIcon, { customType: product.customType }),
-  plan: product.description,
-  route: product.route || { name: 'overview' },
-}))
+// Filter products to only show selected ones
+const teams = computed(() => {
+  const selectedProducts = userStore.selectedProducts || []
+  if (selectedProducts.length === 0) {
+    return []
+  }
+  
+  // Get slugs of selected products
+  const selectedSlugs = selectedProducts.map(p => {
+    const product = p.product || p
+    return product?.slug
+  }).filter(Boolean)
+  
+  // Filter MAZELOOT_PRODUCTS to only include selected products
+  const filteredProducts = MAZELOOT_PRODUCTS.filter(product => {
+    const productId = product.id
+    const normalizedId = productId.replace(/_/g, '-')
+    return selectedSlugs.includes(productId) || 
+           selectedSlugs.includes(normalizedId) ||
+           selectedSlugs.some(slug => slug.replace(/_/g, '-') === normalizedId)
+  })
+  
+  return filteredProducts.map(product => ({
+    name: product.displayName,
+    logo: () => h(ProductIcon, { customType: product.customType }),
+    plan: product.description,
+    route: product.route || { name: 'overview' },
+  }))
+})
 
 // Use logged-in user from store, fallback to default if not available
 const userData = computed(() => {

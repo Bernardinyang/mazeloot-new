@@ -240,9 +240,66 @@ const handleLogin = async values => {
 
     toast.success('Welcome back! Redirecting...')
 
-    // Redirect to the original destination or overview
+    // Skip product selection and onboarding checks for admins
+    if (!userStore.isAdmin) {
+      // Check if user needs product selection or onboarding
+      await userStore.fetchSelectedProducts()
+      await userStore.fetchOnboardingStatus()
+
+      if (userStore.needsProductSelection) {
+        // Generate token and redirect to product selection
+        const { useOnboardingApi } = await import('@/shared/api/onboarding')
+        const onboardingApi = useOnboardingApi()
+        try {
+          const tokenData = await onboardingApi.generateProductSelectionToken()
+          router.push({
+            name: 'productSelection',
+            params: { token: tokenData.token },
+          })
+          return
+        } catch (err) {
+          console.error('Failed to generate product selection token:', err)
+        }
+      }
+
+      if (userStore.needsOnboarding) {
+        // Find next incomplete onboarding
+        const selectedProductUuids = userStore.selectedProducts.map((p) => p.uuid || p.product?.uuid)
+        const completedProductUuids = userStore.onboardingStatus
+          .filter((s) => s.completed_at)
+          .map((s) => s.product_uuid)
+
+        const incompleteProduct = userStore.selectedProducts.find(
+          (p) => !completedProductUuids.includes(p.uuid || p.product?.uuid)
+        )
+
+        if (incompleteProduct) {
+          const { useOnboardingApi } = await import('@/shared/api/onboarding')
+          const onboardingApi = useOnboardingApi()
+          try {
+            const tokenData = await onboardingApi.generateToken(incompleteProduct.uuid || incompleteProduct.product?.uuid)
+            const productSlug = incompleteProduct.slug || incompleteProduct.product?.slug
+            router.push({
+              name: 'onboarding',
+              params: { productSlug, token: tokenData.token },
+            })
+            return
+          } catch (err) {
+            console.error('Failed to generate onboarding token:', err)
+          }
+        }
+      }
+    }
+
+    // Redirect to the original destination, admin dashboard (for admins), or overview
     const redirect = route.query.redirect
-    await router.push(redirect || { name: 'overview' })
+    if (redirect) {
+      await router.push(redirect)
+    } else if (userStore.isAdmin) {
+      await router.push({ name: 'admin-dashboard' })
+    } else {
+      await router.push({ name: 'overview' })
+    }
   } catch (error) {
     await handleError(error, {
       fallbackMessage: 'Invalid email or password. Please try again.',

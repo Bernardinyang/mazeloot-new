@@ -4,6 +4,7 @@ import Products from '@/shared/views/public/Products.vue'
 import Pricing from '@/shared/views/public/Pricing.vue'
 import ContactUs from '@/shared/views/public/ContactUs.vue'
 import Waitlist from '@/shared/views/public/Waitlist.vue'
+import EarlyAccess from '@/shared/views/public/EarlyAccess.vue'
 
 export const publicRoutes = [
   {
@@ -50,6 +51,14 @@ export const publicRoutes = [
     path: '/waitlist',
     name: 'waitlist',
     component: Waitlist,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/early-access',
+    name: 'early-access',
+    component: EarlyAccess,
     meta: {
       requiresAuth: false,
     },

@@ -1167,7 +1167,7 @@ const handleSubmitEmail = async () => {
   emailError.value = ''
 
   try {
-    const rawFileId = route.query.rawFileId
+    const rawFileId = route.params.rawFileId || route.query.rawFileId
     if (!rawFileId) {
       throw new Error('RawFile ID not found')
     }
@@ -1207,7 +1207,7 @@ const isLoadingRawFile = ref(false)
 
 // Load rawFile and media sets
 const loadRawFile = async () => {
-  const rawFileId = route.query.rawFileId
+  const rawFileId = route.params.rawFileId || route.query.rawFileId
   
   if (!rawFileId) {
     throw new Error('RawFile ID is required in the URL')
@@ -2383,7 +2383,7 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
 
 onMounted(() => {
   // Check if we have a stored password verification for this rawFile
-  const rawFileId = route.query.rawFileId
+  const rawFileId = route.params.rawFileId || route.query.rawFileId
   if (rawFileId) {
     const storedVerification = getStoredPasswordVerification(rawFileId)
     if (storedVerification) {

@@ -1,4 +1,5 @@
 <script setup>
+import { computed } from 'vue'
 import { BadgeCheck, Bell, ChevronsUpDown, CreditCard, LogOut, Sparkles } from '@/shared/utils/lucideAnimated'
 import {
   DropdownMenu,
@@ -16,8 +17,10 @@ import {
   useSidebar,
 } from '@/shared/components/shadcn/sidebar'
 import AvatarDisplay from '@/shared/components/atoms/AvatarDisplay.vue'
+import Badge from '@/shared/components/shadcn/badge/Badge.vue'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { useLogout } from '@/shared/composables/useLogout'
+import { useUserStore } from '@/shared/stores/user'
 
 const props = defineProps({
   user: {
@@ -29,6 +32,19 @@ const props = defineProps({
 const { isMobile, state } = useSidebar()
 const { navigateTo } = useNavigation()
 const { logout } = useLogout()
+const userStore = useUserStore()
+
+const roleLabel = computed(() => {
+  if (userStore.isSuperAdmin) return 'Super Admin'
+  if (userStore.isAdmin) return 'Admin'
+  return null
+})
+
+const roleVariant = computed(() => {
+  if (userStore.isSuperAdmin) return 'destructive'
+  if (userStore.isAdmin) return 'secondary'
+  return 'default'
+})
 
 const handleLogout = async () => {
   await logout()
@@ -54,7 +70,12 @@ const handleLogout = async () => {
               v-if="state !== 'collapsed' || isMobile"
               class="grid flex-1 text-left text-sm leading-tight"
             >
-              <span class="truncate font-medium">{{ props.user.name }}</span>
+              <div class="flex items-center gap-2">
+                <span class="truncate font-medium">{{ props.user.name }}</span>
+                <Badge v-if="roleLabel" :variant="roleVariant" class="text-xs">
+                  {{ roleLabel }}
+                </Badge>
+              </div>
               <span class="truncate text-xs">{{ props.user.email }}</span>
             </div>
             <ChevronsUpDown v-if="state !== 'collapsed' || isMobile" class="ml-auto size-4" />
@@ -70,7 +91,12 @@ const handleLogout = async () => {
             <div class="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
               <AvatarDisplay :avatar="props.user.avatar" :name="props.user.name" />
               <div class="grid flex-1 text-left text-sm leading-tight">
-                <span class="truncate font-semibold">{{ props.user.name }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="truncate font-semibold">{{ props.user.name }}</span>
+                  <Badge v-if="roleLabel" :variant="roleVariant" class="text-xs">
+                    {{ roleLabel }}
+                  </Badge>
+                </div>
                 <span class="truncate text-xs">{{ props.user.email }}</span>
               </div>
             </div>

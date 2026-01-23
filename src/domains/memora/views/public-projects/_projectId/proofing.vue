@@ -1989,7 +1989,7 @@ const handleSubmitEmail = async () => {
   emailError.value = ''
 
   try {
-    const proofingId = route.query.proofingId
+    const proofingId = route.params.proofingId || route.query.proofingId
     if (!proofingId) {
       throw new Error('Proofing ID not found')
     }
@@ -2029,7 +2029,7 @@ const isLoadingProofing = ref(false)
 
 // Load proofing and media sets
 const loadProofing = async () => {
-  const proofingId = route.query.proofingId
+  const proofingId = route.params.proofingId || route.query.proofingId
   
   if (!proofingId) {
     throw new Error('Proofing ID is required in the URL')
@@ -2580,7 +2580,7 @@ const handleVerifyPassword = async () => {
 
   try {
     // Verify password with backend
-    const proofingId = route.query.proofingId
+    const proofingId = route.params.proofingId || route.query.proofingId
     await proofingApi.verifyProofingPassword(proofingId, passwordInput.value)
 
     // Password verified successfully - store for 30 minutes
@@ -3001,7 +3001,7 @@ const scrollToGallery = () => {
 }
 
 const handleLogout = () => {
-  const proofingId = route.query.proofingId || route.params.projectId
+  const proofingId = route.params.proofingId || route.query.proofingId || route.params.projectId
   if (proofingId) {
     clearProofingGuestData(proofingId)
   }
@@ -3045,7 +3045,7 @@ watch(
 
 onMounted(() => {
   // Check if we have a stored password verification for this proofing
-  const proofingId = route.query.proofingId
+  const proofingId = route.params.proofingId || route.query.proofingId
   if (proofingId) {
     const storedVerification = getStoredPasswordVerification(proofingId)
     if (storedVerification) {

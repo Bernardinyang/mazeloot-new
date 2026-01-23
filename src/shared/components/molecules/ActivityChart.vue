@@ -10,15 +10,19 @@
       <p class="text-sm font-medium">No activity data</p>
       <p class="text-xs">Activity will appear here</p>
     </div>
-    <div v-else ref="chartContainer" class="w-full h-64"></div>
+    <apexchart
+      v-else
+      type="line"
+      height="256"
+      :options="chartOptions"
+      :series="chartSeries"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch, onMounted, onBeforeUnmount } from 'vue'
+import { computed } from 'vue'
 import { TrendingUp } from '@/shared/utils/lucideAnimated'
-import Highcharts from 'highcharts'
-import 'highcharts/esm/highcharts-3d'
 import { useThemeStore } from '@/shared/stores/theme'
 
 const props = defineProps({
@@ -29,137 +33,188 @@ const props = defineProps({
 })
 
 const themeStore = useThemeStore()
-const chartContainer = ref(null)
-let chartInstance = null
 
-const chartOptions = computed(() => {
+const chartData = computed(() => {
   if (!props.data || props.data.length === 0) {
-    return {}
+    return []
   }
 
-  const chartData = props.data
+  return props.data
     .filter(d => d && d.date)
-    .map(d => {
-      const date = d.date instanceof Date ? d.date.getTime() : new Date(d.date).getTime()
-      if (isNaN(date)) return null
-      return {
-        x: date,
-        collections: Number(d.collections) || 0,
-        projects: Number(d.projects) || 0,
-        selections: Number(d.selections) || 0,
-        proofing: Number(d.proofing) || 0,
-        rawFiles: Number(d.rawFiles) || 0,
-      }
-    })
-    .filter(d => d !== null)
+    .map(d => ({
+      date: d.date,
+      collections: Number(d.collections) || 0,
+      projects: Number(d.projects) || 0,
+      selections: Number(d.selections) || 0,
+      proofing: Number(d.proofing) || 0,
+      rawFiles: Number(d.rawFiles) || 0,
+    }))
+})
 
-  const isDark = themeStore.effectiveTheme === 'dark'
-  const labelColor = isDark ? '#e5e7eb' : '#1f2937'
-  const gridColor = isDark ? '#374151' : '#e5e7eb'
+const isDark = computed(() => themeStore.effectiveTheme === 'dark')
+const textColor = computed(() => (isDark.value ? '#e5e7eb' : '#1f2937'))
+const gridColor = computed(() => (isDark.value ? '#374151' : '#e5e7eb'))
+const cardBg = computed(() => (isDark.value ? '#1f2937' : '#ffffff'))
+const borderColor = computed(() => (isDark.value ? '#374151' : '#e5e7eb'))
 
-  return {
-    chart: {
-      type: 'column',
-      options3d: {
+const chartSeries = computed(() => [
+  {
+    name: 'Collections',
+    data: chartData.value.map(d => d.collections),
+    color: '#3b82f6',
+  },
+  {
+    name: 'Projects',
+    data: chartData.value.map(d => d.projects),
+    color: '#a855f7',
+  },
+  {
+    name: 'Selections',
+    data: chartData.value.map(d => d.selections),
+    color: '#10b981',
+  },
+  {
+    name: 'Proofing',
+    data: chartData.value.map(d => d.proofing),
+    color: '#f59e0b',
+  },
+  {
+    name: 'Raw Files',
+    data: chartData.value.map(d => d.rawFiles),
+    color: '#06b6d4',
+  },
+])
+
+const chartOptions = computed(() => ({
+  chart: {
+    type: 'line',
+    height: 256,
+    toolbar: { show: false },
+    zoom: { enabled: false },
+    background: 'transparent',
+    animations: {
+      enabled: true,
+      easing: 'easeinout',
+      speed: 800,
+      animateGradually: {
         enabled: true,
-        alpha: 15,
-        beta: 15,
-        depth: 50,
-        viewDistance: 25,
+        delay: 150,
       },
-      height: 256,
-      backgroundColor: 'transparent',
-    },
-    title: {
-      text: null,
-    },
-    xAxis: {
-      type: 'datetime',
-      labels: {
-        format: '{value:%b %d}',
-        style: {
-          color: labelColor,
-        },
-      },
-      lineColor: gridColor,
-      tickColor: gridColor,
-    },
-    yAxis: {
-      title: {
-        text: null,
-      },
-      labels: {
-        style: {
-          color: labelColor,
-        },
-      },
-      gridLineColor: gridColor,
-    },
-    plotOptions: {
-      column: {
-        depth: 25,
-        grouping: false,
-        groupZPadding: 10,
+      dynamicAnimation: {
+        enabled: true,
+        speed: 350,
       },
     },
-    legend: {
-      itemStyle: {
-        color: labelColor,
+    sparkline: { enabled: false },
+  },
+  colors: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#06b6d4'],
+  stroke: {
+    curve: 'smooth',
+    width: 3,
+    lineCap: 'round',
+  },
+  markers: {
+    size: 5,
+    strokeWidth: 2,
+    strokeColors: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#06b6d4'],
+    hover: {
+      size: 7,
+      sizeOffset: 2,
+    },
+  },
+  xaxis: {
+    categories: chartData.value.map(d => d.date),
+    labels: {
+      style: {
+        colors: textColor.value,
+        fontSize: '12px',
+        fontFamily: 'inherit',
       },
     },
-    series: [
-      {
-        name: 'Collections',
-        data: chartData.map(d => [d.x, d.collections]),
-        color: '#3b82f6', // Blue
+    axisBorder: {
+      color: gridColor.value,
+      strokeWidth: 1,
+    },
+    axisTicks: {
+      color: gridColor.value,
+    },
+  },
+  yaxis: {
+    labels: {
+      style: {
+        colors: textColor.value,
+        fontSize: '12px',
+        fontFamily: 'inherit',
       },
-      {
-        name: 'Projects',
-        data: chartData.map(d => [d.x, d.projects]),
-        color: '#a855f7', // Purple
+    },
+  },
+  grid: {
+    borderColor: gridColor.value,
+    strokeDashArray: 4,
+    opacity: 0.2,
+    xaxis: {
+      lines: {
+        show: false,
       },
-      {
-        name: 'Selections',
-        data: chartData.map(d => [d.x, d.selections]),
-        color: '#10b981', // Green
+    },
+    yaxis: {
+      lines: {
+        show: true,
       },
-      {
-        name: 'Proofing',
-        data: chartData.map(d => [d.x, d.proofing]),
-        color: '#f59e0b', // Orange
-      },
-      {
-        name: 'Raw Files',
-        data: chartData.map(d => [d.x, d.rawFiles]),
-        color: '#06b6d4', // Cyan
-      },
-    ],
-    credits: {
+    },
+    padding: {
+      top: 0,
+      right: 0,
+      bottom: 0,
+      left: 0,
+    },
+  },
+  legend: {
+    show: true,
+    position: 'top',
+    offsetY: -5,
+    fontSize: '13px',
+    fontFamily: 'inherit',
+    fontWeight: 500,
+    labels: {
+      colors: textColor.value,
+    },
+    markers: {
+      width: 12,
+      height: 12,
+      radius: 6,
+    },
+    itemMargin: {
+      horizontal: 12,
+      vertical: 4,
+    },
+  },
+  tooltip: {
+    enabled: true,
+    theme: isDark.value ? 'dark' : 'light',
+    style: {
+      fontSize: '13px',
+      fontFamily: 'inherit',
+    },
+    x: {
+      show: true,
+      format: 'MMM dd',
+    },
+    y: {
+      formatter: (val) => val.toString(),
+    },
+    marker: {
+      show: true,
+    },
+    fixed: {
       enabled: false,
+      position: 'topRight',
+      offsetX: 0,
+      offsetY: 0,
     },
-  }
-})
-
-watch([() => chartOptions.value, () => chartContainer.value, () => themeStore.effectiveTheme], () => {
-  if (chartContainer.value && chartOptions.value && Object.keys(chartOptions.value).length > 0) {
-    if (chartInstance) {
-      chartInstance.update(chartOptions.value, true)
-    } else if (chartContainer.value) {
-      chartInstance = Highcharts.chart(chartContainer.value, chartOptions.value)
-    }
-  }
-}, { immediate: true, deep: true })
-
-onMounted(() => {
-  if (chartContainer.value && chartOptions.value && Object.keys(chartOptions.value).length > 0) {
-    chartInstance = Highcharts.chart(chartContainer.value, chartOptions.value)
-  }
-})
-
-onBeforeUnmount(() => {
-  if (chartInstance) {
-    chartInstance.destroy()
-    chartInstance = null
-  }
-})
+  },
+  dataLabels: {
+    enabled: false,
+  },
+}))
 </script>

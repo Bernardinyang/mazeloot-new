@@ -1504,7 +1504,7 @@ const handleSubmitEmail = async () => {
   emailError.value = ''
 
   try {
-    const selectionId = route.query.selectionId
+    const selectionId = route.params.selectionId || route.query.selectionId
     if (!selectionId) {
       throw new Error('Selection ID not found')
     }
@@ -1544,7 +1544,7 @@ const isLoadingSelection = ref(false)
 
 // Load selection and media sets
 const loadSelection = async () => {
-  const selectionId = route.query.selectionId
+  const selectionId = route.params.selectionId || route.query.selectionId
   
   if (!selectionId) {
     throw new Error('Selection ID is required in the URL')
@@ -2410,7 +2410,7 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
 
 onMounted(() => {
   // Check if we have a stored password verification for this selection
-  const selectionId = route.query.selectionId
+  const selectionId = route.params.selectionId || route.query.selectionId
   if (selectionId) {
     const storedVerification = getStoredPasswordVerification(selectionId)
     if (storedVerification) {

@@ -15,14 +15,14 @@
       <DropdownMenuLabel :class="theme.textPrimary">Apps</DropdownMenuLabel>
       <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
       <DropdownMenuItem
-        v-for="(team, index) in teams"
+        v-for="(team, index) in (teams || [])"
         :key="team.name"
         :class="[
           theme.textPrimary,
           theme.bgButtonHover,
           'cursor-pointer gap-4 p-3 items-start',
           {
-            'bg-sidebar-accent text-sidebar-accent-foreground': activeTeam.name === team.name,
+            'bg-sidebar-accent text-sidebar-accent-foreground': activeTeam?.name === team.name,
           },
         ]"
         @click="handleTeamClick(team)"
@@ -77,7 +77,7 @@ const props = defineProps({
 
 const { navigateTo } = useNavigation()
 const userStore = useUserStore()
-const activeTeam = ref(props.teams[0])
+const activeTeam = ref(props.teams?.[0] || null)
 
 const isAdmin = computed(() => {
   if (props.isAdmin !== undefined) return props.isAdmin

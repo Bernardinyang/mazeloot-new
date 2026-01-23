@@ -55,6 +55,7 @@ export const memoraRoutes = [
     redirect: { name: 'memoraDashboard' },
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -63,6 +64,7 @@ export const memoraRoutes = [
     component: GettingStarted,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -71,6 +73,7 @@ export const memoraRoutes = [
     component: DashboardView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -79,6 +82,7 @@ export const memoraRoutes = [
     component: CollectionsView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -87,6 +91,7 @@ export const memoraRoutes = [
     component: StarredCollectionsView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -95,6 +100,7 @@ export const memoraRoutes = [
     component: StarredFoldersView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -103,6 +109,7 @@ export const memoraRoutes = [
     component: StarredMediaView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -111,6 +118,7 @@ export const memoraRoutes = [
     component: FeaturedMediaView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -119,6 +127,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/MyMedia.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -127,6 +136,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/starred/StarredProjects.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -135,6 +145,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/starred/StarredSelections.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -143,6 +154,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/starred/StarredRawFiles.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -151,6 +163,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/starred/StarredProofing.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -159,6 +172,7 @@ export const memoraRoutes = [
     component: HomepageView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -167,6 +181,7 @@ export const memoraRoutes = [
     component: BrandingView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -175,6 +190,7 @@ export const memoraRoutes = [
     component: WatermarkView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -183,6 +199,7 @@ export const memoraRoutes = [
     component: PresetView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -191,6 +208,7 @@ export const memoraRoutes = [
     component: EmailTemplateView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -199,6 +217,7 @@ export const memoraRoutes = [
     component: PreferenceView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -207,6 +226,7 @@ export const memoraRoutes = [
     component: EmailNotificationsView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -215,6 +235,7 @@ export const memoraRoutes = [
     component: EmailSettingsView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -223,6 +244,7 @@ export const memoraRoutes = [
     component: SocialLinksView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -311,6 +333,7 @@ export const memoraRoutes = [
     component: CollectionPhotosView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -319,6 +342,7 @@ export const memoraRoutes = [
     component: CollectionCoverView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
     beforeEnter: async (to, from, next) => {
       // Dynamically import store to avoid circular dependencies
@@ -355,6 +379,7 @@ export const memoraRoutes = [
     component: CollectionTypographyView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -363,6 +388,7 @@ export const memoraRoutes = [
     component: CollectionColorView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -371,6 +397,7 @@ export const memoraRoutes = [
     component: CollectionGridView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -379,6 +406,7 @@ export const memoraRoutes = [
     component: CollectionSettingsGeneralView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -387,6 +415,7 @@ export const memoraRoutes = [
     component: CollectionSettingsPrivacyView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -399,6 +428,7 @@ export const memoraRoutes = [
     }),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
     children: [
       {
@@ -425,6 +455,7 @@ export const memoraRoutes = [
     component: CollectionSettingsFavoriteView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -433,6 +464,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -441,6 +473,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesDownloadView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -449,6 +482,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesFavouriteView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -457,6 +491,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesEmailRegistrationView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -465,6 +500,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesQuickShareView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -473,6 +509,7 @@ export const memoraRoutes = [
     component: CollectionActivitiesPrivateMediaView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   // Standalone Selections, Raw Files and Proofing Routes
@@ -482,6 +519,7 @@ export const memoraRoutes = [
     component: SelectionsListView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -490,6 +528,7 @@ export const memoraRoutes = [
     component: SelectionDetailView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -498,6 +537,7 @@ export const memoraRoutes = [
     component: RawFilesListView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -506,6 +546,7 @@ export const memoraRoutes = [
     component: RawFileDetailView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -514,6 +555,7 @@ export const memoraRoutes = [
     component: ProofingListView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -522,6 +564,7 @@ export const memoraRoutes = [
     component: ProofingDetailView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -530,6 +573,7 @@ export const memoraRoutes = [
     component: ProofingCommentsView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   // Project Routes
@@ -539,6 +583,7 @@ export const memoraRoutes = [
     component: () => import('@/domains/memora/views/projects/Projects.vue'),
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -547,6 +592,7 @@ export const memoraRoutes = [
     component: ProjectDashboardView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -565,6 +611,7 @@ export const memoraRoutes = [
     },
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -583,6 +630,7 @@ export const memoraRoutes = [
     },
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
   {
@@ -591,6 +639,7 @@ export const memoraRoutes = [
     component: CollectionPhaseView,
     meta: {
       requiresAuth: true,
+      requiresUser: true,
     },
   },
 ]

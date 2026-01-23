@@ -60,34 +60,60 @@
           >
             <DropdownMenuLabel :class="theme.textPrimary">Create New</DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <MailIcon class="h-4 w-4 text-blue-400" />
-              <span>Email message</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <Calendar class="h-4 w-4 text-blue-400" />
-              <span>Calendar event</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <StickyNote class="h-4 w-4 text-yellow-400" />
-              <span>Note</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <ListTodo class="h-4 w-4 text-blue-400" />
-              <span>Reminder</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <FileEdit class="h-4 w-4 text-orange-400" />
-              <span>Pages document</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <FileSpreadsheet class="h-4 w-4 text-green-400" />
-              <span>Numbers spreadsheet</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
-              <Presentation class="h-4 w-4 text-blue-400" />
-              <span>Keynote presentation</span>
-            </DropdownMenuItem>
+            
+            <!-- Memora Options -->
+            <template v-if="hasMemora">
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click="openCreateDialog('collection')"
+              >
+                <Folder class="h-4 w-4 text-blue-400" />
+                <span>Collection</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click="openCreateDialog('project')"
+              >
+                <FolderKanban class="h-4 w-4 text-green-400" />
+                <span>Project</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click="openCreateDialog('selection')"
+              >
+                <CheckSquare class="h-4 w-4 text-pink-400" />
+                <span>Selection</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click="openCreateDialog('proofing')"
+              >
+                <Eye class="h-4 w-4 text-orange-400" />
+                <span>Proofing</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                @click="openCreateDialog('rawFile')"
+              >
+                <FileText class="h-4 w-4 text-teal-400" />
+                <span>Raw File</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator v-if="hasOtherProducts" :class="theme.bgDropdownSeparator" />
+            </template>
+            
+            <!-- Other Products Options (placeholder for future products) -->
+            <template v-if="hasOtherProducts && !hasMemora">
+              <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+                <span class="text-xs text-muted-foreground">Coming soon</span>
+              </DropdownMenuItem>
+            </template>
+            
+            <!-- Empty State -->
+            <template v-if="!hasMemora && !hasOtherProducts">
+              <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+                <span class="text-xs text-muted-foreground">Select products to create</span>
+              </DropdownMenuItem>
+            </template>
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -292,7 +318,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div v-if="hasMemora" class="grid grid-cols-2 md:grid-cols-5 gap-4">
           <!-- Collections Stat -->
           <div
             :class="[
@@ -462,9 +488,9 @@
           >
             <template #loading>
               <div class="animate-pulse space-y-4">
-                <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6">
+                <div :class="['grid gap-4 sm:gap-6', appCardGridClasses]">
                   <div
-                    v-for="i in mazelootProducts.length"
+                    v-for="i in mazelootProducts.length || 1"
                     :key="i"
                     class="flex flex-col items-center gap-3"
                   >
@@ -474,13 +500,14 @@
                 </div>
               </div>
             </template>
-            <div class="relative">
-              <div class="grid grid-cols-3 sm:grid-cols-4 gap-4 sm:gap-6 relative z-10">
+            <div class="relative w-full">
+              <div :class="['grid gap-4 sm:gap-6 relative z-10 w-full', appCardGridClasses]">
                 <div
                   v-for="(product, index) in mazelootProducts"
                   :key="product.id"
                   :class="[
-                    'group flex flex-col items-center gap-3 cursor-pointer',
+                    'group flex flex-col items-center justify-center gap-3 cursor-pointer',
+                    'w-full',
                     theme.transition,
                   ]"
                   :style="{ animationDelay: `${index * 50}ms` }"
@@ -488,26 +515,54 @@
                 >
                   <div
                     :class="[
-                      'relative rounded-2xl flex items-center justify-center overflow-hidden',
-                      'bg-gradient-to-br from-gray-900/80 to-gray-800/80',
-                      'dark:from-gray-800/80 dark:to-gray-900/80',
-                      'light:from-white light:to-gray-50',
-                      'border-2 border-gray-700/50 dark:border-gray-700/50 light:border-gray-200/80',
-                      'shadow-sm dark:shadow-sm dark:shadow-black/40 light:shadow-sm',
-                      'group-hover:scale-110 group-hover:-translate-y-1 group-active:scale-95',
+                      'relative rounded-3xl flex items-center justify-center overflow-hidden',
+                      'bg-gradient-to-br',
+                      'from-white/90 via-white/80 to-white/70',
+                      'dark:from-gray-800/90 dark:via-gray-800/80 dark:to-gray-900/70',
+                      'backdrop-blur-xl',
+                      'border border-white/20 dark:border-gray-700/50',
+                      'shadow-lg dark:shadow-2xl dark:shadow-black/30',
+                      'group-hover:shadow-xl dark:group-hover:shadow-2xl dark:group-hover:shadow-black/50',
+                      'group-hover:scale-105 group-hover:-translate-y-2',
+                      'group-active:scale-95 group-active:translate-y-0',
                       'transition-all duration-300 ease-out',
-                      'h-20 w-20 sm:h-16 sm:w-16',
+                      'before:absolute before:inset-0 before:rounded-3xl',
+                      'before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent',
+                      'before:opacity-0 group-hover:before:opacity-100',
+                      'before:transition-opacity before:duration-300',
+                      'w-full aspect-square',
                     ]"
                   >
+                    <!-- Animated background glow -->
+                    <div
+                      :class="[
+                        'absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100',
+                        'bg-gradient-to-br from-accent/10 via-accent/5 to-transparent',
+                        'transition-opacity duration-300',
+                      ]"
+                    ></div>
+
                     <!-- Icon -->
-                    <div class="relative z-10">
-                      <AppIcon :custom-type="product.customType" />
+                    <div class="relative z-10 w-full h-full flex items-center justify-center p-2 transform group-hover:scale-110 transition-transform duration-300">
+                      <AppIcon 
+                        :custom-type="product.customType" 
+                        :size="'lg'"
+                        class="!w-full !h-full [&>div]:!w-full [&>div]:!h-full [&_svg]:!w-full [&_svg]:!h-full [&_svg]:!max-w-none [&_svg]:!max-h-none"
+                      />
                     </div>
 
                     <!-- Active indicator for Memora -->
                     <div
                       v-if="product.id === 'memora'"
-                      class="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white dark:border-gray-900 shadow-lg animate-pulse"
+                      :class="[
+                        'absolute -top-1 -right-1 w-3.5 h-3.5',
+                        'bg-gradient-to-br from-green-400 to-emerald-500',
+                        'rounded-full border-2 border-white dark:border-gray-900',
+                        'shadow-lg shadow-green-500/50',
+                        'animate-pulse',
+                        'group-hover:scale-125 group-hover:shadow-xl group-hover:shadow-green-500/70',
+                        'transition-all duration-300',
+                      ]"
                     ></div>
                   </div>
                   <span
@@ -515,7 +570,8 @@
                       'text-xs text-center font-semibold',
                       theme.textPrimary,
                       'group-hover:text-accent transition-colors duration-300',
-                      'max-w-[80px] truncate',
+                      'max-w-[90px] truncate',
+                      'group-hover:scale-105 transition-transform duration-300',
                     ]"
                     >{{ product.displayName }}</span
                   >
@@ -744,17 +800,18 @@
           </DashboardCard>
         </div>
 
-        <!-- Recent Collections Widget -->
-        <DashboardCard
-          :loading="isLoadingCollections"
-          animation-class="animate-in fade-in slide-in-from-right-4"
-          col-span="lg:col-span-2"
-          description="Your latest photo collections and galleries"
-          title="Recent Collections"
-        >
+        <!-- Recent Collections and Projects - Side by Side -->
+        <div v-if="hasMemora" class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
+          <!-- Recent Collections Widget -->
+          <DashboardCard
+            :loading="isLoadingCollections"
+            animation-class="animate-in fade-in slide-in-from-right-4"
+            description="Your latest photo collections and galleries"
+            title="Recent Collections"
+          >
           <template #loading>
             <div class="animate-pulse space-y-4">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-4">
+              <div v-for="i in 5" :key="i" class="flex items-center gap-4">
                 <div :class="['h-16 w-16 rounded-lg', theme.bgSkeleton]"></div>
                 <div class="flex-1 space-y-2">
                   <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
@@ -775,7 +832,7 @@
           </div>
           <div v-else class="space-y-2">
             <div
-              v-for="(collection, index) in recentCollections.slice(0, 3)"
+              v-for="(collection, index) in recentCollections.slice(0, 5)"
               :key="collection.id"
               :class="[
                 'group relative flex items-center gap-4 p-4 rounded-xl cursor-pointer',
@@ -798,9 +855,10 @@
                 ]"
               ></div>
 
-              <!-- Thumbnail -->
+              <!-- Thumbnail or Icon -->
               <div class="relative shrink-0 z-10">
                 <div
+                  v-if="collection.thumbnail || collection.previewImages?.[0]"
                   :class="[
                     'rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-60 transition-all duration-300',
                     'group-hover:ring-accent/30 shadow-md group-hover:shadow-lg',
@@ -812,6 +870,18 @@
                     :src="collection.thumbnail || collection.previewImages?.[0] || ''"
                     size="md"
                   />
+                </div>
+                <div
+                  v-else
+                  :class="[
+                    'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
+                    'bg-gradient-to-br from-blue-500/20 to-blue-500/10',
+                    'border border-blue-500/20',
+                    'group-hover:scale-110 group-hover:rotate-3 shadow-md group-hover:shadow-lg',
+                    'group-hover:border-blue-500/40',
+                  ]"
+                >
+                  <Folder class="h-5 w-5 text-blue-400" />
                 </div>
               </div>
 
@@ -865,20 +935,20 @@
               <ChevronRight class="ml-2 h-4 w-4" />
             </Button>
           </template>
-        </DashboardCard>
+          </DashboardCard>
 
-        <!-- Recent Projects Widget -->
-        <ListItemCard
-          :loading="isLoadingProjects"
-          :show-footer="true"
-          description="Organize your work into projects"
-          footer-label="View All Projects"
-          title="Recent Projects"
-          @footer-click="handleViewAllProjects"
-        >
+          <!-- Recent Projects Widget -->
+          <ListItemCard
+            :loading="isLoadingProjects"
+            :show-footer="true"
+            description="Organize your work into projects"
+            footer-label="View All Projects"
+            title="Recent Projects"
+            @footer-click="handleViewAllProjects"
+          >
           <template #loading>
             <div class="animate-pulse space-y-3">
-              <div v-for="i in 3" :key="i" class="flex items-center gap-3">
+              <div v-for="i in 5" :key="i" class="flex items-center gap-3">
                 <div :class="['h-10 w-10 rounded-lg', theme.bgSkeleton]"></div>
                 <div class="flex-1 space-y-2">
                   <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
@@ -899,7 +969,7 @@
           </div>
           <div v-else class="space-y-3">
             <div
-              v-for="(project, index) in recentProjects.slice(0, 3)"
+              v-for="(project, index) in recentProjects.slice(0, 5)"
               :key="project.id"
               :class="[
                 theme.listItem,
@@ -932,17 +1002,18 @@
                   <p :class="['text-xs', theme.textSecondary]">
                     {{ formatDate(project.updatedAt || project.createdAt) }}
                   </p>
-                  <div class="pt-1">
-                    <StatusBadge :status="project.status || 'active'" />
-                  </div>
+                </div>
+                <div class="shrink-0">
+                  <StatusBadge :status="project.status || 'active'" />
                 </div>
               </div>
             </div>
           </div>
-        </ListItemCard>
+          </ListItemCard>
+        </div>
 
         <!-- Recent Phase Cards - 3 Column Grid -->
-        <div class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+        <div v-if="hasMemora" class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
           <!-- Recent Selections Widget -->
           <ListItemCard
             :loading="isLoadingSelections"
@@ -955,7 +1026,7 @@
           >
             <template #loading>
               <div class="animate-pulse space-y-3">
-                <div v-for="i in 3" :key="i" class="flex items-center gap-3 p-2">
+                <div v-for="i in 5" :key="i" class="flex items-center gap-3 p-2">
                   <div :class="['h-12 w-12 rounded-lg', theme.bgSkeleton]"></div>
                   <div class="flex-1 space-y-2">
                     <div :class="['h-4 w-32 rounded', theme.bgSkeleton]"></div>
@@ -976,7 +1047,7 @@
             </div>
             <div v-else class="space-y-3">
               <div
-                v-for="(selection, index) in recentSelections.slice(0, 3)"
+                v-for="(selection, index) in recentSelections.slice(0, 5)"
                 :key="selection.id"
                 :class="[
                   theme.listItem,
@@ -1010,9 +1081,9 @@
                     <p :class="['text-xs', theme.textSecondary]">
                       {{ formatDate(selection.updatedAt || selection.createdAt) }}
                     </p>
-                    <div class="pt-1">
-                      <StatusBadge :status="selection.status || 'active'" />
-                    </div>
+                  </div>
+                  <div class="shrink-0">
+                    <StatusBadge :status="selection.status || 'active'" />
                   </div>
                 </div>
               </div>
@@ -1032,7 +1103,7 @@
             <template #loading>
               <div class="animate-pulse space-y-3">
                 <div
-                  v-for="i in 3"
+                  v-for="i in 5"
                   :key="i"
                   :class="theme.borderPrimary"
                   class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
@@ -1054,7 +1125,7 @@
             </div>
             <div v-else class="space-y-3">
               <div
-                v-for="(proofing, index) in recentProofing.slice(0, 3)"
+                v-for="(proofing, index) in recentProofing.slice(0, 5)"
                 :key="proofing.id"
                 :class="[
                   theme.listItem,
@@ -1088,9 +1159,9 @@
                     <p :class="['text-xs', theme.textSecondary]">
                       {{ formatDate(proofing.updatedAt || proofing.createdAt) }}
                     </p>
-                    <div class="pt-1">
-                      <StatusBadge :status="proofing.status || 'active'" />
-                    </div>
+                  </div>
+                  <div class="shrink-0">
+                    <StatusBadge :status="proofing.status || 'active'" />
                   </div>
                 </div>
               </div>
@@ -1110,7 +1181,7 @@
             <template #loading>
               <div class="animate-pulse space-y-3">
                 <div
-                  v-for="i in 3"
+                  v-for="i in 5"
                   :key="i"
                   :class="theme.borderPrimary"
                   class="flex flex-col gap-2 pb-3 border-b last:border-0 last:pb-0"
@@ -1132,7 +1203,7 @@
             </div>
             <div v-else class="space-y-3">
               <div
-                v-for="(rawFile, index) in recentRawFiles.slice(0, 3)"
+                v-for="(rawFile, index) in recentRawFiles.slice(0, 5)"
                 :key="rawFile.id"
                 :class="[
                   theme.listItem,
@@ -1166,9 +1237,9 @@
                     <p :class="['text-xs', theme.textSecondary]">
                       {{ formatDate(rawFile.updatedAt || rawFile.createdAt) }}
                     </p>
-                    <div class="pt-1">
-                      <StatusBadge :status="rawFile.status || 'active'" />
-                    </div>
+                  </div>
+                  <div class="shrink-0">
+                    <StatusBadge :status="rawFile.status || 'active'" />
                   </div>
                 </div>
               </div>
@@ -1177,6 +1248,35 @@
         </div>
       </div>
     </main>
+
+    <!-- Creation Dialogs -->
+    <CreateCollectionDialog
+      v-if="hasMemora"
+      v-model:open="showCreateCollectionDialog"
+      :is-submitting="isCreatingCollection"
+      @create="handleCreateCollection"
+    />
+    <CreateProjectDialog
+      v-if="hasMemora"
+      v-model:open="showCreateProjectDialog"
+      :is-submitting="isCreatingProject"
+      @create="handleCreateProject"
+    />
+    <CreateSelectionDialog
+      v-if="hasMemora"
+      v-model:open="showCreateSelectionDialog"
+      @success="handleCreateSelectionSuccess"
+    />
+    <CreateProofingDialog
+      v-if="hasMemora"
+      v-model:open="showCreateProofingDialog"
+      @success="handleCreateProofingSuccess"
+    />
+    <CreateRawFileDialog
+      v-if="hasMemora"
+      v-model:open="showCreateRawFileDialog"
+      @success="handleCreateRawFileSuccess"
+    />
 
     <!-- Footer -->
     <footer :class="['backdrop-blur-md mt-12', theme.borderPrimary, 'border-t', theme.bgFooter]">
@@ -1268,6 +1368,12 @@ import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useRawFileStore } from '@/domains/memora/stores/rawFile'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
+import { useProductsStore } from '@/shared/stores/products'
+import CreateCollectionDialog from '@/domains/memora/components/organisms/CreateCollectionDialog.vue'
+import CreateProjectDialog from '@/shared/components/organisms/CreateProjectDialog.vue'
+import CreateSelectionDialog from '@/domains/memora/components/organisms/CreateSelectionDialog.vue'
+import CreateProofingDialog from '@/domains/memora/components/organisms/CreateProofingDialog.vue'
+import CreateRawFileDialog from '@/domains/memora/components/organisms/CreateRawFileDialog.vue'
 
 const { navigateTo } = useNavigation()
 useThemeStore() // Initialize theme store for reactivity
@@ -1309,7 +1415,10 @@ const handleViewAllSelections = () => {
 }
 
 const handleSelectionClick = selection => {
-  navigateTo({ name: 'selectionDetail', params: { uuid: selection.id } })
+  const id = selection.id || selection.uuid
+  if (id) {
+    navigateTo({ name: 'selectionDetail', params: { id } })
+  }
 }
 
 const handleViewAllProofing = () => {
@@ -1317,7 +1426,10 @@ const handleViewAllProofing = () => {
 }
 
 const handleProofingClick = proofing => {
-  navigateTo({ name: 'proofingDetail', params: { uuid: proofing.id } })
+  const id = proofing.id || proofing.uuid
+  if (id) {
+    navigateTo({ name: 'proofingDetail', params: { id } })
+  }
 }
 
 const handleViewAllRawFiles = () => {
@@ -1325,19 +1437,47 @@ const handleViewAllRawFiles = () => {
 }
 
 const handleRawFileClick = rawFile => {
-  navigateTo({ name: 'rawFileDetail', params: { uuid: rawFile.id } })
-}
-
-// Mazeloot Products
-const mazelootProducts = MAZELOOT_PRODUCTS
-
-const handleAppSwitch = product => {
-  if (product.route) {
-    navigateTo(product.route)
-  } else if (product.url) {
-    navigateTo({ path: product.url })
+  const id = rawFile.id || rawFile.uuid
+  if (id) {
+    navigateTo({ name: 'rawFileDetail', params: { id } })
   }
 }
+
+// Mazeloot Products - filter to only show selected products
+const mazelootProducts = computed(() => {
+  const selectedProducts = userStore.selectedProducts || []
+  if (selectedProducts.length === 0) {
+    return []
+  }
+  
+  // Get slugs of selected products
+  const selectedSlugs = selectedProducts.map(p => {
+    const product = p.product || p
+    return product?.slug
+  }).filter(Boolean)
+  
+  // Filter MAZELOOT_PRODUCTS to only include selected products
+  // Match by id (e.g., 'memora' matches 'memora', 'connect_stream' matches 'connect-stream')
+  return MAZELOOT_PRODUCTS.filter(product => {
+    const productId = product.id
+    const normalizedId = productId.replace(/_/g, '-')
+    return selectedSlugs.includes(productId) || 
+           selectedSlugs.includes(normalizedId) ||
+           selectedSlugs.some(slug => slug.replace(/_/g, '-') === normalizedId)
+  })
+})
+
+// Dynamic grid classes based on number of products
+const appCardGridClasses = computed(() => {
+  const count = mazelootProducts.value.length
+  if (count === 0) return 'grid-cols-1'
+  if (count === 1) return 'grid-cols-1'
+  if (count === 2) return 'grid-cols-2'
+  if (count === 3) return 'grid-cols-3'
+  if (count === 4) return 'grid-cols-2 sm:grid-cols-4'
+  return 'grid-cols-2 sm:grid-cols-3 lg:grid-cols-4'
+})
+
 
 const handleProductClick = product => {
   // Handle memora product specially
@@ -1352,7 +1492,24 @@ const handleProductClick = product => {
       return
     }
   }
-  handleAppSwitch(product)
+  
+  // For other products, use route or url if available
+  if (product.route) {
+    navigateTo(product.route)
+  } else if (product.url) {
+    navigateTo({ path: product.url })
+  } else {
+    // Default: navigate to product route based on slug
+    const productSlug = product.slug || product.id
+    if (productSlug) {
+      navigateTo({ path: `/${productSlug}/dashboard` })
+    }
+  }
+}
+
+const handleAppSwitch = product => {
+  // Use the same logic as handleProductClick
+  handleProductClick(product)
 }
 
 // const handleAppClick = (_app) => {
@@ -1360,12 +1517,113 @@ const handleProductClick = product => {
 // }
 
 const userStore = useUserStore()
+const productsStore = useProductsStore()
 const galleryStore = useGalleryStore()
 const projectStore = useProjectStore()
 const selectionStore = useSelectionStore()
 const proofingStore = useProofingStore()
 const rawFileStore = useRawFileStore()
 const authApi = useAuthApi()
+
+// Check if user has selected Memora product
+const hasMemora = computed(() => {
+  const selectedProducts = userStore.selectedProducts || []
+  return selectedProducts.some(p => {
+    const product = p.product || p
+    return product?.slug === 'memora'
+  })
+})
+
+// Check if user has selected other products (non-Memora)
+const hasOtherProducts = computed(() => {
+  const selectedProducts = userStore.selectedProducts || []
+  return selectedProducts.some(p => {
+    const product = p.product || p
+    return product?.slug !== 'memora'
+  })
+})
+
+// Dialog states
+const showCreateCollectionDialog = ref(false)
+const showCreateProjectDialog = ref(false)
+const showCreateSelectionDialog = ref(false)
+const showCreateProofingDialog = ref(false)
+const showCreateRawFileDialog = ref(false)
+const isCreatingCollection = ref(false)
+const isCreatingProject = ref(false)
+
+// Open create dialog based on type
+const openCreateDialog = (type) => {
+  switch (type) {
+    case 'collection':
+      showCreateCollectionDialog.value = true
+      break
+    case 'project':
+      showCreateProjectDialog.value = true
+      break
+    case 'selection':
+      showCreateSelectionDialog.value = true
+      break
+    case 'proofing':
+      showCreateProofingDialog.value = true
+      break
+    case 'rawFile':
+      showCreateRawFileDialog.value = true
+      break
+  }
+}
+
+// Handle collection creation
+const handleCreateCollection = async (data) => {
+  try {
+    isCreatingCollection.value = true
+    await galleryStore.createCollection(data)
+    showCreateCollectionDialog.value = false
+    // Refresh collections
+    await fetchCollections()
+  } catch (error) {
+    console.error('Failed to create collection:', error)
+  } finally {
+    isCreatingCollection.value = false
+  }
+}
+
+// Handle project creation
+const handleCreateProject = async (data) => {
+  try {
+    isCreatingProject.value = true
+    const project = await projectStore.createProject(data)
+    showCreateProjectDialog.value = false
+    // Refresh projects
+    await fetchProjects()
+    // Navigate to project dashboard
+    if (project?.uuid || project?.id) {
+      navigateTo({ name: 'projectDashboard', params: { projectId: project.uuid || project.id } })
+    }
+  } catch (error) {
+    console.error('Failed to create project:', error)
+  } finally {
+    isCreatingProject.value = false
+  }
+}
+
+// Handle selection creation success
+const handleCreateSelectionSuccess = async () => {
+  showCreateSelectionDialog.value = false
+  await fetchSelections()
+}
+
+// Handle proofing creation success
+const handleCreateProofingSuccess = async () => {
+  showCreateProofingDialog.value = false
+  await fetchProofing()
+}
+
+// Handle raw file creation success
+const handleCreateRawFileSuccess = async () => {
+  showCreateRawFileDialog.value = false
+  await fetchRawFiles()
+}
 
 // User data - use logged-in user from store, fallback to default if not available
 const userData = computed(() => {
@@ -1397,7 +1655,7 @@ const recentCollections = computed(() => {
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
     })
-    .slice(0, 3)
+    .slice(0, 5)
 })
 
 // Recent Projects - get from store
@@ -1409,7 +1667,7 @@ const recentProjects = computed(() => {
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
     })
-    .slice(0, 3)
+    .slice(0, 5)
 })
 
 // Recent Selections - get from store
@@ -1421,7 +1679,7 @@ const recentSelections = computed(() => {
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
     })
-    .slice(0, 3)
+    .slice(0, 5)
 })
 
 // Recent Proofing - get from store
@@ -1433,7 +1691,7 @@ const recentProofing = computed(() => {
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
     })
-    .slice(0, 3)
+    .slice(0, 5)
 })
 
 // Recent Raw Files - get from store
@@ -1445,7 +1703,7 @@ const recentRawFiles = computed(() => {
       const dateB = new Date(b.updatedAt || b.createdAt || 0).getTime()
       return dateB - dateA
     })
-    .slice(0, 3)
+    .slice(0, 5)
 })
 
 // Storage data - default to 5GB, will be updated from backend if available
@@ -1553,12 +1811,19 @@ const fetchStorage = async () => {
 
 // Fetch data on mount - each section loads independently
 onMounted(async () => {
-  // Start loading all sections in parallel
-  fetchCollections()
-  fetchProjects()
-  fetchSelections()
-  fetchProofing()
-  fetchRawFiles()
+  // Fetch selected products first to determine what to show
+  await userStore.fetchSelectedProducts()
+  
+  // Only fetch Memora-specific data if user has selected Memora
+  if (hasMemora.value) {
+    fetchCollections()
+    fetchProjects()
+    fetchSelections()
+    fetchProofing()
+    fetchRawFiles()
+  }
+  
+  // Storage is always fetched (shared across products)
   fetchStorage()
 })
 

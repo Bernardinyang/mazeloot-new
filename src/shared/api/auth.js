@@ -31,6 +31,8 @@ export function useAuthApi() {
           name: `${response.data.user.first_name} ${response.data.user.last_name}`.trim(),
           avatar: response.data.user.profile_photo || null,
           emailVerified: !!response.data.user.email_verified_at,
+          role: response.data.user.role,
+          early_access: response.data.user.early_access,
         },
         token: response.data.token,
       }
@@ -66,6 +68,8 @@ export function useAuthApi() {
           name: `${response.data.user.first_name} ${response.data.user.last_name}`.trim(),
           avatar: null,
           emailVerified: !!response.data.user.email_verified_at,
+          role: response.data.user.role,
+          early_access: response.data.user.early_access,
         },
         token: null, // No token until email is verified
         requires_verification: response.data.requires_verification || false,
@@ -219,6 +223,30 @@ export function useAuthApi() {
     }
   }
 
+  /**
+   * Check if user has access to a specific feature
+   */
+  const checkFeature = async (feature) => {
+    try {
+      const response = await apiClient.get(`/v1/early-access/features/${feature}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get user's available features
+   */
+  const getAvailableFeatures = async () => {
+    try {
+      const response = await apiClient.get('/v1/early-access/features')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const getStorage = async () => {
     try {
       const response = await apiClient.get('/v1/auth/storage')
@@ -251,5 +279,7 @@ export function useAuthApi() {
     getUser,
     getStorage,
     logout,
+    checkFeature,
+    getAvailableFeatures,
   }
 }

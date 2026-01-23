@@ -84,8 +84,15 @@ onMounted(async () => {
       description: 'Welcome! Redirecting...',
     })
 
+    // Redirect to the original destination, admin dashboard (for admins), or overview
     const redirect = route.query.redirect
-    await router.push(redirect || { name: 'overview' })
+    if (redirect) {
+      await router.push(redirect)
+    } else if (userStore.isAdmin) {
+      await router.push({ name: 'admin-dashboard' })
+    } else {
+      await router.push({ name: 'overview' })
+    }
   } catch (err) {
     error.value = true
     handleError(err, {
