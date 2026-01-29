@@ -180,11 +180,7 @@
             ]"
             class="rounded-lg"
           >
-            <ThemeToggle
-              :contrast="
-                !!(rawFile.coverPhotoUrl || rawFile.cover_photo_url || shouldUseLightText)
-              "
-            />
+            <ThemeToggle />
           </div>
         </div>
 

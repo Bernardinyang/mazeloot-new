@@ -239,6 +239,7 @@ const appTeams = computed(() => {
   
   return filteredProducts.map(product => ({
     name: product.displayName,
+    customType: product.customType,
     logo: () => h(ProductIcon, { customType: product.customType }),
     plan: product.description,
     route: product.route || { name: 'overview' },

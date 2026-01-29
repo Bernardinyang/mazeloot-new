@@ -35,7 +35,7 @@
           <div :class="[theme.textSecondary, 'text-sm']">
             {{ brandName || 'Mazeloot' }}
           </div>
-          <ThemeToggle :contrast="true" />
+          <ThemeToggle />
         </div>
       </div>
     </header>

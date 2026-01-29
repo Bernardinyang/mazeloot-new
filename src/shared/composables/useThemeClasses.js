@@ -11,6 +11,7 @@ export function useThemeClasses() {
   const textMuted = 'text-white/60 dark:text-gray-500 light:text-gray-400'
 
   // Background colors - better contrast and depth
+  const bgLogoCard = 'bg-white/10 dark:bg-accent-900/90 light:bg-white/95'
   const bgCard = 'bg-white/10 dark:bg-gray-800/90 light:bg-white/95'
   const bgCardSolid = 'bg-gray-800 dark:bg-gray-800/95 light:bg-gray-100'
   const bgHover = 'hover:bg-white/10 dark:hover:bg-gray-700/70 light:hover:bg-gray-50'
@@ -68,6 +69,7 @@ export function useThemeClasses() {
     textTertiary,
     textMuted,
     // Backgrounds
+    bgLogoCard,
     bgCard,
     bgCardSolid,
     bgHover,

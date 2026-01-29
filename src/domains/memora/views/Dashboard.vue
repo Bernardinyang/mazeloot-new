@@ -45,6 +45,7 @@
           key="collections"
           :description="`${stats.publishedCollections} published`"
           :icon="FolderOpen"
+          :to="{ path: '/memora/collections' }"
           :value="stats.collections"
           color="blue"
           title="Collections"
@@ -53,6 +54,7 @@
           key="projects"
           :description="`${stats.activeProjects} active`"
           :icon="FolderKanban"
+          :to="{ path: '/memora/projects' }"
           :value="stats.projects"
           color="purple"
           title="Projects"
@@ -61,6 +63,7 @@
           key="selections"
           :description="`${stats.completedSelections} completed`"
           :icon="CheckSquare"
+          :to="{ path: '/memora/selections' }"
           :value="stats.selections"
           color="green"
           title="Selections"
@@ -69,6 +72,7 @@
           key="proofing"
           :description="`${stats.activeProofing} active`"
           :icon="Eye"
+          :to="{ path: '/memora/proofing' }"
           :value="stats.proofing"
           color="orange"
           title="Proofing"
@@ -85,6 +89,7 @@
           key="presets"
           :description="`${stats.activePresets} active`"
           :icon="Palette"
+          :to="{ path: '/memora/settings/preset' }"
           :value="stats.presets"
           color="purple"
           title="Presets"
@@ -93,6 +98,7 @@
           key="watermarks"
           :description="`${stats.activeWatermarks} active`"
           :icon="ImageIcon"
+          :to="{ path: '/memora/settings/watermark' }"
           :value="stats.watermarks"
           color="blue"
           title="Watermarks"
@@ -101,6 +107,7 @@
           key="rawFiles"
           :description="`${stats.activeRawFiles} active`"
           :icon="FileText"
+          :to="{ path: '/memora/raw-files' }"
           :value="stats.rawFiles"
           color="teal"
           title="Raw Files"
@@ -248,11 +255,12 @@
                   :key="activity.id"
                   :style="{ 'animation-delay': `${index * 50}ms` }"
                   class="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 cursor-pointer"
+                  @click="getActivityRoute(activity) && navigateTo(getActivityRoute(activity))"
                 >
                   <div
-                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 dark:bg-accent/40 group-hover:bg-primary/20 dark:group-hover:bg-accent/50 transition-colors duration-200 shrink-0"
+                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 dark:bg-accent/40 group-hover:bg-accent/20 dark:group-hover:bg-accent/50 transition-colors duration-200 shrink-0"
                   >
-                    <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-primary dark:text-white" />
+                    <component :is="getActivityIcon(activity.type)" class="h-5 w-5 text-accent dark:text-white" />
                   </div>
                   <div class="flex-1 min-w-0 space-y-0.5">
                     <p class="text-sm font-medium leading-none text-foreground">
@@ -277,8 +285,8 @@
           <CardHeader class="relative pb-5">
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3">
-                <div class="h-10 w-10 rounded-full bg-primary/20 dark:bg-accent/50 flex items-center justify-center shrink-0 ring-2 ring-primary/20 dark:ring-primary/50">
-                  <Zap class="h-5 w-5 text-primary dark:text-white brightness-110" />
+                <div class="h-10 w-10 rounded-full bg-accent/20 dark:bg-accent/50 flex items-center justify-center shrink-0 ring-2 ring-accent/20 dark:ring-accent/50">
+                  <Zap class="h-5 w-5 text-accent dark:text-white brightness-110" />
                 </div>
                 <div>
                   <CardTitle class="text-lg font-bold">Quick Actions</CardTitle>
@@ -292,20 +300,20 @@
               v-for="(action, index) in quickActions"
               :key="action.label"
               :style="{ 'animation-delay': `${index * 30}ms` }"
-              class="group relative w-full flex-1 min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 dark:hover:bg-muted/40 hover:border-l-4 border-l-primary dark:border-l-primary dark:brightness-125 transition-all duration-200 text-left cursor-pointer"
+              class="group relative w-full flex-1 min-h-[44px] flex items-center gap-2.5 px-3 py-2.5 rounded-lg bg-muted/30 hover:bg-muted/60 dark:bg-muted/20 dark:hover:bg-muted/40 hover:border-l-4 border-l-accent dark:border-l-accent dark:brightness-125 transition-all duration-200 text-left cursor-pointer"
               @click="navigateTo(action.route)"
             >
-              <div class="h-8 w-8 rounded-md bg-primary/15 dark:bg-accent/40 group-hover:bg-primary/25 dark:group-hover:bg-accent/50 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:rotate-3">
+              <div class="h-8 w-8 rounded-md bg-accent/15 dark:bg-accent/40 group-hover:bg-accent/25 dark:group-hover:bg-accent/50 flex items-center justify-center shrink-0 transition-all duration-200 group-hover:rotate-3">
                 <component
                   :is="action.icon"
-                  class="h-4 w-4 text-primary dark:text-white dark:brightness-110 transition-transform duration-200"
+                  class="h-4 w-4 text-accent dark:text-white dark:brightness-110 transition-transform duration-200"
                 />
               </div>
-              <span class="font-medium text-xs text-foreground/90 group-hover:text-foreground transition-colors duration-200 flex-1">
+              <span class="font-medium text-sm text-foreground/90 group-hover:text-foreground transition-colors duration-200 flex-1">
                 {{ action.label }}
               </span>
-              <div class="h-5 w-5 rounded-full bg-primary/20 dark:bg-accent/40 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <ArrowRight class="h-2.5 w-2.5 text-primary dark:text-white dark:brightness-110" />
+              <div class="h-5 w-5 rounded-full bg-accent/20 dark:bg-accent/40 flex items-center justify-center shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                <ArrowRight class="h-2.5 w-2.5 text-accent dark:text-white dark:brightness-110" />
               </div>
             </button>
           </CardContent>
@@ -404,6 +412,20 @@ const getActivityIcon = type => {
     rawFile: FileText,
   }
   return icons[type] || FolderOpen
+}
+
+const getActivityRoute = activity => {
+  const prefix = `${activity.type}-`
+  const id = activity.id?.startsWith(prefix) ? activity.id.slice(prefix.length) : activity.id
+  if (!id) return null
+  const routes = {
+    collection: { name: 'collectionPhotos', params: { uuid: id } },
+    project: { name: 'projectDashboard', params: { id } },
+    selection: { name: 'selectionDetail', params: { id } },
+    proofing: { name: 'proofingDetail', params: { id } },
+    rawFile: { name: 'rawFileDetail', params: { id } },
+  }
+  return routes[activity.type] || null
 }
 
 const formatBytes = bytes => {

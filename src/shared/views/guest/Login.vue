@@ -64,7 +64,7 @@
               <Label for="password">Password</Label>
               <RouterLink
                 :to="{ name: 'forgotPassword' }"
-                class="text-sm text-accent hover:underline"
+                class="text-sm text-accent dark:text-accent-300 hover:underline"
               >
                 Forgot password?
               </RouterLink>

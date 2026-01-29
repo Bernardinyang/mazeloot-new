@@ -2,7 +2,7 @@
   <div class="mt-6 text-center text-sm">
     <template class="flex items-center justify-center gap-2">
       <span v-if="prefix" class="text-muted-foreground">{{ prefix }} </span>
-      <RouterLink :to="routeLocation" class="text-accent hover:underline">
+      <RouterLink :to="routeLocation" class="text-accent dark:text-accent-300 hover:underline">
         {{ text }}
       </RouterLink>
     </template>

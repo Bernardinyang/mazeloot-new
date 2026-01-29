@@ -72,14 +72,18 @@
 
     <Divider />
 
-    <GoogleButton text="Sign up with Google" @click="handleGoogleSignUp" />
+    <GoogleButton
+      :loading="googleSignUpLoading"
+      text="Sign up with Google"
+      @click="handleGoogleSignUp"
+    />
 
     <AuthLink prefix="Already have an account?" text="Sign in" to="login" />
   </AuthLayout>
 </template>
 
 <script setup>
-import {computed} from 'vue'
+import {computed, ref} from 'vue'
 import {useRoute, useRouter} from 'vue-router'
 import {Field, Form} from 'vee-validate'
 import * as yup from 'yup'
@@ -98,6 +102,7 @@ const route = useRoute()
 const userStore = useUserStore()
 const { handleError } = useErrorHandler()
 const loading = computed(() => userStore.isLoading)
+const googleSignUpLoading = ref(false)
 
 const schema = yup.object({
   name: yup.string().required('Full name is required').min(2, 'Name must be at least 2 characters'),
@@ -156,6 +161,7 @@ const handleRegister = async values => {
 
 const handleGoogleSignUp = async () => {
   try {
+    googleSignUpLoading.value = true
     const { useAuthApi } = await import('@/shared/api/auth')
     const authApi = useAuthApi()
     const redirectUrl = await authApi.googleSignIn()
@@ -163,6 +169,7 @@ const handleGoogleSignUp = async () => {
     // Redirect to Google OAuth
     window.location.href = redirectUrl
   } catch (error) {
+    googleSignUpLoading.value = false
     handleError(error, {
       fallbackMessage: 'Google sign up failed. Please try again.',
     })

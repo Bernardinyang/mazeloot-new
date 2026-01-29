@@ -21,7 +21,7 @@
       <button
         type="button"
         @click="handleResend"
-        class="text-primary hover:underline"
+        class="text-accent dark:text-accent-300 hover:underline"
         :disabled="resendCooldown > 0"
       >
         {{ resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code' }}

@@ -15,8 +15,8 @@
       <div class="w-full max-w-6xl mx-auto">
       <!-- Header Section -->
       <div class="text-center mb-8 sm:mb-12 space-y-3">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 dark:bg-accent/20 mb-4">
-          <Sparkles class="h-8 w-8 text-primary dark:text-accent/80" />
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent/10 dark:bg-accent/10 mb-4">
+          <Sparkles class="h-8 w-8 text-accent dark:text-accent/80" />
         </div>
         <h1 class="text-4xl sm:text-5xl font-bold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
           Choose Your Products
@@ -25,7 +25,7 @@
           Select the products you'd like to get started with. You can always add more later.
         </p>
         <div v-if="selectedProducts.length > 0" class="pt-4">
-          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 dark:bg-accent/60 text-primary dark:text-white text-sm font-medium">
+          <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 dark:bg-accent/60 text-accent dark:text-white text-sm font-medium">
             <CheckCircle2 class="h-4 w-4" />
             <span>{{ selectedProducts.length }} {{ selectedProducts.length === 1 ? 'product' : 'products' }} selected</span>
           </div>
@@ -57,13 +57,13 @@
             :class="[
               'group relative transition-all duration-300 overflow-hidden',
               isProductAvailable(product)
-                ? 'cursor-pointer hover:shadow-lg hover:shadow-primary/5 dark:hover:shadow-accent/10 hover:-translate-y-1'
+                ? 'cursor-pointer hover:shadow-lg hover:shadow-accent/5 dark:hover:shadow-accent/10 hover:-translate-y-1'
                 : 'cursor-not-allowed opacity-60',
               'border-2',
               selectedProducts.includes(product.uuid)
-                ? 'border-primary dark:border-accent/70 bg-primary/5 dark:bg-accent/10 shadow-md shadow-accent/10 dark:shadow-primary/20'
+                ? 'border-accent dark:border-accent/70 bg-accent/5 dark:bg-accent/10 shadow-md shadow-accent/10 dark:shadow-accent/20'
                 : isProductAvailable(product)
-                  ? 'border-border hover:border-primary/30 dark:hover:border-accent/40'
+                  ? 'border-border hover:border-accent/30 dark:hover:border-accent/40'
                   : 'border-border',
             ]"
             @click="toggleProduct(product.uuid)"
@@ -83,7 +83,7 @@
               v-else-if="selectedProducts.includes(product.uuid)"
               class="absolute top-3 right-3 z-10"
             >
-              <div class="flex items-center justify-center w-8 h-8 rounded-full bg-primary dark:bg-primary/80 text-primary-foreground shadow-lg">
+              <div class="flex items-center justify-center w-8 h-8 rounded-full bg-accent dark:bg-accent/80 text-accent-foreground shadow-lg">
                 <CheckCircle2 class="h-5 w-5" />
               </div>
             </div>
@@ -94,8 +94,8 @@
                 :class="[
                   'inline-flex items-center justify-center w-12 h-12 rounded-xl mb-4 transition-colors',
                   selectedProducts.includes(product.uuid)
-                    ? 'bg-primary dark:bg-primary/80 text-primary-foreground'
-                    : 'bg-muted text-muted-foreground group-hover:bg-primary/10 dark:group-hover:bg-accent/20 group-hover:text-primary dark:group-hover:text-white',
+                    ? 'bg-accent dark:bg-accent/80 text-accent-foreground'
+                    : 'bg-muted text-muted-foreground group-hover:bg-accent/10 dark:group-hover:bg-accent/20 group-hover:text-accent dark:group-hover:text-white',
                 ]"
               >
                 <component
@@ -119,13 +119,13 @@
                   :class="[
                     'flex items-center justify-center w-6 h-6 rounded border-2 transition-all',
                     selectedProducts.includes(product.uuid)
-                      ? 'border-primary dark:border-primary/70 bg-primary dark:bg-primary/80'
-                      : 'border-muted-foreground/30 group-hover:border-primary/50 dark:group-hover:border-accent/60',
+                      ? 'border-accent dark:border-accent/70 bg-accent dark:bg-accent/80'
+                      : 'border-muted-foreground/30 group-hover:border-accent/50 dark:group-hover:border-accent/60',
                   ]"
                 >
                   <Check
                     v-if="selectedProducts.includes(product.uuid)"
-                    class="h-4 w-4 text-primary-foreground"
+                    class="h-4 w-4 text-accent-foreground"
                   />
                 </div>
               </div>
@@ -134,7 +134,7 @@
             <!-- Hover Overlay Effect -->
             <div
               :class="[
-                'absolute inset-0 bg-primary/5 dark:bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none',
+                'absolute inset-0 bg-accent/5 dark:bg-accent/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none',
                 selectedProducts.includes(product.uuid) && 'opacity-100',
               ]"
             />

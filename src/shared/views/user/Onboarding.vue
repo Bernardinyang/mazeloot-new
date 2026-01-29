@@ -31,38 +31,103 @@
           <!-- Memora Branding Step -->
           <div v-else-if="currentStep?.id === 'branding' && product?.slug === 'memora'" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium mb-2">Brand Name</label>
+              <label class="block text-sm font-medium mb-2">
+                Brand Name <span class="text-destructive">*</span>
+              </label>
               <input
                 v-model="formData.branding.name"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border rounded-md border-input bg-background"
                 placeholder="Your brand name"
                 type="text"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">Tagline</label>
+              <label class="block text-sm font-medium mb-2">
+                Tagline <span class="text-muted-foreground font-normal">(optional)</span>
+              </label>
               <input
                 v-model="formData.branding.tagline"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border rounded-md border-input bg-background"
                 placeholder="Your tagline"
                 type="text"
               />
             </div>
             <div>
-              <label class="block text-sm font-medium mb-2">Description</label>
+              <label class="block text-sm font-medium mb-2">
+                Description <span class="text-muted-foreground font-normal">(optional)</span>
+              </label>
               <textarea
                 v-model="formData.branding.description"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border rounded-md border-input bg-background"
                 placeholder="Describe your brand"
                 rows="4"
               />
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium mb-2">
+                  Support Email <span class="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <input
+                  v-model="formData.branding.supportEmail"
+                  class="w-full px-3 py-2 border rounded-md border-input bg-background"
+                  placeholder="support@example.com"
+                  type="email"
+                />
+              </div>
+              <div>
+                <label class="block text-sm font-medium mb-2">
+                  Support Phone <span class="text-muted-foreground font-normal">(optional)</span>
+                </label>
+                <input
+                  v-model="formData.branding.supportPhone"
+                  class="w-full px-3 py-2 border rounded-md border-input bg-background"
+                  placeholder="+1 (555) 123-4567"
+                  type="tel"
+                />
+              </div>
+            </div>
+            <div class="w-full">
+              <label class="block text-sm font-medium mb-2">
+                Logo <span class="text-muted-foreground font-normal">(optional)</span>
+              </label>
+              <input
+                ref="logoFileInput"
+                accept="image/*"
+                class="hidden"
+                type="file"
+                @change="handleLogoFileChange"
+              />
+              <button
+                type="button"
+                class="w-full rounded-lg border border-input border-dashed bg-muted/30 hover:bg-muted/50 transition-colors overflow-hidden min-h-[160px] flex flex-col items-center justify-center gap-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50"
+                :disabled="logoUploading"
+                @click="logoFileInput?.click()"
+              >
+                <template v-if="formData.branding.logoPreview">
+                  <img
+                    :src="formData.branding.logoPreview"
+                    alt="Logo preview"
+                    class="max-h-40 w-full object-contain object-center"
+                  />
+                  <span class="text-xs text-muted-foreground pb-2">
+                    {{ logoUploading ? 'Uploading…' : 'Click to change logo' }}
+                  </span>
+                </template>
+                <template v-else>
+                  <span v-if="logoUploading" class="text-sm text-muted-foreground">Uploading…</span>
+                  <span v-else class="text-sm text-muted-foreground">Click to upload logo</span>
+                </template>
+              </button>
             </div>
           </div>
 
           <!-- Memora Domain Step -->
           <div v-else-if="currentStep?.id === 'domain' && product?.slug === 'memora'" class="space-y-4">
             <div>
-              <label class="block text-sm font-medium mb-2">Domain</label>
+              <label class="block text-sm font-medium mb-2">
+                Domain <span class="text-destructive">*</span>
+              </label>
               <input
                 v-model="formData.domain.domain"
                 class="w-full px-3 py-2 border rounded-md"
@@ -128,6 +193,7 @@ import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import { useProductsStore } from '@/shared/stores/products'
 import { useProductsApi } from '@/shared/api/products'
+import { apiClient } from '@/shared/api/client'
 import { useOnboardingApi } from '@/shared/api/onboarding'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
@@ -148,11 +214,17 @@ const formData = ref({
     name: '',
     tagline: '',
     description: '',
+    supportEmail: '',
+    supportPhone: '',
+    logoUuid: null,
+    logoPreview: null,
   },
   domain: {
     domain: '',
   },
 })
+const logoFileInput = ref(null)
+const logoUploading = ref(false)
 const domainValidation = ref({ available: false, message: '' })
 const isLoading = ref(true)
 const isSubmitting = ref(false)
@@ -189,6 +261,35 @@ const validateDomain = async () => {
 
 const handleDomainInput = debounce(validateDomain, 500)
 
+const handleLogoFileChange = async (e) => {
+  const file = e.target?.files?.[0]
+  if (!file) return
+  logoUploading.value = true
+  try {
+    const reader = new FileReader()
+    reader.onload = (event) => {
+      formData.value.branding.logoPreview = event.target?.result
+    }
+    reader.readAsDataURL(file)
+    const uploadResponse = await apiClient.upload('/v1/images/upload', file, {
+      purpose: 'branding_logo',
+    })
+    const userFileUuid =
+      uploadResponse.data?.userFileUuid ||
+      uploadResponse.data?.data?.userFileUuid ||
+      uploadResponse.userFileUuid
+    if (!userFileUuid) throw new Error('Upload response missing userFileUuid')
+    formData.value.branding.logoUuid = userFileUuid
+    toast.success('Logo uploaded')
+  } catch (err) {
+    formData.value.branding.logoPreview = null
+    toast.error(err.message || 'Failed to upload logo')
+  } finally {
+    logoUploading.value = false
+    e.target.value = ''
+  }
+}
+
 const previousStep = () => {
   if (currentStepIndex.value > 0) {
     currentStepIndex.value--
@@ -208,7 +309,15 @@ const handleNext = async () => {
     let stepData = {}
 
     if (step.id === 'branding' && product.value?.slug === 'memora') {
-      stepData = formData.value.branding
+      const b = formData.value.branding
+      stepData = {
+        name: b.name,
+        tagline: b.tagline,
+        description: b.description,
+        supportEmail: b.supportEmail || undefined,
+        supportPhone: b.supportPhone || undefined,
+        logoUuid: b.logoUuid || undefined,
+      }
     } else if (step.id === 'domain' && product.value?.slug === 'memora') {
       stepData = formData.value.domain
     }

@@ -105,8 +105,8 @@
                 'relative overflow-hidden',
                 isActive(item.name)
                   ? [
-                      'bg-primary text-white shadow-lg shadow-primary/20',
-                      'dark:bg-primary dark:text-white',
+                      'bg-accent text-white shadow-lg shadow-accent/20',
+                      'dark:bg-accent dark:text-white',
                       'before:absolute before:left-0 before:top-0 before:bottom-0 before:w-1 before:bg-white/30',
                     ]
                   : [

@@ -18,7 +18,7 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+              :class="[theme.textPrimary, theme.bgButtonHover, 'light:hover:text-gray-900 dark:hover:text-gray-100', theme.transition]"
               size="icon"
               variant="ghost"
             >
@@ -47,7 +47,7 @@
         <DropdownMenu>
           <DropdownMenuTrigger as-child>
             <Button
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition]"
+              :class="[theme.textPrimary, theme.bgButtonHover, 'light:hover:text-gray-900 dark:hover:text-gray-100', theme.transition]"
               size="icon"
               variant="ghost"
             >
@@ -318,7 +318,7 @@
         </div>
 
         <!-- Stats Cards -->
-        <div v-if="hasMemora" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <div v-if="hasMemora" class="grid grid-cols-2 md:grid-cols-6 gap-4">
           <!-- Collections Stat -->
           <div
             :class="[
@@ -473,6 +473,35 @@
             </div>
             <div
               class="absolute bottom-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mb-10"
+            ></div>
+          </div>
+
+          <!-- Raw Files Stat -->
+          <div
+            :class="[
+              'group relative overflow-hidden rounded-2xl p-5',
+              'bg-gradient-to-br from-teal-500/20 via-teal-500/10 to-transparent',
+              'dark:from-teal-500/20 dark:via-teal-500/10',
+              'light:from-teal-50 light:to-teal-100/50',
+              'border border-teal-500/30 dark:border-teal-500/30 light:border-teal-200',
+              'backdrop-blur-sm',
+              'hover:scale-[1.02] transition-all duration-300',
+              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-teal-500/20',
+            ]"
+          >
+            <div class="flex items-start justify-between">
+              <div class="space-y-2">
+                <p :class="['text-sm font-medium', theme.textSecondary]">Raw Files</p>
+                <p :class="['text-2xl font-bold', theme.textPrimary]">
+                  {{ isLoadingRawFiles ? '...' : rawFileStore.rawFiles.length || 0 }}
+                </p>
+              </div>
+              <div class="p-2 rounded-xl bg-teal-500/20 dark:bg-teal-500/20 light:bg-teal-100">
+                <FileText class="h-5 w-5 text-teal-400 dark:text-teal-400 light:text-teal-600" />
+              </div>
+            </div>
+            <div
+              class="absolute bottom-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full -mr-10 -mb-10"
             ></div>
           </div>
         </div>
@@ -1039,10 +1068,12 @@
             <div v-if="recentSelections.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="CheckSquare"
+                action-label="Create Selection"
                 description="Create a selection to let clients choose their favorite photos"
                 icon-bg-class="bg-pink-500/20"
                 icon-class="text-pink-400"
                 message="No selections yet"
+                @action="openCreateDialog('selection')"
               />
             </div>
             <div v-else class="space-y-3">
@@ -1117,10 +1148,12 @@
             <div v-if="recentProofing.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="Eye"
+                action-label="Create Proofing"
                 description="Create a proofing phase to collect client feedback and approvals"
                 icon-bg-class="bg-orange-500/20"
                 icon-class="text-orange-400"
                 message="No proofing yet"
+                @action="openCreateDialog('proofing')"
               />
             </div>
             <div v-else class="space-y-3">
@@ -1195,10 +1228,12 @@
             <div v-if="recentRawFiles.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="FileText"
+                action-label="Create Raw File"
                 description="Create a raw file to let clients upload their photos"
                 icon-bg-class="bg-teal-500/20"
                 icon-class="text-teal-400"
                 message="No raw files yet"
+                @action="openCreateDialog('rawFile')"
               />
             </div>
             <div v-else class="space-y-3">

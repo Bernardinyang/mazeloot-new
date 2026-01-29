@@ -3,9 +3,9 @@
     <DropdownMenuTrigger as-child>
       <Button
         :class="[
-          contrast
-            ? 'text-white hover:text-white hover:bg-white/20'
-            : [theme.textPrimary, theme.bgButtonHover],
+          theme.textPrimary,
+          theme.bgButtonHover,
+          'light:hover:text-gray-900 dark:hover:text-gray-100',
           theme.transition,
         ]"
         size="icon"
@@ -74,13 +74,6 @@ import {
 } from '@/shared/components/shadcn/dropdown-menu/index'
 import { useThemeStore } from '@/shared/stores/theme'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
-
-const props = defineProps({
-  contrast: {
-    type: Boolean,
-    default: false,
-  },
-})
 
 const themeStore = useThemeStore()
 const theme = useThemeClasses()

@@ -5,7 +5,7 @@
         :class="[
           'px-3 py-4 flex items-center justify-center dark:border-b rounded-lg ',
           'group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3',
-          theme.bgCard,
+          theme.bgLogoCard,
           theme.borderPrimary,
           'bg-sidebar-background',
         ]"

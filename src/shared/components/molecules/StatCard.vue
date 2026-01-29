@@ -6,6 +6,7 @@ import CardHeader from '@/shared/components/shadcn/CardHeader.vue'
 import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
+import { useNavigation } from '@/shared/composables/useNavigation'
 
 const props = defineProps({
   title: {
@@ -36,7 +37,13 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
+  to: {
+    type: Object,
+    default: null,
+  },
 })
+
+const { navigateTo } = useNavigation()
 
 const iconColorClasses = computed(() => {
   const colors = {
@@ -47,17 +54,26 @@ const iconColorClasses = computed(() => {
     orange: 'text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30',
     red: 'text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30',
     indigo: 'text-indigo-600 dark:text-indigo-400 bg-indigo-100 dark:bg-indigo-900/30',
+    teal: 'text-teal-600 dark:text-teal-400 bg-teal-100 dark:bg-teal-900/30',
   }
   return colors[props.color] || colors.primary
 })
 </script>
 
 <template>
-  <Card
-    class="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-border/50 hover:border-border"
+  <div
+    :class="[to && 'cursor-pointer']"
+    :role="to ? 'button' : undefined"
+    :tabindex="to ? 0 : undefined"
+    @click="to && navigateTo(to)"
+    @keydown.enter="to && navigateTo(to)"
+    @keydown.space.prevent="to && navigateTo(to)"
   >
+    <Card
+      class="group relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-border/50 hover:border-border"
+    >
     <div
-      class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+      class="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
     />
     <CardHeader v-if="!loading" class="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
       <CardTitle class="text-sm font-medium text-foreground/80">{{ title }}</CardTitle>
@@ -96,4 +112,5 @@ const iconColorClasses = computed(() => {
       <p v-if="!loading" class="text-xs text-muted-foreground mt-1">{{ description }}</p>
     </CardContent>
   </Card>
+  </div>
 </template>

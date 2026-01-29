@@ -216,12 +216,15 @@ class ApiClient {
    * Upload file
    */
   async upload(endpoint, file, options) {
-    const { skipAuth = false, ...fetchOptions } = options || {}
+    const { skipAuth = false, purpose, context, visibility, ...fetchOptions } = options || {}
 
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`
 
     const formData = new FormData()
     formData.append('file', file)
+    if (purpose != null) formData.append('purpose', String(purpose))
+    if (context != null) formData.append('context', String(context))
+    if (visibility != null) formData.append('visibility', String(visibility))
 
     const headers = {
       ...(fetchOptions.headers || {}),

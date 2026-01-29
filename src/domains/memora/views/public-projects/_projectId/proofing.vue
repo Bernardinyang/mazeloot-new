@@ -180,9 +180,7 @@
             ]"
             class="rounded-lg"
           >
-            <ThemeToggle
-              :contrast="!!(proofing.coverPhotoUrl || proofing.cover_photo_url || shouldUseLightText)"
-            />
+            <ThemeToggle />
           </div>
         </div>
 

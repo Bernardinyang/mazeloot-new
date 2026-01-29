@@ -53,7 +53,7 @@
           <button
             type="button"
             @click="showOtp = false"
-            class="text-primary hover:underline font-medium"
+            class="text-accent dark:text-accent-300 hover:underline font-medium"
           >
             Back to email
           </button>
@@ -106,8 +106,9 @@ const handleForgotPassword = async values => {
     })
     showOtp.value = true
   } catch (error) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to send verification code'
     handleError(error, {
-      fallbackMessage,
+      fallbackMessage: 'Failed to send verification code',
     })
   } finally {
     loading.value = false
@@ -120,6 +121,13 @@ const handleVerifyOtp = async verificationCode => {
 
   otpLoading.value = true
   try {
+    // Verify OTP with backend
+    await authApi.verifyPasswordResetCode(email.value, codeToVerify)
+
+    toast.success('Code verified', {
+      description: 'You can now reset your password',
+    })
+
     // Redirect to reset password page with email and code
     router.push({
       name: 'resetPassword',
@@ -129,6 +137,7 @@ const handleVerifyOtp = async verificationCode => {
       },
     })
   } catch (error) {
+    const errorMessage = error?.response?.data?.message || error?.message || 'Failed to verify code'
     handleError(error, {
       fallbackMessage: 'Failed to verify code',
     })

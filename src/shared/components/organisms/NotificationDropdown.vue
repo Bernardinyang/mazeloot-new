@@ -6,6 +6,7 @@
           :class="[
             theme.textPrimary,
             theme.bgButtonHover,
+            'light:hover:text-gray-900 dark:hover:text-gray-100',
             theme.transition,
             'relative h-9 w-9 rounded-lg',
             'hover:scale-105 active:scale-95',
@@ -63,14 +64,26 @@
                   </p>
                 </div>
               </div>
-              
-              <button
-                v-if="hasUnreadNotifications"
-                class="px-3 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-all duration-200 shrink-0 self-start sm:self-auto hover:scale-105 active:scale-95"
-                @click.stop="handleMarkAllAsRead"
-              >
-                Mark all as read
-              </button>
+
+              <div class="flex flex-col items-end gap-2 shrink-0 self-start sm:self-auto">
+                <Button
+                  type="button"
+                  variant="destructive"
+                  size="icon"
+                  class="h-7 w-7 rounded-md"
+                  aria-label="Close notification panel"
+                  @click="isOpen = false"
+                >
+                  <X class="h-4 w-4" />
+                </Button>
+                <button
+                  v-if="hasUnreadNotifications"
+                  class="px-3 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-all duration-200 shrink-0 hover:scale-105 active:scale-95"
+                  @click.stop="handleMarkAllAsRead"
+                >
+                  Mark all as read
+                </button>
+              </div>
             </div>
 
             <!-- Priority Filters -->

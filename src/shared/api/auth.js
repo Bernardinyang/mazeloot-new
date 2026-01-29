@@ -134,6 +134,21 @@ export function useAuthApi() {
   }
 
   /**
+   * Verify password reset code
+   */
+  const verifyPasswordResetCode = async (email, code) => {
+    try {
+      await apiClient.post(
+        '/v1/auth/verify-reset-code',
+        { email, code },
+        { skipAuth: true }
+      )
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Reset password with code
    */
   const resetPassword = async (email, code, password, passwordConfirmation) => {
@@ -271,6 +286,7 @@ export function useAuthApi() {
     verifyEmail,
     resendVerificationCode,
     forgotPassword,
+    verifyPasswordResetCode,
     resetPassword,
     googleSignIn,
     googleSignInCallback,

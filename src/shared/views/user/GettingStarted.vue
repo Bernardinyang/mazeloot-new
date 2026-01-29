@@ -10,10 +10,10 @@
       <div class="space-y-6">
         <div class="relative animate-fade-in">
           <div class="space-y-1">
-            <h1 class="text-2xl md:text-3xl font-semibold tracking-tight text-gray-600 dark:text-gray-400">
+            <h1 class="text-xl md:text-2xl font-semibold tracking-tight text-gray-600 dark:text-gray-400">
               Welcome to Memora
           </h1>
-            <h2 class="text-4xl md:text-5xl font-bold tracking-tight text-accent">
+            <h2 class="text-6xl md:text-5xl font-bold tracking-tight text-accent-200">
               {{ userName }}
             </h2>
           </div>
@@ -27,10 +27,10 @@
           <div class="space-y-4">
           <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                <div class="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
                 <span class="text-sm font-semibold text-gray-900 dark:text-gray-100">Setup Progress</span>
               </div>
-              <span class="text-sm font-bold text-gray-900 dark:text-gray-100 px-3 py-1 rounded-full bg-primary/10 dark:bg-primary/20 text-primary">
+              <span class="text-sm font-bold text-gray-900 dark:text-gray-100 px-3 py-1 rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
                 {{ completedCount }}/{{ totalActions }} completed
               </span>
           </div>
@@ -62,8 +62,8 @@
       <!-- Quick Actions -->
       <div class="space-y-6">
         <div class="flex items-center gap-3 animate-fade-in" style="animation-delay: 200ms;">
-          <div class="p-2 rounded-lg bg-primary/10 dark:bg-primary/20">
-            <Zap class="h-6 w-6 text-primary" />
+          <div class="p-4 rounded-lg bg-accent/10 dark:bg-accent/20">
+            <Zap class="h-6 w-6 text-accent" />
           </div>
           <div>
             <h2 class="text-2xl md:text-3xl font-bold text-gray-900 dark:text-gray-100">Quick Actions</h2>
@@ -78,8 +78,8 @@
               'group relative overflow-hidden cursor-pointer transition-all duration-300',
               'bg-white dark:bg-gray-900',
               'border-2 border-gray-200 dark:border-gray-800',
-              'hover:border-primary/60 dark:hover:border-primary/60',
-              'hover:shadow-2xl hover:shadow-primary/10 dark:hover:shadow-primary/20',
+              'hover:border-accent/60 dark:hover:border-accent/60',
+              'hover:shadow-2xl hover:shadow-accent/10 dark:hover:shadow-accent/20',
               'hover:-translate-y-2 hover:scale-[1.02]',
               'animate-fade-in-up',
             ]"
@@ -90,7 +90,7 @@
             <div
               :class="[
                 'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                'bg-gradient-to-br from-primary/10 via-primary/5 to-transparent',
+                'bg-gradient-to-br from-accent/10 via-accent/5 to-transparent',
               ]"
             ></div>
             
@@ -124,7 +124,7 @@
                   'w-full transition-all duration-300 font-semibold',
                   action.status === 'done'
                     ? 'bg-green-500 hover:bg-green-600 text-white'
-                    : 'group-hover:shadow-lg group-hover:shadow-primary/30',
+                    : 'group-hover:shadow-lg group-hover:shadow-accent/30',
                 ]"
                 @click.stop="handleActionClick(action)"
               >
@@ -150,9 +150,9 @@
             :key="item.id"
             :class="[
               'group relative overflow-hidden cursor-pointer transition-all duration-300',
-              'hover:shadow-xl hover:shadow-primary/10 dark:hover:shadow-primary/20',
+              'hover:shadow-xl hover:shadow-accent/10 dark:hover:shadow-accent/20',
               'hover:-translate-y-1',
-              'border-2 hover:border-primary/50',
+              'border-2 hover:border-accent/50',
               theme.bgCard,
               theme.borderPrimary,
               'animate-fade-in-up',
@@ -164,7 +164,7 @@
             <div
               :class="[
                 'absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300',
-                'bg-gradient-to-br from-primary/5 via-transparent to-transparent',
+                'bg-gradient-to-br from-accent/5 via-transparent to-transparent',
               ]"
             ></div>
             
@@ -214,13 +214,13 @@ import {
   ChevronRight,
   FolderKanban,
   CheckSquare,
-  Upload,
   Image as ImageIcon,
   Mail,
   Settings,
   Eye,
   Star,
   FileImage,
+  FileText,
   Video,
   GraduationCap,
   Lightbulb,
@@ -241,6 +241,8 @@ import { useProjectsApi } from '@/domains/memora/api/projects'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
+import { useProofingApi } from '@/domains/memora/api/proofing'
+import { useRawFilesApi } from '@/domains/memora/api/rawFiles'
 import { apiClient } from '@/shared/api/client'
 
 const theme = useThemeClasses()
@@ -250,6 +252,8 @@ const { navigateTo } = useNavigation()
 const collectionsApi = useCollectionsApi()
 const projectsApi = useProjectsApi()
 const selectionsApi = useSelectionsApi()
+const proofingApi = useProofingApi()
+const rawFilesApi = useRawFilesApi()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
@@ -268,22 +272,10 @@ onMounted(async () => {
 // Check completion status for each action
 const checkCompletionStatus = async () => {
   try {
-    // Check collections (for "Upload photos" and "Create a collection")
+    // Check collections (for "Create a collection")
     const collectionsResponse = await collectionsApi.fetchCollections({ perPage: 1 })
     const collections = collectionsResponse?.data || collectionsResponse || []
     const hasCollections = collections.length > 0
-    
-    // Check if collections have media (for "Upload photos")
-    let hasMedia = false
-    if (hasCollections) {
-      const fullCollectionsResponse = await collectionsApi.fetchCollections({ perPage: 100 })
-      const allCollections = fullCollectionsResponse?.data || fullCollectionsResponse || []
-      hasMedia = allCollections.some(c => {
-        const mediaCount = c.mediaCount || c.media_count || 0
-        const setCount = c.setCount || c.set_count || 0
-        return mediaCount > 0 || setCount > 0
-      })
-    }
     
     // Check projects (for "Create a project")
     const projectsResponse = await projectsApi.fetchProjects({ perPage: 1 })
@@ -294,6 +286,26 @@ const checkCompletionStatus = async () => {
     const selectionsResponse = await selectionsApi.fetchAllSelections({ perPage: 1 })
     const selections = selectionsResponse?.data || selectionsResponse || []
     const hasSelections = selections.length > 0
+
+    // Check proofing (for "Create proofing" - id: 9)
+    let hasProofing = false
+    try {
+      const proofingResponse = await proofingApi.fetchAllProofing({ perPage: 1 })
+      const proofingList = proofingResponse?.data || proofingResponse || []
+      hasProofing = Array.isArray(proofingList) ? proofingList.length > 0 : (proofingList?.length > 0)
+    } catch (e) {
+      if (e?.response?.status !== 404) console.warn('Failed to check proofing:', e)
+    }
+
+    // Check raw files (for "Add raw files" - id: 10)
+    let hasRawFiles = false
+    try {
+      const rawFilesResponse = await rawFilesApi.fetchAllRawFiles({ perPage: 1 })
+      const rawFilesList = rawFilesResponse?.data || rawFilesResponse || []
+      hasRawFiles = Array.isArray(rawFilesList) ? rawFilesList.length > 0 : (rawFilesList?.length > 0)
+    } catch (e) {
+      if (e?.response?.status !== 404) console.warn('Failed to check raw files:', e)
+    }
     
     // Check presets (for "Create a preset" - id: 6)
     let hasPresets = false
@@ -344,9 +356,6 @@ const checkCompletionStatus = async () => {
     // Update status for all actions
     quickActions.value.forEach(action => {
       switch (action.id) {
-        case 1: // Upload photos
-          action.status = hasMedia ? 'done' : 'To do'
-          break
         case 2: // Create a collection
           action.status = hasCollections ? 'done' : 'To do'
           break
@@ -368,6 +377,12 @@ const checkCompletionStatus = async () => {
         case 8: // Create a selection
           action.status = hasSelections ? 'done' : 'To do'
           break
+        case 9: // Create proofing
+          action.status = hasProofing ? 'done' : 'To do'
+          break
+        case 10: // Add raw files
+          action.status = hasRawFiles ? 'done' : 'To do'
+          break
       }
     })
   } catch (error) {
@@ -377,16 +392,6 @@ const checkCompletionStatus = async () => {
 }
 
 const quickActions = ref([
-  {
-    id: 1,
-    title: 'Upload photos',
-    description: 'Add photos to your Memora gallery. You can upload directly or create collections first.',
-    status: 'To do',
-    icon: Upload,
-    iconBg: 'bg-indigo-500',
-    buttonText: 'Upload photos >',
-    route: { name: 'manageCollections' },
-  },
   {
     id: 2,
     title: 'Create a collection',
@@ -456,6 +461,26 @@ const quickActions = ref([
     iconBg: 'bg-pink-500',
     buttonText: 'Create selection',
     route: { name: 'selections' },
+  },
+  {
+    id: 9,
+    title: 'Create proofing',
+    description: 'Start a proofing session for client feedback. Create from a project or from the proofing list.',
+    status: 'To do',
+    icon: Eye,
+    iconBg: 'bg-orange-500',
+    buttonText: 'Create proofing',
+    route: { name: 'proofing' },
+  },
+  {
+    id: 10,
+    title: 'Add raw files',
+    description: 'Store and organize RAW files. Create raw file sets and link them to collections or projects.',
+    status: 'To do',
+    icon: FileText,
+    iconBg: 'bg-teal-500',
+    buttonText: 'View raw files',
+    route: { name: 'rawFiles' },
   },
 ])
 
@@ -604,7 +629,7 @@ const getActionVariant = status => {
     case 'done':
       return 'success'
     case 'To do':
-      return 'primary'
+      return 'accent'
     default:
       return 'default'
   }

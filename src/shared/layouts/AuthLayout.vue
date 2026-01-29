@@ -1,7 +1,3 @@
-<script>
-export const description = 'A two column auth page with a cover image slider.'
-</script>
-
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
 import { RouterLink } from 'vue-router'
@@ -19,69 +15,66 @@ defineProps({
 
 const theme = useThemeClasses()
 
-const testimonials = [
+const tips = [
   {
-    quote:
-      "We've been using MazeLoot to kick start every new project and can't imagine working without it.",
-    name: 'Sarah Johnson',
-    title: 'Creative Director, Layers Photography Agency',
-    image: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=1200&fit=crop',
+    quote: 'Use "constraint sprints" — limit your palette, tools, or time to spark unexpected creativity and avoid decision paralysis.',
+    name: 'Constraint Sprints',
+    title: 'Pro Tip',
+    image: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1200&fit=crop',
   },
   {
-    quote:
-      "MazeLoot has transformed how we approach creative projects. It's become essential to our workflow.",
-    name: 'Michael Chen',
-    title: 'Lead Designer, Studio Design Co.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&fit=crop',
+    quote: 'Tag your assets by emotional tone, not just function. Search for "urgent" or "playful" instead of scrolling endless folders.',
+    name: 'Emotional Metadata',
+    title: 'Asset Organization',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&fit=crop',
   },
   {
-    quote: 'The best tool for managing creative workflows. Highly recommend!',
-    name: 'Emily Rodriguez',
-    title: 'Project Manager, Creative Minds',
-    image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=1200&fit=crop',
+    quote: 'Create "inspiration breakpoints" — save reference images mid-project to remind yourself why you started when momentum fades.',
+    name: 'Inspiration Breakpoints',
+    title: 'Creative Endurance',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&fit=crop',
   },
   {
-    quote: 'Streamlined our entire creative process. Game changer!',
-    name: 'David Kim',
-    title: 'Art Director, Digital Art Studio',
-    image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=1200&fit=crop',
+    quote: 'Implement a "brutal honesty review" — have fresh eyes rate work 1-10 with required written feedback before making changes.',
+    name: 'Structured Feedback',
+    title: 'Quality Control',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&fit=crop',
   },
   {
-    quote: 'MazeLoot makes collaboration seamless and efficient.',
-    name: 'Lisa Thompson',
-    title: 'Founder, Creative Agency',
-    image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=1200&fit=crop',
+    quote: 'Use "problem statements" instead of briefs. Define what you\'re solving, not just what you\'re making. It unlocks better solutions.',
+    name: 'Problem-First Approach',
+    title: 'Project Framing',
+    image: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1200&fit=crop',
   },
   {
-    quote: 'Perfect for teams that value organization and creativity.',
-    name: 'James Wilson',
-    title: 'CEO, Pixel Perfect',
-    image: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=1200&fit=crop',
+    quote: 'Set "iteration budgets" — decide how many rounds of revisions upfront. Unlimited revisions kill momentum and creativity.',
+    name: 'Iteration Budgets',
+    title: 'Scope Management',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&fit=crop',
   },
   {
-    quote: 'Essential tool for modern creative professionals.',
-    name: 'Anna Martinez',
-    title: 'Design Lead, Innovation Labs',
-    image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&fit=crop',
+    quote: 'Archive finished projects with a "lessons learned" note. Future you will thank you when solving similar problems again.',
+    name: 'Lessons Learned',
+    title: 'Knowledge Capture',
+    image: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1200&fit=crop',
   },
   {
-    quote: 'MazeLoot has revolutionized our project management.',
-    name: 'Robert Taylor',
-    title: 'Creative Director, Creative Solutions Inc.',
-    image: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=1200&fit=crop',
+    quote: 'Use "decision logs" to track why you rejected good ideas. This prevents re-arguing decisions and accelerates collaboration.',
+    name: 'Decision Logs',
+    title: 'Team Efficiency',
+    image: 'https://images.unsplash.com/photo-1552664730-d307ca884978?w=1200&fit=crop',
   },
   {
-    quote: 'The perfect balance of simplicity and power.',
-    name: 'Jennifer Lee',
-    title: 'Art Director, Modern Studio',
-    image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=1200&fit=crop',
+    quote: 'Create "style consistency checkpoints" at 25%, 50%, 75% completion. Catch drift early before massive revisions.',
+    name: 'Consistency Checkpoints',
+    title: 'Quality Assurance',
+    image: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200&fit=crop',
   },
   {
-    quote:
-      'MazeLoot makes project management effortless. Our creative output has never been better.',
-    name: 'Chris Anderson',
-    title: 'Founder, Art Collective',
-    image: 'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=1200&fit=crop',
+    quote: 'Schedule a "stakeholder sync" the day before major deliverables to spot misalignment. One conversation beats ten revisions.',
+    name: 'Pre-Delivery Sync',
+    title: 'Client Management',
+    image: 'https://images.unsplash.com/photo-1452587925148-ce544e77e70d?w=1200&fit=crop',
   },
 ]
 
@@ -89,11 +82,11 @@ const currentIndex = ref(0)
 let intervalId
 
 const nextSlide = () => {
-  currentIndex.value = (currentIndex.value + 1) % testimonials.length
+  currentIndex.value = (currentIndex.value + 1) % tips.length
 }
 
 const prevSlide = () => {
-  currentIndex.value = (currentIndex.value - 1 + testimonials.length) % testimonials.length
+  currentIndex.value = (currentIndex.value - 1 + tips.length) % tips.length
 }
 
 const goToSlide = index => {
@@ -189,8 +182,8 @@ onUnmounted(() => {
         <Transition name="fade" mode="out-in">
           <div :key="currentIndex" class="absolute inset-0 h-full w-full">
             <img
-              :src="testimonials[currentIndex].image"
-              :alt="`Testimonial ${currentIndex + 1}`"
+              :src="tips[currentIndex].image"
+              :alt="`Creative Tip ${currentIndex + 1}`"
               class="h-full w-full object-cover scale-105 transition-transform duration-700 ease-out"
             />
             <!-- Testimonial Overlay -->
@@ -200,15 +193,15 @@ onUnmounted(() => {
                   <blockquote
                     class="text-xl md:text-2xl lg:text-3xl font-semibold mb-6 leading-relaxed"
                   >
-                    "{{ testimonials[currentIndex].quote }}"
+                    {{ tips[currentIndex].quote }}
                   </blockquote>
                   <div class="flex items-center gap-3 pt-4 border-t border-white/20">
                     <div class="flex-1">
                       <p class="font-bold text-lg md:text-xl">
-                        {{ testimonials[currentIndex].name }}
+                        {{ tips[currentIndex].name }}
                       </p>
                       <p class="text-sm md:text-base text-white/70 mt-1">
-                        {{ testimonials[currentIndex].title }}
+                        {{ tips[currentIndex].title }}
                       </p>
                     </div>
                   </div>
@@ -223,7 +216,7 @@ onUnmounted(() => {
           <!-- Dot Indicators -->
           <div class="flex gap-2.5 items-center pb-6 px-6">
             <button
-              v-for="(_testimonial, index) in testimonials"
+              v-for="(_tip, index) in tips"
               :key="index"
               @click="goToSlide(index)"
               :aria-label="`Go to slide ${index + 1}`"
