@@ -107,7 +107,115 @@
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-y-auto overscroll-contain">
+        <div class="flex-1 overflow-hidden flex flex-col min-h-0">
+          <Transition :name="'slide-panel-' + transitionDirection" mode="out-in">
+            <!-- Detail view -->
+            <div
+              v-if="viewMode === 'detail' && selectedNotification"
+              key="detail"
+              class="flex-1 flex flex-col min-h-0 overflow-hidden"
+            >
+              <div class="shrink-0 flex items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
+                <button
+                  type="button"
+                  class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  aria-label="Back to notifications"
+                  @click="transitionDirection = 'back'; viewMode = 'list'; selectedNotification = null"
+                >
+                  <ArrowLeft class="h-4 w-4 shrink-0" />
+                  Back
+                </button>
+              </div>
+              <div class="flex-1 overflow-y-auto overscroll-contain p-4 sm:px-6 pb-6">
+                <div class="flex items-start gap-3 mb-4">
+                  <div
+                    :class="[
+                      'relative h-12 w-12 rounded-xl overflow-hidden shrink-0 flex items-center justify-center',
+                      !getNotificationCoverPhoto(selectedNotification) && getNotificationIconBg(selectedNotification),
+                    ]"
+                  >
+                    <template v-if="getNotificationCoverPhoto(selectedNotification)">
+                      <img
+                        v-if="isImage(getNotificationCoverPhoto(selectedNotification))"
+                        :src="getNotificationCoverPhoto(selectedNotification)"
+                        :alt="selectedNotification.title"
+                        class="h-full w-full object-cover"
+                      />
+                      <video
+                        v-else-if="isVideo(getNotificationCoverPhoto(selectedNotification))"
+                        :src="getNotificationCoverPhoto(selectedNotification)"
+                        class="h-full w-full object-cover"
+                        muted
+                      />
+                    </template>
+                    <component
+                      v-else
+                      :is="getNotificationIcon(selectedNotification)"
+                      :class="['h-6 w-6', getNotificationIconColor(selectedNotification)]"
+                    />
+                  </div>
+                  <div class="min-w-0 flex-1">
+                    <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
+                      {{ selectedNotification.title }}
+                    </h2>
+                    <div class="flex flex-wrap items-center gap-2 text-xs" :class="theme.textSecondary">
+                      <span
+                        :class="[
+                          'px-2 py-0.5 rounded font-semibold uppercase tracking-wide',
+                          getPriorityBadgeClass(selectedNotification),
+                        ]"
+                      >
+                        {{ getPriority(selectedNotification) }}
+                      </span>
+                      <span>{{ formatRelativeTime(selectedNotification.createdAt) }}</span>
+                      <span v-if="selectedNotification.readAt" class="flex items-center gap-1">
+                        <Eye class="h-3.5 w-3.5" />
+                        Viewed
+                      </span>
+                      <span v-else class="flex items-center gap-1 text-violet-600 dark:text-violet-400 font-medium">
+                        <Sparkles class="h-3.5 w-3.5" />
+                        New
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <p
+                  class="text-sm leading-relaxed mb-4"
+                  :class="theme.textSecondary"
+                >
+                  {{ selectedNotification.description || selectedNotification.message || 'No description.' }}
+                </p>
+                <template v-if="notificationDetailText">
+                  <h3 class="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">
+                    Full details
+                  </h3>
+                  <div
+                    class="rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/60 p-4 min-h-[120px] max-h-[40vh] overflow-y-auto overscroll-contain"
+                  >
+                    <p
+                      class="text-[15px] leading-[1.65] text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-words"
+                    >
+                      {{ notificationDetailText }}
+                    </p>
+                  </div>
+                </template>
+                <div
+                  v-if="selectedNotification.actionUrl || selectedNotification.action_url"
+                  class="mt-5 pt-4 border-t border-gray-200 dark:border-gray-800"
+                >
+                  <Button
+                    variant="default"
+                    class="w-full rounded-lg font-medium"
+                    @click="handleActionClick(selectedNotification)"
+                  >
+                    {{ getActionLabel(selectedNotification) }}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            <!-- List view -->
+            <div v-else key="list" class="flex-1 overflow-y-auto overscroll-contain">
           <!-- Loading State -->
           <Transition
             enter-active-class="transition-all duration-200 ease-out"
@@ -306,6 +414,8 @@
               </TransitionGroup>
             </div>
           </Transition>
+            </div>
+          </Transition>
         </div>
       </SheetContent>
     </Sheet>
@@ -336,6 +446,8 @@ import {
   Share2,
   Mail,
   CheckSquare,
+  Copy,
+  ArrowLeft,
 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/shadcn/sheet'
@@ -365,8 +477,17 @@ const isOpen = ref(false)
 const isLoading = computed(() => notificationsStore.isLoading)
 const selectedPriority = ref('All')
 const selectedNotification = ref(null)
+const viewMode = ref('list')
+const transitionDirection = ref('forward')
 
 const priorityFilters = ['All', 'High', 'Medium', 'Low']
+
+const notificationDetailText = computed(() => {
+  const n = selectedNotification.value
+  if (!n) return ''
+  const detail = n.detail ?? n.metadata?.detail ?? ''
+  return typeof detail === 'string' ? detail.trim() : ''
+})
 
 const getNotificationCoverPhoto = (notification) => {
   const metadata = notification.metadata || {}
@@ -476,6 +597,7 @@ const getNotificationIcon = (notification) => {
     
     // Selections Phase
     selection_created: CheckSquare,
+    selection_duplicated: Copy,
     selection_published: CheckCircle,
     selection_completed: CheckCircle,
     selection_access: Eye,
@@ -630,8 +752,13 @@ const getActionLabel = (notification) => {
 }
 
 const selectNotification = (notification) => {
+  transitionDirection.value = 'forward'
   selectedNotification.value = notification
-  handleNotificationClick(notification)
+  viewMode.value = 'detail'
+  if (!notification.readAt) {
+    handleMarkAsRead(notification)
+  }
+  emit('notification-click', notification)
 }
 
 const handleActionClick = async (notification) => {
@@ -640,21 +767,6 @@ const handleActionClick = async (notification) => {
     router.push(actionUrl)
     isOpen.value = false
   }
-}
-
-const handleNotificationClick = async notification => {
-  if (!notification.readAt) {
-    await handleMarkAsRead(notification)
-  }
-
-  emit('notification-click', notification)
-
-  const actionUrl = notification.actionUrl || notification.action_url
-  if (actionUrl) {
-    router.push(actionUrl)
-  }
-
-  isOpen.value = false
 }
 
 const handleMarkAsRead = async notification => {
@@ -690,6 +802,8 @@ watch(isOpen, async newValue => {
     await notificationsStore.fetchUnreadCounts()
   } else {
     selectedNotification.value = null
+    viewMode.value = 'list'
+    transitionDirection.value = 'forward'
   }
 })
 
@@ -820,5 +934,24 @@ onMounted(async () => {
 
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+.slide-panel-forward-enter-active,
+.slide-panel-forward-leave-active,
+.slide-panel-back-enter-active,
+.slide-panel-back-leave-active {
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.slide-panel-forward-enter-from {
+  transform: translateX(100%);
+}
+.slide-panel-forward-leave-to {
+  transform: translateX(-100%);
+}
+.slide-panel-back-enter-from {
+  transform: translateX(-100%);
+}
+.slide-panel-back-leave-to {
+  transform: translateX(100%);
 }
 </style>

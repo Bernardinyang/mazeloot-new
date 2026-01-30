@@ -1348,7 +1348,7 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onMounted, ref } from 'vue'
+import { computed, onActivated, onMounted, onUnmounted, ref } from 'vue'
 import {
   AlertCircle,
   Calendar,
@@ -1844,6 +1844,8 @@ const fetchStorage = async () => {
   }
 }
 
+const onStorageShouldRefresh = () => fetchStorage()
+
 // Fetch data on mount - each section loads independently
 onMounted(async () => {
   // Fetch selected products first to determine what to show
@@ -1860,6 +1862,11 @@ onMounted(async () => {
   
   // Storage is always fetched (shared across products)
   fetchStorage()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 
 // Refresh storage when page is activated (user navigates back)

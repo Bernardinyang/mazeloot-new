@@ -45,7 +45,7 @@ export const MEMORA_NAVIGATION = [
     icon: FolderKanban,
   },
   {
-    title: 'Main',
+    title: 'Phases',
   },
   {
     title: 'Projects',
@@ -71,6 +71,9 @@ export const MEMORA_NAVIGATION = [
     title: 'Proofing',
     name: 'proofing',
     icon: Eye,
+  },
+  {
+    title: 'Medias',
   },
   {
     title: 'Starred',

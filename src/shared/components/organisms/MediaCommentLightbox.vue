@@ -543,10 +543,10 @@ const updateMediaUrl = async () => {
     if (url && url.startsWith('file://')) {
       try {
         const blobUrl = await getMediaDisplayUrl(url, '')
-        currentMediaUrl.value = blobUrl || url
+        currentMediaUrl.value = blobUrl || ''
       } catch (error) {
         console.error('Failed to convert file:// URL to blob:', error)
-        currentMediaUrl.value = url // Fallback to original URL
+        currentMediaUrl.value = ''
       }
     } else if (
       url &&
@@ -556,16 +556,12 @@ const updateMediaUrl = async () => {
     } else if (url) {
       currentMediaUrl.value = url
     } else {
-      const fallbackUrl =
-        currentItem.value.file?.url || currentItem.value.url || currentItem.value.thumbnailUrl || ''
-      currentMediaUrl.value = fallbackUrl
-
-      if (!fallbackUrl) {
-        console.warn('No media URL found for item:', {
+      const thumb = getThumbnailUrl(currentItem.value)
+      currentMediaUrl.value = thumb || ''
+      if (!thumb) {
+        console.warn('No view URL found for item (original only for download):', {
           id: currentItem.value.id,
           uuid: currentItem.value.uuid,
-          file: currentItem.value.file,
-          keys: Object.keys(currentItem.value),
         })
       }
     }

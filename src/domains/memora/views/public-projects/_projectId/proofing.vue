@@ -752,8 +752,8 @@
                     item.thumbnailUrl ||
                     item.thumbnail ||
                     item.largeImageUrl ||
-                    (item.file && item.file.url) ||
-                    item.url
+                    (item.file?.variants?.thumb || item.file?.variants?.medium || item.file?.variants?.large) ||
+                    ''
                   "
                   :class="[
                     'w-full h-full object-cover',

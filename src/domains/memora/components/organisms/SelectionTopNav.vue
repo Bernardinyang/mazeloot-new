@@ -227,6 +227,8 @@ import { useSelectionHeaderStore } from '@/domains/memora/stores/selectionHeader
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import AddEmailModal from '@/shared/components/organisms/AddEmailModal.vue'
 import { useRouter } from 'vue-router'
+import { useSettingsApi } from '@/domains/memora/api/settings'
+import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
 const router = useRouter()
@@ -309,17 +311,22 @@ const handleEmailsSaved = async savedEmails => {
   await headerStore.handlePublish(true)
 }
 
-const handlePreview = () => {
+const handlePreview = async () => {
   if (!selection.value) return
 
   const selectionId = selection.value.id || selection.value.uuid
+  const { fetchSettings } = useSettingsApi()
+  const settings = await fetchSettings().catch(() => ({}))
+  const domain = settings?.branding?.domain
+  if (!domain) {
+    toast.error('Preview unavailable', { description: 'Branding domain is not configured.' })
+    return
+  }
 
   const route = router.resolve({
     name: 'clientSelections',
-    query: {
-      selectionId,
-      preview: true,
-    },
+    params: { domain, selectionId },
+    query: { preview: true },
   })
 
   window.open(route.href, '_blank')

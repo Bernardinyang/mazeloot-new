@@ -8,7 +8,7 @@
         <div :key="props.currentIndex" class="relative">
           <img
             :alt="currentItem?.title || 'Media'"
-            :src="currentItem?.url || currentItem?.thumbnail || props.placeholderImage"
+            :src="displayUrl"
             class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl mx-auto"
             @error="emit('image-error', $event)"
           />
@@ -57,6 +57,7 @@
 <script setup>
 import { computed } from 'vue'
 import { ChevronLeft, ChevronsRight, X } from '@/shared/utils/lucideAnimated'
+import { getMediaLightboxPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
 
 const props = defineProps({
   items: { type: Array, required: true },
@@ -67,4 +68,12 @@ const props = defineProps({
 const emit = defineEmits(['close', 'navigate', 'image-error'])
 
 const currentItem = computed(() => props.items[props.currentIndex])
+
+const displayUrl = computed(
+  () =>
+    getMediaLightboxPreviewUrl(currentItem.value) ||
+    currentItem.value?.thumbnailUrl ||
+    currentItem.value?.thumbnail ||
+    props.placeholderImage
+)
 </script>

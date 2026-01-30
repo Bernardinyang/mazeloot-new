@@ -3,6 +3,7 @@
     <div class="flex items-center justify-between mb-4">
       <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
       <Button
+        v-if="!props.hideAddSet"
         variant="accent"
         size="sm"
         :disabled="props.isSavingSets || props.disableAddSet"
@@ -57,7 +58,7 @@
           :class="[
             'flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out group relative overflow-hidden',
             props.selectedSetId === set.id
-              ? 'bg-white dark:bg-gray-800/50 border-2 border-accent/30 dark:border-accent/30 shadow-sm scale-[1.01]'
+              ? 'bg-accent border-2 border-accent shadow-sm scale-[1.01]'
               : '',
             props.draggedSetId === set.id ? 'opacity-50 scale-95' : '',
             props.dragOverIndex === index ? 'ring-2 ring-accent ring-offset-2 scale-[1.02]' : '',
@@ -76,20 +77,20 @@
           <Transition name="indicator">
             <div
               v-if="props.selectedSetId === set.id"
-              class="absolute left-0 top-0 bottom-0 w-1 bg-accent rounded-r-full transition-all duration-300"
+              class="absolute left-0 top-0 bottom-0 w-1 bg-white/40 rounded-r-full transition-all duration-300"
             ></div>
           </Transition>
 
           <GripVertical
             :class="[
-              props.selectedSetId === set.id ? 'text-accent' : '',
+              props.selectedSetId === set.id ? 'text-white opacity-90' : '',
               props.isSavingSets ? 'opacity-30 cursor-not-allowed' : '',
             ]"
             class="h-4 w-4 flex-shrink-0 opacity-50 transition-all duration-200 ml-1 hover:opacity-70 hover:scale-110"
           />
           <span
             v-if="!props.editingSetId || props.editingSetId !== set.id"
-            :class="[props.selectedSetId === set.id ? 'text-accent' : '']"
+            :class="[props.selectedSetId === set.id ? 'text-white' : '']"
             class="flex-1 text-xs font-bold tracking-wide truncate"
           >
             {{ set.name }}
@@ -107,7 +108,7 @@
           />
           <div class="flex items-center gap-2">
             <span
-              :class="[props.selectedSetId === set.id ? 'bg-accent text-accent-foreground shadow-sm' : '']"
+              :class="[props.selectedSetId === set.id ? 'bg-white/20 text-white shadow-sm' : '']"
               class="text-xs px-3 py-1.5 rounded-full font-bold min-w-[2.5rem] text-center transition-all duration-300 ease-out"
             >
               <template v-if="props.setProgress && props.setProgress[set.id] && props.setProgress[set.id].total > 0">
@@ -122,10 +123,8 @@
             <DropdownMenuTrigger as-child>
               <button
                 :class="[
-                  props.selectedSetId === set.id
-                    ? 'hover:bg-accent/20 dark:hover:bg-accent/30'
-                    : '',
-                  theme.textSecondary,
+                  props.selectedSetId === set.id ? 'text-white hover:bg-white/20' : '',
+                  props.selectedSetId !== set.id ? theme.textSecondary : '',
                 ]"
                 :disabled="props.isSavingSets"
                 class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -261,6 +260,10 @@ const props = defineProps({
     default: null,
   },
   disableAddSet: {
+    type: Boolean,
+    default: false,
+  },
+  hideAddSet: {
     type: Boolean,
     default: false,
   },

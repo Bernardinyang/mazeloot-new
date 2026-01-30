@@ -762,6 +762,8 @@ export function useBackgroundUploadManager(options = {}) {
       await removeUploadItem(uploadId)
       await loadQueue()
 
+      window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
+
       // Cleanup callbacks
       uploadCallbacks.value.delete(uploadId)
       loadMediaItemsCallbacks.value.delete(uploadId)

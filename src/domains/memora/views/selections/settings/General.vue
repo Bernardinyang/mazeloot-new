@@ -11,152 +11,15 @@
         />
       </div>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
-          <!-- Skeleton Header -->
-          <div class="mb-10">
-            <div class="flex items-center gap-3 mb-2">
-              <Skeleton class="h-8 w-48 rounded-lg" />
-              <Skeleton class="h-5 w-5 rounded-full" />
-            </div>
-            <Skeleton class="h-4 w-96 rounded-md" />
-          </div>
-
-          <!-- Skeleton Settings Sections -->
-          <div class="space-y-6">
-            <!-- Selection Name Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-32 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-64 rounded-md" />
-                </div>
-              </div>
-              <Skeleton class="h-10 w-full max-w-md rounded-md" />
-            </div>
-
-            <!-- Description Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-24 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-72 rounded-md" />
-                </div>
-              </div>
-              <Skeleton class="h-24 w-full max-w-2xl rounded-md" />
-              <div class="flex items-center justify-between max-w-2xl">
-                <Skeleton class="h-3 w-48 rounded-md" />
-                <Skeleton class="h-3 w-16 rounded-md" />
-              </div>
-            </div>
-
-            <!-- Selection Color Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-32 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-64 rounded-md" />
-                </div>
-              </div>
-              <div class="flex items-center gap-3 max-w-md">
-                <Skeleton class="h-12 w-20 rounded-lg" />
-                <Skeleton class="h-12 flex-1 rounded-md" />
-                <Skeleton class="h-12 w-12 rounded-lg" />
-              </div>
-            </div>
-
-            <!-- Typography Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-24 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-56 rounded-md" />
-                </div>
-              </div>
-              <div class="space-y-5">
-                <div>
-                  <Skeleton class="h-3 w-24 rounded-md mb-2.5" />
-                  <Skeleton class="h-10 w-full rounded-md" />
-                </div>
-                <div>
-                  <Skeleton class="h-3 w-24 rounded-md mb-2.5" />
-                  <Skeleton class="h-10 w-full rounded-md" />
-                </div>
-              </div>
-            </div>
-
-            <!-- Allowed Email Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-32 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-80 rounded-md" />
-                </div>
-              </div>
-              <Skeleton class="h-10 w-full max-w-md rounded-md" />
-              <div class="flex items-center gap-2 pt-2">
-                <Skeleton class="h-9 w-24 rounded-md" />
-              </div>
-            </div>
-
-            <!-- Password Protection Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-40 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-72 rounded-md" />
-                </div>
-                <Skeleton class="h-6 w-12 rounded-full" />
-              </div>
-            </div>
-
-            <!-- Selection Limit Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-32 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-80 rounded-md" />
-                </div>
-              </div>
-              <div class="flex items-center gap-3">
-                <Skeleton class="h-10 w-32 rounded-md" />
-                <Skeleton class="h-10 w-24 rounded-md" />
-              </div>
-            </div>
-
-            <!-- Auto Delete Skeleton -->
-            <div
-              :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
-            >
-              <div class="flex items-start justify-between gap-4">
-                <div class="flex-1">
-                  <Skeleton class="h-6 w-32 rounded-md mb-2" />
-                  <Skeleton class="h-3 w-80 rounded-md" />
-                </div>
-                <Skeleton class="h-6 w-12 rounded-full" />
-              </div>
-            </div>
+        <div
+          v-if="isLoading"
+          class="p-8 flex items-center justify-center min-h-[60vh]"
+          aria-busy="true"
+          aria-label="Loading general settings"
+        >
+          <div class="text-center space-y-4">
+            <Loader2 :class="[theme.textSecondary, 'h-8 w-8 animate-spin mx-auto']" />
+            <p :class="theme.textSecondary" class="text-sm">Loading settings...</p>
           </div>
         </div>
 
@@ -995,7 +858,6 @@ import { storeToRefs } from 'pinia'
 import { getAccentColor } from '@/shared/utils/colors'
 import { fontStyleOptions as baseFontStyleOptions } from '@/shared/utils/designConstants'
 import { generatePassword } from '@/shared/utils/generatePassword'
-import { Skeleton } from '@/shared/components/shadcn/skeleton'
 
 const route = useRoute()
 const router = useRouter()
@@ -1005,7 +867,7 @@ const selectionsApi = useSelectionsApi()
 
 // Selection data
 const selection = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 const isSaving = ref(false)
 
 // Settings state
@@ -1146,7 +1008,10 @@ const hasChanges = computed(() => {
 // Load selection data
 onMounted(async () => {
   const selectionId = route.params.id
-  if (!selectionId) return
+  if (!selectionId) {
+    isLoading.value = false
+    return
+  }
 
   isLoading.value = true
   try {

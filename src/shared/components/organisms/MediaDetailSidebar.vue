@@ -669,7 +669,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { Loader2, Eye, Download, AlertCircle, Copy, Check } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
@@ -678,6 +678,7 @@ import DetailField from '@/shared/components/molecules/DetailField.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { getMediaDisplayUrl, getMediaDisplayUrlSync } from '@/domains/memora/utils/media/getMediaDisplayUrl'
+import { getMediaPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
 import { toast } from '@/shared/utils/toast'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { canPreviewFile } from '@/shared/utils/media/getFileTypeCover'
@@ -712,25 +713,33 @@ const isImageLoading = ref(true)
 const imageError = ref(false)
 const mediaPreviewUrl = ref(null)
 
-// Initialize preview URL
-if (props.media) {
-  const url =
-    props.media.largeImageUrl ||
-    props.media.thumbnailUrl ||
-    props.media.file?.url ||
-    props.media.url
-  if (url) {
-    if (url.startsWith('file://')) {
-      // Convert file:// to blob URL
-      mediaPreviewUrl.value = getMediaDisplayUrlSync(url, props.placeholderImage)
-      getMediaDisplayUrl(url, props.placeholderImage).then(blobUrl => {
-        if (blobUrl) mediaPreviewUrl.value = blobUrl
-      })
-    } else {
-      mediaPreviewUrl.value = url
-    }
+const setPreviewUrl = () => {
+  const url = getMediaPreviewUrl(props.media)
+  if (!url) {
+    mediaPreviewUrl.value = null
+    return
+  }
+  if (url.startsWith('file://')) {
+    mediaPreviewUrl.value = getMediaDisplayUrlSync(url, props.placeholderImage)
+    getMediaDisplayUrl(url, props.placeholderImage).then(blobUrl => {
+      if (blobUrl) mediaPreviewUrl.value = blobUrl
+    })
+  } else {
+    mediaPreviewUrl.value = url
   }
 }
+
+if (props.media) setPreviewUrl()
+
+watch(
+  () => props.media,
+  m => {
+    imageError.value = false
+    isImageLoading.value = true
+    if (m) setPreviewUrl()
+    else mediaPreviewUrl.value = null
+  }
+)
 
 const excludedKeys = [
   'id',

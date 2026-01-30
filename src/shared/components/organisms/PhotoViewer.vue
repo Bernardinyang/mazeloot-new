@@ -39,7 +39,7 @@
         <!-- Photo -->
         <div class="relative w-full h-full flex items-center justify-center p-8">
           <img
-            :src="currentPhoto?.url || currentPhoto?.thumbnail"
+            :src="displayUrl"
             :alt="currentPhoto?.title || 'Photo'"
             class="max-w-full max-h-full object-contain"
             @load="handleImageLoad"
@@ -94,6 +94,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import { X, ChevronLeft, ChevronRight, Download } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
+import { getMediaLightboxPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
 
 const theme = useThemeClasses()
 
@@ -125,6 +126,12 @@ const isLoading = ref(false)
 const currentPhoto = computed(() => {
   if (props.photos.length === 0) return null
   return props.photos[currentIndex.value] || props.photos[0]
+})
+
+const displayUrl = computed(() => {
+  const p = currentPhoto.value
+  if (!p) return ''
+  return getMediaLightboxPreviewUrl(p) || p.thumbnailUrl || p.thumbnail || ''
 })
 
 const hasPrevious = computed(() => {
@@ -162,26 +169,7 @@ const handleImageError = () => {
 
 const handleDownload = () => {
   if (!currentPhoto.value) return
-
-  try {
-    const link = document.createElement('a')
-    link.href = currentPhoto.value.url || currentPhoto.value.thumbnail || ''
-    link.download = currentPhoto.value.title || 'photo.jpg'
-    link.target = '_blank'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    toast.success('Download started', {
-      description: currentPhoto.value.title || 'Photo',
-    })
-
-    emit('download', currentPhoto.value)
-  } catch (error) {
-    toast.error('Failed to download', {
-      description: 'Could not download the photo.',
-    })
-  }
+  emit('download', currentPhoto.value)
 }
 
 // Keyboard navigation

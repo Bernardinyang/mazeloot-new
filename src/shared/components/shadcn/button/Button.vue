@@ -24,7 +24,7 @@ const props = defineProps({
   },
   variant: {
     type: String,
-    default: 'default',
+    default: 'accent',
     validator: value =>
       [
         'default',

@@ -324,7 +324,7 @@
 </template>
 
 <script setup>
-import { onActivated, onMounted, ref } from 'vue'
+import { onActivated, onMounted, onUnmounted, ref } from 'vue'
 import {
   Activity,
   ArrowRight,
@@ -536,9 +536,16 @@ const refreshAll = async () => {
   }
 }
 
+const onStorageShouldRefresh = () => fetchStorage()
+
 onMounted(() => {
   fetchDashboard()
   fetchStorage()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 
 // Refresh storage when page is activated (user navigates back)

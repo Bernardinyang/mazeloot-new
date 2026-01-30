@@ -306,6 +306,7 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { ChevronLeft, ChevronRight, Download, Loader2, X, MessageSquare, Share2, Star, Play, Pause, Heart, Lock, LockOpen } from '@/shared/utils/lucideAnimated'
 import { getMediaDisplayUrl } from '@/domains/memora/utils/media/getMediaDisplayUrl'
+import { getMediaLightboxPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
 import CustomVideoPlayer from './CustomVideoPlayer.vue'
 import CommentsPanel from './CommentsPanel.vue'
 import { useProofingApi } from '@/domains/memora/api/proofing'
@@ -517,16 +518,14 @@ const getThumbnailUrl = item => {
     return null
   }
 
-  // 3. For images, use file URL or variants
   if (mediaType === 'image') {
-    if (item.file?.variants?.thumb) {
-      return item.file.variants.thumb
-    }
-    return item.file?.url || item.url
+    if (item.file?.variants?.thumb) return item.file.variants.thumb
+    if (item.file?.variants?.medium) return item.file.variants.medium
+    if (item.file?.variants?.large) return item.file.variants.large
+    return item.thumbnailUrl || item.largeImageUrl || null
   }
 
-  // 4. Fallback
-  return item.file?.url || item.url || item.thumbnail
+  return item.thumbnailUrl || null
 }
 
 const getMediaUrl = item => {
@@ -535,32 +534,17 @@ const getMediaUrl = item => {
   const mediaType = item.type || item.file?.type
 
   if (mediaType === 'image') {
-    // Use preview variant for public selection (has selectionId and guestToken)
-    if (props.selectionId && props.guestToken) {
-      if (item.file?.variants?.preview) {
-        return item.file.variants.preview
-      }
-      // Fallback to file.url which should be preview variant for public selection
-      if (item.file?.url) {
-        return item.file.url
-      }
+    if (props.selectionId && props.guestToken && item.file?.variants?.preview) {
+      return item.file.variants.preview
     }
-    
-    if (item.largeImageUrl) {
-      return item.largeImageUrl
-    }
-    if (item.file?.variants?.large) {
-      return item.file.variants.large
-    }
-    return item.file?.url || null
+    return getMediaLightboxPreviewUrl(item)
   }
 
-  // For videos, return the video URL
   if (mediaType === 'video') {
     return item.file?.url || item.url || null
   }
 
-  return item.file?.url || item.url || null
+  return getMediaLightboxPreviewUrl(item)
 }
 
 const updateMediaUrl = async () => {

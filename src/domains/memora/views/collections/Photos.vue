@@ -1808,11 +1808,16 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
   showWarnings: false,
 })
 
+const onStorageShouldRefresh = () => {
+  if (collection.value?.id) loadCollection(collection.value.id)
+}
+
 onMounted(async () => {
   const uuid = route.params.uuid
   if (uuid) {
     await loadCollection(uuid)
   }
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   
   try {
     await watermarkStore.fetchWatermarks()
@@ -1838,6 +1843,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   cleanupProtection()
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 </script>
 

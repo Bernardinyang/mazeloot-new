@@ -6,7 +6,7 @@
     <div class="relative max-w-7xl max-h-full">
       <img
         :alt="props.media?.title || 'Media'"
-        :src="props.media?.url || props.media?.thumbnail || props.placeholderImage"
+        :src="displayUrl"
         class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
         @error="emit('image-error', $event)"
       />
@@ -32,7 +32,9 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { X } from '@/shared/utils/lucideAnimated'
+import { getMediaLightboxPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
 
 const props = defineProps({
   media: { type: Object, required: true },
@@ -40,4 +42,12 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['close', 'image-error'])
+
+const displayUrl = computed(
+  () =>
+    getMediaLightboxPreviewUrl(props.media) ||
+    props.media?.thumbnailUrl ||
+    props.media?.thumbnail ||
+    props.placeholderImage
+)
 </script>

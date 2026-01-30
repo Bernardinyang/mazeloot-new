@@ -773,6 +773,10 @@ export function useMediaUpload(options = {}) {
           }
         }
 
+        if (results.successful.length > 0) {
+          window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
+        }
+
         // Clean up batch ID
         activeUploadBatches.value.delete(batchId)
         return results
@@ -842,6 +846,7 @@ export function useMediaUpload(options = {}) {
               console.error('Error in onUploadComplete callback:', error)
             }
           }
+          window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
         } catch (error) {
           const errorMessage = getErrorMessage(error, `Failed to upload "${file.name}"`)
           uploadProgress.value[fileId] = {
@@ -908,6 +913,7 @@ export function useMediaUpload(options = {}) {
                     console.error('Error in onUploadComplete callback:', error)
                   }
                 }
+                window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
 
                 // Remove from errors array on success
                 const errorIndex = uploadErrors.value.findIndex(e => e.fileId === fileId)

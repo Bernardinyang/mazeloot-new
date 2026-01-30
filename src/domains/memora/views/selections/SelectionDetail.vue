@@ -1023,15 +1023,19 @@ const handleBackgroundUploadComplete = event => {
   }
 }
 
+const onStorageShouldRefresh = () => loadSelection()
+
 onMounted(() => {
   window.addEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
   window.addEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 
 onUnmounted(() => {
   cleanupProtection()
   window.removeEventListener('backgroundUpload:loadMediaItems', handleBackgroundLoadMediaItems)
   window.removeEventListener('backgroundUpload:uploadComplete', handleBackgroundUploadComplete)
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 
 // Update isLoadingMedia to use pagination loading state

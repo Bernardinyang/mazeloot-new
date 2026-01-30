@@ -15,6 +15,7 @@
       :sorted-media-sets="sortedMediaSets"
       :selection-status="selectionStatus"
       :disable-add-set="disableAddSet"
+      :hide-add-set="hideAddSet"
       :is-copying-filenames="isCopyingFilenames"
       :set-progress="setProgress"
       :on-copy-selected-filenames-in-set="onCopySelectedFilenamesInSet"
@@ -104,6 +105,13 @@ const disableAddSet = computed(() => {
     return selectionStatus.value === 'completed' || selectionStatus.value === 'active'
   }
   return props.disableAddSet
+})
+
+const hideAddSet = computed(() => {
+  if (props.phaseType === 'selection' && phaseActions) {
+    return selectionStatus.value === 'completed'
+  }
+  return false
 })
 
 const isCopyingFilenames = computed(() => {

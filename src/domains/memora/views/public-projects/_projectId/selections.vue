@@ -647,8 +647,8 @@
                     item.thumbnailUrl ||
                     item.thumbnail ||
                     item.largeImageUrl ||
-                    (item.file && item.file.url) ||
-                    item.url
+                    (item.file?.variants?.thumb || item.file?.variants?.medium || item.file?.variants?.large) ||
+                    ''
                   "
                   :class="[
                     'w-full h-full object-cover',
@@ -828,7 +828,7 @@
                     <img
                       v-if="item.type === 'image'"
                       :alt="item.title || 'Selected media'"
-                      :src="item.thumbnail || item.url"
+                      :src="item.thumbnailUrl || item.largeImageUrl || item.thumbnail || ''"
                       class="w-full h-full object-cover"
                     />
                     <video v-else :src="item.url" class="w-full h-full object-cover" />

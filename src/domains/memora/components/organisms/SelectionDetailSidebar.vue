@@ -74,7 +74,7 @@
       <div :class="['h-px mt-6 mb-8 bg-gray-200 dark:bg-gray-700']"></div>
 
       <!-- Media Statistics Section -->
-      <div v-if="selection.mediaCount !== undefined" class="pt-2 pb-6">
+      <div v-if="showMediaStats" class="pt-2 pb-6">
         <DetailSection title="Media Statistics" :icon="BarChart3">
           <div class="grid grid-cols-3 gap-3">
             <!-- Total Media Card -->
@@ -89,7 +89,7 @@
                 <ImageIcon class="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div :class="['text-2xl font-bold mb-1', 'text-blue-600 dark:text-blue-400']">
-                {{ selection.mediaCount || 0 }}
+                {{ totalMedia }}
               </div>
               <div
                 :class="[
@@ -113,7 +113,7 @@
                 <CheckSquare class="h-4 w-4 text-green-600 dark:text-violet-400" />
               </div>
               <div :class="['text-2xl font-bold mb-1', 'text-green-600 dark:text-violet-400']">
-                {{ selection.selectedMediaCount || 0 }}
+                {{ selectedMedia }}
               </div>
               <div
                 :class="[
@@ -137,7 +137,7 @@
                 <XSquare class="h-4 w-4" :class="theme.textSecondary" />
               </div>
               <div :class="['text-2xl font-bold mb-1', theme.textPrimary]">
-                {{ (selection.mediaCount || 0) - (selection.selectedMediaCount || 0) }}
+                {{ unselectedMedia }}
               </div>
               <div
                 :class="['text-[10px] font-medium uppercase tracking-wide', theme.textSecondary]"
@@ -154,7 +154,7 @@
 
       <!-- Divider after Media Statistics -->
       <div
-        v-if="selection.mediaCount !== undefined"
+        v-if="showMediaStats"
         :class="['h-px mt-6 mb-8 bg-gray-200 dark:bg-gray-700']"
       ></div>
 
@@ -177,13 +177,13 @@
                   {{ typeof set === 'string' ? set : set.name }}
                 </span>
                 <span
-                  v-if="set.count !== undefined"
+                  v-if="(set.count ?? set.media_count) !== undefined"
                   :class="[
                     'text-xs px-1.5 py-0.5 rounded-full',
                     'bg-violet-500/10 text-violet-600 dark:text-violet-400',
                   ]"
                 >
-                  {{ set.count }}
+                  {{ set.count ?? set.media_count ?? 0 }}
                 </span>
               </div>
             </div>
@@ -244,27 +244,15 @@
       <div v-if="hasAdditionalFields" class="pt-2 pb-6">
         <DetailSection title="Additional Properties" :icon="FileText">
           <div class="space-y-3.5">
-            <!-- Cover Photo -->
-            <DetailField v-if="selection.coverPhotoUrl" label="Cover Photo">
-              <div class="flex items-center gap-2">
-                <img
-                  :src="selection.coverPhotoUrl"
-                  alt="Cover photo"
-                  class="h-10 w-10 rounded object-cover border"
-                  :class="theme.borderSecondary"
-                  @error="handleImageError"
-                />
-                <a
-                  :href="selection.coverPhotoUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  :class="[
-                    'text-sm text-violet-500 hover:text-violet-600 dark:hover:text-violet-400 hover:underline',
-                  ]"
-                >
-                  View Image
-                </a>
-              </div>
+            <!-- Cover Photo (thumbnail preview only; no link to original) -->
+            <DetailField v-if="coverPhotoUrl" label="Cover Photo">
+              <img
+                :src="coverPhotoUrl"
+                alt="Cover photo"
+                class="h-10 w-10 rounded object-cover border"
+                :class="theme.borderSecondary"
+                @error="handleImageError"
+              />
             </DetailField>
 
             <!-- Completed By Email -->
@@ -407,8 +395,10 @@ const excludedKeys = [
   'projectId',
   'project_uuid',
   'mediaCount',
+  'media_count',
   'selectedMediaCount',
   'selectedCount',
+  'selected_count',
   'createdAt',
   'created_at',
   'updatedAt',
@@ -426,6 +416,24 @@ const excludedKeys = [
   'uuid',
 ]
 
+const totalMedia = computed(
+  () =>
+    selection.value?.mediaCount ?? selection.value?.media_count ?? 0
+)
+const selectedMedia = computed(
+  () =>
+    selection.value?.selectedMediaCount ??
+    selection.value?.selectedCount ??
+    selection.value?.selected_count ??
+    0
+)
+const unselectedMedia = computed(() => Math.max(0, totalMedia.value - selectedMedia.value))
+const showMediaStats = computed(
+  () =>
+    selection.value &&
+    (selection.value.mediaCount !== undefined || selection.value.media_count !== undefined)
+)
+
 const hasSets = computed(() => {
   if (!selection.value) return false
   return (
@@ -434,6 +442,10 @@ const hasSets = computed(() => {
     selection.value.mediaSets.length > 0
   )
 })
+
+const coverPhotoUrl = computed(
+  () => selection.value?.coverPhotoUrl ?? selection.value?.cover_photo_url ?? ''
+)
 
 const hasAdditionalFields = computed(() => {
   if (!selection.value) return false
