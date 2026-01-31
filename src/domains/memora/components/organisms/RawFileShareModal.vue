@@ -186,7 +186,7 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
-import { useRouter } from 'vue-router'
+import { publicRawFileUrl } from '@/shared/utils/memoraPublicUrls'
 
 const props = defineProps({
   modelValue: {
@@ -205,6 +205,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  brandingDomain: {
+    type: String,
+    default: null,
+  },
   password: {
     type: String,
     default: '',
@@ -214,7 +218,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const theme = useThemeClasses()
-const router = useRouter()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -223,15 +226,9 @@ const isOpen = computed({
 
 const shareLink = computed(() => {
   if (!props.rawFileId) return ''
-
-  const route = router.resolve({
-    name: 'clientRawFiles',
-    query: {
-      rawFileId: props.rawFileId,
-    },
-  })
-
-  return `${window.location.origin}${route.href}`
+  const domain = props.brandingDomain || props.projectId || props.rawFileId
+  const path = publicRawFileUrl(domain, props.rawFileId)
+  return path ? `${window.location.origin}${path}` : ''
 })
 
 const showPassword = ref(false)

@@ -65,6 +65,7 @@
       <ShareModal
         v-model:open="showShareModal"
         route-name="clientCollection"
+        :route-params="{ domain: collection?.brandingDomain || undefined }"
         :route-query="{ collectionId: collection?.id || collection?.uuid || '' }"
         title="Share Collection"
         description="Share this collection with your client via link, QR code, WhatsApp, or email."

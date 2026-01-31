@@ -5,6 +5,7 @@ import Pricing from '@/shared/views/public/Pricing.vue'
 import ContactUs from '@/shared/views/public/ContactUs.vue'
 import Waitlist from '@/shared/views/public/Waitlist.vue'
 import EarlyAccess from '@/shared/views/public/EarlyAccess.vue'
+import FoundersPricing from '@/shared/views/public/FoundersPricing.vue'
 
 export const publicRoutes = [
   {
@@ -59,6 +60,14 @@ export const publicRoutes = [
     path: '/early-access',
     name: 'early-access',
     component: EarlyAccess,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/founders',
+    name: 'founders-pricing',
+    component: FoundersPricing,
     meta: {
       requiresAuth: false,
     },

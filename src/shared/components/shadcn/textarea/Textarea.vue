@@ -3,8 +3,8 @@
     :value="modelValue"
     :class="
       cn(
-        'flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
-        ($attrs.class as string) || ''
+        'flex w-full rounded-lg border border-input bg-background px-3 py-2.5 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 resize-y min-h-[80px]',
+        $attrs.class
       )
     "
     v-bind="restAttrs"
@@ -12,28 +12,32 @@
   />
 </template>
 
-<script setup lang="ts">
+<script setup>
 import { computed, useAttrs } from 'vue'
 import { cn } from '@/shared/lib/utils'
 
-const props = defineProps<{
-  modelValue?: string
-}>()
+defineOptions({
+  inheritAttrs: false,
+})
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
+const props = defineProps({
+  modelValue: {
+    type: String,
+    default: '',
+  },
+})
+
+const emit = defineEmits(['update:modelValue'])
 
 const attrs = useAttrs()
 
-// Exclude modelValue from attrs to avoid conflicts
 const restAttrs = computed(() => {
-  const { class: _, modelValue: __, ...rest } = attrs
+  const { class: _c, ...rest } = attrs
   return rest
 })
 
-const handleInput = (event: Event) => {
-  const target = event.target as HTMLTextAreaElement
-  emit('update:modelValue', target.value)
+const handleInput = (event) => {
+  const target = event.target
+  emit('update:modelValue', target?.value ?? '')
 }
 </script>

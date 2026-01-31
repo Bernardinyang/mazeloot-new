@@ -11,7 +11,8 @@
           Closure Request History
         </DialogTitle>
         <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-400">
-          View all closure requests for this media item
+          View all closure requests for this media item. If the client doesn't respond, resend the
+          email or cancel the request to send a new one later.
         </DialogDescription>
       </DialogHeader>
 
@@ -44,7 +45,9 @@
                   ? 'border-green-200 dark:border-green-800/50 bg-green-50/30 dark:bg-green-900/10'
                   : request.status === 'rejected'
                     ? 'border-red-200 dark:border-red-800/50 bg-red-50/30 dark:bg-red-900/10'
-                    : 'border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-900/10'
+                    : request.status === 'cancelled'
+                      ? 'border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50'
+                      : 'border-amber-200 dark:border-amber-800/50 bg-amber-50/30 dark:bg-amber-900/10'
               "
             >
               <div class="p-5">
@@ -59,12 +62,15 @@
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400'
                           : request.status === 'rejected'
                             ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                            : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
+                            : request.status === 'cancelled'
+                              ? 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                              : 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400'
                       "
                     >
                       <CheckCircle2 v-if="request.status === 'approved'" class="h-6 w-6" />
                       <X v-else-if="request.status === 'rejected'" class="h-6 w-6" />
-                      <Clock v-else class="h-6 w-6" />
+                      <Clock v-else-if="request.status === 'pending'" class="h-6 w-6" />
+                      <X v-else class="h-6 w-6" />
                     </div>
 
                     <div>
@@ -76,7 +82,9 @@
                               ? 'bg-green-500 text-white'
                               : request.status === 'rejected'
                                 ? 'bg-red-500 text-white'
-                                : 'bg-amber-500 text-white'
+                                : request.status === 'cancelled'
+                                  ? 'bg-gray-500 text-white'
+                                  : 'bg-amber-500 text-white'
                           "
                         >
                           {{ request.status }}
@@ -91,14 +99,50 @@
                     </div>
                   </div>
 
-                  <a
-                    v-if="request.public_url"
-                    :href="request.public_url"
-                    class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                  >
-                    <ExternalLink class="h-3.5 w-3.5" />
-                    View Request
-                  </a>
+                  <div class="flex items-center gap-2">
+                    <button
+                      v-if="request.status === 'pending'"
+                      type="button"
+                      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 hover:text-amber-800 dark:hover:text-amber-200 hover:bg-amber-50 dark:hover:bg-amber-900/20 rounded-lg transition-colors disabled:opacity-50"
+                      :disabled="resendingRequestUuid === request.uuid || cancellingRequestUuid === request.uuid"
+                      @click="handleResend(request)"
+                    >
+                      <Mail
+                        v-if="resendingRequestUuid !== request.uuid"
+                        class="h-3.5 w-3.5"
+                      />
+                      <Loader2
+                        v-else
+                        class="h-3.5 w-3.5 animate-spin"
+                      />
+                      Resend email
+                    </button>
+                    <button
+                      v-if="request.status === 'pending'"
+                      type="button"
+                      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50 rounded-lg transition-colors disabled:opacity-50"
+                      :disabled="resendingRequestUuid === request.uuid || cancellingRequestUuid === request.uuid"
+                      @click="handleCancel(request)"
+                    >
+                      <X
+                        v-if="cancellingRequestUuid !== request.uuid"
+                        class="h-3.5 w-3.5"
+                      />
+                      <Loader2
+                        v-else
+                        class="h-3.5 w-3.5 animate-spin"
+                      />
+                      Cancel request
+                    </button>
+                    <a
+                      v-if="request.public_url || request.token"
+                      :href="request.public_url || closureRequestUrl(request.token)"
+                      class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                    >
+                      <ExternalLink class="h-3.5 w-3.5" />
+                      View Request
+                    </a>
+                  </div>
                 </div>
 
                 <!-- Action Items -->
@@ -238,9 +282,14 @@ import {
   Clock,
   History,
   ListChecks,
+  Loader2,
+  Mail,
   X,
   ExternalLink,
 } from '@/shared/utils/lucideAnimated'
+import { useProofingApi } from '@/domains/memora/api/proofing'
+import { toast } from '@/shared/utils/toast'
+import { closureRequestUrl } from '@/shared/utils/memoraPublicUrls'
 import { Button } from '@/shared/components/shadcn/button'
 import {
   Dialog,
@@ -264,12 +313,47 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
+const proofingApi = useProofingApi()
+const resendingRequestUuid = ref(null)
+const cancellingRequestUuid = ref(null)
+
 const isOpen = computed({
   get: () => props.modelValue,
   set: value => emit('update:modelValue', value),
 })
 
 const expandedTodos = ref({})
+
+const handleResend = async request => {
+  if (!request?.uuid || resendingRequestUuid.value) return
+  resendingRequestUuid.value = request.uuid
+  try {
+    await proofingApi.resendClosureRequest(request.uuid)
+    toast.success('Closure request email resent to client.')
+    emit('resend-done')
+  } catch (error) {
+    const msg = error?.message || error?.response?.data?.message || 'Failed to resend email'
+    toast.error(msg)
+  } finally {
+    resendingRequestUuid.value = null
+  }
+}
+
+const handleCancel = async request => {
+  if (!request?.uuid || cancellingRequestUuid.value) return
+  if (!confirm('Cancel this closure request? You can send a new request afterward if the client becomes available.')) return
+  cancellingRequestUuid.value = request.uuid
+  try {
+    await proofingApi.cancelClosureRequest(request.uuid)
+    toast.success('Closure request cancelled. You can send a new request when ready.')
+    emit('resend-done')
+  } catch (error) {
+    const msg = error?.message || error?.response?.data?.message || 'Failed to cancel request'
+    toast.error(msg)
+  } finally {
+    cancellingRequestUuid.value = null
+  }
+}
 
 const toggleTodos = requestUuid => {
   expandedTodos.value[requestUuid] = !expandedTodos.value[requestUuid]

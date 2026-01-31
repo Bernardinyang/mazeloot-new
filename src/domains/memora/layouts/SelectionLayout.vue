@@ -37,6 +37,7 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientSelections"
+        :route-params="{ domain: selection?.brandingDomain || undefined }"
         :route-query="{ selectionId: selection?.id || '' }"
         title="Share Selection"
         description="Share this selection with your client via link, QR code, WhatsApp, or email."

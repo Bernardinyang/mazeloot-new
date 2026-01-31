@@ -31,6 +31,7 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientProofing"
+        :route-params="{ domain: proofing?.brandingDomain || undefined }"
         :route-query="{ proofingId: proofing?.id || '' }"
         title="Share Proofing"
         description="Share this proofing with your client via link, QR code, WhatsApp, or email."

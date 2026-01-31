@@ -314,13 +314,12 @@ const handlePreview = () => {
   if (!rawFile.value) return
 
   const rawFileId = rawFile.value.id || rawFile.value.uuid
+  const domain = rawFile.value.brandingDomain || rawFile.value.project_id || rawFileId
 
   const route = router.resolve({
     name: 'clientRawFiles',
-    query: {
-      rawFileId,
-      preview: true,
-    },
+    params: { domain, rawFileId },
+    query: { preview: true },
   })
 
   window.open(route.href, '_blank')

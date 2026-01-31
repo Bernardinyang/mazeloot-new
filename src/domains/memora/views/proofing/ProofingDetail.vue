@@ -521,6 +521,7 @@
         :allow-reply="false"
         :guest-email="null"
         :creative-email="userStore.user?.email || null"
+        :closure-requests="getClosureRequestsForMedia(requestClosureMediaItem) || []"
         @request-closure="handleRequestClosureSubmit"
       />
 

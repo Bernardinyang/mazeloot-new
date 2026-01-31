@@ -50,10 +50,15 @@ class ApiClient {
         currentPath.includes('/forgot-password') ||
         currentPath.includes('/reset-password')
 
-      // Check if it's a public route (client selection/proofing/collection/raw-files routes)
+      // Check if it's a public route (client selection/proofing/collection/raw-files, closure/approval request)
+      const isMemoraPublic =
+        currentPath.startsWith('/memora/closure-request') ||
+        currentPath.startsWith('/memora/approval-request') ||
+        currentPath.startsWith('/memora/homepage') ||
+        /^\/memora\/[^/]+\/(proofing|collection|selections|raw-files)(\/|$)/.test(currentPath)
       const isPublicRoute =
-        currentPath.startsWith('/p/') ||
         currentPath.startsWith('/memora/client/') ||
+        isMemoraPublic ||
         currentPath === '/' ||
         currentPath === '/about'
 

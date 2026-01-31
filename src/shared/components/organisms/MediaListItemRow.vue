@@ -653,6 +653,7 @@ import {
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { approvalRequestUrl, closureRequestUrl } from '@/shared/utils/memoraPublicUrls'
 
 const theme = useThemeClasses()
 
@@ -807,6 +808,8 @@ const closureRequests = computed(() => props.closureRequests || [])
 const handlePendingClosureClick = () => {
   if (pendingClosureRequest.value?.public_url) {
     window.open(pendingClosureRequest.value.public_url, '_blank')
+  } else if (pendingClosureRequest.value?.token) {
+    window.open(closureRequestUrl(pendingClosureRequest.value.token), '_blank')
   } else {
     emit('view-closure-history')
   }
@@ -816,7 +819,7 @@ const handleViewApprovalRequest = () => {
   if (latestApprovalRequest.value?.public_url) {
     window.open(latestApprovalRequest.value.public_url, '_blank')
   } else if (latestApprovalRequest.value?.token) {
-    window.open(`/p/approval-request/${latestApprovalRequest.value.token}`, '_blank')
+    window.open(approvalRequestUrl(latestApprovalRequest.value.token), '_blank')
   }
 }
 

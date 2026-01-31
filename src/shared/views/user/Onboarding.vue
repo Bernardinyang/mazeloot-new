@@ -56,11 +56,10 @@
               <label class="block text-sm font-medium mb-2">
                 Description <span class="text-muted-foreground font-normal">(optional)</span>
               </label>
-              <textarea
+              <Textarea
                 v-model="formData.branding.description"
-                class="w-full px-3 py-2 border rounded-md border-input bg-background"
+                class="w-full"
                 placeholder="Describe your brand"
-                rows="4"
               />
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -189,6 +188,7 @@ import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/shadcn/card'
 import { Button } from '@/shared/components/shadcn/button'
+import { Textarea } from '@/shared/components/shadcn/textarea'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import { useProductsStore } from '@/shared/stores/products'

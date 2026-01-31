@@ -265,12 +265,11 @@
 
           <div>
             <Label for="notes">Notes (optional)</Label>
-            <textarea
+            <Textarea
               id="notes"
               v-model="rewards.notes"
-              rows="3"
-              class="mt-2 w-full px-3 py-2 rounded-md border"
-            ></textarea>
+              class="mt-2 w-full"
+            />
           </div>
         </div>
 
@@ -296,13 +295,12 @@
 
         <div class="py-4">
           <Label for="rejection_reason">Rejection Reason (optional)</Label>
-          <textarea
+          <Textarea
             id="rejection_reason"
             v-model="rejectionReason"
-            rows="3"
-            class="mt-2 w-full px-3 py-2 rounded-md border"
+            class="mt-2 w-full"
             placeholder="Optional reason for rejection..."
-          ></textarea>
+          />
         </div>
 
         <DialogFooter>
@@ -321,6 +319,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAdminApi } from '@/admin/api/admin'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
+import { Textarea } from '@/shared/components/shadcn/textarea'
 import Label from '@/shared/components/shadcn/Label.vue'
 import {
   Dialog,

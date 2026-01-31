@@ -1252,6 +1252,34 @@ export function useProofingApi() {
   }
 
   /**
+   * Resend closure request email to client (authenticated - creative only).
+   */
+  const resendClosureRequest = async closureRequestUuid => {
+    try {
+      const response = await apiClient.post(
+        `/v1/memora/closure-requests/${closureRequestUuid}/resend`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Cancel a pending closure request (authenticated - creative only).
+   */
+  const cancelClosureRequest = async closureRequestUuid => {
+    try {
+      const response = await apiClient.post(
+        `/v1/memora/closure-requests/${closureRequestUuid}/cancel`
+      )
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get closure requests for a media item
    */
   const getMediaClosureRequests = async (mediaId, guestToken = null) => {
@@ -1427,6 +1455,8 @@ export function useProofingApi() {
     getClosureRequest,
     approveClosureRequest,
     rejectClosureRequest,
+    resendClosureRequest,
+    cancelClosureRequest,
     getMediaClosureRequests,
     // Approval Requests
     createApprovalRequest,

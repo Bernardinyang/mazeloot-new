@@ -1,6 +1,7 @@
 import { nextTick } from 'vue'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
 
 export function useCollectionHeaderActions({
   collection,
@@ -34,15 +35,11 @@ export function useCollectionHeaderActions({
       return
     }
 
-    const resolvedRoute = router.resolve({
-      name: 'clientCollection',
-      query: {
-        collectionId,
-        preview: true,
-      },
-    })
-
-    window.open(resolvedRoute.href, '_blank')
+    const domain = collection.value?.brandingDomain || collection.value?.projectId || collection.value?.project_uuid
+    const path = publicCollectionUrl(domain, collectionId)
+    if (!path) return
+    const url = `${window.location.origin}${path}?preview=true`
+    window.open(url, '_blank')
   }
 
   const handlePublish = async () => {

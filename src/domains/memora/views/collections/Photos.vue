@@ -946,6 +946,7 @@ const { handleQuickShare, handleCopyLink, handleDownloadMedia: handleDownloadMed
     route,
     description,
     collectionId: collection.value?.id || collection.value?.uuid,
+    brandingDomain: collection.value?.brandingDomain || null,
   })
 
 // Override download and copy handlers from useMediaActions with collection-specific versions

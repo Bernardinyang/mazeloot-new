@@ -22,27 +22,22 @@ export const usePusher = () => {
     }
 
     const userStore = useUserStore()
-    // Broadcasting auth endpoint is a web route, not API route
-    // Remove /api from base URL to get backend base URL
-    const apiBaseUrl = API_CONFIG.API_BASE_URL || ''
-    const backendBaseUrl = apiBaseUrl.replace(/\/api$/, '') || window.location.origin
-
     const token = userStore.token
-    if (!token) {
-      console.warn('No auth token available for Pusher')
-      return null
-    }
 
     const options = {
       cluster,
       encrypted: true,
-      authEndpoint: `${backendBaseUrl}/broadcasting/auth`,
-      auth: {
+    }
+    if (token) {
+      const apiBaseUrl = API_CONFIG.API_BASE_URL || ''
+      const backendBaseUrl = apiBaseUrl.replace(/\/api$/, '') || window.location.origin
+      options.authEndpoint = `${backendBaseUrl}/broadcasting/auth`
+      options.auth = {
         headers: {
           Authorization: `Bearer ${token}`,
           Accept: 'application/json',
         },
-      },
+      }
     }
 
     if (host) {

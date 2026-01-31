@@ -12,6 +12,20 @@
         <DialogDescription class="text-sm mt-2 text-gray-600 dark:text-gray-400">
           Review client feedback and create action items before requesting closure for this media.
         </DialogDescription>
+        <div
+          v-if="previousRejectedClosure"
+          class="mt-4 p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800"
+        >
+          <p class="text-sm font-semibold text-red-800 dark:text-red-200 mb-1">
+            Previous closure was rejected
+          </p>
+          <p class="text-sm text-red-700 dark:text-red-300">
+            {{ previousRejectedClosure.rejection_reason || previousRejectedClosure.rejectionReason || 'No reason provided.' }}
+          </p>
+          <p class="text-xs text-red-600 dark:text-red-400 mt-2">
+            Address the above in your action items so the client can approve this request.
+          </p>
+        </div>
       </DialogHeader>
 
       <div class="flex-1 flex overflow-hidden min-h-[300px] md:min-h-[400px] flex-col md:flex-row">
@@ -77,7 +91,7 @@
             </div>
 
             <div
-              v-else-if="comments.length === 0 && !isLoadingComments"
+              v-else-if="commentsTree.length === 0 && !isLoadingComments"
               class="flex flex-col items-center justify-center py-20 text-center px-4"
             >
               <div
@@ -95,8 +109,8 @@
 
             <TransitionGroup v-else name="comment-list" tag="div" class="space-y-4">
               <div
-                v-for="comment in topLevelComments"
-                :key="comment.id"
+                v-for="comment in commentsTree"
+                :key="comment.id || comment.uuid"
                 class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm p-4"
               >
                 <CommentItem
@@ -298,6 +312,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  closureRequests: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'request-closure'])
@@ -351,24 +369,56 @@ const handleRequestClosure = () => {
 }
 
 const totalCommentCount = computed(() => {
-  const countedIds = new Set()
-  const countComments = commentList => {
-    let count = 0
-    for (const comment of commentList) {
-      if (countedIds.has(comment.id)) continue
-      count++
-      countedIds.add(comment.id)
-      if (comment.replies && comment.replies.length > 0) {
-        count += countComments(comment.replies)
-      }
+  const countInTree = list => {
+    let n = 0
+    for (const c of list || []) {
+      n += 1
+      if (c.replies?.length) n += countInTree(c.replies)
     }
-    return count
+    return n
   }
-  return countComments(props.comments)
+  return countInTree(commentsTree.value)
 })
 
-const topLevelComments = computed(() => {
-  return props.comments.filter(comment => !comment.parentId && !comment.parent_id)
+function buildCommentTree(comments) {
+  if (!comments?.length) return []
+  const list = [...comments]
+  const byParent = new Map()
+  byParent.set(null, [])
+  for (const c of list) {
+    const pid = c.parentId ?? c.parent_id ?? null
+    if (!byParent.has(pid)) byParent.set(pid, [])
+    byParent.get(pid).push(c)
+  }
+  const attachReplies = parentId => {
+    const kids = byParent.get(parentId) || []
+    return kids.map(c => ({
+      ...c,
+      replies: attachReplies(c.id ?? c.uuid) || [],
+    }))
+  }
+  return attachReplies(null)
+}
+
+const commentsTree = computed(() => {
+  const raw = props.comments || []
+  const hasParent = raw.some(c => c.parentId != null || c.parent_id != null)
+  if (!hasParent && raw.some(c => c.replies?.length)) return raw
+  return buildCommentTree(raw)
+})
+
+const previousRejectedClosure = computed(() => {
+  const list = props.closureRequests || []
+  const rejected = list.filter(
+    r => (r.status || '').toLowerCase() === 'rejected'
+  )
+  if (rejected.length === 0) return null
+  const sorted = [...rejected].sort((a, b) => {
+    const at = a.rejected_at || a.rejectedAt || a.created_at || a.createdAt || ''
+    const bt = b.rejected_at || b.rejectedAt || b.created_at || b.createdAt || ''
+    return new Date(bt) - new Date(at)
+  })
+  return sorted[0] || null
 })
 
 onMounted(() => {

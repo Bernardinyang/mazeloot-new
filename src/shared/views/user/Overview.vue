@@ -810,23 +810,46 @@
                           : 'Storage space is running low. Consider upgrading for more space.'
                       }}
                     </p>
-                    <Button
-                      :class="[
-                        'transition-all duration-300 hover:scale-105 active:scale-95',
-                        storagePercentage >= 90
-                          ? 'bg-red-500/30 dark:bg-red-500/30 light:bg-red-100 border-red-500/50 dark:border-red-500/50 light:border-red-300 text-red-100 dark:text-red-100 light:text-red-800 hover:bg-red-500/40 dark:hover:bg-red-500/40 light:hover:bg-red-200'
-                          : 'bg-yellow-500/30 dark:bg-yellow-500/30 light:bg-yellow-100 border-yellow-500/50 dark:border-yellow-500/50 light:border-yellow-300 text-yellow-100 dark:text-yellow-100 light:text-yellow-800 hover:bg-yellow-500/40 dark:hover:bg-yellow-500/40 light:hover:bg-yellow-200',
-                      ]"
-                      size="sm"
-                      variant="outline"
-                    >
-                      Upgrade for ₦900.00/month
-                    </Button>
+                    <RouterLink to="/pricing">
+                      <Button
+                        :class="[
+                          'transition-all duration-300 hover:scale-105 active:scale-95',
+                          storagePercentage >= 90
+                            ? 'bg-red-500/30 dark:bg-red-500/30 light:bg-red-100 border-red-500/50 dark:border-red-500/50 light:border-red-300 text-red-100 dark:text-red-100 light:text-red-800 hover:bg-red-500/40 dark:hover:bg-red-500/40 light:hover:bg-red-200'
+                            : 'bg-yellow-500/30 dark:bg-yellow-500/30 light:bg-yellow-100 border-yellow-500/50 dark:border-yellow-500/50 light:border-yellow-300 text-yellow-100 dark:text-yellow-100 light:text-yellow-800 hover:bg-yellow-500/40 dark:hover:bg-yellow-500/40 light:hover:bg-yellow-200',
+                        ]"
+                        size="sm"
+                        variant="outline"
+                      >
+                        Upgrade Plan
+                      </Button>
+                    </RouterLink>
                   </div>
                 </div>
               </div>
             </div>
           </DashboardCard>
+
+          <!-- Limit reached upgrade banner -->
+          <div
+            v-if="showLimitUpgradeBanner"
+            class="rounded-xl p-4 flex items-center justify-between gap-4 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30"
+          >
+            <p class="text-sm text-amber-800 dark:text-amber-200">
+              <span v-if="projectLimitReached && collectionLimitReached">
+                Project and collection limits reached. Upgrade for more.
+              </span>
+              <span v-else-if="projectLimitReached">
+                Project limit ({{ projectCount }}/{{ projectLimit }}) reached. Upgrade for more projects.
+              </span>
+              <span v-else>
+                Collection limit ({{ collectionCount }}/{{ collectionLimit }}) reached. Upgrade for more collections.
+              </span>
+            </p>
+            <RouterLink to="/pricing">
+              <Button size="sm" variant="outline">Upgrade</Button>
+            </RouterLink>
+          </div>
         </div>
 
         <!-- Recent Collections and Projects - Side by Side -->
@@ -1741,14 +1764,32 @@ const recentRawFiles = computed(() => {
     .slice(0, 5)
 })
 
-// Storage data - default to 5GB, will be updated from backend if available
-const totalStorage = ref(5 * 1024 * 1024 * 1024) // 5 GB in bytes (default)
+// Storage and usage data
+const totalStorage = ref(5 * 1024 * 1024 * 1024)
 const usedStorage = ref(0)
+const projectCount = ref(0)
+const projectLimit = ref(null)
+const collectionCount = ref(0)
+const collectionLimit = ref(null)
 const freeStorage = computed(() => totalStorage.value - usedStorage.value)
 const storagePercentage = computed(() => {
   if (totalStorage.value === 0) return 0
   return Math.round((usedStorage.value / totalStorage.value) * 100)
 })
+
+const projectLimitReached = computed(() => {
+  const limit = projectLimit.value
+  if (limit == null) return false
+  return projectCount.value >= limit
+})
+
+const collectionLimitReached = computed(() => {
+  const limit = collectionLimit.value
+  if (limit == null) return false
+  return collectionCount.value >= limit
+})
+
+const showLimitUpgradeBanner = computed(() => projectLimitReached.value || collectionLimitReached.value)
 
 // Format bytes helper
 const formatBytes = bytes => {
@@ -1832,10 +1873,13 @@ const fetchStorage = async () => {
     loadingStates.storage.value = true
     const storageData = await authApi.getStorage()
     usedStorage.value = storageData.total_used_bytes || 0
-    // Backend now returns total_storage_bytes from quota config
     if (storageData.total_storage_bytes) {
       totalStorage.value = storageData.total_storage_bytes
     }
+    projectCount.value = storageData.project_count ?? 0
+    projectLimit.value = storageData.project_limit ?? null
+    collectionCount.value = storageData.collection_count ?? 0
+    collectionLimit.value = storageData.collection_limit ?? null
   } catch (error) {
     console.error('Failed to fetch storage usage:', error)
     // On error, keep default values (5GB)

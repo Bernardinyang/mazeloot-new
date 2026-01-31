@@ -160,14 +160,13 @@
               </div>
               <div>
                 <Label for="reason">Why do you want early access? (Optional)</Label>
-                <textarea
+                <Textarea
                   id="reason"
                   v-model="form.reason"
-                  rows="3"
                   placeholder="Tell us why you're interested in early access..."
                   :disabled="isSubmitting"
-                  class="mt-2 w-full px-3 py-2 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400"
-                ></textarea>
+                  class="mt-2 w-full"
+                />
               </div>
               <div v-if="error" class="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                 <p class="text-sm text-red-600 dark:text-red-400">{{ error }}</p>
@@ -238,6 +237,7 @@ import { useRouter } from 'vue-router'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
+import { Textarea } from '@/shared/components/shadcn/textarea'
 import Label from '@/shared/components/shadcn/Label.vue'
 import Card from '@/shared/components/shadcn/Card.vue'
 import CardHeader from '@/shared/components/shadcn/CardHeader.vue'

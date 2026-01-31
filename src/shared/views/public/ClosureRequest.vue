@@ -76,23 +76,19 @@
         <div class="mb-6 sm:mb-8">
           <div class="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
             <Button
-              v-if="proofingUrl"
+              v-if="isAuthenticated || proofingUrl"
               variant="ghost"
               class="flex items-center gap-2 text-sm sm:text-base"
-              @click="handleGoToProofing"
+              @click="isAuthenticated ? handleGoBack() : handleGoToProofing()"
             >
               <ArrowLeft class="h-4 w-4" />
-              <span class="hidden sm:inline">Back to Proofing</span>
-              <span class="sm:hidden">Back</span>
-            </Button>
-            <Button variant="ghost" class="flex items-center gap-2 text-sm sm:text-base" @click="handleGoBack">
-              <ArrowLeft class="h-4 w-4" />
-              Go Back
+              <span class="hidden sm:inline">{{ isAuthenticated ? 'Go back' : 'Back to Proofing' }}</span>
+              <span class="sm:hidden">{{ isAuthenticated ? 'Back' : 'Back' }}</span>
             </Button>
           </div>
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Closure Request</h1>
           <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-            Review comments and action items for this revision
+            Review client feedback and items the creative will fix in the next version
           </p>
         </div>
 
@@ -133,66 +129,9 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <!-- Left: Comments -->
-          <div
-            class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm order-2 md:order-1"
-          >
-            <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Client Feedback
-              </h2>
-              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {{ comments.length }} {{ comments.length === 1 ? 'comment' : 'comments' }}
-              </p>
-            </div>
-            <div class="p-5 space-y-4 max-h-[600px] overflow-y-auto">
-              <div
-                v-if="comments.length === 0"
-                class="text-center py-8 text-gray-500 dark:text-gray-400"
-              >
-                No comments yet
-              </div>
-              <div
-                v-for="comment in comments"
-                :key="comment.id"
-                class="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4 border border-gray-200 dark:border-gray-700"
-              >
-                <div class="flex items-center gap-2 mb-2">
-                  <span class="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                    {{ getAuthorName(comment.created_by) }}
-                  </span>
-                  <span class="text-xs text-gray-500 dark:text-gray-400">
-                    {{ formatDate(comment.created_at) }}
-                  </span>
-                </div>
-                <p class="text-sm text-gray-700 dark:text-gray-300">{{ comment.content }}</p>
-                <div
-                  v-if="comment.replies && comment.replies.length > 0"
-                  class="mt-3 ml-4 space-y-2"
-                >
-                  <div
-                    v-for="reply in comment.replies"
-                    :key="reply.id"
-                    class="bg-white dark:bg-gray-800 rounded p-3 border border-gray-200 dark:border-gray-700"
-                  >
-                    <div class="flex items-center gap-2 mb-1">
-                      <span class="font-semibold text-xs text-gray-900 dark:text-gray-100">
-                        {{ getAuthorName(reply.created_by) }}
-                      </span>
-                      <span class="text-xs text-gray-500 dark:text-gray-400">
-                        {{ formatDate(reply.created_at) }}
-                      </span>
-                    </div>
-                    <p class="text-xs text-gray-700 dark:text-gray-300">{{ reply.content }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Right: Action Items & Media -->
-          <div class="space-y-4 sm:space-y-6 order-1 md:order-2">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:items-stretch">
+          <!-- Left: Action Items on top, then Client Feedback -->
+          <div class="flex flex-col gap-4 sm:gap-6 order-1 md:order-1 min-h-0">
             <!-- Action Items -->
             <div
               class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm"
@@ -200,7 +139,7 @@
               <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Action Items</h2>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  Please confirm all items are complete
+                  Items the creative will fix in the next version of this media
                 </p>
               </div>
               <div class="p-5 space-y-3">
@@ -231,14 +170,68 @@
               </div>
             </div>
 
+            <!-- Client Feedback -->
+            <div
+              class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex flex-1 flex-col min-h-0"
+            >
+              <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
+                <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                  Client Feedback
+                </h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  {{ totalCommentCount }} {{ totalCommentCount === 1 ? 'comment' : 'comments' }}
+                </p>
+              </div>
+              <div class="p-5 space-y-4 flex-1 min-h-0 overflow-y-auto">
+                <div
+                  v-if="commentsTree.length === 0"
+                  class="text-center py-8 text-gray-500 dark:text-gray-400"
+                >
+                  No comments yet
+                </div>
+                <ClosureCommentNode
+                  v-for="comment in commentsTree"
+                  :key="comment.id"
+                  :comment="comment"
+                  :get-author-name="getAuthorName"
+                  :format-date="formatDate"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Media & Approval -->
+          <div class="flex flex-col gap-4 sm:gap-6 order-2 md:order-2 min-h-0">
             <!-- Media Preview -->
             <div
               v-if="media"
+              ref="mediaCardRef"
               class="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden"
             >
               <div class="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Media</h2>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                  This is the version the creative is requesting to close. Review the feedback and action items, then approve or reject below.
+                </p>
               </div>
+              <dl class="px-5 py-3 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 text-sm border-b border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/30">
+                <template v-if="closureRequest?.proofing?.name">
+                  <dt class="text-gray-500 dark:text-gray-400">Proofing</dt>
+                  <dd class="font-medium text-gray-900 dark:text-gray-100">{{ closureRequest.proofing.name }}</dd>
+                </template>
+                <template v-if="media.file?.filename">
+                  <dt class="text-gray-500 dark:text-gray-400">File</dt>
+                  <dd class="font-medium text-gray-900 dark:text-gray-100 truncate" :title="media.file.filename">{{ media.file.filename }}</dd>
+                </template>
+                <template v-if="media.revision_number != null">
+                  <dt class="text-gray-500 dark:text-gray-400">Version</dt>
+                  <dd class="font-medium text-gray-900 dark:text-gray-100">{{ media.revision_number }}</dd>
+                </template>
+                <template v-if="media.file?.type">
+                  <dt class="text-gray-500 dark:text-gray-400">Type</dt>
+                  <dd class="font-medium text-gray-900 dark:text-gray-100 capitalize">{{ media.file.type }}</dd>
+                </template>
+              </dl>
               <div class="p-5">
                 <img
                   v-if="media.file?.type === 'image'"
@@ -264,7 +257,7 @@
                 Confirm Closure
               </h2>
               <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Please enter your email to confirm that all action items have been completed.
+                Confirm that you approve this closure request and accept the items the creative will fix in the next version.
               </p>
               <div class="space-y-4">
                 <div>
@@ -286,13 +279,13 @@
                     class="flex-1 text-sm sm:text-base"
                     :loading="isSubmitting"
                     :icon="CheckCircle2"
-                    @click="handleApprove"
+                    @click="showApproveConfirmModal = true"
                   >
                     Approve
                   </Button>
                   <Button
                     :disabled="!email || isSubmitting"
-                    variant="outline"
+                    variant="destructive"
                     class="flex-1 text-sm sm:text-base"
                     @click="showRejectModal = true"
                   >
@@ -305,6 +298,31 @@
           </div>
         </div>
       </div>
+
+      <!-- Approve Confirmation Modal -->
+      <Dialog :open="showApproveConfirmModal" @update:open="showApproveConfirmModal = $event">
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Approval</DialogTitle>
+            <DialogDescription>
+              By approving, you confirm that you accept the action items and that the creative will
+              address them in the next version. This will mark the closure request as approved.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" @click="showApproveConfirmModal = false">Cancel</Button>
+            <Button
+              variant="default"
+              :disabled="isSubmitting"
+              :loading="isSubmitting"
+              :icon="CheckCircle2"
+              @click="handleApproveConfirm"
+            >
+              Confirm Approval
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <!-- Reject Modal -->
       <Dialog :open="showRejectModal" @update:open="showRejectModal = $event">
@@ -319,16 +337,20 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium mb-2">What is missing? (required)</label>
-              <textarea
+              <Textarea
                 v-model="rejectReason"
-                class="w-full p-2 border rounded-lg"
+                class="w-full"
                 rows="3"
                 placeholder="List what is missing or needs to be addressed..."
               />
             </div>
             <DialogFooter>
               <Button variant="outline" @click="showRejectModal = false">Cancel</Button>
-              <Button :disabled="isSubmitting || !rejectReason" @click="handleReject">
+              <Button
+                variant="destructive"
+                :disabled="isSubmitting || !rejectReason"
+                @click="handleReject"
+              >
                 <Loader2 v-if="isSubmitting" class="w-4 h-4 mr-2 animate-spin" />
                 Reject
               </Button>
@@ -346,6 +368,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, Loader2, CheckCircle2, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
+import { Textarea } from '@/shared/components/shadcn/textarea'
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 import {
   Dialog,
@@ -355,9 +378,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/shadcn/dialog'
+import ClosureCommentNode from '@/shared/components/molecules/ClosureCommentNode.vue'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
+import { publicProofingUrl } from '@/shared/utils/memoraPublicUrls'
 
 const route = useRoute()
 const router = useRouter()
@@ -380,6 +405,18 @@ const isLoading = ref(true)
 const error = ref(null)
 const closureRequest = ref(null)
 const comments = ref([])
+const commentsTree = computed(() => comments.value || [])
+const totalCommentCount = computed(() => {
+  const count = (list) => {
+    let n = 0
+    for (const c of list || []) {
+      n += 1
+      if (c.replies?.length) n += count(c.replies)
+    }
+    return n
+  }
+  return count(commentsTree.value)
+})
 const todos = ref([])
 const media = ref(null)
 const email = ref('')
@@ -521,11 +558,14 @@ const loadClosureRequest = async () => {
   }
 }
 
+const showApproveConfirmModal = ref(false)
+
 const handleApprove = async () => {
   if (!email.value) return
   isSubmitting.value = true
   try {
     await proofingApi.approveClosureRequest(route.params.token, email.value)
+    showApproveConfirmModal.value = false
     toast.success('Closure request approved', {
       description: 'The closure request has been approved successfully.',
     })
@@ -537,6 +577,10 @@ const handleApprove = async () => {
   } finally {
     isSubmitting.value = false
   }
+}
+
+const handleApproveConfirm = () => {
+  handleApprove()
 }
 
 const handleReject = async () => {
@@ -623,30 +667,16 @@ const handleLogin = async () => {
 
 const proofingUrl = computed(() => {
   if (!closureRequest.value?.proofing?.uuid) return null
-
-  const proofingId = closureRequest.value.proofing.uuid
-  const projectId = closureRequest.value.proofing.project_uuid
-
-  if (projectId) {
-    return `/p/${projectId}/proofing?proofingId=${proofingId}`
-  } else {
-    // Standalone proofing - use proofing ID as project ID fallback
-    return `/p/${proofingId}/proofing?proofingId=${proofingId}`
-  }
+  const p = closureRequest.value.proofing
+  return publicProofingUrl(p.uuid, p.branding_domain || p.project_uuid)
 })
 
-const handleGoToProofing = () => {
-  if (proofingUrl.value) {
-    router.push(proofingUrl.value)
-  }
+const handleGoBack = () => {
+  router.back()
 }
 
-const handleGoBack = () => {
-  if (window.history.length > 1) {
-    router.go(-1)
-  } else {
-    router.push('/')
-  }
+const handleGoToProofing = () => {
+  if (proofingUrl.value) router.push(proofingUrl.value)
 }
 
 onMounted(async () => {

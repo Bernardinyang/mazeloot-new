@@ -1203,6 +1203,7 @@ import { useMediaApi } from '@/shared/api/media'
 import { useUserStore } from '@/shared/stores/user'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { toast } from '@/shared/utils/toast'
+import { approvalRequestUrl, closureRequestUrl } from '@/shared/utils/memoraPublicUrls'
 import { clearProofingGuestData } from '@/shared/utils/guestLogout'
 import mazelootPrimaryLogo from '@/shared/assets/images/logos/mazelootPrimaryLogo.svg'
 
@@ -2038,14 +2039,12 @@ const loadProofing = async () => {
     return
   }
 
-  // If proofing is already loaded with the same ID and we're not forcing a refresh, skip
-  if (proofing.value?.id === proofingId && !isLoading.value) {
-    // Just ensure media is loaded if not already
-    if (mediaSets.value.length === 0) {
-      await loadMediaItems()
-    }
+  // If proofing is already loaded with the same ID and we have sets + media, skip full reload
+  if (proofing.value?.id === proofingId && !isLoading.value && mediaSets.value.length > 0) {
+    await loadMediaItems()
     return
   }
+  // If proofing loaded but no sets (e.g. returned early due to password), continue to fetch sets and media
 
   isLoadingProofing.value = true
   isLoading.value = true
@@ -2586,14 +2585,9 @@ const handleVerifyPassword = async () => {
     isPasswordVerified.value = true
     storePasswordVerification(proofingId)
     passwordInput.value = ''
-    
-    // Only reload if proofing is not already loaded
-    if (!proofing.value?.id) {
-      await loadProofing()
-    } else {
-      // Just ensure media is loaded now that password is verified
-      await loadMediaItems()
-    }
+
+    // Always run loadProofing so sets and media are fetched (they weren't loaded before password verify)
+    await loadProofing()
   } catch (error) {
     const errorMessage = error?.message || ''
     const errorCode = error?.code || ''
@@ -2746,6 +2740,8 @@ const handlePendingClosureClick = item => {
   const pendingRequest = getPendingClosureRequest(item)
   if (pendingRequest?.public_url) {
     window.open(pendingRequest.public_url, '_blank')
+  } else if (pendingRequest?.token) {
+    window.open(closureRequestUrl(pendingRequest.token), '_blank')
   } else {
     handleViewClosureHistory(item)
   }
@@ -2755,6 +2751,8 @@ const handlePendingApprovalClick = item => {
   const pendingRequest = getPendingApprovalRequest(item)
   if (pendingRequest?.public_url) {
     window.open(pendingRequest.public_url, '_blank')
+  } else if (pendingRequest?.token) {
+    window.open(approvalRequestUrl(pendingRequest.token), '_blank')
   }
 }
 
@@ -2771,7 +2769,7 @@ const handleViewApprovalRequest = item => {
     if (latestRequest?.public_url) {
       window.open(latestRequest.public_url, '_blank')
     } else if (latestRequest?.token) {
-      window.open(`/p/approval-request/${latestRequest.token}`, '_blank')
+      window.open(approvalRequestUrl(latestRequest.token), '_blank')
     }
   }
 }

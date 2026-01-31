@@ -112,7 +112,7 @@
             Description
             <span class="text-xs font-normal" :class="theme.textSecondary">(optional)</span>
           </label>
-          <textarea
+          <Textarea
             v-model="formData.description"
             placeholder="Add a description to help you remember what this preset is for..."
             :class="[
@@ -122,7 +122,6 @@
               'w-full min-h-[100px] resize-y border-2 transition-all duration-200 focus:ring-2 focus:ring-accent/20 focus:border-accent/50 rounded-lg px-4 py-3 leading-relaxed',
               errors.description ? 'border-red-500 focus:border-red-500 focus:ring-red-500/20' : '',
             ]"
-            rows="4"
           />
           <p v-if="errors.description" class="text-xs text-red-500 mt-1">{{ errors.description }}</p>
           <p v-else class="text-xs leading-relaxed" :class="theme.textSecondary">
@@ -159,6 +158,7 @@
 <script setup>
 import { ref, reactive, watch } from 'vue'
 import { Input } from '@/shared/components/shadcn/input'
+import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Button } from '@/shared/components/shadcn/button'
 import { Loader2 } from '@/shared/utils/lucideAnimated'
 import {

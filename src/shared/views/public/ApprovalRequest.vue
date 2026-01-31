@@ -76,18 +76,14 @@
         <div class="mb-6 sm:mb-8">
           <div class="flex flex-wrap items-center gap-2 sm:gap-4 mb-4">
             <Button
-              v-if="proofingUrl"
+              v-if="isAuthenticated || proofingUrl"
               variant="ghost"
               class="flex items-center gap-2 text-sm sm:text-base"
-              @click="handleGoToProofing"
+              @click="handleGoBack"
             >
               <ArrowLeft class="h-4 w-4" />
-              <span class="hidden sm:inline">Back to Proofing</span>
+              <span class="hidden sm:inline">{{ isAuthenticated ? 'Go back' : 'Back to Proofing' }}</span>
               <span class="sm:hidden">Back</span>
-            </Button>
-            <Button variant="ghost" class="flex items-center gap-2 text-sm sm:text-base" @click="handleGoBack">
-              <ArrowLeft class="h-4 w-4" />
-              Go Back
             </Button>
           </div>
           <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Approval Request</h1>
@@ -269,9 +265,9 @@
           <div class="space-y-4">
             <div>
               <label class="block text-sm font-medium mb-2">Reason (required)</label>
-              <textarea
+              <Textarea
                 v-model="rejectReason"
-                class="w-full p-2 border rounded-lg"
+                class="w-full"
                 rows="3"
                 placeholder="Please provide a reason for rejection..."
               />
@@ -308,6 +304,7 @@ import {
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
+import { publicProofingUrl } from '@/shared/utils/memoraPublicUrls'
 
 const route = useRoute()
 const router = useRouter()
@@ -554,30 +551,16 @@ const handleLogin = async () => {
 
 const proofingUrl = computed(() => {
   if (!approvalRequest.value?.proofing?.uuid) return null
-
-  const proofingId = approvalRequest.value.proofing.uuid
-  const projectId = approvalRequest.value.proofing.project_uuid
-
-  if (projectId) {
-    return `/p/${projectId}/proofing?proofingId=${proofingId}`
-  } else {
-    // Standalone proofing - use proofing ID as project ID fallback
-    return `/p/${proofingId}/proofing?proofingId=${proofingId}`
-  }
+  const p = approvalRequest.value.proofing
+  return publicProofingUrl(p.uuid, p.branding_domain || p.project_uuid)
 })
 
-const handleGoToProofing = () => {
-  if (proofingUrl.value) {
-    router.push(proofingUrl.value)
-  }
-}
-
 const handleGoBack = () => {
-  if (window.history.length > 1) {
-    router.go(-1)
-  } else {
-    router.push('/')
+  if (isAuthenticated.value) {
+    router.back()
+    return
   }
+  if (proofingUrl.value) router.push(proofingUrl.value)
 }
 
 const handleCreateSupportTicket = () => {

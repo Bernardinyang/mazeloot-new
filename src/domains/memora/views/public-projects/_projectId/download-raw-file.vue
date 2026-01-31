@@ -291,6 +291,7 @@ import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useThemeStore } from '@/shared/stores/theme'
+import { publicRawFileUrl } from '@/shared/utils/memoraPublicUrls'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import { getStoredDownloadPin } from '@/shared/utils/localStorage'
 
@@ -387,13 +388,11 @@ onMounted(async () => {
       toast.error('Access denied', {
         description: 'Please access the download page from the raw file view.'
       })
-      router.push({
-        name: 'clientRawFiles',
-        query: { rawFileId }
-      })
+      const domainSegment = route.params.domain || route.params.projectId || 'default'
+      router.push(publicRawFileUrl(domainSegment, rawFileId))
       return
     }
-    
+
     // If stored download token exists, allow access to continue polling
     if (storedDownloadToken && !zipFile.value) {
       downloadToken.value = storedDownloadToken
@@ -696,10 +695,8 @@ const handleBackToRawFile = () => {
   if (isNavigating.value) return
   isNavigating.value = true
   const rawFileId = route.query.rawFileId
-  router.push({
-    name: 'clientRawFiles',
-    query: { rawFileId }
-  })
+  const domainSegment = route.params.domain || route.params.projectId || 'default'
+  router.push(publicRawFileUrl(domainSegment, rawFileId))
     .catch(() => {
       isNavigating.value = false
     })

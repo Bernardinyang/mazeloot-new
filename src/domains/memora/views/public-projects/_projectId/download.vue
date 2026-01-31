@@ -466,6 +466,7 @@ import { Laptop, Check, Download, Loader2, Cloud, HardDrive, Folder, Upload, Ima
 import { apiClient } from '@/shared/api/client'
 import { API_CONFIG } from '@/shared/api/config'
 import { toast } from '@/shared/utils/toast'
+import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
 import { addDefaultSettings } from '@/domains/memora/api/collections'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
@@ -1085,8 +1086,8 @@ onMounted(async () => {
       toast.error('Access denied', {
         description: 'Please access the download page from the collection view.'
       })
-      const projectId = route.params.projectId || 'default'
-      router.push(`/p/${projectId}/collection?collectionId=${collectionId}`)
+      const domainSegment = route.params.domain || route.params.projectId || 'default'
+      router.push(publicCollectionUrl(domainSegment, collectionId))
       return
     }
   }
@@ -1577,8 +1578,8 @@ const handleBackToCollection = () => {
   if (isNavigating.value) return
   isNavigating.value = true
   const collectionId = route.query.collectionId
-  const projectId = route.params.projectId
-  router.push(`/p/${projectId}/collection?collectionId=${collectionId}`)
+  const domainSegment = route.params.domain || route.params.projectId || 'default'
+  router.push(publicCollectionUrl(domainSegment, collectionId))
     .catch(() => {
       isNavigating.value = false
     })

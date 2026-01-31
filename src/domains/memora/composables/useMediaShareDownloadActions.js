@@ -1,5 +1,6 @@
 import { toast } from '@/shared/utils/toast'
 import { useRouter } from 'vue-router'
+import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
 
 export function useMediaShareDownloadActions({
   getMediaDownloadUrl,
@@ -12,20 +13,19 @@ export function useMediaShareDownloadActions({
   route,
   description,
   collectionId,
+  brandingDomain = null,
   publicMode = false,
 } = {}) {
   const router = useRouter()
-  
+
   const handleQuickShare = async item => {
     try {
-      const resolvedRoute = router.resolve({
-        name: 'clientCollection',
-        query: {
-          collectionId: collectionId || route.params.uuid,
-          mediaId: item.id,
-        },
-      })
-      const shareUrl = `${window.location.origin}${resolvedRoute.href}`
+      const id = collectionId || route.params.uuid
+      if (!id) return
+      const domain = brandingDomain || route.params.domain || route.params.projectId
+      const path = publicCollectionUrl(domain, id)
+      if (!path) return
+      const shareUrl = `${window.location.origin}${path}${item?.id ? `?mediaId=${item.id}` : ''}`
       await copyTextToClipboard(shareUrl)
       
       // Track share link click (only in public mode)

@@ -37,6 +37,7 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientRawFiles"
+        :route-params="{ domain: rawFile?.brandingDomain || undefined }"
         :route-query="{ rawFileId: rawFile?.id || '' }"
         title="Share RawFile"
         description="Share this rawFile with your client via link, QR code, WhatsApp, or email."

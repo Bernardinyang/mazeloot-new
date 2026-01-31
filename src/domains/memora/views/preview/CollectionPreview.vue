@@ -753,6 +753,7 @@ import {
   LogOut,
 } from '@/shared/utils/lucideAnimated'
 import { useCollectionsApi } from '@/domains/memora/api/collections'
+import { publicCollectionUrl, publicCollectionDownloadUrl } from '@/shared/utils/memoraPublicUrls'
 import { useMediaApi } from '@/shared/api/media'
 import { apiClient } from '@/shared/api/client'
 import { usePresetStore } from '@/domains/memora/stores/preset'
@@ -2055,18 +2056,11 @@ const handleDownloadAll = () => {
   if (props.previewMode === 'public') {
     const collectionToUse = props.previewCollection || collection.value
     if (!collectionToUse) return
-    
+
     const collectionId = collectionToUse.id || collectionToUse.uuid
-    const projectId = collectionToUse.projectId || collectionToUse.project_uuid || route.params.projectId || 'standalone'
-    
-    router.push({
-      name: 'clientCollectionDownload',
-      params: { projectId },
-      query: {
-        collectionId,
-        ...route.query,
-      },
-    })
+    const domain = collectionToUse.brandingDomain || collectionToUse.projectId || collectionToUse.project_uuid || route.params.domain || route.params.projectId || 'standalone'
+    const path = publicCollectionDownloadUrl(domain, collectionId)
+    if (path) router.push(path + (Object.keys(route.query).length ? `?${new URLSearchParams(route.query)}` : ''))
     return
   }
   
@@ -2117,16 +2111,9 @@ const handleShareMedia = async (item) => {
       return
     }
     
-    // Build share URL using router.resolve
-    const resolvedRoute = router.resolve({
-      name: 'clientCollection',
-      query: {
-        collectionId: shareCollectionId,
-        mediaId: item.id,
-      },
-    })
-    const shareUrl = `${window.location.origin}${resolvedRoute.href}`
-    console.log('Sharing URL:', shareUrl)
+    const domain = collectionToUse?.brandingDomain || collectionToUse?.projectId || collectionToUse?.project_uuid || route.params?.domain || route.params?.projectId || 'default'
+    const path = publicCollectionUrl(domain, shareCollectionId)
+    const shareUrl = path ? `${window.location.origin}${path}${item?.id ? `?mediaId=${item.id}` : ''}` : ''
     
     // Use browser's native share API
     if (navigator.share) {

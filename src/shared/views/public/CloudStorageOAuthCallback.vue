@@ -11,6 +11,7 @@
 import { onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2 } from '@/shared/utils/lucideAnimated'
+import { publicCollectionDownloadUrl } from '@/shared/utils/memoraPublicUrls'
 
 const route = useRoute()
 const router = useRouter()
@@ -54,7 +55,7 @@ onMounted(() => {
   // If we have collection_id and project_id, redirect to download page
   if (collectionId && projectId) {
     router.replace({
-      path: `/p/${projectId}/collection/download`,
+      path: publicCollectionDownloadUrl(projectId, collectionId),
       query: {
         collectionId,
         accessToken,
@@ -64,16 +65,13 @@ onMounted(() => {
         destination: query.destination,
         error: query.error,
         error_code: query.error_code,
-        // Also pass snake_case version for backward compatibility
         collection_id: collectionId,
         project_id: projectId,
       },
     })
   } else if (collectionId) {
-    // If we only have collection_id, try to fetch projectId from collection
-    // For now, redirect with a placeholder - the download page will handle it
     router.replace({
-      path: `/p/default/collection/download`,
+      path: publicCollectionDownloadUrl(projectId || 'default', collectionId),
       query: {
         collectionId,
         accessToken,
@@ -83,7 +81,6 @@ onMounted(() => {
         destination: query.destination,
         error: query.error,
         error_code: query.error_code,
-        // Also pass snake_case version for backward compatibility
         collection_id: collectionId,
         project_id: projectId || 'default',
       },

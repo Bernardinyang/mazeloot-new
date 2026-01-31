@@ -225,7 +225,7 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
-import { useRouter } from 'vue-router'
+import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
 
 const props = defineProps({
   open: {
@@ -241,7 +241,6 @@ const props = defineProps({
 const emit = defineEmits(['update:open'])
 
 const theme = useThemeClasses()
-const router = useRouter()
 
 const isOpen = computed({
   get: () => props.open,
@@ -249,18 +248,11 @@ const isOpen = computed({
 })
 
 const shareLink = computed(() => {
-  const collectionId = props.collection.id || props.collection.uuid
-
+  const collectionId = props.collection?.id || props.collection?.uuid
   if (!collectionId) return ''
-
-  const route = router.resolve({
-    name: 'clientCollection',
-    query: {
-      collectionId,
-    },
-  })
-
-  return `${window.location.origin}${route.href}`
+  const domain = props.collection?.brandingDomain || props.collection?.projectId || props.collection?.project_uuid
+  const path = publicCollectionUrl(domain, collectionId)
+  return path ? `${window.location.origin}${path}` : ''
 })
 
 const password = computed(() => {

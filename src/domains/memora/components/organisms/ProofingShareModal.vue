@@ -186,7 +186,7 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
-import { useRouter } from 'vue-router'
+import { publicProofingUrl } from '@/shared/utils/memoraPublicUrls'
 
 const props = defineProps({
   modelValue: {
@@ -205,6 +205,10 @@ const props = defineProps({
     type: String,
     default: null,
   },
+  brandingDomain: {
+    type: String,
+    default: null,
+  },
   password: {
     type: String,
     default: '',
@@ -214,7 +218,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const theme = useThemeClasses()
-const router = useRouter()
 
 const isOpen = computed({
   get: () => props.modelValue,
@@ -223,15 +226,9 @@ const isOpen = computed({
 
 const shareLink = computed(() => {
   if (!props.proofingId) return ''
-
-  const route = router.resolve({
-    name: 'clientProofing',
-    query: {
-      proofingId: props.proofingId,
-    },
-  })
-
-  return `${window.location.origin}${route.href}`
+  const domain = props.brandingDomain || props.projectId || props.proofingId
+  const path = publicProofingUrl(props.proofingId, domain)
+  return path ? `${window.location.origin}${path}` : ''
 })
 
 const showPassword = ref(false)

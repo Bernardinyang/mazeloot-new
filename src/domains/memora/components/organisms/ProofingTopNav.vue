@@ -238,6 +238,8 @@ import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import AddEmailModal from '@/shared/components/organisms/AddEmailModal.vue'
 import { getAccentColor } from '@/shared/utils/colors'
 import { useRouter } from 'vue-router'
+import { useSettingsApi } from '@/domains/memora/api/settings'
+import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
 
@@ -314,17 +316,22 @@ const handleEmailsSaved = async ({ emails: savedEmails, updatedItem }) => {
   await headerStore.handlePublish(true)
 }
 
-const handlePreview = () => {
+const handlePreview = async () => {
   if (!proofing.value) return
 
   const proofingId = proofing.value.id || proofing.value.uuid
+  const { fetchSettings } = useSettingsApi()
+  const settings = await fetchSettings().catch(() => ({}))
+  const domain = settings?.branding?.domain
+  if (!domain) {
+    toast.error('Preview unavailable', { description: 'Branding domain is not configured.' })
+    return
+  }
 
   const route = router.resolve({
     name: 'clientProofing',
-    query: {
-      proofingId,
-      preview: true,
-    },
+    params: { domain, proofingId },
+    query: { preview: true },
   })
 
   window.open(route.href, '_blank')
