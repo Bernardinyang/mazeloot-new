@@ -72,7 +72,7 @@
         </div>
         <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card
-            v-for="(action, index) in quickActions"
+            v-for="(action, index) in visibleQuickActions"
             :key="action.id"
             :class="[
               'group relative overflow-hidden cursor-pointer transition-all duration-300',
@@ -146,7 +146,7 @@
         </div>
         <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <Card
-            v-for="(item, index) in knowledgeBase"
+            v-for="(item, index) in visibleKnowledgeBase"
             :key="item.id"
             :class="[
               'group relative overflow-hidden cursor-pointer transition-all duration-300',
@@ -243,11 +243,14 @@ import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { useRawFilesApi } from '@/domains/memora/api/rawFiles'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { apiClient } from '@/shared/api/client'
 
 const theme = useThemeClasses()
 const userStore = useUserStore()
+const { hasFeature } = useMemoraFeatures()
 const { navigateTo } = useNavigation()
+const isStarterPlan = computed(() => (userStore.user?.memora_tier ?? 'starter') === 'starter')
 
 const collectionsApi = useCollectionsApi()
 const projectsApi = useProjectsApi()
@@ -258,6 +261,27 @@ const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
 const userName = computed(() => userStore.user?.name || 'User')
+
+const visibleQuickActions = computed(() =>
+  quickActions.value.filter(a => {
+    if (a.id === 8) return hasFeature('selection')
+    if (a.id === 9) return hasFeature('proofing')
+    if (a.id === 10) return hasFeature('raw_files')
+    if (a.id === 6) return !isStarterPlan.value
+    if (a.id === 7) return !isStarterPlan.value
+    return true
+  })
+)
+const visibleKnowledgeBase = computed(() =>
+  knowledgeBase.value.filter(item => {
+    if (item.id === 6) return hasFeature('selection')
+    if (item.id === 7) return hasFeature('proofing')
+    if (item.id === 11) return hasFeature('raw_files')
+    if (item.id === 8) return !isStarterPlan.value
+    if (item.id === 9) return !isStarterPlan.value
+    return true
+  })
+)
 
 // Mark user as existing when they visit getting started
 onMounted(async () => {
@@ -282,51 +306,62 @@ const checkCompletionStatus = async () => {
     const projects = projectsResponse?.data || projectsResponse || []
     const hasProjects = projects.length > 0
     
-    // Check selections (for "Create a selection")
-    const selectionsResponse = await selectionsApi.fetchAllSelections({ perPage: 1 })
-    const selections = selectionsResponse?.data || selectionsResponse || []
-    const hasSelections = selections.length > 0
+    // Check selections only if user has selection feature
+    let hasSelections = false
+    if (hasFeature('selection')) {
+      const selectionsResponse = await selectionsApi.fetchAllSelections({ perPage: 1 })
+      const selections = selectionsResponse?.data || selectionsResponse || []
+      hasSelections = selections.length > 0
+    }
 
-    // Check proofing (for "Create proofing" - id: 9)
+    // Check proofing only if user has proofing feature
     let hasProofing = false
-    try {
-      const proofingResponse = await proofingApi.fetchAllProofing({ perPage: 1 })
-      const proofingList = proofingResponse?.data || proofingResponse || []
-      hasProofing = Array.isArray(proofingList) ? proofingList.length > 0 : (proofingList?.length > 0)
-    } catch (e) {
-      if (e?.response?.status !== 404) console.warn('Failed to check proofing:', e)
+    if (hasFeature('proofing')) {
+      try {
+        const proofingResponse = await proofingApi.fetchAllProofing({ perPage: 1 })
+        const proofingList = proofingResponse?.data || proofingResponse || []
+        hasProofing = Array.isArray(proofingList) ? proofingList.length > 0 : (proofingList?.length > 0)
+      } catch (e) {
+        if (e?.response?.status !== 404) console.warn('Failed to check proofing:', e)
+      }
     }
 
-    // Check raw files (for "Add raw files" - id: 10)
+    // Check raw files only if user has raw_files feature
     let hasRawFiles = false
-    try {
-      const rawFilesResponse = await rawFilesApi.fetchAllRawFiles({ perPage: 1 })
-      const rawFilesList = rawFilesResponse?.data || rawFilesResponse || []
-      hasRawFiles = Array.isArray(rawFilesList) ? rawFilesList.length > 0 : (rawFilesList?.length > 0)
-    } catch (e) {
-      if (e?.response?.status !== 404) console.warn('Failed to check raw files:', e)
+    if (hasFeature('raw_files')) {
+      try {
+        const rawFilesResponse = await rawFilesApi.fetchAllRawFiles({ perPage: 1 })
+        const rawFilesList = rawFilesResponse?.data || rawFilesResponse || []
+        hasRawFiles = Array.isArray(rawFilesList) ? rawFilesList.length > 0 : (rawFilesList?.length > 0)
+      } catch (e) {
+        if (e?.response?.status !== 404) console.warn('Failed to check raw files:', e)
+      }
     }
-    
-    // Check presets (for "Create a preset" - id: 6)
+
+    // Check presets only if user has preset access (paid plan)
     let hasPresets = false
-    try {
-      if (presetStore.presets.length === 0 && presetStore.loadPresets) {
-        await presetStore.loadPresets()
+    if (!isStarterPlan.value) {
+      try {
+        if (presetStore.presets.length === 0 && presetStore.loadPresets) {
+          await presetStore.loadPresets()
+        }
+        hasPresets = presetStore.presets?.length > 0
+      } catch (e) {
+        console.warn('Failed to check presets:', e)
       }
-      hasPresets = presetStore.presets?.length > 0
-    } catch (e) {
-      console.warn('Failed to check presets:', e)
     }
-    
-    // Check watermarks (for "Setup watermark" - id: 7)
+
+    // Check watermarks only if user has watermark access (paid plan)
     let hasWatermarks = false
-    try {
-      if (watermarkStore.watermarks.length === 0 && watermarkStore.fetchWatermarks) {
-        await watermarkStore.fetchWatermarks()
+    if (!isStarterPlan.value) {
+      try {
+        if (watermarkStore.watermarks.length === 0 && watermarkStore.fetchWatermarks) {
+          await watermarkStore.fetchWatermarks()
+        }
+        hasWatermarks = watermarkStore.watermarks?.length > 0
+      } catch (e) {
+        console.warn('Failed to check watermarks:', e)
       }
-      hasWatermarks = watermarkStore.watermarks?.length > 0
-    } catch (e) {
-      console.warn('Failed to check watermarks:', e)
     }
     
     // Check branding (for "Customize branding" - id: 5)
@@ -484,8 +519,8 @@ const quickActions = ref([
   },
 ])
 
-const totalActions = computed(() => quickActions.value.length)
-const completedCount = computed(() => quickActions.value.filter(a => a.status === 'done').length)
+const totalActions = computed(() => visibleQuickActions.value.length)
+const completedCount = computed(() => visibleQuickActions.value.filter(a => a.status === 'done').length)
 const progressPercentage = computed(() => 
   Math.round((completedCount.value / totalActions.value) * 100)
 )

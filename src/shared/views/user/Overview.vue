@@ -64,6 +64,7 @@
             <!-- Memora Options -->
             <template v-if="hasMemora">
               <DropdownMenuItem
+                v-if="canAccessCollection"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click="openCreateDialog('collection')"
               >
@@ -71,6 +72,7 @@
                 <span>Collection</span>
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="canAccessSelection || canAccessCollection"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click="openCreateDialog('project')"
               >
@@ -78,6 +80,7 @@
                 <span>Project</span>
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="canAccessSelection"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click="openCreateDialog('selection')"
               >
@@ -85,6 +88,7 @@
                 <span>Selection</span>
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="canAccessProofing"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click="openCreateDialog('proofing')"
               >
@@ -92,6 +96,7 @@
                 <span>Proofing</span>
               </DropdownMenuItem>
               <DropdownMenuItem
+                v-if="canAccessRawFiles"
                 :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
                 @click="openCreateDialog('rawFile')"
               >
@@ -317,8 +322,78 @@
           </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div v-if="hasMemora" class="grid grid-cols-2 md:grid-cols-6 gap-4">
+        <!-- Plan / Tier card -->
+        <div
+          v-if="hasMemora"
+          :class="[
+            'group relative overflow-hidden rounded-2xl p-5',
+            'bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent',
+            'dark:from-amber-500/20 dark:via-amber-500/10',
+            'light:from-amber-50 light:to-amber-100/50',
+            'border border-amber-500/30 dark:border-amber-500/30 light:border-amber-200',
+            'backdrop-blur-sm',
+            'hover:scale-[1.01] transition-all duration-300',
+            'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-amber-500/10',
+          ]"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex items-start gap-4">
+              <div
+                class="p-2.5 rounded-xl bg-amber-500/20 dark:bg-amber-500/20 light:bg-amber-100 shrink-0"
+              >
+                <Sparkles
+                  class="h-6 w-6 text-amber-500 dark:text-amber-400 light:text-amber-600"
+                  aria-hidden="true"
+                />
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    :class="[
+                      'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+                      tierBadgeClass,
+                    ]"
+                    :aria-label="`Current plan tier: ${planLabel}`"
+                    :title="memoraTier === 'byo' ? 'Build Your Own' : planLabel"
+                  >
+                    {{ planBadgeLabel }}
+                  </span>
+                  <span :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">
+                    Memora plan
+                  </span>
+                </div>
+                <p
+                  v-if="tierSummary"
+                  :class="['text-sm mt-2 tabular-nums', theme.textSecondary]"
+                >
+                  {{ tierSummary }}
+                </p>
+              </div>
+            </div>
+            <RouterLink
+              :to="{ name: 'memora-pricing' }"
+              :class="[
+                'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium shrink-0',
+                hasPaidPlan
+                  ? 'bg-amber-500/20 text-amber-800 dark:text-amber-200 hover:bg-amber-500/30 dark:hover:bg-amber-500/30 border border-amber-500/40'
+                  : 'bg-amber-500 text-amber-950 hover:bg-amber-400 dark:bg-amber-500 dark:text-amber-950 dark:hover:bg-amber-400 border border-amber-600/50',
+              ]"
+            >
+              {{ hasPaidPlan ? 'Manage subscription' : 'Upgrade plan' }}
+              <ChevronRight class="h-4 w-4" aria-hidden="true" />
+            </RouterLink>
+          </div>
+          <div
+            class="absolute bottom-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-12 -mb-12"
+            aria-hidden="true"
+          />
+        </div>
+
+        <!-- Stats Cards (auto-fit by visible count) -->
+        <div
+          v-if="hasMemora"
+          class="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-4"
+        >
           <!-- Collections Stat -->
           <div
             :class="[
@@ -416,8 +491,9 @@
             ></div>
           </div>
 
-          <!-- Selections Stat -->
+          <!-- Selections Stat (plan-gated) -->
           <div
+            v-if="canAccessSelection"
             :class="[
               'group relative overflow-hidden rounded-2xl p-5',
               'bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent',
@@ -445,8 +521,9 @@
             ></div>
           </div>
 
-          <!-- Proofing Stat -->
+          <!-- Proofing Stat (plan-gated) -->
           <div
+            v-if="canAccessProofing"
             :class="[
               'group relative overflow-hidden rounded-2xl p-5',
               'bg-gradient-to-br from-orange-500/20 via-orange-500/10 to-transparent',
@@ -476,8 +553,9 @@
             ></div>
           </div>
 
-          <!-- Raw Files Stat -->
+          <!-- Raw Files Stat (plan-gated) -->
           <div
+            v-if="canAccessRawFiles"
             :class="[
               'group relative overflow-hidden rounded-2xl p-5',
               'bg-gradient-to-br from-teal-500/20 via-teal-500/10 to-transparent',
@@ -810,7 +888,7 @@
                           : 'Storage space is running low. Consider upgrading for more space.'
                       }}
                     </p>
-                    <RouterLink to="/pricing">
+                    <RouterLink :to="{ name: 'memora-pricing' }">
                       <Button
                         :class="[
                           'transition-all duration-300 hover:scale-105 active:scale-95',
@@ -846,7 +924,7 @@
                 Collection limit ({{ collectionCount }}/{{ collectionLimit }}) reached. Upgrade for more collections.
               </span>
             </p>
-            <RouterLink to="/pricing">
+            <RouterLink :to="{ name: 'memora-pricing' }">
               <Button size="sm" variant="outline">Upgrade</Button>
             </RouterLink>
           </div>
@@ -1065,9 +1143,10 @@
         </div>
 
         <!-- Recent Phase Cards - 3 Column Grid -->
-        <div v-if="hasMemora" class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
+        <div v-if="hasMemora && (canAccessSelection || canAccessProofing || canAccessRawFiles)" class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
           <!-- Recent Selections Widget -->
           <ListItemCard
+            v-if="canAccessSelection"
             :loading="isLoadingSelections"
             :show-footer="true"
             animation-class="animate-in fade-in slide-in-from-bottom-4"
@@ -1096,7 +1175,7 @@
                 icon-bg-class="bg-pink-500/20"
                 icon-class="text-pink-400"
                 message="No selections yet"
-                @action="openCreateDialog('selection')"
+                @action="canAccessSelection ? openCreateDialog('selection') : showUpgradePrompt('selection')"
               />
             </div>
             <div v-else class="space-y-3">
@@ -1146,6 +1225,7 @@
 
           <!-- Recent Proofing Widget -->
           <ListItemCard
+            v-if="canAccessProofing"
             :loading="isLoadingProofing"
             :show-footer="true"
             animation-class="animate-in fade-in slide-in-from-bottom-4"
@@ -1171,12 +1251,12 @@
             <div v-if="recentProofing.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="Eye"
-                action-label="Create Proofing"
+                :action-label="canAccessProofing ? 'Create Proofing' : 'Upgrade to Pro'"
                 description="Create a proofing phase to collect client feedback and approvals"
                 icon-bg-class="bg-orange-500/20"
                 icon-class="text-orange-400"
                 message="No proofing yet"
-                @action="openCreateDialog('proofing')"
+                @action="canAccessProofing ? openCreateDialog('proofing') : showUpgradePrompt('proofing')"
               />
             </div>
             <div v-else class="space-y-3">
@@ -1226,6 +1306,7 @@
 
           <!-- Recent Raw Files Widget -->
           <ListItemCard
+            v-if="canAccessRawFiles"
             :loading="isLoadingRawFiles"
             :show-footer="true"
             animation-class="animate-in fade-in slide-in-from-bottom-4"
@@ -1251,12 +1332,12 @@
             <div v-if="recentRawFiles.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="FileText"
-                action-label="Create Raw File"
+                :action-label="canAccessRawFiles ? 'Create Raw File' : 'Upgrade to Studio'"
                 description="Create a raw file to let clients upload their photos"
                 icon-bg-class="bg-teal-500/20"
                 icon-class="text-teal-400"
                 message="No raw files yet"
-                @action="openCreateDialog('rawFile')"
+                @action="canAccessRawFiles ? openCreateDialog('rawFile') : showUpgradePrompt('raw_files')"
               />
             </div>
             <div v-else class="space-y-3">
@@ -1391,6 +1472,7 @@ import {
   Plus,
   Presentation,
   Settings,
+  Sparkles,
   StickyNote,
   Users2,
 } from '@/shared/utils/lucideAnimated'
@@ -1432,8 +1514,10 @@ import CreateProjectDialog from '@/shared/components/organisms/CreateProjectDial
 import CreateSelectionDialog from '@/domains/memora/components/organisms/CreateSelectionDialog.vue'
 import CreateProofingDialog from '@/domains/memora/components/organisms/CreateProofingDialog.vue'
 import CreateRawFileDialog from '@/domains/memora/components/organisms/CreateRawFileDialog.vue'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
+const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt } = useMemoraFeatures()
 useThemeStore() // Initialize theme store for reactivity
 const theme = useThemeClasses()
 
@@ -1683,6 +1767,44 @@ const handleCreateRawFileSuccess = async () => {
   await fetchRawFiles()
 }
 
+// Memora plan (tier) from user store
+const memoraTier = computed(() => userStore.user?.memora_tier ?? 'starter')
+const planLabel = computed(() => {
+  const t = memoraTier.value
+  if (t === 'byo') return 'Build Your Own'
+  return t.charAt(0).toUpperCase() + t.slice(1)
+})
+const planBadgeLabel = computed(() => {
+  const t = memoraTier.value
+  if (t === 'byo') return 'BYO'
+  return planLabel.value
+})
+const hasPaidPlan = computed(() => {
+  const t = memoraTier.value
+  return t !== 'starter' && t !== null && t !== undefined
+})
+const tierSummary = computed(() => {
+  const parts = []
+  parts.push(formatBytes(totalStorage.value) + ' storage')
+  if (projectLimit.value != null) {
+    parts.push(`${projectCount.value} / ${projectLimit.value} projects`)
+  } else {
+    parts.push(`${projectCount.value} projects`)
+  }
+  if (collectionLimit.value != null) {
+    parts.push(`${collectionCount.value} / ${collectionLimit.value} collections`)
+  } else {
+    parts.push(`${collectionCount.value} collections`)
+  }
+  return parts.join(' · ')
+})
+const tierBadgeClass = computed(() => {
+  const t = memoraTier.value
+  if (t === 'pro') return 'bg-amber-500/25 text-amber-800 dark:text-amber-200 border-amber-500/40'
+  if (t === 'byo') return 'bg-purple-500/25 text-purple-800 dark:text-purple-200 border-purple-500/40'
+  return 'bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/30'
+})
+
 // User data - use logged-in user from store, fallback to default if not available
 const userData = computed(() => {
   if (userStore.user) {
@@ -1880,6 +2002,9 @@ const fetchStorage = async () => {
     projectLimit.value = storageData.project_limit ?? null
     collectionCount.value = storageData.collection_count ?? 0
     collectionLimit.value = storageData.collection_limit ?? null
+    if (storageData.memora_features && userStore.user) {
+      userStore.updateUser({ memora_features: storageData.memora_features })
+    }
   } catch (error) {
     console.error('Failed to fetch storage usage:', error)
     // On error, keep default values (5GB)
@@ -1890,21 +2015,21 @@ const fetchStorage = async () => {
 
 const onStorageShouldRefresh = () => fetchStorage()
 
-// Fetch data on mount - each section loads independently
+// Fetch data on mount - only load data for features the user's plan includes
 onMounted(async () => {
-  // Fetch selected products first to determine what to show
   await userStore.fetchSelectedProducts()
-  
-  // Only fetch Memora-specific data if user has selected Memora
+
   if (hasMemora.value) {
     fetchCollections()
     fetchProjects()
-    fetchSelections()
-    fetchProofing()
-    fetchRawFiles()
+    if (canAccessSelection.value) fetchSelections()
+    else loadingStates.selections.value = false
+    if (canAccessProofing.value) fetchProofing()
+    else loadingStates.proofing.value = false
+    if (canAccessRawFiles.value) fetchRawFiles()
+    else loadingStates.rawFiles.value = false
   }
-  
-  // Storage is always fetched (shared across products)
+
   fetchStorage()
   window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })

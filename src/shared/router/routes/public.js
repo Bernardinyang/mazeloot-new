@@ -6,6 +6,8 @@ import ContactUs from '@/shared/views/public/ContactUs.vue'
 import Waitlist from '@/shared/views/public/Waitlist.vue'
 import EarlyAccess from '@/shared/views/public/EarlyAccess.vue'
 import FoundersPricing from '@/shared/views/public/FoundersPricing.vue'
+import BuildYourOwn from '@/shared/views/public/BuildYourOwn.vue'
+import SubscriptionSuccess from '@/shared/views/public/SubscriptionSuccess.vue'
 
 export const publicRoutes = [
   {
@@ -68,6 +70,22 @@ export const publicRoutes = [
     path: '/founders',
     name: 'founders-pricing',
     component: FoundersPricing,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/build-your-own',
+    name: 'build-your-own',
+    component: BuildYourOwn,
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
+    path: '/subscription/success',
+    name: 'subscription-success',
+    component: SubscriptionSuccess,
     meta: {
       requiresAuth: false,
     },

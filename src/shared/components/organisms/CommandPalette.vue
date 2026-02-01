@@ -177,6 +177,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { apiClient } from '@/shared/api/client'
 import { useUserStore } from '@/shared/stores/user'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import ProductFilterCards from '@/shared/components/molecules/ProductFilterCards.vue'
 import SearchResults from '@/shared/components/molecules/SearchResults.vue'
 
@@ -191,6 +192,7 @@ const emit = defineEmits(['update:open', 'select'])
 
 const theme = useThemeClasses()
 const userStore = useUserStore()
+const { hasFeature } = useMemoraFeatures()
 const searchInput = ref(null)
 const isOpen = computed({
   get: () => props.open,
@@ -210,14 +212,21 @@ const filters = ref({
   starred: false,
 })
 
-const contentTypes = [
-  { label: 'Collections', value: 'collection' },
-  { label: 'Projects', value: 'project' },
-  { label: 'Selections', value: 'selection' },
-  { label: 'Proofing', value: 'proofing' },
-  { label: 'Raw Files', value: 'rawFile' },
-  { label: 'Presets', value: 'preset' },
+const contentTypesList = [
+  { label: 'Collections', value: 'collection', feature: 'collection' },
+  { label: 'Projects', value: 'project', feature: 'selection_or_collection' },
+  { label: 'Selections', value: 'selection', feature: 'selection' },
+  { label: 'Proofing', value: 'proofing', feature: 'proofing' },
+  { label: 'Raw Files', value: 'rawFile', feature: 'raw_files' },
+  { label: 'Presets', value: 'preset', feature: null },
 ]
+const contentTypes = computed(() =>
+  contentTypesList.filter((t) => {
+    if (!t.feature) return true
+    if (t.feature === 'selection_or_collection') return hasFeature('selection') || hasFeature('collection')
+    return hasFeature(t.feature)
+  }),
+)
 
 const availableProducts = computed(() => {
   return userStore.selectedProducts || []
@@ -230,10 +239,20 @@ const hasActiveFilters = computed(() => {
     filters.value.starred
 })
 
+const canShowResultType = (type) => {
+  if (type === 'proofing') return hasFeature('proofing')
+  if (type === 'rawFile') return hasFeature('raw_files')
+  if (type === 'collection') return hasFeature('collection')
+  if (type === 'selection') return hasFeature('selection')
+  if (type === 'project') return hasFeature('selection') || hasFeature('collection')
+  return true
+}
+
 const groupedResults = computed(() => {
   const productGroups = {}
-  
-  results.value.forEach(item => {
+  const filtered = results.value.filter((item) => canShowResultType(item.type))
+
+  filtered.forEach(item => {
     const productUuid = item.productUuid || 'memora'
     const product = availableProducts.value.find(p => p.uuid === productUuid) || availableProducts.value[0]
     

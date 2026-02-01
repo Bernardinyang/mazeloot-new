@@ -24,13 +24,15 @@
         @update:view-mode="viewMode = $event"
       >
         <template #actions>
-          <Button
-            variant="accent"
-            :icon="Plus"
-            @click="handleCreateProofing"
-          >
-            New Proofing
-          </Button>
+          <UpgradeGate feature="proofing">
+            <Button
+              variant="accent"
+              :icon="Plus"
+              @click="handleCreateProofing"
+            >
+              New Proofing
+            </Button>
+          </UpgradeGate>
         </template>
       </PageHeader>
 
@@ -44,10 +46,10 @@
           v-else-if="proofing.length === 0"
           :icon="Eye"
           :action-icon="Plus"
-          action-label="Create New Proofing"
+          :action-label="canAccessProofing ? 'Create New Proofing' : 'Upgrade to Pro'"
           description="Create a proofing phase to allow clients to review and provide feedback on media."
           message="No proofing found"
-          @action="handleCreateProofing"
+          @action="canAccessProofing ? handleCreateProofing : () => showUpgradePrompt('proofing')"
         />
 
         <!-- Proofing Grid -->
@@ -84,11 +86,11 @@
         :loading="isLoading"
         :selected-items="selectedProofing"
         :show-view-details="true"
-        empty-action-label="Create New Proofing"
+        :empty-action-label="canAccessProofing ? 'Create New Proofing' : 'Upgrade to Pro'"
         empty-message="No proofing found"
         @delete="handleDeleteProofing"
         @edit="handleEditProofing"
-        @empty-action="handleCreateProofing"
+        @empty-action="canAccessProofing ? handleCreateProofing : () => showUpgradePrompt('proofing')"
         @item-click="handleProofingClick"
         @select="handleSelectProofing"
         @star-click="toggleStar"
@@ -168,6 +170,8 @@ import Pagination from '@/shared/components/molecules/Pagination.vue'
 import CreateProofingDialog from '@/domains/memora/components/organisms/CreateProofingDialog.vue'
 import EditProofingDialog from '@/domains/memora/components/organisms/EditProofingDialog.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
+import UpgradeGate from '@/domains/memora/components/molecules/UpgradeGate.vue'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'

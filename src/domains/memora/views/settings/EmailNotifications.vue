@@ -2,14 +2,14 @@
   <DashboardLayout>
     <template #breadcrumb> Settings > Email Notifications </template>
 
-    <div class="space-y-8 w-1/2">
+    <div class="space-y-8 max-w-3xl">
       <!-- Page Header -->
       <div>
         <h1 :class="theme.textPrimary" class="text-4xl font-bold tracking-tight mb-2">
           Email Notifications
         </h1>
         <p :class="theme.textSecondary" class="text-sm mb-6">
-          Choose which email notifications you want to receive.
+          Choose which events trigger email notifications. All events are on by default.
         </p>
         <Separator :class="theme.borderSecondary" />
       </div>
@@ -22,73 +22,78 @@
       <!-- Content -->
       <div v-else>
         <div
-          v-if="notifications.length === 0"
+          v-if="events.length === 0"
           :class="[theme.bgCard, theme.borderCard]"
           class="rounded-xl border p-12 text-center"
         >
           <p :class="theme.textSecondary" class="text-sm">
-            No notification types available. Contact support to enable notifications.
+            No notification events available.
           </p>
         </div>
 
-        <div v-else class="space-y-3">
-          <div
-            v-for="notification in notifications"
-            :key="notification.type"
-            :class="[theme.bgCard, theme.borderCard]"
-            class="rounded-xl border p-6 transition-all hover:shadow-md"
-          >
-            <div class="flex items-center justify-between gap-6">
-              <div class="flex-1 min-w-0">
-                <h3 :class="theme.textPrimary" class="text-base font-semibold mb-1.5">
-                  {{ formatNotificationName(notification.type) }}
-                </h3>
-                <p :class="theme.textSecondary" class="text-sm leading-relaxed">
-                  {{ getNotificationDescription(notification.type) }}
-                </p>
-              </div>
-              <div class="flex items-center gap-3 flex-shrink-0">
-                <label
-                  :class="isSaving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
-                  class="relative inline-flex items-center group"
-                >
-                  <input
-                    :checked="notification.enabled"
-                    :disabled="isSaving"
-                    class="sr-only peer"
-                    type="checkbox"
-                    @change="handleToggle(notification.type, $event.target.checked)"
-                  />
-                  <div
-                    class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
-                  ></div>
-                  <span
-                    :class="notification.enabled ? theme.textPrimary : theme.textSecondary"
-                    class="ml-3 text-sm font-medium min-w-[40px]"
-                  >
-                    {{ notification.enabled ? 'On' : 'Off' }}
-                  </span>
-                </label>
-                <Loader2 v-if="isSaving" class="h-4 w-4 animate-spin text-violet-500" />
+        <div v-else class="space-y-8">
+          <div v-for="group in groupedEvents" :key="group.group" class="space-y-3">
+            <h2 :class="theme.textPrimary" class="text-lg font-semibold border-b pb-2">
+              {{ group.groupLabel }}
+            </h2>
+            <div class="space-y-3">
+              <div
+                v-for="event in group.events"
+                :key="event.type"
+                :class="[theme.bgCard, theme.borderCard]"
+                class="rounded-xl border p-5 transition-all hover:shadow-md"
+              >
+                <div class="flex items-center justify-between gap-6">
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                      <h3 :class="theme.textPrimary" class="text-base font-semibold">
+                        {{ event.label }}
+                      </h3>
+                      <span
+                        v-if="event.critical"
+                        class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                      >
+                        Critical
+                      </span>
+                    </div>
+                    <p :class="theme.textSecondary" class="text-sm leading-relaxed mt-1">
+                      {{ event.description }}
+                    </p>
+                  </div>
+                  <div class="flex items-center gap-3 flex-shrink-0">
+                    <label
+                      :class="isSaving ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+                      class="relative inline-flex items-center group"
+                    >
+                      <input
+                        :checked="event.enabled"
+                        :disabled="isSaving"
+                        class="sr-only peer"
+                        type="checkbox"
+                        @change="handleToggle(event.type, $event.target.checked)"
+                      />
+                      <div
+                        class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                      />
+                      <span
+                        :class="event.enabled ? theme.textPrimary : theme.textSecondary"
+                        class="ml-3 text-sm font-medium min-w-[40px]"
+                      >
+                        {{ event.enabled ? 'On' : 'Off' }}
+                      </span>
+                    </label>
+                    <Loader2 v-if="isSaving" class="h-4 w-4 animate-spin text-violet-500" />
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Save Button -->
         <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
-          <div class="flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-violet-500" />
-              <span :class="theme.textSecondary">All changes saved automatically</span>
-            </div>
-            <Button
-              class="bg-violet-500 hover:bg-violet-600 text-white disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled
-            >
-              <Check class="h-4 w-4" />
-              Saved
-            </Button>
+          <div class="flex items-center gap-2 text-sm">
+            <Check class="h-4 w-4 text-violet-500 shrink-0" />
+            <span :class="theme.textSecondary">Changes saved automatically</span>
           </div>
         </div>
       </div>
@@ -97,100 +102,51 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Check, Loader2 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
-import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useEmailNotificationsApi } from '@/domains/memora/api/emailNotifications'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
-const { fetchEmailNotifications, updateEmailNotifications, getNotificationTypes } =
-  useEmailNotificationsApi()
+const { fetchEvents, updateEmailNotifications } = useEmailNotificationsApi()
+const { hasFeature } = useMemoraFeatures()
 
-const notifications = ref([])
+const events = ref([])
 const isLoading = ref(false)
 const isSaving = ref(false)
 
-const formatNotificationName = type => {
-  return type
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
+const groupVisible = (group) => {
+  if (group === 'collection') return hasFeature('collection')
+  if (group === 'selection') return hasFeature('selection')
+  if (group === 'proofing') return hasFeature('proofing')
+  if (group === 'project') return hasFeature('selection') || hasFeature('collection')
+  return true
 }
 
-const getNotificationDescription = type => {
-  const descriptions = {
-    // Collection Phase
-    collection_published: 'Receive an email when a collection is published',
-    collection_shared: 'Receive an email when a collection is shared',
-    collection_download: 'Receive an email when clients download from collections',
-    collection_email_registration:
-      'Receive an email when clients register their email to access collections',
-    collection_favorite: 'Receive an email when clients favorite photos in collections',
-    collection_view: 'Receive an email when collections are viewed',
-    // Selection Phase
-    selection_published: 'Receive an email when a selection is published',
-    selection_completed: 'Receive an email when a selection is completed',
-    selection_access: 'Receive an email when clients access selections',
-    selection_limit_reached: 'Receive an email when selection limit is reached',
-    // Proofing Phase
-    proofing_published: 'Receive an email when proofing is published',
-    proofing_completed: 'Receive an email when proofing is completed',
-    proofing_comment: 'Receive an email when comments are added to proofing',
-    proofing_revision_uploaded: 'Receive an email when new revisions are uploaded',
-    proofing_approval_requested: 'Receive an email when approval requests are submitted',
-    proofing_approval_approved: 'Receive an email when approval requests are approved',
-    proofing_approval_rejected: 'Receive an email when approval requests are rejected',
-    proofing_closure_requested: 'Receive an email when closure requests are submitted',
-    proofing_closure_approved: 'Receive an email when closure requests are approved',
-    proofing_closure_rejected: 'Receive an email when closure requests are rejected',
-    // Project
-    project_created: 'Receive an email when a new project is created',
-    project_updated: 'Receive an email when a project is updated',
-    // Media & Feedback
-    media_feedback: 'Receive an email when clients provide feedback on media',
-    media_uploaded: 'Receive an email when media is uploaded',
-    // General
-    weekly_summary: 'Receive a weekly summary of your activity',
-    monthly_summary: 'Receive a monthly summary of your activity',
-    // Legacy/Deprecated (for backward compatibility)
-    client_feedback: 'Receive an email when clients provide feedback',
-    approval_request: 'Receive an email when approval requests are submitted',
+const groupedEvents = computed(() => {
+  const groups = {}
+  for (const event of events.value) {
+    const key = event.group
+    if (!groups[key]) {
+      groups[key] = { group: key, groupLabel: event.groupLabel || event.group, events: [] }
+    }
+    groups[key].events.push(event)
   }
-  return descriptions[type] || 'Email notification preference'
-}
+  const order = ['collection', 'selection', 'proofing', 'project', 'media', 'payment', 'general']
+  return order.filter(g => groups[g] && groupVisible(g)).map(g => groups[g])
+})
 
 onMounted(async () => {
   isLoading.value = true
   try {
-    const [notificationsData, types] = await Promise.all([
-      fetchEmailNotifications(),
-      getNotificationTypes().catch(() => []),
-    ])
-
-    const notificationsMap = notificationsData.data || notificationsData || {}
-    const availableTypes = types.data || types || []
-
-    // Merge available types with user preferences
-    notifications.value = availableTypes.map(type => ({
-      type,
-      enabled: notificationsMap[type] ?? false,
-    }))
-
-    // If no types from admin, use the notifications map keys
-    if (notifications.value.length === 0) {
-      notifications.value = Object.entries(notificationsMap).map(([type, enabled]) => ({
-        type,
-        enabled,
-      }))
-    }
+    const res = await fetchEvents()
+    events.value = res.data || res || []
   } catch (error) {
-    toast.error('Failed to load notifications', {
-      description: error.message || 'Please try again',
-    })
+    toast.apiError(error, 'Failed to load notifications. Please try again.')
   } finally {
     isLoading.value = false
   }
@@ -199,32 +155,25 @@ onMounted(async () => {
 const handleToggle = async (type, enabled) => {
   isSaving.value = true
   try {
-    const currentNotifications = notifications.value.reduce((acc, n) => {
-      acc[n.type] = n.enabled
+    const current = events.value.reduce((acc, e) => {
+      acc[e.type] = e.enabled
       return acc
     }, {})
+    current[type] = enabled
 
-    currentNotifications[type] = enabled
-
-    const updated = await updateEmailNotifications(currentNotifications)
+    const updated = await updateEmailNotifications(current)
     const updatedMap = updated.data || updated || {}
 
-    // Update local state
-    notifications.value = notifications.value.map(n => ({
-      ...n,
-      enabled: updatedMap[n.type] ?? n.enabled,
+    events.value = events.value.map(e => ({
+      ...e,
+      enabled: updatedMap[e.type] ?? e.enabled,
     }))
 
-    toast.success('Notification preference updated')
+    toast.success('Preference updated')
   } catch (error) {
-    toast.error('Failed to update notification', {
-      description: error.message || 'Please try again',
-    })
-    // Revert toggle
-    const notification = notifications.value.find(n => n.type === type)
-    if (notification) {
-      notification.enabled = !enabled
-    }
+    toast.apiError(error, 'Failed to update. Please try again.')
+    const event = events.value.find(e => e.type === type)
+    if (event) event.enabled = !enabled
   } finally {
     isSaving.value = false
   }

@@ -22,10 +22,10 @@
       <ActionBanner
         title="Ready to set up proofing?"
         description="Create proofing sessions and manage client feedback"
-        button-text="Go to Proofing"
+        :button-text="canAccessProofing ? 'Go to Proofing' : 'Upgrade to Pro'"
         :icon="Eye"
         color="teal"
-        @action="navigateTo({ name: 'proofing' })"
+        @action="canAccessProofing ? navigateTo({ name: 'proofing' }) : showUpgradePrompt('proofing')"
       />
 
       <!-- Overview Section -->
@@ -102,8 +102,10 @@ import Card from '@/shared/components/shadcn/Card.vue'
 import ActionBanner from '@/shared/components/molecules/ActionBanner.vue'
 import { Eye, ChevronRight, Settings, MessageSquare, ArrowRight, Lightbulb } from '@/shared/utils/lucideAnimated'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
+const { canAccessProofing, showUpgradePrompt } = useMemoraFeatures()
 
 const sections = ref([
   {

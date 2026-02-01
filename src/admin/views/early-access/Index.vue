@@ -476,7 +476,7 @@ const handleApprove = async () => {
     await loadRequests()
     await loadUsers()
   } catch (error) {
-    toast.error(error.response?.data?.message || 'Failed to approve request')
+    toast.apiError(error, 'Failed to approve request')
   } finally {
     isProcessing.value = false
   }
@@ -495,7 +495,7 @@ const handleReject = async () => {
     showRejectDialog.value = false
     await loadRequests()
   } catch (error) {
-    toast.error(error.response?.data?.message || 'Failed to reject request')
+    toast.apiError(error, 'Failed to reject request')
   } finally {
     isProcessing.value = false
   }

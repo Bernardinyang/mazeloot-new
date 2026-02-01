@@ -1,6 +1,5 @@
 import { nextTick } from 'vue'
 import { toast } from '@/shared/utils/toast'
-import { getErrorMessage } from '@/shared/utils/errors'
 import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
 
 export function useCollectionHeaderActions({
@@ -56,8 +55,7 @@ export function useCollectionHeaderActions({
         description,
       })
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to publish collection')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to publish collection')
     } finally {
       isSavingStatus.value = false
     }
@@ -77,8 +75,7 @@ export function useCollectionHeaderActions({
         description,
       })
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to unpublish collection')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to unpublish collection')
     } finally {
       isSavingStatus.value = false
     }
@@ -99,8 +96,7 @@ export function useCollectionHeaderActions({
       collectionStatus.value = newStatus
       // Auto-save
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to update status')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to update status')
       // Revert status on error
       const currentStatus = collection.value.status
       if (currentStatus === 'active') {
@@ -152,8 +148,7 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to save event date')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to save event date')
       // Revert to original date on error
       const originalDate = collection.value?.eventDate || collection.value?.date
       if (originalDate) {
@@ -200,8 +195,7 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to update preset')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to update preset')
       // Revert on error
       const errorPresetId = collection.value?.presetId
       selectedPresetId.value = errorPresetId != null ? String(errorPresetId) : 'none'
@@ -244,8 +238,7 @@ export function useCollectionHeaderActions({
 
       // Auto-save
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to update watermark')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to update watermark')
       // Revert on error
       const errorWatermarkId = collection.value?.watermarkId
       selectedWatermark.value = errorWatermarkId != null ? String(errorWatermarkId) : 'none'
@@ -335,8 +328,7 @@ export function useCollectionHeaderActions({
       cancelEditingName()
       // Auto-save
     } catch (error) {
-      const errorMessage = getErrorMessage(error, 'Failed to update name')
-      toast.error(errorMessage)
+      toast.apiError(error, 'Failed to update name')
       // Revert editing name to original
       editingName.value = collection.value.name
       cancelEditingName()

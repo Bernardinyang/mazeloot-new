@@ -1,0 +1,30 @@
+/**
+ * Plan comparison matrix for pricing table.
+ * Values: true (check), false (dash), string (display value).
+ */
+export const PLAN_COMPARISON_ROWS = [
+  { category: 'General', label: 'Projects', starter: '3', pro: 'Unlimited', studio: 'Unlimited', business: 'Unlimited', byo: 'Custom' },
+  { category: 'General', label: 'Collections', starter: '2', pro: 'Unlimited', studio: 'Unlimited', business: 'Unlimited', byo: 'Custom' },
+  { category: 'General', label: 'Selection + Collection', starter: true, pro: true, studio: true, business: true, byo: true },
+  { category: 'General', label: 'Mazeloot branding', starter: true, pro: true, studio: true, business: true, byo: true },
+  { category: 'General', label: 'Remove branding', starter: false, pro: true, studio: true, business: true, byo: true },
+  { category: 'General', label: 'Custom domain', starter: false, pro: true, studio: true, business: true, byo: true },
+  { category: 'Storage', label: 'Storage', starter: '5GB', pro: '100GB', studio: '500GB', business: 'Unlimited', byo: 'Custom' },
+  { category: 'Features', label: 'Proofing phase', starter: false, pro: true, studio: true, business: true, byo: true },
+  { category: 'Features', label: 'Proofing revisions', starter: '—', pro: '5', studio: '10', business: '20', byo: 'Custom' },
+  { category: 'Features', label: 'Raw Files phase', starter: false, pro: false, studio: true, business: true, byo: true },
+  { category: 'Features', label: 'Watermarks & presets', starter: '1 each', pro: '3 / 5', studio: 'Unlimited', business: 'Unlimited', byo: 'Custom' },
+  { category: 'Features', label: 'Analytics', starter: false, pro: 'Basic', studio: 'Advanced', business: 'Advanced', byo: 'Custom' },
+  { category: 'Features', label: 'Team collaboration', starter: false, pro: false, studio: false, business: '5 seats', byo: 'Custom' },
+  { category: 'Features', label: 'API access', starter: false, pro: false, studio: false, business: true, byo: true },
+  { category: 'Support', label: 'Support', starter: 'Community', pro: 'Email', studio: 'Priority', business: '24/7', byo: 'Custom' },
+]
+
+export const PLAN_IDS = ['starter', 'pro', 'studio', 'business', 'byo']
+
+export function getComparisonValue(row, tierId) {
+  const v = row[tierId]
+  if (v === true) return 'check'
+  if (v === false) return 'dash'
+  return v
+}

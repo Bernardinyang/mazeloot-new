@@ -22,10 +22,10 @@
       <ActionBanner
         title="Ready to organize your RAW files?"
         description="Manage your original files alongside processed photos"
-        button-text="Go to Raw Files"
+        :button-text="canAccessRawFiles ? 'Go to Raw Files' : 'Upgrade to Studio'"
         :icon="FileImage"
         color="emerald"
-        @action="navigateTo({ name: 'rawFiles' })"
+        @action="canAccessRawFiles ? navigateTo({ name: 'rawFiles' }) : showUpgradePrompt('raw_files')"
       />
 
       <!-- Overview Section -->
@@ -101,8 +101,10 @@ import Card from '@/shared/components/shadcn/Card.vue'
 import ActionBanner from '@/shared/components/molecules/ActionBanner.vue'
 import { FileImage, ChevronRight, Lightbulb } from '@/shared/utils/lucideAnimated'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
+const { canAccessRawFiles, showUpgradePrompt } = useMemoraFeatures()
 
 const contentCards = computed(() => [
   {

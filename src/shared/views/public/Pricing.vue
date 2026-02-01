@@ -15,30 +15,51 @@
           Choose the plan that works best for your photography business
         </p>
 
-        <div class="flex items-center justify-center gap-4 mt-8">
-          <span :class="['text-sm font-medium', !isAnnual && 'text-foreground']">Monthly</span>
-          <button
-            type="button"
-            role="switch"
-            :aria-checked="isAnnual"
-            class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 bg-primary"
-            @click="isAnnual = !isAnnual"
-          >
-            <span
-              :class="[
-                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform',
-                isAnnual ? 'translate-x-5' : 'translate-x-1',
-              ]"
-            />
-          </button>
-          <span :class="['text-sm font-medium', isAnnual && 'text-foreground']">
-            Annual
-            <span class="text-green-600 dark:text-green-500 text-xs ml-1">(Save 17%)</span>
-          </span>
+        <div v-if="!loading && !error" class="flex flex-col items-center gap-4 mt-8">
+          <div class="flex items-center justify-center gap-4">
+            <span :class="['text-sm font-medium', !isAnnual && 'text-foreground']">Monthly</span>
+            <button
+              type="button"
+              role="switch"
+              :aria-checked="isAnnual"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 bg-primary"
+              @click="isAnnual = !isAnnual"
+            >
+              <span
+                :class="[
+                  'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background shadow-lg ring-0 transition-transform',
+                  isAnnual ? 'translate-x-5' : 'translate-x-1',
+                ]"
+              />
+            </button>
+            <span :class="['text-sm font-medium', isAnnual && 'text-foreground']">
+              Annual
+              <span class="text-green-600 dark:text-green-500 text-xs ml-1">(Save 17%)</span>
+            </span>
+          </div>
+          <div class="flex flex-col items-center gap-2">
+            <p class="text-sm text-muted-foreground">Prices in</p>
+            <select
+              :value="currencyStore.currency"
+              aria-label="Currency"
+              class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              @change="currencyStore.setCurrency($event.target.value)"
+            >
+              <option v-for="c in SUPPORTED_CURRENCIES" :key="c.code" :value="c.code">
+                {{ c.label }}
+              </option>
+            </select>
+          </div>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto px-4 sm:px-0">
+      <div v-if="loading" class="text-center py-12">Loading…</div>
+      <div v-else-if="error" class="text-center py-12 text-destructive">{{ error }}</div>
+
+      <div
+        v-else
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto px-4 sm:px-0"
+      >
         <Card
           v-for="tier in tiers"
           :key="tier.id"
@@ -56,7 +77,7 @@
           <CardHeader>
             <CardTitle class="text-2xl mb-2">{{ tier.name }}</CardTitle>
             <div class="text-4xl font-bold mb-4">
-              ${{ displayPrice(tier) }}
+              {{ displayPrice(tier) }}
               <span class="text-lg font-normal text-muted-foreground">/month</span>
             </div>
             <CardDescription>{{ tier.description }}</CardDescription>
@@ -75,15 +96,25 @@
             <Button
               class="w-full mt-6"
               :variant="tier.popular ? 'default' : 'outline'"
-              @click="router.push({ name: 'register', query: tier.id !== 'starter' ? { plan: tier.id, billing: isAnnual ? 'annual' : 'monthly' } : {} })"
+              :disabled="checkoutLoading === tier.id"
+              @click="handleGetStarted(tier)"
             >
-              {{ tier.id === 'starter' ? 'Get Started' : 'Get Started' }}
+              {{ checkoutLoading === tier.id ? 'Loading…' : 'Get Started' }}
             </Button>
           </CardContent>
         </Card>
       </div>
 
-      <div class="mt-20 text-center">
+      <div class="mt-12 text-center">
+        <a
+          href="/build-your-own"
+          class="inline-block text-sm font-medium text-primary hover:underline"
+        >
+          Or build your own plan →
+        </a>
+      </div>
+
+      <div class="mt-12 text-center">
         <h2 class="text-3xl font-bold mb-4">All plans include</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto mt-8">
           <div class="flex items-start gap-3">
@@ -120,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -130,90 +161,115 @@ import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import CardDescription from '@/shared/components/shadcn/CardDescription.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
 import { Check } from '@/shared/utils/lucideAnimated'
+import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
+import { useUserStore } from '@/shared/stores/user'
+import { useCurrencyStore, SUPPORTED_CURRENCIES } from '@/shared/stores/currency'
+import { formatMoney } from '@/shared/utils/formatMoney'
+import { toast } from '@/shared/utils/toast'
 
 const router = useRouter()
-const isAnnual = ref(true)
+const userStore = useUserStore()
+const currencyStore = useCurrencyStore()
+const { getTiers } = usePricingApi()
+const { getPreview, createCheckout } = useSubscriptionApi()
 
-const tiers = computed(() => [
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Perfect for getting started',
-    priceMonthly: 0,
-    priceAnnual: 0,
-    popular: false,
-    features: [
-      '3 Projects',
-      '2 Collections',
-      '5GB Storage',
-      'Selection + Collection phases',
-      'Mazeloot branding',
-      'Community support',
-    ],
-  },
-  {
-    id: 'pro',
-    name: 'Pro',
-    description: 'For solo photographers with regular clients',
-    priceMonthly: 15,
-    priceAnnual: 12,
-    popular: true,
-    features: [
-      'Unlimited Projects',
-      'Unlimited Collections',
-      '100GB Storage',
-      'Proofing phase (5 revisions)',
-      'Custom domain',
-      'Remove branding',
-      '3 Watermarks, 5 Presets',
-      'Basic analytics',
-      'Download PIN',
-      'Email support',
-    ],
-  },
-  {
-    id: 'studio',
-    name: 'Studio',
-    description: 'For growing photographers and event specialists',
-    priceMonthly: 35,
-    priceAnnual: 28,
-    popular: false,
-    features: [
-      'Everything in Pro',
-      '500GB Storage',
-      '10 revisions per proofing',
-      'Raw Files phase',
-      'Unlimited watermarks & presets',
-      'Advanced analytics',
-      'Client email registration',
-      'Auto-expiry, slideshow',
-      'Social sharing',
-      'Priority support',
-    ],
-  },
-  {
-    id: 'business',
-    name: 'Business',
-    description: 'For studios and high-volume operations',
-    priceMonthly: 59,
-    priceAnnual: 49,
-    popular: false,
-    features: [
-      'Everything in Studio',
-      'Unlimited Storage',
-      '20 revisions per proofing',
-      'Team collaboration (5 seats)',
-      'White-label',
-      'Multi-brand support',
-      'API access',
-      'Advanced SEO',
-      '24/7 support',
-    ],
-  },
-])
+const isAnnual = ref(true)
+const tiers = ref([])
+const loading = ref(true)
+const error = ref(null)
+const checkoutLoading = ref(null)
+const convertedPrices = ref({})
+const convertedLoading = ref(false)
+
+async function fetchConvertedPrices() {
+  const cur = currencyStore.currency
+  if (cur === 'usd' || tiers.value.length === 0) {
+    convertedPrices.value = {}
+    return
+  }
+  convertedLoading.value = true
+  try {
+    const results = {}
+    await Promise.all(
+      tiers.value
+        .filter((t) => t.id !== 'starter')
+        .map(async (tier) => {
+          const [monthlyRes, annualRes] = await Promise.all([
+            getPreview(tier.id, 'monthly', cur),
+            getPreview(tier.id, 'annual', cur),
+          ])
+          results[tier.id] = {
+            monthlyFormatted: monthlyRes?.amount_formatted ?? '—',
+            annualCents: annualRes?.amount_cents ?? 0,
+          }
+        })
+    )
+    convertedPrices.value = results
+  } catch {
+    convertedPrices.value = {}
+  } finally {
+    convertedLoading.value = false
+  }
+}
+
+watch(
+  () => [currencyStore.currency, isAnnual.value, tiers.value],
+  () => fetchConvertedPrices(),
+  { immediate: false }
+)
 
 function displayPrice(tier) {
-  if (tier.priceMonthly === 0) return '0'
-  return isAnnual.value ? tier.priceAnnual : tier.priceMonthly
+  if (currencyStore.currency === 'usd') {
+    if (tier.price_monthly_cents === 0) return formatMoney(0, 'usd')
+    const cents = isAnnual.value ? tier.price_annual_cents / 12 : tier.price_monthly_cents
+    return formatMoney(cents, 'usd')
+  }
+  const c = convertedPrices.value[tier.id]
+  if (!c) return convertedLoading.value ? '…' : '—'
+  if (isAnnual.value) return formatMoney(c.annualCents / 12, currencyStore.currency)
+  return c.monthlyFormatted
 }
+
+async function handleGetStarted(tier) {
+  // Starter tier - just go to register
+  if (tier.id === 'starter') {
+    router.push({ name: 'register' })
+    return
+  }
+
+  // If not logged in, redirect to register with plan params
+  if (!userStore.isAuthenticated) {
+    router.push({
+      name: 'register',
+      query: { plan: tier.id, billing: isAnnual.value ? 'annual' : 'monthly' },
+    })
+    return
+  }
+
+  // User is logged in - create checkout session
+  try {
+    checkoutLoading.value = tier.id
+    const billingCycle = isAnnual.value ? 'annual' : 'monthly'
+    const result = await createCheckout(tier.id, billingCycle)
+
+    if (result.checkout_url) {
+      window.location.href = result.checkout_url
+    }
+  } catch (e) {
+    toast.apiError(e, 'Failed to start checkout')
+  } finally {
+    checkoutLoading.value = null
+  }
+}
+
+onMounted(async () => {
+  try {
+    tiers.value = await getTiers()
+    if (currencyStore.currency !== 'usd') await fetchConvertedPrices()
+  } catch (e) {
+    error.value = e?.message ?? 'Failed to load pricing'
+  } finally {
+    loading.value = false
+  }
+})
 </script>

@@ -25,10 +25,23 @@ import { computed } from 'vue'
 import { TrendingUp } from '@/shared/utils/lucideAnimated'
 import { useThemeStore } from '@/shared/stores/theme'
 
+const SERIES_CONFIG = [
+  { key: 'collections', name: 'Collections', color: '#3b82f6' },
+  { key: 'projects', name: 'Projects', color: '#a855f7' },
+  { key: 'selections', name: 'Selections', color: '#10b981' },
+  { key: 'proofing', name: 'Proofing', color: '#f59e0b' },
+  { key: 'rawFiles', name: 'Raw Files', color: '#06b6d4' },
+]
+
 const props = defineProps({
   data: {
     type: Array,
     default: () => [],
+  },
+  /** When provided, only these series are shown. Each: { key, name, color } */
+  visibleSeries: {
+    type: Array,
+    default: null,
   },
 })
 
@@ -57,33 +70,16 @@ const gridColor = computed(() => (isDark.value ? '#374151' : '#e5e7eb'))
 const cardBg = computed(() => (isDark.value ? '#1f2937' : '#ffffff'))
 const borderColor = computed(() => (isDark.value ? '#374151' : '#e5e7eb'))
 
-const chartSeries = computed(() => [
-  {
-    name: 'Collections',
-    data: chartData.value.map(d => d.collections),
-    color: '#3b82f6',
-  },
-  {
-    name: 'Projects',
-    data: chartData.value.map(d => d.projects),
-    color: '#a855f7',
-  },
-  {
-    name: 'Selections',
-    data: chartData.value.map(d => d.selections),
-    color: '#10b981',
-  },
-  {
-    name: 'Proofing',
-    data: chartData.value.map(d => d.proofing),
-    color: '#f59e0b',
-  },
-  {
-    name: 'Raw Files',
-    data: chartData.value.map(d => d.rawFiles),
-    color: '#06b6d4',
-  },
-])
+const chartSeries = computed(() => {
+  const series = props.visibleSeries && props.visibleSeries.length > 0
+    ? props.visibleSeries
+    : SERIES_CONFIG.map(({ key, name, color }) => ({ key, name, color }))
+  return series.map((s) => ({
+    name: s.name,
+    data: chartData.value.map((d) => Number(d[s.key]) || 0),
+    color: s.color,
+  }))
+})
 
 const chartOptions = computed(() => ({
   chart: {
@@ -107,7 +103,7 @@ const chartOptions = computed(() => ({
     },
     sparkline: { enabled: false },
   },
-  colors: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#06b6d4'],
+  colors: chartSeries.value.map((s) => s.color),
   stroke: {
     curve: 'smooth',
     width: 3,
@@ -116,7 +112,7 @@ const chartOptions = computed(() => ({
   markers: {
     size: 5,
     strokeWidth: 2,
-    strokeColors: ['#3b82f6', '#a855f7', '#10b981', '#f59e0b', '#06b6d4'],
+    strokeColors: chartSeries.value.map((s) => s.color),
     hover: {
       size: 7,
       sizeOffset: 2,

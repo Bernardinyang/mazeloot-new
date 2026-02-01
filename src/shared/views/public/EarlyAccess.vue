@@ -342,9 +342,8 @@ const handleSubmit = async () => {
       }
     }
   } catch (err) {
-    const errorMessage = err.response?.data?.message || err.response?.data?.error || 'Failed to register. Please try again.'
-    error.value = errorMessage
-    toast.error(errorMessage)
+    error.value = err?.response?.data?.message || err?.response?.data?.error || err?.message || 'Failed to register. Please try again.'
+    toast.apiError(err, 'Failed to register. Please try again.')
   } finally {
     isSubmitting.value = false
   }

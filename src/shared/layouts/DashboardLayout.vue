@@ -45,6 +45,68 @@
         <div class="flex flex-1 items-center justify-end min-w-0">
           <slot name="header" />
           <div class="flex items-center gap-1 md:gap-2 pr-2 md:pr-4 shrink-0">
+            <!-- Tier Badge -->
+            <DropdownMenu v-if="!hideUserFeatures && hasMemora">
+              <DropdownMenuTrigger as-child>
+                <button
+                  :class="[
+                    'hidden md:inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+                    tierBadgeClass,
+                  ]"
+                  :aria-label="`Current plan tier: ${planLabel}`"
+                >
+                  <Sparkles class="h-3 w-3" aria-hidden="true" />
+                  {{ planBadgeLabel }}
+                  <ChevronDown class="h-3 w-3 opacity-60" aria-hidden="true" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                :class="['w-64', theme.bgDropdown, theme.borderSecondary]"
+                align="end"
+              >
+                <DropdownMenuLabel :class="theme.textPrimary">
+                  <div class="flex items-center gap-2">
+                    <Sparkles class="h-4 w-4 text-amber-500" />
+                    <span>Memora Plan</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+                <div class="px-2 py-3 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span :class="['text-xs font-medium', theme.textSecondary]">Current Tier</span>
+                    <span
+                      :class="[
+                        'inline-flex items-center rounded-full border px-2 py-0.5 text-xs font-semibold',
+                        tierBadgeClass,
+                      ]"
+                    >
+                      {{ planBadgeLabel }}
+                    </span>
+                  </div>
+                  <div v-if="tierSummary" class="pt-2 border-t" :class="theme.borderSecondary">
+                    <p :class="['text-xs leading-relaxed tabular-nums', theme.textSecondary]">
+                      {{ tierSummary }}
+                    </p>
+                  </div>
+                </div>
+                <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
+                <DropdownMenuItem
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                  @click="navigateTo({ name: 'memora-pricing' })"
+                >
+                  <CreditCard class="h-4 w-4" />
+                  <span>{{ hasPaidPlan ? 'Manage Subscription' : 'Upgrade Plan' }}</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+                  @click="navigateTo({ name: 'memora-usage' })"
+                >
+                  <BarChart3 class="h-4 w-4" />
+                  <span>View Usage</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <!-- Mobile Search Button -->
             <Button
               v-if="!hideUserFeatures && !isSearchOpen"
@@ -136,8 +198,8 @@
 </template>
 
 <script setup>
-import { computed, h, ref } from 'vue'
-import { Search } from '@/shared/utils/lucideAnimated'
+import { computed, h, onMounted, ref } from 'vue'
+import { BarChart3, ChevronDown, CreditCard, Search, Sparkles } from '@/shared/utils/lucideAnimated'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/shared/components/shadcn/sidebar'
 import { Separator } from '@/shared/components/shadcn/separator'
 import {
@@ -156,6 +218,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/components/shadcn/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/shared/components/shadcn/dropdown-menu'
 import { RouterLink } from 'vue-router'
 import AppSidebar from '@/shared/components/organisms/AppSidebar.vue'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
@@ -168,6 +238,7 @@ import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useUserStore } from '@/shared/stores/user'
 import { useBreadcrumbSeparator } from '@/shared/composables/useBreadcrumbSeparator'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useAuthApi } from '@/shared/api/auth'
 
 const props = defineProps({
   breadcrumbSeparator: {
@@ -214,6 +285,97 @@ const handleSearchSelect = (item) => {
     navigateTo(item.route)
   }
 }
+
+// Tier badge logic
+const hasMemora = computed(() => {
+  const selectedProducts = userStore.selectedProducts || []
+  return selectedProducts.some(p => {
+    const product = p.product || p
+    return product?.slug === 'memora'
+  })
+})
+
+const memoraTier = computed(() => userStore.user?.memora_tier ?? 'starter')
+
+const planLabel = computed(() => {
+  const t = memoraTier.value
+  if (t === 'byo') return 'Build Your Own'
+  return t.charAt(0).toUpperCase() + t.slice(1)
+})
+
+const planBadgeLabel = computed(() => {
+  const t = memoraTier.value
+  if (t === 'byo') return 'BYO'
+  return planLabel.value
+})
+
+const tierBadgeClass = computed(() => {
+  const t = memoraTier.value
+  if (t === 'pro') return 'bg-amber-500/25 text-amber-800 dark:text-amber-200 border-amber-500/40 hover:bg-amber-500/35'
+  if (t === 'byo') return 'bg-purple-500/25 text-purple-800 dark:text-purple-200 border-purple-500/40 hover:bg-purple-500/35'
+  return 'bg-gray-500/20 text-gray-700 dark:text-gray-300 border-gray-500/30 hover:bg-gray-500/30'
+})
+
+const hasPaidPlan = computed(() => {
+  const t = memoraTier.value
+  return t !== 'starter' && t !== null && t !== undefined
+})
+
+// Storage and usage data
+const authApi = useAuthApi()
+const totalStorage = ref(5 * 1024 * 1024 * 1024)
+const projectCount = ref(0)
+const projectLimit = ref(null)
+const collectionCount = ref(0)
+const collectionLimit = ref(null)
+
+const tierSummary = computed(() => {
+  const parts = []
+  parts.push(formatBytes(totalStorage.value) + ' storage')
+  if (projectLimit.value != null) {
+    parts.push(`${projectCount.value}/${projectLimit.value} projects`)
+  } else if (projectCount.value > 0) {
+    parts.push(`${projectCount.value} projects`)
+  }
+  if (collectionLimit.value != null) {
+    parts.push(`${collectionCount.value}/${collectionLimit.value} collections`)
+  } else if (collectionCount.value > 0) {
+    parts.push(`${collectionCount.value} collections`)
+  }
+  return parts.join(' · ')
+})
+
+const formatBytes = bytes => {
+  if (bytes === 0) return '0 Bytes'
+  const k = 1024
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
+}
+
+const fetchStorage = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    if (storageData.total_storage_bytes) {
+      totalStorage.value = storageData.total_storage_bytes
+    }
+    projectCount.value = storageData.project_count ?? 0
+    projectLimit.value = storageData.project_limit ?? null
+    collectionCount.value = storageData.collection_count ?? 0
+    collectionLimit.value = storageData.collection_limit ?? null
+    if (storageData.memora_features && userStore.user) {
+      userStore.updateUser({ memora_features: storageData.memora_features })
+    }
+  } catch (error) {
+    console.error('Failed to fetch storage usage:', error)
+  }
+}
+
+onMounted(() => {
+  if (hasMemora.value) {
+    fetchStorage()
+  }
+})
 
 // Filter products to only show selected ones
 const appTeams = computed(() => {

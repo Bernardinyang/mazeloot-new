@@ -74,6 +74,8 @@ onMounted(async () => {
       name: `${response.user.first_name} ${response.user.last_name}`.trim(),
       avatar: response.user.profile_photo || null,
       emailVerified: !!response.user.email_verified_at,
+      memora_tier: response.user.memora_tier ?? 'starter',
+      memora_features: response.user.memora_features ?? [],
     }
     userStore.token = response.token
 

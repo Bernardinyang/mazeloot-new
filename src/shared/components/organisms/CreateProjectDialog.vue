@@ -47,7 +47,7 @@
         </p>
         <div class="space-y-4">
           <!-- Selections Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('selection')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -102,7 +102,7 @@
           </div>
 
           <!-- Proofing Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('proofing')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -148,7 +148,7 @@
           </div>
 
           <!-- Collections Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('collection')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -269,8 +269,7 @@
           @click.stop="handleSubmit"
           variant="accent"
           :disabled="
-            !formData.name.trim() ||
-            (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections)
+            !formData.name.trim() || !hasAtLeastOnePhase
           "
           :loading="props.isSubmitting || isLocalSubmitting"
           loading-label="Creating..."
@@ -297,6 +296,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
 import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import ColorSelector from '@/shared/components/molecules/ColorSelector.vue'
@@ -316,6 +316,7 @@ const props = defineProps({
 const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
+const { hasFeature } = useMemoraFeatures()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
@@ -350,12 +351,21 @@ const isLocalSubmitting = ref(false)
 
 const presets = computed(() => presetStore.presets)
 const watermarks = computed(() => watermarkStore.watermarks)
+const hasAtLeastOnePhase = computed(() => {
+  const s = hasFeature('selection') && formData.hasSelections
+  const p = hasFeature('proofing') && formData.hasProofing
+  const c = hasFeature('collection') && formData.hasCollections
+  return s || p || c
+})
 
 // Reset form when dialog opens/closes and load presets/watermarks
 watch(
   () => props.open,
   async newValue => {
     if (newValue) {
+      if (hasFeature('collection') && !hasFeature('selection') && !hasFeature('proofing')) {
+        formData.hasCollections = true
+      }
       try {
         if (presetStore.presets.length === 0) {
           await presetStore.loadPresets()
@@ -435,7 +445,7 @@ const handleSubmit = async () => {
     return
   }
 
-  if (!formData.hasSelections && !formData.hasProofing && !formData.hasCollections) {
+  if (!hasAtLeastOnePhase.value) {
     errors.value.name = 'Please select at least one phase'
     return
   }

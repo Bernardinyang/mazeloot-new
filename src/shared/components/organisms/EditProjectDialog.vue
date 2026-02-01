@@ -73,7 +73,7 @@
         </p>
         <div class="space-y-4">
           <!-- Selections Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('selection')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -128,7 +128,7 @@
           </div>
 
           <!-- Proofing Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('proofing')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -182,7 +182,7 @@
           </div>
 
           <!-- Collections Phase -->
-          <div class="space-y-2">
+          <div v-if="hasFeature('collection')" class="space-y-2">
             <label class="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
@@ -339,6 +339,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
 import { Loader2, AlertCircle } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useProjectStore } from '@/domains/memora/stores/project'
@@ -363,6 +364,7 @@ const props = defineProps({
 const emit = defineEmits(['update:open', 'update'])
 
 const theme = useThemeClasses()
+const { hasFeature } = useMemoraFeatures()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 const projectStore = useProjectStore()

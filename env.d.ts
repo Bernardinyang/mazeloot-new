@@ -7,6 +7,12 @@ interface ImportMetaEnv {
   readonly VITE_API_BASE_URL_LIVE?: string
   readonly VITE_API_BASE_URL_LOCAL?: string
   readonly VITE_MAX_UPLOAD_SIZE_MB?: string
+  readonly VITE_PUSHER_APP_KEY?: string
+  readonly VITE_PUSHER_APP_CLUSTER?: string
+  readonly VITE_PUSHER_HOST?: string
+  readonly VITE_PUSHER_PORT?: string
+  readonly VITE_PUSHER_SCHEME?: string
+  readonly VITE_USE_PUSHER?: string
 }
 
 interface ImportMeta {

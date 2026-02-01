@@ -129,7 +129,7 @@
               </label>
               <input
                 v-model="formData.domain.domain"
-                class="w-full px-3 py-2 border rounded-md"
+                class="w-full px-3 py-2 border rounded-md border-input bg-background"
                 placeholder="your-domain"
                 type="text"
                 @input="handleDomainInput"
@@ -283,7 +283,7 @@ const handleLogoFileChange = async (e) => {
     toast.success('Logo uploaded')
   } catch (err) {
     formData.value.branding.logoPreview = null
-    toast.error(err.message || 'Failed to upload logo')
+    toast.apiError(err, 'Failed to upload logo')
   } finally {
     logoUploading.value = false
     e.target.value = ''
@@ -357,7 +357,7 @@ const handleNext = async () => {
         })
       } catch (completeErr) {
         console.error('Failed to complete onboarding:', completeErr)
-        toast.error(completeErr.message || 'Failed to complete onboarding')
+        toast.apiError(completeErr, 'Failed to complete onboarding')
         
         // Still refresh and redirect even if complete fails
         await Promise.all([
@@ -375,7 +375,7 @@ const handleNext = async () => {
     }
   } catch (err) {
     console.error('Failed to save step:', err)
-    toast.error(err.message || 'Failed to save step')
+    toast.apiError(err, 'Failed to save step')
   } finally {
     isSubmitting.value = false
   }

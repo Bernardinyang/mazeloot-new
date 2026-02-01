@@ -4,7 +4,9 @@
  */
 import {
   Album,
+  BarChart3,
   CheckSquare,
+  CreditCard,
   Eye,
   FileImage,
   FolderKanban,
@@ -61,16 +63,19 @@ export const MEMORA_NAVIGATION = [
     title: 'Selections',
     name: 'selections',
     icon: CheckSquare,
+    requiredFeature: 'selection',
   },
   {
     title: 'Raw Files',
     name: 'rawFiles',
     icon: FileImage,
+    requiredFeature: 'raw_files',
   },
   {
     title: 'Proofing',
     name: 'proofing',
     icon: Eye,
+    requiredFeature: 'proofing',
   },
   {
     title: 'Medias',
@@ -102,10 +107,12 @@ export const MEMORA_NAVIGATION = [
       {
         title: 'Raw Files',
         name: 'starredRawFiles',
+        requiredFeature: 'raw_files',
       },
       {
         title: 'Proofing',
         name: 'starredProofing',
+        requiredFeature: 'proofing',
       },
     ],
   },
@@ -131,11 +138,13 @@ export const MEMORA_NAVIGATION = [
     title: 'Watermark',
     name: 'watermarkSettings',
     icon: ImageIcon,
+    hideForStarter: true,
   },
   {
     title: 'Preset',
     name: 'presetSettings',
     icon: Palette,
+    hideForStarter: true,
   },
   {
     title: 'Settings',
@@ -168,12 +177,17 @@ export const MEMORA_NAVIGATION = [
     ],
   },
   {
-    title: 'Storage',
+    title: 'Account',
   },
   {
-    title: 'Storage',
-    name: 'about',
-    icon: Upload,
+    title: 'Plans & Pricing',
+    name: 'memora-pricing',
+    icon: CreditCard,
+  },
+  {
+    title: 'Usage & Analytics',
+    name: 'memora-usage',
+    icon: BarChart3,
   },
 ]
 

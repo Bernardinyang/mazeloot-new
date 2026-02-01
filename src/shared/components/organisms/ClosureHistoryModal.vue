@@ -332,8 +332,7 @@ const handleResend = async request => {
     toast.success('Closure request email resent to client.')
     emit('resend-done')
   } catch (error) {
-    const msg = error?.message || error?.response?.data?.message || 'Failed to resend email'
-    toast.error(msg)
+    toast.apiError(error, 'Failed to resend email')
   } finally {
     resendingRequestUuid.value = null
   }
@@ -348,8 +347,7 @@ const handleCancel = async request => {
     toast.success('Closure request cancelled. You can send a new request when ready.')
     emit('resend-done')
   } catch (error) {
-    const msg = error?.message || error?.response?.data?.message || 'Failed to cancel request'
-    toast.error(msg)
+    toast.apiError(error, 'Failed to cancel request')
   } finally {
     cancellingRequestUuid.value = null
   }

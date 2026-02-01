@@ -571,9 +571,7 @@ const handleApprove = async () => {
     })
     await loadClosureRequest()
   } catch (err) {
-    toast.error('Failed to approve', {
-      description: err?.message || 'An error occurred while approving the closure request.',
-    })
+    toast.apiError(err, 'An error occurred while approving the closure request.')
   } finally {
     isSubmitting.value = false
   }
@@ -599,9 +597,7 @@ const handleReject = async () => {
     rejectReason.value = ''
     await loadClosureRequest()
   } catch (err) {
-    toast.error('Failed to reject', {
-      description: err?.message || 'An error occurred while rejecting the closure request.',
-    })
+    toast.apiError(err, 'An error occurred while rejecting the closure request.')
   } finally {
     isSubmitting.value = false
   }

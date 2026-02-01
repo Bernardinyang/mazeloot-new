@@ -35,13 +35,13 @@ class ApiClient {
       data = null
     }
 
-    if (response.status === 401 || response.status === 403) {
+    // 401 = unauthenticated (invalid/expired token) -> clear auth and redirect to login
+    // 403 = forbidden (e.g. plan feature) -> do NOT clear auth; let caller handle
+    if (response.status === 401) {
       const { useUserStore } = await import('@/shared/stores/user')
       const userStore = useUserStore()
       userStore.clearAuth()
 
-      // Only redirect if not already on auth pages or public routes
-      // Use window.location for hard redirect to reset app state properly
       const currentPath = window.location.pathname
       const isOnAuthPage =
         currentPath.includes('/login') ||
@@ -50,7 +50,6 @@ class ApiClient {
         currentPath.includes('/forgot-password') ||
         currentPath.includes('/reset-password')
 
-      // Check if it's a public route (client selection/proofing/collection/raw-files, closure/approval request)
       const isMemoraPublic =
         currentPath.startsWith('/memora/closure-request') ||
         currentPath.startsWith('/memora/approval-request') ||
@@ -343,6 +342,7 @@ class ApiClient {
                 code: data?.code,
                 status: xhr.status,
                 errors: data?.errors,
+                response: { data, status: xhr.status },
               }
               reject(error)
             } catch (parseError) {
@@ -485,6 +485,7 @@ class ApiClient {
               code: data?.code,
               status: xhr.status,
               errors: data?.errors,
+              response: { data, status: xhr.status },
             }
             reject(error)
           } catch (parseError) {

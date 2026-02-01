@@ -5,12 +5,11 @@
  * Usage:
  *   toast.success('Message')
  *   toast.success('Message', { duration: 5000 })
- *   toast.success('', { description: 'Message' }) // Legacy format supported
- *   toast.loading('Uploading...', { id: 'upload-toast' })
- *   toast.loading('Uploading...', { id: 'upload-toast', progress: 50 })
- *   toast.success('Message', { action: { label: 'Undo', onClick: () => {} } })
+ *   toast.apiError(error, 'Fallback message') // Prefer backend message in toast
+ *   toast.error('', { description: 'Message' }) // Legacy format supported
  */
 import { toast as sonnerToast } from 'vue-sonner'
+import { getErrorMessage } from '@/shared/utils/errors'
 
 /**
  * Extract message from title or description
@@ -42,6 +41,12 @@ export const toast = {
       ...options,
       description: message,
     })
+  },
+
+  /** Show error toast using backend message first (response.data.message / response.data.error), then error.message, then fallback. */
+  apiError: (error, fallback = 'Something went wrong. Please try again.') => {
+    const message = getErrorMessage(error, fallback)
+    return sonnerToast.error('', { description: message })
   },
 
   info: (title, options = {}) => {

@@ -64,7 +64,7 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
         <!-- Selections Phase -->
         <div
-          v-if="project.hasSelections"
+          v-if="hasFeature('selection') && project.hasSelections"
           :class="[
             'group border rounded-xl p-6 cursor-pointer transition-all',
             'hover:shadow-lg hover:border-violet-500/50',
@@ -126,7 +126,7 @@
 
         <!-- Proofing Phase -->
         <div
-          v-if="project.hasProofing"
+          v-if="hasFeature('proofing') && project.hasProofing"
           :class="[
             'group border rounded-xl p-6 cursor-pointer transition-all',
             'hover:shadow-lg hover:border-purple-500/50',
@@ -194,7 +194,7 @@
 
         <!-- Collections Phase -->
         <div
-          v-if="project.hasCollections"
+          v-if="hasFeature('collection') && project.hasCollections"
           :class="[
             'group border rounded-xl p-6 cursor-pointer transition-all',
             'hover:shadow-lg hover:border-blue-500/50',
@@ -472,10 +472,12 @@ import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useMediaApi } from '@/shared/api/media'
 import { useCollectionsApi } from '@/domains/memora/api/collections'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { capitalize } from '@/shared/lib/utils'
 import { toast } from '@/shared/utils/toast'
 
 const route = useRoute()
+const { hasFeature } = useMemoraFeatures()
 const router = useRouter()
 const theme = useThemeClasses()
 

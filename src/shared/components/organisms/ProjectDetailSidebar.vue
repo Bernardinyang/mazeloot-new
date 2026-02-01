@@ -79,7 +79,7 @@
 
       <!-- Selections Phase Section -->
       <div
-        v-if="project.hasSelections"
+        v-if="hasFeature('selection') && project.hasSelections"
         class="pb-6 pt-6 border-t rounded-lg -mx-6 px-6"
         :class="[theme.borderSecondary, 'bg-accent/10 dark:bg-accent/10']"
       >
@@ -160,7 +160,7 @@
 
       <!-- Proofing Phase Section -->
       <div
-        v-if="project.hasProofing"
+        v-if="hasFeature('proofing') && project.hasProofing"
         class="pb-6 pt-6 border-t rounded-lg -mx-6 px-6"
         :class="[theme.borderSecondary, 'bg-purple-50/30 dark:bg-purple-950/10']"
       >
@@ -247,7 +247,7 @@
 
       <!-- Collections Phase Section -->
       <div
-        v-if="project.hasCollections"
+        v-if="hasFeature('collection') && project.hasCollections"
         class="pb-6 pt-6 border-t rounded-lg -mx-6 px-6"
         :class="[theme.borderSecondary, 'bg-blue-50/30 dark:bg-blue-950/10']"
       >
@@ -422,6 +422,7 @@ import DetailField from '@/shared/components/molecules/DetailField.vue'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useProjectStore } from '@/domains/memora/stores/project'
 
 const props = defineProps({
@@ -439,6 +440,7 @@ const emit = defineEmits(['update:modelValue', 'edit'])
 
 const theme = useThemeClasses()
 const router = useRouter()
+const { hasFeature } = useMemoraFeatures()
 const projectStore = useProjectStore()
 
 const project = ref(null)

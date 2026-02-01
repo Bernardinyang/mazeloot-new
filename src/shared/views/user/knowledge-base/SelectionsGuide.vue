@@ -22,10 +22,10 @@
       <ActionBanner
         title="Ready to create a selection?"
         description="Curate your best photos and share them with clients"
-        button-text="Go to Selections"
+        :button-text="canAccessSelection ? 'Go to Selections' : 'Upgrade to access'"
         :icon="CheckSquare"
         color="yellow"
-        @action="navigateTo({ name: 'selections' })"
+        @action="canAccessSelection ? navigateTo({ name: 'selections' }) : showUpgradePrompt('selection')"
       />
 
       <!-- Overview Section -->
@@ -114,8 +114,10 @@ import Card from '@/shared/components/shadcn/Card.vue'
 import ActionBanner from '@/shared/components/molecules/ActionBanner.vue'
 import { CheckSquare, ChevronRight, Upload, Share2, Lightbulb, ArrowRight, FolderOpen } from '@/shared/utils/lucideAnimated'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
+const { canAccessSelection, showUpgradePrompt } = useMemoraFeatures()
 
 const sections = ref([
   {

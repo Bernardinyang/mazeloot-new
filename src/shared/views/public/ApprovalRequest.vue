@@ -459,9 +459,7 @@ const handleApprove = async () => {
     })
     await loadApprovalRequest()
   } catch (err) {
-    toast.error('Failed to approve', {
-      description: err?.message || 'An error occurred while approving the approval request.',
-    })
+    toast.apiError(err, 'An error occurred while approving the approval request.')
   } finally {
     isSubmitting.value = false
   }
@@ -483,9 +481,7 @@ const handleReject = async () => {
     rejectReason.value = ''
     await loadApprovalRequest()
   } catch (err) {
-    toast.error('Failed to reject', {
-      description: err?.message || 'An error occurred while rejecting the approval request.',
-    })
+    toast.apiError(err, 'An error occurred while rejecting the approval request.')
   } finally {
     isSubmitting.value = false
   }

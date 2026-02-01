@@ -24,13 +24,15 @@
         @update:view-mode="viewMode = $event"
       >
         <template #actions>
-          <Button
-            variant="accent"
-            :icon="Plus"
-            @click="handleCreateRawFile"
-          >
-            New RawFile
-          </Button>
+          <UpgradeGate feature="raw_files">
+            <Button
+              variant="accent"
+              :icon="Plus"
+              @click="handleCreateRawFile"
+            >
+              New RawFile
+            </Button>
+          </UpgradeGate>
         </template>
       </PageHeader>
 
@@ -44,10 +46,10 @@
           v-else-if="rawFiles.length === 0"
           :icon="CheckSquare"
           :action-icon="Plus"
-          action-label="Create New RawFile"
+          :action-label="canAccessRawFiles ? 'Create New RawFile' : 'Upgrade to Studio'"
           description="Get started by creating your first rawFile to organize and manage your media."
           message="No rawFiles found"
-          @action="handleCreateRawFile"
+          @action="canAccessRawFiles ? handleCreateRawFile : () => showUpgradePrompt('raw_files')"
         />
 
         <!-- RawFiles Grid -->
@@ -86,14 +88,14 @@
         :loading="isLoading"
         :selected-items="selectedRawFiles"
         :show-view-details="true"
-        empty-action-label="Create New RawFile"
+        :empty-action-label="canAccessRawFiles ? 'Create New RawFile' : 'Upgrade to Studio'"
         empty-message="No rawFiles found"
         @delete="handleDeleteRawFile"
         @edit="handleEditRawFile"
         @select="handleSelectRawFile"
         @star-click="toggleStar"
         @item-click="handleRawFileClick"
-        @empty-action="handleCreateRawFile"
+        @empty-action="canAccessRawFiles ? handleCreateRawFile : () => showUpgradePrompt('raw_files')"
         @view-details="handleViewDetails"
         @toggle-password="handleTogglePassword"
       />
@@ -181,6 +183,7 @@ const rawFileStore = useRawFileStore()
 const rawFilesApi = useRawFilesApi()
 const router = useRouter()
 const { handleError } = useErrorHandler()
+const { canAccessRawFiles, showUpgradePrompt } = useMemoraFeatures()
 const viewMode = computed({
   get: () => rawFileStore.viewMode,
   set: value => rawFileStore.setViewMode(value),

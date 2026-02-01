@@ -2,6 +2,15 @@ import { apiClient } from '@/shared/api/client'
 import { parseError } from '@/shared/utils/errors'
 
 export function useEmailNotificationsApi() {
+  const fetchEvents = async () => {
+    try {
+      const response = await apiClient.get('/v1/memora/settings/notifications/events')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const fetchEmailNotifications = async () => {
     try {
       const response = await apiClient.get('/v1/memora/settings/notifications')
@@ -22,19 +31,10 @@ export function useEmailNotificationsApi() {
     }
   }
 
-  const getNotificationTypes = async () => {
-    try {
-      const response = await apiClient.get('/v1/memora/admin/notifications/types')
-      return response.data
-    } catch (error) {
-      throw parseError(error)
-    }
-  }
-
   return {
+    fetchEvents,
     fetchEmailNotifications,
     updateEmailNotifications,
-    getNotificationTypes,
   }
 }
 

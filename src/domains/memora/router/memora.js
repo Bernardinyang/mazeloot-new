@@ -47,6 +47,25 @@ import RawFileDetailView from '@/domains/memora/views/raw-files/RawFileDetail.vu
 import ProofingListView from '@/domains/memora/views/proofing/Proofing.vue'
 import ProofingDetailView from '@/domains/memora/views/proofing/ProofingDetail.vue'
 import ProofingCommentsView from '@/domains/memora/views/proofing/Comments.vue'
+import DashboardPricingView from '@/domains/memora/views/DashboardPricing.vue'
+import PlanSummaryView from '@/domains/memora/views/PlanSummary.vue'
+import DashboardSubscriptionStatusView from '@/domains/memora/views/DashboardSubscriptionStatus.vue'
+import DashboardBuildYourOwnView from '@/domains/memora/views/DashboardBuildYourOwn.vue'
+import UsageAnalyticsView from '@/domains/memora/views/UsageAnalytics.vue'
+import { useUserStore } from '@/shared/stores/user'
+
+function createFeatureGuard(requiredFeature) {
+  return (to, from, next) => {
+    const userStore = useUserStore()
+    const features = userStore.user?.memora_features ?? []
+    const hasAccess = Array.isArray(features) && features.includes(requiredFeature)
+    if (!hasAccess) {
+      next({ name: 'memora-pricing', query: { upgrade: requiredFeature } })
+    } else {
+      next()
+    }
+  }
+}
 
 export const memoraRoutes = [
   {
@@ -71,6 +90,51 @@ export const memoraRoutes = [
     path: '/memora/dashboard',
     name: 'memoraDashboard',
     component: DashboardView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/pricing',
+    name: 'memora-pricing',
+    component: DashboardPricingView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/pricing/checkout',
+    name: 'memora-plan-summary',
+    component: PlanSummaryView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/pricing/status',
+    name: 'memora-pricing-status',
+    component: DashboardSubscriptionStatusView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/build-your-own',
+    name: 'memora-build-your-own',
+    component: DashboardBuildYourOwnView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/usage',
+    name: 'memora-usage',
+    component: UsageAnalyticsView,
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -539,6 +603,7 @@ export const memoraRoutes = [
       requiresAuth: true,
       requiresUser: true,
     },
+    beforeEnter: createFeatureGuard('raw_files'),
   },
   {
     path: '/memora/raw-files/:id',
@@ -548,6 +613,7 @@ export const memoraRoutes = [
       requiresAuth: true,
       requiresUser: true,
     },
+    beforeEnter: createFeatureGuard('raw_files'),
   },
   {
     path: '/memora/proofing',
@@ -557,6 +623,7 @@ export const memoraRoutes = [
       requiresAuth: true,
       requiresUser: true,
     },
+    beforeEnter: createFeatureGuard('proofing'),
   },
   {
     path: '/memora/proofing/:id',
@@ -566,15 +633,14 @@ export const memoraRoutes = [
       requiresAuth: true,
       requiresUser: true,
     },
+    beforeEnter: createFeatureGuard('proofing'),
   },
   {
     path: '/memora/proofing/:id/comments',
     name: 'proofingComments',
     component: ProofingCommentsView,
-    meta: {
-      requiresAuth: true,
-      requiresUser: true,
-    },
+    meta: { requiresAuth: true, requiresUser: true },
+    beforeEnter: createFeatureGuard('proofing'),
   },
   // Project Routes
   {

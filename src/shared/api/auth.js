@@ -32,6 +32,8 @@ export function useAuthApi() {
           avatar: response.data.user.profile_photo || null,
           emailVerified: !!response.data.user.email_verified_at,
           role: response.data.user.role,
+          memora_tier: response.data.user.memora_tier ?? 'starter',
+          memora_features: response.data.user.memora_features ?? [],
           early_access: response.data.user.early_access,
         },
         token: response.data.token,
@@ -69,6 +71,8 @@ export function useAuthApi() {
           avatar: null,
           emailVerified: !!response.data.user.email_verified_at,
           role: response.data.user.role,
+          memora_tier: response.data.user.memora_tier ?? 'starter',
+          memora_features: response.data.user.memora_features ?? [],
           early_access: response.data.user.early_access,
         },
         token: null, // No token until email is verified
@@ -103,6 +107,8 @@ export function useAuthApi() {
           name: `${response.data.user.first_name} ${response.data.user.last_name}`.trim(),
           avatar: null,
           emailVerified: !!response.data.user.email_verified_at,
+          memora_tier: response.data.user.memora_tier ?? 'starter',
+          memora_features: response.data.user.memora_features ?? [],
         },
         token: response.data.token,
       }

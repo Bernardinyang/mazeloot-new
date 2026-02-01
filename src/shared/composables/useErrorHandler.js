@@ -25,13 +25,10 @@ export function useErrorHandler() {
       if (onAuthError) {
         onAuthError()
       } else {
-        // Default: logout and redirect to login (useLogout handles redirect)
         await logout()
       }
       if (showToast) {
-        // Use backend error message if available, otherwise use default
-        const authErrorMessage = getErrorMessage(err, 'Please sign in again.')
-        toast.error(authErrorMessage)
+        toast.apiError(err, 'Please sign in again.')
       }
       return
     }
@@ -41,23 +38,20 @@ export function useErrorHandler() {
         onNetworkError()
       }
       if (showToast) {
-        // Use backend error message if available, otherwise use default
-        const networkErrorMessage = getErrorMessage(err, 'Please check your internet connection and try again.')
-        toast.error(networkErrorMessage)
+        toast.apiError(err, 'Please check your internet connection and try again.')
       }
       return
     }
 
     if (isValidationError(err)) {
       if (showToast) {
-        toast.error(errorMessage)
+        toast.apiError(err, fallbackMessage)
       }
       return
     }
 
-    // Generic error
     if (showToast) {
-      toast.error(errorMessage)
+      toast.apiError(err, fallbackMessage)
     }
   }
 

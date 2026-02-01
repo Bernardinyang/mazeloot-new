@@ -34,14 +34,15 @@
         </div>
       </div>
 
-      <!-- Stats Cards -->
+      <!-- Stats Cards (auto-fit by visible count) -->
       <TransitionGroup
         v-if="!isLoadingStats"
-        class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+        class="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6"
         name="fade-up"
         tag="div"
       >
         <StatCard
+          v-if="hasFeature('collection')"
           key="collections"
           :description="`${stats.publishedCollections} published`"
           :icon="FolderOpen"
@@ -51,6 +52,7 @@
           title="Collections"
         />
         <StatCard
+          v-if="hasFeature('selection') || hasFeature('collection')"
           key="projects"
           :description="`${stats.activeProjects} active`"
           :icon="FolderKanban"
@@ -60,6 +62,7 @@
           title="Projects"
         />
         <StatCard
+          v-if="hasFeature('selection')"
           key="selections"
           :description="`${stats.completedSelections} completed`"
           :icon="CheckSquare"
@@ -69,6 +72,7 @@
           title="Selections"
         />
         <StatCard
+          v-if="hasFeature('proofing')"
           key="proofing"
           :description="`${stats.activeProofing} active`"
           :icon="Eye"
@@ -78,6 +82,7 @@
           title="Proofing"
         />
         <StatCard
+          v-if="hasFeature('selection') || hasFeature('collection') || hasFeature('proofing') || hasFeature('raw_files')"
           key="media"
           :description="`${stats.featuredMedia} featured`"
           :icon="Images"
@@ -86,6 +91,7 @@
           title="Total Media"
         />
         <StatCard
+          v-if="!isStarterPlan"
           key="presets"
           :description="`${stats.activePresets} active`"
           :icon="Palette"
@@ -95,6 +101,7 @@
           title="Presets"
         />
         <StatCard
+          v-if="!isStarterPlan"
           key="watermarks"
           :description="`${stats.activeWatermarks} active`"
           :icon="ImageIcon"
@@ -104,6 +111,7 @@
           title="Watermarks"
         />
         <StatCard
+          v-if="hasFeature('raw_files')"
           key="rawFiles"
           :description="`${stats.activeRawFiles} active`"
           :icon="FileText"
@@ -171,7 +179,11 @@
                 </div>
               </div>
             </div>
-            <ActivityChart v-else :data="activityData" />
+            <ActivityChart
+              v-else
+              :data="activityData"
+              :visible-series="activityChartVisibleSeries"
+            />
           </CardContent>
         </Card>
 
@@ -236,7 +248,7 @@
             </div>
             <!-- Empty State -->
             <div
-              v-else-if="!isLoadingRecentActivity && recentActivity.length === 0"
+              v-else-if="!isLoadingRecentActivity && filteredRecentActivity.length === 0"
               class="text-center py-12 text-muted-foreground space-y-2"
             >
               <div
@@ -251,7 +263,7 @@
             <div v-else-if="!isLoadingRecentActivity" class="space-y-3">
               <TransitionGroup name="fade-up" tag="div">
                 <div
-                  v-for="(activity, index) in recentActivity"
+                  v-for="(activity, index) in filteredRecentActivity"
                   :key="activity.id"
                   :style="{ 'animation-delay': `${index * 50}ms` }"
                   class="group flex items-center gap-4 p-3 rounded-lg hover:bg-muted/50 transition-all duration-200 cursor-pointer"
@@ -324,7 +336,7 @@
 </template>
 
 <script setup>
-import { onActivated, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onActivated, onMounted, onUnmounted, ref } from 'vue'
 import {
   Activity,
   ArrowRight,
@@ -353,14 +365,19 @@ import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import StatCard from '@/shared/components/molecules/StatCard.vue'
 import { useNavigation } from '@/shared/composables/useNavigation'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { apiClient } from '@/shared/api/client'
 import { formatDistanceToNow } from 'date-fns'
 import ActivityChart from '@/shared/components/molecules/ActivityChart.vue'
 import DistributionChart from '@/shared/components/molecules/DistributionChart.vue'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import { useAuthApi } from '@/shared/api/auth'
+import { useUserStore } from '@/shared/stores/user'
 
 const { navigateTo } = useNavigation()
+const { hasFeature } = useMemoraFeatures()
+const userStore = useUserStore()
+const isStarterPlan = computed(() => (userStore.user?.memora_tier ?? 'starter') === 'starter')
 const authApi = useAuthApi()
 
 const isLoadingStats = ref(true)
@@ -394,14 +411,21 @@ const activityData = ref([])
 const distributionData = ref([])
 const recentActivity = ref([])
 
-const quickActions = [
-  { route: { name: 'rawFiles' }, label: 'View Raw Files', icon: FileText },
-  { route: { name: 'manageCollections' }, label: 'View Collections', icon: FolderOpen },
-  { route: { name: 'projects' }, label: 'View Projects', icon: FolderKanban },
-  { route: { name: 'selections' }, label: 'View Selections', icon: CheckSquare },
-  { route: { name: 'proofing' }, label: 'View Proofing', icon: Eye },
-  { route: { name: 'rawFiles' }, label: 'Create Raw File', icon: Plus },
+const quickActionsList = [
+  { route: { name: 'rawFiles' }, label: 'View Raw Files', icon: FileText, feature: 'raw_files' },
+  { route: { name: 'manageCollections' }, label: 'View Collections', icon: FolderOpen, feature: 'collection' },
+  { route: { name: 'projects' }, label: 'View Projects', icon: FolderKanban, feature: 'selection_or_collection' },
+  { route: { name: 'selections' }, label: 'View Selections', icon: CheckSquare, feature: 'selection' },
+  { route: { name: 'proofing' }, label: 'View Proofing', icon: Eye, feature: 'proofing' },
+  { route: { name: 'rawFiles' }, label: 'Create Raw File', icon: Plus, feature: 'raw_files' },
 ]
+const quickActions = computed(() =>
+  quickActionsList.filter((a) => {
+    if (!a.feature) return true
+    if (a.feature === 'selection_or_collection') return hasFeature('selection') || hasFeature('collection')
+    return hasFeature(a.feature)
+  }),
+)
 
 const getActivityIcon = type => {
   const icons = {
@@ -427,6 +451,35 @@ const getActivityRoute = activity => {
   }
   return routes[activity.type] || null
 }
+
+const canShowActivityType = (type) => {
+  if (type === 'proofing') return hasFeature('proofing')
+  if (type === 'rawFile') return hasFeature('raw_files')
+  if (type === 'collection') return hasFeature('collection')
+  if (type === 'selection') return hasFeature('selection')
+  if (type === 'project') return hasFeature('selection') || hasFeature('collection')
+  return true
+}
+const filteredRecentActivity = computed(() =>
+  recentActivity.value.filter((a) => canShowActivityType(a.type)),
+)
+
+const activityChartSeriesConfig = [
+  { key: 'collections', name: 'Collections', color: '#3b82f6', feature: 'collection' },
+  { key: 'projects', name: 'Projects', color: '#a855f7', feature: 'selection_or_collection' },
+  { key: 'selections', name: 'Selections', color: '#10b981', feature: 'selection' },
+  { key: 'proofing', name: 'Proofing', color: '#f59e0b', feature: 'proofing' },
+  { key: 'rawFiles', name: 'Raw Files', color: '#06b6d4', feature: 'raw_files' },
+]
+const activityChartVisibleSeries = computed(() =>
+  activityChartSeriesConfig
+    .filter((s) => {
+      if (!s.feature) return true
+      if (s.feature === 'selection_or_collection') return hasFeature('selection') || hasFeature('collection')
+      return hasFeature(s.feature)
+    })
+    .map(({ key, name, color }) => ({ key, name, color })),
+)
 
 const formatBytes = bytes => {
   if (bytes === 0) return '0 Bytes'
@@ -489,14 +542,19 @@ const fetchDashboard = async () => {
         }))
       }
 
-      // Update distribution data (chart depends on stats)
-      distributionData.value = [
-        { label: 'Collections', value: stats.value.collections, color: '#3b82f6' }, // Blue
-        { label: 'Projects', value: stats.value.projects, color: '#a855f7' }, // Purple
-        { label: 'Selections', value: stats.value.selections, color: '#10b981' }, // Green
-        { label: 'Proofing', value: stats.value.proofing, color: '#f59e0b' }, // Orange
-        { label: 'Raw Files', value: stats.value.rawFiles, color: '#06b6d4' }, // Cyan
+      // Update distribution data (chart depends on stats, filter by feature)
+      const dist = [
+        { label: 'Collections', value: stats.value.collections, color: '#3b82f6', feature: 'collection' },
+        { label: 'Projects', value: stats.value.projects, color: '#a855f7', feature: 'selection_or_collection' },
+        { label: 'Selections', value: stats.value.selections, color: '#10b981', feature: 'selection' },
+        { label: 'Proofing', value: stats.value.proofing, color: '#f59e0b', feature: 'proofing' },
+        { label: 'Raw Files', value: stats.value.rawFiles, color: '#06b6d4', feature: 'raw_files' },
       ]
+      distributionData.value = dist.filter((d) => {
+        if (!d.feature) return true
+        if (d.feature === 'selection_or_collection') return hasFeature('selection') || hasFeature('collection')
+        return hasFeature(d.feature)
+      }).map(({ feature, ...rest }) => rest)
     }
   } catch (error) {
     console.error('Failed to fetch dashboard data:', error)
@@ -513,10 +571,10 @@ const fetchStorage = async () => {
   try {
     isLoadingStorage.value = true
     const response = await authApi.getStorage()
-    const storageData = response?.data || response
-    const totalUsed = storageData.total_used_bytes || 0
-    const totalStorage = 5 * 1024 * 1024 * 1024 // 5 GB
-    const percentage = Math.round((totalUsed / totalStorage) * 100)
+    const storageData = response?.data ?? response
+    const totalUsed = storageData.total_used_bytes ?? 0
+    const totalStorage = storageData.total_storage_bytes ?? (5 * 1024 * 1024 * 1024)
+    const percentage = totalStorage > 0 ? Math.round((totalUsed / totalStorage) * 100) : 0
 
     stats.value.storage = formatBytes(totalUsed)
     stats.value.storagePercentage = percentage
