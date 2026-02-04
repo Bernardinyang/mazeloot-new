@@ -1,25 +1,34 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-3xl font-bold">Early Access Request Details</h1>
-        <p class="text-sm text-gray-500 mt-1">View and manage early access request</p>
+  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 :class="['text-2xl font-semibold tracking-tight', theme.textPrimary]">Early Access Request</h1>
+          <p :class="['text-sm mt-1', theme.textSecondary]">View and manage early access request</p>
+        </div>
+        <Button variant="outline" class="shrink-0" @click="$router.push({ name: 'admin-early-access' })">
+          Back to Requests
+        </Button>
       </div>
-      <Button variant="outline" @click="$router.push({ name: 'admin-early-access' })">
-        Back to Requests
-      </Button>
-    </div>
 
-    <div v-if="loading" class="text-center py-12">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
-      <p class="mt-4 text-gray-500">Loading request details...</p>
-    </div>
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card overflow-hidden p-6', theme.bgCard]">
+        <div class="flex flex-col items-center gap-4 mb-6">
+          <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+          <p :class="['text-sm', theme.textSecondary]">Loading request details…</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div v-for="i in 6" :key="i" class="space-y-2">
+            <div :class="['h-4 w-28 rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 50}ms` }" />
+            <div :class="['h-5 w-full max-w-[200px] rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 50 + 25}ms` }" />
+          </div>
+        </div>
+      </div>
 
-    <div v-else-if="request" class="space-y-6">
-      <!-- Request Status Card -->
-      <Card class="p-6">
-        <div class="flex items-center justify-between mb-4">
-          <h2 class="text-xl font-semibold">Request Information</h2>
+      <div v-else-if="request" class="space-y-6">
+        <!-- Request Status Card -->
+        <Card :class="['p-6 rounded-xl border border-border bg-card shadow-sm animate-fade-in']">
+          <div class="flex items-center justify-between mb-4">
+            <h2 :class="['text-xl font-semibold', theme.textPrimary]">Request Information</h2>
           <Badge
             :variant="statusVariant"
             class="text-sm font-medium px-3 py-1"
@@ -29,40 +38,40 @@
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Requested At</Label>
-            <p class="text-sm font-medium mt-1">{{ formatDate(request.created_at) }}</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Requested At</Label>
+            <p :class="['text-sm font-medium mt-1', theme.textPrimary]">{{ formatDate(request.created_at) }}</p>
           </div>
           <div v-if="request.reviewed_at">
-            <Label class="text-xs text-gray-500 uppercase">Reviewed At</Label>
-            <p class="text-sm font-medium mt-1">{{ formatDate(request.reviewed_at) }}</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Reviewed At</Label>
+            <p :class="['text-sm font-medium mt-1', theme.textPrimary]">{{ formatDate(request.reviewed_at) }}</p>
           </div>
           <div v-if="request.reviewed_by">
-            <Label class="text-xs text-gray-500 uppercase">Reviewed By</Label>
-            <p class="text-sm font-medium mt-1">
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Reviewed By</Label>
+            <p :class="['text-sm font-medium mt-1', theme.textPrimary]">
               {{ request.reviewed_by.first_name }} {{ request.reviewed_by.last_name }}
             </p>
-            <p class="text-xs text-gray-500">{{ request.reviewed_by.email }}</p>
+            <p :class="['text-xs', theme.textSecondary]">{{ request.reviewed_by.email }}</p>
           </div>
         </div>
       </Card>
 
       <!-- User Information Card -->
-      <Card class="p-6">
-        <h2 class="text-xl font-semibold mb-4">User Information</h2>
+      <Card :class="['p-6 rounded-xl border border-border bg-card shadow-sm', theme.textPrimary]">
+        <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">User Information</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Name</Label>
-            <p class="text-sm font-medium mt-1">
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Name</Label>
+            <p :class="['text-sm font-medium mt-1', theme.textPrimary]">
               {{ request.user.first_name }} {{ request.user.last_name }}
             </p>
           </div>
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Email</Label>
-            <p class="text-sm font-medium mt-1">{{ request.user.email }}</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Email</Label>
+            <p :class="['text-sm font-medium mt-1', theme.textPrimary]">{{ request.user.email }}</p>
           </div>
           <div>
-            <Label class="text-xs text-gray-500 uppercase">User UUID</Label>
-            <p class="text-xs font-mono text-gray-600 mt-1">{{ request.user.uuid }}</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">User UUID</Label>
+            <p :class="['text-xs font-mono mt-1', theme.textSecondary]">{{ request.user.uuid }}</p>
           </div>
           <div>
             <Button
@@ -77,41 +86,41 @@
       </Card>
 
       <!-- Request Reason Card -->
-      <Card v-if="request.reason" class="p-6">
-        <h2 class="text-xl font-semibold mb-4">Request Reason</h2>
-        <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ request.reason }}</p>
+      <Card v-if="request.reason" :class="['p-6 rounded-xl border border-border bg-card shadow-sm']">
+        <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">Request Reason</h2>
+        <p :class="['text-sm whitespace-pre-wrap', theme.textPrimary]">{{ request.reason }}</p>
       </Card>
 
       <!-- Rejection Reason Card -->
-      <Card v-if="request.rejection_reason" class="p-6 border-red-200 dark:border-red-800">
-        <h2 class="text-xl font-semibold mb-4 text-red-600 dark:text-red-400">Rejection Reason</h2>
-        <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ request.rejection_reason }}</p>
+      <Card v-if="request.rejection_reason" class="p-6 rounded-xl border border-destructive/50 bg-destructive/5">
+        <h2 class="text-xl font-semibold mb-4 text-destructive">Rejection Reason</h2>
+        <p :class="['text-sm whitespace-pre-wrap', theme.textPrimary]">{{ request.rejection_reason }}</p>
       </Card>
 
       <!-- Actions -->
       <div v-if="request.status === 'pending'" class="flex gap-3">
-        <Button @click="openApproveDialog" class="flex-1">
+        <Button variant="default" class="flex-1" @click="openApproveDialog">
           Approve Request
         </Button>
-        <Button @click="openRejectDialog" variant="outline" class="flex-1">
+        <Button variant="outline" class="flex-1" @click="openRejectDialog">
           Reject Request
         </Button>
       </div>
 
       <!-- Early Access Details (if approved) -->
-      <Card v-if="request.status === 'approved' && earlyAccess" class="p-6">
-        <h2 class="text-xl font-semibold mb-4">Granted Early Access</h2>
+      <Card v-if="request.status === 'approved' && earlyAccess" :class="['p-6 rounded-xl border border-border bg-card shadow-sm']">
+        <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">Granted Early Access</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Discount</Label>
-            <p class="text-sm font-medium mt-1">{{ earlyAccess.discount_percentage }}%</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Discount</Label>
+            <p :class="['text-sm font-medium mt-1 tabular-nums', theme.textPrimary]">{{ earlyAccess.discount_percentage }}%</p>
           </div>
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Storage Multiplier</Label>
-            <p class="text-sm font-medium mt-1">{{ earlyAccess.storage_multiplier }}x</p>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Storage Multiplier</Label>
+            <p :class="['text-sm font-medium mt-1 tabular-nums', theme.textPrimary]">{{ earlyAccess.storage_multiplier }}x</p>
           </div>
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Feature Flags</Label>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Feature Flags</Label>
             <div class="flex flex-wrap gap-2 mt-1">
               <Badge
                 v-for="flag in (earlyAccess.feature_flags || [])"
@@ -121,16 +130,16 @@
               >
                 {{ flag }}
               </Badge>
-              <span v-if="!earlyAccess.feature_flags || earlyAccess.feature_flags.length === 0" class="text-sm text-gray-500">None</span>
+              <span v-if="!earlyAccess.feature_flags || earlyAccess.feature_flags.length === 0" :class="['text-sm', theme.textSecondary]">None</span>
             </div>
           </div>
           <div>
-            <Label class="text-xs text-gray-500 uppercase">Benefits</Label>
+            <Label :class="['text-xs uppercase', theme.textSecondary]">Benefits</Label>
             <div class="space-y-1 mt-1">
-              <p v-if="earlyAccess.priority_support" class="text-xs text-green-600">✓ Priority Support</p>
-              <p v-if="earlyAccess.exclusive_badge" class="text-xs text-green-600">✓ Exclusive Badge</p>
-              <p v-if="earlyAccess.custom_branding_enabled" class="text-xs text-green-600">✓ Custom Branding</p>
-              <p v-if="earlyAccess.trial_extension_days > 0" class="text-xs text-green-600">
+              <p v-if="earlyAccess.priority_support" class="text-xs text-green-600 dark:text-green-400">✓ Priority Support</p>
+              <p v-if="earlyAccess.exclusive_badge" class="text-xs text-green-600 dark:text-green-400">✓ Exclusive Badge</p>
+              <p v-if="earlyAccess.custom_branding_enabled" class="text-xs text-green-600 dark:text-green-400">✓ Custom Branding</p>
+              <p v-if="earlyAccess.trial_extension_days > 0" class="text-xs text-green-600 dark:text-green-400">
                 ✓ +{{ earlyAccess.trial_extension_days }} Trial Days
               </p>
             </div>
@@ -146,17 +155,18 @@
           </Button>
         </div>
       </Card>
+      </div>
+
+      <div v-else class="text-center py-12">
+        <p :class="['text-sm', theme.textSecondary]">Request not found</p>
+        <Button variant="outline" class="mt-4" @click="$router.push({ name: 'admin-early-access' })">
+          Back to Requests
+        </Button>
+      </div>
     </div>
 
-    <div v-else class="text-center py-12">
-      <p class="text-gray-500">Request not found</p>
-      <Button variant="outline" class="mt-4" @click="$router.push({ name: 'admin-early-access' })">
-        Back to Requests
-      </Button>
-    </div>
-
-    <!-- Approve Dialog -->
-    <Dialog v-model:open="showApproveDialog">
+    <!-- Approve Dialog (outside container, still inside page wrapper) -->
+    <Dialog :open="showApproveDialog" @update:open="showApproveDialog = $event">
       <DialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Approve Early Access Request</DialogTitle>
@@ -311,7 +321,7 @@
     </Dialog>
 
     <!-- Reject Dialog -->
-    <Dialog v-model:open="showRejectDialog">
+    <Dialog :open="showRejectDialog" @update:open="showRejectDialog = $event">
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Reject Early Access Request</DialogTitle>
@@ -346,6 +356,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminApi } from '@/admin/api/admin'
+import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -362,6 +373,7 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { toast } from '@/shared/utils/toast'
 
+const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const adminApi = useAdminApi()

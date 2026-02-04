@@ -140,6 +140,7 @@ import {
   FileText,
   User,
   ChevronRight,
+  DollarSign,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -166,6 +167,7 @@ const iconMap = {
   FileText,
   User,
   Shield,
+  DollarSign,
 }
 
 const getIcon = (iconName) => {

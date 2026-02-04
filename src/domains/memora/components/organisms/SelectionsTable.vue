@@ -1,6 +1,8 @@
 <template>
   <DataTable
     :columns="columns"
+    searchable
+    search-placeholder="Search selections…"
     :empty-action-label="emptyActionLabel"
     :empty-icon="emptyIcon"
     :empty-message="emptyMessage"

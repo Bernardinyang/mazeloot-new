@@ -12,7 +12,6 @@ import PresetView from '@/domains/memora/views/settings/Preset.vue'
 import EmailTemplateView from '@/domains/memora/views/settings/EmailTemplate.vue'
 import PreferenceView from '@/domains/memora/views/settings/Preference.vue'
 import EmailNotificationsView from '@/domains/memora/views/settings/EmailNotifications.vue'
-import EmailSettingsView from '@/domains/memora/views/settings/EmailSettings.vue'
 import SocialLinksView from '@/domains/memora/views/settings/SocialLinks.vue'
 import AddWatermarkView from '@/domains/memora/views/settings/watermark/AddWatermark.vue'
 import PresetGeneralView from '@/domains/memora/views/preset/General.vue'
@@ -288,15 +287,6 @@ export const memoraRoutes = [
     path: '/memora/settings/email-notifications',
     name: 'emailNotificationsSettings',
     component: EmailNotificationsView,
-    meta: {
-      requiresAuth: true,
-      requiresUser: true,
-    },
-  },
-  {
-    path: '/memora/settings/email-settings',
-    name: 'emailSettings',
-    component: EmailSettingsView,
     meta: {
       requiresAuth: true,
       requiresUser: true,

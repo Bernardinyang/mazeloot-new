@@ -1,28 +1,39 @@
 <template>
-  <div>
-    <h1 class="text-2xl font-bold mb-6">Users</h1>
-    <div v-if="loading" class="text-center py-8">Loading...</div>
-    <div v-else class="bg-white rounded-lg shadow overflow-hidden">
-      <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
-          <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-          </tr>
-        </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
-          <tr v-for="user in users" :key="user.uuid">
-            <td class="px-6 py-4 whitespace-nowrap">{{ user.email }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ user.first_name }} {{ user.last_name }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">{{ user.role }}</td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <router-link :to="`/admin/users/${user.uuid}`" class="text-blue-600 hover:underline">View</router-link>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6">
+      <header>
+        <h1 :class="['text-2xl font-semibold tracking-tight', theme.textPrimary]">Users</h1>
+        <p :class="['mt-1 text-sm', theme.textSecondary]">Manage users, roles, and permissions.</p>
+      </header>
+
+      <div
+        :class="[
+          'rounded-xl border overflow-hidden',
+          'border-border bg-card',
+          'shadow-sm dark:shadow-none',
+        ]"
+      >
+        <DataTable
+            :columns="columns"
+            :items="users"
+            :loading="loading"
+            :getId="(u) => u.uuid"
+            searchable
+            search-placeholder="Search users…"
+            empty-message="No users found"
+          >
+            <template #cell-role="{ value }">
+              <Badge :variant="value === 'admin' || value === 'super_admin' ? 'default' : 'secondary'">
+                {{ value }}
+              </Badge>
+            </template>
+            <template #cell-actions="{ item }">
+              <RouterLink :to="`/admin/users/${item.uuid}`">
+                <Button variant="link" size="sm">View</Button>
+              </RouterLink>
+            </template>
+        </DataTable>
+      </div>
     </div>
   </div>
 </template>
@@ -30,10 +41,23 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminApi } from '@/admin/api/admin'
+import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { Button } from '@/shared/components/shadcn/button'
+import { Badge } from '@/shared/components/shadcn/badge'
+import { RouterLink } from 'vue-router'
+import DataTable from '@/shared/components/organisms/DataTable.vue'
 
+const theme = useThemeClasses()
 const adminApi = useAdminApi()
 const users = ref([])
 const loading = ref(true)
+
+const columns = [
+  { key: 'email', label: 'Email', sortable: true },
+  { key: 'name', label: 'Name', dataSelector: (u) => `${u.first_name || ''} ${u.last_name || ''}`.trim() || '—', sortable: true },
+  { key: 'role', label: 'Role', slot: 'role', sortable: true },
+  { key: 'actions', label: 'Actions', slot: 'actions' },
+]
 
 onMounted(async () => {
   try {

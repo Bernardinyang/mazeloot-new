@@ -1497,6 +1497,7 @@ import { useThemeStore } from '@/shared/stores/theme'
 import { useUserStore } from '@/shared/stores/user'
 import { useLogout } from '@/shared/composables/useLogout'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { useLoadingStates } from '@/shared/composables/useLoadingStates'
 import { useAuthApi } from '@/shared/api/auth'
 import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
@@ -1896,7 +1897,7 @@ const collectionLimit = ref(null)
 const freeStorage = computed(() => totalStorage.value - usedStorage.value)
 const storagePercentage = computed(() => {
   if (totalStorage.value === 0) return 0
-  return Math.round((usedStorage.value / totalStorage.value) * 100)
+  return (usedStorage.value / totalStorage.value) * 100
 })
 
 const projectLimitReached = computed(() => {
@@ -1922,12 +1923,7 @@ const formatBytes = bytes => {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
-// Format date helper
-const formatDate = dateString => {
-  if (!dateString) return ''
-  const date = new Date(dateString)
-  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
+const { formatDate } = useFormatDate()
 
 // Fetch collections independently
 const fetchCollections = async () => {
@@ -2002,8 +1998,11 @@ const fetchStorage = async () => {
     projectLimit.value = storageData.project_limit ?? null
     collectionCount.value = storageData.collection_count ?? 0
     collectionLimit.value = storageData.collection_limit ?? null
-    if (storageData.memora_features && userStore.user) {
-      userStore.updateUser({ memora_features: storageData.memora_features })
+    if (userStore.user && (storageData.memora_features || storageData.memora_capabilities)) {
+      userStore.updateUser({
+        ...(storageData.memora_features && { memora_features: storageData.memora_features }),
+        ...(storageData.memora_capabilities && { memora_capabilities: storageData.memora_capabilities }),
+      })
     }
   } catch (error) {
     console.error('Failed to fetch storage usage:', error)

@@ -74,11 +74,11 @@ onMounted(async () => {
       description: 'Welcome! Redirecting...',
     })
 
-    // Check if user needs product selection or onboarding
-    await userStore.fetchSelectedProducts()
-    await userStore.fetchOnboardingStatus()
+    if (!userStore.isAdmin) {
+      await userStore.fetchSelectedProducts()
+      await userStore.fetchOnboardingStatus()
 
-    if (userStore.needsProductSelection) {
+      if (userStore.needsProductSelection) {
       // Generate token and redirect to product selection
       const { useOnboardingApi } = await import('@/shared/api/onboarding')
       const onboardingApi = useOnboardingApi()
@@ -120,6 +120,7 @@ onMounted(async () => {
           console.error('Failed to generate onboarding token:', err)
         }
       }
+    }
     }
 
     // Redirect to the original destination, admin dashboard (for admins), or overview

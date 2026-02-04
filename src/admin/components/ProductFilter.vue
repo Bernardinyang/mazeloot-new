@@ -1,19 +1,31 @@
 <template>
-  <select v-model="selected" @change="handleChange" class="block w-full rounded-md border-gray-300 shadow-sm">
-    <option value="">All Products</option>
-    <option v-for="product in products" :key="product.uuid" :value="product.slug">{{ product.name }}</option>
-  </select>
+  <Select v-model="selected" @update:model-value="handleChange">
+    <SelectTrigger :class="['w-full min-w-[180px]', theme.bgCard, 'border-border']">
+      <SelectValue placeholder="All Products" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="__all__">All Products</SelectItem>
+      <SelectItem v-for="product in products" :key="product.uuid" :value="product.slug">
+        {{ product.name }}
+      </SelectItem>
+    </SelectContent>
+  </Select>
 </template>
 
 <script setup>
 import { ref, watch } from 'vue'
 import { useAdminApi } from '@/admin/api/admin'
 import { useAdminStore } from '@/admin/stores/admin'
+import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/shadcn/select'
 
+const theme = useThemeClasses()
 const adminApi = useAdminApi()
 const adminStore = useAdminStore()
 const products = ref([])
-const selected = ref(null)
+const selected = ref(adminStore.selectedProduct == null ? '__all__' : adminStore.selectedProduct)
+
+const emit = defineEmits(['change'])
 
 const loadProducts = async () => {
   try {
@@ -24,14 +36,13 @@ const loadProducts = async () => {
 }
 
 const handleChange = () => {
-  adminStore.setSelectedProduct(selected.value)
-  emit('change', selected.value)
+  const val = selected.value === '__all__' ? null : selected.value
+  adminStore.setSelectedProduct(val)
+  emit('change', val)
 }
 
-const emit = defineEmits(['change'])
-
 watch(() => adminStore.selectedProduct, (newVal) => {
-  selected.value = newVal
+  selected.value = newVal == null ? '__all__' : newVal
 })
 
 loadProducts()

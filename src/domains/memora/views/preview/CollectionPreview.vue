@@ -766,6 +766,7 @@ import MediaGridItemCard from '@/shared/components/organisms/MediaGridItemCard.v
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import { useSettingsApi } from '@/domains/memora/api/settings'
+import { useRegionalStore } from '@/shared/stores/regional'
 import {
   Tooltip,
   TooltipContent,
@@ -2891,6 +2892,7 @@ onMounted(async () => {
     try {
       const settingsResponse = await fetchSettings()
       const settings = settingsResponse.data || settingsResponse
+      useRegionalStore().setFromSettings(settings)
       brandingLogoUrl.value = settings.branding?.logoUrl || null
       brandingName.value = settings.branding?.name || null
       showMazelootBranding.value = settings.branding?.showMazelootBranding ?? true

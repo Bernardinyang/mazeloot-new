@@ -14,6 +14,9 @@
 
       <!-- Content -->
       <div class="space-y-6 w-[50%]">
+        <PlanLimitBanner v-if="!canAddWatermarkNow">
+          Watermark limit reached on your plan.
+        </PlanLimitBanner>
         <!-- Watermark Management Section -->
         <div class="space-y-4">
           <h3 class="text-base font-semibold" :class="theme.textPrimary">Watermark</h3>
@@ -47,6 +50,7 @@
 
             <!-- Add New Watermark -->
             <div
+              v-if="canAddWatermarkNow"
               class="flex flex-col items-center gap-2 cursor-pointer"
               @click="handleAddWatermark()"
             >
@@ -124,9 +128,11 @@ import WatermarkCard from '@/shared/components/organisms/WatermarkCard.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
 import { useRouter } from 'vue-router'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useThemeStore } from '@/shared/stores/theme'
 import { useWatermarksApi } from '@/domains/memora/api/watermarks'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const description = ''
 
@@ -134,6 +140,7 @@ const router = useRouter()
 const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
 const themeStore = useThemeStore()
+const { canAddWatermark } = useMemoraFeatures()
 
 const showDeleteModal = ref(false)
 const watermarkToDelete = ref(null)
@@ -145,6 +152,8 @@ const watermarksApi = useWatermarksApi()
 
 // Use storeToRefs to maintain reactivity
 const { watermarks, isLoading } = storeToRefs(watermarkStore)
+
+const canAddWatermarkNow = computed(() => canAddWatermark(watermarks.value?.length ?? 0))
 
 /**
  * Get font style properties from saved style string

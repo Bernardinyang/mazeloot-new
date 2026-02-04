@@ -126,6 +126,8 @@
               :items="filteredRegistrations"
               :columns="tableColumns"
               :loading="isLoading"
+              searchable
+              search-placeholder="Search by email…"
               :empty-message="'No email registrations found'"
               :empty-icon="Mail"
             >
@@ -229,9 +231,9 @@ const verificationFilter = ref('all')
 
 // Table columns
 const tableColumns = [
-  { key: 'email', label: 'Email Address', slot: 'email' },
-  { key: 'registeredAt', label: 'Registered', slot: 'registeredAt' },
-  { key: 'lastAccessAt', label: 'Last Access', slot: 'lastAccessAt' },
+  { key: 'email', label: 'Email Address', slot: 'email', sortable: true },
+  { key: 'registeredAt', label: 'Registered', slot: 'registeredAt', sortable: true, format: 'date', dataSelector: (r) => r.registeredAt },
+  { key: 'lastAccessAt', label: 'Last Access', slot: 'lastAccessAt', sortable: true, format: 'date', dataSelector: (r) => r.lastAccessAt },
 ]
 
 // Computed stats

@@ -1,133 +1,171 @@
 <template>
-  <div class="space-y-6">
-    <div class="flex items-center justify-between">
-      <h1 class="text-3xl font-bold">Early Access Management</h1>
-    </div>
+  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6">
+      <header>
+        <h1 :class="['text-2xl font-semibold tracking-tight', theme.textPrimary]">Early Access</h1>
+        <p :class="['mt-1 text-sm', theme.textSecondary]">Manage pending requests and active early access users.</p>
+      </header>
 
-    <div class="border-b">
-      <nav class="-mb-px flex space-x-8">
+      <nav
+        class="inline-flex h-10 items-center justify-center rounded-lg bg-muted p-1 text-muted-foreground"
+        role="tablist"
+        aria-label="Early access sections"
+      >
         <button
-          @click="activeTab = 'requests'"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'requests'"
           :class="[
-            'py-4 px-1 border-b-2 font-medium text-sm',
+            'inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             activeTab === 'requests'
-              ? 'border-purple-500 text-purple-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'bg-background text-foreground shadow-sm'
+              : 'hover:text-foreground',
           ]"
+          @click="activeTab = 'requests'"
         >
           Pending Requests
           <span
             v-if="pendingCount > 0"
-            class="ml-2 py-0.5 px-2 text-xs rounded-full bg-purple-100 text-purple-600"
+            class="ml-2 py-0.5 px-2 text-xs rounded-full bg-primary/15 text-primary font-medium tabular-nums"
           >
             {{ pendingCount }}
           </span>
         </button>
         <button
-          @click="activeTab = 'users'"
+          type="button"
+          role="tab"
+          :aria-selected="activeTab === 'users'"
           :class="[
-            'py-4 px-1 border-b-2 font-medium text-sm',
+            'inline-flex items-center justify-center whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             activeTab === 'users'
-              ? 'border-purple-500 text-purple-600'
-              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300',
+              ? 'bg-background text-foreground shadow-sm'
+              : 'hover:text-foreground',
           ]"
+          @click="activeTab = 'users'"
         >
           Active Users
         </button>
       </nav>
-    </div>
 
-    <!-- Pending Requests Tab -->
-    <div v-if="activeTab === 'requests'">
-      <div v-if="loadingRequests" class="text-center py-8">Loading...</div>
-      <div v-else-if="requests.length === 0" class="text-center py-12 text-gray-500">
-        No pending requests
-      </div>
-      <div v-else class="space-y-4">
-        <div
-          v-for="req in requests"
-          :key="req.uuid"
-          class="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border border-gray-200 dark:border-gray-700"
-        >
-          <div class="flex items-start justify-between">
-            <div class="flex-1">
-              <div class="flex items-center gap-3 mb-2">
-                <h3 class="text-lg font-semibold">
-                  {{ req.user.first_name }} {{ req.user.last_name }}
-                </h3>
-                <span class="px-2 py-1 text-xs rounded-full bg-yellow-100 text-yellow-800">
-                  Pending
-                </span>
-              </div>
-              <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">{{ req.user.email }}</p>
-              <p v-if="req.reason" class="text-sm text-gray-700 dark:text-gray-300 mt-3">
-                <span class="font-medium">Reason:</span> {{ req.reason }}
-              </p>
-              <p class="text-xs text-gray-500 mt-2">
-                Requested {{ formatDate(req.created_at) }}
-              </p>
+      <!-- Pending Requests Tab -->
+      <Transition name="fade-slide" mode="out-in">
+        <section v-if="activeTab === 'requests'" key="requests" class="space-y-4" aria-label="Pending requests">
+          <div v-if="loadingRequests" class="space-y-4">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+              <span :class="['text-sm', theme.textSecondary]">Loading requests…</span>
             </div>
-            <div class="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                @click="$router.push({ name: 'admin-early-access-request-show', params: { uuid: req.uuid } })"
-              >
-                View Details
-              </Button>
-              <Button @click="openApproveDialog(req)" variant="default" size="sm">
-                Approve
-              </Button>
-              <Button @click="openRejectDialog(req)" variant="outline" size="sm">
-                Reject
-              </Button>
+            <div v-for="i in 3" :key="i" :class="['rounded-xl border border-border bg-card p-6 animate-pulse']">
+              <div class="flex justify-between gap-4">
+                <div class="space-y-2 flex-1">
+                  <div :class="['h-5 w-40 rounded', theme.bgSkeleton]" :style="{ animationDelay: `${i * 80}ms` }" />
+                  <div :class="['h-4 w-56 rounded', theme.bgSkeleton]" :style="{ animationDelay: `${i * 80 + 30}ms` }" />
+                  <div :class="['h-4 w-32 rounded', theme.bgSkeleton]" :style="{ animationDelay: `${i * 80 + 60}ms` }" />
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <div :class="['h-8 w-20 rounded', theme.bgSkeleton]" />
+                  <div :class="['h-8 w-16 rounded', theme.bgSkeleton]" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Active Users Tab -->
-    <div v-if="activeTab === 'users'">
-      <div v-if="loadingUsers" class="text-center py-8">Loading...</div>
-      <div v-else class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-900">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Discount</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Features</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <tr v-for="ea in earlyAccessUsers" :key="ea.uuid">
-              <td class="px-6 py-4 whitespace-nowrap">
-                <div>
-                  <div class="text-sm font-medium">{{ ea.user.email }}</div>
-                  <div class="text-sm text-gray-500">{{ ea.user.first_name }} {{ ea.user.last_name }}</div>
+          <div v-else-if="requests.length === 0" :class="['text-center py-12 text-sm rounded-xl border border-border bg-card', theme.textSecondary]">
+            No pending requests
+          </div>
+          <div v-else class="space-y-4">
+            <div
+              v-for="(req, index) in requests"
+              :key="req.uuid"
+              :class="[
+                'rounded-xl border border-border bg-card p-6 shadow-sm',
+                'transition-all duration-200 hover:shadow-md hover:border-border',
+                'animate-slide-up',
+              ]"
+              :style="{ animationDelay: `${Math.min(index * 50, 300)}ms`, animationFillMode: 'backwards' }"
+            >
+              <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-3 mb-2 flex-wrap">
+                    <h3 :class="['text-lg font-semibold', theme.textPrimary]">
+                      {{ req.user.first_name }} {{ req.user.last_name }}
+                    </h3>
+                    <Badge variant="secondary" class="shrink-0">Pending</Badge>
+                  </div>
+                  <p :class="['text-sm mb-2', theme.textSecondary]">{{ req.user.email }}</p>
+                  <p v-if="req.reason" :class="['text-sm mt-3', theme.textPrimary]">
+                    <span class="font-medium">Reason:</span> {{ req.reason }}
+                  </p>
+                  <p :class="['text-xs mt-2', theme.textSecondary]">
+                    Requested {{ formatDate(req.created_at) }}
+                  </p>
                 </div>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">{{ ea.discount_percentage }}%</td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                {{ (ea.feature_flags || []).length }} features
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm">
-                <router-link
-                  :to="`/admin/early-access/${ea.uuid}`"
-                  class="text-purple-600 hover:underline"
-                >
-                  View
-                </router-link>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+                <div class="flex flex-wrap gap-2 shrink-0">
+                  <Button
+                    variant="link"
+                    size="sm"
+                    @click="$router.push({ name: 'admin-early-access-request-show', params: { uuid: req.uuid } })"
+                  >
+                    View details
+                  </Button>
+                  <Button variant="default" size="sm" @click="openApproveDialog(req)">
+                    Approve
+                  </Button>
+                  <Button @click="openRejectDialog(req)" variant="outline" size="sm">
+                    Reject
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </Transition>
+
+      <!-- Active Users Tab -->
+      <Transition name="fade-slide" mode="out-in">
+        <section v-if="activeTab === 'users'" key="users" class="space-y-4" aria-label="Active users">
+          <div v-if="loadingUsers" class="rounded-xl border border-border bg-card overflow-hidden p-6">
+            <div class="flex items-center gap-3 mb-4">
+              <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+              <span :class="['text-sm', theme.textSecondary]">Loading users…</span>
+            </div>
+            <div class="space-y-2">
+              <div v-for="i in 5" :key="i" class="flex gap-4 p-4 rounded-lg border border-border">
+                <div :class="['h-5 w-44 rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 40}ms` }" />
+                <div :class="['h-5 w-12 rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 40 + 15}ms` }" />
+                <div :class="['h-5 w-16 rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 40 + 30}ms` }" />
+              </div>
+            </div>
+          </div>
+          <div v-else class="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+            <DataTable
+              :columns="earlyAccessColumns"
+              :items="earlyAccessUsers"
+              :loading="loadingUsers"
+              :getId="(ea) => ea.uuid"
+              searchable
+              search-placeholder="Search early access users…"
+              empty-message="No active early access users."
+            >
+              <template #cell-user="{ item }">
+                <div>
+                  <div :class="['text-sm font-medium', theme.textPrimary]">{{ item.user.email }}</div>
+                  <div :class="['text-sm', theme.textSecondary]">{{ item.user.first_name }} {{ item.user.last_name }}</div>
+                </div>
+              </template>
+              <template #cell-actions="{ item }">
+                <RouterLink :to="`/admin/early-access/${item.uuid}`">
+                  <Button variant="link" size="sm">View</Button>
+                </RouterLink>
+              </template>
+            </DataTable>
+          </div>
+        </section>
+      </Transition>
+
     </div>
 
     <!-- Approve Dialog -->
-    <Dialog v-model:open="showApproveDialog">
+    <Dialog :open="showApproveDialog" @update:open="showApproveDialog = $event">
       <DialogContent class="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Approve Early Access Request</DialogTitle>
@@ -283,7 +321,7 @@
     </Dialog>
 
     <!-- Reject Dialog -->
-    <Dialog v-model:open="showRejectDialog">
+    <Dialog :open="showRejectDialog" @update:open="showRejectDialog = $event">
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Reject Early Access Request</DialogTitle>
@@ -316,8 +354,11 @@
 
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { RouterLink } from 'vue-router'
 import { useAdminApi } from '@/admin/api/admin'
+import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Button } from '@/shared/components/shadcn/button'
+import { Badge } from '@/shared/components/shadcn/badge'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import Label from '@/shared/components/shadcn/Label.vue'
@@ -331,7 +372,16 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import { toast } from '@/shared/utils/toast'
 import { usePusher } from '@/shared/composables/usePusher'
+import DataTable from '@/shared/components/organisms/DataTable.vue'
 
+const theme = useThemeClasses()
+
+const earlyAccessColumns = [
+  { key: 'user', label: 'User', slot: 'user', sortable: true, dataSelector: (ea) => ea.user?.email ?? '' },
+  { key: 'discount_percentage', label: 'Discount', dataSelector: (ea) => `${ea.discount_percentage}%`, sortable: true, numeric: true },
+  { key: 'features', label: 'Features', dataSelector: (ea) => (ea.feature_flags || []).length, sortable: true, numeric: true },
+  { key: 'actions', label: 'Actions', slot: 'actions' },
+]
 const adminApi = useAdminApi()
 const { subscribePrivate, unsubscribe } = usePusher()
 const activeTab = ref('requests')
@@ -549,3 +599,15 @@ onUnmounted(() => {
   }
 })
 </script>
+
+<style scoped>
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.fade-slide-enter-from,
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+</style>

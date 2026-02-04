@@ -102,164 +102,108 @@
           </div>
 
           <!-- Activity Table -->
-          <div
-            :class="[theme.borderSecondary, theme.bgCard]"
-            class="rounded-2xl border-2 overflow-hidden"
-          >
-            <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr :class="theme.borderSecondary" class="border-b">
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Date & Time
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      User
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Photo
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Access Type
-                    </th>
-                    <th
-                      :class="theme.textSecondary"
-                      class="px-6 py-4 text-left text-xs font-semibold uppercase tracking-wider"
-                    >
-                      Duration
-                    </th>
-                  </tr>
-                </thead>
-                <tbody :class="theme.borderSecondary" class="divide-y">
-                  <tr
-                    v-for="activity in filteredActivities"
-                    :key="activity.id"
-                    class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+          <div :class="[theme.borderSecondary, theme.bgCard]" class="rounded-2xl border-2 overflow-hidden">
+            <DataTable
+              :columns="tableColumns"
+              :items="filteredActivities"
+              :loading="false"
+              :getId="(a) => a.id"
+              searchable
+              search-placeholder="Search activity…"
+              empty-message="No private media activity found"
+              :empty-icon="Lock"
+            >
+              <template #cell-timestamp="{ item }">
+                <div class="whitespace-nowrap">
+                  <div :class="theme.textPrimary" class="text-sm font-medium">{{ formatDate(item.timestamp) }}</div>
+                  <div :class="theme.textSecondary" class="text-xs">{{ formatTime(item.timestamp) }}</div>
+                </div>
+              </template>
+              <template #cell-userEmail="{ item }">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <span class="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                      {{ item.userEmail?.charAt(0).toUpperCase() || '?' }}
+                    </span>
+                  </div>
+                  <div :class="theme.textPrimary" class="text-sm font-medium">{{ item.userEmail || 'No email' }}</div>
+                </div>
+              </template>
+              <template #cell-photo="{ item }">
+                <div class="flex items-center gap-3">
+                  <button
+                    v-if="item.mediaId"
+                    class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-opacity cursor-pointer"
+                    @click.stop="openMedia(item)"
                   >
-                    <td class="px-6 py-4 whitespace-nowrap">
-                      <div :class="theme.textPrimary" class="text-sm font-medium">
-                        {{ formatDate(activity.timestamp) }}
-                      </div>
-                      <div :class="theme.textSecondary" class="text-xs">
-                        {{ formatTime(activity.timestamp) }}
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <div
-                          class="w-8 h-8 rounded-full bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center"
-                        >
-                          <span class="text-xs font-semibold text-purple-600 dark:text-purple-400">
-                            {{ activity.userEmail?.charAt(0).toUpperCase() || '?' }}
-                          </span>
-                        </div>
-                        <div :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ activity.userEmail || 'No email' }}
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div class="flex items-center gap-3">
-                        <button
-                          v-if="activity.mediaId"
-                          class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 hover:opacity-80 transition-opacity cursor-pointer"
-                          @click="openMedia(activity)"
-                        >
-                          <img
-                            v-if="activity.photoThumbnail"
-                            :alt="activity.photoName"
-                            :src="activity.photoThumbnail"
-                            class="w-full h-full object-cover"
-                          />
-                          <div
-                            v-else
-                            class="w-full h-full flex items-center justify-center"
-                          >
-                            <ImageIcon v-if="!activity.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
-                            <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
-                          </div>
-                          <div
-                            v-if="activity.isVideo && activity.photoThumbnail"
-                            class="absolute inset-0 flex items-center justify-center bg-black/20"
-                          >
-                            <Play class="h-4 w-4 text-white" />
-                          </div>
-                        </button>
-                        <div
-                          v-else
-                          class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
-                        >
-                          <img
-                            v-if="activity.photoThumbnail"
-                            :alt="activity.photoName"
-                            :src="activity.photoThumbnail"
-                            class="w-full h-full object-cover"
-                          />
-                          <div
-                            v-else
-                            class="w-full h-full flex items-center justify-center"
-                          >
-                            <ImageIcon v-if="!activity.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
-                            <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
-                          </div>
-                          <div
-                            v-if="activity.isVideo && activity.photoThumbnail"
-                            class="absolute inset-0 flex items-center justify-center bg-black/20"
-                          >
-                            <Play class="h-4 w-4 text-white" />
-                          </div>
-                        </div>
-                        <div :class="theme.textPrimary" class="text-sm font-medium">
-                          {{ activity.photoName || 'Unknown media' }}
-                        </div>
-                      </div>
-                    </td>
-                    <td class="px-6 py-4">
-                      <span
-                        :class="
-                          activity.accessType === 'granted'
-                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                        "
-                        class="px-2 py-1 rounded-full text-xs font-semibold"
-                      >
-                        {{ activity.accessType === 'granted' ? 'Granted' : 'Denied' }}
-                      </span>
-                    </td>
-                    <td class="px-6 py-4">
-                      <div :class="theme.textSecondary" class="text-sm">
-                        {{ activity.duration ? `${activity.duration}s` : 'N/A' }}
-                      </div>
-                    </td>
-                  </tr>
-                  <tr v-if="filteredActivities.length === 0">
-                    <td class="px-6 py-12 text-center" colspan="5">
-                      <div class="flex flex-col items-center gap-3">
-                        <Lock :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
-                        <p :class="theme.textPrimary" class="text-sm font-medium">
-                          No private media activity found
-                        </p>
-                        <p :class="theme.textSecondary" class="text-xs">
-                          Private media access will appear here once users access private media
-                        </p>
-                      </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+                    <img
+                      v-if="item.photoThumbnail"
+                      :alt="item.photoName"
+                      :src="item.photoThumbnail"
+                      class="w-full h-full object-cover"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center">
+                      <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                      <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
+                    </div>
+                    <div
+                      v-if="item.isVideo && item.photoThumbnail"
+                      class="absolute inset-0 flex items-center justify-center bg-black/20"
+                    >
+                      <Play class="h-4 w-4 text-white" />
+                    </div>
+                  </button>
+                  <div
+                    v-else
+                    class="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700"
+                  >
+                    <img
+                      v-if="item.photoThumbnail"
+                      :alt="item.photoName"
+                      :src="item.photoThumbnail"
+                      class="w-full h-full object-cover"
+                    />
+                    <div v-else class="w-full h-full flex items-center justify-center">
+                      <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
+                      <Play v-else :class="theme.textTertiary" class="h-5 w-5" />
+                    </div>
+                    <div
+                      v-if="item.isVideo && item.photoThumbnail"
+                      class="absolute inset-0 flex items-center justify-center bg-black/20"
+                    >
+                      <Play class="h-4 w-4 text-white" />
+                    </div>
+                  </div>
+                  <div :class="theme.textPrimary" class="text-sm font-medium">{{ item.photoName || 'Unknown media' }}</div>
+                </div>
+              </template>
+              <template #cell-accessType="{ item }">
+                <span
+                  :class="
+                    item.accessType === 'granted'
+                      ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                      : 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
+                  "
+                  class="px-2 py-1 rounded-full text-xs font-semibold"
+                >
+                  {{ item.accessType === 'granted' ? 'Granted' : 'Denied' }}
+                </span>
+              </template>
+              <template #cell-duration="{ item }">
+                <div :class="theme.textSecondary" class="text-sm">
+                  {{ item.duration ? `${item.duration}s` : 'N/A' }}
+                </div>
+              </template>
+              <template #empty>
+                <div class="flex flex-col items-center gap-3 py-12">
+                  <Lock :class="theme.textTertiary" class="h-12 w-12 opacity-30" />
+                  <p :class="theme.textPrimary" class="text-sm font-medium">No private media activity found</p>
+                  <p :class="theme.textSecondary" class="text-xs">
+                    Private media access will appear here once users access private media
+                  </p>
+                </div>
+              </template>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -291,6 +235,7 @@ import {
 } from '@/shared/components/shadcn/select'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import MediaLightbox from '@/shared/components/organisms/MediaLightbox.vue'
+import DataTable from '@/shared/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/shared/stores/gallery'
@@ -310,6 +255,14 @@ const { isSidebarCollapsed } = useSidebarCollapse()
 const activities = ref([])
 const searchQuery = ref('')
 const dateFilter = ref('all')
+
+const tableColumns = [
+  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp', sortable: true, format: 'date', dataSelector: (a) => a.timestamp },
+  { key: 'userEmail', label: 'User', slot: 'userEmail', sortable: true },
+  { key: 'photo', label: 'Photo', slot: 'photo' },
+  { key: 'accessType', label: 'Access Type', slot: 'accessType', sortable: true },
+  { key: 'duration', label: 'Duration', slot: 'duration', sortable: true },
+]
 
 // Media viewer
 const showMediaViewer = ref(false)

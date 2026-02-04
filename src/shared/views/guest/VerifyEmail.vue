@@ -81,10 +81,13 @@ const handleVerify = async verificationCode => {
       description: 'Your email has been verified successfully',
     })
 
-    // Check if user needs product selection
+    if (userStore.isAdmin) {
+      router.push(route.query.redirect || { name: 'admin-dashboard' })
+      return
+    }
+
     await userStore.fetchSelectedProducts()
     if (userStore.needsProductSelection) {
-      // Generate token and redirect to product selection
       const { useOnboardingApi } = await import('@/shared/api/onboarding')
       const onboardingApi = useOnboardingApi()
       try {
@@ -99,7 +102,6 @@ const handleVerify = async verificationCode => {
       }
     }
 
-    // Redirect to overview (new user flag already set during registration)
     const redirect = route.query.redirect
     router.push(redirect || { name: 'overview' })
   } catch (error) {

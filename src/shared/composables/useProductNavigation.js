@@ -26,21 +26,22 @@ export function getProductFromRoute(path) {
   return 'default'
 }
 
-function filterByFeatures(items, hasFeature, isStarterPlan) {
+function filterByFeatures(items, hasFeature, isStarterPlan, isAdmin) {
   if (!items || !Array.isArray(items)) return items
   return items
     .filter(item => {
+      if (item.requiresAdmin && !isAdmin) return false
       if (item.hideForStarter && isStarterPlan) return false
       if (item.requiredFeature && !hasFeature(item.requiredFeature)) return false
       if (item.items) {
-        const filteredSub = filterByFeatures(item.items, hasFeature, isStarterPlan)
+        const filteredSub = filterByFeatures(item.items, hasFeature, isStarterPlan, isAdmin)
         if (filteredSub.length === 0) return false
       }
       return true
     })
     .map(item => {
       if (item.items) {
-        return { ...item, items: filterByFeatures(item.items, hasFeature, isStarterPlan) }
+        return { ...item, items: filterByFeatures(item.items, hasFeature, isStarterPlan, isAdmin) }
       }
       return item
     })
@@ -64,7 +65,7 @@ export function useProductNavigation() {
   const navigationItems = computed(() => {
     let items = PRODUCT_NAVIGATION[currentProduct.value] || PRODUCT_NAVIGATION.default
     if (currentProduct.value === 'memora' && Array.isArray(items)) {
-      items = filterByFeatures(items, hasFeature, isStarterPlan.value)
+      items = filterByFeatures(items, hasFeature, isStarterPlan.value, userStore.isAdmin)
     }
     return items
   })

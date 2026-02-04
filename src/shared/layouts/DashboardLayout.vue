@@ -165,7 +165,7 @@
             />
             <Input
               :class="[
-                'pl-9 pr-4 h-10 w-full focus-visible:ring-white/20 dark:focus-visible:ring-white/20 light:focus-visible:ring-gray-400',
+                'pl-9 pr-4 h-10 w-full',
                 theme.bgInput,
                 theme.borderInput,
                 theme.textInput,
@@ -239,6 +239,8 @@ import { useUserStore } from '@/shared/stores/user'
 import { useBreadcrumbSeparator } from '@/shared/composables/useBreadcrumbSeparator'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { useAuthApi } from '@/shared/api/auth'
+import { useSettingsApi } from '@/domains/memora/api/settings'
+import { useRegionalStore } from '@/shared/stores/regional'
 
 const props = defineProps({
   breadcrumbSeparator: {
@@ -363,8 +365,11 @@ const fetchStorage = async () => {
     projectLimit.value = storageData.project_limit ?? null
     collectionCount.value = storageData.collection_count ?? 0
     collectionLimit.value = storageData.collection_limit ?? null
-    if (storageData.memora_features && userStore.user) {
-      userStore.updateUser({ memora_features: storageData.memora_features })
+    if (userStore.user && (storageData.memora_features || storageData.memora_capabilities)) {
+      userStore.updateUser({
+        ...(storageData.memora_features && { memora_features: storageData.memora_features }),
+        ...(storageData.memora_capabilities && { memora_capabilities: storageData.memora_capabilities }),
+      })
     }
   } catch (error) {
     console.error('Failed to fetch storage usage:', error)
@@ -374,6 +379,10 @@ const fetchStorage = async () => {
 onMounted(() => {
   if (hasMemora.value) {
     fetchStorage()
+    useSettingsApi()
+      .fetchSettings()
+      .then(settings => useRegionalStore().setFromSettings(settings))
+      .catch(() => {})
   }
 })
 

@@ -385,6 +385,113 @@ export function useAdminApi() {
     }
   }
 
+  // Memora Pricing (fixed tiers + BYO)
+  const getPricingTiers = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/pricing/tiers')
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getPricingTier = async (slug) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/pricing/tiers/${slug}`)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const createPricingTier = async (data) => {
+    try {
+      const response = await apiClient.post('/v1/admin/pricing/tiers', data)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const updatePricingTier = async (slug, data) => {
+    try {
+      const response = await apiClient.patch(`/v1/admin/pricing/tiers/${slug}`, data)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const deletePricingTier = async (slug) => {
+    try {
+      await apiClient.delete(`/v1/admin/pricing/tiers/${slug}`)
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getByoConfig = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/pricing/byo-config')
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const updateByoConfig = async (data) => {
+    try {
+      const response = await apiClient.patch('/v1/admin/pricing/byo-config', data)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getByoAddonSlugs = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/pricing/byo-addon-slugs')
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getByoAddons = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/pricing/byo-addons')
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const createByoAddon = async (data) => {
+    try {
+      const response = await apiClient.post('/v1/admin/pricing/byo-addons', data)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const updateByoAddon = async (id, data) => {
+    try {
+      const response = await apiClient.patch(`/v1/admin/pricing/byo-addons/${id}`, data)
+      return response.data?.data ?? response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const deleteByoAddon = async (id) => {
+    try {
+      await apiClient.delete(`/v1/admin/pricing/byo-addons/${id}`)
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     getDashboardStats,
     getProductStats,
@@ -416,5 +523,17 @@ export function useAdminApi() {
     getProductActivity,
     getUserActivityLogs,
     getAdminActivityLogs,
+    getPricingTiers,
+    getPricingTier,
+    createPricingTier,
+    updatePricingTier,
+    deletePricingTier,
+    getByoConfig,
+    updateByoConfig,
+    getByoAddonSlugs,
+    getByoAddons,
+    createByoAddon,
+    updateByoAddon,
+    deleteByoAddon,
   }
 }

@@ -1,5 +1,5 @@
 <template>
-  <div :class="['min-h-full w-full', theme.bgPage, theme.transitionColors, 'relative z-0']">
+  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
     <!-- Main Content -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6 lg:space-y-8">
       <!-- Admin Profile Cover Card -->
@@ -137,7 +137,7 @@
         <!-- Total Users -->
         <div
           :class="[
-            'group relative overflow-hidden rounded-2xl p-5',
+            'group relative overflow-hidden rounded-2xl p-5 animate-slide-up',
             'bg-gradient-to-br from-blue-500/20 via-blue-500/10 to-transparent',
             'dark:from-blue-500/20 dark:via-blue-500/10',
             'light:from-blue-50 light:to-blue-100/50',
@@ -147,6 +147,7 @@
             'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/20',
             'cursor-pointer',
           ]"
+          :style="{ animationDelay: '0ms', animationFillMode: 'backwards' }"
           @click="navigateTo({ name: 'admin-users' })"
         >
           <div class="flex items-start justify-between">
@@ -176,8 +177,9 @@
             'backdrop-blur-sm',
             'hover:scale-[1.02] transition-all duration-300',
             'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-green-500/20',
-            'cursor-pointer',
+            'cursor-pointer animate-slide-up',
           ]"
+          :style="{ animationDelay: '60ms', animationFillMode: 'backwards' }"
           @click="navigateTo({ name: 'admin-products' })"
         >
           <div class="flex items-start justify-between">
@@ -207,8 +209,9 @@
             'backdrop-blur-sm',
             'hover:scale-[1.02] transition-all duration-300',
             'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-yellow-500/20',
-            'cursor-pointer',
+            'cursor-pointer animate-slide-up',
           ]"
+          :style="{ animationDelay: '120ms', animationFillMode: 'backwards' }"
           @click="navigateTo({ name: 'admin-early-access' })"
         >
           <div class="flex items-start justify-between">
@@ -236,8 +239,9 @@
             'backdrop-blur-sm',
             'hover:scale-[1.02] transition-all duration-300',
             'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-purple-500/20',
-            'cursor-pointer',
+            'cursor-pointer animate-slide-up',
           ]"
+          :style="{ animationDelay: '180ms', animationFillMode: 'backwards' }"
           @click="navigateTo({ name: 'admin-analytics' })"
         >
           <div class="flex items-start justify-between">

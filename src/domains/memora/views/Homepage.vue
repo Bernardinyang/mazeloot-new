@@ -69,14 +69,20 @@
                   Enable or disable your public homepage
                 </p>
               </div>
-              <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
-                <input type="checkbox" v-model="homepageStatus" :disabled="isLoading" class="sr-only peer" />
-                <div
-                  class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
-                ></div>
-              </label>
+              <template v-if="homepageEnabled">
+                <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+                  <input type="checkbox" v-model="homepageStatus" :disabled="isLoading" class="sr-only peer" />
+                  <div
+                    class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
+                  ></div>
+                </label>
+              </template>
             </div>
-            <p class="text-sm leading-relaxed" :class="theme.textSecondary">
+            <PlanLimitBanner v-if="!homepageEnabled">
+              Homepage is not available on your plan.
+              <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
+            <p v-else class="text-sm leading-relaxed" :class="theme.textSecondary">
               Your Homepage is a public page where your collections are listed. You can also select
               which collections will be shown here under each collection's setting.
               <a
@@ -399,6 +405,7 @@ import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
@@ -409,8 +416,11 @@ import BrandHomepagePreview from '@/shared/components/organisms/BrandHomepagePre
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { useUserStore } from '@/shared/stores/user'
 import { useRouter } from 'vue-router'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
+import { useRegionalStore } from '@/shared/stores/regional'
 
 const description = ''
+const { homepageEnabled } = useMemoraFeatures()
 
 const theme = useThemeClasses()
 const router = useRouter()
@@ -497,7 +507,8 @@ onMounted(async () => {
     // Fetch settings
     const response = await fetchSettings()
     const settings = response.data || response
-    
+    useRegionalStore().setFromSettings(settings)
+
     homepageStatus.value = settings.homepage?.status ?? true
     homepageUrl.value = settings.branding?.domain || 'https://bernode.mazeloot.com'
     homepagePassword.value = settings.homepage?.password || ''

@@ -7,7 +7,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 vi.mock('@/shared/api/auth', () => ({
   useAuthApi: () => ({
     login: vi.fn().mockResolvedValue({
-      user: { id: '1', uuid: '1', email: 'bernardinyang.bci@gmail.com', name: 'Test User', first_name: 'Test', last_name: 'User' },
+      user: { id: '1', uuid: '1', email: 'bernodelimited@gmail.com', name: 'Test User', first_name: 'Test', last_name: 'User' },
       token: 'test-token-123',
     }),
   }),
@@ -45,7 +45,7 @@ describe('Login view', () => {
     // Since the Login component uses vee-validate Form to emit submit
     // we call the internal handleLogin directly from the component instance
     const vm = wrapper.vm as any
-    const values = { email: 'bernardinyang.bci@gmail.com', password: 'password123', remember: true }
+    const values = { email: 'bernodelimited@gmail.com', password: 'password123', remember: true }
 
     // call the method
     await vm.handleLogin(values)

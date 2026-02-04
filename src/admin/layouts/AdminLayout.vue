@@ -16,8 +16,10 @@
       <AdminSidebar :nav-items="navItems" :user-data="userData" />
     </template>
     
-    <!-- Main Content -->
-    <router-view />
+    <!-- Main Content: flat background (no gradient) across admin -->
+    <div class="min-h-full w-full bg-background dark:bg-gray-950">
+      <router-view />
+    </div>
   </DashboardLayout>
 </template>
 

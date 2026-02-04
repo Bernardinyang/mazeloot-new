@@ -238,19 +238,28 @@
             <div v-if="historyLoading" class="space-y-3">
               <Skeleton v-for="i in 3" :key="i" class="h-16" />
             </div>
-            <div v-else-if="history.length === 0" class="text-center py-8 text-muted-foreground">
-              <History class="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No subscription history yet</p>
+            <div v-else-if="history.length === 0" class="text-center py-12 px-4 rounded-xl border border-dashed border-muted-foreground/20">
+              <div class="inline-flex p-4 rounded-full bg-muted/50 mb-4">
+                <History class="h-8 w-8 text-muted-foreground/60" />
+              </div>
+              <p class="font-medium text-muted-foreground">No subscription history yet</p>
+              <p class="text-sm text-muted-foreground/80 mt-1">Your billing activity will appear here</p>
             </div>
-            <div v-else class="space-y-3">
+            <div v-else class="space-y-2">
               <div
                 v-for="event in history"
                 :key="event.id"
-                class="flex items-start gap-4 p-4 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                role="button"
+                tabindex="0"
+                aria-label="View transaction details"
+                class="group flex items-center gap-4 p-4 rounded-xl border border-transparent bg-muted/40 hover:bg-muted/70 hover:border-muted-foreground/10 active:scale-[0.995] motion-reduce:active:scale-100 transition-all duration-200 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                @click="openHistorySidebar(event)"
+                @keydown.enter="openHistorySidebar(event)"
+                @keydown.space.prevent="openHistorySidebar(event)"
               >
                 <div
                   :class="[
-                    'p-2 rounded-lg shrink-0',
+                    'p-2.5 rounded-lg shrink-0 transition-transform group-hover:scale-105 motion-reduce:scale-100',
                     getEventIconClass(event.event_type),
                   ]"
                 >
@@ -280,13 +289,19 @@
                   </p>
                   <p v-if="event.notes" class="text-xs text-muted-foreground mt-1">{{ event.notes }}</p>
                 </div>
-                <span class="text-xs text-muted-foreground whitespace-nowrap">
-                  {{ formatDate(event.created_at) }}
-                </span>
+                <div class="flex items-center gap-1 shrink-0">
+                  <span class="text-xs text-muted-foreground whitespace-nowrap">{{ formatDate(event.created_at) }}</span>
+                  <ChevronRight class="h-4 w-4 text-muted-foreground/50 group-hover:text-muted-foreground group-hover:translate-x-0.5 transition-all" />
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        <SubscriptionHistoryDetailSidebar
+          v-model="showHistorySidebar"
+          :event="selectedHistoryEvent"
+        />
       </template>
 
       <!-- Error State -->
@@ -313,6 +328,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  ChevronRight,
   CreditCard,
   Crown,
   Database,
@@ -325,7 +341,9 @@ import {
 import { useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useCurrencyStore } from '@/shared/stores/currency'
+import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { formatMoney } from '@/shared/utils/formatMoney'
+import SubscriptionHistoryDetailSidebar from '@/domains/memora/components/organisms/SubscriptionHistoryDetailSidebar.vue'
 
 const { getUsage, getHistory } = useSubscriptionApi()
 const { hasFeature } = useMemoraFeatures()
@@ -337,6 +355,13 @@ const refreshing = ref(false)
 const error = ref(null)
 const usage = ref(null)
 const history = ref([])
+const showHistorySidebar = ref(false)
+const selectedHistoryEvent = ref(null)
+
+function openHistorySidebar(event) {
+  selectedHistoryEvent.value = event
+  showHistorySidebar.value = true
+}
 
 const tierLabel = computed(() => {
   const t = usage.value?.tier ?? 'starter'
@@ -346,7 +371,7 @@ const tierLabel = computed(() => {
 
 const storagePercentage = computed(() => {
   if (!usage.value?.storage) return 0
-  return Math.round(usage.value.storage.percentage)
+  return usage.value.storage.percentage
 })
 
 function formatBytes(bytes) {
@@ -357,14 +382,7 @@ function formatBytes(bytes) {
   return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
+const { formatDate } = useFormatDate()
 
 function formatMonth(monthStr) {
   if (!monthStr) return ''
@@ -475,7 +493,7 @@ const ResourceRow = (props, { slots }) => {
     teal: 'bg-teal-500',
   }
   const hasLimit = props.limit != null
-  const percentage = hasLimit ? Math.round((props.count / props.limit) * 100) : null
+  const percentage = hasLimit ? (props.count / props.limit) * 100 : null
 
   return h('div', { class: 'space-y-1' }, [
     h('div', { class: 'flex items-center justify-between text-sm' }, [

@@ -12,10 +12,10 @@ const DECIMALS = { jpy: 0 }
 const DEFAULT_DECIMALS = 2
 
 export function formatMoney(cents, currencyCode, options = {}) {
-  const inCents = options.inCents !== false
-  const amount = inCents ? cents / 100 : cents
   const code = (currencyCode || 'usd').toLowerCase()
   const decimals = DECIMALS[code] ?? DEFAULT_DECIMALS
+  const inCents = options.inCents !== false
+  const amount = decimals === 0 ? cents : (inCents ? cents / 100 : cents)
 
   try {
     return new Intl.NumberFormat('en-US', {

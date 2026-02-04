@@ -14,7 +14,7 @@ const router = createRouter({
 })
 
 // Route exemptions that skip onboarding checks
-const EXEMPT_ROUTES = ['onboarding', 'overview', 'productSelection', 'admin', 'admin-dashboard', 'admin-users', 'admin-user-show', 'admin-products', 'admin-product-show', 'admin-early-access', 'admin-early-access-show', 'admin-analytics', 'admin-activity-logs-users', 'admin-activity-logs-admins']
+const EXEMPT_ROUTES = ['onboarding', 'overview', 'productSelection', 'admin', 'admin-dashboard', 'admin-users', 'admin-user-show', 'admin-products', 'admin-product-show', 'admin-pricing', 'admin-pricing-tier-create', 'admin-pricing-tier-edit', 'admin-pricing-tier-view', 'admin-early-access', 'admin-early-access-show', 'admin-analytics', 'admin-activity-logs-users', 'admin-activity-logs-admins']
 
 // Cache for products and onboarding status (5 minute TTL)
 const cache = {

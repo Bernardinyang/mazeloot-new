@@ -95,6 +95,7 @@ import { useUserStore } from '@/shared/stores/user'
 import { useAuthApi } from '@/shared/api/auth'
 import { useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { formatMoney } from '@/shared/utils/formatMoney'
+import { useFormatDate } from '@/shared/composables/useFormatDate'
 
 const route = useRoute()
 const router = useRouter()
@@ -123,11 +124,7 @@ const amountFormatted = computed(() => {
   return formatMoney(sub.amount, currency)
 })
 
-function formatDate(val) {
-  if (!val) return '—'
-  const d = typeof val === 'string' ? new Date(val) : val
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-}
+const { formatDate } = useFormatDate()
 
 const isError = computed(() => {
   return (
@@ -166,7 +163,7 @@ onMounted(async () => {
     return
   }
 
-  if (provider === 'paystack' || provider === 'flutterwave') {
+  if (provider === 'paypal' || provider === 'paystack' || provider === 'flutterwave') {
     const maxAttempts = 16
     const delayMs = 2000
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
@@ -185,6 +182,12 @@ onMounted(async () => {
             role: u.role,
             memora_tier: u.memora_tier ?? 'starter',
             memora_features: u.memora_features ?? [],
+            memora_capabilities: u.memora_capabilities ?? {},
+            set_limit_per_phase: u.set_limit_per_phase ?? null,
+            watermark_limit: u.watermark_limit ?? null,
+            preset_limit: u.preset_limit ?? null,
+            selection_limit: u.selection_limit ?? null,
+            proofing_limit: u.proofing_limit ?? null,
             early_access: u.early_access,
           })
         }

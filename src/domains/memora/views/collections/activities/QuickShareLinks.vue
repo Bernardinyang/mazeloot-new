@@ -99,6 +99,8 @@
               :items="filteredLinks"
               :columns="tableColumns"
               :loading="isLoading"
+              searchable
+              search-placeholder="Search links…"
               :empty-message="'No quick share links yet'"
               :empty-icon="Link"
             >
@@ -219,10 +221,10 @@ const statusFilter = ref('all')
 
 // Table columns
 const tableColumns = [
-  { key: 'url', label: 'Link', slot: 'url' },
-  { key: 'createdAt', label: 'Created', slot: 'createdAt' },
-  { key: 'clickCount', label: 'Clicks', slot: 'clickCount' },
-  { key: 'lastUsedAt', label: 'Last Used', slot: 'lastUsedAt' },
+  { key: 'url', label: 'Link', slot: 'url', sortable: true },
+  { key: 'createdAt', label: 'Created', slot: 'createdAt', sortable: true, format: 'date', dataSelector: (l) => l.createdAt },
+  { key: 'clickCount', label: 'Clicks', slot: 'clickCount', sortable: true, numeric: true },
+  { key: 'lastUsedAt', label: 'Last Used', slot: 'lastUsedAt', sortable: true, format: 'date', dataSelector: (l) => l.lastUsedAt },
 ]
 
 // Computed stats

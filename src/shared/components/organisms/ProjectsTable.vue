@@ -8,6 +8,8 @@
     :items="items"
     :loading="loading"
     :selected-items="selectedItems"
+    searchable
+    search-placeholder="Search projects…"
     @empty-action="$emit('empty-action')"
     @row-click="handleRowClick"
   >

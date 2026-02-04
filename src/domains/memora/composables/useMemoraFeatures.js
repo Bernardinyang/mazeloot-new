@@ -31,12 +31,28 @@ export function useMemoraFeatures() {
   const canAccessRawFiles = computed(() => hasFeature('raw_files'))
   const canAccessCollection = computed(() => hasFeature('collection'))
 
+  const capabilities = computed(() => userStore.user?.memora_capabilities ?? {})
+  const setLimitPerPhase = computed(() => userStore.user?.set_limit_per_phase ?? null)
+  const watermarkLimit = computed(() => userStore.user?.watermark_limit ?? null)
+  const presetLimit = computed(() => userStore.user?.preset_limit ?? null)
+  const canAddPreset = computed(() => presetLimit.value !== 0)
+  const canAddWatermark = (currentCount) => {
+    const limit = watermarkLimit.value
+    return limit === null || limit === undefined || (typeof currentCount === 'number' && currentCount < limit)
+  }
+  const homepageEnabled = computed(() => !!capabilities.value.homepage_enabled)
+  const canEditBranding = computed(() => !!capabilities.value.branding_editable)
+  const socialLinksEnabled = computed(() => !!capabilities.value.social_links_enabled)
+  const collectionDisplayEnabled = computed(() => !!capabilities.value.collection_display_enabled)
+  const photoQualityEnabled = computed(() => !!capabilities.value.photo_quality_enabled)
+  const legalDocumentsEnabled = computed(() => !!capabilities.value.legal_documents_enabled)
+  const support24_7 = computed(() => !!capabilities.value.support_24_7)
+
   const recommendedTierForFeature = (feature) => RECOMMENDED_TIER_FOR_FEATURE[feature] ?? null
   const featureLabel = (feature) => FEATURE_LABELS[feature] ?? feature
 
   const showUpgradePrompt = (feature) => {
     const tier = recommendedTierForFeature(feature)
-    const label = featureLabel(feature)
     if (tier) {
       router.push({
         name: 'memora-pricing',
@@ -52,6 +68,19 @@ export function useMemoraFeatures() {
     canAccessProofing,
     canAccessRawFiles,
     canAccessCollection,
+    capabilities,
+    setLimitPerPhase,
+    watermarkLimit,
+    presetLimit,
+    canAddPreset,
+    canAddWatermark,
+    homepageEnabled,
+    canEditBranding,
+    socialLinksEnabled,
+    collectionDisplayEnabled,
+    photoQualityEnabled,
+    legalDocumentsEnabled,
+    support24_7,
     recommendedTierForFeature,
     featureLabel,
     showUpgradePrompt,

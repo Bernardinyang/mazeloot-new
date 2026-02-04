@@ -42,6 +42,42 @@ const userStore = useUserStore()
 const authApi = useAuthApi()
 const { completeTestCheckout } = useSubscriptionApi()
 
+const pollUserUntilUpgrade = async () => {
+  const maxAttempts = 10
+  const delayMs = 1500
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const data = await authApi.getUser()
+      if (data?.user) {
+        const u = data.user
+        userStore.updateUser({
+          id: u.uuid,
+          uuid: u.uuid,
+          email: u.email,
+          first_name: u.first_name,
+          last_name: u.last_name,
+          name: [u.first_name, u.last_name].filter(Boolean).join(' ').trim(),
+          avatar: u.profile_photo,
+          role: u.role,
+          memora_tier: u.memora_tier ?? 'starter',
+          memora_features: u.memora_features ?? [],
+          memora_capabilities: u.memora_capabilities ?? {},
+          set_limit_per_phase: u.set_limit_per_phase ?? null,
+          watermark_limit: u.watermark_limit ?? null,
+          preset_limit: u.preset_limit ?? null,
+          selection_limit: u.selection_limit ?? null,
+          proofing_limit: u.proofing_limit ?? null,
+          early_access: u.early_access,
+        })
+        if ((u.memora_tier ?? 'starter') !== 'starter') break
+      }
+    } catch (_) {}
+    if (attempt < maxAttempts - 1) {
+      await new Promise((r) => setTimeout(r, delayMs))
+    }
+  }
+}
+
 onMounted(async () => {
   const test = route.query.test
   const sessionId = route.query.session_id
@@ -52,33 +88,10 @@ onMounted(async () => {
     } catch (_) {}
   }
   if (provider === 'paystack' && userStore.isAuthenticated) {
-    const maxAttempts = 10
-    const delayMs = 1500
-    for (let attempt = 0; attempt < maxAttempts; attempt++) {
-      try {
-        const data = await authApi.getUser()
-        if (data?.user) {
-          const u = data.user
-          userStore.updateUser({
-            id: u.uuid,
-            uuid: u.uuid,
-            email: u.email,
-            first_name: u.first_name,
-            last_name: u.last_name,
-            name: [u.first_name, u.last_name].filter(Boolean).join(' ').trim(),
-            avatar: u.profile_photo,
-            role: u.role,
-            memora_tier: u.memora_tier ?? 'starter',
-            memora_features: u.memora_features ?? [],
-            early_access: u.early_access,
-          })
-          if ((u.memora_tier ?? 'starter') !== 'starter') break
-        }
-      } catch (_) {}
-      if (attempt < maxAttempts - 1) {
-        await new Promise((r) => setTimeout(r, delayMs))
-      }
-    }
+    await pollUserUntilUpgrade()
+  }
+  if (sessionId && test !== '1' && userStore.isAuthenticated && !provider) {
+    await pollUserUntilUpgrade()
   }
 })
 
@@ -98,6 +111,12 @@ async function goToDashboard() {
         role: u.role,
         memora_tier: u.memora_tier ?? 'starter',
         memora_features: u.memora_features ?? [],
+        memora_capabilities: u.memora_capabilities ?? {},
+        set_limit_per_phase: u.set_limit_per_phase ?? null,
+        watermark_limit: u.watermark_limit ?? null,
+        preset_limit: u.preset_limit ?? null,
+        selection_limit: u.selection_limit ?? null,
+        proofing_limit: u.proofing_limit ?? null,
         early_access: u.early_access,
       })
     }

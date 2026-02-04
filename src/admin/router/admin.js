@@ -39,6 +39,26 @@ export const adminRoutes = [
         component: () => import('@/admin/views/products/Show.vue'),
       },
       {
+        path: 'memora/pricing',
+        name: 'admin-pricing',
+        component: () => import('@/domains/memora/views/pricing-admin/Index.vue'),
+      },
+      {
+        path: 'memora/pricing/tiers/new',
+        name: 'admin-pricing-tier-create',
+        component: () => import('@/domains/memora/views/pricing-admin/TierCreate.vue'),
+      },
+      {
+        path: 'memora/pricing/tiers/:slug/view',
+        name: 'admin-pricing-tier-view',
+        component: () => import('@/domains/memora/views/pricing-admin/TierView.vue'),
+      },
+      {
+        path: 'memora/pricing/tiers/:slug',
+        name: 'admin-pricing-tier-edit',
+        component: () => import('@/domains/memora/views/pricing-admin/TierEdit.vue'),
+      },
+      {
         path: 'early-access',
         name: 'admin-early-access',
         component: () => import('@/admin/views/early-access/Index.vue'),

@@ -57,14 +57,14 @@
                 <dl class="space-y-1 text-muted-foreground">
                   <div class="flex justify-between gap-2">
                     <dt>From (USD)</dt>
-                    <dd class="tabular-nums font-medium text-foreground">{{ baseAmountFormatted }}</dd>
+                    <dd class="tabular-nums font-medium text-foreground">{{ orderSummary?.base_subtotal_formatted ?? baseAmountFormatted }}</dd>
                   </div>
                   <div class="flex justify-between gap-2">
                     <dt>To ({{ effectiveCurrency.toUpperCase() }})</dt>
                     <dd class="tabular-nums font-medium text-foreground">{{ orderSummary?.subtotal_formatted ?? convertedAmount }}</dd>
                   </div>
-                </dl>
-              </div>
+              </dl>
+            </div>
 
               <!-- What's included -->
               <div class="mt-6 pt-5 border-t border-border">
@@ -72,7 +72,7 @@
                 <ul v-if="tier === 'byo'" class="space-y-2 text-sm">
                   <li class="flex items-start gap-2 text-foreground/90">
                     <Check class="h-4 w-4 shrink-0 text-accent mt-0.5" />
-                    <span>Base plan — Selection + Collection, {{ formatStorage(byoConfig?.base?.storage_bytes ?? 5e9) }} storage, {{ byoConfig?.base?.project_limit ?? 3 }} projects</span>
+                    <span>{{ byoBasePlanText }}</span>
                   </li>
                   <li
                     v-for="item in byoSummaryItems"
@@ -166,8 +166,27 @@
                 </li>
               </ul>
 
+              <div class="mt-5 pt-5 border-t border-border space-y-1">
+                <div v-if="orderSummary?.has_discount" class="flex justify-between text-sm">
+                  <span class="text-muted-foreground">Original total</span>
+                  <span class="line-through tabular-nums text-muted-foreground">{{ orderSummary?.subtotal_original_formatted }}</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-muted-foreground">Subtotal</span>
+                  <span class="tabular-nums text-foreground">{{ orderSummary?.subtotal_formatted ?? '—' }}</span>
+                </div>
+                <div v-if="orderSummary?.vat_cents > 0" class="flex justify-between text-sm">
+                  <span class="text-muted-foreground">VAT ({{ vatPercent }}%)</span>
+                  <span class="tabular-nums text-foreground">{{ orderSummary?.vat_formatted ?? '—' }}</span>
+                </div>
+                <div class="flex justify-between items-baseline">
+                  <span class="font-semibold text-foreground">Total</span>
+                  <span class="text-xl font-bold tabular-nums text-foreground">{{ orderSummary?.total_formatted ?? orderSummary?.subtotal_formatted ?? '—' }}</span>
+                </div>
+              </div>
+
               <p class="mt-5 text-xs text-muted-foreground">
-                Taxes calculated after you provide your billing address.
+                Taxes (VAT) included as shown.
               </p>
 
               <div v-if="effectiveCurrency !== 'usd' && orderSummary?.base_subtotal_formatted" class="mt-5 p-3 rounded-lg bg-muted/50 dark:bg-muted/30 text-xs">
@@ -184,20 +203,9 @@
                   </div>
                   <div class="flex justify-between gap-2">
                     <dt>To ({{ (effectiveCurrency || 'usd').toUpperCase() }})</dt>
-                    <dd class="tabular-nums font-medium text-foreground">{{ orderSummary.subtotal_formatted }}</dd>
+                    <dd class="tabular-nums font-medium text-foreground">{{ orderSummary.total_formatted ?? orderSummary.subtotal_formatted }}</dd>
                   </div>
                 </dl>
-              </div>
-
-              <div class="mt-5 pt-5 border-t border-border space-y-1">
-                <div v-if="orderSummary?.has_discount" class="flex justify-between text-sm">
-                  <span class="text-muted-foreground">Original total</span>
-                  <span class="line-through tabular-nums text-muted-foreground">{{ orderSummary?.subtotal_original_formatted }}</span>
-                </div>
-                <div class="flex justify-between items-baseline">
-                  <span class="font-semibold text-foreground">Subtotal</span>
-                  <span class="text-xl font-bold tabular-nums text-foreground">{{ orderSummary?.subtotal_formatted ?? '—' }}</span>
-                </div>
               </div>
 
               <Button
@@ -232,12 +240,13 @@ import { PLAN_COMPARISON_ROWS, getComparisonValue } from '@/domains/memora/const
 import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useCurrencyStore } from '@/shared/stores/currency'
 import { formatMoney } from '@/shared/utils/formatMoney'
+import { convertUsdCentsToFormatted } from '@/shared/utils/convertCurrency'
 import { toast } from '@/shared/utils/toast'
 
 const router = useRouter()
 const route = useRoute()
 const currencyStore = useCurrencyStore()
-const { getTiers, getBuildYourOwnConfig } = usePricingApi()
+const { getTiers, getBuildYourOwnConfig, getCurrencyRates } = usePricingApi()
 const { getCheckoutOptions, getOrderSummary, getPreview, createCheckout } = useSubscriptionApi()
 
 const tiersData = ref([])
@@ -302,6 +311,27 @@ const byoSummaryItems = computed(() => {
   return items
 })
 
+const byoBasePlanText = computed(() => {
+  const b = byoConfig.value?.base
+  const proj = b?.project_limit ?? 1
+  const sel = b?.base_selection_limit ?? 1
+  const proof = b?.base_proofing_limit ?? 1
+  const coll = b?.base_collection_limit ?? 1
+  const raw = b?.base_raw_file_limit ?? 1
+  const rev = b?.base_max_revisions ?? 0
+  const storage = formatStorage(b?.storage_bytes ?? 5e9)
+  const parts = [
+    `${proj} project${proj !== 1 ? 's' : ''}`,
+    `${sel} selection phase${sel !== 1 ? 's' : ''}`,
+    `${proof} proofing phase${proof !== 1 ? 's' : ''}`,
+    `${coll} collection phase${coll !== 1 ? 's' : ''}`,
+    `${raw} raw file phase${raw !== 1 ? 's' : ''}`,
+  ]
+  if (rev > 0) parts.push(`${rev} revision${rev !== 1 ? 's' : ''} per proofing`)
+  parts.push(`${storage} storage`)
+  return 'Base plan — ' + parts.join(', ')
+})
+
 function formatStorage(bytes) {
   if (!bytes) return '0'
   const gb = bytes / (1024 * 1024 * 1024)
@@ -316,7 +346,12 @@ const savePercent = computed(() => {
   const orig = orderSummary.value.subtotal_original_cents
   const curr = orderSummary.value.subtotal_cents
   if (orig <= 0) return 0
-  return Math.round((1 - curr / orig) * 100)
+  return (1 - curr / orig) * 100
+})
+
+const vatPercent = computed(() => {
+  const rate = orderSummary.value?.vat_rate
+  return rate != null ? rate * 100 : 0
 })
 
 const loading = ref(true)
@@ -365,10 +400,17 @@ async function fetchOrderSummary() {
 async function fetchPreview() {
   if (!tier.value || tier.value === 'starter') return
   try {
-    const data = await getPreview(tier.value, billingCycle.value, effectiveCurrency.value, byoAddons.value)
-    convertedAmount.value = data?.amount_formatted ?? ''
-    baseAmountFormatted.value = data?.base_amount_formatted ?? (data?.base_amount_cents ? formatMoney(data.base_amount_cents, 'usd') : '')
-    oneUsdEquals.value = data?.one_usd_equals ?? ''
+    const data = await getPreview(tier.value, billingCycle.value, byoAddons.value)
+    const cur = effectiveCurrency.value
+    baseAmountFormatted.value = data?.base_amount_cents != null ? formatMoney(data.base_amount_cents, 'usd') : (data?.base_amount_formatted ?? '')
+    if (cur === 'usd') {
+      convertedAmount.value = data?.amount_formatted ?? ''
+      oneUsdEquals.value = ''
+    } else {
+      const rates = await getCurrencyRates()
+      convertedAmount.value = data?.amount_cents != null ? convertUsdCentsToFormatted(data.amount_cents, cur, rates) : '—'
+      oneUsdEquals.value = convertUsdCentsToFormatted(100, cur, rates)
+    }
   } catch {
     convertedAmount.value = '—'
     oneUsdEquals.value = ''

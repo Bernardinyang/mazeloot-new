@@ -421,9 +421,11 @@ const fetchDomain = async () => {
   isDomainLoading.value = true
   try {
     const { useSettingsApi } = await import('@/domains/memora/api/settings')
+    const { useRegionalStore } = await import('@/shared/stores/regional')
     const { fetchSettings } = useSettingsApi()
     const response = await fetchSettings()
     const settings = response.data || response
+    useRegionalStore().setFromSettings(settings)
     domain.value = settings.branding?.domain || null
     return domain.value
   } catch (error) {

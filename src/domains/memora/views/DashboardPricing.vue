@@ -89,7 +89,7 @@
               @click="isAnnual = true"
             >
               Annual
-              <span class="rounded bg-emerald-500/15 dark:bg-emerald-500/25 px-1.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Save 17%</span>
+              <span class="rounded bg-emerald-500/15 dark:bg-emerald-500/25 px-1.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">Save {{ annualSavePct }}%</span>
             </button>
           </div>
         </div>
@@ -98,7 +98,7 @@
           <select
             :value="currencyStore.currency"
             aria-label="Currency"
-            class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm"
             @change="currencyStore.setCurrency($event.target.value)"
           >
             <option v-for="c in SUPPORTED_CURRENCIES" :key="c.code" :value="c.code">
@@ -329,6 +329,7 @@
             </article>
 
             <RouterLink
+              v-if="showByoInPricing"
               :to="{ name: 'memora-build-your-own' }"
               :class="[
                 'relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-dashed bg-card shadow-sm transition-all duration-200',
@@ -388,7 +389,7 @@
               <tr class="border-b border-border bg-muted/50 dark:bg-muted/80">
                 <th scope="col" class="py-4 pl-6 pr-4 font-semibold text-foreground w-48">Feature</th>
                 <th scope="col" v-for="tier in tiers" :key="tier.id" class="py-4 px-4 font-semibold text-foreground text-center">{{ tier.name }}</th>
-                <th scope="col" class="py-4 px-4 font-semibold text-foreground text-center">Build Your Own</th>
+                <th v-if="showByoInPricing" scope="col" class="py-4 px-4 font-semibold text-foreground text-center">Build Your Own</th>
               </tr>
             </thead>
             <tbody>
@@ -403,7 +404,7 @@
                 ]"
               >
                 <template v-if="item.type === 'category'">
-                  <td colspan="6" class="py-2 pl-6 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <td :colspan="showByoInPricing ? 6 : 5" class="py-2 pl-6 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {{ item.category }}
                   </td>
                 </template>
@@ -420,7 +421,7 @@
                     <span v-else-if="getComparisonValue(item.row, tier.id) === 'dash'" class="text-muted-foreground" aria-hidden="true">—</span>
                     <span v-else class="text-foreground/90">{{ getComparisonValue(item.row, tier.id) }}</span>
                   </td>
-                  <td class="py-3 px-4 text-center bg-accent/5 dark:bg-accent/10">
+                  <td v-if="showByoInPricing" class="py-3 px-4 text-center bg-accent/5 dark:bg-accent/10">
                     <span v-if="getComparisonValue(item.row, 'byo') === 'check'" class="inline-flex h-6 w-6 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent" aria-hidden="true">
                       <Check class="h-3.5 w-3.5" />
                     </span>
@@ -482,13 +483,19 @@ import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useUserStore } from '@/shared/stores/user'
 import { useCurrencyStore, SUPPORTED_CURRENCIES } from '@/shared/stores/currency'
 import { formatMoney } from '@/shared/utils/formatMoney'
+import { convertUsdCentsToFormatted } from '@/shared/utils/convertCurrency'
+import { getAnnualSavePct } from '@/shared/utils/pricing'
+import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { toast } from '@/shared/utils/toast'
+
+const showByoInPricing = false
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const currencyStore = useCurrencyStore()
 
+const annualSavePct = getAnnualSavePct()
 const upgradeFeature = computed(() => route.query.upgrade || null)
 
 const upgradeTargetTier = computed(() => {
@@ -522,7 +529,7 @@ const comparisonTableRows = computed(() => {
   return flat
 })
 
-const { getTiers } = usePricingApi()
+const { getTiers, getCurrencyRates } = usePricingApi()
 const { getPreview, createPortalSession, cancelSubscription, getStatus } = useSubscriptionApi()
 
 const isAnnual = ref(true)
@@ -532,36 +539,40 @@ const error = ref(null)
 const portalLoading = ref(false)
 const currentSubscription = ref(null)
 const convertedPrices = ref({})
+const currencyRates = ref({})
 const convertedLoading = ref(false)
 
 async function fetchConvertedPrices() {
   const cur = currencyStore.currency
   if (cur === 'usd' || tiers.value.length === 0) {
     convertedPrices.value = {}
+    currencyRates.value = {}
     return
   }
   convertedLoading.value = true
   try {
+    const nonStarter = tiers.value.filter((t) => t.id !== 'starter')
+    const [rates, ...previewResults] = await Promise.all([
+      getCurrencyRates(),
+      ...nonStarter.flatMap((tier) => [
+        getPreview(tier.id, 'monthly'),
+        getPreview(tier.id, 'annual'),
+      ]),
+    ])
+    currencyRates.value = rates || {}
     const results = {}
-    await Promise.all(
-      tiers.value
-        .filter((t) => t.id !== 'starter')
-        .map(async (tier) => {
-          const [monthlyRes, annualRes] = await Promise.all([
-            getPreview(tier.id, 'monthly', cur),
-            getPreview(tier.id, 'annual', cur),
-          ])
-          results[tier.id] = {
-            monthlyFormatted: monthlyRes?.amount_formatted ?? '—',
-            monthlyCents: monthlyRes?.amount_cents ?? 0,
-            annualFormatted: annualRes?.amount_formatted ?? '—',
-            annualCents: annualRes?.amount_cents ?? 0,
-          }
-        })
-    )
+    nonStarter.forEach((tier, i) => {
+      const monthlyRes = previewResults[i * 2]
+      const annualRes = previewResults[i * 2 + 1]
+      results[tier.id] = {
+        monthlyCents: monthlyRes?.amount_cents ?? tier.price_monthly_cents ?? 0,
+        annualCents: annualRes?.amount_cents ?? tier.price_annual_cents ?? 0,
+      }
+    })
     convertedPrices.value = results
   } catch {
     convertedPrices.value = {}
+    currencyRates.value = {}
   } finally {
     convertedLoading.value = false
   }
@@ -584,23 +595,23 @@ const currentTierLabel = computed(() => {
 })
 
 function displayPrice(tier) {
-  if (currencyStore.currency === 'usd') {
+  const cur = currencyStore.currency
+  if (cur === 'usd') {
     if (tier.price_monthly_cents === 0) return formatMoney(0, 'usd')
-    const cents = isAnnual.value ? tier.price_annual_cents / 12 : tier.price_monthly_cents
+    const cents = isAnnual.value ? Math.round(tier.price_annual_cents / 12) : tier.price_monthly_cents
     return formatMoney(cents, 'usd')
   }
   const c = convertedPrices.value[tier.id]
   if (!c) return convertedLoading.value ? '…' : '—'
-  if (isAnnual.value) return formatMoney(c.annualCents / 12, currencyStore.currency)
-  return c.monthlyFormatted
+  const usdCents = isAnnual.value ? Math.round(c.annualCents / 12) : c.monthlyCents
+  return convertUsdCentsToFormatted(usdCents, cur, currencyRates.value)
 }
 
 function wasPrice(tier) {
-  if (currencyStore.currency === 'usd') {
-    return formatMoney(tier.price_monthly_cents, 'usd')
-  }
+  if (currencyStore.currency === 'usd') return formatMoney(tier.price_monthly_cents, 'usd')
   const c = convertedPrices.value[tier.id]
-  return c ? c.monthlyFormatted : (convertedLoading.value ? '…' : '—')
+  if (!c) return convertedLoading.value ? '…' : '—'
+  return convertUsdCentsToFormatted(c.monthlyCents, currencyStore.currency, currencyRates.value)
 }
 
 function hasDiscount(tier) {
@@ -614,7 +625,7 @@ function discountPercent(tier) {
   if (!hasDiscount(tier)) return 0
   const monthly = tier.price_monthly_cents / 100
   const annualPerMonth = tier.price_annual_cents / 100 / 12
-  return Math.round((1 - annualPerMonth / monthly) * 100)
+  return (1 - annualPerMonth / monthly) * 100
 }
 
 function termToday(tier) {
@@ -622,7 +633,7 @@ function termToday(tier) {
     return formatMoney(tier.price_annual_cents, 'usd')
   }
   const c = convertedPrices.value[tier.id]
-  return c ? c.annualFormatted : (convertedLoading.value ? '…' : '—')
+  return c ? convertUsdCentsToFormatted(c.annualCents, currencyStore.currency, currencyRates.value) : (convertedLoading.value ? '…' : '—')
 }
 
 function termRenewal(tier) {
@@ -707,14 +718,7 @@ function goToUsage() {
   router.push({ name: 'memora-usage' })
 }
 
-function formatDate(dateStr) {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
-}
+const { formatDate } = useFormatDate()
 
 onMounted(async () => {
   try {

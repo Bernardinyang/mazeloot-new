@@ -163,10 +163,6 @@ export const MEMORA_NAVIGATION = [
         name: 'emailNotificationsSettings',
       },
       {
-        title: 'Email Settings',
-        name: 'emailSettings',
-      },
-      {
         title: 'Social Links',
         name: 'socialLinksSettings',
       },
@@ -183,6 +179,12 @@ export const MEMORA_NAVIGATION = [
     title: 'Plans & Pricing',
     name: 'memora-pricing',
     icon: CreditCard,
+  },
+  {
+    title: 'Manage Pricing',
+    name: 'admin-pricing',
+    icon: Settings,
+    requiresAdmin: true,
   },
   {
     title: 'Usage & Analytics',

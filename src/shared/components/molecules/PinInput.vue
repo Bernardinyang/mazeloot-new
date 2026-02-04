@@ -12,7 +12,7 @@
         inputmode="numeric"
         maxlength="1"
         :class="cn(
-          'flex h-12 w-12 rounded-md border border-input bg-background text-center text-lg font-semibold ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+          'flex h-12 w-12 rounded-md border border-input bg-background text-center text-lg font-semibold ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
           inputClass
         )"
         :disabled="disabled"

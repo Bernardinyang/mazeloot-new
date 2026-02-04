@@ -1,6 +1,7 @@
 import { nextTick } from 'vue'
 import { toast } from '@/shared/utils/toast'
 import { publicCollectionUrl } from '@/shared/utils/memoraPublicUrls'
+import { useFormatDate } from '@/shared/composables/useFormatDate'
 
 export function useCollectionHeaderActions({
   collection,
@@ -247,15 +248,7 @@ export function useCollectionHeaderActions({
     }
   }
 
-  const formatDate = date => {
-    if (!date) return ''
-    const dateObj = date instanceof Date ? date : new Date(date)
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    }).format(dateObj)
-  }
+  const { formatDate } = useFormatDate()
 
   const startEditingName = () => {
     if (!collection.value) return

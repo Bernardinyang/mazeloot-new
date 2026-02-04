@@ -107,6 +107,8 @@
               :items="filteredActivities"
               :columns="tableColumns"
               :loading="isLoading"
+              searchable
+              search-placeholder="Search activity…"
               :empty-message="'No private media activity found'"
               :empty-icon="Lock"
             >
@@ -267,8 +269,8 @@ const currentMediaIndex = ref(0)
 
 // Table columns
 const tableColumns = [
-  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp' },
-  { key: 'userEmail', label: 'User', slot: 'userEmail' },
+  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp', sortable: true, format: 'date', dataSelector: (a) => a.timestamp },
+  { key: 'userEmail', label: 'User', slot: 'userEmail', sortable: true },
   { key: 'photo', label: 'Photo', slot: 'photo' },
 ]
 

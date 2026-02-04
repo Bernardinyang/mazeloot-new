@@ -106,6 +106,8 @@
               :items="filteredActivities"
               :columns="tableColumns"
               :loading="isLoading"
+              searchable
+              search-placeholder="Search activity…"
               :empty-message="'No download activity found'"
               :empty-icon="Download"
             >
@@ -288,11 +290,11 @@ const currentMediaIndex = ref(0)
 
 // Table columns
 const tableColumns = [
-  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp' },
-  { key: 'userEmail', label: 'User', slot: 'userEmail' },
+  { key: 'timestamp', label: 'Date & Time', slot: 'timestamp', sortable: true, format: 'date', dataSelector: (a) => a.timestamp },
+  { key: 'userEmail', label: 'User', slot: 'userEmail', sortable: true },
   { key: 'photo', label: 'Photo', slot: 'photo' },
-  { key: 'downloadType', label: 'Type', slot: 'downloadType' },
-  { key: 'ipAddress', label: 'IP Address', slot: 'ipAddress' },
+  { key: 'downloadType', label: 'Type', slot: 'downloadType', sortable: true },
+  { key: 'ipAddress', label: 'IP Address', slot: 'ipAddress', sortable: true },
 ]
 
 // Computed stats

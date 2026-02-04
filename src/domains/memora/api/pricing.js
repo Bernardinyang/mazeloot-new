@@ -10,9 +10,14 @@ export const usePricingApi = () => {
     return response.data
   }
 
+  const getCurrencyRates = async () => {
+    const response = await apiClient.get('/v1/pricing/currency-rates', { skipAuth: true })
+    return response?.data?.data ?? response?.data ?? {}
+  }
+
   const getBuildYourOwnConfig = async () => {
     const response = await apiClient.get('/v1/pricing/build-your-own', { skipAuth: true })
-    return response.data
+    return response?.data?.data ?? response?.data
   }
 
   const getStripeConfig = async () => {
@@ -22,6 +27,7 @@ export const usePricingApi = () => {
 
   return {
     getTiers,
+    getCurrencyRates,
     getBuildYourOwnConfig,
     getStripeConfig,
   }
@@ -42,8 +48,8 @@ export const useSubscriptionApi = () => {
     return response.data?.data ?? response.data
   }
 
-  const getPreview = async (tier, billingCycle, currency, byoAddons = null) => {
-    const params = { tier, billing_cycle: billingCycle, currency }
+  const getPreview = async (tier, billingCycle, byoAddons = null) => {
+    const params = { tier, billing_cycle: billingCycle }
     if (byoAddons && typeof byoAddons === 'object' && Object.keys(byoAddons).length > 0) {
       params.byo_addons = JSON.stringify(byoAddons)
     }

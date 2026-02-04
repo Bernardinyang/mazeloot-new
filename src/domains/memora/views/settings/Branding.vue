@@ -19,6 +19,10 @@
 
       <!-- Content -->
       <div v-else class="space-y-6">
+        <PlanLimitBanner v-if="!canEditBranding">
+          Brand Assets, Domain Settings, and Mazeloot Branding cannot be updated on your plan.
+          <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+        </PlanLimitBanner>
         <!-- Brand Details Card -->
         <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
@@ -26,9 +30,12 @@
             <p class="text-sm" :class="theme.textSecondary">
               Add information about your brand for display on your galleries
             </p>
+            <PlanLimitBanner v-if="!canEditBranding" class="mt-3">
+              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div v-if="canEditBranding" class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <!-- Brand Name -->
             <div class="space-y-2">
               <label class="text-sm font-medium" :class="theme.textPrimary">Brand Name</label>
@@ -36,7 +43,7 @@
                 v-model="brandName"
                 type="text"
                 placeholder="Your Brand Name"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -54,7 +61,7 @@
                 v-model="supportEmail"
                 type="email"
                 placeholder="support@example.com"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -72,7 +79,7 @@
                 v-model="supportPhone"
                 type="tel"
                 placeholder="+1 (555) 123-4567"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -90,7 +97,7 @@
                 v-model="website"
                 type="url"
                 placeholder="https://www.example.com"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -108,7 +115,7 @@
                 v-model="location"
                 type="text"
                 placeholder="City, State or Address"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -126,7 +133,7 @@
                 v-model="tagline"
                 type="text"
                 placeholder="Your brand tagline or slogan"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -143,7 +150,7 @@
               <Textarea
                 v-model="description"
                 placeholder="Tell us about your brand..."
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -166,7 +173,7 @@
                 v-model="addressStreet"
                 type="text"
                 placeholder="Street Address"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -183,7 +190,7 @@
                 v-model="addressCity"
                 type="text"
                 placeholder="City"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -199,7 +206,7 @@
                 v-model="addressState"
                 type="text"
                 placeholder="State/Province"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -215,7 +222,7 @@
                 v-model="addressZip"
                 type="text"
                 placeholder="ZIP/Postal Code"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -231,7 +238,7 @@
                 v-model="addressCountry"
                 type="text"
                 placeholder="Country"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -248,7 +255,7 @@
               <Textarea
                 v-model="businessHours"
                 placeholder="e.g., Monday-Friday: 9am-5pm"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -267,7 +274,7 @@
                 v-model="contactName"
                 type="text"
                 placeholder="Primary contact person"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -285,7 +292,7 @@
                 v-model="taxVatId"
                 type="text"
                 placeholder="Tax or VAT identification number"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -305,7 +312,7 @@
                 placeholder="YYYY"
                 :min="1800"
                 :max="new Date().getFullYear()"
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -323,7 +330,7 @@
                 v-model="industry"
                 type="text"
                 placeholder="e.g., Photography, Design, etc."
-                :disabled="isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -343,9 +350,12 @@
             <p class="text-sm" :class="theme.textSecondary">
               Configure your domain and custom domain settings
             </p>
+            <PlanLimitBanner v-if="!canEditBranding" class="mt-3">
+              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
           </div>
 
-          <div class="space-y-5">
+          <div v-if="canEditBranding" class="space-y-5">
             <!-- Default Domain -->
             <div class="space-y-2">
               <label class="text-sm font-medium" :class="theme.textPrimary">Default Domain</label>
@@ -353,13 +363,13 @@
                 v-model="domain"
                 type="text"
                 readonly
-                :disabled="isDisabled || isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
                   'font-mono text-sm',
-                  isDisabled || isLoading ? 'cursor-not-allowed opacity-50' : '',
+                  formDisabled ? 'cursor-not-allowed opacity-50' : '',
                 ]"
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
@@ -372,20 +382,20 @@
             <div class="space-y-2">
               <div class="flex items-center justify-between">
                 <label class="text-sm font-medium" :class="theme.textPrimary">Custom Domain</label>
-                <UpgradePopover v-if="isDisabled" v-model:open="showCustomDomainPopover" />
+                <UpgradePopover v-if="formDisabled" v-model:open="showCustomDomainPopover" />
               </div>
               <Input
                 v-model="customDomain"
                 type="text"
                 placeholder="www.yourdomain.com"
-                :disabled="isDisabled || isLoading"
+                :disabled="formDisabled"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
                   theme.textInput,
                   theme.placeholderInput,
                   'font-mono text-sm',
-                  isDisabled || isLoading ? 'cursor-not-allowed opacity-50' : '',
+                  formDisabled ? 'cursor-not-allowed opacity-50' : '',
                 ]"
               />
               <p class="text-xs leading-relaxed" :class="theme.textSecondary">
@@ -405,10 +415,12 @@
                 Upload your logo and favicon to customize your brand appearance
               </p>
             </div>
-            <UpgradePopover v-if="isDisabled" v-model:open="showBrandControlPopover" />
           </div>
+          <PlanLimitBanner v-if="!canEditBranding" class="w-full">
+            Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+          </PlanLimitBanner>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div v-if="canEditBranding" class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <!-- Logo Upload -->
             <div class="space-y-3">
               <label class="text-sm font-medium" :class="theme.textPrimary">Logo</label>
@@ -417,11 +429,11 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  isDisabled || isUploadingLogo
+                  formDisabled || isUploadingLogo
                     ? 'cursor-not-allowed opacity-50'
                     : 'cursor-pointer hover:bg-accent/5',
                 ]"
-                @click="!isDisabled && !isUploadingLogo && handleUploadLogo()"
+                @click="!formDisabled && !isUploadingLogo && handleUploadLogo()"
               >
                 <Loader2
                   v-if="isUploadingLogo"
@@ -454,11 +466,11 @@
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
-                  isDisabled || isUploadingFavicon
+                  formDisabled || isUploadingFavicon
                     ? 'cursor-not-allowed opacity-50'
                     : 'cursor-pointer hover:bg-accent/5',
                 ]"
-                @click="!isDisabled && !isUploadingFavicon && handleUploadFavicon()"
+                @click="!formDisabled && !isUploadingFavicon && handleUploadFavicon()"
               >
                 <Loader2
                   v-if="isUploadingFavicon"
@@ -485,8 +497,8 @@
           </div>
         </div>
 
-        <!-- Branding Options Card -->
-        <div class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
+        <!-- Branding Options Card: only show when user can edit branding -->
+        <div v-if="canEditBranding" class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
@@ -499,12 +511,12 @@
             <div class="flex items-center gap-3 ml-6">
               <label
                 class="relative inline-flex items-center group"
-                :class="isDisabled || isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
-              >
-                <input
-                  type="checkbox"
-                  v-model="showMazelootBranding"
-                  :disabled="isDisabled || isLoading"
+:class="formDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
+                >
+                  <input
+                    type="checkbox"
+                    v-model="showMazelootBranding"
+                    :disabled="formDisabled"
                   class="sr-only peer"
                 />
                 <div
@@ -523,7 +535,7 @@
       </div>
 
       <!-- Save Button -->
-      <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
+      <div v-if="canEditBranding" :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
         <div class="flex items-center justify-between gap-3">
           <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
             <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
@@ -557,13 +569,22 @@ import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'
 import UpgradePopover from '@/shared/components/molecules/UpgradePopover.vue'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { apiClient } from '@/shared/api/client'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
+import { useRegionalStore } from '@/shared/stores/regional'
+import { useAuthApi } from '@/shared/api/auth'
+import { useUserStore } from '@/shared/stores/user'
 
 const theme = useThemeClasses()
+const userStore = useUserStore()
+const { getStorage } = useAuthApi()
+const { canEditBranding } = useMemoraFeatures()
 const { fetchSettings, updateBranding } = useSettingsApi()
+const formDisabled = computed(() => isLoading.value || !canEditBranding.value)
 
 // Form state
 const domain = ref('')
@@ -654,9 +675,16 @@ const hasChanges = computed(() => {
 onMounted(async () => {
   isLoading.value = true
   try {
+    const storageData = await getStorage().catch(() => null)
+    if (userStore.user && storageData?.memora_features)
+      userStore.updateUser({ memora_features: storageData.memora_features })
+    if (userStore.user && storageData?.memora_capabilities)
+      userStore.updateUser({ memora_capabilities: storageData.memora_capabilities })
+
     const response = await fetchSettings()
     const settings = response.data || response
-    
+    useRegionalStore().setFromSettings(settings)
+
     domain.value = settings.branding?.domain || ''
     customDomain.value = settings.branding?.customDomain || ''
     logoPreview.value = settings.branding?.logoUrl || null
@@ -777,7 +805,7 @@ const handleSave = async () => {
 }
 
 const handleUploadLogo = async () => {
-  if (isDisabled.value || isUploadingLogo.value) return
+  if (formDisabled.value || isUploadingLogo.value) return
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*'
@@ -825,7 +853,7 @@ const handleUploadLogo = async () => {
 }
 
 const handleUploadFavicon = async () => {
-  if (isDisabled.value || isUploadingFavicon.value) return
+  if (formDisabled.value || isUploadingFavicon.value) return
   const input = document.createElement('input')
   input.type = 'file'
   input.accept = 'image/*,.gif,.ico'

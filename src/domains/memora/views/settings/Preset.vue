@@ -17,6 +17,9 @@
 
       <!-- Content -->
       <div class="space-y-6 w-[50%]">
+        <PlanLimitBanner v-if="!canAddPreset">
+          Creating presets is not available on your plan.
+        </PlanLimitBanner>
         <!-- Presets List -->
         <div class="space-y-4">
           <div class="flex items-center justify-between gap-4">
@@ -48,6 +51,7 @@
               </div>
             </div>
             <Button
+              v-if="canAddPreset"
               :disabled="presetStore.isLoading"
               :icon="Plus"
               class="shrink-0 shadow-lg hover:shadow-xl transition-all duration-200"
@@ -76,14 +80,16 @@
             class="flex flex-col items-center justify-center py-12 px-6 rounded-2xl border-2 border-dashed transition-all duration-300"
           >
             <div
+              v-if="canAddPreset"
               class="w-12 h-12 rounded-full bg-accent/10 dark:bg-accent/20 flex items-center justify-center mb-3"
             >
               <Plus class="h-6 w-6 text-accent" />
             </div>
             <p :class="theme.textSecondary" class="text-sm text-center mb-4">
-              No presets yet. Create one to get started!
+              {{ canAddPreset ? 'No presets yet. Create one to get started!' : 'No presets on your plan.' }}
             </p>
             <Button
+              v-if="canAddPreset"
               :icon="Plus"
               class="shadow-lg hover:shadow-xl transition-all duration-200"
               size="sm"
@@ -334,11 +340,14 @@ import CreatePresetDialog from '@/shared/components/organisms/CreatePresetDialog
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import PresetComparisonModal from '@/shared/components/organisms/PresetComparisonModal.vue'
 import PresetQuickPreview from '@/shared/components/organisms/PresetQuickPreview.vue'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { usePresetStore } from '@/domains/memora/stores/preset'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const presetStore = usePresetStore()
+const { canAddPreset } = useMemoraFeatures()
 
 const showCreatePresetDialog = ref(false)
 const showDeleteModal = ref(false)

@@ -1,3 +1,16 @@
+@media (prefers-reduced-motion: reduce) {
+  .animate-slide-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-card-enter,
+  .list-enter-active,
+  .list-leave-active,
+  .list-move {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Move animation for collections - optimized for smoothness */
 @keyframes move-out {
   0% {

@@ -16,11 +16,11 @@
     >
       {{ label }}
     </label>
-    <div :class="['flex-1', layout === 'horizontal' ? 'text-right' : '']">
+    <div :class="['flex-1 min-w-0', layout === 'horizontal' ? 'text-right' : '']">
       <slot>
         <p
           v-if="value !== null && value !== undefined"
-          :class="[valueClass, computedValueTextClass]"
+          :class="[valueClass, computedValueTextClass, format === 'mono' ? 'break-all' : '']"
         >
           {{ formattedValue }}
         </p>

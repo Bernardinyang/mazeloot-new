@@ -5,7 +5,7 @@
         type="button"
         :class="
           cn(
-            'h-10 w-10 rounded-md border border-input cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            'h-10 w-10 rounded-md border border-input cursor-pointer',
             ($attrs.class as string) || ''
           )
         "
@@ -23,7 +23,7 @@
         :value="displayColor"
         :class="
           cn(
-            'flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+            'flex h-10 flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50',
             ($attrs.class as string) || ''
           )
         "
@@ -117,7 +117,7 @@
         <input
           :value="displayColor"
           @input="handleInput"
-          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
           placeholder="#000000"
           maxlength="7"
         />

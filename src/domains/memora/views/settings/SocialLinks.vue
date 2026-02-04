@@ -21,8 +21,12 @@
 
       <!-- Content -->
       <div v-else class="space-y-6">
+        <PlanLimitBanner v-if="!socialLinksEnabled">
+          Adding social links is not available on your plan.
+          <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+        </PlanLimitBanner>
         <!-- Add New Link Card -->
-        <div class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
+        <div v-if="socialLinksEnabled" class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
           <div class="mb-5">
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Add Social Link</h2>
             <p class="text-sm" :class="theme.textSecondary">
@@ -223,11 +227,14 @@ import {
   SelectValue,
 } from '@/shared/components/shadcn/select'
 import { Button } from '@/shared/components/shadcn/button'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSocialLinksApi } from '@/domains/memora/api/socialLinks'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
+const { socialLinksEnabled } = useMemoraFeatures()
 const {
   fetchSocialLinks,
   fetchAvailablePlatforms,

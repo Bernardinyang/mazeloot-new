@@ -28,14 +28,17 @@
             <p class="text-sm" :class="theme.textSecondary">
               Configure how your collections are displayed and indexed
             </p>
+            <PlanLimitBanner v-if="!collectionDisplayEnabled" class="mt-3">
+              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
           </div>
 
-          <div class="space-y-5">
+          <div v-if="collectionDisplayEnabled" class="space-y-5">
             <!-- Filename Display -->
             <div class="space-y-2">
               <label class="text-sm font-medium" :class="theme.textPrimary">Filename Display</label>
-              <Select v-model="filenameDisplay" :disabled="isDisabled || isLoading">
-                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (isDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
+              <Select v-model="filenameDisplay" :disabled="collectionDisplayDisabled || isLoading">
+                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (collectionDisplayDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
                   <SelectValue placeholder="Select display option" />
                 </SelectTrigger>
                 <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -60,8 +63,8 @@
               <label class="text-sm font-medium" :class="theme.textPrimary">
                 Search Engine Visibility
               </label>
-              <Select v-model="searchEngineVisibility" :disabled="isDisabled || isLoading">
-                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (isDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
+              <Select v-model="searchEngineVisibility" :disabled="collectionDisplayDisabled || isLoading">
+                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (collectionDisplayDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
                   <SelectValue placeholder="Select visibility option" />
                 </SelectTrigger>
                 <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -91,14 +94,17 @@
             <p class="text-sm" :class="theme.textSecondary">
               Configure image processing and format support
             </p>
+            <PlanLimitBanner v-if="!photoQualityEnabled" class="mt-3">
+              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
           </div>
 
-          <div class="space-y-5">
+          <div v-if="photoQualityEnabled" class="space-y-5">
             <!-- Sharpening Level -->
             <div class="space-y-2">
               <label class="text-sm font-medium" :class="theme.textPrimary">Sharpening Level</label>
-              <Select v-model="sharpeningLevel" :disabled="isDisabled || isLoading">
-                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (isDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
+              <Select v-model="sharpeningLevel" :disabled="photoQualityDisabled || isLoading">
+                <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, (photoQualityDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : '']">
                   <SelectValue placeholder="Select sharpening level" />
                 </SelectTrigger>
                 <SelectContent :class="[theme.bgDropdown, theme.borderSecondary]">
@@ -133,7 +139,7 @@
                   <input
                     type="checkbox"
                     v-model="rawPhotoSupport"
-                    :disabled="isDisabled || isLoading"
+                    :disabled="photoQualityDisabled || isLoading"
                     class="sr-only peer"
                   />
                   <div
@@ -161,9 +167,12 @@
             <p class="text-sm" :class="theme.textSecondary">
               Set up terms of service and privacy policy for your collections
             </p>
+            <PlanLimitBanner v-if="!legalDocumentsEnabled" class="mt-3">
+              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            </PlanLimitBanner>
           </div>
 
-          <div class="space-y-5">
+          <div v-if="legalDocumentsEnabled" class="space-y-5">
             <!-- Terms of Service -->
             <div class="space-y-2">
               <label class="text-sm font-medium" :class="theme.textPrimary">Terms of Service</label>
@@ -215,7 +224,7 @@
               v-model="termsOfService"
               rows="8"
               placeholder="Enter your terms of service..."
-              :disabled="isDisabled || isLoading"
+              :disabled="legalDocumentsDisabled || isLoading"
               :class="[
                 theme.bgInput,
                 theme.borderInput,
@@ -282,7 +291,7 @@
               v-model="privacyPolicy"
               rows="8"
               placeholder="Enter your privacy policy..."
-              :disabled="isDisabled || isLoading"
+              :disabled="legalDocumentsDisabled || isLoading"
               :class="[
                 theme.bgInput,
                 theme.borderInput,
@@ -303,7 +312,7 @@
               <label class="text-sm font-medium" :class="theme.textPrimary">Enable Cookie Banner</label>
               <div class="flex items-center gap-3">
                 <label class="relative inline-flex items-center group" :class="(isDisabled || isLoading) ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
-                  <input type="checkbox" v-model="enableCookieBanner" :disabled="isDisabled || isLoading" class="sr-only peer" />
+                  <input type="checkbox" v-model="enableCookieBanner" :disabled="legalDocumentsDisabled || isLoading" class="sr-only peer" />
                   <div
                     class="w-14 h-7 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-6 after:w-6 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
                   ></div>
@@ -424,15 +433,22 @@ import {
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Button } from '@/shared/components/shadcn/button'
 import UpgradePopover from '@/shared/components/molecules/UpgradePopover.vue'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSettingsApi } from '@/domains/memora/api/settings'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
+import { useRegionalStore } from '@/shared/stores/regional'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
+const { collectionDisplayEnabled, photoQualityEnabled, legalDocumentsEnabled } = useMemoraFeatures()
 const { fetchSettings, updatePreference } = useSettingsApi()
 
 // Form state
 const isDisabled = ref(false)
+const collectionDisplayDisabled = computed(() => isDisabled.value || !collectionDisplayEnabled.value)
+const photoQualityDisabled = computed(() => isDisabled.value || !photoQualityEnabled.value)
+const legalDocumentsDisabled = computed(() => isDisabled.value || !legalDocumentsEnabled.value)
 const filenameDisplay = ref('show')
 const searchEngineVisibility = ref('homepage-only')
 const sharpeningLevel = ref('optimal')
@@ -514,7 +530,8 @@ onMounted(async () => {
   try {
     const response = await fetchSettings()
     const settings = response.data || response
-    
+    useRegionalStore().setFromSettings(settings)
+
     filenameDisplay.value = settings.preference?.filenameDisplay || 'show'
     searchEngineVisibility.value = settings.preference?.searchEngineVisibility || 'homepage-only'
     sharpeningLevel.value = settings.preference?.sharpeningLevel || 'optimal'

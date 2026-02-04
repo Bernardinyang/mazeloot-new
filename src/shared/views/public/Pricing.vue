@@ -22,7 +22,7 @@
               type="button"
               role="switch"
               :aria-checked="isAnnual"
-              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 bg-primary"
+              class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors disabled:cursor-not-allowed disabled:opacity-50 bg-primary"
               @click="isAnnual = !isAnnual"
             >
               <span
@@ -34,7 +34,7 @@
             </button>
             <span :class="['text-sm font-medium', isAnnual && 'text-foreground']">
               Annual
-              <span class="text-green-600 dark:text-green-500 text-xs ml-1">(Save 17%)</span>
+              <span class="text-green-600 dark:text-green-500 text-xs ml-1">(Save {{ annualSavePct }}%)</span>
             </span>
           </div>
           <div class="flex flex-col items-center gap-2">
@@ -42,7 +42,7 @@
             <select
               :value="currencyStore.currency"
               aria-label="Currency"
-              class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm"
               @change="currencyStore.setCurrency($event.target.value)"
             >
               <option v-for="c in SUPPORTED_CURRENCIES" :key="c.code" :value="c.code">
@@ -165,12 +165,15 @@ import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useUserStore } from '@/shared/stores/user'
 import { useCurrencyStore, SUPPORTED_CURRENCIES } from '@/shared/stores/currency'
 import { formatMoney } from '@/shared/utils/formatMoney'
+import { convertUsdCentsToFormatted } from '@/shared/utils/convertCurrency'
+import { getAnnualSavePct } from '@/shared/utils/pricing'
 import { toast } from '@/shared/utils/toast'
 
 const router = useRouter()
 const userStore = useUserStore()
 const currencyStore = useCurrencyStore()
-const { getTiers } = usePricingApi()
+const { getTiers, getCurrencyRates } = usePricingApi()
+const annualSavePct = getAnnualSavePct()
 const { getPreview, createCheckout } = useSubscriptionApi()
 
 const isAnnual = ref(true)
@@ -179,34 +182,40 @@ const loading = ref(true)
 const error = ref(null)
 const checkoutLoading = ref(null)
 const convertedPrices = ref({})
+const currencyRates = ref({})
 const convertedLoading = ref(false)
 
 async function fetchConvertedPrices() {
   const cur = currencyStore.currency
   if (cur === 'usd' || tiers.value.length === 0) {
     convertedPrices.value = {}
+    currencyRates.value = {}
     return
   }
   convertedLoading.value = true
   try {
+    const nonStarter = tiers.value.filter((t) => t.id !== 'starter')
+    const [rates, ...previewResults] = await Promise.all([
+      getCurrencyRates(),
+      ...nonStarter.flatMap((tier) => [
+        getPreview(tier.id, 'monthly'),
+        getPreview(tier.id, 'annual'),
+      ]),
+    ])
+    currencyRates.value = rates || {}
     const results = {}
-    await Promise.all(
-      tiers.value
-        .filter((t) => t.id !== 'starter')
-        .map(async (tier) => {
-          const [monthlyRes, annualRes] = await Promise.all([
-            getPreview(tier.id, 'monthly', cur),
-            getPreview(tier.id, 'annual', cur),
-          ])
-          results[tier.id] = {
-            monthlyFormatted: monthlyRes?.amount_formatted ?? '—',
-            annualCents: annualRes?.amount_cents ?? 0,
-          }
-        })
-    )
+    nonStarter.forEach((tier, i) => {
+      const monthlyRes = previewResults[i * 2]
+      const annualRes = previewResults[i * 2 + 1]
+      results[tier.id] = {
+        monthlyCents: monthlyRes?.amount_cents ?? tier.price_monthly_cents ?? 0,
+        annualCents: annualRes?.amount_cents ?? tier.price_annual_cents ?? 0,
+      }
+    })
     convertedPrices.value = results
   } catch {
     convertedPrices.value = {}
+    currencyRates.value = {}
   } finally {
     convertedLoading.value = false
   }
@@ -219,15 +228,16 @@ watch(
 )
 
 function displayPrice(tier) {
-  if (currencyStore.currency === 'usd') {
+  const cur = currencyStore.currency
+  if (cur === 'usd') {
     if (tier.price_monthly_cents === 0) return formatMoney(0, 'usd')
-    const cents = isAnnual.value ? tier.price_annual_cents / 12 : tier.price_monthly_cents
+    const cents = isAnnual.value ? Math.round(tier.price_annual_cents / 12) : tier.price_monthly_cents
     return formatMoney(cents, 'usd')
   }
   const c = convertedPrices.value[tier.id]
   if (!c) return convertedLoading.value ? '…' : '—'
-  if (isAnnual.value) return formatMoney(c.annualCents / 12, currencyStore.currency)
-  return c.monthlyFormatted
+  const usdCents = isAnnual.value ? Math.round(c.annualCents / 12) : c.monthlyCents
+  return convertUsdCentsToFormatted(usdCents, cur, currencyRates.value)
 }
 
 async function handleGetStarted(tier) {
