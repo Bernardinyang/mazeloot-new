@@ -108,6 +108,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/shadcn/card'
 import { Button } from '@/shared/components/shadcn/button'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
@@ -222,11 +223,9 @@ const handleNext = async () => {
         // Small delay to ensure toast is visible and store is fully updated
         await new Promise(resolve => setTimeout(resolve, 500))
         
-        // Use replace to prevent back navigation to onboarding
-        // Force navigation even if router guard tries to intercept
-        router.replace({ name: 'overview' }).catch(() => {
-          // If replace fails, try push as fallback
-          router.push({ name: 'overview' })
+        const destination = getPostAuthRedirect() || { name: 'overview' }
+        router.replace(destination).catch(() => {
+          router.push(destination)
         })
       } catch (completeErr) {
         console.error('Failed to complete onboarding:', completeErr)
@@ -239,9 +238,8 @@ const handleNext = async () => {
         ])
         await nextTick()
         await new Promise(resolve => setTimeout(resolve, 500))
-        router.replace({ name: 'overview' }).catch(() => {
-          router.push({ name: 'overview' })
-        })
+        const destination = getPostAuthRedirect() || { name: 'overview' }
+        router.replace(destination).catch(() => router.push(destination))
       }
     } else {
       currentStepIndex.value++

@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <PublicNav />
+    <PublicBreadcrumbBanner :breadcrumbs="foundersBreadcrumbs" />
 
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
       <div class="max-w-4xl mx-auto text-center mb-12">
@@ -88,10 +89,12 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import PublicBreadcrumbBanner from '@/shared/components/molecules/PublicBreadcrumbBanner.vue'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 
 const router = useRouter()
+const foundersBreadcrumbs = [{ to: '/', label: 'Home' }, { label: "Founder's Pricing" }]
 
 function goToRegister(plan) {
   router.push({

@@ -46,7 +46,7 @@
           v-else-if="proofing.length === 0"
           :icon="Eye"
           :action-icon="Plus"
-          :action-label="canAccessProofing ? 'Create New Proofing' : 'Upgrade to Pro'"
+          :action-label="canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
           description="Create a proofing phase to allow clients to review and provide feedback on media."
           message="No proofing found"
           @action="canAccessProofing ? handleCreateProofing : () => showUpgradePrompt('proofing')"
@@ -86,7 +86,7 @@
         :loading="isLoading"
         :selected-items="selectedProofing"
         :show-view-details="true"
-        :empty-action-label="canAccessProofing ? 'Create New Proofing' : 'Upgrade to Pro'"
+        :empty-action-label="canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
         empty-message="No proofing found"
         @delete="handleDeleteProofing"
         @edit="handleEditProofing"
@@ -173,6 +173,8 @@ import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirm
 import UpgradeGate from '@/domains/memora/components/molecules/UpgradeGate.vue'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+
+const { canAccessProofing, showUpgradePrompt, recommendedTierDisplayName } = useMemoraFeatures()
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'

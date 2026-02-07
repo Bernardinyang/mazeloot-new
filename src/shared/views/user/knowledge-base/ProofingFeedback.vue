@@ -22,7 +22,7 @@
       <ActionBanner
         title="Ready to set up proofing?"
         description="Create proofing sessions and manage client feedback"
-        :button-text="canAccessProofing ? 'Go to Proofing' : 'Upgrade to Pro'"
+        :button-text="canAccessProofing ? 'Go to Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
         :icon="Eye"
         color="teal"
         @action="canAccessProofing ? navigateTo({ name: 'proofing' }) : showUpgradePrompt('proofing')"
@@ -105,7 +105,7 @@ import { useNavigation } from '@/shared/composables/useNavigation'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
-const { canAccessProofing, showUpgradePrompt } = useMemoraFeatures()
+const { canAccessProofing, showUpgradePrompt, recommendedTierDisplayName } = useMemoraFeatures()
 
 const sections = ref([
   {

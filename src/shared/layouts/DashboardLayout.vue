@@ -29,16 +29,40 @@
                   </RouterLink>
                 </BreadcrumbLink>
               </BreadcrumbItem>
-              <BreadcrumbSeparatorSelector
-                :custom-separator="customBreadcrumbSeparator"
-                :separator="breadcrumbSeparator"
-                :separator-class="['hidden md:block shrink-0', theme.textTertiary]"
-              />
-              <BreadcrumbItem class="min-w-0">
-                <BreadcrumbPage :class="[theme.textPrimary, 'truncate']">
-                  <slot name="breadcrumb" />
-                </BreadcrumbPage>
-              </BreadcrumbItem>
+              <template v-if="breadcrumbItems && breadcrumbItems.length">
+                <template v-for="(item, idx) in breadcrumbItems" :key="idx">
+                  <BreadcrumbSeparatorSelector
+                    :custom-separator="customBreadcrumbSeparator"
+                    :separator="breadcrumbSeparator"
+                    :separator-class="['hidden md:block shrink-0', theme.textTertiary]"
+                  />
+                  <BreadcrumbItem :class="[idx === breadcrumbItems.length - 1 && 'min-w-0']">
+                    <BreadcrumbLink v-if="item.to" as-child>
+                      <RouterLink
+                        :class="[theme.textPrimary, 'hover:opacity-80 truncate', theme.transitionColors]"
+                        :to="item.to"
+                      >
+                        {{ item.label }}
+                      </RouterLink>
+                    </BreadcrumbLink>
+                    <BreadcrumbPage v-else :class="[theme.textPrimary, 'truncate']">
+                      {{ item.label }}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </template>
+              </template>
+              <template v-else>
+                <BreadcrumbSeparatorSelector
+                  :custom-separator="customBreadcrumbSeparator"
+                  :separator="breadcrumbSeparator"
+                  :separator-class="['hidden md:block shrink-0', theme.textTertiary]"
+                />
+                <BreadcrumbItem class="min-w-0">
+                  <BreadcrumbPage :class="[theme.textPrimary, 'truncate']">
+                    <slot name="breadcrumb" />
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </template>
             </BreadcrumbList>
           </Breadcrumb>
         </div>
@@ -147,8 +171,8 @@
             <!-- App Switcher -->
             <AppSwitcherCompact v-if="!hideUserFeatures" :is-admin="isAdmin" :teams="appTeams" />
 
-            <!-- Notifications -->
-            <NotificationDropdown v-if="!hideUserFeatures" product="memora" />
+            <!-- Notifications: all products in admin so contact (general) shows; memora only for regular users -->
+            <NotificationDropdown :product="hideUserFeatures ? null : 'memora'" />
           </div>
         </div>
       </header>
@@ -182,7 +206,7 @@
 
       <div
         :class="[
-          'flex flex-1 flex-col gap-4 p-4 md:p-6 lg:p-10 rounded-bl-lg',
+          'flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6 lg:p-10 rounded-bl-lg',
           'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-4 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 lg:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
           theme.bgFooter,
           theme.transitionColors,
@@ -239,6 +263,7 @@ import { useUserStore } from '@/shared/stores/user'
 import { useBreadcrumbSeparator } from '@/shared/composables/useBreadcrumbSeparator'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { useAuthApi } from '@/shared/api/auth'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { useRegionalStore } from '@/shared/stores/regional'
 
@@ -259,6 +284,11 @@ const props = defineProps({
   },
   sidebarComponent: {
     type: Object,
+    default: null,
+  },
+  /** Admin nested breadcrumbs: [{ label, to? }]. Last item is current page (no to). */
+  breadcrumbItems: {
+    type: Array,
     default: null,
   },
 })
@@ -298,12 +328,9 @@ const hasMemora = computed(() => {
 })
 
 const memoraTier = computed(() => userStore.user?.memora_tier ?? 'starter')
+const { tierDisplayName } = useMemoraFeatures()
 
-const planLabel = computed(() => {
-  const t = memoraTier.value
-  if (t === 'byo') return 'Build Your Own'
-  return t.charAt(0).toUpperCase() + t.slice(1)
-})
+const planLabel = computed(() => tierDisplayName(memoraTier.value))
 
 const planBadgeLabel = computed(() => {
   const t = memoraTier.value

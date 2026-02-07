@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Preset </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
@@ -323,7 +329,7 @@
 <script setup>
 import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Copy, Loader2, MoreVertical, Pencil, Plus, Search, Star, Trash2, X } from '@/shared/utils/lucideAnimated'
+import { ChevronLeft, Copy, Loader2, MoreVertical, Pencil, Plus, Search, Star, Trash2, X } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'
@@ -346,6 +352,9 @@ import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeature
 
 const theme = useThemeClasses()
 const router = useRouter()
+function goBack() {
+  router.back()
+}
 const presetStore = usePresetStore()
 const { canAddPreset } = useMemoraFeatures()
 

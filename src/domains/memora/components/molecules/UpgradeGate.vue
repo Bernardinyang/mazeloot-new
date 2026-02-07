@@ -66,7 +66,7 @@ const props = defineProps({
 
 const emit = defineEmits(['blocked'])
 
-const { hasFeature, recommendedTierForFeature, featureLabel: getFeatureLabel } = useMemoraFeatures()
+const { hasFeature, recommendedTierForFeature, tierDisplayName, featureLabel: getFeatureLabel } = useMemoraFeatures()
 const router = useRouter()
 const showModal = ref(false)
 
@@ -74,8 +74,7 @@ const hasAccess = computed(() => hasFeature(props.feature))
 
 const tierLabel = computed(() => {
   const tier = props.recommendedTier ?? recommendedTierForFeature(props.feature)
-  if (!tier) return 'Pro'
-  return tier.charAt(0).toUpperCase() + tier.slice(1)
+  return tierDisplayName(tier ?? 'pro')
 })
 
 const featureLabel = computed(() => getFeatureLabel(props.feature))

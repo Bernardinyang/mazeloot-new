@@ -41,6 +41,7 @@ import AuthLink from '@/shared/components/molecules/AuthLink.vue'
 import { useAuthApi } from '@/shared/api/auth'
 import { useUserStore } from '@/shared/stores/user'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
+import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 
 const route = useRoute()
 const router = useRouter()
@@ -87,7 +88,7 @@ onMounted(async () => {
     })
 
     // Redirect to the original destination, admin dashboard (for admins), or overview
-    const redirect = route.query.redirect
+    const redirect = route.query.redirect || getPostAuthRedirect()
     if (redirect) {
       await router.push(redirect)
     } else if (userStore.isAdmin) {

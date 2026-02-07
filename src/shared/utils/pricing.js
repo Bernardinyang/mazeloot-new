@@ -7,5 +7,5 @@ export const DEFAULT_ANNUAL_DISCOUNT_MONTHS = 2
  * @returns {number}
  */
 export function getAnnualSavePct(discountMonths = DEFAULT_ANNUAL_DISCOUNT_MONTHS) {
-  return (Number(discountMonths) / 12) * 100
+  return Math.round((Number(discountMonths) / 12) * 100)
 }

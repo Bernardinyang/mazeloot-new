@@ -41,6 +41,7 @@ import AuthLink from '@/shared/components/molecules/AuthLink.vue'
 import IconMail from '@/shared/icons/IconMail.vue'
 import { useAuthApi } from '@/shared/api/auth'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
+import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 
 const router = useRouter()
 const route = useRoute()
@@ -82,7 +83,7 @@ const handleVerify = async verificationCode => {
     })
 
     if (userStore.isAdmin) {
-      router.push(route.query.redirect || { name: 'admin-dashboard' })
+      router.push(route.query.redirect || getPostAuthRedirect() || { name: 'admin-dashboard' })
       return
     }
 
@@ -102,7 +103,7 @@ const handleVerify = async verificationCode => {
       }
     }
 
-    const redirect = route.query.redirect
+    const redirect = route.query.redirect || getPostAuthRedirect()
     router.push(redirect || { name: 'overview' })
   } catch (error) {
     handleError(error, {

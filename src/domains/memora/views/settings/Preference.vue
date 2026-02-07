@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Preference </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-8 w-1/2">
       <!-- Page Header -->
@@ -420,7 +426,8 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { Bold, Italic, Underline, Link, Unlink, Loader2, Check } from '@/shared/utils/lucideAnimated'
+import { useRouter } from 'vue-router'
+import { Bold, Italic, Underline, Link, Unlink, Loader2, Check, ChevronLeft } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import {
@@ -440,6 +447,10 @@ import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeature
 import { useRegionalStore } from '@/shared/stores/regional'
 import { toast } from '@/shared/utils/toast'
 
+const router = useRouter()
+function goBack() {
+  router.back()
+}
 const theme = useThemeClasses()
 const { collectionDisplayEnabled, photoQualityEnabled, legalDocumentsEnabled } = useMemoraFeatures()
 const { fetchSettings, updatePreference } = useSettingsApi()

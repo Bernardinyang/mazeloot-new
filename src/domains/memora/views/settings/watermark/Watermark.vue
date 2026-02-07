@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Watermark </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
@@ -119,7 +125,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { Plus, X } from '@/shared/utils/lucideAnimated'
+import { Plus, X, ChevronLeft } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'
@@ -137,6 +143,9 @@ import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeature
 const description = ''
 
 const router = useRouter()
+function goBack() {
+  router.back()
+}
 const theme = useThemeClasses()
 const watermarkStore = useWatermarkStore()
 const themeStore = useThemeStore()

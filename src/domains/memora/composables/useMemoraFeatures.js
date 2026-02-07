@@ -15,6 +15,15 @@ const FEATURE_LABELS = {
   raw_files: 'Raw Files',
 }
 
+/** Display name for tier slug (alerts, CTAs). Keep in sync with backend tier names. */
+const TIER_DISPLAY_NAMES = {
+  starter: 'Starter',
+  pro: 'Pro',
+  studio: 'Studio',
+  business: 'Business',
+  byo: 'Build Your Own',
+}
+
 export function useMemoraFeatures() {
   const userStore = useUserStore()
   const router = useRouter()
@@ -50,6 +59,8 @@ export function useMemoraFeatures() {
 
   const recommendedTierForFeature = (feature) => RECOMMENDED_TIER_FOR_FEATURE[feature] ?? null
   const featureLabel = (feature) => FEATURE_LABELS[feature] ?? feature
+  const tierDisplayName = (tierSlug) => TIER_DISPLAY_NAMES[tierSlug] ?? (tierSlug ? tierSlug.charAt(0).toUpperCase() + tierSlug.slice(1) : '')
+  const recommendedTierDisplayName = (feature) => tierDisplayName(recommendedTierForFeature(feature) ?? 'pro')
 
   const showUpgradePrompt = (feature) => {
     const tier = recommendedTierForFeature(feature)
@@ -82,7 +93,9 @@ export function useMemoraFeatures() {
     legalDocumentsEnabled,
     support24_7,
     recommendedTierForFeature,
+    recommendedTierDisplayName,
     featureLabel,
+    tierDisplayName,
     showUpgradePrompt,
   }
 }

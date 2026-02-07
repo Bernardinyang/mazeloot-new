@@ -1,5 +1,6 @@
 <template>
   <DashboardLayout
+    :breadcrumb-items="breadcrumbItems"
     :breadcrumb-separator="breadcrumbSeparator"
     :custom-breadcrumb-separator="customBreadcrumbSeparator"
     :hide-user-features="true"
@@ -17,7 +18,7 @@
     </template>
     
     <!-- Main Content: flat background (no gradient) across admin -->
-    <div class="min-h-full w-full bg-background dark:bg-gray-950">
+    <div class="min-h-full min-w-0 w-full bg-background dark:bg-gray-950 overflow-x-hidden">
       <router-view />
     </div>
   </DashboardLayout>
@@ -25,11 +26,33 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useUserStore } from '@/shared/stores/user'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import AdminSidebar from './AdminSidebar.vue'
 
+const route = useRoute()
+const router = useRouter()
 const userStore = useUserStore()
+
+const breadcrumbItems = computed(() => {
+  const items = []
+  const routes = router.getRoutes()
+  let name = route.name
+  while (name) {
+    const r = routes.find(rec => rec.name === name)
+    const meta = r?.meta || {}
+    const label = meta.breadcrumb
+    if (label && name !== 'admin-dashboard') {
+      items.unshift({
+        label,
+        to: name === route.name ? undefined : { name },
+      })
+    }
+    name = meta.breadcrumbParent
+  }
+  return items
+})
 
 const breadcrumbSeparator = '/'
 const customBreadcrumbSeparator = null
@@ -73,6 +96,24 @@ const navItems = [
     label: 'Early Access',
     to: { name: 'admin-early-access' },
     icon: 'Star',
+  },
+  {
+    name: 'contact',
+    label: 'Contact',
+    to: { name: 'admin-contact' },
+    icon: 'Mail',
+  },
+  {
+    name: 'waitlist',
+    label: 'Waitlist',
+    to: { name: 'admin-waitlist' },
+    icon: 'ClipboardList',
+  },
+  {
+    name: 'newsletter',
+    label: 'Newsletter',
+    to: { name: 'admin-newsletter' },
+    icon: 'Mail',
   },
   {
     name: 'analytics',

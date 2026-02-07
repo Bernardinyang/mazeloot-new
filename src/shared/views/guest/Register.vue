@@ -94,6 +94,7 @@ import FormField from '@/shared/components/molecules/FormField.vue'
 import Divider from '@/shared/components/atoms/Divider.vue'
 import GoogleButton from '@/shared/components/molecules/GoogleButton.vue'
 import AuthLink from '@/shared/components/molecules/AuthLink.vue'
+import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 import {useUserStore} from '@/shared/stores/user'
 import {useErrorHandler} from '@/shared/composables/useErrorHandler'
 
@@ -139,9 +140,10 @@ const handleRegister = async values => {
       })
 
       // Redirect to email verification page
+      const redirect = route.query.redirect || getPostAuthRedirect()
       await router.push({
         name: 'verifyEmail',
-        query: { email: values.email, redirect: route.query.redirect },
+        query: { email: values.email, ...(redirect && { redirect }) },
       })
     } else {
       toast.success('Account created successfully!', {
@@ -149,7 +151,7 @@ const handleRegister = async values => {
       })
 
       // Redirect to overview or original destination
-      const redirect = route.query.redirect
+      const redirect = route.query.redirect || getPostAuthRedirect()
       await router.push(redirect || { name: 'overview' })
     }
   } catch (error) {

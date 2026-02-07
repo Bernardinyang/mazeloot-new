@@ -327,7 +327,7 @@
           empty-message="No addons. Add one to get started."
         >
           <template #cell-margin_monthly_pct="{ value }">
-            <span class="tabular-nums">{{ value != null ? value + '%' : '—' }}</span>
+            <span class="tabular-nums">{{ value != null ? Math.round(value) + '%' : '—' }}</span>
           </template>
           <template #cell-is_active="{ value }">
             <Badge :variant="value ? 'default' : 'secondary'">

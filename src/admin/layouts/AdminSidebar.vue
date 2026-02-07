@@ -141,6 +141,12 @@ import {
   User,
   ChevronRight,
   DollarSign,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Sparkles,
+  CreditCard,
+  Mail,
+  ClipboardList,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -168,13 +174,19 @@ const iconMap = {
   User,
   Shield,
   DollarSign,
+  ArrowDownCircle,
+  ArrowUpCircle,
+  Sparkles,
+  CreditCard,
+  Mail,
+  ClipboardList,
 }
 
 const getIcon = (iconName) => {
   return iconMap[iconName] || LayoutDashboard
 }
 
-const openStates = ref({})
+const openStates = ref({ memora: true })
 
 const isActive = (to) => {
   if (typeof to === 'string') {

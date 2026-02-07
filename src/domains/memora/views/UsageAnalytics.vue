@@ -17,6 +17,10 @@
             </p>
           </div>
           <div class="flex items-center gap-2">
+            <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+              <ChevronLeft class="h-4 w-4" />
+              Back
+            </Button>
             <Button variant="outline" size="sm" :disabled="refreshing" @click="refresh">
               <RefreshCw :class="['h-4 w-4 mr-2', refreshing && 'animate-spin']" />
               Refresh
@@ -316,6 +320,7 @@
 
 <script setup>
 import { computed, h, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Card from '@/shared/components/shadcn/Card.vue'
@@ -345,8 +350,12 @@ import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { formatMoney } from '@/shared/utils/formatMoney'
 import SubscriptionHistoryDetailSidebar from '@/domains/memora/components/organisms/SubscriptionHistoryDetailSidebar.vue'
 
+const router = useRouter()
+function goBack() {
+  router.back()
+}
 const { getUsage, getHistory } = useSubscriptionApi()
-const { hasFeature } = useMemoraFeatures()
+const { hasFeature, tierDisplayName } = useMemoraFeatures()
 const currencyStore = useCurrencyStore()
 
 const loading = ref(true)
@@ -363,11 +372,7 @@ function openHistorySidebar(event) {
   showHistorySidebar.value = true
 }
 
-const tierLabel = computed(() => {
-  const t = usage.value?.tier ?? 'starter'
-  if (t === 'byo') return 'Build Your Own'
-  return t.charAt(0).toUpperCase() + t.slice(1)
-})
+const tierLabel = computed(() => tierDisplayName(usage.value?.tier ?? 'starter'))
 
 const storagePercentage = computed(() => {
   if (!usage.value?.storage) return 0
@@ -392,8 +397,8 @@ function formatMonth(monthStr) {
 }
 
 function formatTierName(tier) {
-  if (tier === 'byo') return 'BYO'
-  return tier.charAt(0).toUpperCase() + tier.slice(1)
+  if (!tier) return '—'
+  return tier === 'byo' ? 'BYO' : tierDisplayName(tier)
 }
 
 function getBarHeight(bytes) {

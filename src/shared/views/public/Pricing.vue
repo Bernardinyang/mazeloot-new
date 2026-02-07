@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <PublicNav />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Pricing' }]" />
 
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div class="text-center mb-12 sm:mb-16">
@@ -153,6 +154,7 @@
 <script setup>
 import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import PublicBreadcrumbBanner from '@/shared/components/molecules/PublicBreadcrumbBanner.vue'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Card from '@/shared/components/shadcn/Card.vue'
@@ -168,6 +170,12 @@ import { formatMoney } from '@/shared/utils/formatMoney'
 import { convertUsdCentsToFormatted } from '@/shared/utils/convertCurrency'
 import { getAnnualSavePct } from '@/shared/utils/pricing'
 import { toast } from '@/shared/utils/toast'
+import { useSeoMeta } from '@/shared/composables/useSeoMeta'
+import { trackPageView } from '@/shared/composables/useAnalytics'
+
+const BASE_URL = typeof window !== 'undefined' 
+  ? `${window.location.protocol}//${window.location.host}`
+  : 'https://mazeloot.com'
 
 const router = useRouter()
 const userStore = useUserStore()
@@ -272,7 +280,17 @@ async function handleGetStarted(tier) {
   }
 }
 
+// SEO Meta Tags
+useSeoMeta({
+  title: 'Pricing - Choose Your Plan | Mazeloot',
+  description: 'Choose the plan that works best for your photography business. Flexible pricing with monthly and annual options.',
+  image: `${BASE_URL}/og-image.png`,
+  url: `${BASE_URL}/pricing`,
+})
+
 onMounted(async () => {
+  trackPageView('/pricing', 'Pricing')
+  
   try {
     tiers.value = await getTiers()
     if (currencyStore.currency !== 'usd') await fetchConvertedPrices()

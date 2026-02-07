@@ -14,6 +14,12 @@
         <p class="text-muted-foreground text-sm sm:text-base max-w-xl">
           {{ currentSubscription ? 'Manage your subscription or upgrade to unlock more features' : 'Choose the plan that works best for your photography business' }}
         </p>
+        <RouterLink
+          :to="{ name: 'memora-plan-requests' }"
+          class="text-sm font-medium text-foreground underline hover:no-underline"
+        >
+          View your plan change requests
+        </RouterLink>
       </div>
 
       <!-- Current Plan Banner -->
@@ -138,8 +144,32 @@
           </div>
         </div>
 
-        <!-- Pricing Cards: Row 1 = 3 cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <!-- Pending upgrade/downgrade request alert -->
+        <div
+          v-if="hasPendingUpgradeOrDowngradeRequest"
+          class="rounded-xl border border-amber-500/30 dark:border-amber-500/40 bg-amber-500/10 dark:bg-amber-500/15 px-6 py-4 flex items-start gap-3"
+          role="alert"
+          aria-live="polite"
+        >
+          <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 dark:bg-amber-500/25 text-amber-600 dark:text-amber-400">
+            <Info class="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div class="min-w-0 flex-1">
+            <p class="font-medium text-foreground">Request in progress</p>
+            <p class="text-sm text-muted-foreground mt-0.5">
+              You have a pending upgrade or downgrade request. Plan changes are disabled until it is completed.
+            </p>
+            <RouterLink
+              :to="{ name: 'memora-plan-requests' }"
+              class="text-sm font-medium text-foreground underline hover:no-underline mt-2 inline-block"
+            >
+              View your requests
+            </RouterLink>
+          </div>
+        </div>
+
+        <!-- Pricing Cards: Row 1 = 2 cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <article
             v-for="tier in tiersFirstRow"
             :key="tier.id"
@@ -206,7 +236,7 @@
                   getButtonLabel(tier) === 'Get started' && '!bg-foreground !text-background hover:!bg-foreground/90 dark:!bg-foreground dark:!text-background dark:hover:!bg-foreground/90',
                 ]"
                 :variant="getButtonVariant(tier)"
-                :disabled="portalLoading || currentTier === tier.id"
+                :disabled="portalLoading || currentTier === tier.id || hasPendingUpgradeOrDowngradeRequest"
                 @click="handleSelectPlan(tier)"
               >
                 <template v-if="portalLoading && tier.id === 'starter'">
@@ -233,9 +263,8 @@
           </article>
         </div>
 
-        <!-- Row 2: 2 cards centered (Business + BYO) -->
-        <div class="flex justify-center">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 w-full max-w-3xl">
+        <!-- Row 2: 2 cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <article
               v-for="tier in tiersSecondRow"
               :key="tier.id"
@@ -302,7 +331,7 @@
                     getButtonLabel(tier) === 'Get started' && '!bg-foreground !text-background hover:!bg-foreground/90 dark:!bg-foreground dark:!text-background dark:hover:!bg-foreground/90',
                   ]"
                   :variant="getButtonVariant(tier)"
-                  :disabled="portalLoading || currentTier === tier.id"
+                  :disabled="portalLoading || currentTier === tier.id || hasPendingUpgradeOrDowngradeRequest"
                   @click="handleSelectPlan(tier)"
                 >
                   <template v-if="false">
@@ -327,62 +356,63 @@
                 </ul>
               </div>
             </article>
+        </div>
 
-            <RouterLink
-              v-if="showByoInPricing"
-              :to="{ name: 'memora-build-your-own' }"
-              :class="[
-                'relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-dashed bg-card shadow-sm transition-all duration-200',
-                'border-accent/40 dark:border-accent/50 bg-accent/5 dark:bg-accent/10',
-                'hover:shadow-md hover:border-accent/60 dark:hover:border-accent/70 hover:bg-accent/10 dark:hover:bg-accent/15',
-                currentTier === 'byo' && 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10 border-solid',
-              ]"
-            >
-              <div class="flex flex-col p-6">
-                <div class="flex flex-wrap items-start justify-between gap-2">
-                  <h2 class="text-xl font-bold text-foreground">Build Your Own</h2>
-                  <span
-                    v-if="currentTier === 'byo'"
-                    class="rounded-full bg-emerald-500/15 dark:bg-emerald-500/25 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
-                  >
-                    Current
-                  </span>
-                </div>
-                <p class="mt-1.5 text-sm text-muted-foreground leading-relaxed">Pick only what you need. Flexible pricing.</p>
-                <p class="mt-4 text-3xl font-bold tabular-nums text-foreground">Custom</p>
-                <span class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm font-semibold uppercase tracking-wide shadow-sm hover:bg-accent/10 hover:text-accent-foreground">
-                  Build your plan
-                  <ChevronRight class="h-4 w-4 shrink-0" />
+        <!-- BYO card -->
+        <div v-if="showByoInPricing" class="flex justify-center">
+          <RouterLink
+            :to="{ name: 'memora-build-your-own' }"
+            :class="[
+              'relative flex min-w-0 flex-col overflow-hidden rounded-xl border border-dashed bg-card shadow-sm transition-all duration-200 w-full max-w-md',
+              'border-accent/40 dark:border-accent/50 bg-accent/5 dark:bg-accent/10',
+              'hover:shadow-md hover:border-accent/60 dark:hover:border-accent/70 hover:bg-accent/10 dark:hover:bg-accent/15',
+              currentTier === 'byo' && 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10 border-solid',
+            ]"
+          >
+            <div class="flex flex-col p-6">
+              <div class="flex flex-wrap items-start justify-between gap-2">
+                <h2 class="text-xl font-bold text-foreground">Build Your Own</h2>
+                <span
+                  v-if="currentTier === 'byo'"
+                  class="rounded-full bg-emerald-500/15 dark:bg-emerald-500/25 px-2.5 py-0.5 text-xs font-medium text-emerald-600 dark:text-emerald-400"
+                >
+                  Current
                 </span>
-                <ul class="mt-6 flex-1 space-y-2.5">
-                  <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
-                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
-                      <Check class="h-3 w-3" />
-                    </span>
-                    <span class="min-w-0 flex-1">Customizable solutions</span>
-                  </li>
-                  <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
-                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
-                      <Check class="h-3 w-3" />
-                    </span>
-                    <span class="min-w-0 flex-1">Dedicated support</span>
-                  </li>
-                  <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
-                    <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
-                      <Check class="h-3 w-3" />
-                    </span>
-                    <span class="min-w-0 flex-1">Flexible pricing</span>
-                  </li>
-                </ul>
               </div>
-            </RouterLink>
-          </div>
+              <p class="mt-1.5 text-sm text-muted-foreground leading-relaxed">Pick only what you need. Flexible pricing.</p>
+              <p class="mt-4 text-3xl font-bold tabular-nums text-foreground">Custom</p>
+              <span class="mt-6 flex w-full items-center justify-center gap-2 rounded-lg border border-input bg-background px-4 py-2.5 text-sm font-semibold uppercase tracking-wide shadow-sm hover:bg-accent/10 hover:text-accent-foreground">
+                Build your plan
+                <ChevronRight class="h-4 w-4 shrink-0" />
+              </span>
+              <ul class="mt-6 flex-1 space-y-2.5">
+                <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
+                  <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
+                    <Check class="h-3 w-3" />
+                  </span>
+                  <span class="min-w-0 flex-1">Customizable solutions</span>
+                </li>
+                <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
+                  <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
+                    <Check class="h-3 w-3" />
+                  </span>
+                  <span class="min-w-0 flex-1">Dedicated support</span>
+                </li>
+                <li class="flex min-w-0 items-start gap-3 text-sm text-foreground/90">
+                  <span class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-accent/10 dark:bg-accent/20 text-accent">
+                    <Check class="h-3 w-3" />
+                  </span>
+                  <span class="min-w-0 flex-1">Flexible pricing</span>
+                </li>
+              </ul>
+            </div>
+          </RouterLink>
         </div>
       </template>
 
       <!-- Plan Comparison Table -->
       <section v-if="!loading && !error" class="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-        <h2 class="sr-only">Plan comparison</h2>
+        <h2 class="py-4 px-6 text-lg font-semibold text-foreground border-b border-border">Plan comparison</h2>
         <div class="overflow-x-auto">
           <table class="w-full min-w-[640px] text-left text-sm" role="grid" aria-label="Plan comparison">
             <thead>
@@ -468,6 +498,50 @@
           </div>
         </div>
       </section>
+
+      <!-- Request downgrade confirmation modal -->
+      <CenterModal
+        v-model="showDowngradeModal"
+        :title="`Request downgrade to ${tierDisplayName('starter')}`"
+        content-class="sm:max-w-[425px]"
+      >
+        <p class="text-sm text-muted-foreground">
+          Support will send you a link to confirm; your plan will then switch to {{ tierDisplayName('starter') }}. Your current subscription will be cancelled.
+        </p>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <Button variant="outline" :disabled="downgradeRequestLoading" @click="showDowngradeModal = false">
+              Cancel
+            </Button>
+            <Button :disabled="downgradeRequestLoading" @click="submitDowngradeRequest">
+              <Loader2 v-if="downgradeRequestLoading" class="h-4 w-4 mr-2 animate-spin" />
+              Request downgrade
+            </Button>
+          </div>
+        </template>
+      </CenterModal>
+
+      <!-- Request upgrade confirmation modal -->
+      <CenterModal
+        v-model="showUpgradeModal"
+        :title="upgradeTargetTierForRequest ? `Request upgrade to ${upgradeTargetTierForRequest.name || upgradeTargetTierForRequest.id}` : 'Request upgrade'"
+        content-class="sm:max-w-[425px]"
+      >
+        <p class="text-sm text-muted-foreground">
+          Support will send you a checkout link to complete the upgrade. You will be charged according to the selected plan.
+        </p>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <Button variant="outline" :disabled="upgradeRequestLoading" @click="closeUpgradeModal">
+              Cancel
+            </Button>
+            <Button :disabled="upgradeRequestLoading" @click="submitUpgradeRequest">
+              <Loader2 v-if="upgradeRequestLoading" class="h-4 w-4 mr-2 animate-spin" />
+              Request upgrade
+            </Button>
+          </div>
+        </template>
+      </CenterModal>
     </div>
   </DashboardLayout>
 </template>
@@ -479,6 +553,7 @@ import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { BarChart3, Check, ChevronRight, Crown, Info, Link, Loader2, Settings, Shield, Sparkles } from '@/shared/utils/lucideAnimated'
 import { PLAN_COMPARISON_ROWS, getComparisonValue } from '@/domains/memora/constants/planComparison'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useUserStore } from '@/shared/stores/user'
 import { useCurrencyStore, SUPPORTED_CURRENCIES } from '@/shared/stores/currency'
@@ -487,6 +562,8 @@ import { convertUsdCentsToFormatted } from '@/shared/utils/convertCurrency'
 import { getAnnualSavePct } from '@/shared/utils/pricing'
 import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { toast } from '@/shared/utils/toast'
+import { clearPostAuthRedirect } from '@/shared/utils/localStorage'
+import CenterModal from '@/shared/components/molecules/CenterModal.vue'
 
 const showByoInPricing = false
 
@@ -505,13 +582,12 @@ const upgradeTargetTier = computed(() => {
   return null
 })
 
+const { recommendedTierDisplayName, featureLabel, tierDisplayName } = useMemoraFeatures()
 const upgradeAlertMessage = computed(() => {
   const feature = upgradeFeature.value
   if (!feature) return ''
-  const labels = { proofing: 'Proofing', raw_files: 'Raw Files' }
-  const tierNames = { proofing: 'Pro', raw_files: 'Studio' }
-  const label = labels[feature] || feature
-  const tierName = tierNames[feature] || 'Pro'
+  const label = featureLabel(feature)
+  const tierName = recommendedTierDisplayName(feature)
   return `You were redirected here because your current plan doesn't include ${label}. Upgrade to ${tierName} to unlock this feature.`
 })
 
@@ -530,14 +606,21 @@ const comparisonTableRows = computed(() => {
 })
 
 const { getTiers, getCurrencyRates } = usePricingApi()
-const { getPreview, createPortalSession, cancelSubscription, getStatus } = useSubscriptionApi()
+const { getPreview, createPortalSession, cancelSubscription, getStatus, requestDowngrade, requestUpgrade } = useSubscriptionApi()
 
 const isAnnual = ref(true)
 const tiers = ref([])
 const loading = ref(true)
 const error = ref(null)
 const portalLoading = ref(false)
+const showDowngradeModal = ref(false)
+const downgradeRequestLoading = ref(false)
+const showUpgradeModal = ref(false)
+const upgradeRequestLoading = ref(false)
+const upgradeTargetTierForRequest = ref(null)
 const currentSubscription = ref(null)
+const canSelfServiceUpgrade = ref(false)
+const hasPendingUpgradeOrDowngradeRequest = ref(false)
 const convertedPrices = ref({})
 const currencyRates = ref({})
 const convertedLoading = ref(false)
@@ -584,15 +667,11 @@ watch(
   { immediate: false }
 )
 
-const tiersFirstRow = computed(() => tiers.value.slice(0, 3))
-const tiersSecondRow = computed(() => tiers.value.slice(3, 4))
+const tiersFirstRow = computed(() => tiers.value.slice(0, 2))
+const tiersSecondRow = computed(() => tiers.value.slice(2, 4))
 
 const currentTier = computed(() => userStore.user?.memora_tier ?? 'starter')
-const currentTierLabel = computed(() => {
-  const t = currentTier.value
-  if (t === 'byo') return 'Build Your Own'
-  return t.charAt(0).toUpperCase() + t.slice(1)
-})
+const currentTierLabel = computed(() => tierDisplayName(currentTier.value))
 
 function displayPrice(tier) {
   const cur = currencyStore.currency
@@ -625,7 +704,7 @@ function discountPercent(tier) {
   if (!hasDiscount(tier)) return 0
   const monthly = tier.price_monthly_cents / 100
   const annualPerMonth = tier.price_annual_cents / 100 / 12
-  return (1 - annualPerMonth / monthly) * 100
+  return Math.round((1 - annualPerMonth / monthly) * 100)
 }
 
 function termToday(tier) {
@@ -648,10 +727,14 @@ function getButtonVariant(tier) {
 
 function getButtonLabel(tier) {
   if (currentTier.value === tier.id) return 'Current Plan'
+  if (tier.id === 'starter' && currentSubscription.value) return 'Request downgrade'
   if (tier.id === 'starter') return 'Downgrade'
   const tierOrder = ['starter', 'pro', 'studio', 'business']
   const currentIndex = tierOrder.indexOf(currentTier.value)
   const targetIndex = tierOrder.indexOf(tier.id)
+  if (targetIndex > currentIndex) {
+    return canSelfServiceUpgrade.value ? (tier.popular ? 'Buy Now' : 'Get started') : 'Request upgrade'
+  }
   if (targetIndex < currentIndex) return 'Change Plan'
   const isBuyNow = tier.id === 'starter' || tier.popular
   return isBuyNow ? 'Buy Now' : 'Get started'
@@ -660,15 +743,25 @@ function getButtonLabel(tier) {
 async function handleSelectPlan(tier) {
   if (currentTier.value === tier.id) return
 
-  // Starter tier - cancel/downgrade via portal or direct cancel (test mode)
   if (tier.id === 'starter' && currentSubscription.value) {
-    const canDowngrade = await getCanDowngrade().catch(() => ({ can_downgrade: true }))
-    if (!canDowngrade?.can_downgrade && canDowngrade?.errors?.length) {
-      toast.error(canDowngrade.errors.join(' '), { duration: 8000 })
+    showDowngradeModal.value = true
+    return
+  }
+
+  const tierOrder = ['starter', 'pro', 'studio', 'business']
+  const currentIndex = tierOrder.indexOf(currentTier.value)
+  const targetIndex = tierOrder.indexOf(tier.id)
+  if (targetIndex > currentIndex && ['pro', 'studio', 'business'].includes(tier.id)) {
+    if (canSelfServiceUpgrade.value) {
+      const billingCycle = isAnnual.value ? 'annual' : 'monthly'
+      router.push({
+        name: 'memora-plan-summary',
+        query: { tier: tier.id, cycle: billingCycle },
+      })
       return
     }
-    if (!confirm('Cancel your subscription? You\'ll be downgraded to Starter at the end of your billing period.')) return
-    handleDowngrade()
+    upgradeTargetTierForRequest.value = tier
+    showUpgradeModal.value = true
     return
   }
 
@@ -677,6 +770,39 @@ async function handleSelectPlan(tier) {
     name: 'memora-plan-summary',
     query: { tier: tier.id, cycle: billingCycle },
   })
+}
+
+async function submitDowngradeRequest() {
+  downgradeRequestLoading.value = true
+  try {
+    await requestDowngrade()
+    toast.success('Downgrade requested. Support will send you a link to confirm.')
+    showDowngradeModal.value = false
+  } catch (e) {
+    toast.apiError(e, 'Failed to request downgrade')
+  } finally {
+    downgradeRequestLoading.value = false
+  }
+}
+
+function closeUpgradeModal() {
+  showUpgradeModal.value = false
+  upgradeTargetTierForRequest.value = null
+}
+
+async function submitUpgradeRequest() {
+  const tier = upgradeTargetTierForRequest.value
+  if (!tier || !['pro', 'studio', 'business'].includes(tier.id)) return
+  upgradeRequestLoading.value = true
+  try {
+    await requestUpgrade(tier.id)
+    toast.success('Upgrade requested. Support will send you a checkout link to complete the change.')
+    closeUpgradeModal()
+  } catch (e) {
+    toast.apiError(e, 'Failed to request upgrade')
+  } finally {
+    upgradeRequestLoading.value = false
+  }
 }
 
 async function openBillingPortal() {
@@ -693,27 +819,6 @@ async function openBillingPortal() {
   }
 }
 
-async function handleDowngrade() {
-  try {
-    portalLoading.value = true
-    const res = await cancelSubscription()
-    const payload = res?.data ?? res
-    const url = payload?.portal_url
-    if (url) {
-      toast.success(payload?.message ?? 'Subscription cancelled')
-      window.location.href = url
-    } else {
-      toast.success('Subscription cancelled')
-      const statusRes = await getStatus()
-      currentSubscription.value = statusRes?.subscription ?? null
-    }
-  } catch (e) {
-    toast.apiError(e, 'Failed to cancel subscription')
-  } finally {
-    portalLoading.value = false
-  }
-}
-
 function goToUsage() {
   router.push({ name: 'memora-usage' })
 }
@@ -721,6 +826,7 @@ function goToUsage() {
 const { formatDate } = useFormatDate()
 
 onMounted(async () => {
+  clearPostAuthRedirect()
   try {
     const [tiersData, statusData] = await Promise.all([
       getTiers(),
@@ -729,6 +835,12 @@ onMounted(async () => {
     tiers.value = tiersData
     if (statusData?.subscription) {
       currentSubscription.value = statusData.subscription
+    }
+    if (statusData?.can_self_service_upgrade === true) {
+      canSelfServiceUpgrade.value = true
+    }
+    if (statusData?.has_pending_upgrade_or_downgrade_request === true) {
+      hasPendingUpgradeOrDowngradeRequest.value = true
     }
     if (currencyStore.currency !== 'usd') await fetchConvertedPrices()
   } catch (e) {

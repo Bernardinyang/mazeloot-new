@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Social Links </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-8 w-1/2">
       <!-- Page Header -->
@@ -215,7 +221,8 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { Loader2, Check } from '@/shared/utils/lucideAnimated'
+import { useRouter } from 'vue-router'
+import { Loader2, Check, ChevronLeft } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import Input from '@/shared/components/shadcn/input/Input.vue'
@@ -233,6 +240,10 @@ import { useSocialLinksApi } from '@/domains/memora/api/socialLinks'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { toast } from '@/shared/utils/toast'
 
+const router = useRouter()
+function goBack() {
+  router.back()
+}
 const theme = useThemeClasses()
 const { socialLinksEnabled } = useMemoraFeatures()
 const {

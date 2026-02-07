@@ -1,12 +1,12 @@
 <template>
   <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-6 min-w-0">
       <header>
         <h1 :class="['text-2xl font-semibold tracking-tight', theme.textPrimary]">Admin Activity Logs</h1>
         <p :class="['mt-1 text-sm', theme.textSecondary]">Audit admin actions, routes, and IPs.</p>
       </header>
 
-      <div :class="['rounded-xl border border-border bg-card overflow-hidden shadow-sm']">
+      <div :class="['rounded-xl border border-border bg-card overflow-hidden shadow-sm min-w-0']">
         <div class="p-4 sm:p-6 border-b border-border">
           <div class="flex flex-wrap gap-3 items-end">
             <div class="flex-1 min-w-[200px] space-y-2">
@@ -73,6 +73,7 @@
           :getId="(log) => log.uuid"
           :async-pagination="true"
           empty-message="No activity logs found"
+          @row-click="selectedLog = $event"
         >
           <template #cell-admin="{ item }">
             <div v-if="item.user">
@@ -128,6 +129,11 @@
         </div>
       </div>
     </div>
+
+    <ActivityLogDetailSidebar
+      :log="selectedLog"
+      @update:model-value="(v) => { if (!v) selectedLog = null }"
+    />
   </div>
 </template>
 
@@ -142,8 +148,10 @@ import { Button } from '@/shared/components/shadcn/button'
 import { Badge } from '@/shared/components/shadcn/badge'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/shadcn/select'
 import DataTable from '@/shared/components/organisms/DataTable.vue'
+import ActivityLogDetailSidebar from '@/admin/components/ActivityLogDetailSidebar.vue'
 
 const theme = useThemeClasses()
+const selectedLog = ref(null)
 
 const columns = [
   { key: 'admin', label: 'Admin', slot: 'admin' },

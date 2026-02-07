@@ -2,13 +2,14 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { routes } from './routes'
 import { useUserStore } from '@/shared/stores/user'
 import { useOnboardingApi } from '@/shared/api/onboarding'
+import { setPostAuthRedirect } from '@/shared/utils/localStorage'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes,
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition) return savedPosition
-    if (from.path === to.path && from.name === to.name) return false
+    if (from.path === to.path && from.name === to.name && !window.location.hash) return false
     return { top: 0 }
   },
 })
@@ -201,6 +202,7 @@ router.beforeEach(async (to, from, next) => {
       // Check product selection requirement
       if (!EXEMPT_ROUTES.includes(to.name) && userStore.needsProductSelection) {
         try {
+          setPostAuthRedirect(to.fullPath)
           const tokenData = await onboardingApi.generateProductSelectionToken()
           next({ name: 'productSelection', params: { token: tokenData.token } })
           return
@@ -227,6 +229,7 @@ router.beforeEach(async (to, from, next) => {
 
             if (!isProductOnboardingCompleted(productUuid, userStore.onboardingStatus)) {
               try {
+                setPostAuthRedirect(to.fullPath)
                 const tokenData = await onboardingApi.generateToken(productUuid)
                 const productSlug = getProductSlug(routeProduct)
                 next({ name: 'onboarding', params: { productSlug, token: tokenData.token } })

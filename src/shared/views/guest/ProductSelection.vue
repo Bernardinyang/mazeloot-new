@@ -192,6 +192,7 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/components/shadcn/card'
 import { Button } from '@/shared/components/shadcn/button'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
@@ -313,7 +314,8 @@ const handleSubmit = async () => {
         params: { productSlug: firstToken.product.slug, token: firstToken.token },
       })
     } else {
-      router.push({ name: 'overview' })
+      const redirect = getPostAuthRedirect()
+      router.push(redirect || { name: 'overview' })
     }
   } catch (err) {
     console.error('Failed to submit product selection:', err)

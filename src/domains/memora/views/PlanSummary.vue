@@ -17,6 +17,32 @@
         <p class="text-sm text-muted-foreground">Loading…</p>
       </div>
 
+      <template v-else-if="isPendingSource && pendingCheckout">
+        <div class="max-w-lg rounded-xl border border-border bg-card p-6 shadow-sm">
+          <h2 class="text-xl font-semibold text-foreground">Complete your plan change</h2>
+          <p class="text-sm text-muted-foreground mt-1">
+            You have a pending {{ pendingCheckout.type }} to the {{ pendingTierName }} plan. Proceed to payment to complete.
+          </p>
+          <Button
+            class="mt-6 w-full gap-2"
+            :disabled="proceedingToCheckout"
+            @click="proceedToPendingCheckout"
+          >
+            <Loader2 v-if="proceedingToCheckout" class="h-4 w-4 animate-spin" />
+            <CreditCard v-else class="h-4 w-4" />
+            Proceed to payment
+          </Button>
+        </div>
+      </template>
+
+      <template v-else-if="isPendingSource">
+        <div class="rounded-xl border border-border bg-card px-6 py-8 text-center">
+          <p class="font-medium text-foreground">No pending checkout</p>
+          <p class="text-sm text-muted-foreground mt-1">You don’t have a pending upgrade or downgrade link, or it may have expired.</p>
+          <Button class="mt-4" variant="outline" @click="goBack">Go to Pricing</Button>
+        </div>
+      </template>
+
       <template v-else-if="!tier || tier === 'starter'">
         <div class="rounded-xl border border-destructive/30 bg-destructive/5 px-6 py-8 text-center">
           <p class="text-destructive font-medium">Invalid plan selected</p>
@@ -237,6 +263,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import { Check, ChevronLeft, CreditCard, Loader2 } from '@/shared/utils/lucideAnimated'
 import PaymentProviderLogo from '@/shared/components/PaymentProviderLogo.vue'
 import { PLAN_COMPARISON_ROWS, getComparisonValue } from '@/domains/memora/constants/planComparison'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useCurrencyStore } from '@/shared/stores/currency'
 import { formatMoney } from '@/shared/utils/formatMoney'
@@ -246,11 +273,17 @@ import { toast } from '@/shared/utils/toast'
 const router = useRouter()
 const route = useRoute()
 const currencyStore = useCurrencyStore()
+const { tierDisplayName } = useMemoraFeatures()
 const { getTiers, getBuildYourOwnConfig, getCurrencyRates } = usePricingApi()
-const { getCheckoutOptions, getOrderSummary, getPreview, createCheckout } = useSubscriptionApi()
+const { getCheckoutOptions, getOrderSummary, getPreview, createCheckout, getPendingCheckout } = useSubscriptionApi()
 
 const tiersData = ref([])
 const byoConfig = ref(null)
+
+const isPendingSource = computed(() => route.query.source === 'pending')
+const pendingCheckout = ref(null)
+const proceedingToCheckout = ref(false)
+const pendingTierName = computed(() => tierDisplayName(pendingCheckout.value?.tier ?? '') || '')
 
 const tier = computed(() => route.query.tier || null)
 const billingCycle = computed(() => route.query.cycle || 'annual')
@@ -264,11 +297,7 @@ const byoAddons = computed(() => {
   }
 })
 
-const planName = computed(() => {
-  const t = tier.value
-  if (t === 'byo') return 'Build Your Own'
-  return t ? t.charAt(0).toUpperCase() + t.slice(1) : ''
-})
+const planName = computed(() => (tier.value ? tierDisplayName(tier.value) : ''))
 
 const billingCycleLabel = computed(() => (billingCycle.value === 'annual' ? '12-month' : 'Monthly'))
 
@@ -346,7 +375,7 @@ const savePercent = computed(() => {
   const orig = orderSummary.value.subtotal_original_cents
   const curr = orderSummary.value.subtotal_cents
   if (orig <= 0) return 0
-  return (1 - curr / orig) * 100
+  return Math.round((1 - curr / orig) * 100)
 })
 
 const vatPercent = computed(() => {
@@ -375,6 +404,17 @@ const checkoutLoading = ref(false)
 
 function goBack() {
   router.push({ name: 'memora-pricing' })
+}
+
+async function proceedToPendingCheckout() {
+  const url = pendingCheckout.value?.checkout_url
+  if (!url) return
+  proceedingToCheckout.value = true
+  try {
+    window.location.href = url
+  } finally {
+    proceedingToCheckout.value = false
+  }
 }
 
 function selectProvider(provider) {
@@ -449,6 +489,16 @@ watch(selectedProvider, () => fetchOrderSummary(), { immediate: false })
 onMounted(async () => {
   loading.value = true
   try {
+    if (isPendingSource.value) {
+      try {
+        const data = await getPendingCheckout()
+        pendingCheckout.value = data
+      } catch {
+        pendingCheckout.value = null
+      }
+      loading.value = false
+      return
+    }
     const [checkoutData, tiersRes, byoRes] = await Promise.all([
       getCheckoutOptions(),
       getTiers().catch(() => []),

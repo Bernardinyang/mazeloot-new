@@ -45,3 +45,21 @@ export const removeStoredDownloadPin = (id) => {
     localStorage.removeItem(`download_pin_${id}`)
     localStorage.removeItem(`download_pin_expiry_${id}`)
 }
+
+const POST_AUTH_REDIRECT_KEY = 'mazeloot_post_auth_redirect'
+
+export const setPostAuthRedirect = (path) => {
+  if (typeof localStorage === 'undefined') return
+  if (path) localStorage.setItem(POST_AUTH_REDIRECT_KEY, path)
+  else localStorage.removeItem(POST_AUTH_REDIRECT_KEY)
+}
+
+export const getPostAuthRedirect = () => {
+  if (typeof localStorage === 'undefined') return null
+  return localStorage.getItem(POST_AUTH_REDIRECT_KEY) || null
+}
+
+export const clearPostAuthRedirect = () => {
+  if (typeof localStorage === 'undefined') return
+  localStorage.removeItem(POST_AUTH_REDIRECT_KEY)
+}

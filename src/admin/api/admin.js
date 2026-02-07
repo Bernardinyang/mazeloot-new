@@ -323,6 +323,161 @@ export function useAdminApi() {
   }
 
   /**
+   * Get contact form submissions
+   */
+  const getContactSubmissions = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/contact-submissions${query ? `?${query}` : ''}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get contact submission details
+   */
+  const getContactSubmission = async (uuid) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/contact-submissions/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get waitlist entries
+   */
+  const getWaitlist = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/waitlist${query ? `?${query}` : ''}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get waitlist entry
+   */
+  const getWaitlistEntry = async (uuid) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/waitlist/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get newsletter subscriptions
+   */
+  const getNewsletter = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/newsletter${query ? `?${query}` : ''}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get downgrade requests (Memora)
+   */
+  const getDowngradeRequests = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/downgrade-requests${query ? `?${query}` : ''}`)
+      return response
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get downgrade request details
+   */
+  const getDowngradeRequest = async (uuid) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/downgrade-requests/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Generate invoice / checkout link for downgrade request
+   */
+  const generateDowngradeInvoice = async (uuid, payload) => {
+    try {
+      const response = await apiClient.post(`/v1/admin/downgrade-requests/${uuid}/generate-invoice`, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const cancelDowngradeRequest = async (uuid) => {
+    try {
+      const response = await apiClient.post(`/v1/admin/downgrade-requests/${uuid}/cancel`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get upgrade requests (Memora)
+   */
+  const getUpgradeRequests = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/upgrade-requests${query ? `?${query}` : ''}`)
+      return response
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get upgrade request details
+   */
+  const getUpgradeRequest = async (uuid) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/upgrade-requests/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Generate checkout link for upgrade request
+   */
+  const generateUpgradeInvoice = async (uuid, payload) => {
+    try {
+      const response = await apiClient.post(`/v1/admin/upgrade-requests/${uuid}/generate-invoice`, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const cancelUpgradeRequest = async (uuid) => {
+    try {
+      const response = await apiClient.post(`/v1/admin/upgrade-requests/${uuid}/cancel`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get activity logs
    */
   const getActivityLogs = async (filters = {}) => {
@@ -518,6 +673,19 @@ export function useAdminApi() {
     getEarlyAccessRequest,
     approveEarlyAccessRequest,
     rejectEarlyAccessRequest,
+    getContactSubmissions,
+    getContactSubmission,
+    getWaitlist,
+    getWaitlistEntry,
+    getNewsletter,
+    getDowngradeRequests,
+    getDowngradeRequest,
+    generateDowngradeInvoice,
+    cancelDowngradeRequest,
+    getUpgradeRequests,
+    getUpgradeRequest,
+    generateUpgradeInvoice,
+    cancelUpgradeRequest,
     getActivityLogs,
     getUserActivity,
     getProductActivity,

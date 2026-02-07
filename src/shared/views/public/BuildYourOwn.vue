@@ -1,6 +1,7 @@
 <template>
   <div class="min-h-screen bg-background">
     <PublicNav />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Build Your Own' }]" />
 
     <section class="container mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
       <header class="text-center mb-12 sm:mb-16">
@@ -240,6 +241,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import PublicBreadcrumbBanner from '@/shared/components/molecules/PublicBreadcrumbBanner.vue'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Card from '@/shared/components/shadcn/Card.vue'

@@ -1,7 +1,8 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
     <PublicNav />
-    
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Early Access' }]" />
+
     <!-- Hero Section -->
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
       <div class="max-w-4xl mx-auto text-center mb-12 sm:mb-16">
@@ -234,6 +235,7 @@
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import PublicBreadcrumbBanner from '@/shared/components/molecules/PublicBreadcrumbBanner.vue'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'

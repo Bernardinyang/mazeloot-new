@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Branding </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-8 w-1/2">
       <!-- Page Header -->
@@ -562,7 +568,8 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { Plus, Loader2, Check } from '@/shared/utils/lucideAnimated'
+import { useRouter } from 'vue-router'
+import { Plus, Loader2, Check, ChevronLeft } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -579,6 +586,10 @@ import { useRegionalStore } from '@/shared/stores/regional'
 import { useAuthApi } from '@/shared/api/auth'
 import { useUserStore } from '@/shared/stores/user'
 
+const router = useRouter()
+function goBack() {
+  router.back()
+}
 const theme = useThemeClasses()
 const userStore = useUserStore()
 const { getStorage } = useAuthApi()

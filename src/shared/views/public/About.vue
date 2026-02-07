@@ -60,9 +60,29 @@
 </template>
 
 <script setup>
+import { onMounted } from 'vue'
 import Card from '@/shared/components/shadcn/Card.vue'
 import CardHeader from '@/shared/components/shadcn/CardHeader.vue'
 import CardTitle from '@/shared/components/shadcn/CardTitle.vue'
 import CardDescription from '@/shared/components/shadcn/CardDescription.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
+import { useSeoMeta } from '@/shared/composables/useSeoMeta'
+import { trackPageView } from '@/shared/composables/useAnalytics'
+
+const BASE_URL = typeof window !== 'undefined' 
+  ? `${window.location.protocol}//${window.location.host}`
+  : 'https://mazeloot.com'
+
+// SEO Meta Tags
+useSeoMeta({
+  title: 'About - Learn More About Mazeloot',
+  description: 'Learn more about Mazeloot, a modern web application built with Vue.js 3, Tailwind CSS, and industry-standard tools for managing collections and media.',
+  image: `${BASE_URL}/og-image.png`,
+  url: `${BASE_URL}/about`,
+})
+
+// Track page view
+onMounted(() => {
+  trackPageView('/about', 'About')
+})
 </script>

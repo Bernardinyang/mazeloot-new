@@ -31,10 +31,30 @@ export function useEmailNotificationsApi() {
     }
   }
 
+  const fetchChannels = async () => {
+    try {
+      const response = await apiClient.get('/v1/memora/settings/notifications/channels')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const updateChannels = async payload => {
+    try {
+      const response = await apiClient.patch('/v1/memora/settings/notifications/channels', payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   return {
     fetchEvents,
     fetchEmailNotifications,
     updateEmailNotifications,
+    fetchChannels,
+    updateChannels,
   }
 }
 

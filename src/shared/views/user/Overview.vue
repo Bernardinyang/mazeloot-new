@@ -354,7 +354,7 @@
                       tierBadgeClass,
                     ]"
                     :aria-label="`Current plan tier: ${planLabel}`"
-                    :title="memoraTier === 'byo' ? 'Build Your Own' : planLabel"
+                    :title="planLabel"
                   >
                     {{ planBadgeLabel }}
                   </span>
@@ -1251,7 +1251,7 @@
             <div v-if="recentProofing.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="Eye"
-                :action-label="canAccessProofing ? 'Create Proofing' : 'Upgrade to Pro'"
+                :action-label="canAccessProofing ? 'Create Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
                 description="Create a proofing phase to collect client feedback and approvals"
                 icon-bg-class="bg-orange-500/20"
                 icon-class="text-orange-400"
@@ -1332,7 +1332,7 @@
             <div v-if="recentRawFiles.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="FileText"
-                :action-label="canAccessRawFiles ? 'Create Raw File' : 'Upgrade to Studio'"
+                :action-label="canAccessRawFiles ? 'Create Raw File' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
                 description="Create a raw file to let clients upload their photos"
                 icon-bg-class="bg-teal-500/20"
                 icon-class="text-teal-400"
@@ -1518,7 +1518,7 @@ import CreateRawFileDialog from '@/domains/memora/components/organisms/CreateRaw
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
-const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt } = useMemoraFeatures()
+const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt, recommendedTierDisplayName, tierDisplayName } = useMemoraFeatures()
 useThemeStore() // Initialize theme store for reactivity
 const theme = useThemeClasses()
 
@@ -1770,16 +1770,8 @@ const handleCreateRawFileSuccess = async () => {
 
 // Memora plan (tier) from user store
 const memoraTier = computed(() => userStore.user?.memora_tier ?? 'starter')
-const planLabel = computed(() => {
-  const t = memoraTier.value
-  if (t === 'byo') return 'Build Your Own'
-  return t.charAt(0).toUpperCase() + t.slice(1)
-})
-const planBadgeLabel = computed(() => {
-  const t = memoraTier.value
-  if (t === 'byo') return 'BYO'
-  return planLabel.value
-})
+const planLabel = computed(() => tierDisplayName(memoraTier.value))
+const planBadgeLabel = computed(() => (memoraTier.value === 'byo' ? 'BYO' : planLabel.value))
 const hasPaidPlan = computed(() => {
   const t = memoraTier.value
   return t !== 'starter' && t !== null && t !== undefined

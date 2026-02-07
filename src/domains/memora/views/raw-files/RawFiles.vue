@@ -46,7 +46,7 @@
           v-else-if="rawFiles.length === 0"
           :icon="CheckSquare"
           :action-icon="Plus"
-          :action-label="canAccessRawFiles ? 'Create New RawFile' : 'Upgrade to Studio'"
+          :action-label="canAccessRawFiles ? 'Create New RawFile' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
           description="Get started by creating your first rawFile to organize and manage your media."
           message="No rawFiles found"
           @action="canAccessRawFiles ? handleCreateRawFile : () => showUpgradePrompt('raw_files')"
@@ -88,7 +88,7 @@
         :loading="isLoading"
         :selected-items="selectedRawFiles"
         :show-view-details="true"
-        :empty-action-label="canAccessRawFiles ? 'Create New RawFile' : 'Upgrade to Studio'"
+        :empty-action-label="canAccessRawFiles ? 'Create New RawFile' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
         empty-message="No rawFiles found"
         @delete="handleDeleteRawFile"
         @edit="handleEditRawFile"
@@ -183,7 +183,7 @@ const rawFileStore = useRawFileStore()
 const rawFilesApi = useRawFilesApi()
 const router = useRouter()
 const { handleError } = useErrorHandler()
-const { canAccessRawFiles, showUpgradePrompt } = useMemoraFeatures()
+const { canAccessRawFiles, showUpgradePrompt, recommendedTierDisplayName } = useMemoraFeatures()
 const viewMode = computed({
   get: () => rawFileStore.viewMode,
   set: value => rawFileStore.setViewMode(value),

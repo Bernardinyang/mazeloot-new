@@ -33,6 +33,7 @@
           </div>
           <div class="flex items-center gap-2">
             <ThemeToggle />
+            <NotificationDropdown product="memora" />
             <Button
               v-if="previousRoute"
               variant="outline"
@@ -173,6 +174,7 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Button } from '@/shared/components/shadcn/button'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
+import NotificationDropdown from '@/shared/components/organisms/NotificationDropdown.vue'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import { ArrowLeft, ChevronLeft, ChevronRight, Menu, BookOpen, Video, FolderOpen, FolderKanban, CheckSquare, Eye, Settings, Image as ImageIcon, Globe, FileImage, HelpCircle, Lightbulb, Palette, Code } from '@/shared/utils/lucideAnimated'
 import { useNavigation } from '@/shared/composables/useNavigation'

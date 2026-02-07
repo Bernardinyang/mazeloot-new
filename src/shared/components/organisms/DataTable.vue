@@ -1,5 +1,5 @@
 <template>
-  <div :class="[theme.bgCard, theme.borderCard]" class="border rounded-lg overflow-hidden">
+  <div :class="[theme.bgCard, theme.borderCard]" class="border rounded-lg overflow-hidden min-w-0">
     <!-- Toolbar: search (optional) + toolbar slot -->
     <div
       v-if="$slots.toolbar || showSearchInput"
@@ -41,7 +41,7 @@
     >
       {{ loadingMessage }}
     </div>
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto min-w-0 w-full">
       <table
         class="w-full min-w-max"
         :aria-label="ariaLabel || caption || undefined"

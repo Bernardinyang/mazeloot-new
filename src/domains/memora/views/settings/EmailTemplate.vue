@@ -1,6 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb> Settings > Email Template </template>
+    <template #header>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
+    </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
@@ -101,9 +107,16 @@
 </template>
 
 <script setup>
+import { useRouter } from 'vue-router'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
+import { Button } from '@/shared/components/shadcn/button'
+import { ChevronLeft } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 
+const router = useRouter()
+function goBack() {
+  router.back()
+}
 const theme = useThemeClasses()
 </script>

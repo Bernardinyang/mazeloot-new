@@ -78,8 +78,42 @@ export const useSubscriptionApi = () => {
     return response.data?.data ?? response.data
   }
 
+  const getMyPlanRequests = async () => {
+    const response = await apiClient.get('/v1/memora/subscription/my-plan-requests')
+    const data = response.data?.data ?? response.data
+    return {
+      upgrade_requests: data?.upgrade_requests ?? [],
+      downgrade_requests: data?.downgrade_requests ?? [],
+    }
+  }
+
+  const getPendingCheckout = async () => {
+    const response = await apiClient.get('/v1/memora/subscription/pending-checkout')
+    return response.data?.data ?? response.data
+  }
+
   const getCanDowngrade = async () => {
     const response = await apiClient.get('/v1/memora/subscription/can-downgrade')
+    return response.data?.data ?? response.data
+  }
+
+  const requestDowngrade = async () => {
+    const response = await apiClient.post('/v1/memora/subscription/request-downgrade')
+    return response.data?.data ?? response.data
+  }
+
+  const requestUpgrade = async (targetTier) => {
+    const response = await apiClient.post('/v1/memora/subscription/request-upgrade', { target_tier: targetTier })
+    return response.data?.data ?? response.data
+  }
+
+  const getDowngradeByToken = async (token) => {
+    const response = await apiClient.get('/v1/memora/subscription/downgrade-by-token', { params: { token } })
+    return response.data?.data ?? response.data
+  }
+
+  const confirmDowngrade = async (token) => {
+    const response = await apiClient.post('/v1/memora/subscription/confirm-downgrade', { token })
     return response.data?.data ?? response.data
   }
 
@@ -113,7 +147,13 @@ export const useSubscriptionApi = () => {
     createCheckout,
     createPortalSession,
     getStatus,
+    getMyPlanRequests,
+    getPendingCheckout,
     getCanDowngrade,
+    requestDowngrade,
+    requestUpgrade,
+    getDowngradeByToken,
+    confirmDowngrade,
     cancelSubscription,
     getHistory,
     getUsage,

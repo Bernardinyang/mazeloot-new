@@ -21,6 +21,7 @@ import Badge from '@/shared/components/shadcn/badge/Badge.vue'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { useLogout } from '@/shared/composables/useLogout'
 import { useUserStore } from '@/shared/stores/user'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const props = defineProps({
   user: {
@@ -33,6 +34,8 @@ const { isMobile, state } = useSidebar()
 const { navigateTo } = useNavigation()
 const { logout } = useLogout()
 const userStore = useUserStore()
+const { recommendedTierDisplayName } = useMemoraFeatures()
+const upgradeTierLabel = recommendedTierDisplayName('proofing')
 
 const roleLabel = computed(() => {
   if (userStore.isSuperAdmin) return 'Super Admin'
@@ -103,9 +106,9 @@ const handleLogout = async () => {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuGroup>
-            <DropdownMenuItem>
+            <DropdownMenuItem @click="navigateTo({ name: 'memora-pricing' })">
               <Sparkles />
-              Upgrade to Pro
+              Upgrade to {{ upgradeTierLabel }}
             </DropdownMenuItem>
           </DropdownMenuGroup>
           <DropdownMenuSeparator />

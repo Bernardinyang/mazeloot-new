@@ -2,7 +2,10 @@
   <DashboardLayout>
     <template #breadcrumb>Build Your Own</template>
     <template #header>
-      <div class="flex items-center justify-end w-full"></div>
+      <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
+        <ChevronLeft class="h-4 w-4" />
+        Back
+      </Button>
     </template>
 
     <div class="w-full max-w-5xl mx-auto min-w-0 pb-8 px-4 sm:px-6 lg:px-8">
@@ -340,7 +343,7 @@ import { useRouter } from 'vue-router'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Skeleton from '@/shared/components/shadcn/skeleton/Skeleton.vue'
-import { Check, ChevronRight } from '@/shared/utils/lucideAnimated'
+import { Check, ChevronLeft, ChevronRight } from '@/shared/utils/lucideAnimated'
 import { usePricingApi, useSubscriptionApi } from '@/domains/memora/api/pricing'
 import { useCurrencyStore, SUPPORTED_CURRENCIES } from '@/shared/stores/currency'
 import { formatMoney } from '@/shared/utils/formatMoney'
@@ -348,6 +351,9 @@ import { convertUsdCentsToFormatted, convertUsdCentsToTargetSmallest } from '@/s
 import { getAnnualSavePct } from '@/shared/utils/pricing'
 
 const router = useRouter()
+function goBack() {
+  router.back()
+}
 const currencyStore = useCurrencyStore()
 const { getBuildYourOwnConfig, getCurrencyRates } = usePricingApi()
 
@@ -466,7 +472,7 @@ const basePlanSaveBadge = computed(() => {
   const monthly = config.value.base.price_monthly_cents ?? 0
   const annualPerMonth = (config.value.base.price_annual_cents ?? 0) / 12
   if (monthly <= 0 || annualPerMonth >= monthly) return null
-  const percent = (1 - annualPerMonth / monthly) * 100
+  const percent = Math.round((1 - annualPerMonth / monthly) * 100)
   if (percent <= 0) return null
   return { percent }
 })

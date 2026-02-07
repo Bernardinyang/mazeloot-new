@@ -1,12 +1,13 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <PublicNav />
-    
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Products' }]" />
+
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div class="text-center mb-12 sm:mb-16">
         <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Our Products</h1>
         <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
-          A complete suite of tools designed to help photographers grow their business
+          A complete suite of tools designed to help creatives grow their business
         </p>
       </div>
 
@@ -16,7 +17,7 @@
           <div>
             <h2 class="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4">Client Gallery</h2>
             <p class="text-base sm:text-lg text-gray-600 dark:text-gray-400 mb-4 sm:mb-6">
-              Share, deliver, proof and sell photos online with beautiful photo galleries. Trusted by more than a million photographers worldwide.
+              Share, deliver, proof and sell photos online with beautiful photo galleries. Trusted by more than a million creatives worldwide.
             </p>
             <ul class="space-y-3 mb-8">
               <li class="flex items-start gap-3">
@@ -159,6 +160,7 @@
 
 <script setup>
 import { useRouter } from 'vue-router'
+import PublicBreadcrumbBanner from '@/shared/components/molecules/PublicBreadcrumbBanner.vue'
 import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import Card from '@/shared/components/shadcn/Card.vue'

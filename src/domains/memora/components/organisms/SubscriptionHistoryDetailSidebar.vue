@@ -245,6 +245,7 @@ const EVENT_ICONS = {
 import { formatMoney } from '@/shared/utils/formatMoney'
 import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { copyTextToClipboard } from '@/shared/utils/clipboard/copyTextToClipboard'
 import toast from 'vue-sonner'
 
@@ -422,10 +423,10 @@ function getTierBadgeClass(tier) {
   return 'bg-gray-500/20 text-gray-700 dark:text-gray-300 border border-gray-500/30'
 }
 
+const { tierDisplayName } = useMemoraFeatures()
 function formatTierName(tier) {
   if (!tier) return '—'
-  if (tier === 'byo') return 'Build Your Own'
-  return tier.charAt(0).toUpperCase() + tier.slice(1)
+  return tierDisplayName(tier)
 }
 
 function formatBillingCycle(cycle) {

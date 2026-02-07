@@ -4,6 +4,7 @@
     <Toaster />
     <PWAInstallPrompt />
     <PWADebugInfo />
+    <CookieConsent v-if="isPublicRoute" />
 
     <!-- Floating Upload Queue Button -->
     <UploadQueueButton
@@ -25,11 +26,14 @@ import UploadQueueButton from '@/shared/components/organisms/UploadQueueButton.v
 import BackgroundUploadQueueModal from '@/shared/components/organisms/BackgroundUploadQueueModal.vue'
 import PWAInstallPrompt from '@/shared/components/molecules/PWAInstallPrompt.vue'
 import PWADebugInfo from '@/shared/components/molecules/PWADebugInfo.vue'
+import CookieConsent from '@/shared/components/molecules/CookieConsent.vue'
 import { useActionHistoryStore } from '@/shared/stores/actionHistory'
 import { useBackgroundUploadManager } from '@/shared/composables/useBackgroundUploadManager'
 import { useNotificationsStore } from '@/shared/stores/notifications'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
+import { initAnalytics } from '@/shared/composables/useAnalytics'
+import { initErrorTracking } from '@/shared/composables/useErrorTracking'
 
 const route = useRoute()
 const showUploadQueueModal = ref(false)
@@ -78,6 +82,10 @@ watch(
 
 onMounted(() => {
   const actionHistory = useActionHistoryStore()
+  
+  // Initialize analytics and error tracking (will check cookie consent internally)
+  initAnalytics()
+  initErrorTracking()
   
   // Initialize notifications if authenticated
   if (userStore.isAuthenticated) {

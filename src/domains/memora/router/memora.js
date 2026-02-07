@@ -47,6 +47,8 @@ import ProofingListView from '@/domains/memora/views/proofing/Proofing.vue'
 import ProofingDetailView from '@/domains/memora/views/proofing/ProofingDetail.vue'
 import ProofingCommentsView from '@/domains/memora/views/proofing/Comments.vue'
 import DashboardPricingView from '@/domains/memora/views/DashboardPricing.vue'
+import MyPlanRequestsView from '@/domains/memora/views/MyPlanRequests.vue'
+import DowngradeConfirmView from '@/domains/memora/views/DowngradeConfirm.vue'
 import PlanSummaryView from '@/domains/memora/views/PlanSummary.vue'
 import DashboardSubscriptionStatusView from '@/domains/memora/views/DashboardSubscriptionStatus.vue'
 import DashboardBuildYourOwnView from '@/domains/memora/views/DashboardBuildYourOwn.vue'
@@ -98,6 +100,24 @@ export const memoraRoutes = [
     path: '/memora/pricing',
     name: 'memora-pricing',
     component: DashboardPricingView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/plan-requests',
+    name: 'memora-plan-requests',
+    component: MyPlanRequestsView,
+    meta: {
+      requiresAuth: true,
+      requiresUser: true,
+    },
+  },
+  {
+    path: '/memora/downgrade/confirm',
+    name: 'memora-downgrade-confirm',
+    component: DowngradeConfirmView,
     meta: {
       requiresAuth: true,
       requiresUser: true,

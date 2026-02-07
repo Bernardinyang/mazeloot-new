@@ -82,8 +82,11 @@ class ApiClient {
       throw error
     }
 
+    const unwrapped = data?.data !== undefined ? data.data : data
+    const rest = data && typeof data === 'object' && !Array.isArray(data) ? { ...data } : {}
     return {
-      data: data?.data !== undefined ? data.data : data,
+      ...rest,
+      data: unwrapped,
       status: response.status,
       statusText: response.statusText,
     }

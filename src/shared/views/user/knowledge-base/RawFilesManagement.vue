@@ -22,7 +22,7 @@
       <ActionBanner
         title="Ready to organize your RAW files?"
         description="Manage your original files alongside processed photos"
-        :button-text="canAccessRawFiles ? 'Go to Raw Files' : 'Upgrade to Studio'"
+        :button-text="canAccessRawFiles ? 'Go to Raw Files' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
         :icon="FileImage"
         color="emerald"
         @action="canAccessRawFiles ? navigateTo({ name: 'rawFiles' }) : showUpgradePrompt('raw_files')"
@@ -104,7 +104,7 @@ import { useNavigation } from '@/shared/composables/useNavigation'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
-const { canAccessRawFiles, showUpgradePrompt } = useMemoraFeatures()
+const { canAccessRawFiles, showUpgradePrompt, recommendedTierDisplayName } = useMemoraFeatures()
 
 const contentCards = computed(() => [
   {

@@ -298,8 +298,7 @@ export function useAuthApi() {
 
   const logout = async () => {
     try {
-      // TODO: Call backend logout endpoint if needed
-      // For now, just return success (token revocation handled client-side)
+      await apiClient.post('/v1/auth/logout')
     } catch (error) {
       throw parseError(error)
     }
