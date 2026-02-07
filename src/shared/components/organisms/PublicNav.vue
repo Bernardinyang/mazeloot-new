@@ -58,7 +58,7 @@
           </Button>
           <Button
             size="sm"
-            class="rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-4 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:from-indigo-400 hover:to-violet-400 hover:shadow-indigo-500/40 hover:-translate-y-0.5 border-0 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
+            class="hidden md:inline-flex rounded-lg bg-gradient-to-r from-indigo-500 to-violet-500 px-4 text-white font-semibold shadow-lg shadow-indigo-500/25 transition-all duration-200 hover:from-indigo-400 hover:to-violet-400 hover:shadow-indigo-500/40 hover:-translate-y-0.5 border-0 focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
             @click="router.push({ name: 'register' })"
           >
             Get started
@@ -86,7 +86,7 @@
     >
       <div
         v-show="mobileOpen"
-        class="fixed inset-0 z-40 dark:bg-black/60 light:bg-black/40 backdrop-blur-sm md:hidden"
+        class="fixed inset-0 z-40 dark:bg-black/80 light:bg-black/50 backdrop-blur-sm md:hidden"
         aria-hidden="true"
         @click="mobileOpen = false"
       />
@@ -101,16 +101,16 @@
     >
       <div
         v-show="mobileOpen"
-        class="fixed left-0 right-0 top-0 z-50 mx-4 mt-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl dark:border-white/10 light:border-gray-200 dark:bg-white/5 light:bg-white/95 backdrop-blur-xl shadow-2xl md:hidden"
+        class="fixed left-0 right-0 top-0 z-50 mx-4 mt-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl dark:border-white/30 light:border-gray-300 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-[#0f0f23] light:bg-white backdrop-blur-xl shadow-2xl md:hidden"
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
       >
-        <div class="flex items-center justify-between dark:border-white/10 light:border-gray-200 border-b px-4 py-4">
-          <span class="text-sm font-semibold dark:text-gray-300 light:text-gray-900">Menu</span>
+        <div class="flex items-center justify-between dark:border-white/30 light:border-gray-300 border-b px-4 py-4">
+          <span class="text-sm font-semibold dark:text-white light:text-gray-900">Menu</span>
           <button
             type="button"
-            class="flex size-9 items-center justify-center rounded-lg dark:text-gray-400 dark:hover:bg-white/10 dark:hover:text-white light:text-gray-600 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            class="flex size-9 items-center justify-center rounded-lg dark:text-gray-200 dark:hover:bg-white/15 dark:hover:text-white light:text-gray-700 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
             aria-label="Close menu"
             @click="mobileOpen = false"
           >
@@ -125,7 +125,7 @@
             class="relative rounded-lg px-4 py-3 text-base font-medium transition-all duration-200"
             :class="isActive(link.path)
               ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 dark:text-white light:text-gray-900'
-              : 'dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-50'"
+              : 'dark:text-gray-100 dark:hover:text-white dark:hover:bg-white/15 light:text-gray-700 light:hover:text-gray-900 light:hover:bg-gray-100'"
             @click="(e) => { mobileOpen = false; if (link.path === '/') handleHomeClick(e) }"
           >
             {{ link.label }}
@@ -134,15 +134,15 @@
             v-for="link in scrollLinks"
             :key="'m-scroll-' + link.id"
             href="#"
-            class="rounded-lg px-4 py-3 text-base font-medium dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-50 transition-all duration-200"
+            class="rounded-lg px-4 py-3 text-base font-medium dark:text-gray-100 dark:hover:text-white dark:hover:bg-white/15 light:text-gray-700 light:hover:text-gray-900 light:hover:bg-gray-100 transition-all duration-200"
             @click.prevent="goToSection(link.id); mobileOpen = false"
           >
             {{ link.label }}
           </a>
-          <div class="my-2 dark:border-white/10 light:border-gray-200 border-t pt-2 space-y-2">
+          <div class="my-2 dark:border-white/30 light:border-gray-300 border-t pt-2 space-y-2">
             <button
               type="button"
-              class="w-full rounded-lg px-4 py-3 text-left text-base font-medium dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-50 transition-all duration-200"
+              class="w-full rounded-lg px-4 py-3 text-left text-base font-medium dark:text-gray-100 dark:hover:text-white dark:hover:bg-white/15 light:text-gray-700 light:hover:text-gray-900 light:hover:bg-gray-100 transition-all duration-200"
               @click="router.push({ name: 'login' }); mobileOpen = false"
             >
               Log in
