@@ -3,6 +3,8 @@
  * All admin routes require authentication and admin role
  */
 
+import { useUserStore } from '@/shared/stores/user'
+
 export const adminRoutes = [
   {
     path: '/admin',
@@ -116,10 +118,22 @@ export const adminRoutes = [
         meta: { breadcrumb: 'Newsletter' },
       },
       {
+        path: 'health',
+        name: 'admin-health',
+        component: () => import('@/admin/views/health/Index.vue'),
+        meta: { breadcrumb: 'Health' },
+      },
+      {
         path: 'analytics',
         name: 'admin-analytics',
         component: () => import('@/admin/views/analytics/Index.vue'),
         meta: { breadcrumb: 'Analytics' },
+      },
+      {
+        path: 'system',
+        name: 'admin-system',
+        component: () => import('@/admin/views/system/Index.vue'),
+        meta: { breadcrumb: 'System' },
       },
       {
         path: 'activity-logs/users',
@@ -132,6 +146,16 @@ export const adminRoutes = [
         name: 'admin-activity-logs-admins',
         component: () => import('@/admin/views/activity-logs/AdminActivityLogs.vue'),
         meta: { breadcrumb: 'Admin Activity' },
+      },
+      {
+        path: 'activity-logs/sensitive',
+        name: 'admin-activity-logs-sensitive',
+        component: () => import('@/admin/views/activity-logs/SensitiveActivityLogs.vue'),
+        meta: { breadcrumb: 'Sensitive Actions', requiresSuperAdmin: true },
+        beforeEnter: (to, from, next) => {
+          if (!useUserStore().isSuperAdmin) next({ name: 'admin-activity-logs-admins' })
+          else next()
+        },
       },
       {
         path: 'products/memora/downgrade-requests',

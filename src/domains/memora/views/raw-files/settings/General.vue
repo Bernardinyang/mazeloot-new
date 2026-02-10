@@ -2,7 +2,7 @@
   <RawFileLayout :is-loading="isLoading" :rawFile="rawFile" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-if="isLoading" class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Skeleton Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -17,7 +17,7 @@
             <!-- RawFile Name Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -31,7 +31,7 @@
             <!-- Description Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -49,7 +49,7 @@
             <!-- RawFile Color Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -67,7 +67,7 @@
             <!-- Typography Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -90,7 +90,7 @@
             <!-- Allowed Email Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -107,7 +107,7 @@
             <!-- Password Protection Skeleton -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -121,7 +121,7 @@
           </div>
         </div>
 
-        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-else class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -147,7 +147,7 @@
             <!-- RawFile Name -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -175,7 +175,7 @@
             <!-- RawFile Description -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -206,7 +206,7 @@
             <!-- RawFile Color -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -248,7 +248,7 @@
             <!-- Typography -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -315,7 +315,7 @@
             <!-- Allowed Emails -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -399,7 +399,7 @@
             <!-- Password Protection -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -495,7 +495,7 @@
             <!-- Allow Download -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -513,7 +513,7 @@
             <!-- Download PIN -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -564,7 +564,7 @@
             <!-- Gallery Assist -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -587,7 +587,7 @@
             <!-- Display Preferences -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">

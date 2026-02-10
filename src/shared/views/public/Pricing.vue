@@ -54,7 +54,18 @@
         </div>
       </div>
 
-      <div v-if="loading" class="text-center py-12">Loading…</div>
+      <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 max-w-7xl mx-auto px-4 sm:px-0 py-8">
+        <div v-for="i in 4" :key="i" class="rounded-2xl border border-border p-4 sm:p-8 space-y-4 animate-pulse bg-muted/30">
+          <div class="h-6 w-24 rounded bg-muted" />
+          <div class="h-10 w-32 rounded bg-muted" />
+          <div class="space-y-2">
+            <div class="h-4 w-full rounded bg-muted" />
+            <div class="h-4 w-4/5 rounded bg-muted" />
+            <div class="h-4 w-3/4 rounded bg-muted" />
+          </div>
+          <div class="h-12 w-full rounded-lg bg-muted" />
+        </div>
+      </div>
       <div v-else-if="error" class="text-center py-12 text-destructive">{{ error }}</div>
 
       <div
@@ -65,7 +76,7 @@
           v-for="tier in tiers"
           :key="tier.id"
           :class="[
-            'p-8 relative',
+            'p-4 sm:p-8 relative',
             tier.popular && 'border-2 border-gray-900 dark:border-gray-100',
           ]"
         >

@@ -11,7 +11,7 @@
         </Button>
       </div>
 
-      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-6']">
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-4 sm:p-6']">
         <div class="flex items-center gap-3">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <span :class="['text-sm', theme.textSecondary]">Loading…</span>
@@ -19,7 +19,7 @@
       </div>
 
       <template v-else-if="submission">
-        <Card class="p-6 rounded-xl border border-border bg-card shadow-sm">
+        <Card class="p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label :class="['text-xs uppercase', theme.textSecondary]">Name</Label>
@@ -28,7 +28,7 @@
             <div>
               <Label :class="['text-xs uppercase', theme.textSecondary]">Email</Label>
               <p :class="['text-sm mt-1', theme.textPrimary]">
-                <a :href="`mailto:${submission.email}`" class="text-primary hover:underline">{{ submission.email }}</a>
+                <a :href="`mailto:${submission.email}`" class="text-accent hover:underline">{{ submission.email }}</a>
               </p>
             </div>
             <div v-if="submission.company">
@@ -42,7 +42,7 @@
             <div v-if="submission.phone">
               <Label :class="['text-xs uppercase', theme.textSecondary]">Phone</Label>
               <p :class="['text-sm mt-1', theme.textPrimary]">
-                <a :href="`tel:${submission.phone}`" class="text-primary hover:underline">{{ submission.phone }}</a>
+                <a :href="`tel:${submission.phone}`" class="text-accent hover:underline">{{ submission.phone }}</a>
               </p>
             </div>
             <div>

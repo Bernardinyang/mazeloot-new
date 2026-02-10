@@ -21,18 +21,17 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-20">
-        <Loader2 class="h-8 w-8 animate-spin" :class="theme.textTertiary" />
+      <div v-if="isLoading" class="py-20">
+        <FormSkeleton :rows="6" />
       </div>
 
       <!-- Content -->
       <div v-else class="space-y-6">
-        <PlanLimitBanner v-if="!socialLinksEnabled">
+        <PlanLimitBanner v-if="!socialLinksEnabled" feature="social_links_enabled">
           Adding social links is not available on your plan.
-          <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
         </PlanLimitBanner>
         <!-- Add New Link Card -->
-        <div v-if="socialLinksEnabled" class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
+        <div v-if="socialLinksEnabled" class="rounded-xl border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
           <div class="mb-5">
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Add Social Link</h2>
             <p class="text-sm" :class="theme.textSecondary">
@@ -234,6 +233,7 @@ import {
   SelectValue,
 } from '@/shared/components/shadcn/select'
 import { Button } from '@/shared/components/shadcn/button'
+import FormSkeleton from '@/shared/components/molecules/FormSkeleton.vue'
 import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSocialLinksApi } from '@/domains/memora/api/socialLinks'
@@ -256,7 +256,7 @@ const {
 
 const socialLinks = ref([])
 const availablePlatforms = ref([])
-const isLoading = ref(false)
+const isLoading = ref(true)
 const isCreating = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(null)

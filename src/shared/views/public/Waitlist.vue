@@ -31,7 +31,7 @@
     <section class="relative pb-20">
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-xl mx-auto">
-          <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl">
+          <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/5 via-transparent to-violet-500/5" />
             <div class="relative">
               <form @submit.prevent="handleSubmit" class="space-y-6">
@@ -114,21 +114,21 @@
       <div class="container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-5xl mx-auto">
           <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
-            <div class="group relative p-6 sm:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1">
+            <div class="group relative p-4 sm:p-6 md:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1">
               <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Bell class="h-6 w-6 text-indigo-300" />
               </div>
               <h3 class="text-lg font-semibold dark:text-white light:text-gray-900 mb-2">Early Access</h3>
               <p class="text-sm dark:text-gray-400 light:text-gray-600 leading-relaxed">Be among the first to try our platform and shape the future of creative workflows</p>
             </div>
-            <div class="group relative p-6 sm:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1">
+            <div class="group relative p-4 sm:p-6 md:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1">
               <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Gift class="h-6 w-6 text-indigo-300" />
               </div>
               <h3 class="text-lg font-semibold dark:text-white light:text-gray-900 mb-2">Exclusive Benefits</h3>
               <p class="text-sm dark:text-gray-400 light:text-gray-600 leading-relaxed">Special offers, features, and discounts reserved for early adopters</p>
             </div>
-            <div class="group relative p-6 sm:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 sm:col-span-2 md:col-span-1">
+            <div class="group relative p-4 sm:p-6 md:p-8 rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 hover:border-indigo-500/30 transition-all duration-300 hover:shadow-xl hover:shadow-indigo-500/10 hover:-translate-y-1 sm:col-span-2 md:col-span-1">
               <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-violet-500/20 border border-indigo-500/30 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                 <Mail class="h-6 w-6 text-indigo-300" />
               </div>

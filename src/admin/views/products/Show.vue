@@ -26,7 +26,7 @@
           <div :class="['h-4 w-32 rounded animate-pulse', theme.bgSkeleton]" />
           <div :class="['h-3 w-48 mt-2 rounded animate-pulse', theme.bgSkeleton]" style="animation-delay: 50ms" />
         </div>
-        <div class="grid gap-4 p-6 sm:grid-cols-2">
+        <div class="grid gap-4 p-4 sm:p-6 sm:grid-cols-2">
           <div v-for="i in 5" :key="i" class="space-y-2">
             <div :class="['h-3 w-20 rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 40}ms` }" />
             <div :class="['h-5 w-full max-w-[180px] rounded animate-pulse', theme.bgSkeleton]" :style="{ animationDelay: `${i * 40 + 20}ms` }" />
@@ -40,7 +40,7 @@
             <h2 :class="['text-sm font-medium', theme.textPrimary]">Overview</h2>
             <p :class="['text-xs', theme.textSecondary]">Product identity and status.</p>
           </div>
-          <dl class="grid gap-4 p-6 sm:grid-cols-2">
+          <dl class="grid gap-4 p-4 sm:p-6 sm:grid-cols-2">
             <div class="space-y-1">
               <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Name</dt>
               <dd :class="['text-sm font-medium', theme.textPrimary]">{{ product.name }}</dd>
@@ -115,7 +115,7 @@
         </div>
       </template>
 
-      <div v-else :class="['rounded-xl border border-border bg-card p-8 text-center']">
+      <div v-else :class="['rounded-xl border border-border bg-card p-4 sm:p-8 text-center']">
         <p :class="['text-sm', theme.textSecondary]">Product not found.</p>
         <Button variant="outline" class="mt-4" @click="$router.push({ name: 'admin-products' })">
           Back to products

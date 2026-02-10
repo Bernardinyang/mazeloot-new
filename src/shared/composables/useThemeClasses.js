@@ -55,6 +55,7 @@ export function useThemeClasses() {
 
   // Skeleton loader - more visible and prominent
   const bgSkeleton = 'dark:bg-gray-700/70 light:bg-gray-300/80'
+  const bgMuted = 'dark:bg-gray-800/80 light:bg-gray-100'
 
   // Links and accent actions (primary = accent)
   const textLink = 'text-primary hover:text-primary/90 hover:underline underline-offset-2'
@@ -105,8 +106,9 @@ export function useThemeClasses() {
     // Shadows
     shadowCard,
     shadowIcon,
-    // Skeleton
+    // Skeleton / muted
     bgSkeleton,
+    bgMuted,
     // Links / accent
     textLink,
     // App Icons

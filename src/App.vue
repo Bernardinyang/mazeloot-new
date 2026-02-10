@@ -1,5 +1,6 @@
 <template>
   <div class="min-h-screen">
+    <RouteLoadingOverlay :is-loading="isRouteLoading" />
     <RouterView />
     <Toaster />
     <PWAInstallPrompt />
@@ -21,6 +22,8 @@
 <script setup>
 import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
+import { isRouteLoading } from '@/shared/router'
+import RouteLoadingOverlay from '@/shared/components/organisms/RouteLoadingOverlay.vue'
 import Toaster from '@/shared/components/organisms/Toaster.vue'
 import UploadQueueButton from '@/shared/components/organisms/UploadQueueButton.vue'
 import BackgroundUploadQueueModal from '@/shared/components/organisms/BackgroundUploadQueueModal.vue'

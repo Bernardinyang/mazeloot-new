@@ -11,7 +11,7 @@
         </Button>
       </div>
 
-      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-6']">
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-4 sm:p-6']">
         <div class="flex items-center gap-3">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <span :class="['text-sm', theme.textSecondary]">Loading…</span>
@@ -19,7 +19,7 @@
       </div>
 
       <template v-else-if="request">
-        <Card class="p-6 rounded-xl border border-border bg-card shadow-sm">
+        <Card class="p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <h2 :class="['text-xl font-semibold', theme.textPrimary]">Request</h2>
             <Badge :variant="request.status === 'pending' ? 'secondary' : 'default'">{{ request.status }}</Badge>

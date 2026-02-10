@@ -16,6 +16,7 @@ import { ref, watch, computed } from 'vue'
  */
 export function useAsyncPagination(fetchFn, options = {}) {
   const { initialPage = 1, initialPerPage = 10, autoFetch = true, watchForReset = [] } = options
+  const initialLoading = options.initialLoading ?? !autoFetch
 
   // Pagination state
   const currentPage = ref(initialPage)
@@ -27,9 +28,9 @@ export function useAsyncPagination(fetchFn, options = {}) {
     totalPages: 1,
   })
 
-  // Data and loading state
+  // Data and loading state - show loader on mount until first fetch completes when autoFetch is false
   const data = ref([])
-  const isLoading = ref(false)
+  const isLoading = ref(initialLoading)
   const error = ref(null)
 
   /**

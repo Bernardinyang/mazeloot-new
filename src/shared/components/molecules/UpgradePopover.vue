@@ -60,9 +60,11 @@ import { Rocket } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useNavigation } from '@/shared/composables/useNavigation'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
+const { navigateTo } = useNavigation()
 
 const props = defineProps({
   modelValue: {
@@ -79,8 +81,8 @@ const isOpen = computed({
 })
 
 const handleUpgrade = () => {
-  // TODO: Implement upgrade logic
-  toast.success('Redirecting to upgrade page...')
   isOpen.value = false
+  navigateTo({ name: 'memora-pricing' })
+  toast.success('Redirecting to upgrade page...')
 }
 </script>

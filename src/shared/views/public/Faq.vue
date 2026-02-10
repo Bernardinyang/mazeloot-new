@@ -73,7 +73,7 @@
 
           <!-- CTA Section -->
           <div class="mt-16 text-center">
-            <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-8 sm:p-10 dark:shadow-2xl light:shadow-xl light:ring-1 light:ring-gray-200/50">
+            <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 dark:shadow-2xl light:shadow-xl light:ring-1 light:ring-gray-200/50">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-500/5 via-transparent to-rose-500/5" />
               <div class="relative">
                 <h2 class="text-2xl sm:text-3xl font-bold dark:text-white light:text-gray-900 mb-3">Still have questions?</h2>

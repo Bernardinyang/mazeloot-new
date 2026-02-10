@@ -3,7 +3,7 @@
     <!-- Header -->
     <header
       :class="[
-        'sticky top-0 z-50 flex items-center justify-between px-6 py-4 backdrop-blur-md',
+        'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
         theme.borderPrimary,
         theme.bgHeader,
         theme.transition,
@@ -65,35 +65,67 @@
             <template v-if="hasMemora">
               <DropdownMenuItem
                 v-if="canAccessCollection"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click="openCreateDialog('collection')"
+                :class="[
+                  collectionLimitReached ? 'opacity-50 cursor-not-allowed' : theme.textPrimary,
+                  collectionLimitReached ? '' : theme.bgButtonHover,
+                  collectionLimitReached ? '' : 'cursor-pointer',
+                ]"
+                :disabled="collectionLimitReached"
+                @click="!collectionLimitReached && openCreateDialog('collection')"
               >
                 <Folder class="h-4 w-4 text-blue-400" />
                 <span>Collection</span>
+                <span v-if="collectionLimitReached" class="ml-auto text-xs text-amber-600 dark:text-amber-400">
+                  Limit reached
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 v-if="canAccessSelection || canAccessCollection"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click="openCreateDialog('project')"
+                :class="[
+                  projectLimitReached ? 'opacity-50 cursor-not-allowed' : theme.textPrimary,
+                  projectLimitReached ? '' : theme.bgButtonHover,
+                  projectLimitReached ? '' : 'cursor-pointer',
+                ]"
+                :disabled="projectLimitReached"
+                @click="!projectLimitReached && openCreateDialog('project')"
               >
                 <FolderKanban class="h-4 w-4 text-green-400" />
                 <span>Project</span>
+                <span v-if="projectLimitReached" class="ml-auto text-xs text-amber-600 dark:text-amber-400">
+                  Limit reached
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 v-if="canAccessSelection"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click="openCreateDialog('selection')"
+                :class="[
+                  selectionLimitReached ? 'opacity-50 cursor-not-allowed' : theme.textPrimary,
+                  selectionLimitReached ? '' : theme.bgButtonHover,
+                  selectionLimitReached ? '' : 'cursor-pointer',
+                ]"
+                :disabled="selectionLimitReached"
+                @click="!selectionLimitReached && openCreateDialog('selection')"
               >
                 <CheckSquare class="h-4 w-4 text-pink-400" />
                 <span>Selection</span>
+                <span v-if="selectionLimitReached" class="ml-auto text-xs text-amber-600 dark:text-amber-400">
+                  Limit reached
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 v-if="canAccessProofing"
-                :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-                @click="openCreateDialog('proofing')"
+                :class="[
+                  proofingLimitReached ? 'opacity-50 cursor-not-allowed' : theme.textPrimary,
+                  proofingLimitReached ? '' : theme.bgButtonHover,
+                  proofingLimitReached ? '' : 'cursor-pointer',
+                ]"
+                :disabled="proofingLimitReached"
+                @click="!proofingLimitReached && openCreateDialog('proofing')"
               >
                 <Eye class="h-4 w-4 text-orange-400" />
                 <span>Proofing</span>
+                <span v-if="proofingLimitReached" class="ml-auto text-xs text-amber-600 dark:text-amber-400">
+                  Limit reached
+                </span>
               </DropdownMenuItem>
               <DropdownMenuItem
                 v-if="canAccessRawFiles"
@@ -215,7 +247,7 @@
           </div>
 
           <!-- Content -->
-          <div class="relative z-10 p-6 sm:p-8">
+          <div class="relative z-10 p-4 sm:p-6 md:p-8">
             <div v-if="isLoading" class="animate-pulse">
               <div class="flex flex-col sm:flex-row items-center sm:items-end gap-6">
                 <div :class="['h-32 w-32 rounded-full', theme.bgSkeleton]"></div>
@@ -907,27 +939,6 @@
               </div>
             </div>
           </DashboardCard>
-
-          <!-- Limit reached upgrade banner -->
-          <div
-            v-if="showLimitUpgradeBanner"
-            class="rounded-xl p-4 flex items-center justify-between gap-4 bg-amber-500/10 dark:bg-amber-500/10 border border-amber-500/30"
-          >
-            <p class="text-sm text-amber-800 dark:text-amber-200">
-              <span v-if="projectLimitReached && collectionLimitReached">
-                Project and collection limits reached. Upgrade for more.
-              </span>
-              <span v-else-if="projectLimitReached">
-                Project limit ({{ projectCount }}/{{ projectLimit }}) reached. Upgrade for more projects.
-              </span>
-              <span v-else>
-                Collection limit ({{ collectionCount }}/{{ collectionLimit }}) reached. Upgrade for more collections.
-              </span>
-            </p>
-            <RouterLink :to="{ name: 'memora-pricing' }">
-              <Button size="sm" variant="outline">Upgrade</Button>
-            </RouterLink>
-          </div>
         </div>
 
         <!-- Recent Collections and Projects - Side by Side -->
@@ -1091,10 +1102,12 @@
             <EmptyState
               :icon="FolderKanban"
               action-label="Create Project"
+              :action-disabled="projectLimitReached"
               description="Organize your work by creating your first project"
               icon-bg-class="bg-green-500/20"
               icon-class="text-green-400"
               message="No projects yet"
+              @action="!projectLimitReached && openCreateDialog('project')"
             />
           </div>
           <div v-else class="space-y-3">
@@ -1170,7 +1183,7 @@
             <div v-if="recentSelections.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="CheckSquare"
-                action-label="Create Selection"
+                :action-label="selectionLimitReached ? undefined : 'Create Selection'"
                 description="Create a selection to let clients choose their favorite photos"
                 icon-bg-class="bg-pink-500/20"
                 icon-class="text-pink-400"
@@ -1251,7 +1264,7 @@
             <div v-if="recentProofing.length === 0" class="text-center py-8">
               <EmptyState
                 :icon="Eye"
-                :action-label="canAccessProofing ? 'Create Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
+                :action-label="proofingLimitReached ? undefined : (canAccessProofing ? 'Create Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`)"
                 description="Create a proofing phase to collect client feedback and approvals"
                 icon-bg-class="bg-orange-500/20"
                 icon-class="text-orange-400"
@@ -1518,7 +1531,7 @@ import CreateRawFileDialog from '@/domains/memora/components/organisms/CreateRaw
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const { navigateTo } = useNavigation()
-const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt, recommendedTierDisplayName, tierDisplayName } = useMemoraFeatures()
+const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt, recommendedTierDisplayName, tierDisplayName, features, featureLabel } = useMemoraFeatures()
 useThemeStore() // Initialize theme store for reactivity
 const theme = useThemeClasses()
 
@@ -1655,10 +1668,6 @@ const handleAppSwitch = product => {
   handleProductClick(product)
 }
 
-// const handleAppClick = (_app) => {
-//   // TODO
-// }
-
 const userStore = useUserStore()
 const productsStore = useProductsStore()
 const galleryStore = useGalleryStore()
@@ -1741,7 +1750,7 @@ const handleCreateProject = async (data) => {
     await fetchProjects()
     // Navigate to project dashboard
     if (project?.uuid || project?.id) {
-      navigateTo({ name: 'projectDashboard', params: { projectId: project.uuid || project.id } })
+      navigateTo({ name: 'projectDashboard', params: { id: project.id ?? project.uuid } })
     }
   } catch (error) {
     console.error('Failed to create project:', error)
@@ -1776,6 +1785,7 @@ const hasPaidPlan = computed(() => {
   const t = memoraTier.value
   return t !== 'starter' && t !== null && t !== undefined
 })
+const FEATURE_SUMMARY_ORDER = ['proofing', 'raw_files']
 const tierSummary = computed(() => {
   const parts = []
   parts.push(formatBytes(totalStorage.value) + ' storage')
@@ -1788,6 +1798,11 @@ const tierSummary = computed(() => {
     parts.push(`${collectionCount.value} / ${collectionLimit.value} collections`)
   } else {
     parts.push(`${collectionCount.value} collections`)
+  }
+  const enabled = (features.value || []).filter((f) => FEATURE_SUMMARY_ORDER.includes(f))
+  if (enabled.length) {
+    const ordered = FEATURE_SUMMARY_ORDER.filter((f) => enabled.includes(f))
+    parts.push(ordered.map((f) => featureLabel(f)).join(', '))
   }
   return parts.join(' · ')
 })
@@ -1886,6 +1901,10 @@ const projectCount = ref(0)
 const projectLimit = ref(null)
 const collectionCount = ref(0)
 const collectionLimit = ref(null)
+const proofingCount = ref(0)
+const proofingLimit = ref(null)
+const selectionCount = ref(0)
+const selectionLimit = ref(null)
 const freeStorage = computed(() => totalStorage.value - usedStorage.value)
 const storagePercentage = computed(() => {
   if (totalStorage.value === 0) return 0
@@ -1904,7 +1923,19 @@ const collectionLimitReached = computed(() => {
   return collectionCount.value >= limit
 })
 
-const showLimitUpgradeBanner = computed(() => projectLimitReached.value || collectionLimitReached.value)
+const proofingLimitReached = computed(() => {
+  const limit = proofingLimit.value
+  if (limit == null) return false
+  return proofingCount.value >= limit
+})
+
+const selectionLimitReached = computed(() => {
+  const limit = selectionLimit.value
+  if (limit == null) return false
+  return selectionCount.value >= limit
+})
+
+const showLimitUpgradeBanner = computed(() => projectLimitReached.value || proofingLimitReached.value || selectionLimitReached.value)
 
 // Format bytes helper
 const formatBytes = bytes => {
@@ -1990,6 +2021,10 @@ const fetchStorage = async () => {
     projectLimit.value = storageData.project_limit ?? null
     collectionCount.value = storageData.collection_count ?? 0
     collectionLimit.value = storageData.collection_limit ?? null
+    proofingCount.value = storageData.proofing_count ?? 0
+    proofingLimit.value = storageData.proofing_limit ?? null
+    selectionCount.value = storageData.selection_count ?? 0
+    selectionLimit.value = storageData.selection_limit ?? null
     if (userStore.user && (storageData.memora_features || storageData.memora_capabilities)) {
       userStore.updateUser({
         ...(storageData.memora_features && { memora_features: storageData.memora_features }),

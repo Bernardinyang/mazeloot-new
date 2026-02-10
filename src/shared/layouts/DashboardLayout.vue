@@ -206,8 +206,8 @@
 
       <div
         :class="[
-          'flex min-w-0 flex-1 flex-col gap-4 p-4 md:p-6 lg:p-10 rounded-bl-lg',
-          'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-4 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 lg:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
+          'flex min-w-0 flex-1 flex-col gap-4 p-3 sm:p-4 md:p-6 lg:p-10 rounded-bl-lg pb-[calc(1rem+env(safe-area-inset-bottom))]',
+          'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-3 sm:p-4 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 lg:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
           theme.bgFooter,
           theme.transitionColors,
         ]"

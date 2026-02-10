@@ -24,7 +24,7 @@
         @update:view-mode="viewMode = $event"
       >
         <template #actions>
-          <UpgradeGate feature="proofing">
+          <UpgradeGate v-if="!proofingLimitReached" feature="proofing">
             <Button
               variant="accent"
               :icon="Plus"
@@ -36,20 +36,24 @@
         </template>
       </PageHeader>
 
+      <PlanLimitBanner v-if="proofingLimitReached">
+        Proofing limit ({{ proofingCount }}/{{ proofingLimit }}) reached. Upgrade your plan for more proofing phases.
+      </PlanLimitBanner>
+
       <!-- Proofing Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
-        <LoadingState v-if="isLoading" message="Loading proofing..." />
+        <LoadingState v-if="isLoading" variant="skeleton" />
 
         <!-- Empty State -->
         <EmptyState
           v-else-if="proofing.length === 0"
           :icon="Eye"
           :action-icon="Plus"
-          :action-label="canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
+          :action-label="proofingLimitReached ? undefined : (canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`)"
           description="Create a proofing phase to allow clients to review and provide feedback on media."
           message="No proofing found"
-          @action="canAccessProofing ? handleCreateProofing : () => showUpgradePrompt('proofing')"
+          @action="handleEmptyStateAction"
         />
 
         <!-- Proofing Grid -->
@@ -86,11 +90,11 @@
         :loading="isLoading"
         :selected-items="selectedProofing"
         :show-view-details="true"
-        :empty-action-label="canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`"
+        :empty-action-label="proofingLimitReached ? undefined : (canAccessProofing ? 'Create New Proofing' : `Upgrade to ${recommendedTierDisplayName('proofing')}`)"
         empty-message="No proofing found"
         @delete="handleDeleteProofing"
         @edit="handleEditProofing"
-        @empty-action="canAccessProofing ? handleCreateProofing : () => showUpgradePrompt('proofing')"
+        @empty-action="handleEmptyStateAction"
         @item-click="handleProofingClick"
         @select="handleSelectProofing"
         @star-click="toggleStar"
@@ -155,7 +159,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Eye, Plus } from '@/shared/utils/lucideAnimated'
 import { useRouter } from 'vue-router'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
@@ -179,11 +183,34 @@ import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { toast } from '@/shared/utils/toast'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const proofingStore = useProofingStore()
 const { handleError } = useErrorHandler()
+const authApi = useAuthApi()
+
+const proofingCount = ref(0)
+const proofingLimit = ref(null)
+const proofingLimitReached = computed(() => {
+  const limit = proofingLimit.value
+  if (limit == null) return false
+  return proofingCount.value >= limit
+})
+
+const refreshStorageData = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    proofingCount.value = storageData.proofing_count ?? 0
+    proofingLimit.value = storageData.proofing_limit ?? null
+  } catch (error) {
+    console.error('Failed to fetch storage data:', error)
+  }
+}
+
+const onStorageShouldRefresh = () => refreshStorageData()
 
 // View mode and sorting - use store for persistence
 const viewMode = computed({
@@ -291,8 +318,21 @@ const handleCreateProofing = () => {
   showCreateDialog.value = true
 }
 
+const handleEmptyStateAction = () => {
+  if (proofingLimitReached.value) {
+    return
+  }
+  if (canAccessProofing.value) {
+    handleCreateProofing()
+  } else {
+    showUpgradePrompt('proofing')
+  }
+}
+
 const handleCreateSuccess = async () => {
   showCreateDialog.value = false
+  await refreshStorageData()
+  window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
   await resetToFirstPage()
 }
 
@@ -376,6 +416,7 @@ const handleConfirmDelete = async () => {
     if (deleted) {
       activeProofing.value = null
       showDeleteModal.value = false
+      await refreshStorageData()
       await fetch()
     }
   } catch (error) {
@@ -391,6 +432,17 @@ const handleConfirmDelete = async () => {
 const handleConfirmDuplicate = async () => {
   if (!activeProofing.value) return
 
+  await refreshStorageData()
+
+  if (proofingLimitReached.value) {
+    toast.error('Proofing limit reached', {
+      description: `You've reached your proofing limit (${proofingCount.value}/${proofingLimit.value}). Upgrade your plan for more proofing phases.`,
+    })
+    showDuplicateModal.value = false
+    activeProofing.value = null
+    return
+  }
+
   const proofingId = activeProofing.value.id || activeProofing.value.uuid
   const proofingIdStr = String(proofingId)
   if (duplicatingProofingIds.value.has(proofingIdStr)) return
@@ -402,6 +454,7 @@ const handleConfirmDuplicate = async () => {
     toast.success('Proofing duplicated', {
       description: `${activeProofing.value.name || activeProofing.value.title} has been duplicated.`,
     })
+    await refreshStorageData()
     await fetch()
     showDuplicateModal.value = false
     activeProofing.value = null
@@ -486,6 +539,12 @@ const handleClearSearch = async () => {
 
 // Initial load
 onMounted(async () => {
+  await refreshStorageData()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   await fetch()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 </script>

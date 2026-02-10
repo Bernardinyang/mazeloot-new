@@ -162,7 +162,6 @@
 
 <script setup>
 import { ref, computed, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { Loader2, Eye, Pencil, AlertCircle } from '@/shared/utils/lucideAnimated'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import DetailSection from '@/shared/components/molecules/DetailSection.vue'
@@ -171,6 +170,7 @@ import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import ActionButtonGroup from '@/shared/components/molecules/ActionButtonGroup.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useNavigation } from '@/shared/composables/useNavigation'
 import { useGalleryStore } from '@/shared/stores/gallery'
 
 const props = defineProps({
@@ -187,7 +187,6 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue', 'edit'])
 
 const theme = useThemeClasses()
-const router = useRouter()
 const galleryStore = useGalleryStore()
 
 const folder = ref(null)
@@ -256,9 +255,11 @@ const formatKey = key => {
     .trim()
 }
 
+const { navigateTo } = useNavigation()
+
 const handleViewFolder = () => {
-  // TODO: Navigate to folder view
   isOpen.value = false
+  navigateTo({ name: 'starredFolders' })
 }
 
 const handleEdit = () => {

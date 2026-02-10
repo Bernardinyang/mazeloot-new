@@ -2,14 +2,14 @@
   <ProofingLayout :is-loading="isLoading" :proofing="proofing" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
+        <div v-if="isLoading" class="p-4 sm:p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
             <p :class="theme.textSecondary" class="text-sm">Loading settings...</p>
           </div>
         </div>
 
-        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-else class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -35,7 +35,7 @@
             <!-- Proofing Name -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -56,7 +56,7 @@
             <!-- Proofing Description -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -86,7 +86,7 @@
             <!-- Proofing Color -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -123,7 +123,7 @@
             <div
               v-if="proofing?.coverPhotoUrl || proofing?.cover_photo_url"
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-5 p-6 rounded-2xl border-2 transition-shadow duration-300"
+              class="space-y-5 p-4 sm:p-6 rounded-2xl border-2 transition-shadow duration-300"
             >
               <div class="mb-2">
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
@@ -146,7 +146,7 @@
             <!-- Allowed Emails -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -328,7 +328,7 @@
             <!-- Password Protection -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -423,7 +423,7 @@
             <!-- Max Revisions -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -456,7 +456,7 @@
             <!-- Typography -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -519,7 +519,7 @@
             <!-- Gallery Assist -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -540,7 +540,7 @@
             <!-- Display Preferences -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">

@@ -72,73 +72,26 @@ const userData = computed(() => {
   }
 })
 
-const navItems = [
-  {
-    name: 'dashboard',
-    label: 'Dashboard',
-    to: { name: 'admin-dashboard' },
-    icon: 'LayoutDashboard',
-  },
-  {
-    name: 'users',
-    label: 'Users',
-    to: { name: 'admin-users' },
-    icon: 'Users',
-  },
-  {
-    name: 'products',
-    label: 'Products',
-    to: { name: 'admin-products' },
-    icon: 'Package',
-  },
-  {
-    name: 'early-access',
-    label: 'Early Access',
-    to: { name: 'admin-early-access' },
-    icon: 'Star',
-  },
-  {
-    name: 'contact',
-    label: 'Contact',
-    to: { name: 'admin-contact' },
-    icon: 'Mail',
-  },
-  {
-    name: 'waitlist',
-    label: 'Waitlist',
-    to: { name: 'admin-waitlist' },
-    icon: 'ClipboardList',
-  },
-  {
-    name: 'newsletter',
-    label: 'Newsletter',
-    to: { name: 'admin-newsletter' },
-    icon: 'Mail',
-  },
-  {
-    name: 'analytics',
-    label: 'Analytics',
-    to: { name: 'admin-analytics' },
-    icon: 'BarChart3',
-  },
-  {
-    name: 'activity-logs',
-    label: 'Activity Logs',
-    icon: 'FileText',
-    children: [
-      {
-        name: 'user-activity-logs',
-        label: 'User Activity',
-        to: { name: 'admin-activity-logs-users' },
-        icon: 'User',
-      },
-      {
-        name: 'admin-activity-logs',
-        label: 'Admin Activity',
-        to: { name: 'admin-activity-logs-admins' },
-        icon: 'Shield',
-      },
-    ],
-  },
-]
+const navItems = computed(() => {
+  const activityChildren = [
+    { name: 'user-activity-logs', label: 'User Activity', to: { name: 'admin-activity-logs-users' }, icon: 'User' },
+    { name: 'admin-activity-logs', label: 'Admin Activity', to: { name: 'admin-activity-logs-admins' }, icon: 'Shield' },
+  ]
+  if (userStore.isSuperAdmin) {
+    activityChildren.push({ name: 'sensitive-activity-logs', label: 'Sensitive Actions', to: { name: 'admin-activity-logs-sensitive' }, icon: 'AlertTriangle' })
+  }
+  return [
+    { name: 'dashboard', label: 'Dashboard', to: { name: 'admin-dashboard' }, icon: 'LayoutDashboard' },
+    { name: 'users', label: 'Users', to: { name: 'admin-users' }, icon: 'Users' },
+    { name: 'products', label: 'Products', to: { name: 'admin-products' }, icon: 'Package' },
+    { name: 'early-access', label: 'Early Access', to: { name: 'admin-early-access' }, icon: 'Star' },
+    { name: 'contact', label: 'Contact', to: { name: 'admin-contact' }, icon: 'Mail' },
+    { name: 'waitlist', label: 'Waitlist', to: { name: 'admin-waitlist' }, icon: 'ClipboardList' },
+    { name: 'newsletter', label: 'Newsletter', to: { name: 'admin-newsletter' }, icon: 'Mail' },
+    { name: 'health', label: 'Health', to: { name: 'admin-health' }, icon: 'Heart' },
+    { name: 'analytics', label: 'Analytics', to: { name: 'admin-analytics' }, icon: 'BarChart3' },
+    { name: 'system', label: 'System', to: { name: 'admin-system' }, icon: 'Server' },
+    { name: 'activity-logs', label: 'Activity Logs', icon: 'FileText', children: activityChildren },
+  ]
+})
 </script>

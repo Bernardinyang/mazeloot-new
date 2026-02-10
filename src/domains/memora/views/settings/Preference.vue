@@ -21,21 +21,21 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-20">
-        <Loader2 class="h-8 w-8 animate-spin" :class="theme.textTertiary" />
+      <div v-if="isLoading" class="py-20">
+        <FormSkeleton :rows="5" />
       </div>
 
       <!-- Content -->
       <div v-else class="space-y-6">
         <!-- Collection Display Settings Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Collection Display</h2>
             <p class="text-sm" :class="theme.textSecondary">
               Configure how your collections are displayed and indexed
             </p>
-            <PlanLimitBanner v-if="!collectionDisplayEnabled" class="mt-3">
-              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            <PlanLimitBanner v-if="!collectionDisplayEnabled" feature="collection_display_enabled" class="mt-3">
+              Not available on your plan.
             </PlanLimitBanner>
           </div>
 
@@ -94,14 +94,14 @@
         </div>
 
         <!-- Photo Quality Settings Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Photo Quality</h2>
             <p class="text-sm" :class="theme.textSecondary">
               Configure image processing and format support
             </p>
-            <PlanLimitBanner v-if="!photoQualityEnabled" class="mt-3">
-              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            <PlanLimitBanner v-if="!photoQualityEnabled" feature="photo_quality_enabled" class="mt-3">
+              Not available on your plan.
             </PlanLimitBanner>
           </div>
 
@@ -167,14 +167,14 @@
         </div>
 
         <!-- Legal Documents Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Legal Documents</h2>
             <p class="text-sm" :class="theme.textSecondary">
               Set up terms of service and privacy policy for your collections
             </p>
-            <PlanLimitBanner v-if="!legalDocumentsEnabled" class="mt-3">
-              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            <PlanLimitBanner v-if="!legalDocumentsEnabled" feature="legal_documents_enabled" class="mt-3">
+              Not available on your plan.
             </PlanLimitBanner>
           </div>
 
@@ -338,7 +338,7 @@
         </div>
 
         <!-- Regional Settings Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Regional Settings</h2>
             <p class="text-sm" :class="theme.textSecondary">
@@ -440,6 +440,7 @@ import {
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Button } from '@/shared/components/shadcn/button'
 import UpgradePopover from '@/shared/components/molecules/UpgradePopover.vue'
+import FormSkeleton from '@/shared/components/molecules/FormSkeleton.vue'
 import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSettingsApi } from '@/domains/memora/api/settings'
@@ -472,7 +473,7 @@ const timezone = ref('UTC')
 const showRawPhotoPopover = ref(false)
 
 // Loading states
-const isLoading = ref(false)
+const isLoading = ref(true)
 const isSaving = ref(false)
 
 // Original values for change tracking

@@ -25,6 +25,7 @@
       >
         <template #actions>
           <Button
+            v-if="canAddPreset"
             variant="ghost"
             size="sm"
             :class="['text-sm', theme.textSecondary, theme.bgButtonHover]"
@@ -34,6 +35,7 @@
           </Button>
 
           <Button
+            v-if="!collectionLimitReached"
             variant="accent"
             :icon="Plus"
             @click="handleCreateCollection"
@@ -43,11 +45,15 @@
         </template>
       </PageHeader>
 
+      <PlanLimitBanner v-if="collectionLimitReached">
+        Collection limit ({{ collectionCount }}/{{ collectionLimit }}) reached. Upgrade your plan for more collections.
+      </PlanLimitBanner>
+
       <!-- Collections Grid View -->
       <div v-if="viewMode === 'grid'">
-        <!-- Loading State -->
+        <!-- Loading State - show until first fetch completes -->
         <div
-          v-if="isLoadingCollections"
+          v-if="!hasLoadedOnce || isLoadingCollections"
           class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
         >
           <div
@@ -80,7 +86,7 @@
         >
           <EmptyState
             message="No collections found"
-            action-label="Create New Collection"
+            :action-label="collectionLimitReached ? undefined : 'Create New Collection'"
             :icon="Folder"
             :action-icon="Plus"
             @action="handleCreateCollection"
@@ -142,10 +148,10 @@
       <CollectionsTable
         v-else
         :items="sortedCollections"
-        :loading="isLoadingCollections"
+        :loading="!hasLoadedOnce || isLoadingCollections"
         :selected-items="selectedCollections"
         empty-message="No collections found"
-        empty-action-label="Create New Collection"
+        :empty-action-label="collectionLimitReached ? undefined : 'Create New Collection'"
         :empty-icon="Folder"
         :subtitle-separator="subtitleSeparator"
         @select="handleSelectCollection"
@@ -261,7 +267,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { ChevronDown, Folder, FolderPlus, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -287,12 +293,37 @@ import { useProjectStore } from '@/domains/memora/stores/project'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { useRouter } from 'vue-router'
 import { toast } from '@/shared/utils/toast'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const theme = useThemeClasses()
+const { canAddPreset } = useMemoraFeatures()
 const router = useRouter()
 const galleryStore = useGalleryStore()
 const projectStore = useProjectStore()
 const { handleError } = useErrorHandler()
+const authApi = useAuthApi()
+
+const collectionCount = ref(0)
+const collectionLimit = ref(null)
+const collectionLimitReached = computed(() => {
+  const limit = collectionLimit.value
+  if (limit == null) return false
+  return collectionCount.value >= limit
+})
+
+const refreshStorageData = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    collectionCount.value = storageData.collection_count ?? 0
+    collectionLimit.value = storageData.collection_limit ?? null
+  } catch (error) {
+    console.error('Failed to fetch storage data:', error)
+  }
+}
+
+const onStorageShouldRefresh = () => refreshStorageData()
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -314,6 +345,7 @@ const selectedFolderId = ref(null)
 // Computed collections from store
 const collections = computed(() => galleryStore.collections)
 const isLoadingCollections = computed(() => galleryStore.isLoading)
+const hasLoadedOnce = ref(false)
 // const collectionsError = computed(() => galleryStore.error) // Unused for now
 
 // Projects
@@ -443,6 +475,7 @@ const handleCreateFolderSubmit = async data => {
     // The optimistic update already adds it to the collections array
     // No need to refetch since the store is reactive and will update the UI
 
+    await refreshStorageData()
     toast.success('Folder created', {
       description: 'Your new folder has been created.',
     })
@@ -458,6 +491,8 @@ const handleCreateCollectionSubmit = async data => {
   isCreatingCollection.value = true
   try {
     const newCollection = await galleryStore.createCollection(data)
+    await refreshStorageData()
+    window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
     toast.success('Collection created', {
       description: 'Your new collection has been created.',
     })
@@ -481,6 +516,8 @@ const handleCreateProjectSubmit = async data => {
   isCreatingProject.value = true
   try {
     const newProject = await projectStore.createProject(data)
+    await refreshStorageData()
+    window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
     toast.success('Project created', {
       description: 'Your new project has been created with selected phases.',
     })
@@ -624,12 +661,24 @@ const handleDuplicateCollection = collection => {
 const handleConfirmDuplicate = async () => {
   if (!collectionToDuplicate.value) return
 
+  await refreshStorageData()
+
+  if (collectionLimitReached.value) {
+    toast.error('Collection limit reached', {
+      description: `You've reached your collection limit (${collectionCount.value}/${collectionLimit.value}). Upgrade your plan for more collections.`,
+    })
+    showDuplicateModal.value = false
+    collectionToDuplicate.value = null
+    return
+  }
+
   const collectionId = String(collectionToDuplicate.value.id)
   if (duplicatingCollectionIds.value.has(collectionId)) return
   
   duplicatingCollectionIds.value.add(collectionId)
   try {
     await galleryStore.duplicateCollection(collectionId)
+    await refreshStorageData()
     toast.success('Collection duplicated', {
       description: `${collectionToDuplicate.value.name || collectionToDuplicate.value.title} has been duplicated.`,
     })
@@ -678,6 +727,7 @@ const handleConfirmDelete = async () => {
     toast.success('Collection deleted', {
       description: `${collectionToDelete.value.name || collectionToDelete.value.title} has been deleted.`,
     })
+    await refreshStorageData()
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: sortBy.value,
@@ -837,19 +887,26 @@ const handleClearSearch = async () => {
 
 // Fetch collections on mount
 onMounted(async () => {
+  await refreshStorageData()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   try {
     await galleryStore.fetchCollections({
       search: searchQuery.value,
       sortBy: mapSortToBackend(sortBy.value),
     })
   } catch (error) {
-    // Only show error if not aborted
     if (error?.name !== 'AbortError' && error?.message !== 'Request aborted') {
       handleError(error, {
         fallbackMessage: 'Failed to load collections.',
       })
     }
+  } finally {
+    hasLoadedOnce.value = true
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 
 // Watch for sort changes and refetch (search only on button click)

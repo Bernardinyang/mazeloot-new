@@ -2,7 +2,7 @@
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-if="isLoading" class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Skeleton Header -->
           <div class="mb-10">
             <Skeleton class="h-9 w-64 rounded-lg mb-2" />
@@ -14,7 +14,7 @@
             <div
               v-for="i in 3"
               :key="i"
-              class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
             >
               <div>
                 <Skeleton class="h-6 w-40 rounded-md mb-2" />
@@ -28,7 +28,7 @@
           </div>
         </div>
 
-        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-else class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <h1 :class="theme.textPrimary" class="text-2xl md:text-3xl font-bold mb-2">
@@ -45,7 +45,7 @@
             <!-- Collection Password -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -122,7 +122,7 @@
             <!-- Show on Homepage -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -145,7 +145,7 @@
             <!-- Client Exclusive Access -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-6 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+              class="space-y-6 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">

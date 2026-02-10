@@ -25,7 +25,7 @@
       <!-- Current Plan Banner -->
       <div
         v-if="currentTier !== 'starter'"
-        class="rounded-2xl p-6 border border-amber-500/20 dark:border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-amber-500/4 to-transparent dark:from-amber-500/15 dark:via-amber-500/8 dark:to-transparent shadow-sm"
+        class="rounded-2xl p-4 sm:p-6 border border-amber-500/20 dark:border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-amber-500/4 to-transparent dark:from-amber-500/15 dark:via-amber-500/8 dark:to-transparent shadow-sm"
       >
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div class="flex items-center gap-4">
@@ -115,9 +115,13 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="loading" class="flex flex-col items-center justify-center py-16 gap-3">
-        <Loader2 class="h-8 w-8 animate-spin text-muted-foreground" />
-        <p class="text-sm text-muted-foreground">Loading plans…</p>
+      <div v-if="loading" class="rounded-2xl border border-border bg-card overflow-hidden shadow-sm p-4 sm:p-8 space-y-6 animate-pulse">
+        <div class="h-8 w-48 rounded bg-muted" />
+        <div class="grid gap-4 sm:grid-cols-2">
+          <div class="h-24 rounded-lg bg-muted" />
+          <div class="h-24 rounded-lg bg-muted" />
+        </div>
+        <div class="h-12 w-32 rounded-lg bg-muted" />
       </div>
 
       <!-- Error State -->
@@ -187,7 +191,7 @@
             >
               Most Popular
             </div>
-            <div class="flex flex-col p-6">
+            <div class="flex flex-col p-4 sm:p-6">
               <h2 class="text-xl font-bold text-foreground">{{ tier.name }}</h2>
               <p class="mt-1.5 text-sm text-muted-foreground leading-relaxed">{{ tier.description }}</p>
               <div class="mt-4 space-y-1">
@@ -282,7 +286,7 @@
               >
                 Most Popular
               </div>
-              <div class="flex flex-col p-6">
+              <div class="flex flex-col p-4 sm:p-6">
                 <h2 class="text-xl font-bold text-foreground">{{ tier.name }}</h2>
                 <p class="mt-1.5 text-sm text-muted-foreground leading-relaxed">{{ tier.description }}</p>
                 <div class="mt-4 space-y-1">
@@ -369,7 +373,7 @@
               currentTier === 'byo' && 'border-emerald-500/40 dark:border-emerald-500/30 bg-emerald-500/5 dark:bg-emerald-500/10 border-solid',
             ]"
           >
-            <div class="flex flex-col p-6">
+            <div class="flex flex-col p-4 sm:p-6">
               <div class="flex flex-wrap items-start justify-between gap-2">
                 <h2 class="text-xl font-bold text-foreground">Build Your Own</h2>
                 <span

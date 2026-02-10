@@ -459,7 +459,7 @@ const router = useRouter()
 const adminApi = useAdminApi()
 const activeTab = ref(isValidTab(route.query.tab) ? route.query.tab : 'tiers')
 const tiers = ref([])
-const loadingTiers = ref(false)
+const loadingTiers = ref(true)
 const byoForm = ref({
   base_price_monthly_cents: 0,
   base_price_annual_cents: 0,
@@ -494,10 +494,10 @@ const byoProfitSummary = computed(() => {
   if (ma != null) parts.push(`${ma}% margin (yr)`)
   return parts.length ? parts.join(' · ') : null
 })
-const loadingByo = ref(false)
+const loadingByo = ref(true)
 const savingByo = ref(false)
 const addons = ref([])
-const loadingAddons = ref(false)
+const loadingAddons = ref(true)
 const addonDialogOpen = ref(false)
 const selectedAddon = ref(null)
 const isAddonCreate = ref(false)

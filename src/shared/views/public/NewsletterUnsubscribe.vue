@@ -51,7 +51,7 @@
             enter-from-class="opacity-0 translate-y-8 scale-95"
             enter-to-class="opacity-100 translate-y-0 scale-100"
           >
-            <div class="group relative rounded-3xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-8 sm:p-10 lg:p-12 shadow-2xl dark:shadow-black/20 light:shadow-gray-200/50 hover:shadow-3xl transition-all duration-300">
+            <div class="group relative rounded-3xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 lg:p-12 shadow-2xl dark:shadow-black/20 light:shadow-gray-200/50 hover:shadow-3xl transition-all duration-300">
               <div class="absolute inset-0 rounded-3xl bg-gradient-to-br from-red-500/5 via-transparent to-orange-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="absolute inset-0 rounded-3xl ring-1 ring-inset dark:ring-white/5 light:ring-gray-200/50" />
               <div class="relative">

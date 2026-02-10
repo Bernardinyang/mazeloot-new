@@ -48,7 +48,7 @@
         <!-- Current Plan Card -->
         <div
           :class="[
-            'rounded-2xl p-6 border',
+            'rounded-2xl p-4 sm:p-6 border',
             'bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent',
             'border-amber-500/30',
           ]"

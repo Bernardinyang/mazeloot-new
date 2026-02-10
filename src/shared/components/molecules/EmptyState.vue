@@ -13,6 +13,7 @@
       :size="actionSize || 'sm'"
       :class="actionClass"
       :style="actionStyle"
+      :disabled="actionDisabled"
       @click="$emit('action')"
       @mouseenter="handleMouseEnter"
       @mouseleave="handleMouseLeave"
@@ -75,6 +76,10 @@ const props = defineProps({
   actionHoverColor: {
     type: String,
     default: '',
+  },
+  actionDisabled: {
+    type: Boolean,
+    default: false,
   },
   containerClass: {
     type: String,

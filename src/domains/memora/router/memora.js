@@ -250,7 +250,7 @@ export const memoraRoutes = [
     },
   },
   {
-    path: '/memora/homepage',
+    path: '/memora/settings/homepage',
     name: 'homepageConfig',
     component: HomepageView,
     meta: {

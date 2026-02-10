@@ -125,7 +125,7 @@
             :class="[
               theme.borderSecondary,
               theme.bgCard,
-              'flex flex-col items-center gap-4 p-6 rounded-xl border-2',
+              'flex flex-col items-center gap-4 p-4 sm:p-6 rounded-xl border-2',
             ]"
           >
             <div

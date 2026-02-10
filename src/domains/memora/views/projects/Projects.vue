@@ -25,6 +25,7 @@
       >
         <template #actions>
           <Button
+            v-if="canAddPreset"
             variant="ghost"
             size="sm"
             :class="['text-sm', theme.textSecondary, theme.bgButtonHover]"
@@ -35,6 +36,7 @@
 
           <!-- New Project Button -->
           <Button
+            v-if="!projectLimitReached"
             variant="accent"
             @click="handleCreateProject"
           >
@@ -43,17 +45,21 @@
         </template>
       </PageHeader>
 
+      <PlanLimitBanner v-if="projectLimitReached">
+        Project limit ({{ projectCount }}/{{ projectLimit }}) reached. Upgrade your plan for more projects.
+      </PlanLimitBanner>
+
       <!-- Projects Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
-        <LoadingState v-if="isLoading" message="Loading projects..." />
+        <LoadingState v-if="isLoading" variant="skeleton" />
 
         <!-- Empty State -->
         <EmptyState
           v-else-if="sortedProjects.length === 0"
           message="No projects found"
           description="Create a project to organize your selections, proofing, and collections in one place."
-          action-label="Create New Project"
+          :action-label="projectLimitReached ? undefined : 'Create New Project'"
           :icon="Folder"
           action-icon="Plus"
           @action="handleCreateProject"
@@ -153,7 +159,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Folder, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
@@ -176,12 +182,37 @@ import { useProjectsApi } from '@/domains/memora/api/projects'
 import { useDeleteConfirmation } from '@/shared/composables/useDeleteConfirmation'
 import { toast } from '@/shared/utils/toast'
 import { storage } from '@/shared/utils/storage'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 
 const theme = useThemeClasses()
 const router = useRouter()
 const projectStore = useProjectStore()
 const { handleError } = useErrorHandler()
 const projectsApi = useProjectsApi()
+const authApi = useAuthApi()
+const { canAddPreset } = useMemoraFeatures()
+
+const projectCount = ref(0)
+const projectLimit = ref(null)
+const projectLimitReached = computed(() => {
+  const limit = projectLimit.value
+  if (limit == null) return false
+  return projectCount.value >= limit
+})
+
+const refreshStorageData = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    projectCount.value = storageData.project_count ?? 0
+    projectLimit.value = storageData.project_limit ?? null
+  } catch (error) {
+    console.error('Failed to fetch storage data:', error)
+  }
+}
+
+const onStorageShouldRefresh = () => refreshStorageData()
 
 // Storage keys
 const VIEW_MODE_STORAGE_KEY = 'mazeloot_projects_view_mode'
@@ -354,6 +385,8 @@ const handleCreateProjectSubmit = async data => {
   isCreatingProject.value = true
   try {
     const newProject = await projectStore.createProject(data)
+    await refreshStorageData()
+    window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
     toast.success('Project created', {
       description: 'Your new project has been created with selected phases.',
     })
@@ -470,6 +503,7 @@ const handleConfirmDeleteProject = async () => {
 
     closeDeleteModal()
 
+    await refreshStorageData()
     await fetch()
 
     const currentRoute = router.currentRoute.value
@@ -499,6 +533,8 @@ const handleViewPresets = () => {
 }
 
 onMounted(async () => {
+  await refreshStorageData()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   try {
     await fetch()
   } catch (error) {
@@ -506,5 +542,9 @@ onMounted(async () => {
       fallbackMessage: 'Failed to load projects.',
     })
   }
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 </script>

@@ -29,7 +29,7 @@
       <div aria-hidden="true" class="absolute inset-0 dark:bg-[linear-gradient(to_right,rgb(255_255_255/0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.05)_1px,transparent_1px)] light:bg-[linear-gradient(to_right,rgb(147_51_234/0.12)_1px,transparent_1px),linear-gradient(to_bottom,rgb(147_51_234/0.12)_1px,transparent_1px)] bg-[size:4rem_4rem]" />
       <div class="relative container mx-auto px-4 sm:px-6 lg:px-8">
         <div class="max-w-2xl mx-auto">
-          <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 dark:shadow-2xl light:shadow-xl light:ring-1 light:ring-gray-200/50">
+          <div class="relative rounded-2xl dark:bg-white/5 light:bg-white dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 dark:shadow-2xl light:shadow-xl light:ring-1 light:ring-gray-200/50">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-500/5 via-transparent to-rose-500/5" />
             <div class="relative">
               <form @submit.prevent="submitContact" class="space-y-6" :aria-busy="contactSubmitting">

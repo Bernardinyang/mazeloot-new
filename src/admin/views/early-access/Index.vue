@@ -55,7 +55,7 @@
               <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
               <span :class="['text-sm', theme.textSecondary]">Loading requests…</span>
             </div>
-            <div v-for="i in 3" :key="i" :class="['rounded-xl border border-border bg-card p-6 animate-pulse']">
+            <div v-for="i in 3" :key="i" :class="['rounded-xl border border-border bg-card p-4 sm:p-6 animate-pulse']">
               <div class="flex justify-between gap-4">
                 <div class="space-y-2 flex-1">
                   <div :class="['h-5 w-40 rounded', theme.bgSkeleton]" :style="{ animationDelay: `${i * 80}ms` }" />
@@ -77,7 +77,7 @@
               v-for="(req, index) in requests"
               :key="req.uuid"
               :class="[
-                'rounded-xl border border-border bg-card p-6 shadow-sm',
+                'rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm',
                 'transition-all duration-200 hover:shadow-md hover:border-border',
                 'animate-slide-up',
               ]"
@@ -123,7 +123,7 @@
       <!-- Active Users Tab -->
       <Transition name="fade-slide" mode="out-in">
         <section v-if="activeTab === 'users'" key="users" class="space-y-4" aria-label="Active users">
-          <div v-if="loadingUsers" class="rounded-xl border border-border bg-card overflow-hidden p-6">
+          <div v-if="loadingUsers" class="rounded-xl border border-border bg-card overflow-hidden p-4 sm:p-6">
             <div class="flex items-center gap-3 mb-4">
               <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
               <span :class="['text-sm', theme.textSecondary]">Loading users…</span>

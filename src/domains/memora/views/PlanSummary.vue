@@ -18,7 +18,7 @@
       </div>
 
       <template v-else-if="isPendingSource && pendingCheckout">
-        <div class="max-w-lg rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div class="max-w-lg rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
           <h2 class="text-xl font-semibold text-foreground">Complete your plan change</h2>
           <p class="text-sm text-muted-foreground mt-1">
             You have a pending {{ pendingCheckout.type }} to the {{ pendingTierName }} plan. Proceed to payment to complete.
@@ -56,7 +56,7 @@
           <!-- Left: Plan config & payment -->
           <div class="space-y-6">
             <!-- Plan card -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
               <div class="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h2 class="text-xl font-semibold text-foreground">{{ planName }}</h2>
@@ -123,7 +123,7 @@
             </div>
 
             <!-- Payment method -->
-            <div class="rounded-xl border border-border bg-card p-6 shadow-sm">
+            <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
               <h3 class="font-semibold text-foreground mb-4">Payment method</h3>
               <div class="grid gap-3 sm:grid-cols-2">
                 <button
@@ -166,7 +166,7 @@
           </div>
 
           <!-- Right: Order summary (Hostinger-style) -->
-          <div class="rounded-xl border border-border bg-card p-6 shadow-sm lg:sticky lg:top-24 lg:self-start">
+          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm lg:sticky lg:top-24 lg:self-start">
             <h3 class="text-lg font-bold text-foreground mb-6">Order summary</h3>
 
             <div v-if="orderSummaryLoading" class="flex items-center justify-center py-8">

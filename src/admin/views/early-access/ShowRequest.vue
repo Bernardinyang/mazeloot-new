@@ -11,7 +11,7 @@
         </Button>
       </div>
 
-      <div v-if="loading" :class="['rounded-xl border border-border bg-card overflow-hidden p-6', theme.bgCard]">
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card overflow-hidden p-4 sm:p-6', theme.bgCard]">
         <div class="flex flex-col items-center gap-4 mb-6">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <p :class="['text-sm', theme.textSecondary]">Loading request details…</p>
@@ -26,7 +26,7 @@
 
       <div v-else-if="request" class="space-y-6">
         <!-- Request Status Card -->
-        <Card :class="['p-6 rounded-xl border border-border bg-card shadow-sm animate-fade-in']">
+        <Card :class="['p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm animate-fade-in']">
           <div class="flex items-center justify-between mb-4">
             <h2 :class="['text-xl font-semibold', theme.textPrimary]">Request Information</h2>
           <Badge
@@ -56,7 +56,7 @@
       </Card>
 
       <!-- User Information Card -->
-      <Card :class="['p-6 rounded-xl border border-border bg-card shadow-sm', theme.textPrimary]">
+      <Card :class="['p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm', theme.textPrimary]">
         <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">User Information</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -86,13 +86,13 @@
       </Card>
 
       <!-- Request Reason Card -->
-      <Card v-if="request.reason" :class="['p-6 rounded-xl border border-border bg-card shadow-sm']">
+      <Card v-if="request.reason" :class="['p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm']">
         <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">Request Reason</h2>
         <p :class="['text-sm whitespace-pre-wrap', theme.textPrimary]">{{ request.reason }}</p>
       </Card>
 
       <!-- Rejection Reason Card -->
-      <Card v-if="request.rejection_reason" class="p-6 rounded-xl border border-destructive/50 bg-destructive/5">
+      <Card v-if="request.rejection_reason" class="p-4 sm:p-6 rounded-xl border border-destructive/50 bg-destructive/5">
         <h2 class="text-xl font-semibold mb-4 text-destructive">Rejection Reason</h2>
         <p :class="['text-sm whitespace-pre-wrap', theme.textPrimary]">{{ request.rejection_reason }}</p>
       </Card>
@@ -108,7 +108,7 @@
       </div>
 
       <!-- Early Access Details (if approved) -->
-      <Card v-if="request.status === 'approved' && earlyAccess" :class="['p-6 rounded-xl border border-border bg-card shadow-sm']">
+      <Card v-if="request.status === 'approved' && earlyAccess" :class="['p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm']">
         <h2 :class="['text-xl font-semibold mb-4', theme.textPrimary]">Granted Early Access</h2>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>

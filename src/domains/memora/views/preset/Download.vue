@@ -2,7 +2,7 @@
   <PresetLayout>
     <div
       :class="isSidebarCollapsed ? 'max-w-[calc(100vw-8rem)]' : 'max-w-3xl'"
-      class="mx-auto p-8 pb-16 transition-all duration-300"
+      class="mx-auto p-4 sm:p-8 pb-8 sm:pb-16 transition-all duration-300"
     >
       <div class="mb-10">
         <div class="flex items-center gap-3 mb-2">
@@ -35,7 +35,7 @@
           v-for="i in 5"
           :key="i"
           :class="[theme.borderSecondary, theme.bgCard]"
-          class="space-y-4 p-6 rounded-2xl border-2"
+          class="space-y-4 p-4 sm:p-6 rounded-2xl border-2"
         >
           <div class="space-y-2">
             <Skeleton class="h-5 w-32" />
@@ -97,7 +97,7 @@
               ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
+          class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -317,7 +317,7 @@
               ? 'ring-2 ring-accent/20 dark:ring-accent/20 shadow-sm border-accent/30'
               : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
+          class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-md"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -350,7 +350,7 @@
             theme.bgCard,
             formData.downloadPin ? 'ring-2 ring-accent/20 dark:ring-accent/20' : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
@@ -395,7 +395,7 @@
             theme.bgCard,
             formData.restrictToContacts ? 'ring-2 ring-accent/20 dark:ring-accent/20' : '',
           ]"
-          class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-200"
+          class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-200"
         >
           <h3 :class="theme.textPrimary" class="text-lg font-bold uppercase tracking-wide">
             Advanced Settings

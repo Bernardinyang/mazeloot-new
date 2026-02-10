@@ -6,6 +6,9 @@
     @update:model-value="$emit('update:open', $event)"
   >
     <form id="proofing-form" class="space-y-5" @submit.prevent="handleSubmit">
+      <PlanLimitBanner v-if="proofingLimitReached">
+        Proofing limit ({{ proofingCount }}/{{ proofingLimit }}) reached. Upgrade your plan for more proofing phases.
+      </PlanLimitBanner>
       <!-- Proofing Name -->
       <div class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-medium"> Proofing Name </label>
@@ -94,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -105,6 +108,8 @@ import { generateRandomColorFromPalette } from '@/shared/utils/colors'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { toast } from '@/shared/utils/toast'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const props = defineProps({
   open: {
@@ -118,6 +123,15 @@ const emit = defineEmits(['update:open', 'success'])
 const theme = useThemeClasses()
 const proofingStore = useProofingStore()
 const { handleError } = useErrorHandler()
+const authApi = useAuthApi()
+
+const proofingCount = ref(0)
+const proofingLimit = ref(null)
+const proofingLimitReached = computed(() => {
+  const limit = proofingLimit.value
+  if (limit == null) return false
+  return proofingCount.value >= limit
+})
 
 const getExistingColors = () => {
   return proofingStore.proofings.map(p => p.color).filter(Boolean)
@@ -135,17 +149,24 @@ const isSubmitting = ref(false)
 
 watch(
   () => props.open,
-  newValue => {
-    if (!newValue) {
+  async newValue => {
+    if (newValue) {
+      try {
+        const storageData = await authApi.getStorage()
+        proofingCount.value = storageData.proofing_count ?? 0
+        proofingLimit.value = storageData.proofing_limit ?? null
+      } catch (error) {
+        console.error('Failed to fetch storage data:', error)
+      }
+      // When opening, refresh color to avoid duplicates
+      formData.color = generateRandomColorFromPalette(getExistingColors())
+    } else {
       // Reset form when dialog closes
       formData.name = ''
       formData.description = ''
       formData.maxRevisions = 5
       formData.color = generateRandomColorFromPalette(getExistingColors())
       errors.value = {}
-    } else {
-      // When opening, refresh color to avoid duplicates
-      formData.color = generateRandomColorFromPalette(getExistingColors())
     }
   }
 )
@@ -160,6 +181,11 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   errors.value = {}
+
+  if (proofingLimitReached.value) {
+    errors.value.name = 'Proofing limit reached. Upgrade your plan for more proofing phases.'
+    return
+  }
 
   if (!formData.name.trim()) {
     errors.value.name = 'Proofing name is required'

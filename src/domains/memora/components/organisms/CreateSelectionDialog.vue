@@ -6,6 +6,9 @@
     @update:model-value="$emit('update:open', $event)"
   >
     <form id="selection-form" class="space-y-5" @submit.prevent="handleSubmit">
+      <PlanLimitBanner v-if="selectionLimitReached">
+        Selection limit ({{ selectionCount }}/{{ selectionLimit }}) reached. Upgrade your plan for more selection phases.
+      </PlanLimitBanner>
       <!-- Selection Name -->
       <div class="space-y-2">
         <label :class="theme.textPrimary" class="text-sm font-medium"> Selection Name </label>
@@ -78,7 +81,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -90,6 +93,8 @@ import { generateRandomColorFromPalette } from '@/shared/utils/colors'
 import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { toast } from '@/shared/utils/toast'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const props = defineProps({
   open: {
@@ -103,6 +108,15 @@ const emit = defineEmits(['update:open', 'success'])
 const theme = useThemeClasses()
 const selectionStore = useSelectionStore()
 const { handleError } = useErrorHandler()
+const authApi = useAuthApi()
+
+const selectionCount = ref(0)
+const selectionLimit = ref(null)
+const selectionLimitReached = computed(() => {
+  const limit = selectionLimit.value
+  if (limit == null) return false
+  return selectionCount.value >= limit
+})
 
 const getExistingColors = () => {
   return selectionStore.selections.map(s => s.color).filter(Boolean)
@@ -119,16 +133,23 @@ const isSubmitting = ref(false)
 
 watch(
   () => props.open,
-  newValue => {
-    if (!newValue) {
+  async newValue => {
+    if (newValue) {
+      try {
+        const storageData = await authApi.getStorage()
+        selectionCount.value = storageData.selection_count ?? 0
+        selectionLimit.value = storageData.selection_limit ?? null
+      } catch (error) {
+        console.error('Failed to fetch storage data:', error)
+      }
+      // When opening, refresh color to avoid duplicates
+      formData.color = generateRandomColorFromPalette(getExistingColors())
+    } else {
       // Reset form when dialog closes
       formData.name = ''
       formData.description = ''
       formData.color = generateRandomColorFromPalette(getExistingColors())
       errors.value = {}
-    } else {
-      // When opening, refresh color to avoid duplicates
-      formData.color = generateRandomColorFromPalette(getExistingColors())
     }
   }
 )
@@ -142,6 +163,11 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   errors.value = {}
+
+  if (selectionLimitReached.value) {
+    errors.value.name = 'Selection limit reached. Upgrade your plan for more selection phases.'
+    return
+  }
 
   if (!formData.name.trim()) {
     errors.value.name = 'Selection name is required'

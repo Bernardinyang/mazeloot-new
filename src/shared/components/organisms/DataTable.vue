@@ -7,7 +7,7 @@
       class="flex flex-wrap items-center gap-3 px-4 py-3 border-b"
     >
       <!-- Built-in search when searchValue is bound or searchable -->
-      <div v-if="showSearchInput" class="relative flex-1 min-w-[180px] max-w-sm">
+      <div v-if="showSearchInput" class="relative flex-1 min-w-0 sm:min-w-[180px] max-w-sm">
         <Search
           :class="theme.textTertiary"
           class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2"

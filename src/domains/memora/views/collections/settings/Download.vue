@@ -198,7 +198,7 @@
 
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-if="isLoading" class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Skeleton Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -213,7 +213,7 @@
             <div
               v-for="i in 3"
               :key="i"
-              class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
             >
               <div>
                 <Skeleton class="h-6 w-40 rounded-md mb-2" />
@@ -227,7 +227,7 @@
           </div>
         </div>
 
-        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-else class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">

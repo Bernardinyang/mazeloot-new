@@ -2,14 +2,14 @@
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-8 flex items-center justify-center min-h-[60vh]">
+        <div v-if="isLoading" class="p-4 sm:p-8 flex items-center justify-center min-h-[60vh]">
           <div class="text-center space-y-4">
             <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mx-auto" />
             <p :class="theme.textSecondary" class="text-sm">Loading email registrations...</p>
           </div>
         </div>
 
-        <div v-else class="p-6 md:p-8 transition-all duration-300">
+        <div v-else class="p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-8">
             <div class="flex items-center justify-between mb-2">
@@ -40,14 +40,14 @@
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300"
             >
               <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Total Emails</p>
               <p :class="theme.textPrimary" class="text-3xl font-bold">{{ totalEmails }}</p>
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300"
             >
               <p :class="theme.textSecondary" class="text-sm font-medium mb-2">This Week</p>
               <p :class="theme.textPrimary" class="text-3xl font-bold">
@@ -56,7 +56,7 @@
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300"
             >
               <p :class="theme.textSecondary" class="text-sm font-medium mb-2">This Month</p>
               <p :class="theme.textPrimary" class="text-3xl font-bold">
@@ -65,7 +65,7 @@
             </div>
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300"
             >
               <p :class="theme.textSecondary" class="text-sm font-medium mb-2">Verified</p>
               <p :class="theme.textPrimary" class="text-3xl font-bold">{{ verifiedCount }}</p>
@@ -219,7 +219,7 @@ const galleryStore = useGalleryStore()
 
 // Collection data
 const collection = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 // UI State
 const { isSidebarCollapsed } = useSidebarCollapse()
 

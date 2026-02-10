@@ -53,7 +53,7 @@ class ApiClient {
       const isMemoraPublic =
         currentPath.startsWith('/memora/closure-request') ||
         currentPath.startsWith('/memora/approval-request') ||
-        currentPath.startsWith('/memora/homepage') ||
+        (currentPath.startsWith('/memora/homepage') && !currentPath.startsWith('/memora/settings/homepage')) ||
         /^\/memora\/[^/]+\/(proofing|collection|selections|raw-files)(\/|$)/.test(currentPath)
       const isPublicRoute =
         currentPath.startsWith('/memora/client/') ||

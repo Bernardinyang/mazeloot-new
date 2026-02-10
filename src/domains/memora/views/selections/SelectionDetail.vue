@@ -53,7 +53,7 @@
         </div>
         <ContentLoader v-if="isLoading" message="Loading selection..." />
 
-        <div v-else class="p-8">
+        <div v-else class="p-4 sm:p-6 md:p-8">
           <!-- Section Header -->
           <div v-if="isLoadingMedia" class="mb-6">
             <div class="h-7 w-56 rounded bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"></div>
@@ -102,10 +102,10 @@
               :class="[
                 'grid gap-4',
                 gridSize === 'small'
-                  ? 'grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                  ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
                   : gridSize === 'medium'
-                    ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+                    ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                    : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
               ]"
             >
               <div
@@ -128,10 +128,10 @@
               :class="[
                 'grid gap-4',
                 gridSize === 'small'
-                  ? 'grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                  ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
                   : gridSize === 'medium'
-                    ? 'grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-                    : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+                    ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                    : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
               ]"
               name="media-grid"
               tag="div"

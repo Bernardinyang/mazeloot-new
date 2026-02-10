@@ -2,7 +2,7 @@
   <KnowledgeBaseLayout>
     <div class="space-y-8">
       <!-- Hero Section -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-600 p-8 md:p-12 shadow-2xl border-2 border-blue-400/30">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-500 to-cyan-600 p-4 sm:p-8 md:p-12 shadow-2xl border-2 border-blue-400/30">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20"></div>
         <div class="relative z-10 space-y-6" style="animation: fadeIn 0.6s ease-out;">
           <div class="flex items-center gap-4">
@@ -23,7 +23,7 @@
         <Card 
           v-for="(section, index) in sections" 
           :key="section.id" 
-          class="group p-6 space-y-4 border-2 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
+          class="group p-4 sm:p-6 space-y-4 border-2 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 cursor-pointer"
           :style="{ animation: `slideInUp 0.5s ease-out ${index * 100}ms both` }"
         >
           <div class="flex items-center gap-3">
@@ -41,7 +41,7 @@
       </div>
 
       <!-- Quick Links -->
-      <Card class="p-6 border-2 hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
+      <Card class="p-4 sm:p-6 border-2 hover:border-blue-200 dark:hover:border-blue-800 transition-colors">
         <h2 class="text-xl font-bold mb-4 text-foreground">Quick Links</h2>
         <div class="grid gap-3 md:grid-cols-2">
           <router-link

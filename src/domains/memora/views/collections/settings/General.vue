@@ -3,7 +3,7 @@
     <!-- Sidebar is unified in CollectionLayout -->
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-if="isLoading" class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Skeleton Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -15,21 +15,21 @@
 
           <!-- Skeleton Settings Sections -->
           <div class="space-y-6">
-            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+            <div class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
               <div>
                 <Skeleton class="h-6 w-32 rounded-md mb-2" />
                 <Skeleton class="h-3 w-80 rounded-md mb-3" />
               </div>
               <Skeleton class="h-10 w-64 rounded-md" />
             </div>
-            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+            <div class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
               <div>
                 <Skeleton class="h-6 w-40 rounded-md mb-2" />
                 <Skeleton class="h-3 w-72 rounded-md mb-3" />
               </div>
               <Skeleton class="h-10 w-64 rounded-md" />
             </div>
-            <div class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
+            <div class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70">
               <div>
                 <Skeleton class="h-6 w-36 rounded-md mb-2" />
                 <Skeleton class="h-3 w-96 rounded-md mb-3" />
@@ -42,7 +42,7 @@
           </div>
         </div>
 
-        <div v-else class="max-w-[50%] p-6 md:p-8 transition-all duration-300">
+        <div v-else class="max-w-full md:max-w-[50%] p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -68,7 +68,7 @@
             <!-- Name -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Name</h3>
@@ -88,7 +88,7 @@
             <!-- Event Date -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Event Date</h3>
@@ -119,7 +119,7 @@
             <div
               v-if="presets && presets.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Preset</h3>
@@ -179,7 +179,7 @@
             <div
               v-if="watermarks && watermarks.length > 0"
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">
@@ -231,7 +231,7 @@
             <!-- Description -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -262,7 +262,7 @@
             <!-- Email Registration -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -285,7 +285,7 @@
             <!-- Gallery Assist -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -308,7 +308,7 @@
             <!-- Slideshow -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -501,7 +501,7 @@
             <!-- Social Sharing -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div class="flex items-start justify-between gap-4">
                 <div class="flex-1">
@@ -521,7 +521,7 @@
             <!-- Language -->
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
+              class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-violet-500/30"
             >
               <div>
                 <h3 :class="theme.textPrimary" class="text-lg font-bold mb-1.5">Language</h3>

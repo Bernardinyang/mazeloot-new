@@ -1,15 +1,24 @@
 <template>
   <div class="flex-1 overflow-y-auto max-h-[calc(85vh-280px)]">
     <!-- Loading State -->
-    <div v-if="isLoading" class="flex flex-col items-center justify-center py-16 px-4">
-      <Loader2 class="h-8 w-8 animate-spin mb-3" :class="theme.textPrimary" />
-      <p :class="['text-sm', theme.textSecondary]">Loading results...</p>
+    <div v-if="isLoading" class="px-6 py-4 space-y-3">
+      <div v-for="i in 5" :key="i" class="flex items-center gap-3 rounded-lg p-2.5 animate-pulse" :class="theme.bgSkeleton">
+        <div :class="['h-10 w-10 rounded-lg shrink-0', theme.bgSkeleton]" />
+        <div class="flex-1 space-y-1.5">
+          <div :class="['h-3.5 w-32 rounded', theme.bgSkeleton]" />
+          <div :class="['h-3 w-48 rounded', theme.bgSkeleton]" />
+        </div>
+      </div>
     </div>
 
     <!-- Empty State -->
-    <div v-else-if="groupedResults.length === 0 && !isLoading" class="px-5 py-8">
-      <div class="border-2 border-dashed rounded-lg p-8 text-center" :class="[theme.borderSecondary]">
-        <p :class="['text-sm', theme.textSecondary]">Search results will show up here</p>
+    <div v-else-if="groupedResults.length === 0 && !isLoading" class="px-6 py-16">
+      <div class="flex flex-col items-center justify-center">
+        <div class="h-16 w-16 rounded-full bg-gradient-to-br from-accent/20 to-accent/10 flex items-center justify-center mb-4">
+          <Search class="h-8 w-8" :class="theme.textTertiary" />
+        </div>
+        <p :class="['text-sm font-medium', theme.textPrimary]">No results found</p>
+        <p :class="['text-xs mt-1', theme.textSecondary]">Try a different search term</p>
       </div>
     </div>
 
@@ -26,15 +35,15 @@
             <div
               :ref="el => setResultRef(el, productIndex, groupIndex, 0)"
               :class="[
-                'flex items-center gap-3 px-3 py-3 rounded-lg cursor-pointer transition-all border',
+                'flex items-center gap-3 px-4 py-3.5 rounded-xl cursor-pointer transition-all duration-200 border-2 shadow-sm',
                 selectedIndex === `${productIndex}-${groupIndex}-0`
-                  ? 'bg-primary/10 border-primary'
-                  : [theme.borderSecondary, 'hover:bg-muted/50'],
+                  ? 'bg-gradient-to-r from-accent/10 to-accent/5 border-accent shadow-md scale-[1.02]'
+                  : [theme.borderSecondary, 'hover:bg-muted/50 hover:shadow-md hover:scale-[1.01]'],
               ]"
               @click="$emit('select', group.items[0])"
               @mouseenter="$emit('hover', `${productIndex}-${groupIndex}-0`)"
             >
-              <div class="h-10 w-10 rounded-full flex items-center justify-center shrink-0 bg-orange-500">
+              <div class="h-11 w-11 rounded-xl flex items-center justify-center shrink-0 bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg">
                 <component :is="getIcon(group.items[0].type)" class="h-5 w-5 text-white" />
               </div>
               <div class="flex-1 min-w-0">
@@ -82,19 +91,20 @@
                 :key="item.id"
                 :ref="el => setResultRef(el, productIndex, groupIndex, productIndex === 0 && groupIndex === 0 ? itemIndex + 1 : itemIndex)"
                 :class="[
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all',
+                  'flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200',
                   selectedIndex === `${productIndex}-${groupIndex}-${productIndex === 0 && groupIndex === 0 ? itemIndex + 1 : itemIndex}`
-                    ? 'bg-primary/10'
-                    : 'hover:bg-muted/50',
+                    ? 'bg-gradient-to-r from-accent/10 to-accent/5 border-2 border-accent/30 shadow-md scale-[1.01]'
+                    : 'hover:bg-muted/50 hover:shadow-sm',
                 ]"
                 @click="$emit('select', item)"
                 @mouseenter="$emit('hover', `${productIndex}-${groupIndex}-${productIndex === 0 && groupIndex === 0 ? itemIndex + 1 : itemIndex}`)"
               >
                 <div
                   :class="[
-                    'h-9 w-9 flex items-center justify-center shrink-0',
+                    'h-10 w-10 flex items-center justify-center shrink-0 shadow-md transition-transform duration-200',
                     getIconBgColor(item.type),
                     getIconShape(item.type),
+                    selectedIndex === `${productIndex}-${groupIndex}-${productIndex === 0 && groupIndex === 0 ? itemIndex + 1 : itemIndex}` ? 'scale-110' : 'group-hover:scale-105',
                   ]"
                 >
                   <component :is="getIcon(item.type)" class="h-5 w-5 text-white" />
@@ -207,14 +217,14 @@ const getIcon = (type) => {
 
 const getIconBgColor = (type) => {
   const colors = {
-    collection: 'bg-blue-500',
-    project: 'bg-purple-500',
-    selection: 'bg-green-500',
-    proofing: 'bg-orange-500',
-    rawFile: 'bg-teal-500',
-    preset: 'bg-pink-500',
+    collection: 'bg-gradient-to-br from-blue-500 to-blue-600',
+    project: 'bg-gradient-to-br from-purple-500 to-purple-600',
+    selection: 'bg-gradient-to-br from-green-500 to-green-600',
+    proofing: 'bg-gradient-to-br from-orange-500 to-orange-600',
+    rawFile: 'bg-gradient-to-br from-teal-500 to-teal-600',
+    preset: 'bg-gradient-to-br from-pink-500 to-pink-600',
   }
-  return colors[type] || 'bg-gray-500'
+  return colors[type] || 'bg-gradient-to-br from-gray-500 to-gray-600'
 }
 
 const getIconShape = (type) => {

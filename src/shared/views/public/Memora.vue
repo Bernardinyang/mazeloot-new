@@ -36,7 +36,7 @@
             </p>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-cyan-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-cyan-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-cyan-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-cyan-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500/20 to-cyan-600/20 border border-cyan-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -50,7 +50,7 @@
                 </div>
               </div>
             </div>
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-pink-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-pink-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-pink-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-pink-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-600/20 border border-pink-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -64,7 +64,7 @@
                 </div>
               </div>
             </div>
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-sky-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-sky-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-sky-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-sky-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-sky-500/20 to-sky-600/20 border border-sky-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -78,7 +78,7 @@
                 </div>
               </div>
             </div>
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-indigo-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-indigo-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 border border-indigo-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -92,7 +92,7 @@
                 </div>
               </div>
             </div>
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-rose-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-rose-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-rose-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-rose-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-600/20 border border-rose-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -106,7 +106,7 @@
                 </div>
               </div>
             </div>
-            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 hover:border-indigo-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10">
+            <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 hover:border-indigo-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-indigo-500/10">
               <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
               <div class="relative flex flex-col gap-4">
                 <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/20 to-indigo-600/20 border border-indigo-500/30 group-hover:scale-110 transition-transform duration-300">
@@ -137,7 +137,7 @@
             </p>
           </div>
           <!-- Selection Phase -->
-          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl hover:border-accent-500/40 hover:shadow-accent-500/10 transition-all duration-300 hover:-translate-y-1">
+          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl hover:border-accent-500/40 hover:shadow-accent-500/10 transition-all duration-300 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div class="relative flex gap-6">
               <div class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-500/20 to-accent-600/20 border border-accent-500/40 text-accent-300 font-bold text-xl tabular-nums backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent-500/20">
@@ -161,7 +161,7 @@
           </div>
 
           <!-- Proofing Phase -->
-          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl hover:border-secondary-500/40 hover:shadow-secondary-500/10 transition-all duration-300 hover:-translate-y-1">
+          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl hover:border-secondary-500/40 hover:shadow-secondary-500/10 transition-all duration-300 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-secondary-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div class="relative flex gap-6">
               <div class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-secondary-500/20 to-secondary-600/20 border border-secondary-500/40 text-secondary-300 font-bold text-xl tabular-nums backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-secondary-500/20">
@@ -185,7 +185,7 @@
           </div>
 
           <!-- Collection Phase -->
-          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl hover:border-primary-500/40 hover:shadow-primary-500/10 transition-all duration-300 hover:-translate-y-1">
+          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl hover:border-primary-500/40 hover:shadow-primary-500/10 transition-all duration-300 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div class="relative flex gap-6">
               <div class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500/20 to-primary-600/20 border border-primary-500/40 text-primary-300 font-bold text-xl tabular-nums backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-primary-500/20">
@@ -209,7 +209,7 @@
           </div>
 
           <!-- Raw Files Phase -->
-          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl hover:border-accent-500/40 hover:shadow-accent-500/10 transition-all duration-300 hover:-translate-y-1">
+          <div class="group relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl hover:border-accent-500/40 hover:shadow-accent-500/10 transition-all duration-300 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-accent-500/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div class="relative flex gap-6">
               <div class="flex size-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-500/20 to-accent-600/20 border border-accent-500/40 text-accent-300 font-bold text-xl tabular-nums backdrop-blur-sm group-hover:scale-110 transition-transform duration-300 shadow-lg shadow-accent-500/20">
@@ -228,7 +228,7 @@
           </div>
 
           <!-- Benefits Section -->
-          <div class="relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-8 sm:p-10 shadow-2xl hover:border-emerald-500/30 transition-all duration-300">
+          <div class="relative rounded-2xl bg-white/5 dark:backdrop-blur-xl light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 p-4 sm:p-8 md:p-10 shadow-2xl hover:border-emerald-500/30 transition-all duration-300">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-transparent to-teal-500/10" />
             <div class="relative">
               <h2 class="text-2xl sm:text-3xl font-bold dark:text-white light:text-gray-900 mb-8 text-center dark:bg-gradient-to-r dark:from-white dark:to-gray-300 light:bg-gradient-to-r light:from-gray-900 light:to-gray-700 bg-clip-text text-transparent">Why creatives choose Memora</h2>

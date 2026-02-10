@@ -76,7 +76,7 @@
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
       </div>
-      <DialogContent class="sm:max-w-[420px] p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
+      <DialogContent class="sm:max-w-[420px] p-4 sm:p-8 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-2xl" :close-on-escape="false" :close-on-click-outside="false" :hideClose="true">
           <DialogHeader class="text-center space-y-1 mb-8">
             <DialogTitle class="text-2xl text-center font-serif tracking-wide text-gray-900 dark:text-gray-100">
               {{ collection?.name?.toUpperCase() || 'COLLECTION' }}

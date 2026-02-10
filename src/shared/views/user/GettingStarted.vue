@@ -23,7 +23,7 @@
         </div>
         
         <!-- Progress Indicator -->
-        <Card class="p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg animate-fade-in-up" style="animation-delay: 100ms;">
+        <Card class="p-4 sm:p-6 bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 border-2 border-gray-200 dark:border-gray-700 shadow-lg animate-fade-in-up" style="animation-delay: 100ms;">
           <div class="space-y-4">
           <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -98,7 +98,7 @@
               <StatusBadge :status="action.status" />
             </div>
             
-            <div class="relative p-6 space-y-4">
+            <div class="relative p-4 sm:p-6 space-y-4">
               <div class="flex flex-col items-center gap-3">
                 <div
                   :class="[
@@ -168,7 +168,7 @@
               ]"
             ></div>
             
-            <div class="relative p-6 space-y-4">
+            <div class="relative p-4 sm:p-6 space-y-4">
               <div
                 :class="[
                   'flex items-center justify-center w-14 h-14 rounded-xl shrink-0',

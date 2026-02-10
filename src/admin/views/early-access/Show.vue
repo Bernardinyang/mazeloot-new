@@ -16,7 +16,7 @@
         </Button>
       </header>
 
-      <div v-if="loading" :class="['rounded-xl border border-border bg-card overflow-hidden p-6', theme.bgCard]">
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card overflow-hidden p-4 sm:p-6', theme.bgCard]">
         <div class="flex flex-col items-center gap-4 mb-6">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <p :class="['text-sm', theme.textSecondary]">Loading…</p>
@@ -29,7 +29,7 @@
         </dl>
       </div>
 
-      <div v-else-if="earlyAccess" :class="['rounded-xl border border-border bg-card p-6 shadow-sm']">
+      <div v-else-if="earlyAccess" :class="['rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm']">
         <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div class="space-y-1">
             <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">User</dt>
@@ -50,7 +50,7 @@
         </dl>
       </div>
 
-      <div v-else :class="['rounded-xl border border-border bg-card p-8 text-center']">
+      <div v-else :class="['rounded-xl border border-border bg-card p-4 sm:p-8 text-center']">
         <p :class="['text-sm', theme.textSecondary]">Early access record not found.</p>
         <Button variant="outline" class="mt-4" @click="$router.push({ name: 'admin-early-access' })">
           Back to Early Access

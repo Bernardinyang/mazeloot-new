@@ -1,191 +1,146 @@
 <template>
-  <div>
-    <Dialog v-model:open="isOpen">
-      <DialogContent :hide-close="true" :class="[theme.bgDropdown, theme.borderSecondary, 'p-0 max-w-3xl']">
-        <div class="flex flex-col">
-          <!-- Header -->
-          <div class="flex items-center justify-between px-5 py-3 border-b" :class="theme.borderPrimary">
-            <span :class="['text-sm font-medium', theme.textSecondary]">
-              {{ isLoading ? 'Search - Loading results' : groupedResults.length > 0 ? 'Search - Results' + (hasActiveFilters ? ' (Multiple Filter Applied)' : '') : 'Search' }}
-            </span>
-            <button
-              :class="['p-1 rounded hover:bg-muted transition-colors', theme.textTertiary]"
-              @click="close"
-            >
-              <X class="h-4 w-4" />
-            </button>
+  <Dialog :open="isOpen" @update:open="(v) => emit('update:open', v)">
+    <DialogContent
+      :hide-close="true"
+      :class="[theme.bgDropdown, theme.borderSecondary, 'p-0 w-[calc(100vw-1rem)] max-w-2xl max-h-[85dvh] sm:max-h-[80vh] overflow-hidden rounded-lg border shadow-lg']"
+    >
+      <div class="flex flex-col max-h-[80vh]">
+        <!-- Search -->
+        <div class="flex items-center gap-2 px-4 py-3 border-b" :class="theme.borderPrimary">
+          <Search class="h-4 w-4 shrink-0" :class="theme.textTertiary" />
+          <input
+            ref="inputEl"
+            v-model="searchQuery"
+            type="text"
+            placeholder="Search..."
+            :class="['flex-1 min-w-0 bg-transparent py-2 text-sm outline-none', theme.textPrimary, theme.placeholderInput]"
+            @keydown.down.prevent="navigate(1)"
+            @keydown.up.prevent="navigate(-1)"
+            @keydown.enter.prevent="selectCurrent"
+            @keydown.escape="close"
+            @input="scheduleSearch"
+          />
+          <button
+            v-if="searchQuery"
+            type="button"
+            class="p-1.5 rounded hover:bg-muted"
+            :class="theme.textTertiary"
+            aria-label="Clear"
+            @click="clearSearch"
+          >
+            <X class="h-4 w-4" />
+          </button>
+          <kbd class="hidden sm:inline-flex h-6 items-center rounded border px-1.5 font-mono text-[10px]" :class="[theme.borderSecondary, theme.bgMuted, theme.textSecondary]">⌘K</kbd>
+        </div>
+
+        <!-- Product filter -->
+        <div v-if="availableProducts.length > 0" class="flex flex-wrap items-center gap-2 px-4 py-2 border-b" :class="theme.borderPrimary">
+          <span :class="['text-xs', theme.textSecondary]">Product</span>
+          <button
+            v-for="product in availableProducts"
+            :key="product.uuid"
+            :disabled="product.slug !== 'memora'"
+            :class="[
+              'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs',
+              selectedProducts.includes(product.uuid) ? 'bg-accent text-accent-foreground' : theme.bgMuted,
+              theme.textPrimary,
+              product.slug !== 'memora' && 'opacity-50 cursor-not-allowed',
+            ]"
+            @click="product.slug === 'memora' && toggleProduct(product.uuid)"
+          >
+            <AppIcon :custom-type="getProductCustomType(product.slug)" class="h-3.5 w-3.5" />
+            {{ product.name }}
+          </button>
+        </div>
+
+        <!-- Results -->
+        <div class="flex-1 overflow-y-auto min-h-[180px]">
+          <div v-if="isLoading" class="p-4 space-y-2">
+            <div v-for="i in 4" :key="i" class="flex items-center gap-3 rounded-lg p-2.5 animate-pulse" :class="theme.bgMuted">
+              <div class="h-8 w-8 shrink-0 rounded-lg bg-black/10 dark:bg-white/10" />
+              <div class="flex-1 space-y-1">
+                <div class="h-3.5 w-24 rounded bg-black/10 dark:bg-white/10" />
+                <div class="h-3 w-32 rounded bg-black/10 dark:bg-white/10" />
+              </div>
+            </div>
           </div>
 
-          <!-- Search Input -->
-          <div class="flex items-center gap-2 px-5 py-3 border-b" :class="theme.borderPrimary">
-            <Search class="h-4 w-4 shrink-0" :class="theme.textTertiary" />
-            <Input
-              ref="searchInput"
-              v-model="searchQuery"
-              :class="[
-                'border-0 focus-visible:ring-0 bg-transparent flex-1 h-auto py-0 text-base',
-                theme.textPrimary,
-                theme.placeholderInput,
-              ]"
-              placeholder="Search collections, projects, selections, proofing..."
-              @keydown.down.prevent="navigateResults(1)"
-              @keydown.up.prevent="navigateResults(-1)"
-              @keydown.enter.prevent="handleSearch"
-              @keydown.escape="close"
-            />
-            <button
-              v-if="searchQuery"
-              :class="['p-1 rounded hover:bg-muted transition-colors shrink-0', theme.textTertiary]"
-              @click="handleClear"
-            >
-              <X class="h-4 w-4" />
-            </button>
-            <kbd
-              class="hidden sm:inline-flex h-5 select-none items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 shrink-0"
-              :class="[theme.borderSecondary, theme.bgMuted, theme.textSecondary]"
-            >
-              <span class="text-xs">⌘</span>K
-            </kbd>
+          <div v-else-if="flatItems.length === 0" class="flex flex-col items-center justify-center py-12 px-4 text-center">
+            <Search class="h-10 w-10 mb-3 opacity-40" :class="theme.textTertiary" />
+            <p :class="['text-sm font-medium', theme.textPrimary]">{{ hasQuery ? 'No results' : 'Type to search' }}</p>
+            <p :class="['mt-1 text-xs', theme.textSecondary]">{{ hasQuery ? 'Try different keywords' : 'Collections, projects, selections…' }}</p>
           </div>
 
-          <!-- Product Filter Cards -->
-          <ProductFilterCards
-            :products="availableProducts"
-            :selected-products="selectedProducts"
-            @toggle="toggleProductFilter"
-          />
-
-          <!-- Results -->
-          <SearchResults
-            ref="searchResultsRef"
-            :is-loading="isLoading"
-            :grouped-results="groupedResults"
-            :search-query="searchQuery"
-            :selected-index="selectedIndex"
-            @select="handleSelect"
-            @hover="selectedIndex = $event"
-          />
-
-          <!-- Keyboard Shortcuts Footer -->
-          <div class="flex items-center gap-4 px-5 py-2.5 border-t text-xs" :class="[theme.borderPrimary, theme.textTertiary]">
-            <div class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded border text-[10px]" :class="[theme.borderSecondary, theme.bgMuted]">↑</kbd>
-              <kbd class="px-1.5 py-0.5 rounded border text-[10px]" :class="[theme.borderSecondary, theme.bgMuted]">↓</kbd>
-              <span class="ml-1">Navigate</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded border text-[10px]" :class="[theme.borderSecondary, theme.bgMuted]">↵</kbd>
-              <span class="ml-1">Open</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <kbd class="px-1.5 py-0.5 rounded border text-[10px]" :class="[theme.borderSecondary, theme.bgMuted]">esc</kbd>
-              <span class="ml-1">Quit</span>
+          <div v-else class="py-2">
+            <div v-for="(productGroup, productIdx) in groupedResults" :key="productGroup.productUuid" class="contents">
+              <div v-for="(group, groupIdx) in productGroup.groups" :key="`${productGroup.productUuid}-${group.type}`">
+                <p class="px-4 py-1.5 text-xs font-medium" :class="theme.textSecondary">{{ group.label }}</p>
+                <ul class="space-y-0.5 px-2 pb-3">
+                  <li
+                    v-for="(item, itemIdx) in group.items"
+                    :key="item.id"
+                    :ref="(el) => setRef(flatKey(productIdx, groupIdx, itemIdx), el)"
+                    :class="[
+                      'flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 text-left text-sm',
+                      isSelected(productIdx, groupIdx, itemIdx) ? 'bg-accent/10' : 'hover:bg-muted/50',
+                      theme.textPrimary,
+                    ]"
+                    @click="handleSelect(item)"
+                    @mouseenter="selectedFlatIndex = flatIndexByKey(productIdx, groupIdx, itemIdx)"
+                  >
+                    <div :class="['flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white', typeGradient(item.type)]">
+                      <component :is="typeIcon(item.type)" class="h-4 w-4" />
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate font-medium" v-html="highlight(item.name)" />
+                      <p v-if="item.description" :class="['truncate text-xs', theme.textSecondary]">{{ item.description }}</p>
+                    </div>
+                    <span :class="['shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium', theme.bgMuted, theme.textSecondary]">{{ getTypeLabel(item.type) }}</span>
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
 
-    <!-- Advanced Filters Modal -->
-    <Dialog v-model:open="showAdvancedFilters">
-      <DialogContent :class="[theme.bgDropdown, theme.borderSecondary, 'max-w-lg']">
-        <DialogHeader class="pb-4">
-          <DialogTitle :class="[theme.textPrimary, 'text-lg font-bold']">Advanced Filters</DialogTitle>
-          <DialogDescription :class="[theme.textSecondary, 'text-sm']">
-            Refine your search with specific filters
-          </DialogDescription>
-        </DialogHeader>
-        <div class="space-y-6 py-2">
-          <!-- Content Type Filter -->
-          <div>
-            <Label :class="[theme.textPrimary, 'text-sm font-semibold mb-3 block']">Content Type</Label>
-            <div class="flex flex-wrap gap-2">
-              <span
-                v-for="type in contentTypes"
-                :key="type.value"
-                :class="[
-                  'inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-all',
-                  filters.type === type.value
-                    ? [theme.bgPrimary, 'text-white shadow-md scale-105']
-                    : [theme.bgMuted, theme.textPrimary, theme.borderSecondary, 'border hover:scale-105'],
-                ]"
-                @click="toggleFilter('type', type.value)"
-              >
-                {{ type.label }}
-              </span>
-            </div>
+        <!-- Footer -->
+        <div class="flex items-center justify-between border-t px-4 py-2 text-[11px]" :class="[theme.borderPrimary, theme.textTertiary]">
+          <div class="flex gap-3">
+            <span>↑↓ Navigate</span>
+            <span>↵ Select</span>
+            <span>esc Close</span>
           </div>
-
-          <!-- Status Filter -->
-          <div>
-            <Label :class="[theme.textPrimary, 'text-sm font-semibold mb-2 block']">Status</Label>
-            <Select v-model="filters.status">
-              <SelectTrigger :class="[theme.bgInput, theme.borderInput, theme.textInput, 'h-10']">
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="active">Active</SelectItem>
-                <SelectItem value="draft">Draft</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <!-- Starred Filter -->
-          <div class="flex items-center gap-3 p-3 rounded-lg" :class="theme.bgMuted">
-            <input
-              id="starred"
-              v-model="filters.starred"
-              type="checkbox"
-              :class="[
-                'h-4 w-4 rounded border cursor-pointer',
-                theme.borderInput,
-                filters.starred ? theme.bgPrimary : '',
-              ]"
-            />
-            <Label for="starred" :class="[theme.textPrimary, 'text-sm font-medium cursor-pointer']">
-              Show only starred items
-            </Label>
-          </div>
+          <span v-if="flatItems.length > 0">{{ flatItems.length }} result{{ flatItems.length === 1 ? '' : 's' }}</span>
         </div>
-        <DialogFooter class="gap-2 pt-4">
-          <Button variant="outline" :class="[theme.bgButtonHover]" @click="clearFilters">
-            Clear All
-          </Button>
-          <Button :class="[theme.bgPrimary, 'text-white']" @click="applyFilters">
-            Apply Filters
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  </div>
+      </div>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup>
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import {
+  CheckSquare,
+  Eye,
+  FileText,
+  Folder,
+  FolderKanban,
   Loader2,
+  Palette,
   Search,
+  User,
   X,
 } from '@/shared/utils/lucideAnimated'
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/shared/components/shadcn/dialog'
-import { Input } from '@/shared/components/shadcn/input'
-import { Button } from '@/shared/components/shadcn/button'
-import Label from '@/shared/components/shadcn/Label.vue'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/components/shadcn/select'
+import { Dialog, DialogContent } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { apiClient } from '@/shared/api/client'
 import { useUserStore } from '@/shared/stores/user'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
-import ProductFilterCards from '@/shared/components/molecules/ProductFilterCards.vue'
-import SearchResults from '@/shared/components/molecules/SearchResults.vue'
+import AppIcon from '@/shared/components/atoms/AppIcon.vue'
+import { MAZELOOT_PRODUCTS } from '@/domains/memora/constants/products'
 
 const props = defineProps({
-  open: {
-    type: Boolean,
-    default: false,
-  },
+  open: { type: Boolean, default: false },
 })
 
 const emit = defineEmits(['update:open', 'select'])
@@ -193,24 +148,20 @@ const emit = defineEmits(['update:open', 'select'])
 const theme = useThemeClasses()
 const userStore = useUserStore()
 const { hasFeature } = useMemoraFeatures()
-const searchInput = ref(null)
+const inputEl = ref(null)
 const isOpen = computed({
   get: () => props.open,
-  set: (val) => emit('update:open', val),
+  set: (v) => emit('update:open', v),
 })
 
 const searchQuery = ref('')
 const isLoading = ref(false)
 const results = ref([])
-const selectedIndex = ref('0-0-0')
-const showAdvancedFilters = ref(false)
 const selectedProducts = ref([])
+const selectedFlatIndex = ref(0)
+const itemRefs = ref({})
 
-const filters = ref({
-  type: null,
-  status: 'all',
-  starred: false,
-})
+const filters = ref({ type: null, status: 'all', starred: false })
 
 const contentTypesList = [
   { label: 'Collections', value: 'collection', feature: 'collection' },
@@ -220,6 +171,7 @@ const contentTypesList = [
   { label: 'Raw Files', value: 'rawFile', feature: 'raw_files' },
   { label: 'Presets', value: 'preset', feature: null },
 ]
+
 const contentTypes = computed(() =>
   contentTypesList.filter((t) => {
     if (!t.feature) return true
@@ -228,18 +180,9 @@ const contentTypes = computed(() =>
   }),
 )
 
-const availableProducts = computed(() => {
-  return userStore.selectedProducts || []
-})
+const availableProducts = computed(() => userStore.selectedProducts || [])
 
-const hasActiveFilters = computed(() => {
-  return (selectedProducts.value.length > 0 && selectedProducts.value.length < availableProducts.value.length) ||
-    filters.value.type ||
-    filters.value.status !== 'all' ||
-    filters.value.starred
-})
-
-const canShowResultType = (type) => {
+const canShowType = (type) => {
   if (type === 'proofing') return hasFeature('proofing')
   if (type === 'rawFile') return hasFeature('raw_files')
   if (type === 'collection') return hasFeature('collection')
@@ -248,44 +191,8 @@ const canShowResultType = (type) => {
   return true
 }
 
-const groupedResults = computed(() => {
-  const productGroups = {}
-  const filtered = results.value.filter((item) => canShowResultType(item.type))
-
-  filtered.forEach(item => {
-    const productUuid = item.productUuid || 'memora'
-    const product = availableProducts.value.find(p => p.uuid === productUuid) || availableProducts.value[0]
-    
-    if (!product) return
-    
-    if (!productGroups[productUuid]) {
-      productGroups[productUuid] = {
-        productUuid,
-        productSlug: product.slug,
-        productName: product.name,
-        groups: {},
-      }
-    }
-    
-    if (!productGroups[productUuid].groups[item.type]) {
-      productGroups[productUuid].groups[item.type] = {
-        type: item.type,
-        label: getTypeLabel(item.type),
-        items: [],
-      }
-    }
-    
-    productGroups[productUuid].groups[item.type].items.push(item)
-  })
-  
-  return Object.values(productGroups).map(productGroup => ({
-    ...productGroup,
-    groups: Object.values(productGroup.groups),
-  }))
-})
-
 const getTypeLabel = (type) => {
-  const labels = {
+  const map = {
     collection: 'Collections',
     project: 'Projects',
     selection: 'Selections',
@@ -293,11 +200,35 @@ const getTypeLabel = (type) => {
     rawFile: 'Raw Files',
     preset: 'Presets',
   }
-  return labels[type] || type
+  return map[type] || type
+}
+
+const typeIcon = (type) => {
+  const map = {
+    collection: Folder,
+    project: FolderKanban,
+    selection: CheckSquare,
+    proofing: Eye,
+    rawFile: FileText,
+    preset: Palette,
+  }
+  return map[type] || User
+}
+
+const typeGradient = (type) => {
+  const map = {
+    collection: 'bg-gradient-to-br from-blue-500 to-blue-600',
+    project: 'bg-gradient-to-br from-violet-500 to-violet-600',
+    selection: 'bg-gradient-to-br from-emerald-500 to-emerald-600',
+    proofing: 'bg-gradient-to-br from-amber-500 to-amber-600',
+    rawFile: 'bg-gradient-to-br from-cyan-500 to-cyan-600',
+    preset: 'bg-gradient-to-br from-rose-500 to-rose-600',
+  }
+  return map[type] || 'bg-gradient-to-br from-gray-500 to-gray-600'
 }
 
 const getRouteForType = (type, id) => {
-  const routes = {
+  const map = {
     collection: { name: 'collectionDetail', params: { id } },
     project: { name: 'projectDashboard', params: { id } },
     selection: { name: 'selectionDetail', params: { id } },
@@ -305,11 +236,92 @@ const getRouteForType = (type, id) => {
     rawFile: { name: 'rawFileDetail', params: { id } },
     preset: { name: 'presetDetail', params: { id } },
   }
-  return routes[type] || { name: 'overview' }
+  return map[type] || { name: 'overview' }
 }
 
-const performSearch = async () => {
-  if (!searchQuery.value.trim() && !hasActiveFilters.value) {
+const groupedResults = computed(() => {
+  const byProduct = {}
+  const filtered = results.value.filter((r) => canShowType(r.type))
+
+  filtered.forEach((item) => {
+    const productUuid = item.productUuid || 'memora'
+    const product = availableProducts.value.find((p) => p.uuid === productUuid) || availableProducts.value[0]
+    if (!product) return
+    if (!byProduct[productUuid]) {
+      byProduct[productUuid] = {
+        productUuid,
+        productSlug: product.slug,
+        productName: product.name,
+        groups: {},
+      }
+    }
+    if (!byProduct[productUuid].groups[item.type]) {
+      byProduct[productUuid].groups[item.type] = { type: item.type, label: getTypeLabel(item.type), items: [] }
+    }
+    byProduct[productUuid].groups[item.type].items.push(item)
+  })
+
+  return Object.values(byProduct).map((p) => ({
+    ...p,
+    groups: Object.values(p.groups),
+  }))
+})
+
+const flatItems = computed(() => {
+  const out = []
+  groupedResults.value.forEach((productGroup, productIdx) => {
+    productGroup.groups.forEach((group, groupIdx) => {
+      group.items.forEach((item, itemIdx) => {
+        out.push({ productIdx, groupIdx, itemIdx, item })
+      })
+    })
+  })
+  return out
+})
+
+function flatKey(productIdx, groupIdx, itemIdx) {
+  return `${productIdx}-${groupIdx}-${itemIdx}`
+}
+
+function flatIndexByKey(productIdx, groupIdx, itemIdx) {
+  return flatItems.value.findIndex(
+    (f) => f.productIdx === productIdx && f.groupIdx === groupIdx && f.itemIdx === itemIdx,
+  )
+}
+
+const hasQuery = computed(() => searchQuery.value.trim().length > 0)
+
+const isSelected = (productIdx, groupIdx, itemIdx) => {
+  const idx = flatIndexByKey(productIdx, groupIdx, itemIdx)
+  return idx >= 0 && idx === selectedFlatIndex.value
+}
+
+function setRef(key, el) {
+  if (el) itemRefs.value[key] = el
+}
+
+function highlight(text) {
+  const q = searchQuery.value.trim()
+  if (!q || !text) return text
+  const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+  return text.replace(re, '<mark class="bg-accent/30 rounded px-0.5">$1</mark>')
+}
+
+let searchDebounce = null
+function scheduleSearch() {
+  if (searchDebounce) clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(performSearch, 280)
+}
+
+async function performSearch() {
+  const query = searchQuery.value.trim()
+  const hasFilters =
+    (selectedProducts.value.length > 0 && selectedProducts.value.length < availableProducts.value.length) ||
+    filters.value.type ||
+    filters.value.status !== 'all' ||
+    filters.value.starred
+
+  if (!query && !hasFilters) {
     results.value = []
     return
   }
@@ -317,189 +329,120 @@ const performSearch = async () => {
   isLoading.value = true
   try {
     const params = {
-      search: searchQuery.value.trim() || '',
-      ...(selectedProducts.value.length > 0 && selectedProducts.value.length < availableProducts.value.length && { 
-        products: Array.isArray(selectedProducts.value) ? selectedProducts.value : [selectedProducts.value]
-      }),
+      search: query || '',
+      ...(selectedProducts.value.length > 0 &&
+        selectedProducts.value.length < availableProducts.value.length && {
+          products: Array.isArray(selectedProducts.value) ? selectedProducts.value : [selectedProducts.value],
+        }),
       ...(filters.value.type && { type: filters.value.type }),
       ...(filters.value.status !== 'all' && { status: filters.value.status }),
       ...(filters.value.starred && { starred: true }),
       limit: 50,
     }
-
-    const response = await apiClient.get('/v1/memora/search', { params })
-    
-    if (response && response.data) {
-      results.value = (Array.isArray(response.data) ? response.data : []).map(item => ({
-        id: item.id || item.uuid,
-        name: item.name || '',
-        description: item.description || null,
-        type: item.type || '',
-        productUuid: item.productUuid || 'memora',
-        route: getRouteForType(item.type, item.id || item.uuid),
-        meta: item.status || null,
-      }))
-      selectedIndex.value = '0-0-0'
-    } else {
-      results.value = []
-    }
-  } catch (error) {
-    console.error('Search failed:', error)
+    const res = await apiClient.get('/v1/memora/search', { params })
+    const data = res?.data
+    const list = Array.isArray(data) ? data : []
+    results.value = list.map((item) => ({
+      id: item.id || item.uuid,
+      name: item.name || '',
+      description: item.description || null,
+      type: item.type || '',
+      productUuid: item.productUuid || 'memora',
+      route: getRouteForType(item.type, item.id || item.uuid),
+      meta: item.status || null,
+    }))
+    selectedFlatIndex.value = 0
+  } catch (e) {
+    console.error('Search failed:', e)
     results.value = []
   } finally {
     isLoading.value = false
   }
 }
 
-const handleSearch = () => {
-  performSearch()
-}
-
-const handleClear = () => {
+function clearSearch() {
   searchQuery.value = ''
   results.value = []
-  selectedIndex.value = '0-0-0'
-  if (searchInput.value) {
-    const component = searchInput.value
-    const el = component.$el || component
-    const inputEl = el?.tagName === 'INPUT' ? el : el?.querySelector?.('input')
-    if (inputEl && typeof inputEl.focus === 'function') {
-      inputEl.focus()
-    }
-  }
+  selectedFlatIndex.value = 0
+  nextTick(() => inputEl.value?.focus())
 }
 
-const toggleProductFilter = (productUuid) => {
-  const index = selectedProducts.value.indexOf(productUuid)
-  if (index > -1) {
-    selectedProducts.value.splice(index, 1)
-  } else {
-    selectedProducts.value.push(productUuid)
-  }
-  if (searchQuery.value.trim() || hasActiveFilters.value) {
-    performSearch()
-  }
+function toggleProduct(uuid) {
+  const i = selectedProducts.value.indexOf(uuid)
+  if (i > -1) selectedProducts.value.splice(i, 1)
+  else selectedProducts.value.push(uuid)
+  if (searchQuery.value.trim() || selectedProducts.value.length > 0) performSearch()
 }
 
-const resetAll = () => {
+function navigate(delta) {
+  if (flatItems.value.length === 0) return
+  const next = Math.max(0, Math.min(flatItems.value.length - 1, selectedFlatIndex.value + delta))
+  selectedFlatIndex.value = next
+  const refKey = flatKey(
+    flatItems.value[next].productIdx,
+    flatItems.value[next].groupIdx,
+    flatItems.value[next].itemIdx,
+  )
+  nextTick(() => {
+    const el = itemRefs.value[refKey]
+    if (el) el.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+  })
+}
+
+function selectCurrent() {
+  const cur = flatItems.value[selectedFlatIndex.value]
+  if (cur) handleSelect(cur.item)
+}
+
+function handleSelect(item) {
+  emit('select', item)
+  isOpen.value = false
+}
+
+function close() {
+  isOpen.value = false
+}
+
+function getProductCustomType(slug) {
+  const p = MAZELOOT_PRODUCTS.find((x) => x.id === slug)
+  return p?.customType || 'memora'
+}
+
+function reset() {
   searchQuery.value = ''
   results.value = []
   selectedProducts.value = []
-  selectedIndex.value = '0-0-0'
-  isLoading.value = false
-  filters.value = {
-    type: null,
-    status: 'all',
-    starred: false,
-  }
+  selectedFlatIndex.value = 0
+  filters.value = { type: null, status: 'all', starred: false }
 }
 
 watch(isOpen, (open) => {
   if (open) {
     selectedProducts.value = []
-    nextTick(() => {
-      if (searchInput.value) {
-        const component = searchInput.value
-        const el = component.$el || component
-        const inputEl = el?.tagName === 'INPUT' ? el : el?.querySelector?.('input')
-        if (inputEl && typeof inputEl.focus === 'function') {
-          inputEl.focus()
-        }
-      }
-    })
+    nextTick(() => inputEl.value?.focus())
   } else {
-    resetAll()
+    reset()
   }
 })
 
-const navigateResults = (direction) => {
-  const flatResults = []
-  groupedResults.value.forEach((productGroup, productIdx) => {
-    productGroup.groups.forEach((group, groupIdx) => {
-      group.items.forEach((item, itemIdx) => {
-        flatResults.push({ productIdx, groupIdx, itemIdx, item })
-      })
-    })
-  })
-  
-  if (flatResults.length === 0) return
+watch(
+  () => flatItems.value.length,
+  (len) => {
+    if (len > 0 && selectedFlatIndex.value >= len) selectedFlatIndex.value = Math.max(0, len - 1)
+  },
+)
 
-  const currentIdx = flatResults.findIndex(r => 
-    selectedIndex.value === `${r.productIdx}-${r.groupIdx}-${r.itemIdx}`
-  )
-  const newIdx = Math.max(0, Math.min(flatResults.length - 1, currentIdx + direction))
-  
-  if (newIdx >= 0 && newIdx < flatResults.length) {
-    const target = flatResults[newIdx]
-    selectedIndex.value = `${target.productIdx}-${target.groupIdx}-${target.itemIdx}`
-    scrollToSelected()
-  }
-}
-
-const searchResultsRef = ref(null)
-
-const scrollToSelected = () => {
-  nextTick(() => {
-    const [productIdx, groupIdx, itemIdx] = selectedIndex.value.split('-').map(Number)
-    if (searchResultsRef.value) {
-      searchResultsRef.value.scrollToSelected(productIdx, groupIdx, itemIdx)
-    }
-  })
-}
-
-const selectResult = () => {
-  const [productIdx, groupIdx, itemIdx] = selectedIndex.value.split('-').map(Number)
-  const productGroup = groupedResults.value[productIdx]
-  if (productGroup?.groups[groupIdx]?.items[itemIdx]) {
-    handleSelect(productGroup.groups[groupIdx].items[itemIdx])
-  }
-}
-
-const handleSelect = (item) => {
-  emit('select', item)
-  close()
-}
-
-const toggleFilter = (key, value) => {
-  filters.value[key] = filters.value[key] === value ? null : value
-}
-
-const clearFilters = () => {
-  filters.value = {
-    type: null,
-    status: 'all',
-    starred: false,
-  }
-  selectedProducts.value = []
-}
-
-const applyFilters = () => {
-  showAdvancedFilters.value = false
-  if (searchQuery.value.trim() || hasActiveFilters.value) {
-    performSearch()
-  }
-}
-
-const close = () => {
-  isOpen.value = false
-}
-
-const handleKeyDown = (e) => {
+function onKeydown(e) {
   if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
     e.preventDefault()
     isOpen.value = !isOpen.value
   }
-  if (e.key === 'Escape' && isOpen.value) {
-    close()
-  }
+  if (e.key === 'Escape' && isOpen.value) close()
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', handleKeyDown)
-})
-
+onMounted(() => document.addEventListener('keydown', onKeydown))
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeyDown)
-  resetAll()
+  document.removeEventListener('keydown', onKeydown)
+  reset()
 })
 </script>

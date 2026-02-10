@@ -6,6 +6,9 @@
     @update:model-value="$emit('update:open', $event)"
   >
     <form id="collection-form" @submit.prevent="handleSubmit" class="space-y-5">
+      <PlanLimitBanner v-if="collectionLimitReached">
+        Collection limit ({{ collectionCount }}/{{ collectionLimit }}) reached. Upgrade your plan for more collections.
+      </PlanLimitBanner>
       <!-- Collection Name -->
       <div class="space-y-2">
         <label class="text-sm font-medium" :class="theme.textPrimary"> Collection Name </label>
@@ -138,6 +141,8 @@ import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useGalleryStore } from '@/shared/stores/gallery'
 import ColorSelector from '@/shared/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/shared/utils/colors'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const props = defineProps({
   open: {
@@ -156,6 +161,15 @@ const theme = useThemeClasses()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 const galleryStore = useGalleryStore()
+const authApi = useAuthApi()
+
+const collectionCount = ref(0)
+const collectionLimit = ref(null)
+const collectionLimitReached = computed(() => {
+  const limit = collectionLimit.value
+  if (limit == null) return false
+  return collectionCount.value >= limit
+})
 
 const getExistingColors = () => {
   if (!galleryStore || !galleryStore.collections) {
@@ -183,6 +197,13 @@ watch(
   () => props.open,
   async newValue => {
     if (newValue) {
+      try {
+        const storageData = await authApi.getStorage()
+        collectionCount.value = storageData.collection_count ?? 0
+        collectionLimit.value = storageData.collection_limit ?? null
+      } catch (error) {
+        console.error('Failed to fetch storage data:', error)
+      }
       try {
         if (presetStore.presets.length === 0) {
           await presetStore.loadPresets()
@@ -232,6 +253,11 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   errors.value = {}
+
+  if (collectionLimitReached.value) {
+    errors.value.name = 'Collection limit reached. Upgrade your plan for more collections.'
+    return
+  }
 
   if (!formData.name.trim()) {
     errors.value.name = 'Collection name is required'

@@ -53,13 +53,13 @@
           </div>
           <!-- Right Section: Skeleton -->
           <div class="space-y-6 animate-slide-up animation-delay-100">
-            <div :class="['backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-6 space-y-4']">
+            <div :class="['backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-4 sm:p-6 space-y-4']">
               <div :class="[theme.bgSkeleton, 'h-6 w-32 rounded animate-pulse']"></div>
               <div class="space-y-3">
                 <div v-for="i in 3" :key="i" :class="[theme.bgSkeleton, 'h-16 rounded-xl animate-pulse']"></div>
               </div>
             </div>
-            <div :class="['backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-6 space-y-4']">
+            <div :class="['backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-4 sm:p-6 space-y-4']">
               <div :class="[theme.bgSkeleton, 'h-6 w-32 rounded animate-pulse']"></div>
               <div class="space-y-3">
                 <div v-for="i in 2" :key="i" :class="[theme.bgSkeleton, 'h-16 rounded-xl animate-pulse']"></div>
@@ -86,7 +86,7 @@
           </div>
 
           <!-- Right Section: Loading -->
-          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 flex flex-col items-center justify-center space-y-6 sm:space-y-8 rounded-2xl shadow-2xl p-6 sm:p-8 md:p-12 animate-slide-up animation-delay-100">
+          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 flex flex-col items-center justify-center space-y-6 sm:space-y-8 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 lg:p-12 animate-slide-up animation-delay-100">
             <div class="relative w-20 h-20">
               <div :class="[theme.borderSecondary, 'absolute inset-0 border-4 rounded-full opacity-30']"></div>
               <div class="absolute inset-0 border-4 border-accent border-t-transparent rounded-full animate-spin"></div>
@@ -218,7 +218,7 @@
 
               <!-- Cloud Upload Error Message -->
               <div v-if="selectedDestination !== 'device' && zipFile.cloudUploadError && !zipFile.cloudUploadUrl" class="w-full mb-4">
-                <div class="p-6 backdrop-blur-xl bg-red-500/10 dark:bg-red-500/20 light:bg-red-50/70 border-2 border-red-400/30 dark:border-red-400/40 light:border-red-200 rounded-2xl shadow-xl">
+                <div class="p-4 sm:p-6 backdrop-blur-xl bg-red-500/10 dark:bg-red-500/20 light:bg-red-50/70 border-2 border-red-400/30 dark:border-red-400/40 light:border-red-200 rounded-2xl shadow-xl">
                   <div class="flex items-center gap-3 mb-3">
                     <div class="p-2 bg-red-500 rounded-lg shadow-lg">
                       <X class="w-5 h-5 text-white" />
@@ -252,7 +252,7 @@
                 <button
                   @click="handleZipDownload"
                   :disabled="isDownloadingZip"
-                  class="group relative w-full p-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl hover:from-gray-800 hover:via-gray-700 hover:to-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col gap-4 cursor-pointer overflow-hidden transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  class="group relative w-full p-4 sm:p-6 bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 rounded-2xl hover:from-gray-800 hover:via-gray-700 hover:to-gray-800 shadow-xl hover:shadow-2xl transition-all duration-300 flex flex-col gap-4 cursor-pointer overflow-hidden transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   <!-- Animated Background Effect -->
                   <div class="absolute inset-0 bg-gradient-to-r from-accent/20 via-accent/10 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -317,7 +317,7 @@
     </div>
 
     <!-- Selection State -->
-    <div v-else-if="!isInitialLoading && !isLoadingState && !zipFile" class="container mx-auto px-6 py-12 lg:py-20 max-w-6xl">
+    <div v-else-if="!isInitialLoading && !isLoadingState && !zipFile" class="container mx-auto px-4 sm:px-6 py-8 sm:py-12 lg:py-20 max-w-6xl">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
         <!-- Left Section: Collection Info -->
         <div class="flex flex-col justify-center space-y-6 sticky top-24 animate-slide-up">
@@ -332,7 +332,7 @@
         <!-- Right Section: Download Options -->
         <div class="space-y-6 animate-slide-up animation-delay-100">
           <!-- Choose Media -->
-          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
+          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300">
             <h2 :class="[theme.textPrimary, 'text-xl font-bold mb-5']">Choose Media</h2>
             <div class="space-y-3">
               <div
@@ -360,7 +360,7 @@
           </div>
 
           <!-- Choose Download Size -->
-          <div v-if="downloadSizes.length > 0" class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
+          <div v-if="downloadSizes.length > 0" class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300">
             <h2 :class="[theme.textPrimary, 'text-xl font-bold mb-5']">Choose Download Size:</h2>
             <div class="space-y-3">
               <button
@@ -393,7 +393,7 @@
           </div>
 
           <!-- Download To -->
-          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-6 hover:shadow-2xl transition-all duration-300">
+          <div class="backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/70 border border-white/20 dark:border-white/10 light:border-gray-200/50 rounded-2xl shadow-xl p-4 sm:p-6 hover:shadow-2xl transition-all duration-300">
             <h2 :class="[theme.textPrimary, 'text-xl font-bold mb-5']">Download To:</h2>
             <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <button
@@ -449,7 +449,7 @@
 
     <!-- Footer -->
     <footer v-if="showMazelootBranding" :class="[theme.borderSecondary, 'border-t backdrop-blur-md bg-white/10 dark:bg-black/20 light:bg-white/50 mt-20']">
-      <div class="container mx-auto px-6 py-6">
+      <div class="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         <p :class="[theme.textTertiary, 'text-xs text-center']">
           © {{ new Date().getFullYear() }} {{ brandName || 'Mazeloot' }}. All rights reserved.
         </p>

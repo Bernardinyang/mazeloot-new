@@ -2,7 +2,7 @@
   <Transition name="slide-up">
     <div
       v-if="selectedCount > 0"
-      class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 mb-4 px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 bg-gray-800 dark:bg-gray-900 border border-gray-700 dark:border-gray-800"
+      class="fixed bottom-[calc(2rem+env(safe-area-inset-bottom))] left-1/2 -translate-x-1/2 z-50 mb-4 mx-2 w-[calc(100vw-1rem)] max-w-2xl px-4 sm:px-6 py-3 sm:py-4 rounded-2xl shadow-2xl flex flex-wrap items-center justify-center gap-3 sm:gap-6 bg-gray-800 dark:bg-gray-900 border border-gray-700 dark:border-gray-800"
     >
       <!-- Left: Selection info with dropdown -->
       <div class="flex items-center gap-3">

@@ -2,7 +2,7 @@
   <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
     <template #content>
       <div class="flex-1 overflow-y-auto custom-scrollbar">
-        <div v-if="isLoading" class="p-6 md:p-8 transition-all duration-300">
+        <div v-if="isLoading" class="p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Skeleton Header -->
           <div class="mb-10">
             <Skeleton class="h-9 w-64 rounded-lg mb-2" />
@@ -14,7 +14,7 @@
             <div
               v-for="i in 3"
               :key="i"
-              class="p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+              class="p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
             >
               <div class="flex items-center gap-3 mb-3">
                 <Skeleton class="h-11 w-11 rounded-xl" />
@@ -34,7 +34,7 @@
               <div
                 v-for="i in 2"
                 :key="i"
-                class="p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
+                class="p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-800"
               >
                 <div class="flex items-center gap-3 mb-2">
                   <Skeleton class="h-5 w-5 rounded" />
@@ -46,7 +46,7 @@
           </div>
         </div>
 
-        <div v-else class="p-6 md:p-8 transition-all duration-300">
+        <div v-else class="p-4 sm:p-6 md:p-8 transition-all duration-300">
           <!-- Page Header -->
           <div class="mb-10">
             <div class="flex items-center gap-3 mb-2">
@@ -64,7 +64,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -88,7 +88,7 @@
 
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -112,7 +112,7 @@
 
             <div
               :class="[theme.borderSecondary, theme.bgCard]"
-              class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
+              class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 cursor-pointer"
               @click="
                 router.push({
                   name,
@@ -145,7 +145,7 @@
                 v-if="collection?.id"
                 :class="[theme.borderSecondary, theme.bgCard]"
                 :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: collection.id } }"
-                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
+                class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
               >
                 <div class="flex items-center gap-3 mb-2">
                   <Link class="h-5 w-5 text-accent" />
@@ -162,7 +162,7 @@
                 v-if="collection?.id"
                 :class="[theme.borderSecondary, theme.bgCard]"
                 :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: collection.id } }"
-                class="p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
+                class="p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30 hover:shadow-lg"
               >
                 <div class="flex items-center gap-3 mb-2">
                   <Lock class="h-5 w-5 text-accent" />
@@ -197,7 +197,7 @@ const galleryStore = useGalleryStore()
 
 // Collection data
 const collection = ref(null)
-const isLoading = ref(false)
+const isLoading = ref(true)
 
 // UI State
 const { isSidebarCollapsed } = useSidebarCollapse()

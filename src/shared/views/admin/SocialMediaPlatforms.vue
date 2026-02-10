@@ -263,7 +263,7 @@ const { fetchPlatforms, createPlatform, updatePlatform, deletePlatform, togglePl
   useSocialMediaPlatformsApi()
 
 const platforms = ref([])
-const isLoading = ref(false)
+const isLoading = ref(true)
 const isCreating = ref(false)
 const isUpdating = ref(false)
 const isDeleting = ref(null)

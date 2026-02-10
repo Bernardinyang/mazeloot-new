@@ -15,7 +15,7 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
-        <div class="p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800">
+        <div class="p-4 sm:p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800">
           <div class="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2">Pro</div>
           <div class="text-3xl font-bold mb-4">
             $9<span class="text-lg font-normal text-muted-foreground">/mo</span>
@@ -32,7 +32,7 @@
           </Button>
         </div>
 
-        <div class="p-6 rounded-xl border-2 border-gray-900 dark:border-gray-100 relative">
+        <div class="p-4 sm:p-6 rounded-xl border-2 border-gray-900 dark:border-gray-100 relative">
           <div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 text-xs font-semibold rounded-full">
             BEST VALUE
           </div>
@@ -52,7 +52,7 @@
           </Button>
         </div>
 
-        <div class="p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800">
+        <div class="p-4 sm:p-6 rounded-xl border-2 border-gray-200 dark:border-gray-800">
           <div class="text-sm font-semibold text-amber-600 dark:text-amber-400 mb-2">Business</div>
           <div class="text-3xl font-bold mb-4">
             $35<span class="text-lg font-normal text-muted-foreground">/mo</span>

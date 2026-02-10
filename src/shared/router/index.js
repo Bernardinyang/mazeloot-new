@@ -1,8 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { ref } from 'vue'
 import { routes } from './routes'
 import { useUserStore } from '@/shared/stores/user'
 import { useOnboardingApi } from '@/shared/api/onboarding'
 import { setPostAuthRedirect } from '@/shared/utils/localStorage'
+
+export const isRouteLoading = ref(false)
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -93,6 +96,7 @@ const isProductOnboardingCompleted = (productUuid, onboardingStatus) => {
 }
 
 router.beforeEach(async (to, from, next) => {
+  isRouteLoading.value = true
   const userStore = useUserStore()
   const onboardingApi = useOnboardingApi()
 
@@ -281,7 +285,12 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-// Error handling for route navigation
-router.onError(error => { })
+router.afterEach(() => {
+  isRouteLoading.value = false
+})
+
+router.onError(() => {
+  isRouteLoading.value = false
+})
 
 export default router

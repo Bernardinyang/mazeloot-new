@@ -25,6 +25,7 @@
       >
         <template #actions>
           <Button
+            v-if="!selectionLimitReached"
             variant="accent"
             :icon="Plus"
             @click="handleCreateSelection"
@@ -34,17 +35,21 @@
         </template>
       </PageHeader>
 
+      <PlanLimitBanner v-if="selectionLimitReached">
+        Selection limit ({{ selectionCount }}/{{ selectionLimit }}) reached. Upgrade your plan for more selection phases.
+      </PlanLimitBanner>
+
       <!-- Selections Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
-        <LoadingState v-if="isLoading" message="Loading selections..." />
+        <LoadingState v-if="isLoading" variant="skeleton" />
 
         <!-- Empty State -->
         <EmptyState
           v-else-if="selections.length === 0"
           :icon="CheckSquare"
           :action-icon="Plus"
-          action-label="Create New Selection"
+          :action-label="selectionLimitReached ? undefined : 'Create New Selection'"
           description="Get started by creating your first selection to organize and manage your media."
           message="No selections found"
           @action="handleCreateSelection"
@@ -86,7 +91,7 @@
         :loading="isLoading"
         :selected-items="selectedSelections"
         :show-view-details="true"
-        empty-action-label="Create New Selection"
+        :empty-action-label="selectionLimitReached ? undefined : 'Create New Selection'"
         empty-message="No selections found"
         @delete="handleDeleteSelection"
         @edit="handleEditSelection"
@@ -156,7 +161,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { CheckSquare, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -176,11 +181,34 @@ import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useRouter } from 'vue-router'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { toast } from '@/shared/utils/toast'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const selectionStore = useSelectionStore()
 const selectionsApi = useSelectionsApi()
 const router = useRouter()
 const { handleError } = useErrorHandler()
+const authApi = useAuthApi()
+
+const selectionCount = ref(0)
+const selectionLimit = ref(null)
+const selectionLimitReached = computed(() => {
+  const limit = selectionLimit.value
+  if (limit == null) return false
+  return selectionCount.value >= limit
+})
+
+const refreshStorageData = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    selectionCount.value = storageData.selection_count ?? 0
+    selectionLimit.value = storageData.selection_limit ?? null
+  } catch (error) {
+    console.error('Failed to fetch storage data:', error)
+  }
+}
+
+const onStorageShouldRefresh = () => refreshStorageData()
 const viewMode = computed({
   get: () => selectionStore.viewMode,
   set: value => selectionStore.setViewMode(value),
@@ -280,6 +308,8 @@ const handleCreateSelection = () => {
 
 const handleCreateSuccess = async () => {
   showCreateDialog.value = false
+  await refreshStorageData()
+  window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
   await resetToFirstPage()
 }
 
@@ -349,6 +379,7 @@ const handleConfirmDelete = async () => {
     if (deleted) {
       activeSelection.value = null
       showDeleteModal.value = false
+      await refreshStorageData()
       await fetch()
     }
   } catch (error) {
@@ -361,12 +392,24 @@ const handleConfirmDelete = async () => {
 const handleConfirmDuplicate = async () => {
   if (!activeSelection.value) return
 
+  await refreshStorageData()
+  
+  if (selectionLimitReached.value) {
+    toast.error('Selection limit reached', {
+      description: `You've reached your selection limit (${selectionCount.value}/${selectionLimit.value}). Upgrade your plan for more selection phases.`,
+    })
+    showDuplicateModal.value = false
+    activeSelection.value = null
+    return
+  }
+
   const selectionId = String(activeSelection.value.id)
   if (duplicatingSelectionIds.value.has(selectionId)) return
   
   duplicatingSelectionIds.value.add(selectionId)
   try {
     await selectionStore.duplicateSelection(activeSelection.value.id)
+    await refreshStorageData()
     toast.success('Selection duplicated', {
       description: `${activeSelection.value.name || activeSelection.value.title} has been duplicated.`,
     })
@@ -514,6 +557,12 @@ const handleTogglePassword = async (selection, enabled) => {
 
 // Initial load
 onMounted(async () => {
+  await refreshStorageData()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   await fetch()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 </script>

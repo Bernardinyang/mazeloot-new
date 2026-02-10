@@ -31,7 +31,7 @@
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <span :class="['text-sm', theme.textSecondary]">Loading…</span>
         </div>
-        <div v-for="i in 5" :key="i" :class="['rounded-xl border border-border bg-card p-6 animate-pulse']">
+        <div v-for="i in 5" :key="i" :class="['rounded-xl border border-border bg-card p-4 sm:p-6 animate-pulse']">
           <div :class="['h-5 w-48 rounded', theme.bgSkeleton]" />
           <div :class="['h-4 w-64 rounded mt-2', theme.bgSkeleton]" />
         </div>
@@ -45,7 +45,7 @@
         <div
           v-for="n in newsletter"
           :key="n.uuid"
-          :class="['rounded-xl border border-border bg-card p-6 shadow-sm hover:shadow-md transition-all']"
+          :class="['rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm hover:shadow-md transition-all']"
         >
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="min-w-0 flex-1">
@@ -105,7 +105,7 @@ const theme = useThemeClasses()
 const adminApi = useAdminApi()
 
 const newsletter = ref([])
-const loading = ref(false)
+const loading = ref(true)
 const search = ref('')
 const statusFilter = ref('')
 const meta = ref(null)

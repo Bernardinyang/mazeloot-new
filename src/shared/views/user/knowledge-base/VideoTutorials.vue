@@ -2,7 +2,7 @@
   <KnowledgeBaseLayout>
     <div class="space-y-8">
       <!-- Hero Section -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-pink-600 p-8 md:p-12 shadow-2xl border-2 border-red-400/30">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-600 via-red-500 to-pink-600 p-4 sm:p-8 md:p-12 shadow-2xl border-2 border-red-400/30">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20"></div>
         <div class="relative z-10 space-y-6" style="animation: fadeIn 0.6s ease-out;">
           <div class="flex items-center gap-4">

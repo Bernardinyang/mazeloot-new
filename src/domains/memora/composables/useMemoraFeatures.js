@@ -8,6 +8,13 @@ import { useRouter } from 'vue-router'
 const RECOMMENDED_TIER_FOR_FEATURE = {
   proofing: 'pro',
   raw_files: 'studio',
+  homepage_enabled: 'pro',
+  branding_editable: 'pro',
+  social_links_enabled: 'pro',
+  collection_display_enabled: 'pro',
+  photo_quality_enabled: 'pro',
+  legal_documents_enabled: 'pro',
+  preset_limit: 'pro',
 }
 
 const FEATURE_LABELS = {
@@ -44,7 +51,7 @@ export function useMemoraFeatures() {
   const setLimitPerPhase = computed(() => userStore.user?.set_limit_per_phase ?? null)
   const watermarkLimit = computed(() => userStore.user?.watermark_limit ?? null)
   const presetLimit = computed(() => userStore.user?.preset_limit ?? null)
-  const canAddPreset = computed(() => presetLimit.value !== 0)
+  const canAddPreset = computed(() => (presetLimit.value ?? 0) > 0)
   const canAddWatermark = (currentCount) => {
     const limit = watermarkLimit.value
     return limit === null || limit === undefined || (typeof currentCount === 'number' && currentCount < limit)

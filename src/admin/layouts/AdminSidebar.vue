@@ -147,6 +147,9 @@ import {
   CreditCard,
   Mail,
   ClipboardList,
+  Heart,
+  Server,
+  AlertTriangle,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -180,6 +183,9 @@ const iconMap = {
   CreditCard,
   Mail,
   ClipboardList,
+  Heart,
+  Server,
+  AlertTriangle,
 }
 
 const getIcon = (iconName) => {
@@ -189,9 +195,10 @@ const getIcon = (iconName) => {
 const openStates = ref({ memora: true })
 
 const isActive = (to) => {
+  if (!to) return false
   if (typeof to === 'string') {
     return route.path === to
   }
-  return route.name === to.name
+  return route.name === to?.name
 }
 </script>

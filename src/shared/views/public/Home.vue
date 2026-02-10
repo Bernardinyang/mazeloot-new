@@ -181,7 +181,7 @@
           </p>
         </div>
         <div class="mt-12 sm:mt-16 grid grid-cols-1 gap-4 sm:gap-6 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4 lg:gap-6 stagger-children">
-          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 transition-all duration-300 dark:hover:border-purple-500/40 light:hover:border-purple-500/60 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl dark:hover:shadow-purple-500/20 light:hover:shadow-purple-500/30 hover:-translate-y-1">
+          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 transition-all duration-300 dark:hover:border-purple-500/40 light:hover:border-purple-500/60 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl dark:hover:shadow-purple-500/20 light:hover:shadow-purple-500/30 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
             <span class="absolute right-3 top-3 sm:right-4 sm:top-4 text-5xl sm:text-6xl md:text-7xl font-bold tabular-nums dark:bg-gradient-to-br dark:from-purple-200/10 dark:to-purple-300/10 light:bg-gradient-to-br light:from-purple-400/30 light:to-purple-500/40 bg-clip-text text-transparent dark:blur-[0.5px] light:blur-[0px] font-mono tracking-tighter" style="font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;" aria-hidden="true">01</span>
             <div class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500/20 to-purple-600/20 border border-purple-600/50 group-hover:scale-110 transition-transform duration-300">
@@ -190,7 +190,7 @@
             <h3 class="relative z-10 mt-4 sm:mt-5 text-lg sm:text-xl font-bold dark:text-white light:text-gray-900">Selection</h3>
             <p class="relative z-10 mt-2 text-xs sm:text-sm leading-6 dark:text-gray-300 light:text-gray-600">Send one link. Clients see your work, pick favorites, and react—no sign-up, no app.</p>
           </div>
-          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 transition-all duration-300 hover:border-blue-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-1">
+          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 transition-all duration-300 hover:border-blue-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-blue-500/20 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-blue-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span class="absolute right-3 top-3 sm:right-4 sm:top-4 text-5xl sm:text-6xl md:text-7xl font-bold tabular-nums dark:bg-gradient-to-br dark:from-blue-200/10 dark:to-blue-300/10 light:bg-gradient-to-br light:from-blue-400/30 light:to-blue-500/40 bg-clip-text text-transparent dark:blur-[0.5px] light:blur-[0px] font-mono tracking-tighter" style="font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;" aria-hidden="true">02</span>
             <div class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500/20 to-blue-600/20 border border-blue-600/50 group-hover:scale-110 transition-transform duration-300">
@@ -199,7 +199,7 @@
             <h3 class="relative z-10 mt-4 sm:mt-5 text-lg sm:text-xl font-bold dark:text-white light:text-gray-900">Proofing</h3>
             <p class="relative z-10 mt-2 text-xs sm:text-sm leading-6 dark:text-gray-300 light:text-gray-600">Comments and revision requests in one place. You get a clear list—no digging through inboxes.</p>
           </div>
-          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 transition-all duration-300 hover:border-green-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-green-500/20 hover:-translate-y-1">
+          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 transition-all duration-300 hover:border-green-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-green-500/20 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-green-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span class="absolute right-3 top-3 sm:right-4 sm:top-4 text-5xl sm:text-6xl md:text-7xl font-bold tabular-nums dark:bg-gradient-to-br dark:from-green-200/10 dark:to-green-300/10 light:bg-gradient-to-br light:from-green-400/30 light:to-green-500/40 bg-clip-text text-transparent dark:blur-[0.5px] light:blur-[0px] font-mono tracking-tighter" style="font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;" aria-hidden="true">03</span>
             <div class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-green-500/20 to-green-600/20 border border-green-600/50 group-hover:scale-110 transition-transform duration-300">
@@ -208,7 +208,7 @@
             <h3 class="mt-4 sm:mt-5 text-lg sm:text-xl font-bold dark:text-white light:text-gray-900">Collection</h3>
             <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-300 light:text-gray-600">Deliver finals with one link. Clients download when they’re ready—you look pro, they’re happy.</p>
           </div>
-          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-6 sm:p-8 transition-all duration-300 hover:border-amber-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-amber-500/20 hover:-translate-y-1">
+          <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 p-4 sm:p-6 md:p-8 transition-all duration-300 hover:border-amber-500/40 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-2xl hover:shadow-amber-500/20 hover:-translate-y-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-amber-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <span class="absolute right-4 top-4 text-6xl sm:text-7xl font-bold tabular-nums dark:bg-gradient-to-br dark:from-amber-200/10 dark:to-amber-300/10 light:bg-gradient-to-br light:from-amber-400/30 light:to-amber-500/40 bg-clip-text text-transparent dark:blur-[0.5px] light:blur-[0px] font-mono tracking-tighter" style="font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', monospace;" aria-hidden="true">04</span>
             <div class="relative flex h-12 w-12 sm:h-14 sm:w-14 items-center justify-center rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/20 border border-amber-600/50 group-hover:scale-110 transition-transform duration-300">
@@ -320,7 +320,7 @@
           <!-- Card 2: real-time -->
           <div class="group relative flex flex-col overflow-hidden rounded-2xl dark:bg-white/5 light:bg-white backdrop-blur-xl border dark:border-white/10 light:border-gray-200 transition-all duration-300 hover:border-primary-500/40 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1 lg:col-start-2 lg:row-start-1">
             <div class="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary-500/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-            <div class="flex flex-1 flex-col p-6 sm:p-8">
+            <div class="flex flex-1 flex-col p-4 sm:p-6 md:p-8">
               <span class="inline-flex h-10 w-10 items-center justify-center rounded-xl dark:bg-accent-500/50 light:bg-accent-500/20 text-sm font-bold dark:text-accent-300 light:text-accent-600">2</span>
               <h3 class="mt-4 text-xl font-semibold tracking-tight dark:text-white light:text-gray-900">Always in sync</h3>
               <p class="mt-2 text-sm leading-6 dark:text-gray-400 light:text-gray-600">Selections and comments update in real time. No “did you get my email?”—everyone’s on the same page.</p>
@@ -437,7 +437,7 @@
         </div>
 
         <div v-if="pricingLoading" class="mx-auto mt-14 grid max-w-4xl grid-cols-1 gap-6 lg:grid-cols-2">
-          <div v-for="i in 2" :key="i" class="rounded-2xl border dark:border-white/10 light:border-gray-200 dark:bg-white/5 light:bg-white p-8 animate-pulse">
+          <div v-for="i in 2" :key="i" class="rounded-2xl border dark:border-white/10 light:border-gray-200 dark:bg-white/5 light:bg-white p-4 sm:p-8 animate-pulse">
             <div class="h-6 w-24 rounded dark:bg-white/10 light:bg-gray-200" />
             <div class="mt-4 h-8 w-32 rounded dark:bg-white/10 light:bg-gray-200" />
             <div class="mt-6 h-4 w-full rounded dark:bg-white/10 light:bg-gray-200" />
@@ -458,7 +458,7 @@
             v-for="tier in pricingTiers"
             :key="tier.id"
             :class="[
-              'relative flex flex-col rounded-2xl border p-8 backdrop-blur-xl transition-all duration-200 sm:p-10',
+              'relative flex flex-col rounded-2xl border p-4 sm:p-8 backdrop-blur-xl transition-all duration-200 sm:p-10',
               tier.popular
                 ? 'border-primary-500/50 dark:bg-primary-500/10 light:bg-gradient-to-br light:from-primary-50 light:to-accent-50 shadow-lg shadow-primary-500/10 dark:shadow-primary-500/20 light:shadow-primary-500/10'
                 : 'dark:border-white/10 light:border-gray-300 dark:bg-white/5 light:bg-white light:shadow-sm light:ring-1 light:ring-gray-200/50 hover:border-primary-500/30 dark:hover:bg-white/10 light:hover:bg-gray-50 light:hover:shadow-md light:hover:ring-gray-300/50 hover:shadow-xl hover:shadow-primary-500/10 hover:-translate-y-1',

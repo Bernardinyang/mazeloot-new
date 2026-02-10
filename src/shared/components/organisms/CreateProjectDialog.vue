@@ -6,6 +6,9 @@
     @update:model-value="$emit('update:open', $event)"
   >
     <form id="project-form" @submit.prevent="handleSubmit" class="space-y-5">
+      <PlanLimitBanner v-if="projectLimitReached">
+        Project limit ({{ projectCount }}/{{ projectLimit }}) reached. Upgrade your plan for more projects.
+      </PlanLimitBanner>
       <!-- Project Name -->
       <div class="space-y-2">
         <label class="text-sm font-medium" :class="theme.textPrimary"> Project Name </label>
@@ -301,6 +304,8 @@ import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import ColorSelector from '@/shared/components/molecules/ColorSelector.vue'
 import { generateRandomColorFromPalette } from '@/shared/utils/colors'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
+import { useAuthApi } from '@/shared/api/auth'
 
 const props = defineProps({
   open: {
@@ -319,6 +324,15 @@ const theme = useThemeClasses()
 const { hasFeature } = useMemoraFeatures()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
+const authApi = useAuthApi()
+
+const projectCount = ref(0)
+const projectLimit = ref(null)
+const projectLimitReached = computed(() => {
+  const limit = projectLimit.value
+  if (limit == null) return false
+  return projectCount.value >= limit
+})
 
 const formData = reactive({
   name: '',
@@ -358,11 +372,18 @@ const hasAtLeastOnePhase = computed(() => {
   return s || p || c
 })
 
-// Reset form when dialog opens/closes and load presets/watermarks
+// Fetch limit data when dialog opens
 watch(
   () => props.open,
   async newValue => {
     if (newValue) {
+      try {
+        const storageData = await authApi.getStorage()
+        projectCount.value = storageData.project_count ?? 0
+        projectLimit.value = storageData.project_limit ?? null
+      } catch (error) {
+        console.error('Failed to fetch storage data:', error)
+      }
       if (hasFeature('collection') && !hasFeature('selection') && !hasFeature('proofing')) {
         formData.hasCollections = true
       }
@@ -439,6 +460,11 @@ const handleCancel = () => {
 
 const handleSubmit = async () => {
   errors.value = {}
+
+  if (projectLimitReached.value) {
+    errors.value.name = 'Project limit reached. Upgrade your plan for more projects.'
+    return
+  }
 
   if (!formData.name.trim()) {
     errors.value.name = 'Project name is required'

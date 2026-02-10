@@ -27,11 +27,9 @@ const { navigateTo } = useNavigation()
 const userStore = useUserStore()
 const activeTeam = ref(props.teams?.[0] || null)
 
-// TODO: Replace with actual admin check from user store/API
 const isAdmin = computed(() => {
   if (props.isAdmin !== undefined) return props.isAdmin
-  // Mock admin check - in production, this would come from user store/API
-  return userStore.user?.email?.includes('admin') || false
+  return userStore.isAdmin
 })
 
 // Watch for team changes and navigate if route is provided

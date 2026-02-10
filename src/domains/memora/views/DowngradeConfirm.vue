@@ -22,7 +22,7 @@
         </Button>
       </div>
 
-      <div v-else class="rounded-2xl border border-border bg-card p-6 shadow-sm space-y-6">
+      <div v-else class="rounded-2xl border border-border bg-card p-4 sm:p-6 shadow-sm space-y-6">
         <h1 class="text-xl font-bold text-foreground">Switch to {{ starterPlanLabel }}</h1>
         <p class="text-muted-foreground text-sm">
           Your current plan ({{ info?.current_plan ?? 'paid' }}) will be cancelled. You will be on the free {{ starterPlanLabel }} plan.

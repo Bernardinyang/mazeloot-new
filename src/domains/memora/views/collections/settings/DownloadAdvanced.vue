@@ -4,7 +4,7 @@
     <div
       v-for="i in 2"
       :key="i"
-      class="space-y-4 p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70"
+      class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600/70"
     >
       <div class="flex items-start justify-between gap-4">
         <div class="flex-1">
@@ -22,7 +22,7 @@
   <div v-else class="space-y-6">
     <!-- Limit Media Downloads -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+      class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div class="flex items-start justify-between gap-4">
@@ -56,7 +56,7 @@
 
     <!-- Restrict Downloads to Specific Contacts -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+      class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div class="flex items-start justify-between gap-4">
@@ -144,7 +144,7 @@
           >
             <div
               v-if="allowedEmails.length === 0"
-              class="relative overflow-hidden rounded-lg border border-dashed p-8 text-center"
+              class="relative overflow-hidden rounded-lg border border-dashed p-4 sm:p-8 text-center"
               :class="[theme.borderSecondary, theme.bgCard]"
             >
               <div
@@ -244,7 +244,7 @@
 
     <!-- Photo Sets Available for Download -->
     <div
-      class="space-y-4 p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
+      class="space-y-4 p-4 sm:p-6 rounded-2xl border-2 transition-all duration-300 hover:border-accent/30"
       :class="[theme.borderSecondary, theme.bgCard]"
     >
       <div>

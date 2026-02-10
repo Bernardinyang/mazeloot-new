@@ -11,7 +11,7 @@
         </Button>
       </div>
 
-      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-6']">
+      <div v-if="loading" :class="['rounded-xl border border-border bg-card p-4 sm:p-6']">
         <div class="flex items-center gap-3">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <span :class="['text-sm', theme.textSecondary]">Loading…</span>
@@ -19,7 +19,7 @@
       </div>
 
       <template v-else-if="entry">
-        <Card class="p-6 rounded-xl border border-border bg-card shadow-sm">
+        <Card class="p-4 sm:p-6 rounded-xl border border-border bg-card shadow-sm">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label :class="['text-xs uppercase', theme.textSecondary]">Name</Label>
@@ -28,7 +28,7 @@
             <div>
               <Label :class="['text-xs uppercase', theme.textSecondary]">Email</Label>
               <p :class="['text-sm mt-1', theme.textPrimary]">
-                <a :href="`mailto:${entry.email}`" class="text-primary hover:underline">{{ entry.email }}</a>
+                <a :href="`mailto:${entry.email}`" class="text-accent hover:underline">{{ entry.email }}</a>
               </p>
             </div>
             <div v-if="entry.product">
@@ -54,7 +54,7 @@
             <div v-if="entry.user" class="md:col-span-2">
               <Label :class="['text-xs uppercase', theme.textSecondary]">User account</Label>
               <p :class="['text-sm mt-1', theme.textPrimary]">
-                <RouterLink :to="{ name: 'admin-user-show', params: { uuid: entry.user.uuid } }" class="text-primary hover:underline">
+                <RouterLink :to="{ name: 'admin-user-show', params: { uuid: entry.user.uuid } }" class="text-accent hover:underline">
                   {{ entry.user.name }} ({{ entry.user.email }})
                 </RouterLink>
               </p>

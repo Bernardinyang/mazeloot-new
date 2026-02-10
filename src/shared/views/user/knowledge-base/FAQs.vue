@@ -2,7 +2,7 @@
   <KnowledgeBaseLayout>
     <div class="space-y-8">
       <!-- Hero Section -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-violet-500 to-purple-600 p-8 md:p-12 shadow-2xl border-2 border-violet-400/30">
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-violet-600 via-violet-500 to-purple-600 p-4 sm:p-8 md:p-12 shadow-2xl border-2 border-violet-400/30">
         <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48Y2lyY2xlIGN4PSIzMCIgY3k9IjMwIiByPSIyIi8+PC9nPjwvZz48L3N2Zz4=')] opacity-20"></div>
         <div class="relative z-10 space-y-6" style="animation: fadeIn 0.6s ease-out;">
           <div class="flex items-center gap-4">
@@ -19,7 +19,7 @@
       </div>
 
       <!-- Overview -->
-      <Card class="p-6 border-2 border-violet-200 dark:border-violet-800 bg-gradient-to-br from-violet-50/50 to-purple-50/50 dark:from-violet-950/30 dark:to-purple-950/30">
+      <Card class="p-4 sm:p-6 border-2 border-violet-200 dark:border-violet-800 bg-gradient-to-br from-violet-50/50 to-purple-50/50 dark:from-violet-950/30 dark:to-purple-950/30">
         <div class="space-y-4">
           <h2 class="text-2xl font-bold text-foreground">Common Questions</h2>
           <p class="text-foreground/80 leading-relaxed text-lg">
@@ -33,7 +33,7 @@
         <Card 
           v-for="(faq, index) in faqs" 
           :key="faq.id" 
-          class="group p-6 border-2 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-lg"
+          class="group p-4 sm:p-6 border-2 hover:border-violet-300 dark:hover:border-violet-700 transition-all duration-300 hover:shadow-lg"
           :style="{ animation: `slideInUp 0.5s ease-out ${index * 50}ms both` }"
         >
           <div class="space-y-3">

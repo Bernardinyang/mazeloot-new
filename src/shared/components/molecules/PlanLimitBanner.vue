@@ -19,12 +19,31 @@
     </div>
     <div class="text-sm text-amber-800 dark:text-amber-200 leading-relaxed min-w-0">
       <slot />
+      <span v-if="feature && recommendedTier" class="font-medium">
+        Available on {{ recommendedTier }} plan and above.
+      </span>
     </div>
   </div>
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { Lock } from '@/shared/utils/lucideAnimated'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
+
+const props = defineProps({
+  feature: {
+    type: String,
+    default: null,
+  },
+})
+
+const { recommendedTierDisplayName } = useMemoraFeatures()
+
+const recommendedTier = computed(() => {
+  if (!props.feature) return null
+  return recommendedTierDisplayName(props.feature)
+})
 
 defineOptions({
   inheritAttrs: false,

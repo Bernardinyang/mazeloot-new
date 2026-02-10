@@ -477,6 +477,61 @@ export function useAdminApi() {
     }
   }
 
+  const getHealth = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/health')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getSystem = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/system')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getLogsRecent = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/logs/recent')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getAnalyticsOverview = async (params = {}) => {
+    try {
+      const response = await apiClient.get('/v1/admin/analytics/overview', { params })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getSensitiveActivityLogs = async (filters = {}) => {
+    try {
+      const query = new URLSearchParams(filters).toString()
+      const response = await apiClient.get(`/v1/admin/activity-logs/sensitive${query ? `?${query}` : ''}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const clearCache = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/cache/clear')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   /**
    * Get activity logs
    */
@@ -686,11 +741,17 @@ export function useAdminApi() {
     getUpgradeRequest,
     generateUpgradeInvoice,
     cancelUpgradeRequest,
+    getHealth,
+    getSystem,
+    getLogsRecent,
+    getAnalyticsOverview,
     getActivityLogs,
     getUserActivity,
     getProductActivity,
     getUserActivityLogs,
     getAdminActivityLogs,
+    getSensitiveActivityLogs,
+    clearCache,
     getPricingTiers,
     getPricingTier,
     createPricingTier,

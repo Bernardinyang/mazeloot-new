@@ -9,19 +9,20 @@
 
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+      <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="min-w-0">
+          <h1 class="text-2xl sm:text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
             Homepage
           </h1>
           <p class="text-sm" :class="theme.textSecondary">
             Configure your public homepage settings and preview how it will appear to visitors
           </p>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-2">
           <Button
             variant="outline"
             class="border-accent text-accent hover:bg-accent/10 dark:hover:bg-accent/20"
+            :disabled="isReadonly"
             @click="handleShare"
           >
             <Share2 class="h-4 w-4 mr-2" />
@@ -31,6 +32,7 @@
             variant="default"
             :icon="Globe"
             class="shadow-lg hover:shadow-xl transition-all duration-200"
+            :disabled="isReadonly"
             @click="handleViewSite"
           >
             View Site
@@ -41,7 +43,7 @@
       <!-- Loading State -->
       <div v-if="isLoading" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="space-y-6">
-          <div v-for="i in 5" :key="i" class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div v-for="i in 5" :key="i" class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div class="h-6 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-1/3"></div>
             <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded animate-pulse w-2/3"></div>
             <div class="h-10 bg-gray-200 dark:bg-gray-700 rounded animate-pulse"></div>
@@ -55,11 +57,11 @@
         </div>
       </div>
 
-      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div v-else class="grid grid-cols-1 lg:grid-cols-2 gap-6" data-homepage-settings>
         <!-- Left Section -->
         <div class="space-y-6">
           <!-- Homepage Status Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
@@ -78,9 +80,8 @@
                 </label>
               </template>
             </div>
-            <PlanLimitBanner v-if="!homepageEnabled">
+            <PlanLimitBanner v-if="!homepageEnabled" feature="homepage_enabled">
               Homepage is not available on your plan.
-              <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
             </PlanLimitBanner>
             <p v-else class="text-sm leading-relaxed" :class="theme.textSecondary">
               Your Homepage is a public page where your collections are listed. You can also select
@@ -94,7 +95,7 @@
           </div>
 
           <!-- Homepage URL Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
               <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage URL</h3>
               <p class="text-sm" :class="theme.textSecondary">
@@ -105,7 +106,7 @@
               <Input
                 v-model="homepageUrl"
                 readonly
-                :disabled="isLoading"
+                :disabled="isReadonly || isLoading"
                 :class="[
                   'flex-1 font-mono text-sm',
                   theme.bgInput,
@@ -122,6 +123,7 @@
                   theme.textSecondary,
                   'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
+                :disabled="isReadonly || isLoading"
                 @click="handleCopyUrl"
               >
                 <Copy class="h-4 w-4 mr-2" />
@@ -131,7 +133,7 @@
           </div>
 
           <!-- Homepage Password Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
               <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
                 Homepage Password
@@ -142,9 +144,10 @@
             </div>
             <div class="flex items-center gap-2">
               <PasswordInput
+                id="homepage-password"
                 v-model="homepagePassword"
                 placeholder="Add a password"
-                :disabled="isLoading"
+                :disabled="isReadonly || isLoading"
                 :input-class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -163,7 +166,7 @@
                   'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
                 @click="handleCopyPassword"
-                :disabled="!homepagePassword || isLoading"
+                :disabled="isReadonly || !homepagePassword || isLoading"
               >
                 <Copy class="h-4 w-4 mr-2" />
                 Copy
@@ -177,6 +180,7 @@
                   'hover:bg-accent/10 dark:hover:bg-accent/20',
                 ]"
                 @click="handleGeneratePassword"
+                :disabled="isReadonly || isLoading"
               >
                 <RefreshCw class="h-4 w-4 mr-2" />
                 Generate
@@ -185,7 +189,7 @@
           </div>
 
           <!-- Biography Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
               <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Biography</h3>
               <p class="text-sm" :class="theme.textSecondary">
@@ -194,11 +198,12 @@
             </div>
             <div class="relative">
               <Textarea
+                id="biography"
                 v-model="biography"
                 @input="handleBiographyInput"
                 :maxlength="200"
                 rows="5"
-                :disabled="isLoading"
+                :disabled="isReadonly || isLoading"
                 :class="[
                   theme.bgInput,
                   theme.borderInput,
@@ -219,7 +224,7 @@
           </div>
 
           <!-- Slideshow Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div class="flex items-center justify-between">
               <div>
                 <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
@@ -229,8 +234,8 @@
                   Display featured media as a slideshow on your homepage
                 </p>
               </div>
-              <label class="relative inline-flex items-center group" :class="isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
-                <input type="checkbox" v-model="slideshowEnabled" :disabled="isLoading" class="sr-only peer" />
+              <label class="relative inline-flex items-center group" :class="isReadonly || isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'">
+                <input type="checkbox" v-model="slideshowEnabled" :disabled="isReadonly || isLoading" class="sr-only peer" />
                 <div
                   class="w-12 h-6 rounded-full transition-all duration-300 peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-md peer-checked:bg-accent bg-gray-300 dark:bg-gray-600 group-hover:shadow-lg"
                 ></div>
@@ -248,7 +253,7 @@
           </div>
 
           <!-- Homepage Info Card -->
-          <div class="rounded-lg border p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
+          <div class="rounded-lg border p-4 sm:p-6 space-y-4" :class="[theme.bgCard, theme.borderCard]">
             <div>
               <h3 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Homepage Info</h3>
               <p class="text-sm" :class="theme.textSecondary">
@@ -259,13 +264,16 @@
               <label
                 v-for="info in homepageInfoOptions"
                 :key="info.key"
-                class="flex items-center gap-3 cursor-pointer p-2 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                :class="[
+                  'flex items-center gap-3 p-2 rounded-md transition-colors',
+                  isReadonly || isLoading ? 'cursor-not-allowed opacity-50' : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50',
+                ]"
               >
                 <input
                   type="checkbox"
                   v-model="homepageInfo"
                   :value="info.key"
-                  :disabled="isLoading"
+                  :disabled="isReadonly || isLoading"
                   class="w-5 h-5 rounded border-gray-300 text-accent focus:ring-2 focus:ring-accent focus:ring-offset-2 transition-all"
                   :class="[
                     theme.borderSecondary,
@@ -330,7 +338,7 @@
             </div>
             <div
               v-else
-              class="rounded-lg border shadow-xl overflow-hidden p-8 sm:p-12 text-center"
+              class="rounded-lg border shadow-xl overflow-hidden p-4 sm:p-8 md:p-12 text-center"
               :class="[theme.bgCardSolid, theme.borderCard]"
             >
               <div class="space-y-3">
@@ -370,7 +378,7 @@
           </div>
           <Button
             variant="accent"
-            :disabled="!hasChanges || isLoading"
+            :disabled="isReadonly || !hasChanges || isLoading"
             :loading="isSaving"
             loading-label="Saving..."
             @click="handleSave"
@@ -399,7 +407,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { Copy, RefreshCw, Globe, Mail, MapPin, Phone, Facebook, Instagram, Loader2, Check, Share2 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -430,6 +438,7 @@ const { fetchSocialLinks } = useSocialLinksApi()
 
 // Form state
 const homepageStatus = ref(true)
+const isReadonly = computed(() => !homepageStatus.value)
 const homepageUrl = ref('')
 const homepagePassword = ref('')
 const biography = ref('')
@@ -439,8 +448,8 @@ const slideshowEnabled = ref(false)
 // Social links
 const socialLinks = ref([])
 
-// Loading states
-const isLoading = ref(false)
+// Loading states - start true so skeleton shows until data loads
+const isLoading = ref(true)
 const isSaving = ref(false)
 const isLoadingSocialLinks = ref(false)
 const showShareModal = ref(false)
@@ -451,6 +460,17 @@ const originalHomepagePassword = ref('')
 const originalBiography = ref('')
 const originalHomepageInfo = ref(['biography', 'socialLinks'])
 const originalSlideshowEnabled = ref(false)
+
+// Snapshot for readonly protection
+const readonlySnapshot = ref({
+  homepagePassword: '',
+  biography: '',
+  homepageInfo: ['biography', 'socialLinks'],
+  slideshowEnabled: false,
+})
+
+// Flag to prevent watcher loops
+const isReverting = ref(false)
 
 // Computed to check if there are changes
 const hasChanges = computed(() => {
@@ -572,6 +592,14 @@ onMounted(async () => {
     originalBiography.value = biography.value
     originalHomepageInfo.value = [...homepageInfo.value]
     originalSlideshowEnabled.value = slideshowEnabled.value
+    
+    // Store readonly snapshot
+    readonlySnapshot.value = {
+      homepagePassword: homepagePassword.value,
+      biography: biography.value,
+      homepageInfo: [...homepageInfo.value],
+      slideshowEnabled: slideshowEnabled.value,
+    }
   } catch (error) {
     toast.error('Failed to load settings', {
       description: error.message || 'Please try again',
@@ -584,7 +612,22 @@ onMounted(async () => {
 
 // Manual save function
 const handleSave = async () => {
+  if (isReadonly.value) {
+    toast.error('Cannot save', {
+      description: 'Homepage is disabled. Enable it first to update settings.',
+    })
+    return
+  }
+  
   if (!hasChanges.value) return
+
+  // Validate readonly state before submission
+  if (!homepageStatus.value) {
+    toast.error('Cannot save', {
+      description: 'Homepage is disabled. Enable it first to update settings.',
+    })
+    return
+  }
 
   isSaving.value = true
   try {
@@ -646,11 +689,25 @@ const handleCopyPassword = async () => {
 }
 
 const handleBiographyInput = e => {
+  if (isReadonly.value || isReverting.value) {
+    // Revert to snapshot value immediately
+    if (!isReverting.value) {
+      isReverting.value = true
+      nextTick(() => {
+        biography.value = readonlySnapshot.value.biography
+        nextTick(() => {
+          isReverting.value = false
+        })
+      })
+    }
+    return
+  }
   const target = e.target
   biography.value = target.value
 }
 
 const handleGeneratePassword = () => {
+  if (isReadonly.value) return
   // Generate a random password with special characters for homepage
   const specialChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*'
   homepagePassword.value = generatePassword(12, specialChars)
@@ -676,6 +733,94 @@ const handleViewSite = () => {
 }
 
 const handleShare = () => {
+  if (isReadonly.value) return
   showShareModal.value = true
 }
+
+// Watch for unauthorized changes when readonly
+watch([homepagePassword, biography, homepageInfo, slideshowEnabled], () => {
+  if (isReverting.value || !isReadonly.value) return
+  
+  // Check if values changed from snapshot
+  const hasPasswordChanged = homepagePassword.value !== readonlySnapshot.value.homepagePassword
+  const hasBiographyChanged = biography.value !== readonlySnapshot.value.biography
+  const hasInfoChanged = JSON.stringify(homepageInfo.value) !== JSON.stringify(readonlySnapshot.value.homepageInfo)
+  const hasSlideshowChanged = slideshowEnabled.value !== readonlySnapshot.value.slideshowEnabled
+  
+  if (hasPasswordChanged || hasBiographyChanged || hasInfoChanged || hasSlideshowChanged) {
+    isReverting.value = true
+    nextTick(() => {
+      if (hasPasswordChanged) homepagePassword.value = readonlySnapshot.value.homepagePassword
+      if (hasBiographyChanged) biography.value = readonlySnapshot.value.biography
+      if (hasInfoChanged) homepageInfo.value = [...readonlySnapshot.value.homepageInfo]
+      if (hasSlideshowChanged) slideshowEnabled.value = readonlySnapshot.value.slideshowEnabled
+      nextTick(() => {
+        isReverting.value = false
+      })
+    })
+  }
+}, { deep: true })
+
+// Watch homepageStatus to update snapshot when it changes
+watch(homepageStatus, (newStatus) => {
+  if (!newStatus) {
+    // Homepage disabled - store current values as snapshot
+    readonlySnapshot.value = {
+      homepagePassword: homepagePassword.value,
+      biography: biography.value,
+      homepageInfo: [...homepageInfo.value],
+      slideshowEnabled: slideshowEnabled.value,
+    }
+  } else {
+    // Homepage enabled - update readonly snapshot to current values
+    readonlySnapshot.value = {
+      homepagePassword: homepagePassword.value,
+      biography: biography.value,
+      homepageInfo: [...homepageInfo.value],
+      slideshowEnabled: slideshowEnabled.value,
+    }
+  }
+})
+
+// Mutation observer to prevent DOM manipulation
+let mutationObserver = null
+onMounted(() => {
+  nextTick(() => {
+    const settingsContainer = document.querySelector('[data-homepage-settings]')
+    if (!settingsContainer) return
+    
+    mutationObserver = new MutationObserver(() => {
+      if (!isReadonly.value) return
+      
+      // Re-disable any form elements that were enabled via dev tools
+      const formFields = settingsContainer.querySelectorAll('input, textarea, button:not([type="submit"])')
+      formFields.forEach((field) => {
+        if (field.hasAttribute('data-homepage-field')) {
+          if (!field.disabled && field.type !== 'checkbox') {
+            field.disabled = true
+          }
+        }
+      })
+    })
+    
+    mutationObserver.observe(settingsContainer, {
+      attributes: true,
+      attributeFilter: ['disabled', 'readonly'],
+      childList: true,
+      subtree: true,
+    })
+    
+    // Mark form fields for observation
+    const formFields = settingsContainer.querySelectorAll('input, textarea, button:not([type="submit"])')
+    formFields.forEach((field) => {
+      field.setAttribute('data-homepage-field', 'true')
+    })
+  })
+})
+
+onUnmounted(() => {
+  if (mutationObserver) {
+    mutationObserver.disconnect()
+  }
+})
 </script>

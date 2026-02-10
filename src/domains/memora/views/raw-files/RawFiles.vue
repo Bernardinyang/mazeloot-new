@@ -36,20 +36,24 @@
         </template>
       </PageHeader>
 
+      <PlanLimitBanner v-if="rawFileLimitReached">
+        Raw file limit ({{ rawFileCount }}/{{ rawFileLimit }}) reached. Upgrade your plan for more raw file phases.
+      </PlanLimitBanner>
+
       <!-- RawFiles Grid View -->
       <div v-if="viewMode === 'grid'">
         <!-- Loading State -->
-        <LoadingState v-if="isLoading" message="Loading rawFiles..." />
+        <LoadingState v-if="isLoading" variant="skeleton" />
 
         <!-- Empty State -->
         <EmptyState
-          v-else-if="rawFiles.length === 0"
+          v-else-if="rawFiles.length === 0 && canAccessRawFiles"
           :icon="CheckSquare"
           :action-icon="Plus"
-          :action-label="canAccessRawFiles ? 'Create New RawFile' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
+          action-label="Create New RawFile"
           description="Get started by creating your first rawFile to organize and manage your media."
           message="No rawFiles found"
-          @action="canAccessRawFiles ? handleCreateRawFile : () => showUpgradePrompt('raw_files')"
+          @action="handleCreateRawFile"
         />
 
         <!-- RawFiles Grid -->
@@ -88,14 +92,14 @@
         :loading="isLoading"
         :selected-items="selectedRawFiles"
         :show-view-details="true"
-        :empty-action-label="canAccessRawFiles ? 'Create New RawFile' : `Upgrade to ${recommendedTierDisplayName('raw_files')}`"
+        empty-action-label="Create New RawFile"
         empty-message="No rawFiles found"
         @delete="handleDeleteRawFile"
         @edit="handleEditRawFile"
         @select="handleSelectRawFile"
         @star-click="toggleStar"
         @item-click="handleRawFileClick"
-        @empty-action="canAccessRawFiles ? handleCreateRawFile : () => showUpgradePrompt('raw_files')"
+        @empty-action="handleCreateRawFile"
         @view-details="handleViewDetails"
         @toggle-password="handleTogglePassword"
       />
@@ -158,7 +162,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { CheckSquare, Plus } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Button } from '@/shared/components/shadcn/button'
@@ -168,6 +172,7 @@ import RawFileCard from '@/shared/components/molecules/RawFileCard.vue'
 import RawFilesTable from '@/domains/memora/components/organisms/RawFilesTable.vue'
 import EmptyState from '@/shared/components/molecules/EmptyState.vue'
 import RawFileDetailSidebar from '@/domains/memora/components/organisms/RawFileDetailSidebar.vue'
+import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import CreateRawFileDialog from '@/domains/memora/components/organisms/CreateRawFileDialog.vue'
 import EditRawFileDialog from '@/domains/memora/components/organisms/EditRawFileDialog.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
@@ -178,12 +183,35 @@ import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useRouter } from 'vue-router'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { toast } from '@/shared/utils/toast'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
+import { useAuthApi } from '@/shared/api/auth'
 
 const rawFileStore = useRawFileStore()
 const rawFilesApi = useRawFilesApi()
 const router = useRouter()
 const { handleError } = useErrorHandler()
-const { canAccessRawFiles, showUpgradePrompt, recommendedTierDisplayName } = useMemoraFeatures()
+const { canAccessRawFiles } = useMemoraFeatures()
+const authApi = useAuthApi()
+
+const rawFileCount = ref(0)
+const rawFileLimit = ref(null)
+const rawFileLimitReached = computed(() => {
+  const limit = rawFileLimit.value
+  if (limit == null) return false
+  return rawFileCount.value >= limit
+})
+
+const refreshStorageData = async () => {
+  try {
+    const storageData = await authApi.getStorage()
+    rawFileCount.value = storageData.raw_file_count ?? 0
+    rawFileLimit.value = storageData.raw_file_limit ?? null
+  } catch (error) {
+    console.error('Failed to fetch storage data:', error)
+  }
+}
+
+const onStorageShouldRefresh = () => refreshStorageData()
 const viewMode = computed({
   get: () => rawFileStore.viewMode,
   set: value => rawFileStore.setViewMode(value),
@@ -283,6 +311,8 @@ const handleCreateRawFile = () => {
 
 const handleCreateSuccess = async () => {
   showCreateDialog.value = false
+  await refreshStorageData()
+  window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
   await resetToFirstPage()
 }
 
@@ -352,6 +382,8 @@ const handleConfirmDelete = async () => {
     if (deleted) {
       activeRawFile.value = null
       showDeleteModal.value = false
+      await refreshStorageData()
+      window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
       await fetch()
     }
   } catch (error) {
@@ -364,12 +396,25 @@ const handleConfirmDelete = async () => {
 const handleConfirmDuplicate = async () => {
   if (!activeRawFile.value) return
 
+  await refreshStorageData()
+
+  if (rawFileLimitReached.value) {
+    toast.error('Raw file limit reached', {
+      description: `You've reached your raw file limit (${rawFileCount.value}/${rawFileLimit.value}). Upgrade your plan for more raw file phases.`,
+    })
+    showDuplicateModal.value = false
+    activeRawFile.value = null
+    return
+  }
+
   const rawFileId = String(activeRawFile.value.id)
   if (duplicatingRawFileIds.value.has(rawFileId)) return
   
   duplicatingRawFileIds.value.add(rawFileId)
   try {
     await rawFileStore.duplicateRawFile(activeRawFile.value.id)
+    await refreshStorageData()
+    window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
     toast.success('RawFile duplicated', {
       description: `${activeRawFile.value.name || activeRawFile.value.title} has been duplicated.`,
     })
@@ -517,6 +562,15 @@ const handleTogglePassword = async (rawFile, enabled) => {
 
 // Initial load
 onMounted(async () => {
+  if (!canAccessRawFiles.value) {
+    return
+  }
+  await refreshStorageData()
+  window.addEventListener('storage:shouldRefresh', onStorageShouldRefresh)
   await fetch()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('storage:shouldRefresh', onStorageShouldRefresh)
 })
 </script>

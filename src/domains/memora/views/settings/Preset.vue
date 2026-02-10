@@ -23,7 +23,7 @@
 
       <!-- Content -->
       <div class="space-y-6 w-[50%]">
-        <PlanLimitBanner v-if="!canAddPreset">
+        <PlanLimitBanner v-if="!canAddPreset" feature="preset_limit">
           Creating presets is not available on your plan.
         </PlanLimitBanner>
         <!-- Presets List -->
@@ -69,14 +69,13 @@
             </Button>
           </div>
 
-          <!-- Loading State -->
+          <!-- Loading State - show until first load completes -->
           <div
-            v-if="presetStore.isLoading"
+            v-if="!presetsLoadedOnce || presetStore.isLoading"
             :class="[theme.borderSecondary, theme.bgCard]"
-            class="flex flex-col items-center justify-center py-12 px-6 rounded-2xl border-2 border-dashed transition-all duration-300"
+            class="py-12 px-6 rounded-2xl border-2 border-dashed"
           >
-            <Loader2 :class="theme.textSecondary" class="h-8 w-8 animate-spin mb-3" />
-            <p :class="theme.textSecondary" class="text-sm text-center">Loading presets...</p>
+            <FormSkeleton :rows="4" />
           </div>
 
           <!-- Empty State -->
@@ -346,6 +345,7 @@ import CreatePresetDialog from '@/shared/components/organisms/CreatePresetDialog
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import PresetComparisonModal from '@/shared/components/organisms/PresetComparisonModal.vue'
 import PresetQuickPreview from '@/shared/components/organisms/PresetQuickPreview.vue'
+import FormSkeleton from '@/shared/components/molecules/FormSkeleton.vue'
 import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
@@ -357,6 +357,7 @@ function goBack() {
 }
 const presetStore = usePresetStore()
 const { canAddPreset } = useMemoraFeatures()
+const presetsLoadedOnce = ref(false)
 
 const showCreatePresetDialog = ref(false)
 const showDeleteModal = ref(false)
@@ -421,6 +422,8 @@ onMounted(async () => {
     toast.error('Failed to load presets', {
       description: error instanceof Error ? error.message : 'An unknown error occurred',
     })
+  } finally {
+    presetsLoadedOnce.value = true
   }
 })
 

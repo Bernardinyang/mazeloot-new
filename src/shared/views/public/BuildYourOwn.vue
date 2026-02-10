@@ -62,9 +62,22 @@
         </div>
       </header>
 
-      <div v-if="loading" class="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 class="h-10 w-10 animate-spin text-muted-foreground" aria-hidden="true" />
-        <p class="text-sm text-muted-foreground">Loading options…</p>
+      <div v-if="loading" class="grid md:grid-cols-2 gap-6 lg:gap-8 py-8">
+        <div class="rounded-2xl border border-border p-4 sm:p-6 space-y-4 animate-pulse">
+          <div class="h-6 w-32 rounded bg-muted" />
+          <div class="h-4 w-48 rounded bg-muted" />
+          <div class="h-10 w-24 rounded bg-muted" />
+          <div class="space-y-2">
+            <div v-for="i in 4" :key="i" class="h-4 rounded bg-muted" :class="i === 4 ? 'w-2/3' : 'w-full'" />
+          </div>
+        </div>
+        <div class="rounded-2xl border border-border p-4 sm:p-6 space-y-4 animate-pulse">
+          <div class="h-6 w-40 rounded bg-muted" />
+          <div class="h-4 w-56 rounded bg-muted" />
+          <div class="h-12 w-full rounded bg-muted" />
+          <div class="h-4 w-full rounded bg-muted" />
+          <div class="h-4 w-3/4 rounded bg-muted" />
+        </div>
       </div>
       <div v-else-if="error" class="rounded-2xl border border-destructive/30 bg-destructive/5 dark:bg-destructive/10 px-6 py-10 text-center">
         <p class="text-destructive font-medium">{{ error }}</p>
@@ -201,7 +214,7 @@
           </Card>
         </div>
 
-        <div class="rounded-2xl border-2 border-primary/20 bg-primary/5 dark:bg-primary/10 p-6 sm:p-8 shadow-sm">
+        <div class="rounded-2xl border-2 border-primary/20 bg-primary/5 dark:bg-primary/10 p-4 sm:p-6 md:p-8 shadow-sm">
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
               <p class="text-sm font-medium text-muted-foreground mb-1">Your total</p>

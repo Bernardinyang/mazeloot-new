@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile: prevent double-tap zoom on buttons/links, consistent tap highlight */
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  a,
+  [role="button"] {
+    touch-action: manipulation;
+  }
+}
+
 /* Custom Font Families - Ensure Google Fonts are applied */
 @layer base {
   .font-playfair {

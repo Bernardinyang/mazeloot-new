@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <div v-if="loading" class="rounded-xl border border-border bg-card p-8">
+      <div v-if="loading" class="rounded-xl border border-border bg-card p-4 sm:p-8">
         <div class="flex items-center gap-3">
           <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
           <span :class="['text-sm', theme.textSecondary]">Loading…</span>
@@ -22,7 +22,7 @@
 
       <template v-else-if="request">
         <Card class="rounded-xl border border-l-4 border-l-emerald-500 dark:border-l-emerald-500 border-border bg-card shadow-sm overflow-hidden">
-          <div class="p-6">
+          <div class="p-4 sm:p-6">
             <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
               <div class="flex items-center gap-3">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">

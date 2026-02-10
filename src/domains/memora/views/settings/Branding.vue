@@ -19,8 +19,8 @@
       </div>
 
       <!-- Loading State -->
-      <div v-if="isLoading" class="flex items-center justify-center py-20">
-        <Loader2 class="h-8 w-8 animate-spin" :class="theme.textTertiary" />
+      <div v-if="isLoading" class="py-20">
+        <FormSkeleton :rows="8" />
       </div>
 
       <!-- Content -->
@@ -30,14 +30,14 @@
           <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
         </PlanLimitBanner>
         <!-- Brand Details Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Brand Details</h2>
             <p class="text-sm" :class="theme.textSecondary">
               Add information about your brand for display on your galleries
             </p>
-            <PlanLimitBanner v-if="!canEditBranding" class="mt-3">
-              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            <PlanLimitBanner v-if="!canEditBranding" feature="branding_editable" class="mt-3">
+              Not available on your plan.
             </PlanLimitBanner>
           </div>
 
@@ -350,14 +350,14 @@
         </div>
 
         <!-- Domain Settings Card -->
-        <div class="rounded-xl border p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-5" :class="[theme.bgCard, theme.borderCard]">
           <div>
             <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Domain Settings</h2>
             <p class="text-sm" :class="theme.textSecondary">
               Configure your domain and custom domain settings
             </p>
-            <PlanLimitBanner v-if="!canEditBranding" class="mt-3">
-              Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+            <PlanLimitBanner v-if="!canEditBranding" feature="branding_editable" class="mt-3">
+              Not available on your plan.
             </PlanLimitBanner>
           </div>
 
@@ -413,7 +413,7 @@
         </div>
 
         <!-- Brand Assets Card -->
-        <div class="rounded-xl border p-6 space-y-6" :class="[theme.bgCard, theme.borderCard]">
+        <div class="rounded-xl border p-4 sm:p-6 space-y-6" :class="[theme.bgCard, theme.borderCard]">
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">Brand Assets</h2>
@@ -422,8 +422,8 @@
               </p>
             </div>
           </div>
-          <PlanLimitBanner v-if="!canEditBranding" class="w-full">
-            Not available on your plan. <RouterLink v-if="false" :to="{ name: 'memora-pricing' }" class="font-medium text-amber-600 underline dark:text-amber-400">Upgrade</RouterLink>
+          <PlanLimitBanner v-if="!canEditBranding" feature="branding_editable" class="w-full">
+            Not available on your plan.
           </PlanLimitBanner>
 
           <div v-if="canEditBranding" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -504,7 +504,7 @@
         </div>
 
         <!-- Branding Options Card: only show when user can edit branding -->
-        <div v-if="canEditBranding" class="rounded-xl border p-6" :class="[theme.bgCard, theme.borderCard]">
+        <div v-if="canEditBranding" class="rounded-xl border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
           <div class="flex items-center justify-between">
             <div class="flex-1">
               <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
@@ -576,6 +576,7 @@ import { Textarea } from '@/shared/components/shadcn/textarea'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'
 import UpgradePopover from '@/shared/components/molecules/UpgradePopover.vue'
+import FormSkeleton from '@/shared/components/molecules/FormSkeleton.vue'
 import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
@@ -627,7 +628,7 @@ const showBrandControlPopover = ref(false)
 const isDisabled = ref(false)
 
 // Loading states
-const isLoading = ref(false)
+const isLoading = ref(true)
 const isUploadingLogo = ref(false)
 const isUploadingFavicon = ref(false)
 const isSaving = ref(false)
