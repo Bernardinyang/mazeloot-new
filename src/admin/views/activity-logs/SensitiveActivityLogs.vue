@@ -7,6 +7,8 @@
       </header>
 
       <div class="flex flex-wrap gap-3 items-end mb-4">
+        <Button variant="outline" size="sm" @click="setPreset(7)">Last 7 days</Button>
+        <Button variant="outline" size="sm" @click="setPreset(30)">Last 30 days</Button>
         <input
           v-model="filters.start_date"
           type="date"
@@ -92,6 +94,15 @@ const filters = ref({ start_date: '', end_date: '', per_page: 50 })
 
 function formatDate(d) {
   return d ? new Date(d).toLocaleString() : '—'
+}
+
+function setPreset(days) {
+  const end = new Date()
+  const start = new Date()
+  start.setDate(start.getDate() - days)
+  filters.value.end_date = end.toISOString().slice(0, 10)
+  filters.value.start_date = start.toISOString().slice(0, 10)
+  loadLogs()
 }
 
 async function loadLogs(page = 1) {

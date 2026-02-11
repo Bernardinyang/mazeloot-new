@@ -10,7 +10,7 @@
       <p class="text-sm font-medium">No activity data</p>
       <p class="text-xs">Activity will appear here</p>
     </div>
-    <apexchart
+    <VueApexCharts
       v-else
       type="line"
       height="256"
@@ -22,6 +22,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import VueApexCharts from 'vue3-apexcharts'
 import { TrendingUp } from '@/shared/utils/lucideAnimated'
 import { useThemeStore } from '@/shared/stores/theme'
 

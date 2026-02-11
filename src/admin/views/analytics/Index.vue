@@ -93,11 +93,23 @@
           </div>
         </section>
 
+        <section v-if="revenueOverTimeSeries.length" class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
+          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Revenue over time (last 12 months)</h2>
+          <div class="h-64 min-w-0">
+            <ApexChart
+              type="area"
+              height="256"
+              :options="revenueOverTimeChartOptions"
+              :series="revenueOverTimeSeries"
+            />
+          </div>
+        </section>
+
         <section class="grid gap-8 lg:grid-cols-2">
           <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
             <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Registrations by day</h2>
             <div class="h-64 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="registrationsChartSeries.length"
                 type="area"
                 height="256"
@@ -110,7 +122,7 @@
           <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
             <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Activity events by day</h2>
             <div class="h-64 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="activityChartSeries.length"
                 type="area"
                 height="256"
@@ -126,7 +138,7 @@
           <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Users by role</h2>
           <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
             <div class="h-48 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="roleChartSeries.length"
                 type="bar"
                 height="192"
@@ -145,7 +157,7 @@
               <router-link :to="{ name: 'admin-contact' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
             <div class="h-48 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="contactChartSeries.length"
                 type="area"
                 height="192"
@@ -161,7 +173,7 @@
               <router-link :to="{ name: 'admin-waitlist' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
             <div class="h-48 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="waitlistChartSeries.length"
                 type="area"
                 height="192"
@@ -177,7 +189,7 @@
               <router-link :to="{ name: 'admin-newsletter' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
             <div class="h-48 min-w-0">
-              <apexchart
+              <ApexChart
                 v-if="newsletterChartSeries.length"
                 type="area"
                 height="192"
@@ -369,10 +381,8 @@ import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useThemeStore } from '@/shared/stores/theme'
 import { useAdminApi } from '@/admin/api/admin'
 import { Button } from '@/shared/components/shadcn/button'
-import VueApexCharts from 'vue3-apexcharts'
+import ApexChart from 'vue3-apexcharts'
 import { Download } from 'lucide-vue-next'
-
-const apexchart = VueApexCharts
 
 const theme = useThemeClasses()
 const themeStore = useThemeStore()
@@ -545,6 +555,29 @@ const newsletterChartOptions = computed(() => {
     tooltip: { theme: isDark.value ? 'dark' : 'light' },
   }
 })
+
+const revenueOverTimeSeries = computed(() => {
+  const rows = data.value?.revenue_over_time
+  if (!Array.isArray(rows) || !rows.length) return []
+  const categories = rows.map(r => r.month)
+  return [
+    { name: 'Active subscriptions', data: rows.map(r => r.active_subscriptions) },
+    { name: 'MRR ($)', data: rows.map(r => r.mrr_cents / 100) },
+  ]
+})
+const revenueOverTimeChartOptions = computed(() => ({
+  chart: { type: 'area', height: 256, toolbar: { show: false }, zoom: { enabled: false }, background: 'transparent', animations: chartAnimations },
+  stroke: { curve: 'monotoneCubic', width: 2 },
+  fill: { type: 'gradient', opacity: 0.4 },
+  colors: ['#10b981', '#8b5cf6'],
+  xaxis: {
+    categories: (data.value?.revenue_over_time || []).map(r => r.month),
+    labels: { style: { colors: chartTextColor.value } },
+  },
+  yaxis: { labels: { style: { colors: chartTextColor.value } } },
+  grid: { borderColor: chartGridColor.value, strokeDashArray: 4, xaxis: { lines: { show: false } } },
+  tooltip: { theme: isDark.value ? 'dark' : 'light' },
+}))
 
 function formatNumber(n) {
   if (n == null) return '—'

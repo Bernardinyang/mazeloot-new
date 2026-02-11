@@ -1,15 +1,8 @@
-import Login from '@/shared/views/guest/Login.vue'
-import Register from '@/shared/views/guest/Register.vue'
-import VerifyEmail from '@/shared/views/guest/VerifyEmail.vue'
-import ForgotPassword from '@/shared/views/guest/ForgotPassword.vue'
-import ResetPassword from '@/shared/views/guest/ResetPassword.vue'
-import ProductSelection from '@/shared/views/guest/ProductSelection.vue'
-
 export const guestRoutes = [
   {
     path: '/product-selection/:token',
     name: 'productSelection',
-    component: ProductSelection,
+    component: () => import('@/shared/views/guest/ProductSelection.vue'),
     meta: {
       requiresAuth: false,
       isGuestRoute: true,
@@ -18,7 +11,7 @@ export const guestRoutes = [
   {
     path: '/login',
     name: 'login',
-    component: Login,
+    component: () => import('@/shared/views/guest/Login.vue'),
     meta: {
       isGuestRoute: true,
     },
@@ -26,7 +19,7 @@ export const guestRoutes = [
   {
     path: '/register',
     name: 'register',
-    component: Register,
+    component: () => import('@/shared/views/guest/Register.vue'),
     meta: {
       isGuestRoute: true,
     },
@@ -34,7 +27,7 @@ export const guestRoutes = [
   {
     path: '/verify-email',
     name: 'verifyEmail',
-    component: VerifyEmail,
+    component: () => import('@/shared/views/guest/VerifyEmail.vue'),
     meta: {
       isGuestRoute: true,
     },
@@ -42,7 +35,7 @@ export const guestRoutes = [
   {
     path: '/forgot-password',
     name: 'forgotPassword',
-    component: ForgotPassword,
+    component: () => import('@/shared/views/guest/ForgotPassword.vue'),
     meta: {
       isGuestRoute: true,
     },
@@ -50,7 +43,7 @@ export const guestRoutes = [
   {
     path: '/reset-password',
     name: 'resetPassword',
-    component: ResetPassword,
+    component: () => import('@/shared/views/guest/ResetPassword.vue'),
     meta: {
       isGuestRoute: true,
     },

@@ -1,13 +1,8 @@
-import ClientSelectionView from '@/domains/memora/views/public-projects/_projectId/selections.vue'
-import ClientRawFileView from '@/domains/memora/views/public-projects/_projectId/raw-files.vue'
-import ClientProofingView from '@/domains/memora/views/public-projects/_projectId/proofing.vue'
-import BrandHomepage from '@/shared/views/public/BrandHomepage.vue'
-
 export const memoraPublicRoutes = [
   {
     path: '/memora/:domain/selections/:selectionId',
     name: 'clientSelections',
-    component: ClientSelectionView,
+    component: () => import('@/domains/memora/views/public-projects/_projectId/selections.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -15,7 +10,7 @@ export const memoraPublicRoutes = [
   {
     path: '/memora/:domain/raw-files/:rawFileId',
     name: 'clientRawFiles',
-    component: ClientRawFileView,
+    component: () => import('@/domains/memora/views/public-projects/_projectId/raw-files.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -23,7 +18,7 @@ export const memoraPublicRoutes = [
   {
     path: '/memora/:domain/proofing/:proofingId',
     name: 'clientProofing',
-    component: ClientProofingView,
+    component: () => import('@/domains/memora/views/public-projects/_projectId/proofing.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -79,7 +74,7 @@ export const memoraPublicRoutes = [
   {
     path: '/memora/homepage',
     name: 'brandHomepage',
-    component: BrandHomepage,
+    component: () => import('@/shared/views/public/BrandHomepage.vue'),
     meta: {
       requiresAuth: false,
     },

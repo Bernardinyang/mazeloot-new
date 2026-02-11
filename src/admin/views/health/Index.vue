@@ -83,6 +83,13 @@
           </div>
         </section>
 
+        <section v-if="data?.scheduler_stale" class="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
+          <p :class="['text-sm font-medium text-amber-700 dark:text-amber-400']">
+            Scheduler may not be running (last run: {{ data.scheduler_last_run ? formatDate(data.scheduler_last_run) : 'unknown' }}).
+            <RouterLink :to="{ name: 'admin-system' }" class="text-accent hover:underline">View System</RouterLink>
+          </p>
+        </section>
+
         <section v-if="data?.statistics?.failed_jobs_count != null && data.statistics.failed_jobs_count > 0" class="rounded-xl border border-amber-500/50 bg-amber-500/10 p-4">
           <p :class="['text-sm font-medium text-amber-700 dark:text-amber-400']">
             {{ data.statistics.failed_jobs_count }} failed job(s) in queue.

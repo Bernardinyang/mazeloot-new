@@ -1,24 +1,8 @@
-import Home from '@/shared/views/public/Home.vue'
-import About from '@/shared/views/public/About.vue'
-import Products from '@/shared/views/public/Products.vue'
-import Pricing from '@/shared/views/public/Pricing.vue'
-import ContactUs from '@/shared/views/public/ContactUs.vue'
-import Faq from '@/shared/views/public/Faq.vue'
-import Waitlist from '@/shared/views/public/Waitlist.vue'
-import Memora from '@/shared/views/public/Memora.vue'
-import EarlyAccess from '@/shared/views/public/EarlyAccess.vue'
-import FoundersPricing from '@/shared/views/public/FoundersPricing.vue'
-import BuildYourOwn from '@/shared/views/public/BuildYourOwn.vue'
-import SubscriptionSuccess from '@/shared/views/public/SubscriptionSuccess.vue'
-import PrivacyPolicy from '@/shared/views/public/PrivacyPolicy.vue'
-import TermsOfService from '@/shared/views/public/TermsOfService.vue'
-import NewsletterUnsubscribe from '@/shared/views/public/NewsletterUnsubscribe.vue'
-
 export const publicRoutes = [
   {
     path: '/',
     name: 'home',
-    component: Home,
+    component: () => import('@/shared/views/public/Home.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -26,7 +10,7 @@ export const publicRoutes = [
   {
     path: '/about',
     name: 'about',
-    component: About,
+    component: () => import('@/shared/views/public/About.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -34,7 +18,7 @@ export const publicRoutes = [
   {
     path: '/products',
     name: 'products',
-    component: Products,
+    component: () => import('@/shared/views/public/Products.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -42,7 +26,7 @@ export const publicRoutes = [
   {
     path: '/memora',
     name: 'memora',
-    component: Memora,
+    component: () => import('@/shared/views/public/Memora.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -50,7 +34,7 @@ export const publicRoutes = [
   {
     path: '/pricing',
     name: 'pricing',
-    component: Pricing,
+    component: () => import('@/shared/views/public/Pricing.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -58,7 +42,7 @@ export const publicRoutes = [
   {
     path: '/contact',
     name: 'contact',
-    component: ContactUs,
+    component: () => import('@/shared/views/public/ContactUs.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -66,7 +50,7 @@ export const publicRoutes = [
   {
     path: '/faq',
     name: 'faq',
-    component: Faq,
+    component: () => import('@/shared/views/public/Faq.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -74,7 +58,7 @@ export const publicRoutes = [
   {
     path: '/waitlist',
     name: 'waitlist',
-    component: Waitlist,
+    component: () => import('@/shared/views/public/Waitlist.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -82,7 +66,7 @@ export const publicRoutes = [
   {
     path: '/early-access',
     name: 'early-access',
-    component: EarlyAccess,
+    component: () => import('@/shared/views/public/EarlyAccess.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -90,7 +74,7 @@ export const publicRoutes = [
   {
     path: '/founders',
     name: 'founders-pricing',
-    component: FoundersPricing,
+    component: () => import('@/shared/views/public/FoundersPricing.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -98,7 +82,7 @@ export const publicRoutes = [
   {
     path: '/build-your-own',
     name: 'build-your-own',
-    component: BuildYourOwn,
+    component: () => import('@/shared/views/public/BuildYourOwn.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -106,7 +90,7 @@ export const publicRoutes = [
   {
     path: '/subscription/success',
     name: 'subscription-success',
-    component: SubscriptionSuccess,
+    component: () => import('@/shared/views/public/SubscriptionSuccess.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -114,7 +98,7 @@ export const publicRoutes = [
   {
     path: '/privacy',
     name: 'privacy',
-    component: PrivacyPolicy,
+    component: () => import('@/shared/views/public/PrivacyPolicy.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -122,7 +106,7 @@ export const publicRoutes = [
   {
     path: '/terms',
     name: 'terms',
-    component: TermsOfService,
+    component: () => import('@/shared/views/public/TermsOfService.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -130,7 +114,7 @@ export const publicRoutes = [
   {
     path: '/newsletter/unsubscribe/:token',
     name: 'newsletter-unsubscribe',
-    component: NewsletterUnsubscribe,
+    component: () => import('@/shared/views/public/NewsletterUnsubscribe.vue'),
     meta: {
       requiresAuth: false,
     },

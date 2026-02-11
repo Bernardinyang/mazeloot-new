@@ -7,6 +7,9 @@
           <p :class="['mt-1 text-sm', theme.textSecondary]">Server, environment, and runtime configuration.</p>
         </div>
         <div v-if="data" class="flex items-center gap-2">
+          <Button variant="outline" size="sm" :disabled="refreshing" @click="refresh">
+            {{ refreshing ? 'Refreshing…' : 'Refresh' }}
+          </Button>
           <a
             v-if="data.telescope_enabled"
             :href="telescopeUrl"
@@ -32,6 +35,9 @@
       </div>
 
       <div v-else class="space-y-8">
+        <p v-if="data?.scheduler_stale_seconds != null && data.scheduler_stale_seconds > 900" class="rounded-lg border border-amber-500/50 bg-amber-500/10 px-4 py-2 text-sm text-amber-700 dark:text-amber-400">
+          Scheduler may not be running (last run {{ data.scheduler_last_run ? formatSchedulerAgo(data.scheduler_last_run) : 'unknown' }}).
+        </p>
         <p v-if="data?.env_hint" :class="['text-sm font-medium rounded-lg border border-border bg-muted/50 px-4 py-2', theme.textPrimary]">
           {{ data.env_hint }}
         </p>
@@ -89,7 +95,7 @@
             </span>
           </div>
 
-          <dl v-if="sectionKey !== 'quick_links' && sectionKey !== 'feature_flags'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <dl v-if="sectionKey !== 'quick_links' && sectionKey !== 'feature_flags' && sectionKey !== 'failed_logins'" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div
               v-for="(value, key) in sectionRows(sectionKey, section)"
               :key="key"
@@ -112,14 +118,32 @@
               {{ link.label }}
             </a>
           </div>
-          <div v-else-if="sectionKey === 'feature_flags' && Array.isArray(section) && section.length" class="mt-2 flex flex-wrap gap-1.5">
-            <span
-              v-for="flag in section"
-              :key="flag"
-              :class="['rounded px-2 py-0.5 text-xs font-mono', theme.bgMuted, theme.textPrimary]"
-            >
-              {{ flag }}
-            </span>
+          <div v-else-if="sectionKey === 'feature_flags' && Array.isArray(section) && section.length" class="mt-2 space-y-2">
+            <div class="flex flex-wrap gap-1.5">
+              <span
+                v-for="flag in section"
+                :key="flag"
+                :class="['rounded px-2 py-0.5 text-xs font-mono', theme.bgMuted, theme.textPrimary]"
+              >
+                {{ flag }}
+              </span>
+            </div>
+            <div v-if="data?.feature_flag_usage && Object.keys(data.feature_flag_usage).length" class="pt-2 border-t border-border text-xs">
+              <p :class="['font-medium mb-1', theme.textSecondary]">Usage (users with flag)</p>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                <span v-for="(count, flag) in data.feature_flag_usage" :key="flag" :class="theme.textPrimary">
+                  {{ flag }}: {{ count }}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div v-else-if="sectionKey === 'failed_logins' && Array.isArray(section) && section.length" class="mt-2">
+            <p :class="['text-xs font-medium mb-2', theme.textSecondary]">Last {{ section.length }} failed login attempts</p>
+            <ul class="space-y-1 text-sm font-mono">
+              <li v-for="(entry, i) in section" :key="i" :class="theme.textPrimary">
+                {{ entry.attempted_at }} — {{ entry.identifier }} ({{ entry.ip || '—' }})
+              </li>
+            </ul>
           </div>
           <div v-if="sectionKey === 'php' && (data?.php?.extensions || []).length" class="mt-4 pt-4 border-t border-border">
             <dt :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Extensions ({{ data.php.extensions.length }})</dt>
@@ -137,6 +161,7 @@
 
         <section v-if="logIssuesLoaded || logIssuesError" class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
           <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Recent log issues</h2>
+          <p v-if="data?.logging?.path" :class="['text-xs mb-2', theme.textSecondary]">Log file: <span class="font-mono">{{ data.logging.path }}</span></p>
           <div v-if="logIssuesError" :class="['rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm', theme.textPrimary]">
             {{ logIssuesError }}
           </div>
@@ -193,6 +218,7 @@ const data = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const clearingCache = ref(false)
+const refreshing = ref(false)
 const logIssues = ref({ errors: [], warnings: [], alerts: [] })
 const logIssuesLoaded = ref(false)
 const logIssuesError = ref(null)
@@ -267,6 +293,8 @@ const sections = computed(() => {
   if (d.scheduler_last_run) out.scheduler = { last_run: d.scheduler_last_run }
   if (Array.isArray(d.quick_links) && d.quick_links.length) out.quick_links = d.quick_links
   if (Array.isArray(d.feature_flags) && d.feature_flags.length) out.feature_flags = d.feature_flags
+  if (d.feature_flag_usage && typeof d.feature_flag_usage === 'object') out.feature_flag_usage = d.feature_flag_usage
+  if (Array.isArray(d.failed_logins) && d.failed_logins.length > 0) out.failed_logins = d.failed_logins
   return out
 })
 
@@ -292,6 +320,32 @@ function formatValue(v) {
   if (Array.isArray(v)) return v.join(', ')
   if (typeof v === 'object') return JSON.stringify(v)
   return String(v)
+}
+
+function formatSchedulerAgo(iso) {
+  if (!iso) return '—'
+  try {
+    const d = new Date(iso)
+    const s = Math.round((Date.now() - d) / 1000)
+    if (s < 60) return s + 's ago'
+    if (s < 3600) return Math.floor(s / 60) + 'm ago'
+    return Math.floor(s / 3600) + 'h ago'
+  } catch {
+    return iso
+  }
+}
+
+async function refresh() {
+  refreshing.value = true
+  try {
+    data.value = await getSystem()
+    logIssuesLoaded.value = false
+    await loadLogIssues()
+  } catch (e) {
+    error.value = e?.message ?? 'Failed to refresh'
+  } finally {
+    refreshing.value = false
+  }
 }
 
 async function loadLogIssues() {

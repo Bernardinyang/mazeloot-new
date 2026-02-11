@@ -1,58 +1,3 @@
-import GettingStarted from '@/shared/views/user/GettingStarted.vue'
-import DashboardView from '@/domains/memora/views/Dashboard.vue'
-import CollectionsView from '@/domains/memora/views/Collections.vue'
-import StarredCollectionsView from '@/domains/memora/views/starred/StarredCollections.vue'
-import StarredFoldersView from '@/domains/memora/views/starred/StarredFolders.vue'
-import StarredMediaView from '@/domains/memora/views/starred/StarredMedia.vue'
-import FeaturedMediaView from '@/domains/memora/views/starred/FeaturedMedia.vue'
-import HomepageView from '@/domains/memora/views/Homepage.vue'
-import BrandingView from '@/domains/memora/views/settings/Branding.vue'
-import WatermarkView from '@/domains/memora/views/settings/watermark/Watermark.vue'
-import PresetView from '@/domains/memora/views/settings/Preset.vue'
-import EmailTemplateView from '@/domains/memora/views/settings/EmailTemplate.vue'
-import PreferenceView from '@/domains/memora/views/settings/Preference.vue'
-import EmailNotificationsView from '@/domains/memora/views/settings/EmailNotifications.vue'
-import SocialLinksView from '@/domains/memora/views/settings/SocialLinks.vue'
-import AddWatermarkView from '@/domains/memora/views/settings/watermark/AddWatermark.vue'
-import PresetGeneralView from '@/domains/memora/views/preset/General.vue'
-import PresetDesignView from '@/domains/memora/views/preset/Design.vue'
-import PresetPrivacyView from '@/domains/memora/views/preset/Privacy.vue'
-import PresetDownloadView from '@/domains/memora/views/preset/Download.vue'
-import PresetFavoriteView from '@/domains/memora/views/preset/Favorite.vue'
-import CollectionPreviewView from '@/domains/memora/views/preview/CollectionPreview.vue'
-import CollectionPhotosView from '@/domains/memora/views/collections/Photos.vue'
-import CollectionCoverView from '@/domains/memora/views/collections/design/Cover.vue'
-import CollectionTypographyView from '@/domains/memora/views/collections/design/Typography.vue'
-import CollectionColorView from '@/domains/memora/views/collections/design/Color.vue'
-import CollectionGridView from '@/domains/memora/views/collections/design/Grid.vue'
-import CollectionSettingsGeneralView from '@/domains/memora/views/collections/settings/General.vue'
-import CollectionSettingsPrivacyView from '@/domains/memora/views/collections/settings/Privacy.vue'
-import CollectionSettingsDownloadView from '@/domains/memora/views/collections/settings/Download.vue'
-import CollectionSettingsDownloadGeneralView from '@/domains/memora/views/collections/settings/DownloadGeneral.vue'
-import CollectionSettingsDownloadAdvancedView from '@/domains/memora/views/collections/settings/DownloadAdvanced.vue'
-import CollectionSettingsFavoriteView from '@/domains/memora/views/collections/settings/Favorite.vue'
-import CollectionActivitiesView from '@/domains/memora/views/collections/activities/Activities.vue'
-import CollectionActivitiesDownloadView from '@/domains/memora/views/collections/activities/DownloadActivity.vue'
-import CollectionActivitiesFavouriteView from '@/domains/memora/views/collections/activities/FavouriteActivity.vue'
-import CollectionActivitiesEmailRegistrationView from '@/domains/memora/views/collections/activities/EmailRegistration.vue'
-import CollectionActivitiesQuickShareView from '@/domains/memora/views/collections/activities/QuickShareLinks.vue'
-import CollectionActivitiesPrivateMediaView from '@/domains/memora/views/collections/activities/PrivateMedia.vue'
-import ProjectDashboardView from '@/domains/memora/views/projects/ProjectDashboard.vue'
-import CollectionPhaseView from '@/domains/memora/views/projects/collections/CollectionPhase.vue'
-import SelectionsListView from '@/domains/memora/views/selections/Selections.vue'
-import SelectionDetailView from '@/domains/memora/views/selections/SelectionDetail.vue'
-import RawFilesListView from '@/domains/memora/views/raw-files/RawFiles.vue'
-import RawFileDetailView from '@/domains/memora/views/raw-files/RawFileDetail.vue'
-import ProofingListView from '@/domains/memora/views/proofing/Proofing.vue'
-import ProofingDetailView from '@/domains/memora/views/proofing/ProofingDetail.vue'
-import ProofingCommentsView from '@/domains/memora/views/proofing/Comments.vue'
-import DashboardPricingView from '@/domains/memora/views/DashboardPricing.vue'
-import MyPlanRequestsView from '@/domains/memora/views/MyPlanRequests.vue'
-import DowngradeConfirmView from '@/domains/memora/views/DowngradeConfirm.vue'
-import PlanSummaryView from '@/domains/memora/views/PlanSummary.vue'
-import DashboardSubscriptionStatusView from '@/domains/memora/views/DashboardSubscriptionStatus.vue'
-import DashboardBuildYourOwnView from '@/domains/memora/views/DashboardBuildYourOwn.vue'
-import UsageAnalyticsView from '@/domains/memora/views/UsageAnalytics.vue'
 import { useUserStore } from '@/shared/stores/user'
 
 function createFeatureGuard(requiredFeature) {
@@ -81,7 +26,7 @@ export const memoraRoutes = [
   {
     path: '/memora/getting-started',
     name: 'gettingStarted',
-    component: GettingStarted,
+    component: () => import('@/shared/views/user/GettingStarted.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -90,7 +35,7 @@ export const memoraRoutes = [
   {
     path: '/memora/dashboard',
     name: 'memoraDashboard',
-    component: DashboardView,
+    component: () => import('@/domains/memora/views/Dashboard.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -99,7 +44,7 @@ export const memoraRoutes = [
   {
     path: '/memora/pricing',
     name: 'memora-pricing',
-    component: DashboardPricingView,
+    component: () => import('@/domains/memora/views/DashboardPricing.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -108,7 +53,7 @@ export const memoraRoutes = [
   {
     path: '/memora/plan-requests',
     name: 'memora-plan-requests',
-    component: MyPlanRequestsView,
+    component: () => import('@/domains/memora/views/MyPlanRequests.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -117,7 +62,7 @@ export const memoraRoutes = [
   {
     path: '/memora/downgrade/confirm',
     name: 'memora-downgrade-confirm',
-    component: DowngradeConfirmView,
+    component: () => import('@/domains/memora/views/DowngradeConfirm.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -126,7 +71,7 @@ export const memoraRoutes = [
   {
     path: '/memora/pricing/checkout',
     name: 'memora-plan-summary',
-    component: PlanSummaryView,
+    component: () => import('@/domains/memora/views/PlanSummary.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -135,7 +80,7 @@ export const memoraRoutes = [
   {
     path: '/memora/pricing/status',
     name: 'memora-pricing-status',
-    component: DashboardSubscriptionStatusView,
+    component: () => import('@/domains/memora/views/DashboardSubscriptionStatus.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -144,7 +89,7 @@ export const memoraRoutes = [
   {
     path: '/memora/build-your-own',
     name: 'memora-build-your-own',
-    component: DashboardBuildYourOwnView,
+    component: () => import('@/domains/memora/views/DashboardBuildYourOwn.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -153,7 +98,7 @@ export const memoraRoutes = [
   {
     path: '/memora/usage',
     name: 'memora-usage',
-    component: UsageAnalyticsView,
+    component: () => import('@/domains/memora/views/UsageAnalytics.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -162,7 +107,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections',
     name: 'manageCollections',
-    component: CollectionsView,
+    component: () => import('@/domains/memora/views/Collections.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -171,7 +116,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/starred',
     name: 'starredCollections',
-    component: StarredCollectionsView,
+    component: () => import('@/domains/memora/views/starred/StarredCollections.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -180,7 +125,7 @@ export const memoraRoutes = [
   {
     path: '/memora/folders/starred',
     name: 'starredFolders',
-    component: StarredFoldersView,
+    component: () => import('@/domains/memora/views/starred/StarredFolders.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -189,7 +134,7 @@ export const memoraRoutes = [
   {
     path: '/memora/photos/starred',
     name: 'starredMedias',
-    component: StarredMediaView,
+    component: () => import('@/domains/memora/views/starred/StarredMedia.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -198,7 +143,7 @@ export const memoraRoutes = [
   {
     path: '/memora/photos/featured',
     name: 'featuredMedias',
-    component: FeaturedMediaView,
+    component: () => import('@/domains/memora/views/starred/FeaturedMedia.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -252,7 +197,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/homepage',
     name: 'homepageConfig',
-    component: HomepageView,
+    component: () => import('@/domains/memora/views/Homepage.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -261,7 +206,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/branding',
     name: 'brandingSettings',
-    component: BrandingView,
+    component: () => import('@/domains/memora/views/settings/Branding.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -270,7 +215,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/watermark',
     name: 'watermarkSettings',
-    component: WatermarkView,
+    component: () => import('@/domains/memora/views/settings/watermark/Watermark.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -279,7 +224,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/preset',
     name: 'presetSettings',
-    component: PresetView,
+    component: () => import('@/domains/memora/views/settings/Preset.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -288,7 +233,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/email-template',
     name: 'emailTemplateSettings',
-    component: EmailTemplateView,
+    component: () => import('@/domains/memora/views/settings/EmailTemplate.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -297,7 +242,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/preference',
     name: 'preferenceSettings',
-    component: PreferenceView,
+    component: () => import('@/domains/memora/views/settings/Preference.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -306,7 +251,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/email-notifications',
     name: 'emailNotificationsSettings',
-    component: EmailNotificationsView,
+    component: () => import('@/domains/memora/views/settings/EmailNotifications.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -315,7 +260,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/social-links',
     name: 'socialLinksSettings',
-    component: SocialLinksView,
+    component: () => import('@/domains/memora/views/settings/SocialLinks.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -324,7 +269,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/watermark/add',
     name: 'addWatermark',
-    component: AddWatermarkView,
+    component: () => import('@/domains/memora/views/settings/watermark/AddWatermark.vue'),
     meta: {
       requiresAuth: true,
       parent: 'watermarkSettings',
@@ -333,7 +278,7 @@ export const memoraRoutes = [
   {
     path: '/memora/settings/watermark/:id',
     name: 'editWatermark',
-    component: AddWatermarkView,
+    component: () => import('@/domains/memora/views/settings/watermark/AddWatermark.vue'),
     meta: {
       requiresAuth: true,
       parent: 'watermarkSettings',
@@ -342,7 +287,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:id/general',
     name: 'presetGeneral',
-    component: PresetGeneralView,
+    component: () => import('@/domains/memora/views/preset/General.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -351,7 +296,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:id/design',
     name: 'presetDesign',
-    component: PresetDesignView,
+    component: () => import('@/domains/memora/views/preset/Design.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -360,7 +305,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:id/privacy',
     name: 'presetPrivacy',
-    component: PresetPrivacyView,
+    component: () => import('@/domains/memora/views/preset/Privacy.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -369,7 +314,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:id/download',
     name: 'presetDownload',
-    component: PresetDownloadView,
+    component: () => import('@/domains/memora/views/preset/Download.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -378,7 +323,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:id/favorite',
     name: 'presetFavorite',
-    component: PresetFavoriteView,
+    component: () => import('@/domains/memora/views/preset/Favorite.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -387,7 +332,7 @@ export const memoraRoutes = [
   {
     path: '/memora/preset/:name/preview',
     name: 'presetPreview',
-    component: CollectionPreviewView,
+    component: () => import('@/domains/memora/views/preview/CollectionPreview.vue'),
     meta: {
       requiresAuth: true,
       parent: 'presetSettings',
@@ -396,15 +341,15 @@ export const memoraRoutes = [
   {
     path: '/memora/preview/:id',
     name: 'collectionPreview',
-    component: CollectionPreviewView,
+    component: () => import('@/domains/memora/views/preview/CollectionPreview.vue'),
     meta: {
-      requiresAuth: false, // Public preview
+      requiresAuth: false,
     },
   },
   {
     path: '/memora/collections/:uuid/photos',
     name: 'collectionPhotos',
-    component: CollectionPhotosView,
+    component: () => import('@/domains/memora/views/collections/Photos.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -413,44 +358,35 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/design/cover',
     name: 'collectionCover',
-    component: CollectionCoverView,
+    component: () => import('@/domains/memora/views/collections/design/Cover.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
     },
     beforeEnter: async (to, from, next) => {
-      // Dynamically import store to avoid circular dependencies
       const { useGalleryStore } = await import('@/shared/stores/gallery')
       const galleryStore = useGalleryStore()
-      
-      // Try to get collection from store
       let collection = galleryStore.collections.find(c => c.id === to.params.uuid)
-      
-      // If not in store, try to fetch it
       if (!collection) {
         try {
           collection = await galleryStore.fetchCollection(to.params.uuid)
         } catch (error) {
-          // If fetch fails, allow navigation (component will handle error)
           return next()
         }
       }
-      
-      // Redirect to Typography if no cover photo
       if (!collection?.image && !collection?.thumbnail) {
         return next({
           name: 'collectionTypography',
           params: { uuid: to.params.uuid },
         })
       }
-      
       next()
     },
   },
   {
     path: '/memora/collections/:uuid/design/typography',
     name: 'collectionTypography',
-    component: CollectionTypographyView,
+    component: () => import('@/domains/memora/views/collections/design/Typography.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -459,7 +395,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/design/color',
     name: 'collectionColor',
-    component: CollectionColorView,
+    component: () => import('@/domains/memora/views/collections/design/Color.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -468,7 +404,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/design/grid',
     name: 'collectionGrid',
-    component: CollectionGridView,
+    component: () => import('@/domains/memora/views/collections/design/Grid.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -477,7 +413,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/settings/general',
     name: 'collectionSettingsGeneral',
-    component: CollectionSettingsGeneralView,
+    component: () => import('@/domains/memora/views/collections/settings/General.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -486,7 +422,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/settings/privacy',
     name: 'collectionSettingsPrivacy',
-    component: CollectionSettingsPrivacyView,
+    component: () => import('@/domains/memora/views/collections/settings/Privacy.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -495,7 +431,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/settings/download',
     name: 'collectionSettingsDownload',
-    component: CollectionSettingsDownloadView,
+    component: () => import('@/domains/memora/views/collections/settings/Download.vue'),
     redirect: to => ({
       name: 'collectionSettingsDownloadGeneral',
       params: to.params,
@@ -508,7 +444,7 @@ export const memoraRoutes = [
       {
         path: 'general',
         name: 'collectionSettingsDownloadGeneral',
-        component: CollectionSettingsDownloadGeneralView,
+        component: () => import('@/domains/memora/views/collections/settings/DownloadGeneral.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -516,7 +452,7 @@ export const memoraRoutes = [
       {
         path: 'advanced',
         name: 'collectionSettingsDownloadAdvanced',
-        component: CollectionSettingsDownloadAdvancedView,
+        component: () => import('@/domains/memora/views/collections/settings/DownloadAdvanced.vue'),
         meta: {
           requiresAuth: true,
         },
@@ -526,7 +462,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/settings/favorite',
     name: 'collectionSettingsFavorite',
-    component: CollectionSettingsFavoriteView,
+    component: () => import('@/domains/memora/views/collections/settings/Favorite.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -535,7 +471,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities',
     name: 'collectionActivities',
-    component: CollectionActivitiesView,
+    component: () => import('@/domains/memora/views/collections/activities/Activities.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -544,7 +480,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities/download',
     name: 'collectionActivitiesDownload',
-    component: CollectionActivitiesDownloadView,
+    component: () => import('@/domains/memora/views/collections/activities/DownloadActivity.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -553,7 +489,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities/favourite',
     name: 'collectionActivitiesFavourite',
-    component: CollectionActivitiesFavouriteView,
+    component: () => import('@/domains/memora/views/collections/activities/FavouriteActivity.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -562,7 +498,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities/email-registration',
     name: 'collectionActivitiesEmailRegistration',
-    component: CollectionActivitiesEmailRegistrationView,
+    component: () => import('@/domains/memora/views/collections/activities/EmailRegistration.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -571,7 +507,7 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities/quick-share',
     name: 'collectionActivitiesQuickShare',
-    component: CollectionActivitiesQuickShareView,
+    component: () => import('@/domains/memora/views/collections/activities/QuickShareLinks.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -580,17 +516,16 @@ export const memoraRoutes = [
   {
     path: '/memora/collections/:uuid/activities/private-media',
     name: 'collectionActivitiesPrivateMedia',
-    component: CollectionActivitiesPrivateMediaView,
+    component: () => import('@/domains/memora/views/collections/activities/PrivateMedia.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
     },
   },
-  // Standalone Selections, Raw Files and Proofing Routes
   {
     path: '/memora/selections',
     name: 'selections',
-    component: SelectionsListView,
+    component: () => import('@/domains/memora/views/selections/Selections.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -599,7 +534,7 @@ export const memoraRoutes = [
   {
     path: '/memora/selections/:id',
     name: 'selectionDetail',
-    component: SelectionDetailView,
+    component: () => import('@/domains/memora/views/selections/SelectionDetail.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -608,7 +543,7 @@ export const memoraRoutes = [
   {
     path: '/memora/raw-files',
     name: 'rawFiles',
-    component: RawFilesListView,
+    component: () => import('@/domains/memora/views/raw-files/RawFiles.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -618,7 +553,7 @@ export const memoraRoutes = [
   {
     path: '/memora/raw-files/:id',
     name: 'rawFileDetail',
-    component: RawFileDetailView,
+    component: () => import('@/domains/memora/views/raw-files/RawFileDetail.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -628,7 +563,7 @@ export const memoraRoutes = [
   {
     path: '/memora/proofing',
     name: 'proofing',
-    component: ProofingListView,
+    component: () => import('@/domains/memora/views/proofing/Proofing.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -638,7 +573,7 @@ export const memoraRoutes = [
   {
     path: '/memora/proofing/:id',
     name: 'proofingDetail',
-    component: ProofingDetailView,
+    component: () => import('@/domains/memora/views/proofing/ProofingDetail.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -648,11 +583,10 @@ export const memoraRoutes = [
   {
     path: '/memora/proofing/:id/comments',
     name: 'proofingComments',
-    component: ProofingCommentsView,
+    component: () => import('@/domains/memora/views/proofing/Comments.vue'),
     meta: { requiresAuth: true, requiresUser: true },
     beforeEnter: createFeatureGuard('proofing'),
   },
-  // Project Routes
   {
     path: '/memora/projects',
     name: 'projects',
@@ -665,7 +599,7 @@ export const memoraRoutes = [
   {
     path: '/memora/projects/:id',
     name: 'projectDashboard',
-    component: ProjectDashboardView,
+    component: () => import('@/domains/memora/views/projects/ProjectDashboard.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -675,14 +609,12 @@ export const memoraRoutes = [
     path: '/memora/projects/:id/selections',
     name: 'projectSelections',
     redirect: to => {
-      // If there's a selectionId query param, redirect to selectionDetail
       if (to.query.selectionId) {
         return {
           name: 'selectionDetail',
           params: { id: to.query.selectionId },
         }
       }
-      // Otherwise, redirect to selections list
       return { name: 'selections' }
     },
     meta: {
@@ -694,14 +626,12 @@ export const memoraRoutes = [
     path: '/memora/projects/:id/proofing',
     name: 'projectProofing',
     redirect: to => {
-      // If there's a proofingId query param, redirect to proofingDetail
       if (to.query.proofingId) {
         return {
           name: 'proofingDetail',
           params: { id: to.query.proofingId },
         }
       }
-      // Otherwise, redirect to proofing list
       return { name: 'proofing' }
     },
     meta: {
@@ -712,7 +642,7 @@ export const memoraRoutes = [
   {
     path: '/memora/projects/:id/collections',
     name: 'projectCollections',
-    component: CollectionPhaseView,
+    component: () => import('@/domains/memora/views/projects/collections/CollectionPhase.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,

@@ -51,6 +51,9 @@ const breadcrumbItems = computed(() => {
     }
     name = meta.breadcrumbParent
   }
+  if (items.length > 0 && (!items[0].to || items[0].to?.name !== 'admin-dashboard')) {
+    items.unshift({ label: 'Dashboard', to: { name: 'admin-dashboard' } })
+  }
   return items
 })
 

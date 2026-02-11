@@ -82,6 +82,9 @@
             !props.minimalActions && isRejected ? 'grayscale' : '',
           ]"
           :src="imageSrc"
+          width="320"
+          height="240"
+          loading="lazy"
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
         />
@@ -102,6 +105,9 @@
               !props.minimalActions && isRejected ? 'grayscale' : '',
             ]"
             :src="imageSrc"
+            width="320"
+            height="240"
+            loading="lazy"
             @error="emit('image-error', $event)"
             @load="isImageLoaded = true"
           />

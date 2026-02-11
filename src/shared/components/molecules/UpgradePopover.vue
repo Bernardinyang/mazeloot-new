@@ -20,6 +20,9 @@
           <img
             src="https://images.unsplash.com/photo-1519741497674-611481863552?w=400&h=300&fit=crop"
             alt="Premium feature preview"
+            width="400"
+            height="300"
+            loading="lazy"
             class="w-full h-full object-cover"
           />
         </div>

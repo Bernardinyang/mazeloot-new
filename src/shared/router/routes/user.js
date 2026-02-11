@@ -1,12 +1,8 @@
-import Overview from '@/shared/views/user/Overview.vue'
-import GettingStarted from '@/shared/views/user/GettingStarted.vue'
-import Onboarding from '@/shared/views/user/Onboarding.vue'
-
 export const userRoutes = [
   {
     path: '/overview',
     name: 'overview',
-    component: Overview,
+    component: () => import('@/shared/views/user/Overview.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,
@@ -15,7 +11,7 @@ export const userRoutes = [
   {
     path: '/onboarding/:productSlug/:token',
     name: 'onboarding',
-    component: Onboarding,
+    component: () => import('@/shared/views/user/Onboarding.vue'),
     meta: {
       requiresAuth: true,
       requiresUser: true,

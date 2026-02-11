@@ -313,7 +313,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">One link. Clients view and pick on any device—no sign-up, no app. Your work, front and center.</p>
             </div>
             <div class="relative z-0 min-h-[180px] sm:min-h-[220px] md:min-h-[280px] flex-1 lg:min-h-0">
-              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80" alt="Gallery on device" class="absolute inset-0 -z-10 size-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]" />
+              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80" alt="Gallery on device" class="absolute inset-0 -z-10 size-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" />
               <div class="absolute inset-0 -z-10 dark:bg-gradient-to-t dark:from-[#0f0f23]/80 light:bg-gradient-to-t light:from-white/80 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
@@ -326,7 +326,7 @@
               <p class="mt-2 text-sm leading-6 dark:text-gray-400 light:text-gray-600">Selections and comments update in real time. No “did you get my email?”—everyone’s on the same page.</p>
             </div>
             <div class="relative h-44 shrink-0 overflow-hidden sm:h-52">
-              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" alt="Collaboration" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" />
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" alt="Collaboration" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="208" loading="lazy" />
               <div class="absolute inset-0 dark:bg-gradient-to-t dark:from-[#0f0f23]/60 light:bg-gradient-to-t light:from-white/60 to-transparent pointer-events-none" />
             </div>
           </div>
@@ -339,7 +339,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">Passwords, watermarks, download limits. You control who sees what and when.</p>
             </div>
             <div class="relative h-32 sm:h-36 md:h-44 shrink-0 overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1614064548230-8aa2fc22f8b2?w=600&q=80" alt="Secure delivery" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" />
+              <img src="https://images.unsplash.com/photo-1614064548230-8aa2fc22f8b2?w=600&q=80" alt="Secure delivery" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="176" loading="lazy" />
               <div class="absolute inset-0 dark:bg-gradient-to-t dark:from-[#0f0f23]/60 light:bg-gradient-to-t light:from-white/60 to-transparent pointer-events-none" />
             </div>
           </div>
@@ -352,7 +352,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">Your logo and style on every client page. One workflow from first share to final delivery.</p>
             </div>
             <div class="relative z-0 min-h-[180px] sm:min-h-[220px] md:min-h-[280px] flex-1 lg:min-h-0">
-              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Workspace" class="absolute inset-0 -z-10 size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" />
+              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Workspace" class="absolute inset-0 -z-10 size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" />
               <div class="absolute inset-0 -z-10 dark:bg-gradient-to-t dark:from-[#0f0f23]/80 light:bg-gradient-to-t light:from-white/80 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
@@ -624,6 +624,9 @@
                   :src="t.avatar"
                   :alt="t.name"
                   class="size-12 rounded-full border-2 border-white/20 object-cover shadow-lg ring-2 ring-primary-500/20 sm:size-14"
+                  width="56"
+                  height="56"
+                  loading="lazy"
                 >
                 <div class="text-center sm:text-left">
                   <p class="font-semibold dark:text-white light:text-gray-900">{{ t.name }}</p>

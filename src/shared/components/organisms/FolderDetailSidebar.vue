@@ -50,6 +50,9 @@
               :src="image"
               :alt="`Preview ${index + 1}`"
               class="w-full h-full object-cover"
+              width="128"
+              height="128"
+              loading="lazy"
               @error="handleImageError"
             />
           </div>

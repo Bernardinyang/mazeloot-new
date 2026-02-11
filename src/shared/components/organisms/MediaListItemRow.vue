@@ -66,6 +66,9 @@
           ]"
           :style="props.isSelected ? { opacity: 1 } : {}"
           :src="imageSrc"
+          width="80"
+          height="80"
+          loading="lazy"
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
         />
@@ -82,6 +85,9 @@
             ]"
             :style="props.isSelected ? { opacity: 1 } : {}"
             :src="imageSrc"
+            width="80"
+            height="80"
+            loading="lazy"
             @error="emit('image-error', $event)"
             @load="isImageLoaded = true"
           />

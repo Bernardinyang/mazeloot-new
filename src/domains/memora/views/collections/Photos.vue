@@ -93,77 +93,165 @@
             </div>
           </div>
           <div v-else-if="selectedSetId && sortedMediaItems.length > 0" class="mb-8">
-            <TransitionGroup
-              v-if="viewMode === 'grid'"
-              name="media-grid"
-              tag="div"
-              :class="[
-                'grid gap-4',
-                gridSize === 'small'
-                  ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
-                  : gridSize === 'medium'
-                    ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
-                    : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
-              ]"
+            <div
+              v-if="useVirtual"
+              v-bind="virtualContainerProps"
+              class="overflow-y-auto rounded-xl"
+              style="height: 70vh; min-height: 400px"
             >
-              <MediaGridItemCard
-                v-for="item in sortedMediaItems"
-                :key="item.id"
-                :is-selected="selectedMediaIds.has(item.id)"
-                :item="item"
-                :placeholder-image="placeholderImage"
-                :show-filename="showFilename"
-                :selection-status="'collection'"
-                phase="collection"
-                @delete="handleDeleteMedia(item)"
-                @download="handleDownloadMedia(item)"
-                @open="handleOpenMedia(item)"
-                @rename="handleRenameMedia(item)"
-                @replace="handleReplacePhoto(item)"
-                @watermark="handleWatermarkMedia(item)"
-                @toggle-selection="handleToggleMediaSelection(item.id)"
-                @toggle-featured="handleToggleFeatured(item)"
-                @open-viewer="openMediaViewer(item)"
-                @view-details="handleViewDetails(item)"
-                @image-error="handleImageError"
-                @quick-share="handleQuickShare(item)"
-                @move-copy="handleMoveCopy(item)"
-                @copy-filenames="handleCopyFilenames(item)"
-                @set-as-cover="handleSetAsCover(item)"
-                @remove-watermark="handleRemoveWatermark(item)"
-                @star-click="handleStarMedia(item)"
-              />
-            </TransitionGroup>
-            <TransitionGroup v-else name="media-list" tag="div" class="space-y-2">
-              <MediaListItemRow
-                v-for="item in sortedMediaItems"
-                :key="item.id"
-                :is-selected="selectedMediaIds.has(item.id)"
-                :item="item"
-                :placeholder-image="placeholderImage"
-                :show-filename="showFilename"
-                :selection-status="'collection'"
-                :subtitle="formatMediaDate(item.createdAt)"
-                phase="collection"
-                @delete="handleDeleteMedia(item)"
-                @download="handleDownloadMedia(item)"
-                @open="handleOpenMedia(item)"
-                @rename="handleRenameMedia(item)"
-                @replace="handleReplacePhoto(item)"
-                @watermark="handleWatermarkMedia(item)"
-                @toggle-selection="handleToggleMediaSelection(item.id)"
-                @toggle-featured="handleToggleFeatured(item)"
-                @open-viewer="openMediaViewer(item)"
-                @view-details="handleViewDetails(item)"
-                @image-error="handleImageError"
-                @quick-share="handleQuickShare(item)"
-                @move-copy="handleMoveCopy(item)"
-                @copy-filenames="handleCopyFilenames(item)"
-                @set-as-cover="handleSetAsCover(item)"
-                @remove-watermark="handleRemoveWatermark(item)"
-                @star-click="handleStarMedia(item)"
-              />
-            </TransitionGroup>
+              <div v-bind="virtualWrapperProps">
+                <template v-if="viewMode === 'grid'">
+                  <div
+                    v-for="{ data: row, index } in virtualList"
+                    :key="index"
+                    :class="[
+                      'grid gap-4 mb-4',
+                      gridSize === 'small'
+                        ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                        : gridSize === 'medium'
+                          ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                          : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+                    ]"
+                    style="height: 220px"
+                  >
+                    <MediaGridItemCard
+                      v-for="item in row"
+                      :key="item.id"
+                      :is-selected="selectedMediaIds.has(item.id)"
+                      :item="item"
+                      :placeholder-image="placeholderImage"
+                      :show-filename="showFilename"
+                      :selection-status="'collection'"
+                      phase="collection"
+                      @delete="handleDeleteMedia(item)"
+                      @download="handleDownloadMedia(item)"
+                      @open="handleOpenMedia(item)"
+                      @rename="handleRenameMedia(item)"
+                      @replace="handleReplacePhoto(item)"
+                      @watermark="handleWatermarkMedia(item)"
+                      @toggle-selection="handleToggleMediaSelection(item.id)"
+                      @toggle-featured="handleToggleFeatured(item)"
+                      @open-viewer="openMediaViewer(item)"
+                      @view-details="handleViewDetails(item)"
+                      @image-error="handleImageError"
+                      @quick-share="handleQuickShare(item)"
+                      @move-copy="handleMoveCopy(item)"
+                      @copy-filenames="handleCopyFilenames(item)"
+                      @set-as-cover="handleSetAsCover(item)"
+                      @remove-watermark="handleRemoveWatermark(item)"
+                      @star-click="handleStarMedia(item)"
+                    />
+                  </div>
+                </template>
+                <template v-else>
+                  <div
+                    v-for="{ data: item } in virtualList"
+                    :key="item.id"
+                    style="height: 80px"
+                  >
+                    <MediaListItemRow
+                      :is-selected="selectedMediaIds.has(item.id)"
+                      :item="item"
+                      :placeholder-image="placeholderImage"
+                      :show-filename="showFilename"
+                      :selection-status="'collection'"
+                      :subtitle="formatMediaDate(item.createdAt)"
+                      phase="collection"
+                      @delete="handleDeleteMedia(item)"
+                      @download="handleDownloadMedia(item)"
+                      @open="handleOpenMedia(item)"
+                      @rename="handleRenameMedia(item)"
+                      @replace="handleReplacePhoto(item)"
+                      @watermark="handleWatermarkMedia(item)"
+                      @toggle-selection="handleToggleMediaSelection(item.id)"
+                      @toggle-featured="handleToggleFeatured(item)"
+                      @open-viewer="openMediaViewer(item)"
+                      @view-details="handleViewDetails(item)"
+                      @image-error="handleImageError"
+                      @quick-share="handleQuickShare(item)"
+                      @move-copy="handleMoveCopy(item)"
+                      @copy-filenames="handleCopyFilenames(item)"
+                      @set-as-cover="handleSetAsCover(item)"
+                      @remove-watermark="handleRemoveWatermark(item)"
+                      @star-click="handleStarMedia(item)"
+                    />
+                  </div>
+                </template>
+              </div>
+            </div>
+            <template v-else>
+              <TransitionGroup
+                v-if="viewMode === 'grid'"
+                name="media-grid"
+                tag="div"
+                :class="[
+                  'grid gap-4',
+                  gridSize === 'small'
+                    ? 'grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8'
+                    : gridSize === 'medium'
+                      ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5'
+                      : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+                ]"
+              >
+                <MediaGridItemCard
+                  v-for="item in sortedMediaItems"
+                  :key="item.id"
+                  :is-selected="selectedMediaIds.has(item.id)"
+                  :item="item"
+                  :placeholder-image="placeholderImage"
+                  :show-filename="showFilename"
+                  :selection-status="'collection'"
+                  phase="collection"
+                  @delete="handleDeleteMedia(item)"
+                  @download="handleDownloadMedia(item)"
+                  @open="handleOpenMedia(item)"
+                  @rename="handleRenameMedia(item)"
+                  @replace="handleReplacePhoto(item)"
+                  @watermark="handleWatermarkMedia(item)"
+                  @toggle-selection="handleToggleMediaSelection(item.id)"
+                  @toggle-featured="handleToggleFeatured(item)"
+                  @open-viewer="openMediaViewer(item)"
+                  @view-details="handleViewDetails(item)"
+                  @image-error="handleImageError"
+                  @quick-share="handleQuickShare(item)"
+                  @move-copy="handleMoveCopy(item)"
+                  @copy-filenames="handleCopyFilenames(item)"
+                  @set-as-cover="handleSetAsCover(item)"
+                  @remove-watermark="handleRemoveWatermark(item)"
+                  @star-click="handleStarMedia(item)"
+                />
+              </TransitionGroup>
+              <TransitionGroup v-else name="media-list" tag="div" class="space-y-2">
+                <MediaListItemRow
+                  v-for="item in sortedMediaItems"
+                  :key="item.id"
+                  :is-selected="selectedMediaIds.has(item.id)"
+                  :item="item"
+                  :placeholder-image="placeholderImage"
+                  :show-filename="showFilename"
+                  :selection-status="'collection'"
+                  :subtitle="formatMediaDate(item.createdAt)"
+                  phase="collection"
+                  @delete="handleDeleteMedia(item)"
+                  @download="handleDownloadMedia(item)"
+                  @open="handleOpenMedia(item)"
+                  @rename="handleRenameMedia(item)"
+                  @replace="handleReplacePhoto(item)"
+                  @watermark="handleWatermarkMedia(item)"
+                  @toggle-selection="handleToggleMediaSelection(item.id)"
+                  @toggle-featured="handleToggleFeatured(item)"
+                  @open-viewer="openMediaViewer(item)"
+                  @view-details="handleViewDetails(item)"
+                  @image-error="handleImageError"
+                  @quick-share="handleQuickShare(item)"
+                  @move-copy="handleMoveCopy(item)"
+                  @copy-filenames="handleCopyFilenames(item)"
+                  @set-as-cover="handleSetAsCover(item)"
+                  @remove-watermark="handleRemoveWatermark(item)"
+                  @star-click="handleStarMedia(item)"
+                />
+              </TransitionGroup>
+            </template>
 
             <!-- Pagination -->
             <Pagination
@@ -444,6 +532,7 @@
 
 <script setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { useVirtualList } from '@vueuse/core'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, FolderPlus, Plus } from '@/shared/utils/lucideAnimated'
@@ -681,6 +770,37 @@ const filteredMediaItems = computed(() => {
 
 // Media items are now sorted/filtered by the backend
 const sortedMediaItems = computed(() => filteredMediaItems.value)
+
+const VIRTUAL_THRESHOLD = 60
+const useVirtual = computed(() => sortedMediaItems.value.length > VIRTUAL_THRESHOLD)
+const GRID_ROW_COLS = 4
+const GRID_ROW_HEIGHT = 220
+const LIST_ROW_HEIGHT = 80
+
+const gridRows = computed(() => {
+  const items = sortedMediaItems.value
+  const rows = []
+  for (let i = 0; i < items.length; i += GRID_ROW_COLS) {
+    rows.push(items.slice(i, i + GRID_ROW_COLS))
+  }
+  return rows
+})
+
+const virtualSource = computed(() =>
+  viewMode.value === 'list' ? sortedMediaItems.value : gridRows.value
+)
+const virtualItemHeight = computed(() =>
+  viewMode.value === 'list' ? LIST_ROW_HEIGHT : GRID_ROW_HEIGHT
+)
+
+const {
+  list: virtualList,
+  containerProps: virtualContainerProps,
+  wrapperProps: virtualWrapperProps,
+} = useVirtualList(virtualSource, {
+  itemHeight: virtualItemHeight,
+  overscan: 5,
+})
 
 const { closeMediaViewer } = useMediaViewerFlow({
   selectedMedia,
