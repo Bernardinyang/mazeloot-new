@@ -19,8 +19,11 @@
           >
             Open Telescope
           </a>
-          <Button variant="outline" size="sm" :disabled="clearingCache" class="shadow-sm" @click="confirmClearCache">
+          <Button variant="outline" size="sm" :disabled="clearingCache" class="shadow-sm" @click="showClearCacheModal = true">
             {{ clearingCache ? 'Clearing…' : 'Clear cache' }}
+          </Button>
+          <Button variant="outline" size="sm" :disabled="clearingAllCache" class="shadow-sm" @click="showClearAllCacheModal = true">
+            {{ clearingAllCache ? 'Running…' : 'Clear all cache & optimize' }}
           </Button>
         </div>
       </header>
@@ -414,7 +417,12 @@
         </section>
 
         <section v-if="logIssuesLoaded || logIssuesError" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
-          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Recent log issues</h2>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
+            <h2 :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Recent log issues</h2>
+            <Button variant="outline" size="sm" :disabled="clearingLog" class="shadow-sm" @click="showClearLogModal = true">
+              {{ clearingLog ? 'Clearing…' : 'Clear log' }}
+            </Button>
+          </div>
           <p :class="['text-sm mb-4', theme.textSecondary]">Latest errors, warnings, and alerts parsed from the application log for quick triage.</p>
           <p v-if="data?.logging?.path" :class="['text-xs mb-2', theme.textSecondary]">Log file: <span class="font-mono">{{ data.logging.path }}</span></p>
           <div v-if="logIssuesError" :class="['rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm', theme.textPrimary]">
@@ -456,6 +464,51 @@
         </section>
       </div>
     </div>
+
+    <Dialog :open="showClearLogModal" @update:open="showClearLogModal = $event">
+      <DialogContent :hide-close="clearingLog">
+        <DialogHeader>
+          <DialogTitle>Clear log</DialogTitle>
+          <DialogDescription>Clear the application log file? This cannot be undone.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" :disabled="clearingLog" @click="showClearLogModal = false">Cancel</Button>
+          <Button variant="destructive" :disabled="clearingLog" @click="runClearLog">
+            {{ clearingLog ? 'Clearing…' : 'Clear log' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog :open="showClearCacheModal" @update:open="showClearCacheModal = $event">
+      <DialogContent :hide-close="clearingCache">
+        <DialogHeader>
+          <DialogTitle>Clear cache</DialogTitle>
+          <DialogDescription>Clear the application cache? The next requests may be slightly slower until caches warm up again.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" :disabled="clearingCache" @click="showClearCacheModal = false">Cancel</Button>
+          <Button :disabled="clearingCache" @click="runClearCache">
+            {{ clearingCache ? 'Clearing…' : 'Clear cache' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <Dialog :open="showClearAllCacheModal" @update:open="showClearAllCacheModal = $event">
+      <DialogContent :hide-close="clearingAllCache">
+        <DialogHeader>
+          <DialogTitle>Clear all cache & optimize</DialogTitle>
+          <DialogDescription>Clear all caches (config, route, view, application cache) and run optimize. Recommended after deployment.</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" :disabled="clearingAllCache" @click="showClearAllCacheModal = false">Cancel</Button>
+          <Button :disabled="clearingAllCache" @click="runClearAllCacheAndOptimize">
+            {{ clearingAllCache ? 'Running…' : 'Clear all & optimize' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -464,15 +517,28 @@ import { ref, computed, onMounted } from 'vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useAdminApi } from '@/admin/api/admin'
 import { Button } from '@/shared/components/shadcn/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/components/shadcn/dialog'
 import { API_CONFIG } from '@/shared/api/config'
 
 const theme = useThemeClasses()
-const { getSystem, getSystemConnectivity, getQueueFailed, retryFailedJob, retryAllFailedJobs, forgetFailedJob, flushFailedJobs, clearCache, getLogsRecent } = useAdminApi()
+const { getSystem, getSystemConnectivity, getQueueFailed, retryFailedJob, retryAllFailedJobs, forgetFailedJob, flushFailedJobs, clearCache, clearAllCacheAndOptimize, clearLog, getLogsRecent } = useAdminApi()
 
 const data = ref(null)
 const loading = ref(true)
 const error = ref(null)
 const clearingCache = ref(false)
+const clearingLog = ref(false)
+const clearingAllCache = ref(false)
+const showClearLogModal = ref(false)
+const showClearCacheModal = ref(false)
+const showClearAllCacheModal = ref(false)
 const refreshing = ref(false)
 const connectivityRetrying = ref(false)
 const queueActionLoading = ref(false)
@@ -552,16 +618,42 @@ const telescopeUrl = computed(() => {
   }
 })
 
-async function confirmClearCache() {
-  if (!window.confirm('Clear application cache? This may temporarily slow the next requests.')) return
+async function runClearCache() {
   clearingCache.value = true
   try {
     await clearCache()
-    window.alert('Cache cleared.')
+    showClearCacheModal.value = false
   } catch (e) {
     window.alert(e?.message ?? 'Failed to clear cache')
   } finally {
     clearingCache.value = false
+  }
+}
+
+async function runClearLog() {
+  clearingLog.value = true
+  try {
+    await clearLog()
+    data.value = await getSystem()
+    await loadLogIssues()
+    showClearLogModal.value = false
+  } catch (e) {
+    window.alert(e?.message ?? 'Failed to clear log')
+  } finally {
+    clearingLog.value = false
+  }
+}
+
+async function runClearAllCacheAndOptimize() {
+  clearingAllCache.value = true
+  try {
+    await clearAllCacheAndOptimize()
+    data.value = await getSystem()
+    showClearAllCacheModal.value = false
+  } catch (e) {
+    window.alert(e?.message ?? 'Failed to clear all cache and optimize')
+  } finally {
+    clearingAllCache.value = false
   }
 }
 

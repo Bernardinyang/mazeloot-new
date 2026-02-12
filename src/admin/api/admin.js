@@ -558,6 +558,15 @@ export function useAdminApi() {
     }
   }
 
+  const clearLog = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/logs/clear')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const getAnalyticsOverview = async (params = {}) => {
     try {
       const response = await apiClient.get('/v1/admin/analytics/overview', { params })
@@ -580,6 +589,15 @@ export function useAdminApi() {
   const clearCache = async () => {
     try {
       const response = await apiClient.post('/v1/admin/cache/clear')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const clearAllCacheAndOptimize = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/cache/clear-all-optimize')
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -804,6 +822,7 @@ export function useAdminApi() {
     forgetFailedJob,
     flushFailedJobs,
     getLogsRecent,
+    clearLog,
     getAnalyticsOverview,
     getActivityLogs,
     getUserActivity,
@@ -812,6 +831,7 @@ export function useAdminApi() {
     getAdminActivityLogs,
     getSensitiveActivityLogs,
     clearCache,
+    clearAllCacheAndOptimize,
     getPricingTiers,
     getPricingTier,
     createPricingTier,
