@@ -112,8 +112,8 @@ class ApiClient {
     }
 
     const headers = {
-      'Content-Type': 'application/json',
       Accept: 'application/json',
+      ...(fetchOptions.body ? { 'Content-Type': 'application/json' } : {}),
       ...(fetchOptions.headers || {}),
     }
 
