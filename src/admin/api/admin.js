@@ -495,6 +495,60 @@ export function useAdminApi() {
     }
   }
 
+  const getSystemConnectivity = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/system/connectivity')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const getQueueFailed = async (limit = 100) => {
+    try {
+      const response = await apiClient.get('/v1/admin/queue/failed', { params: { limit } })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const retryFailedJob = async (uuid) => {
+    try {
+      const response = await apiClient.post('/v1/admin/queue/failed/retry', { uuid })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const retryAllFailedJobs = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/queue/failed/retry')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const forgetFailedJob = async (uuid) => {
+    try {
+      const response = await apiClient.delete(`/v1/admin/queue/failed/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const flushFailedJobs = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/queue/failed/flush')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const getLogsRecent = async () => {
     try {
       const response = await apiClient.get('/v1/admin/logs/recent')
@@ -743,6 +797,12 @@ export function useAdminApi() {
     cancelUpgradeRequest,
     getHealth,
     getSystem,
+    getSystemConnectivity,
+    getQueueFailed,
+    retryFailedJob,
+    retryAllFailedJobs,
+    forgetFailedJob,
+    flushFailedJobs,
     getLogsRecent,
     getAnalyticsOverview,
     getActivityLogs,

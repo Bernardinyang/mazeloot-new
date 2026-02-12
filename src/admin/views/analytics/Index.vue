@@ -1,15 +1,15 @@
 <template>
   <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8 space-y-8">
-      <header class="flex flex-wrap items-center justify-between gap-4">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-10">
+      <header class="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-border/60">
         <div>
-          <h1 :class="['text-2xl font-semibold tracking-tight', theme.textPrimary]">Analytics</h1>
-          <p :class="['mt-1 text-sm', theme.textSecondary]">Data overview at a glance.</p>
+          <h1 :class="['text-3xl font-bold tracking-tight', theme.textPrimary]">Analytics</h1>
+          <p :class="['mt-1.5 text-sm', theme.textSecondary]">Usage and business metrics.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
           <select
             v-model="days"
-            :class="['rounded-lg border border-input bg-background px-3 py-2 text-sm', theme.textPrimary]"
+            :class="['rounded-xl border border-input bg-background px-4 py-2.5 text-sm font-medium shadow-sm', theme.textPrimary]"
             aria-label="Time range"
             @change="onPresetChange"
           >
@@ -22,42 +22,43 @@
             <input
               v-model="dateFrom"
               type="date"
-              :class="['rounded-lg border border-input bg-background px-3 py-2 text-sm', theme.textPrimary]"
+              :class="['rounded-xl border border-input bg-background px-3 py-2.5 text-sm', theme.textPrimary]"
               aria-label="From date"
             />
             <input
               v-model="dateTo"
               type="date"
-              :class="['rounded-lg border border-input bg-background px-3 py-2 text-sm', theme.textPrimary]"
+              :class="['rounded-xl border border-input bg-background px-3 py-2.5 text-sm', theme.textPrimary]"
               aria-label="To date"
             />
           </template>
-          <label class="flex items-center gap-2 text-sm" :class="theme.textSecondary">
-            <input v-model="compare" type="checkbox" class="rounded border-input" @change="fetchData" />
+          <label class="flex items-center gap-2 text-sm cursor-pointer select-none font-medium" :class="theme.textSecondary">
+            <input v-model="compare" type="checkbox" class="rounded border-input text-primary focus:ring-primary/30" @change="fetchData" />
             Compare to previous
           </label>
-          <Button variant="outline" size="sm" :disabled="!data" @click="exportCsv">
+          <Button variant="outline" size="sm" :disabled="!data" class="shadow-sm" @click="exportCsv">
             <Download class="h-4 w-4 mr-2" />
             CSV
           </Button>
-          <Button variant="outline" size="sm" :disabled="!data" @click="exportJson">
+          <Button variant="outline" size="sm" :disabled="!data" class="shadow-sm" @click="exportJson">
             JSON
           </Button>
         </div>
       </header>
 
-      <div v-if="loading" class="flex items-center gap-3">
-        <span class="size-8 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
-        <span :class="['text-sm', theme.textSecondary]">Loading…</span>
+      <div v-if="loading" class="flex items-center gap-4 rounded-2xl bg-card/80 border border-border p-8">
+        <span class="size-10 animate-spin rounded-full border-2 border-primary border-t-transparent" aria-hidden />
+        <span :class="['text-sm font-medium', theme.textPrimary]">Loading…</span>
       </div>
 
-      <div v-else-if="error" :class="['rounded-xl border border-destructive/50 bg-destructive/10 p-4 sm:p-6 text-sm', theme.textPrimary]">
-        {{ error }}
+      <div v-else-if="error" class="rounded-2xl border-l-4 border-destructive bg-destructive/10 border border-destructive/20 p-6 shadow-sm">
+        <p :class="['text-sm font-medium', theme.textPrimary]">{{ error }}</p>
       </div>
 
-      <div v-else class="space-y-8">
-        <section v-if="data?.comparison" class="rounded-xl border border-border bg-muted/30 p-4">
-          <h2 :class="['text-lg font-medium mb-3', theme.textPrimary]">Comparison (previous period)</h2>
+      <div v-else class="space-y-10">
+        <section v-if="data?.comparison" class="rounded-2xl border border-border bg-gradient-to-br from-muted/50 to-muted/20 dark:from-white/5 dark:to-transparent p-5 shadow-md">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Comparison (previous period)</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Summary metrics for the same-length period before the selected range (when "Compare to previous" is on).</p>
           <div class="grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 text-sm">
             <div
               v-for="(val, key) in (data.comparison.summary || {})"
@@ -79,22 +80,24 @@
           </div>
         </section>
         <section>
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Summary</h2>
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Summary</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Key counts for the selected period. Click a card to go to the related admin list.</p>
           <div class="grid gap-4 grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
             <router-link
               v-for="(val, key) in summaryRows"
               :key="key"
               :to="summaryLink(key)"
-              class="rounded-xl border border-border bg-card p-4 shadow-sm hover:border-primary/50 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              class="rounded-2xl border border-border bg-card p-5 shadow-md hover:shadow-xl hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
             >
-              <p :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">{{ key }}</p>
-              <p :class="['mt-1 text-xl font-semibold tabular-nums', theme.textPrimary]">{{ formatNumber(val) }}</p>
+              <p :class="['text-xs font-semibold uppercase tracking-wider', theme.textSecondary]">{{ key }}</p>
+              <p class="mt-2 text-2xl font-bold tabular-nums text-primary">{{ formatNumber(val) }}</p>
             </router-link>
           </div>
         </section>
 
-        <section v-if="revenueOverTimeSeries.length" class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Revenue over time (last 12 months)</h2>
+        <section v-if="revenueOverTimeSeries.length" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Revenue over time (last 12 months)</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Active subscriptions and monthly recurring revenue (MRR) by month.</p>
           <div class="h-64 min-w-0">
             <ApexChart
               type="area"
@@ -106,8 +109,9 @@
         </section>
 
         <section class="grid gap-8 lg:grid-cols-2">
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Registrations by day</h2>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Registrations by day</h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">New user sign-ups per day in the selected range.</p>
             <div class="h-64 min-w-0">
               <ApexChart
                 v-if="registrationsChartSeries.length"
@@ -119,8 +123,9 @@
               <p v-else :class="['text-sm', theme.textSecondary]">No data</p>
             </div>
           </div>
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Activity events by day</h2>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Activity events by day</h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Logged activity events (e.g. logins, actions) per day in the selected range.</p>
             <div class="h-64 min-w-0">
               <ApexChart
                 v-if="activityChartSeries.length"
@@ -135,8 +140,9 @@
         </section>
 
         <section>
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Users by role</h2>
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Users by role</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Number of users in each role (e.g. admin, user) for the selected period.</p>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
             <div class="h-48 min-w-0">
               <ApexChart
                 v-if="roleChartSeries.length"
@@ -151,11 +157,12 @@
         </section>
 
         <section class="grid gap-8 lg:grid-cols-3">
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 class="flex items-center justify-between mb-4">
-              <span :class="['text-lg font-medium', theme.textPrimary]">Contact by day</span>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 class="flex items-center justify-between mb-1">
+              <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Contact by day</span>
               <router-link :to="{ name: 'admin-contact' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Contact form submissions per day.</p>
             <div class="h-48 min-w-0">
               <ApexChart
                 v-if="contactChartSeries.length"
@@ -167,11 +174,12 @@
               <p v-else :class="['text-sm', theme.textSecondary]">No data</p>
             </div>
           </div>
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 class="flex items-center justify-between mb-4">
-              <span :class="['text-lg font-medium', theme.textPrimary]">Waitlist by day</span>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 class="flex items-center justify-between mb-1">
+              <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Waitlist by day</span>
               <router-link :to="{ name: 'admin-waitlist' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Waitlist sign-ups per day.</p>
             <div class="h-48 min-w-0">
               <ApexChart
                 v-if="waitlistChartSeries.length"
@@ -183,11 +191,12 @@
               <p v-else :class="['text-sm', theme.textSecondary]">No data</p>
             </div>
           </div>
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 class="flex items-center justify-between mb-4">
-              <span :class="['text-lg font-medium', theme.textPrimary]">Newsletter by day</span>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 class="flex items-center justify-between mb-1">
+              <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Newsletter by day</span>
               <router-link :to="{ name: 'admin-newsletter' }" class="text-sm text-accent hover:underline">View all</router-link>
             </h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Newsletter subscriptions per day.</p>
             <div class="h-48 min-w-0">
               <ApexChart
                 v-if="newsletterChartSeries.length"
@@ -202,8 +211,9 @@
         </section>
 
         <section v-if="(data?.activity?.top_users || []).length">
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Top users by activity ({{ days }}d)</h2>
-          <div class="rounded-xl border border-border bg-card overflow-hidden">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Top users by activity ({{ days }}d)</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Users with the most logged activity events in the selected period.</p>
+          <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-md">
             <table class="w-full text-sm">
               <thead :class="[theme.bgMuted]">
                 <tr>
@@ -235,11 +245,12 @@
         </section>
 
         <section class="grid gap-8 lg:grid-cols-2">
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 class="flex items-center justify-between">
-              <span :class="['text-lg font-medium', theme.textPrimary]">Users</span>
-              <router-link :to="{ name: 'admin-users' }" class="text-sm text-accent hover:underline">View all</router-link>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 class="flex items-center justify-between mb-1">
+              <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Users</span>
+              <router-link :to="{ name: 'admin-users' }" class="text-sm font-medium text-primary hover:underline">View all</router-link>
             </h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Total users, early-access count, recent registrations, and breakdown by role.</p>
             <dl class="space-y-2 mt-4">
               <div class="flex justify-between">
                 <dt :class="['text-sm', theme.textSecondary]">Total</dt>
@@ -261,11 +272,12 @@
               </template>
             </dl>
           </div>
-          <div class="rounded-xl border border-border bg-card p-4 sm:p-6 shadow-sm">
-            <h2 class="flex items-center justify-between">
-              <span :class="['text-lg font-medium', theme.textPrimary]">Early access</span>
-              <router-link :to="{ name: 'admin-early-access' }" class="text-sm text-accent hover:underline">View all</router-link>
+          <div class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+            <h2 class="flex items-center justify-between mb-1">
+              <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Early access</span>
+              <router-link :to="{ name: 'admin-early-access' }" class="text-sm font-medium text-primary hover:underline">View all</router-link>
             </h2>
+            <p :class="['text-sm mb-4', theme.textSecondary]">Early-access programme counts and status summary.</p>
             <dl class="space-y-2 mt-4">
               <div v-for="(val, key) in (data?.early_access || {})" :key="key" class="flex justify-between">
                 <dt :class="['text-sm capitalize', theme.textSecondary]">{{ String(key).replace(/_/g, ' ') }}</dt>
@@ -276,8 +288,9 @@
         </section>
 
         <section>
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Activity by action</h2>
-          <div class="rounded-xl border border-border bg-card overflow-hidden">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Activity by action</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Count of activity events grouped by action type (e.g. login, view) in the selected range.</p>
+          <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-md">
             <table class="w-full text-sm">
               <thead :class="[theme.bgMuted]">
                 <tr>
@@ -303,11 +316,12 @@
         </section>
 
         <section v-if="(data?.products || []).length">
-          <h2 class="flex items-center justify-between mb-4">
-            <span :class="['text-lg font-medium', theme.textPrimary]">Products</span>
-            <router-link :to="{ name: 'admin-products' }" class="text-sm text-accent hover:underline">View all</router-link>
+          <h2 class="flex items-center justify-between mb-1">
+            <span :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Products</span>
+            <router-link :to="{ name: 'admin-products' }" class="text-sm font-medium text-primary hover:underline">View all</router-link>
           </h2>
-          <div class="rounded-xl border border-border bg-card overflow-hidden">
+          <p :class="['text-sm mb-4', theme.textSecondary]">Per-product user counts and onboarding status (completed vs pending).</p>
+          <div class="rounded-2xl border border-border bg-card overflow-hidden shadow-md">
             <table class="w-full text-sm">
               <thead :class="[theme.bgMuted]">
                 <tr>
@@ -343,8 +357,9 @@
         </section>
 
         <section>
-          <h2 :class="['text-lg font-medium mb-4', theme.textPrimary]">Recent activity</h2>
-          <div class="rounded-xl border border-border bg-card divide-y divide-border max-h-96 overflow-auto">
+          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">Recent activity</h2>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Latest activity log entries (action, user, time). Use for quick audit and support.</p>
+          <div class="rounded-2xl border border-border bg-card divide-y divide-border max-h-96 overflow-auto shadow-md">
             <div
               v-for="item in (data?.activity?.recent || []).slice(0, 50)"
               :key="item.id"

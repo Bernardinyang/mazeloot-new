@@ -40,6 +40,7 @@ import OtpInput from '@/shared/components/molecules/OtpInput.vue'
 import AuthLink from '@/shared/components/molecules/AuthLink.vue'
 import IconMail from '@/shared/icons/IconMail.vue'
 import { useAuthApi } from '@/shared/api/auth'
+import { useUserStore } from '@/shared/stores/user'
 import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 
@@ -73,7 +74,6 @@ const handleVerify = async verificationCode => {
     const response = await authApi.verifyEmail(email.value, codeToVerify)
 
     // Save user and token to store
-    const { useUserStore } = await import('@/shared/stores/user')
     const userStore = useUserStore()
     userStore.user = response.user
     userStore.token = response.token

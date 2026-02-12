@@ -312,7 +312,6 @@ export function useProofingApi() {
         throw new Error('Project not found')
       }
 
-      const { generateUUID } = await import('@/shared/utils/uuid')
       collection = {
         id: generateUUID(),
         name: `${project.name} - Final Collection`,

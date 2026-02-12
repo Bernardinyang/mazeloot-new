@@ -144,6 +144,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { Button } from '@/shared/components/shadcn/button'
+import { initAnalytics } from '@/shared/composables/useAnalytics.js'
 
 const COOKIE_CONSENT_KEY = 'mazeloot_cookie_consent'
 const COOKIE_PREFERENCES_KEY = 'mazeloot_cookie_preferences'
@@ -169,9 +170,7 @@ const acceptAll = () => {
   
   // Initialize analytics if consent given
   if (import.meta.env.VITE_GA_ID || import.meta.env.VITE_PLAUSIBLE_DOMAIN) {
-    import('@/shared/composables/useAnalytics.js').then(({ initAnalytics }) => {
-      initAnalytics()
-    })
+    initAnalytics()
   }
 }
 
@@ -204,9 +203,7 @@ onMounted(() => {
     if (preferences) {
       const prefs = JSON.parse(preferences)
       if (prefs.analytics) {
-        import('@/shared/composables/useAnalytics.js').then(({ initAnalytics }) => {
-          initAnalytics()
-        })
+        initAnalytics()
       }
     }
   }

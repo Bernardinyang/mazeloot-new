@@ -38,7 +38,6 @@ class ApiClient {
     // 401 = unauthenticated (invalid/expired token) -> clear auth and redirect to login
     // 403 = forbidden (e.g. plan feature) -> do NOT clear auth; let caller handle
     if (response.status === 401) {
-      const { useUserStore } = await import('@/shared/stores/user')
       const userStore = useUserStore()
       userStore.clearAuth()
 
