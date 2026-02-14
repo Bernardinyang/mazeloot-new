@@ -25,6 +25,7 @@
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
           :rawFile-id="rawFile?.id || ''"
+          :set-limit-reached="props.setLimitReached"
         />
       </RawFileSidebar>
     </template>
@@ -78,6 +79,7 @@ const props = defineProps({
   overallProgress: { type: Object, default: null },
   onResetLimit: { type: Function, default: null },
   isResettingLimit: { type: Boolean, default: false },
+  setLimitReached: { type: Boolean, default: false },
 })
 
 defineEmits(['goBack'])

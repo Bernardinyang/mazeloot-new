@@ -208,27 +208,47 @@ onMounted(async () => {
   }
 
   if (route.query.session_id && provider === 'stripe') {
+    const maxAttempts = 16
+    const delayMs = 2000
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      try {
+        const [userData, statusRes] = await Promise.all([authApi.getUser(), getStatus()])
+        const u = userData?.user
+        if (u) {
+          userStore.updateUser({
+            id: u.uuid,
+            uuid: u.uuid,
+            email: u.email,
+            first_name: u.first_name,
+            last_name: u.last_name,
+            name: [u.first_name, u.last_name].filter(Boolean).join(' ').trim(),
+            avatar: u.profile_photo,
+            role: u.role,
+            memora_tier: u.memora_tier ?? 'starter',
+            memora_features: u.memora_features ?? [],
+            memora_capabilities: u.memora_capabilities ?? {},
+            set_limit_per_phase: u.set_limit_per_phase ?? null,
+            watermark_limit: u.watermark_limit ?? null,
+            preset_limit: u.preset_limit ?? null,
+            selection_limit: u.selection_limit ?? null,
+            proofing_limit: u.proofing_limit ?? null,
+            early_access: u.early_access,
+          })
+        }
+        const sub = statusRes?.subscription ?? null
+        if (sub || (u?.memora_tier ?? 'starter') !== 'starter') {
+          status.value = 'success'
+          subscription.value = sub
+          await fetchSubscriptionDetails()
+          return
+        }
+      } catch (_) {}
+      if (attempt < maxAttempts - 1) {
+        await new Promise((r) => setTimeout(r, delayMs))
+      }
+    }
     status.value = 'success'
     await fetchSubscriptionDetails()
-    try {
-      const userData = await authApi.getUser()
-      const u = userData?.user
-      if (u) {
-        userStore.updateUser({
-          id: u.uuid,
-          uuid: u.uuid,
-          email: u.email,
-          first_name: u.first_name,
-          last_name: u.last_name,
-          name: [u.first_name, u.last_name].filter(Boolean).join(' ').trim(),
-          avatar: u.profile_photo,
-          role: u.role,
-          memora_tier: u.memora_tier ?? 'starter',
-          memora_features: u.memora_features ?? [],
-          early_access: u.early_access,
-        })
-      }
-    } catch (_) {}
     return
   }
 

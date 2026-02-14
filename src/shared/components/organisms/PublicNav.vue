@@ -41,7 +41,7 @@
         <div class="flex items-center gap-3">
           <button
             type="button"
-            class="flex size-9 items-center justify-center rounded-lg dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white light:text-gray-600 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
+            class="flex size-9 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 items-center justify-center rounded-lg dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white light:text-gray-600 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white touch-manipulation"
             aria-label="Toggle theme"
             @click="themeStore.toggleTheme()"
           >
@@ -65,7 +65,7 @@
           </Button>
           <button
             type="button"
-            class="flex size-10 items-center justify-center rounded-lg dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white light:text-gray-600 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 md:hidden outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
+            class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white light:text-gray-600 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 md:hidden outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white touch-manipulation"
             aria-label="Open menu"
             :aria-expanded="mobileOpen"
             @click="mobileOpen = true"
@@ -101,7 +101,8 @@
     >
       <div
         v-show="mobileOpen"
-        class="fixed left-0 right-0 top-0 z-50 mx-4 mt-4 max-h-[calc(100vh-2rem)] overflow-y-auto rounded-2xl dark:border-white/30 light:border-gray-300 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-[#0f0f23] light:bg-white backdrop-blur-xl shadow-2xl md:hidden"
+        class="fixed left-0 right-0 z-50 mx-4 max-h-[calc(100dvh-2rem)] overflow-y-auto overflow-x-hidden rounded-2xl dark:border-white/30 light:border-gray-300 dark:bg-gradient-to-br dark:from-gray-900 dark:via-gray-900 dark:to-[#0f0f23] light:bg-white backdrop-blur-xl shadow-2xl md:hidden"
+        style="top: calc(env(safe-area-inset-top) + 0.5rem);"
         role="dialog"
         aria-modal="true"
         aria-label="Menu"
@@ -110,7 +111,7 @@
           <span class="text-sm font-semibold dark:text-white light:text-gray-900">Menu</span>
           <button
             type="button"
-            class="flex size-9 items-center justify-center rounded-lg dark:text-gray-200 dark:hover:bg-white/15 dark:hover:text-white light:text-gray-700 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500"
+            class="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg dark:text-gray-200 dark:hover:bg-white/15 dark:hover:text-white light:text-gray-700 light:hover:bg-gray-100 light:hover:text-gray-900 transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 touch-manipulation"
             aria-label="Close menu"
             @click="mobileOpen = false"
           >

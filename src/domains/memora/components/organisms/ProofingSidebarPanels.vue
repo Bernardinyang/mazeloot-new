@@ -6,6 +6,7 @@
     :is-sidebar-collapsed="props.isSidebarCollapsed"
     :is-loading="props.isLoading"
     :disable-add-set="props.disableAddSet"
+    :set-limit-reached="props.setLimitReached"
     :project-id="props.projectId"
   >
     <template #phaseTabs="{ activeTab: tab, isSidebarCollapsed: collapsed }">
@@ -39,5 +40,6 @@ const props = defineProps({
   isSidebarCollapsed: { type: Boolean, required: true },
   isLoading: { type: Boolean, default: false },
   disableAddSet: { type: Boolean, default: false },
+  setLimitReached: { type: Boolean, default: false },
 })
 </script>

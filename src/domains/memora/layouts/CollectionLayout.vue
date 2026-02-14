@@ -53,6 +53,7 @@
           :favorite-enabled="favoriteEnabled"
           :is-loading="isLoading"
           :is-sidebar-collapsed="isSidebarCollapsed"
+          :set-limit-reached="props.setLimitReached"
         />
       </CollectionSidebar>
     </template>
@@ -101,6 +102,7 @@ import { createThumbnailFromDataURL } from '@/domains/memora/utils/media/createT
 const props = defineProps({
   collection: { type: [Object, null], default: null },
   isLoading: { type: Boolean, required: true },
+  setLimitReached: { type: Boolean, default: false },
 })
 
 defineEmits(['goBack'])

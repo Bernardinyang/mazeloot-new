@@ -6,6 +6,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed, watch } from 'vue'
 import { storage } from '@/shared/utils/storage'
+import { clearReferralCode } from '@/shared/utils/referralCookie'
 import { useAuthApi } from '@/shared/api/auth'
 import { useProductsApi } from '@/shared/api/products'
 import { useOnboardingApi } from '@/shared/api/onboarding'
@@ -117,6 +118,8 @@ export const useUserStore = defineStore('user', () => {
         confirmPassword: password,
         acceptTerms: true,
       })
+
+      clearReferralCode()
 
       // Only set user and token if email is verified
       if (response.token) {

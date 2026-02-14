@@ -9,7 +9,7 @@
         <div class="flex items-center gap-2 md:gap-3 flex-1 min-w-0">
           <button
             @click="handleClose"
-            class="p-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 shrink-0 group"
+            class="p-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 shrink-0 group min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 touch-manipulation"
             :class="theme.textSecondary"
           >
             <X class="h-4 w-4 md:h-5 md:w-5 group-hover:scale-110 transition-transform" />
@@ -17,7 +17,7 @@
           <button
             v-if="isMobile && !isMobileSidebarOpen"
             @click="isMobileSidebarOpen = true"
-            class="p-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 shrink-0 md:hidden"
+            class="p-2 rounded-lg hover:bg-gray-100/80 dark:hover:bg-gray-800/80 transition-all duration-200 shrink-0 md:hidden min-h-[44px] min-w-[44px] touch-manipulation"
             :class="theme.textSecondary"
           >
             <Menu class="h-4 w-4" />

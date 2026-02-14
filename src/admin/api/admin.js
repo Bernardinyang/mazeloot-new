@@ -373,6 +373,66 @@ export function useAdminApi() {
   }
 
   /**
+   * Get FAQs (admin list)
+   */
+  const getFaqs = async () => {
+    try {
+      const response = await apiClient.get('/v1/admin/faqs')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Get single FAQ
+   */
+  const getFaq = async (uuid) => {
+    try {
+      const response = await apiClient.get(`/v1/admin/faqs/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Create FAQ
+   */
+  const createFaq = async (payload) => {
+    try {
+      const response = await apiClient.post('/v1/admin/faqs', payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Update FAQ
+   */
+  const updateFaq = async (uuid, payload) => {
+    try {
+      const response = await apiClient.patch(`/v1/admin/faqs/${uuid}`, payload)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Delete FAQ
+   */
+  const deleteFaq = async (uuid) => {
+    try {
+      const response = await apiClient.delete(`/v1/admin/faqs/${uuid}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get newsletter subscriptions
    */
   const getNewsletter = async (filters = {}) => {
@@ -504,6 +564,15 @@ export function useAdminApi() {
     }
   }
 
+  const getSystemWebhooks = async (params = {}) => {
+    try {
+      const response = await apiClient.get('/v1/admin/system/webhooks', { params })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const getQueueFailed = async (limit = 100) => {
     try {
       const response = await apiClient.get('/v1/admin/queue/failed', { params: { limit } })
@@ -543,6 +612,15 @@ export function useAdminApi() {
   const flushFailedJobs = async () => {
     try {
       const response = await apiClient.post('/v1/admin/queue/failed/flush')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const restartQueue = async () => {
+    try {
+      const response = await apiClient.post('/v1/admin/queue/restart')
       return response.data
     } catch (error) {
       throw parseError(error)
@@ -804,6 +882,11 @@ export function useAdminApi() {
     getContactSubmission,
     getWaitlist,
     getWaitlistEntry,
+    getFaqs,
+    getFaq,
+    createFaq,
+    updateFaq,
+    deleteFaq,
     getNewsletter,
     getDowngradeRequests,
     getDowngradeRequest,
@@ -816,11 +899,13 @@ export function useAdminApi() {
     getHealth,
     getSystem,
     getSystemConnectivity,
+    getSystemWebhooks,
     getQueueFailed,
     retryFailedJob,
     retryAllFailedJobs,
     forgetFailedJob,
     flushFailedJobs,
+    restartQueue,
     getLogsRecent,
     clearLog,
     getAnalyticsOverview,

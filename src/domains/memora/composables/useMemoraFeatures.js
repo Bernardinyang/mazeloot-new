@@ -48,7 +48,13 @@ export function useMemoraFeatures() {
   const canAccessCollection = computed(() => hasFeature('collection'))
 
   const capabilities = computed(() => userStore.user?.memora_capabilities ?? {})
-  const setLimitPerPhase = computed(() => userStore.user?.set_limit_per_phase ?? null)
+  const setLimitPerPhase = computed(() => {
+    const fromApi = userStore.user?.set_limit_per_phase
+    if (fromApi != null) return fromApi
+    const tier = userStore.user?.memora_tier ?? 'starter'
+    if (tier === 'starter') return 1
+    return null
+  })
   const watermarkLimit = computed(() => userStore.user?.watermark_limit ?? null)
   const presetLimit = computed(() => userStore.user?.preset_limit ?? null)
   const canAddPreset = computed(() => (presetLimit.value ?? 0) > 0)

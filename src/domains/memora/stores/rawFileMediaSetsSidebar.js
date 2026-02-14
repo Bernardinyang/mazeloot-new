@@ -273,12 +273,13 @@ export const useRawFileMediaSetsSidebarStore = defineStore('rawFileMediaSetsSide
     }
 
     isCreatingSet.value = true
+    let result = null
     try {
       if (editingSetIdInModal.value) {
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
           const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
-          const updatedSet = await rawFilesApi.updateMediaSet(
+          result = await rawFilesApi.updateMediaSet(
             rawFileId.value,
             editingSetIdInModal.value,
             {
@@ -290,12 +291,12 @@ export const useRawFileMediaSetsSidebarStore = defineStore('rawFileMediaSetsSide
           )
           const index = mediaSets.value.findIndex(s => s.id === editingSetIdInModal.value)
           if (index !== -1) {
-            mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
+            mediaSets.value[index] = { ...mediaSets.value[index], ...result }
           }
         }
       } else {
         const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
-        const newSet = await rawFilesApi.createMediaSet(rawFileId.value, {
+        result = await rawFilesApi.createMediaSet(rawFileId.value, {
           name: trimmedName,
           description: newSetDescription.value || '',
           order: maxOrder + 1,
@@ -306,8 +307,8 @@ export const useRawFileMediaSetsSidebarStore = defineStore('rawFileMediaSetsSide
         // Wait a tick to ensure reactivity updates
         await new Promise(resolve => setTimeout(resolve, 100))
         // Auto-select the newly created set (set after loadMediaSets to ensure it's in the list)
-        if (newSet && newSet.id) {
-          selectedSetId.value = newSet.id
+        if (result && result.id) {
+          selectedSetId.value = result.id
         } else if (mediaSets.value.length > 0) {
           // Fallback: select the last set (should be the newly created one)
           const sortedSets = [...mediaSets.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))
@@ -315,18 +316,14 @@ export const useRawFileMediaSetsSidebarStore = defineStore('rawFileMediaSetsSide
         }
       }
 
-      // Show success message
-      toast.success(editingSetIdInModal.value ? 'Set updated' : 'Set created', {
-        description: editingSetIdInModal.value
-          ? 'Photo set has been updated.'
-          : 'New photo set has been created.',
-      })
+      toast.apiSuccess(result, editingSetIdInModal.value ? 'Set updated' : 'Set created')
 
       handleCancelCreateSet()
     } catch (error) {
-      toast.error(editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
+      toast.apiError(
+        error,
+        editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set'
+      )
     } finally {
       isCreatingSet.value = false
     }

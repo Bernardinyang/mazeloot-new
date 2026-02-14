@@ -1,13 +1,13 @@
 <template>
-  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0']">
-    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-8">
-      <header class="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-border/60">
+  <div :class="['min-h-full w-full', theme.transitionColors, 'relative z-0 bg-gradient-to-b from-background to-muted/20']">
+    <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-10 space-y-10">
+      <header class="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-border/80 bg-card/80 backdrop-blur-sm px-6 py-5 shadow-lg shadow-black/5 dark:shadow-black/20">
         <div>
-          <h1 :class="['text-3xl font-bold tracking-tight', theme.textPrimary]">System details</h1>
+          <h1 :class="['text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent', theme.textPrimary]">System details</h1>
           <p :class="['mt-1.5 text-sm', theme.textSecondary]">Server, environment, extensions, binaries, and configuration.</p>
         </div>
-        <div v-if="data" class="flex items-center gap-2">
-          <Button variant="outline" size="sm" :disabled="refreshing" class="shadow-sm" @click="refresh">
+        <div v-if="data" class="flex flex-wrap items-center gap-2">
+          <Button variant="outline" size="sm" :disabled="refreshing" class="shadow-sm border-primary/30 hover:bg-primary/10" @click="refresh">
             {{ refreshing ? 'Refreshing…' : 'Refresh' }}
           </Button>
           <a
@@ -15,7 +15,7 @@
             :href="telescopeUrl"
             target="_blank"
             rel="noopener noreferrer"
-            class="text-sm font-medium text-primary hover:underline"
+            class="inline-flex items-center rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
           >
             Open Telescope
           </a>
@@ -24,6 +24,9 @@
           </Button>
           <Button variant="outline" size="sm" :disabled="clearingAllCache" class="shadow-sm" @click="showClearAllCacheModal = true">
             {{ clearingAllCache ? 'Running…' : 'Clear all cache & optimize' }}
+          </Button>
+          <Button variant="outline" size="sm" :disabled="!data || exportLoading" class="shadow-sm border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10" @click="exportReport">
+            {{ exportLoading ? 'Exporting…' : 'Download report' }}
           </Button>
         </div>
       </header>
@@ -37,21 +40,499 @@
         <p :class="['text-sm font-medium', theme.textPrimary]">{{ error }}</p>
       </div>
 
-      <div v-else class="space-y-8">
-        <p v-if="data?.scheduler_stale_seconds != null && data.scheduler_stale_seconds > 900" class="rounded-2xl border-l-4 border-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
-          Scheduler may not be running (last run {{ data.scheduler_last_run ? formatSchedulerAgo(data.scheduler_last_run) : 'unknown' }}).
-        </p>
-        <p v-if="data?.worker_heartbeat_at != null" :class="['rounded-2xl border-l-4 px-4 py-3 text-sm font-medium', theme.textPrimary, workerHeartbeatStale ? 'border-amber-500 bg-amber-500/10 text-amber-800 dark:text-amber-200' : 'border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20']">
-          Queue workers: last heartbeat {{ formatSchedulerAgo(data.worker_heartbeat_at) }}.
-        </p>
-        <p v-else-if="data && data.queue?.driver !== 'sync'" class="rounded-2xl border-l-4 border-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
-          No queue worker heartbeat. Ensure <code class="font-mono text-xs rounded bg-black/10 dark:bg-white/10 px-1 py-0.5">php artisan queue:work</code> is running and scheduler runs every minute.
-        </p>
-        <p v-if="data?.env_hint" :class="['text-sm font-medium rounded-2xl border border-border bg-muted/50 dark:bg-white/5 px-4 py-3', theme.textPrimary]">
-          {{ data.env_hint }}
-        </p>
-        <section v-for="(section, sectionKey) in sections" :key="sectionKey" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
-          <h2 :class="['text-lg font-semibold tracking-tight mb-1 capitalize', theme.textPrimary]">{{ String(sectionKey).replace(/_/g, ' ') }}</h2>
+      <div v-else class="space-y-10">
+        <!-- Overview & health -->
+        <div class="rounded-2xl overflow-hidden border border-violet-200/50 dark:border-violet-500/20 bg-card shadow-lg shadow-violet-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-violet-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-violet-500/20 via-indigo-500/15 to-transparent border-b border-violet-200/50 dark:border-violet-500/20">
+            <h2 class="text-lg font-semibold text-violet-700 dark:text-violet-300">Overview & health</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Status, alerts and queue</p>
+          </div>
+          <div class="p-6 space-y-4">
+            <p v-if="data?.scheduler_stale_seconds != null && data.scheduler_stale_seconds > 900" class="rounded-xl border-l-4 border-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
+              Scheduler may not be running (last run {{ data.scheduler_last_run ? formatSchedulerAgo(data.scheduler_last_run) : 'unknown' }}).
+            </p>
+            <p v-if="data?.worker_heartbeat_at != null" :class="['rounded-xl border-l-4 px-4 py-3 text-sm font-medium', theme.textPrimary, workerHeartbeatStale ? 'border-amber-500 bg-amber-500/10 text-amber-800 dark:text-amber-200' : 'border-emerald-500 bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20']">
+              Queue workers: last heartbeat {{ formatSchedulerAgo(data.worker_heartbeat_at) }}.
+            </p>
+            <p v-else-if="data && data.queue?.driver !== 'sync'" class="rounded-xl border-l-4 border-amber-500 bg-amber-500/10 border border-amber-500/20 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
+              No queue worker heartbeat. Ensure <code class="font-mono text-xs rounded bg-black/10 dark:bg-white/10 px-1 py-0.5">php artisan queue:work</code> is running and scheduler runs every minute.
+            </p>
+            <p v-if="data?.env_hint" :class="['text-sm font-medium rounded-xl border border-border bg-muted/50 dark:bg-white/5 px-4 py-3', theme.textPrimary]">
+              {{ data.env_hint }}
+            </p>
+            <section v-if="data?.system_health" class="rounded-xl border-l-4 border-violet-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+              <h3 :class="['text-base font-semibold mb-3', theme.textPrimary]">System health</h3>
+              <div class="flex flex-wrap items-center gap-4">
+                <span
+                  :class="['rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm', data.system_health.scheduled_task_status === 'ok' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20' : data.system_health.scheduled_task_status === 'failed' ? 'bg-destructive/20 text-destructive ring-1 ring-destructive/20' : 'bg-muted text-muted-foreground']"
+                >
+                  Scheduled task {{ data.system_health.scheduled_task_status }}
+                </span>
+                <span
+                  :class="['rounded-full px-3 py-1.5 text-xs font-semibold shadow-sm', data.system_health.queue_status === 'ok' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 ring-1 ring-emerald-500/20' : data.system_health.queue_status === 'failed' ? 'bg-destructive/20 text-destructive ring-1 ring-destructive/20' : 'bg-muted text-muted-foreground']"
+                >
+                  Queue {{ data.system_health.queue_status }}
+                </span>
+                <Button
+                  v-if="data.queue?.driver !== 'sync'"
+                  variant="outline"
+                  size="sm"
+                  :disabled="restartQueueLoading"
+                  class="shadow-sm"
+                  @click="runRestartQueue"
+                >
+                  {{ restartQueueLoading ? 'Restarting…' : 'Restart queue' }}
+                </Button>
+              </div>
+            </section>
+          </div>
+        </div>
+
+        <!-- Webhooks -->
+        <div class="rounded-2xl overflow-hidden border border-amber-200/50 dark:border-amber-500/20 bg-card shadow-lg shadow-amber-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-amber-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-transparent border-b border-amber-200/50 dark:border-amber-500/20">
+            <h2 class="text-lg font-semibold text-amber-700 dark:text-amber-300">Webhooks</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Payment provider webhook events and status</p>
+          </div>
+          <div class="p-6 space-y-4">
+            <div class="flex flex-wrap items-center gap-2">
+              <select
+                v-model="webhookProviderFilter"
+                :class="['rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm', theme.textPrimary]"
+                aria-label="Filter by provider"
+                @change="fetchWebhooks"
+              >
+                <option value="">All providers</option>
+                <option value="stripe">Stripe</option>
+                <option value="paystack">Paystack</option>
+                <option value="paypal">PayPal</option>
+                <option value="flutterwave">Flutterwave</option>
+              </select>
+              <select
+                v-model="webhookStatusFilter"
+                :class="['rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-sm', theme.textPrimary]"
+                aria-label="Filter by status"
+                @change="fetchWebhooks"
+              >
+                <option value="">All statuses</option>
+                <option value="processed">Processed</option>
+                <option value="failed">Failed</option>
+                <option value="received">Received</option>
+              </select>
+              <Button variant="outline" size="sm" :disabled="webhooksLoading" @click="fetchWebhooks">
+                {{ webhooksLoading ? 'Loading…' : 'Refresh' }}
+              </Button>
+            </div>
+            <div class="overflow-x-auto rounded-xl border border-border">
+              <table class="w-full text-sm" aria-label="Webhook events">
+                <thead>
+                  <tr :class="['border-b border-border', theme.textSecondary]">
+                    <th class="text-left py-3 px-3 font-medium">Time</th>
+                    <th class="text-left py-3 px-3 font-medium">Provider</th>
+                    <th class="text-left py-3 px-3 font-medium">Event</th>
+                    <th class="text-left py-3 px-3 font-medium">Status</th>
+                    <th class="text-left py-3 px-3 font-medium">Response</th>
+                    <th class="text-left py-3 px-3 font-medium max-w-[200px]">Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-if="webhooksLoading && !webhooks.length" class="border-b border-border">
+                    <td colspan="6" class="py-8 text-center text-muted-foreground">Loading…</td>
+                  </tr>
+                  <tr v-else-if="!webhooks.length" class="border-b border-border">
+                    <td colspan="6" class="py-8 text-center text-muted-foreground">No webhook events yet.</td>
+                  </tr>
+                  <tr
+                    v-for="w in webhooks"
+                    :key="w.id"
+                    class="border-b border-border last:border-b-0"
+                  >
+                    <td :class="['py-2.5 px-3 font-mono text-xs whitespace-nowrap', theme.textSecondary]">{{ formatWebhookDate(w.created_at) }}</td>
+                    <td :class="['py-2.5 px-3 capitalize', theme.textPrimary]">{{ w.provider }}</td>
+                    <td :class="['py-2.5 px-3 font-mono text-xs truncate max-w-[180px]', theme.textPrimary]" :title="w.event_type || w.event_id || ''">{{ w.event_type || '—' }}</td>
+                    <td class="py-2.5 px-3">
+                      <span
+                        :class="[
+                          'inline-flex rounded-full px-2 py-0.5 text-xs font-medium',
+                          w.status === 'processed' ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : w.status === 'failed' ? 'bg-destructive/20 text-destructive' : 'bg-muted text-muted-foreground',
+                        ]"
+                      >
+                        {{ w.status }}
+                      </span>
+                    </td>
+                    <td :class="['py-2.5 px-3 font-mono text-xs', theme.textPrimary]">{{ w.response_code ?? '—' }}</td>
+                    <td :class="['py-2.5 px-3 text-xs truncate max-w-[200px]', w.error_message ? 'text-destructive' : theme.textSecondary]" :title="w.error_message || ''">{{ w.error_message || '—' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p v-if="webhooksMeta" class="text-xs text-muted-foreground">
+              Page {{ webhooksMeta.current_page }} of {{ webhooksMeta.last_page }} ({{ webhooksMeta.total }} total)
+            </p>
+          </div>
+        </div>
+
+        <!-- Client & deploy -->
+        <div class="rounded-2xl overflow-hidden border border-sky-200/50 dark:border-sky-500/20 bg-card shadow-lg shadow-sky-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-sky-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-sky-500/20 via-cyan-500/15 to-transparent border-b border-sky-200/50 dark:border-sky-500/20">
+            <h2 class="text-lg font-semibold text-sky-700 dark:text-sky-300">Client & deploy</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Browser, git, dependencies, storage and maintenance</p>
+          </div>
+          <div class="p-6 space-y-6">
+        <section v-if="clientInfo" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Client information</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Browser, screen, and connection.</p>
+          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Browser</p>
+              <dl class="space-y-1.5 text-sm">
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Name</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.browser?.name ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Platform</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.browser?.platform ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Language</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.browser?.language ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Online</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.browser?.online ? 'YES' : 'NO' }}</dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Screen</p>
+              <dl class="space-y-1.5 text-sm">
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Resolution</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.screen?.resolution ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Available</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.screen?.available ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Color depth</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.screen?.colorDepth ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Pixel depth</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.screen?.pixelDepth ?? '—' }}</dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Network</p>
+              <dl class="space-y-1.5 text-sm">
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Connection type</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.network?.connectionType ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Downlink</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.network?.downlink ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">RTT</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.network?.rtt ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Save data</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.network?.saveData ? 'ENABLED' : 'DISABLED' }}</dd>
+                </div>
+              </dl>
+            </div>
+            <div>
+              <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Performance</p>
+              <dl class="space-y-1.5 text-sm">
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Used heap</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.performance?.usedHeap ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Total heap</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.performance?.totalHeap ?? '—' }}</dd>
+                </div>
+                <div class="flex justify-between gap-2">
+                  <dt :class="theme.textSecondary">Heap limit</dt>
+                  <dd :class="['font-mono', theme.textPrimary]">{{ clientInfo.performance?.heapLimit ?? '—' }}</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        </section>
+
+        <section v-if="data?.git_info && (data.git_info.branch || data.git_info.commit)" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Git / Deploy</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Branch, commit, and working tree status.</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Branch</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.git_info.branch ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Commit</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.git_info.short_commit ?? data.git_info.commit ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Dirty</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.git_info.dirty ? 'Yes' : 'No' }}</dd>
+            </div>
+            <div v-if="data.git_info.last_commit_date">
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Last commit</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.git_info.last_commit_date }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section v-if="data?.dependency_audit" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Dependency security</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Known vulnerabilities from composer audit and npm audit.</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Composer</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">
+                <span :class="(data.dependency_audit.composer_vulnerabilities ?? 0) > 0 ? 'text-destructive font-semibold' : ''">
+                  {{ data.dependency_audit.composer_vulnerabilities ?? '—' }} vulnerability(ies)
+                </span>
+              </dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">NPM</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">
+                <span :class="(data.dependency_audit.npm_vulnerabilities ?? 0) > 0 ? 'text-destructive font-semibold' : ''">
+                  {{ data.dependency_audit.npm_vulnerabilities ?? '—' }} vulnerability(ies)
+                </span>
+              </dd>
+            </div>
+          </dl>
+          <p v-if="data.dependency_audit.error" :class="['text-xs mt-2', theme.textSecondary]">{{ data.dependency_audit.error }}</p>
+        </section>
+
+        <section v-if="data?.storage_breakdown && Object.keys(data.storage_breakdown).length" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Storage breakdown</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Size of storage paths (app, logs, framework).</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div v-for="(item, key) in data.storage_breakdown" :key="key" class="flex flex-col">
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">{{ String(key).replace('_', ' ') }}</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ item.formatted }}</dd>
+              <dd :class="['text-[10px] font-mono truncate mt-0.5', theme.textSecondary]" :title="item.path">{{ item.path }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section v-if="data?.scheduled_commands?.length" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Scheduled commands</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Laravel scheduler entries and next run.</p>
+          <div class="overflow-auto rounded-lg border border-border">
+            <table class="w-full text-sm">
+              <thead :class="['text-left text-xs uppercase', theme.textSecondary, theme.bgMuted]">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Expression</th>
+                  <th class="px-3 py-2 font-medium">Command</th>
+                  <th class="px-3 py-2 font-medium">Next due</th>
+                </tr>
+              </thead>
+              <tbody :class="theme.textPrimary">
+                <tr v-for="(cmd, i) in data.scheduled_commands" :key="i" class="border-t border-border hover:bg-muted/40 transition-colors duration-150">
+                  <td class="px-3 py-2 font-mono text-xs">{{ cmd.expression }}</td>
+                  <td class="px-3 py-2 font-mono text-xs">{{ cmd.command }}</td>
+                  <td class="px-3 py-2 text-xs font-medium tabular-nums text-sky-600 dark:text-sky-400" :class="theme.textSecondary">{{ formatCountdown(nextDueTargets[i]) }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section v-if="data?.last_backup || data?.active_sessions_count != null" class="rounded-xl border-l-4 border-sky-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Maintenance</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Last backup and active sessions.</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div v-if="data.last_backup">
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Last backup</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.last_backup.last_run }}</dd>
+            </div>
+            <div v-if="data.active_sessions_count != null">
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Active sessions</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.active_sessions_count }}</dd>
+            </div>
+          </dl>
+        </section>
+
+          </div>
+        </div>
+
+        <!-- Performance -->
+        <div class="rounded-2xl overflow-hidden border border-amber-200/50 dark:border-amber-500/20 bg-card shadow-lg shadow-amber-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-amber-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-amber-500/20 via-orange-500/15 to-transparent border-b border-amber-200/50 dark:border-amber-500/20">
+            <h2 class="text-lg font-semibold text-amber-700 dark:text-amber-300">Performance</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Slow requests and recommendations</p>
+          </div>
+          <div class="p-6">
+        <section v-if="data?.performance" class="rounded-xl border-l-4 border-amber-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Performance</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">
+            Slow requests (over {{ data.performance.threshold_ms }} ms) and recommendations to fix them. Set <span class="font-mono text-xs">SLOW_REQUEST_THRESHOLD_MS</span> in .env to change the threshold.
+          </p>
+
+          <div v-if="(data.performance.recommendations || []).length" class="mb-6">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Recommendations</p>
+            <ul class="space-y-3">
+              <li
+                v-for="(rec, i) in data.performance.recommendations"
+                :key="i"
+                :class="['rounded-xl border p-4', rec.severity === 'critical' ? 'border-destructive bg-destructive/10' : rec.severity === 'high' ? 'border-amber-500 bg-amber-500/10' : 'border-border bg-muted/30']"
+              >
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                  <span :class="['font-mono text-xs font-semibold', theme.textPrimary]">{{ rec.route }}</span>
+                  <span
+                    :class="['rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase', rec.severity === 'critical' ? 'bg-destructive/20 text-destructive' : rec.severity === 'high' ? 'bg-amber-500/20 text-amber-700 dark:text-amber-400' : 'bg-muted text-muted-foreground']"
+                  >
+                    {{ rec.severity }}
+                  </span>
+                </div>
+                <p :class="['text-sm mb-2', theme.textPrimary]">{{ rec.message }}</p>
+                <p :class="['text-xs', theme.textSecondary]"><strong>Fix:</strong> {{ rec.fix }}</p>
+              </li>
+            </ul>
+          </div>
+
+          <div v-if="(data.performance.slow_requests || []).length" class="mb-6">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Recent slow requests (last 50)</p>
+            <div class="overflow-auto max-h-64 rounded-lg border border-border">
+              <table class="w-full text-sm">
+                <thead :class="['text-left text-xs uppercase', theme.textSecondary, theme.bgMuted]">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Route</th>
+                    <th class="px-3 py-2 font-medium">Method</th>
+                    <th class="px-3 py-2 font-medium text-right">Duration (ms)</th>
+                    <th class="px-3 py-2 font-medium text-right">Memory (MB)</th>
+                    <th class="px-3 py-2 font-medium">Time</th>
+                  </tr>
+                </thead>
+                <tbody :class="theme.textPrimary">
+                  <tr v-for="(req, i) in data.performance.slow_requests" :key="i" class="border-t border-border hover:bg-muted/40 transition-colors duration-150">
+                    <td class="px-3 py-2 font-mono text-xs max-w-[200px] truncate tabular-nums" :title="req.route">{{ req.route }}</td>
+                    <td class="px-3 py-2 text-xs">{{ req.method }}</td>
+                    <td class="px-3 py-2 text-xs text-right font-mono font-semibold tabular-nums text-amber-600 dark:text-amber-400">{{ req.duration_ms }}</td>
+                    <td class="px-3 py-2 text-xs text-right tabular-nums">{{ req.memory_mb }}</td>
+                    <td class="px-3 py-2 text-xs whitespace-nowrap tabular-nums" :class="theme.textSecondary">{{ req.time }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div v-if="data.performance.aggregated_by_route && Object.keys(data.performance.aggregated_by_route).length">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Aggregated by route</p>
+            <div class="overflow-auto max-h-64 rounded-lg border border-border">
+              <table class="w-full text-sm">
+                <thead :class="['text-left text-xs uppercase', theme.textSecondary, theme.bgMuted]">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Route</th>
+                    <th class="px-3 py-2 font-medium text-right">Count</th>
+                    <th class="px-3 py-2 font-medium text-right">Avg (ms)</th>
+                    <th class="px-3 py-2 font-medium text-right">Max (ms)</th>
+                  </tr>
+                </thead>
+                <tbody :class="theme.textPrimary">
+                  <tr v-for="(stats, route) in data.performance.aggregated_by_route" :key="route" class="border-t border-border hover:bg-muted/40 transition-colors duration-150">
+                    <td class="px-3 py-2 font-mono text-xs max-w-[200px] truncate" :title="route">{{ route }}</td>
+                    <td class="px-3 py-2 text-xs text-right tabular-nums">{{ stats.count }}</td>
+                    <td class="px-3 py-2 text-xs text-right font-mono tabular-nums text-amber-600 dark:text-amber-400">{{ stats.avg_ms }}</td>
+                    <td class="px-3 py-2 text-xs text-right font-mono tabular-nums font-semibold">{{ stats.max_ms }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p v-if="!(data.performance.slow_requests?.length) && !(data.performance.recommendations?.length)" :class="['text-sm', theme.textSecondary]">
+            No slow requests recorded yet. Requests over {{ data.performance.threshold_ms }} ms will appear here.
+          </p>
+        </section>
+          </div>
+        </div>
+
+        <!-- Security -->
+        <div class="rounded-2xl overflow-hidden border border-rose-200/50 dark:border-rose-500/20 bg-card shadow-lg shadow-rose-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-rose-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-rose-500/20 via-pink-500/15 to-transparent border-b border-rose-200/50 dark:border-rose-500/20">
+            <h2 class="text-lg font-semibold text-rose-700 dark:text-rose-300">Security</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Auth, rate limiting, CORS and headers</p>
+          </div>
+          <div class="p-6">
+        <section v-if="data?.security" class="rounded-xl border-l-4 border-rose-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-4', theme.textPrimary]">Security</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Auth, rate limiting, CORS, and headers.</p>
+
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Auth guard</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.auth?.default_guard ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Sanctum</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.auth?.sanctum_enabled ? 'Enabled' : 'Disabled' }}</dd>
+            </div>
+            <div v-if="data.security.auth?.sanctum_guard?.length">
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Sanctum guard</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.auth.sanctum_guard.join(', ') }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Rate limiting</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.rate_limiting?.enabled ? 'Enabled' : 'Disabled' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Default limit</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.rate_limiting?.default_per_minute ?? '—' }} requests per minute</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Supports credentials</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.cors?.supports_credentials ? 'Yes' : 'No' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">CSP</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.csp_enabled ? 'Enabled' : 'Disabled' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">HSTS</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.security.hsts_enabled ? 'Enabled' : 'Disabled' }}</dd>
+            </div>
+          </dl>
+
+          <div v-if="(data.security.cors?.allowed_origins?.length || 0) > 0" class="pt-4 border-t border-border">
+            <dt :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Allowed origins</dt>
+            <ul class="flex flex-wrap gap-2">
+              <li
+                v-for="(origin, i) in data.security.cors.allowed_origins"
+                :key="i"
+                :class="['rounded-lg px-2.5 py-1 text-xs font-mono', theme.bgMuted, theme.textPrimary]"
+              >
+                {{ origin }}
+              </li>
+            </ul>
+          </div>
+          <div v-if="(data.security.cors?.paths?.length || 0) > 0" class="pt-3">
+            <dt :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">CORS paths</dt>
+            <p :class="['text-sm font-mono', theme.textPrimary]">{{ data.security.cors.paths.join(', ') }}</p>
+          </div>
+        </section>
+          </div>
+        </div>
+
+        <!-- Application, server & config -->
+        <div class="rounded-2xl overflow-hidden border border-emerald-200/50 dark:border-emerald-500/20 bg-card shadow-lg shadow-emerald-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-emerald-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-emerald-500/20 via-teal-500/15 to-transparent border-b border-emerald-200/50 dark:border-emerald-500/20">
+            <h2 class="text-lg font-semibold text-emerald-700 dark:text-emerald-300">Application, server & config</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">PHP, server, disk, load, config and binaries</p>
+          </div>
+          <div class="p-6 space-y-6">
+        <section v-for="(section, sectionKey) in sections" :key="sectionKey" class="rounded-xl border-l-4 border-emerald-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-1 capitalize', theme.textPrimary]">{{ String(sectionKey).replace(/_/g, ' ') }}</h3>
           <p v-if="sectionDescriptions[sectionKey]" :class="['text-sm mb-4', theme.textSecondary]">{{ sectionDescriptions[sectionKey] }}</p>
 
           <div v-if="sectionKey === 'disk' && data?.disk?.used_percent != null" class="mb-4">
@@ -139,6 +620,25 @@
               <dd :class="['mt-1 text-sm font-mono break-all', theme.textPrimary]">{{ formatValue(value) }}</dd>
             </div>
           </dl>
+          <div v-if="sectionKey === 'database_metrics' && (data?.database_metrics?.largest_tables?.length || 0) > 0" class="mt-4 pt-4 border-t border-border">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Largest tables</p>
+            <div class="overflow-auto rounded-lg border border-border">
+              <table class="w-full text-sm">
+                <thead :class="['text-left text-xs uppercase', theme.textSecondary, theme.bgMuted]">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">Table</th>
+                    <th class="px-3 py-2 font-medium text-right">Size (MB)</th>
+                  </tr>
+                </thead>
+                <tbody :class="theme.textPrimary">
+                  <tr v-for="t in data.database_metrics.largest_tables" :key="t.name" class="border-t border-border">
+                    <td class="px-3 py-2 font-mono text-xs">{{ t.name }}</td>
+                    <td class="px-3 py-2 text-xs text-right font-mono">{{ t.size_mb }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
 
           <div v-if="sectionKey === 'quick_links' && Array.isArray(section) && section.length" class="mt-2 flex flex-wrap gap-2">
             <a
@@ -307,13 +807,58 @@
           </div>
         </section>
 
-        <section v-if="systemBinaries.length" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
-          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">
+        <section v-if="(data?.composer_dependencies || []).length" class="rounded-xl border border-border bg-muted/30 p-5">
+          <h3 :class="['text-base font-semibold mb-4', theme.textPrimary]">Dependencies (Composer)</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Installed and required versions for Composer packages.</p>
+          <div class="overflow-auto max-h-80 rounded-lg border border-border">
+            <table class="w-full text-sm">
+              <thead :class="['text-left text-xs uppercase', theme.textSecondary, theme.bgMuted]">
+                <tr>
+                  <th class="px-3 py-2 font-medium">Package</th>
+                  <th class="px-3 py-2 font-medium">Installed</th>
+                  <th class="px-3 py-2 font-medium">Required</th>
+                </tr>
+              </thead>
+              <tbody :class="theme.textPrimary">
+                <tr v-for="pkg in data.composer_dependencies" :key="pkg.name" class="border-t border-border">
+                  <td class="px-3 py-2 font-mono text-xs">{{ pkg.name }}</td>
+                  <td class="px-3 py-2 text-xs">{{ pkg.installed_version }}</td>
+                  <td class="px-3 py-2 text-xs">{{ pkg.required_version }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+          </div>
+        </div>
+
+        <!-- Configuration & connectivity -->
+        <div class="rounded-2xl overflow-hidden border border-slate-200/50 dark:border-slate-500/20 bg-card shadow-lg shadow-slate-500/5 dark:shadow-black/20 transition-shadow duration-300 hover:shadow-xl hover:shadow-slate-500/10">
+          <div class="px-6 py-4 bg-gradient-to-r from-slate-500/20 via-zinc-500/15 to-transparent border-b border-slate-200/50 dark:border-slate-500/20">
+            <h2 class="text-lg font-semibold text-slate-700 dark:text-slate-300">Configuration & connectivity</h2>
+            <p class="text-sm text-muted-foreground mt-0.5">Env vars, binaries, services, SSL, mail, routes and logs</p>
+          </div>
+          <div class="p-6 space-y-6">
+        <section v-if="data?.env_vars && Object.keys(data.env_vars).length" class="rounded-xl border-l-4 border-slate-500/50 border border-border bg-muted/30 p-5 transition-colors duration-200">
+          <h3 :class="['text-base font-semibold mb-4', theme.textPrimary]">Env vars</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Environment variables (sensitive values masked).</p>
+          <div class="overflow-auto max-h-80 rounded-lg border border-border">
+            <dl class="divide-y divide-border px-3 py-2">
+              <div v-for="(val, key) in data.env_vars" :key="key" class="flex gap-4 py-2 text-sm">
+                <dt :class="['font-mono text-xs shrink-0 w-48', theme.textSecondary]">{{ key }}</dt>
+                <dd :class="['font-mono text-xs break-all min-w-0', theme.textPrimary]">{{ val }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section v-if="systemBinaries.length" class="rounded-xl border border-border bg-muted/30 p-5">
+          <h3 :class="['text-base font-semibold tracking-tight mb-1', theme.textPrimary]">
             System binaries
             <span :class="['ml-2 text-xs font-normal rounded-full px-2.5 py-0.5 bg-muted/60', theme.textSecondary]">
               {{ systemBinariesInstalled }} / {{ systemBinaries.length }} installed
             </span>
-          </h2>
+          </h3>
           <p :class="['text-sm mb-4', theme.textSecondary]">Command-line tools detected on the server (e.g. PHP, ffmpeg, Redis). Green = installed, red = required but missing.</p>
           <div class="space-y-2">
             <div
@@ -343,14 +888,14 @@
           </div>
         </section>
 
-        <section v-if="serviceConnectivity.length" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+        <section v-if="serviceConnectivity.length" class="rounded-xl border border-border bg-muted/30 p-5">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <h2 :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">
+            <h3 :class="['text-base font-semibold tracking-tight', theme.textPrimary]">
               Service connectivity
               <span :class="['ml-2 text-xs font-semibold rounded-full px-2.5 py-0.5', serviceConnectivityOk === serviceConnectivity.length ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/20 text-amber-700 dark:text-amber-300']">
                 {{ serviceConnectivityOk }} / {{ serviceConnectivity.length }} connected
               </span>
-            </h2>
+            </h3>
             <button
               type="button"
               :disabled="connectivityRetrying"
@@ -390,8 +935,8 @@
           </div>
         </section>
 
-        <section v-if="data?.ssl" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
-          <h2 :class="['text-lg font-semibold tracking-tight mb-1', theme.textPrimary]">SSL / HTTPS</h2>
+        <section v-if="data?.ssl" class="rounded-xl border border-border bg-muted/30 p-5">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">SSL / HTTPS</h3>
           <p :class="['text-sm mb-4', theme.textSecondary]">Whether the app URL uses HTTPS and the current request is secure; TLS certificate validity when applicable.</p>
           <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <div>
@@ -416,19 +961,98 @@
           </dl>
         </section>
 
-        <section v-if="logIssuesLoaded || logIssuesError" class="rounded-2xl border border-border bg-card p-5 sm:p-6 shadow-md hover:shadow-lg transition-shadow duration-200">
+        <section v-if="data?.mail_statistics" class="rounded-xl border border-border bg-muted/30 p-5">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Mail statistics</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Mail driver and delivery logs.</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Mail driver</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.mail_statistics.mail_driver ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Mail host</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.mail_statistics.mail_host ?? 'N/A' }}</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section v-if="data?.route_statistics" class="rounded-xl border border-border bg-muted/30 p-5">
+          <h3 :class="['text-base font-semibold mb-1', theme.textPrimary]">Route statistics</h3>
+          <p :class="['text-sm mb-4', theme.textSecondary]">API and web routes by method.</p>
+          <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 mb-4">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Total routes</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.route_statistics.total_routes ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">API routes</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.route_statistics.api_routes ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Web routes</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.route_statistics.web_routes ?? 0 }}</dd>
+            </div>
+          </dl>
+          <div class="pt-4 border-t border-border">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-3', theme.textSecondary]">By method</p>
+            <dl class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+              <div v-for="(count, method) in data.route_statistics.by_method" :key="method" class="flex justify-between items-baseline gap-2">
+                <dt :class="['text-xs font-medium', theme.textSecondary]">{{ method }}</dt>
+                <dd :class="['text-sm font-mono', theme.textPrimary]">{{ count }}</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section v-if="data?.logging || logIssuesLoaded || logIssuesError" class="rounded-xl border border-border bg-muted/30 p-5">
           <div class="flex flex-wrap items-center justify-between gap-2 mb-1">
-            <h2 :class="['text-lg font-semibold tracking-tight', theme.textPrimary]">Recent log issues</h2>
+            <h3 :class="['text-base font-semibold tracking-tight', theme.textPrimary]">Log files</h3>
             <Button variant="outline" size="sm" :disabled="clearingLog" class="shadow-sm" @click="showClearLogModal = true">
               {{ clearingLog ? 'Clearing…' : 'Clear log' }}
             </Button>
           </div>
-          <p :class="['text-sm mb-4', theme.textSecondary]">Latest errors, warnings, and alerts parsed from the application log for quick triage.</p>
-          <p v-if="data?.logging?.path" :class="['text-xs mb-2', theme.textSecondary]">Log file: <span class="font-mono">{{ data.logging.path }}</span></p>
+          <p :class="['text-sm mb-4', theme.textSecondary]">Log file location and recent activity.</p>
+
+          <dl v-if="data?.logging" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-4">
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Log file</dt>
+              <dd :class="['mt-1 text-sm font-mono break-all', theme.textPrimary]">{{ data.logging.path ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">File exists</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.exists ? 'YES' : 'NO' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">File size</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.size_formatted ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Last modified</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.modified_formatted ?? '—' }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Errors</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.errors_count ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Warnings</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.warnings_count ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Info</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.info_count ?? 0 }}</dd>
+            </div>
+            <div>
+              <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">Total analyzed</dt>
+              <dd :class="['mt-1 text-sm font-mono', theme.textPrimary]">{{ data.logging.total_analyzed != null ? data.logging.total_analyzed.toLocaleString() : '—' }}</dd>
+            </div>
+          </dl>
+
           <div v-if="logIssuesError" :class="['rounded-xl border border-destructive/30 bg-destructive/10 p-4 text-sm', theme.textPrimary]">
             {{ logIssuesError }}
           </div>
-          <div v-else class="space-y-4">
+          <div v-else-if="logIssuesLoaded" class="space-y-4 pt-4 border-t border-border">
+            <p :class="['text-xs font-medium uppercase tracking-wider mb-2', theme.textSecondary]">Recent activity</p>
             <div v-if="(logIssues.errors?.length || 0) + (logIssues.alerts?.length || 0) > 0" class="rounded-xl border border-destructive/30 bg-destructive/10 p-4">
               <p class="text-xs font-medium uppercase tracking-wider mb-2 text-destructive">Errors & alerts</p>
               <ul class="space-y-2 max-h-48 overflow-auto">
@@ -462,6 +1086,8 @@
             <p v-if="!logIssues.errors?.length && !logIssues.alerts?.length && !logIssues.warnings?.length" :class="['text-sm', theme.textSecondary]">No recent errors, alerts, or warnings.</p>
           </div>
         </section>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -513,7 +1139,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useAdminApi } from '@/admin/api/admin'
 import { Button } from '@/shared/components/shadcn/button'
@@ -528,7 +1154,7 @@ import {
 import { API_CONFIG } from '@/shared/api/config'
 
 const theme = useThemeClasses()
-const { getSystem, getSystemConnectivity, getQueueFailed, retryFailedJob, retryAllFailedJobs, forgetFailedJob, flushFailedJobs, clearCache, clearAllCacheAndOptimize, clearLog, getLogsRecent } = useAdminApi()
+const { getSystem, getSystemConnectivity, getSystemWebhooks, getQueueFailed, retryFailedJob, retryAllFailedJobs, forgetFailedJob, flushFailedJobs, restartQueue, clearCache, clearAllCacheAndOptimize, clearLog, getLogsRecent } = useAdminApi()
 
 const data = ref(null)
 const loading = ref(true)
@@ -542,9 +1168,97 @@ const showClearAllCacheModal = ref(false)
 const refreshing = ref(false)
 const connectivityRetrying = ref(false)
 const queueActionLoading = ref(false)
+const restartQueueLoading = ref(false)
 const logIssues = ref({ errors: [], warnings: [], alerts: [] })
 const logIssuesLoaded = ref(false)
 const logIssuesError = ref(null)
+const clientInfo = ref(null)
+const exportLoading = ref(false)
+const countdownTick = ref(0)
+const nextDueTargets = ref([])
+const webhooks = ref([])
+const webhooksLoading = ref(false)
+const webhooksMeta = ref(null)
+const webhookProviderFilter = ref('')
+const webhookStatusFilter = ref('')
+
+watch(
+  () => data.value?.scheduled_commands,
+  (cmds) => {
+    if (!cmds?.length) {
+      nextDueTargets.value = []
+      return
+    }
+    nextDueTargets.value = cmds.map((cmd) => {
+      const ms = parseNextDueToMs(cmd.next_due)
+      return ms != null ? Date.now() + ms : null
+    })
+  },
+  { immediate: true }
+)
+
+function parseNextDueToMs(str) {
+  if (!str || typeof str !== 'string') return null
+  const m = str.match(/^(\d+)\s*(second|minute|hour)s?\s+from\s+now$/i)
+  if (!m) return null
+  const value = parseInt(m[1], 10)
+  const unit = (m[2] || '').toLowerCase()
+  if (unit === 'second') return value * 1000
+  if (unit === 'minute') return value * 60 * 1000
+  if (unit === 'hour') return value * 3600 * 1000
+  return null
+}
+
+function formatCountdown(targetAt) {
+  if (targetAt == null) return '—'
+  countdownTick.value
+  const rem = Math.max(0, Math.floor((targetAt - Date.now()) / 1000))
+  if (rem <= 0) return 'Due'
+  if (rem < 60) return `${rem}s`
+  if (rem < 3600) return `${Math.floor(rem / 60)}m ${rem % 60}s`
+  return `${Math.floor(rem / 3600)}h ${Math.floor((rem % 3600) / 60)}m`
+}
+
+function getClientInfo() {
+  if (typeof navigator === 'undefined' || typeof screen === 'undefined') return null
+  const ua = navigator.userAgent
+  let name = navigator.appName || 'Unknown'
+  if (ua.includes('Chrome') && !ua.includes('Edg')) name = 'Chrome'
+  else if (ua.includes('Edg')) name = 'Edge'
+  else if (ua.includes('Firefox')) name = 'Firefox'
+  else if (ua.includes('Safari') && !ua.includes('Chrome')) name = 'Safari'
+  const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+  const mem = performance.memory
+  const formatMb = (n) => (n != null ? (n / 1024 / 1024).toFixed(2) + ' MB' : null)
+  const formatGb = (n) => (n != null ? (n / 1024 / 1024 / 1024).toFixed(2) + ' GB' : null)
+  return {
+    browser: {
+      name,
+      platform: navigator.platform || '—',
+      language: navigator.language || navigator.userLanguage || '—',
+      online: navigator.onLine,
+    },
+    screen: {
+      resolution: `${screen.width} × ${screen.height}`,
+      available: `${screen.availWidth} × ${screen.availHeight}`,
+      colorDepth: screen.colorDepth != null ? `${screen.colorDepth} bits` : '—',
+      pixelDepth: screen.pixelDepth != null ? `${screen.pixelDepth} bits` : '—',
+    },
+    network: conn
+      ? {
+          connectionType: conn.effectiveType || conn.type || '—',
+          downlink: conn.downlink != null ? `${conn.downlink} Mbps` : '—',
+          rtt: conn.rtt != null ? `${conn.rtt} ms` : '—',
+          saveData: conn.saveData === true,
+        }
+      : { connectionType: 'N/A', downlink: 'N/A', rtt: 'N/A', saveData: false },
+    performance: mem ? {
+      usedHeap: formatMb(mem.usedJSHeapSize),
+      totalHeap: formatMb(mem.totalJSHeapSize),
+      heapLimit: formatGb(mem.jsHeapSizeLimit),
+    } : { usedHeap: '—', totalHeap: '—', heapLimit: '—' },
+  }
+}
 
 const requiredExtensions = computed(() => {
   const exts = data.value?.php?.required_extensions || []
@@ -586,6 +1300,7 @@ const serviceConnectivityOk = computed(() =>
 )
 
 const workerHeartbeatStale = computed(() => {
+  countdownTick.value
   const at = data.value?.worker_heartbeat_at
   if (!at) return false
   try {
@@ -597,6 +1312,7 @@ const workerHeartbeatStale = computed(() => {
 })
 
 const certExpiryWarning = computed(() => {
+  countdownTick.value
   const until = data.value?.ssl?.cert_valid_until
   if (!until) return false
   try {
@@ -661,6 +1377,7 @@ const sectionDescriptions = {
   application: 'App name, environment, debug mode, URL, timezone, locale, and Laravel version.',
   php: 'PHP version, OS, limits, and extensions (required/recommended vs installed, plus full list).',
   database: 'Default database driver and connection details.',
+  database_metrics: 'Version, tables count, size, current/max connections, usage %, and largest tables (MySQL, PostgreSQL, SQLite).',
   cache: 'Cache driver and whether it is responding.',
   queue: 'Queue driver, current size, and failed jobs count.',
   session: 'Session driver and lifetime.',
@@ -672,13 +1389,14 @@ const sectionDescriptions = {
   load: 'System load averages (1, 5, 15 minutes).',
   config: 'Whether config and routes are cached (recommended in production).',
   env: 'Key environment drivers (cache, queue, session, DB).',
-  logging: 'Log channel, file path, size, and last modified.',
   tools: 'App version and Telescope availability.',
   scheduler: 'Last time the Laravel scheduler ran.',
   quick_links: 'Shortcuts to external admin tools.',
   feature_flags: 'Enabled feature flags and how many users have each.',
   feature_flag_usage: 'Usage counts per feature flag.',
   failed_logins: 'Recent failed login attempts (identifier, IP, time).',
+  tooling: 'Tinker, Horizon, Scheduler, and counts for commands, routes, middleware, views, jobs, etc.',
+  node_npm: 'Node.js and NPM versions when available on the server.',
 }
 
 const sections = computed(() => {
@@ -688,6 +1406,12 @@ const sections = computed(() => {
   if (d.application) out.application = d.application
   if (d.php) out.php = d.php
   if (d.database) out.database = d.database
+  if (d.database_metrics && typeof d.database_metrics === 'object') {
+    const m = { ...d.database_metrics }
+    if (m.size_mb != null) m.size_mb = `${m.size_mb} MB`
+    if (m.usage_percent != null) m.usage_percent = `${m.usage_percent}%`
+    out.database_metrics = m
+  }
   if (d.cache) out.cache = d.cache
   if (d.queue) out.queue = d.queue
   if (d.session) out.session = d.session
@@ -717,17 +1441,6 @@ const sections = computed(() => {
   if (d.load && typeof d.load === 'object') out.load = d.load
   if (d.config) out.config = d.config
   if (d.env) out.env = d.env
-  if (d.logging) {
-    const log = d.logging
-    out.logging = {
-      channel: log.channel,
-      path: log.path,
-      exists: log.exists,
-      size_bytes: log.size_bytes,
-      size_mb: log.size_bytes != null ? (log.size_bytes / 1024 / 1024).toFixed(2) + ' MB' : null,
-      modified_at: log.modified_at,
-    }
-  }
   if (d.app_version != null || d.telescope_enabled != null) {
     out.tools = {}
     if (d.app_version != null) out.tools.app_version = d.app_version
@@ -738,12 +1451,23 @@ const sections = computed(() => {
   if (Array.isArray(d.feature_flags) && d.feature_flags.length) out.feature_flags = d.feature_flags
   if (d.feature_flag_usage && typeof d.feature_flag_usage === 'object') out.feature_flag_usage = d.feature_flag_usage
   if (Array.isArray(d.failed_logins) && d.failed_logins.length > 0) out.failed_logins = d.failed_logins
+  if (d.tooling && typeof d.tooling === 'object') {
+    out.tooling = {}
+    Object.entries(d.tooling).forEach(([k, v]) => {
+      out.tooling[k] = typeof v === 'boolean' ? (v ? 'Enabled' : 'Disabled') : v
+    })
+  }
+  if (d.node_npm && typeof d.node_npm === 'object') out.node_npm = d.node_npm
   return out
 })
 
 function sectionRows(sectionKey, section) {
   if (sectionKey === 'php') {
     const { extensions, required_extensions, ...rest } = section
+    return rest
+  }
+  if (sectionKey === 'database_metrics' && section && typeof section === 'object') {
+    const { size_bytes, largest_tables, ...rest } = section
     return rest
   }
   if (sectionKey === 'queue' && section && typeof section === 'object') {
@@ -775,6 +1499,7 @@ function formatValue(v) {
 
 function formatSchedulerAgo(iso) {
   if (!iso) return '—'
+  countdownTick.value
   try {
     const d = new Date(iso)
     const s = Math.round((Date.now() - d) / 1000)
@@ -871,6 +1596,18 @@ async function refreshQueueData() {
   }
 }
 
+async function runRestartQueue() {
+  restartQueueLoading.value = true
+  try {
+    await restartQueue()
+    await refreshQueueData()
+  } catch (e) {
+    error.value = e?.message ?? 'Restart queue failed'
+  } finally {
+    restartQueueLoading.value = false
+  }
+}
+
 async function loadLogIssues() {
   logIssuesError.value = null
   try {
@@ -882,7 +1619,28 @@ async function loadLogIssues() {
   }
 }
 
+function exportReport() {
+  if (!data.value) return
+  exportLoading.value = true
+  try {
+    const payload = { ...data.value, client_info: clientInfo.value, exported_at: new Date().toISOString() }
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' })
+    const a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = `system-report-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(a.href)
+  } finally {
+    exportLoading.value = false
+  }
+}
+
+let countdownInterval = null
 onMounted(async () => {
+  clientInfo.value = getClientInfo()
+  countdownInterval = setInterval(() => {
+    countdownTick.value++
+  }, 1000)
   try {
     data.value = await getSystem()
   } catch (e) {
@@ -891,5 +1649,35 @@ onMounted(async () => {
     loading.value = false
   }
   loadLogIssues()
+  fetchWebhooks()
 })
+onUnmounted(() => {
+  if (countdownInterval) clearInterval(countdownInterval)
+})
+
+async function fetchWebhooks() {
+  webhooksLoading.value = true
+  try {
+    const params = { per_page: 30 }
+    if (webhookProviderFilter.value) params.provider = webhookProviderFilter.value
+    if (webhookStatusFilter.value) params.status = webhookStatusFilter.value
+    const res = await getSystemWebhooks(params)
+    webhooks.value = res?.webhooks ?? []
+    webhooksMeta.value = res?.meta ?? null
+  } catch (_) {
+    webhooks.value = []
+    webhooksMeta.value = null
+  } finally {
+    webhooksLoading.value = false
+  }
+}
+
+function formatWebhookDate(iso) {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'medium' })
+  } catch {
+    return iso
+  }
+}
 </script>

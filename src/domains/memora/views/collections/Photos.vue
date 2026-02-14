@@ -1,5 +1,5 @@
 <template>
-  <CollectionLayout :collection="collection" :is-loading="isLoading" @go-back="goBack">
+  <CollectionLayout :collection="collection" :is-loading="isLoading" :set-limit-reached="isSetLimitReached" @go-back="goBack">
     <template #content>
       <!-- Hidden File Input -->
       <input
@@ -21,7 +21,6 @@
         <ContentLoader v-if="isLoading" message="Loading collection..." />
 
         <div v-else class="p-4 sm:p-6 md:p-8">
-          <!-- Content -->
           <!-- Section Header -->
           <div v-if="isLoadingMedia" class="mb-6">
             <div class="h-7 w-56 rounded bg-gray-200/70 dark:bg-gray-800/70 animate-pulse"></div>
@@ -46,6 +45,26 @@
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
+
+          <!-- Shown only when plan set limit has been reached (dismissable) -->
+          <div
+            v-if="isSetLimitReached && !setLimitBannerDismissed"
+            data-banner="phase-set-limit"
+            class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20"
+          >
+            <Info class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <p class="min-w-0 flex-1 text-sm font-medium text-amber-900 dark:text-amber-100">
+              Set limit reached ({{ phaseSetCount }} / {{ setLimitPerPhase }}). Upgrade your plan to add more sets.
+            </p>
+            <button
+              type="button"
+              class="shrink-0 rounded p-1 text-amber-600 hover:bg-amber-200/50 dark:text-amber-400 dark:hover:bg-amber-800/50"
+              aria-label="Dismiss banner"
+              @click="dismissSetLimitBanner"
+            >
+              <X class="size-5" aria-hidden="true" />
+            </button>
+          </div>
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -277,6 +296,7 @@
             class="flex items-center justify-center py-16"
           >
             <EmptyState
+              :action-disabled="isSetLimitReached"
               :action-icon="Plus"
               :action-class="'text-white transition-colors'"
               :icon="FolderPlus"
@@ -535,7 +555,7 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useVirtualList } from '@vueuse/core'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
-import { Loader2, FolderPlus, Plus } from '@/shared/utils/lucideAnimated'
+import { FolderPlus, Info, Loader2, Plus, X } from '@/shared/utils/lucideAnimated'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/shared/components/molecules/BulkActionsBar.vue'
@@ -544,6 +564,7 @@ import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useGalleryStore } from '@/shared/stores/gallery'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useMediaApi } from '@/shared/api/media'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -636,6 +657,7 @@ const collectionStatus = ref('draft')
 const eventDate = ref(null)
 // Sidebar collapse state with persistence
 const { isSidebarCollapsed } = useSidebarCollapse()
+const { setLimitPerPhase } = useMemoraFeatures()
 const selectedWatermark = ref('none')
 const selectedPresetId = ref('none')
 const isDragging = ref(false)
@@ -742,6 +764,48 @@ const selectedSet = computed(() => {
   const sets = sortedMediaSets.value || []
   return sets.find(set => set.id === selectedSetId.value) || sets[0]
 })
+
+const hasMediaSetLimit = computed(() => {
+  const sets = mediaSets.value
+  if (!Array.isArray(sets)) return false
+  return sets.some(
+    s => ((s.selectionLimit ?? s.selection_limit) != null && (s.selectionLimit ?? s.selection_limit) > 0)
+  )
+})
+const phaseSetCount = computed(() => (Array.isArray(mediaSets.value) ? mediaSets.value.length : 0))
+const isSetLimitReached = computed(() => {
+  const limit = setLimitPerPhase.value
+  return limit != null && phaseSetCount.value >= limit
+})
+
+const SET_LIMIT_BANNER_STORAGE_KEY = 'memora_set_limit_banner_dismissed'
+const setLimitBannerDismissed = ref(false)
+function dismissSetLimitBanner() {
+  setLimitBannerDismissed.value = true
+  const id = collection.value?.id
+  if (id) {
+    try {
+      const raw = sessionStorage.getItem(SET_LIMIT_BANNER_STORAGE_KEY)
+      const set = new Set(raw ? JSON.parse(raw) : [])
+      set.add(`collection_${id}`)
+      sessionStorage.setItem(SET_LIMIT_BANNER_STORAGE_KEY, JSON.stringify([...set]))
+    } catch (_) {}
+  }
+}
+watch(
+  () => collection.value?.id,
+  id => {
+    if (!id) return
+    try {
+      const raw = sessionStorage.getItem(SET_LIMIT_BANNER_STORAGE_KEY)
+      const set = new Set(raw ? JSON.parse(raw) : [])
+      setLimitBannerDismissed.value = set.has(`collection_${id}`)
+    } catch (_) {
+      setLimitBannerDismissed.value = false
+    }
+  },
+  { immediate: true }
+)
 
 // Sort options
 const sortOptions = [
@@ -943,8 +1007,10 @@ const loadMediaItems = async () => {
   await fetchMedia()
 }
 
-// Update isLoadingMedia to use pagination loading state
-const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
+// No set selected => nothing to load; show empty state. Otherwise use pagination loading.
+const isLoadingMedia = computed(() =>
+  selectedSetId.value ? isLoadingMediaPagination.value : false
+)
 
 // Update set counts by reloading collection and updating sidebar context
 const updateSetCounts = async () => {
@@ -1647,14 +1713,8 @@ const {
   onUploadComplete: async results => {
     if (results?.successful?.length > 0) {
       try {
-        // Reload phase detail to update storage
-        if (collection.value?.id) {
-          await loadCollection(collection.value.id)
-        }
-        // Reload media items to show the newly uploaded media
-        await loadMediaItems()
-        // Reload media sets to update counts
         await mediaSetsSidebar.loadMediaSets()
+        await loadMediaItems()
       } catch (error) {
         console.error('Error reloading media after upload:', error)
       }
@@ -1930,7 +1990,8 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
 })
 
 const onStorageShouldRefresh = () => {
-  if (collection.value?.id) loadCollection(collection.value.id)
+  if (mediaSetsSidebar) mediaSetsSidebar.loadMediaSets()
+  loadMediaItems()
 }
 
 onMounted(async () => {

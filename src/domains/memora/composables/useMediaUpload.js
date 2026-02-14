@@ -764,18 +764,8 @@ export function useMediaUpload(options = {}) {
           })
         }
 
-        // Call onUploadComplete if provided (uploads are now in background)
-        if (onUploadComplete && results.successful.length > 0) {
-          try {
-            await onUploadComplete(results)
-          } catch (error) {
-            console.error('Error in onUploadComplete callback:', error)
-          }
-        }
-
-        if (results.successful.length > 0) {
-          window.dispatchEvent(new CustomEvent('storage:shouldRefresh'))
-        }
+        // Do not call onUploadComplete or dispatch storage:shouldRefresh here: files are only queued.
+        // Background manager will call loadMediaItems/onUploadComplete and dispatch when each upload completes.
 
         // Clean up batch ID
         activeUploadBatches.value.delete(batchId)

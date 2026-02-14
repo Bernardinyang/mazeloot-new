@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br dark:from-[#0f0f23] dark:via-primary-950/50 dark:to-[#0f0f23] light:from-gray-50 light:via-white light:to-gray-100 dark:text-gray-100 light:text-gray-900 scroll-smooth">
+  <div class="min-h-screen bg-gradient-to-br dark:from-[#0f0f23] dark:via-primary-950/50 dark:to-[#0f0f23] light:from-gray-50 light:via-white light:to-gray-100 dark:text-gray-100 light:text-gray-900 scroll-smooth overflow-x-hidden">
     <!-- Announcement banner (dismissible) -->
     <Transition
       enter-active-class="transition-all duration-300 ease-out"
@@ -31,7 +31,7 @@
             </div>
             <button
               type="button"
-              class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg dark:text-gray-300 light:text-gray-600 transition-all duration-200 dark:hover:bg-white/10 light:hover:bg-gray-200/60 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:focus-visible:outline-white light:focus-visible:outline-gray-900"
+              class="flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-lg dark:text-gray-300 light:text-gray-600 transition-all duration-200 dark:hover:bg-white/10 light:hover:bg-gray-200/60 active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 dark:focus-visible:outline-white light:focus-visible:outline-gray-900 touch-manipulation"
               aria-label="Dismiss banner"
               @click="dismissBanner"
             >

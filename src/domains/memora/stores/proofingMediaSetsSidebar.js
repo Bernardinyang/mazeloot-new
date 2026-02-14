@@ -267,12 +267,13 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
     }
 
     isCreatingSet.value = true
+    let result = null
     try {
       if (editingSetIdInModal.value) {
         const set = mediaSets.value.find(s => s.id === editingSetIdInModal.value)
         if (set) {
           const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
-          const updatedSet = await proofingApi.updateMediaSet(
+          result = await proofingApi.updateMediaSet(
             proofingId.value,
             editingSetIdInModal.value,
             {
@@ -284,12 +285,12 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
           )
           const index = mediaSets.value.findIndex(s => s.id === editingSetIdInModal.value)
           if (index !== -1) {
-            mediaSets.value[index] = { ...mediaSets.value[index], ...updatedSet }
+            mediaSets.value[index] = { ...mediaSets.value[index], ...result }
           }
         }
       } else {
         const maxOrder = mediaSets.value.reduce((acc, s) => Math.max(acc, s.order ?? 0), 0)
-        const newSet = await proofingApi.createMediaSet(
+        result = await proofingApi.createMediaSet(
           proofingId.value,
           {
             name: trimmedName,
@@ -303,24 +304,21 @@ export const useProofingMediaSetsSidebarStore = defineStore('proofingMediaSetsSi
         // Wait a tick to ensure reactivity updates
         await new Promise(resolve => setTimeout(resolve, 0))
         // Auto-select the newly created set
-        if (newSet && newSet.id) {
-          selectedSetId.value = newSet.id
+        if (result && result.id) {
+          selectedSetId.value = result.id
         } else if (mediaSets.value.length > 0) {
           selectedSetId.value = mediaSets.value[mediaSets.value.length - 1].id
         }
       }
 
-      toast.success(editingSetIdInModal.value ? 'Set updated' : 'Set created', {
-        description: editingSetIdInModal.value
-          ? 'Photo set has been updated.'
-          : 'New photo set has been created.',
-      })
+      toast.apiSuccess(result, editingSetIdInModal.value ? 'Set updated' : 'Set created')
 
       handleCancelCreateSet()
     } catch (error) {
-      toast.error(editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set', {
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-      })
+      toast.apiError(
+        error,
+        editingSetIdInModal.value ? 'Failed to update set' : 'Failed to create set'
+      )
     } finally {
       isCreatingSet.value = false
     }

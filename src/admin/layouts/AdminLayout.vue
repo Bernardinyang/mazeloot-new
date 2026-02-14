@@ -89,6 +89,7 @@ const navItems = computed(() => {
     { name: 'products', label: 'Products', to: { name: 'admin-products' }, icon: 'Package' },
     { name: 'early-access', label: 'Early Access', to: { name: 'admin-early-access' }, icon: 'Star' },
     { name: 'contact', label: 'Contact', to: { name: 'admin-contact' }, icon: 'Mail' },
+    { name: 'faq', label: 'FAQ', to: { name: 'admin-faq' }, icon: 'HelpCircle' },
     { name: 'waitlist', label: 'Waitlist', to: { name: 'admin-waitlist' }, icon: 'ClipboardList' },
     { name: 'newsletter', label: 'Newsletter', to: { name: 'admin-newsletter' }, icon: 'Mail' },
     { name: 'health', label: 'Health', to: { name: 'admin-health' }, icon: 'Heart' },

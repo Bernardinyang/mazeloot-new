@@ -150,6 +150,7 @@ import {
   Heart,
   Server,
   AlertTriangle,
+  HelpCircle,
 } from 'lucide-vue-next'
 
 const props = defineProps({
@@ -186,6 +187,7 @@ const iconMap = {
   Heart,
   Server,
   AlertTriangle,
+  HelpCircle,
 }
 
 const getIcon = (iconName) => {

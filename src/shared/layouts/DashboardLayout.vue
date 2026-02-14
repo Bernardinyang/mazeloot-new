@@ -6,13 +6,13 @@
     <SidebarInset>
       <header
         :class="[
-          'sticky top-0 z-50 flex h-14 md:h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg',
+          'sticky top-0 z-50 flex h-14 md:h-16 shrink-0 items-center gap-1 sm:gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg overflow-x-hidden',
           theme.borderPrimary,
           theme.transitionColors,
         ]"
       >
-        <div class="flex items-center gap-1 md:gap-2 px-2 md:px-4 min-w-0 flex-1">
-          <SidebarTrigger :class="['-ml-1', theme.textPrimary, theme.bgButtonHover, 'shrink-0']" />
+        <div class="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 min-w-0 flex-1 overflow-hidden">
+          <SidebarTrigger :class="['-ml-1 shrink-0 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0', theme.textPrimary, theme.bgButtonHover]" />
           <Separator
             :class="['mr-1 md:mr-2 data-[orientation=vertical]:h-4 hidden sm:block', theme.borderPrimary]"
             orientation="vertical"
@@ -66,9 +66,9 @@
             </BreadcrumbList>
           </Breadcrumb>
         </div>
-        <div class="flex flex-1 items-center justify-end min-w-0">
+        <div class="flex flex-1 items-center justify-end min-w-0 shrink-0">
           <slot name="header" />
-          <div class="flex items-center gap-1 md:gap-2 pr-2 md:pr-4 shrink-0">
+          <div class="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-4 shrink-0">
             <!-- Tier Badge -->
             <DropdownMenu v-if="!hideUserFeatures && hasMemora">
               <DropdownMenuTrigger as-child>
@@ -134,7 +134,7 @@
             <!-- Mobile Search Button -->
             <Button
               v-if="!hideUserFeatures && !isSearchOpen"
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'md:hidden']"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'md:hidden min-h-[44px] min-w-[44px] touch-manipulation']"
               size="icon"
               variant="ghost"
               @click="isSearchOpen = true"
@@ -206,7 +206,7 @@
 
       <div
         :class="[
-          'flex min-w-0 flex-1 flex-col gap-4 p-3 sm:p-4 md:p-6 lg:p-10 rounded-bl-lg pb-[calc(1rem+env(safe-area-inset-bottom))]',
+          'flex min-w-0 flex-1 flex-col gap-4 p-3 sm:p-4 md:p-6 lg:p-10 rounded-bl-lg pb-[calc(1rem+env(safe-area-inset-bottom))] overflow-x-hidden',
           'group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-3 sm:p-4 md:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-6 lg:group-has-[[data-collapsible=icon]]/sidebar-wrapper:p-8',
           theme.bgFooter,
           theme.transitionColors,

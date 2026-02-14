@@ -180,11 +180,17 @@
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click="navigateTo({ name: 'brandingSettings' })"
+            >
               <Settings class="h-4 w-4" />
               <span>Mazeloot Settings</span>
             </DropdownMenuItem>
-            <DropdownMenuItem :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']">
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click="navigateTo({ name: 'overview-account-general' })"
+            >
               <Users2 class="h-4 w-4" />
               <span>Manage Account</span>
               <ChevronRight class="ml-auto h-4 w-4" />

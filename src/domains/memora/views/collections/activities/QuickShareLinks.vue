@@ -67,16 +67,16 @@
           <!-- Filters -->
           <div
             :class="[theme.borderSecondary, theme.bgCard]"
-            class="p-4 rounded-2xl border-2 mb-6 flex flex-wrap items-center gap-4"
+            class="p-4 rounded-2xl border-2 mb-6 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4"
           >
             <Input
               v-model="searchQuery"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
-              class="flex-1 min-w-[200px]"
+              class="flex-1 min-w-0 w-full sm:min-w-[200px]"
               placeholder="Search by URL or description..."
             />
             <Select v-model="statusFilter">
-              <SelectTrigger :class="[theme.bgInput, theme.borderInput]" class="w-[180px]">
+              <SelectTrigger :class="[theme.bgInput, theme.borderInput]" class="w-full sm:w-[180px]">
                 <SelectValue placeholder="All links" />
               </SelectTrigger>
               <SelectContent :class="[theme.bgCard, theme.borderCard]">

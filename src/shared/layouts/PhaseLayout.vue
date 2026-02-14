@@ -19,12 +19,12 @@
         <!-- Mobile Sidebar Trigger Button -->
         <Button
           v-if="isMobile && !isMobileSidebarOpen"
-          :class="['md:hidden mb-4', theme.bgButtonHover, theme.textPrimary]"
+          :class="['md:hidden mb-4 min-h-[44px] touch-manipulation', theme.bgButtonHover, theme.textPrimary]"
           size="sm"
           variant="outline"
           @click="isMobileSidebarOpen = true"
         >
-          <Menu class="h-4 w-4 mr-2" />
+          <Menu class="h-4 w-4 mr-2 shrink-0" />
           Menu
         </Button>
         

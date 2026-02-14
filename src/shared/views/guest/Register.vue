@@ -1,5 +1,16 @@
 <template>
   <AuthLayout description="Enter your information to get started" title="Create an account">
+    <div
+      v-if="referralActive"
+      class="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-950/40 px-4 py-3 flex items-center gap-3 text-sm text-violet-800 dark:text-violet-200"
+      role="status"
+      aria-live="polite"
+    >
+      <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-violet-500/20 text-violet-600 dark:text-violet-400" aria-hidden="true">
+        <Gift class="h-4 w-4" />
+      </span>
+      <span>Referral code applied. You’ll get $20 off your first bill when you subscribe.</span>
+    </div>
     <Form
       v-slot="{ meta }"
       :validate-on-blur="true"
@@ -83,20 +94,27 @@
 </template>
 
 <script setup>
-import {computed, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {Field, Form} from 'vee-validate'
+import { computed, ref, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { Field, Form } from 'vee-validate'
 import * as yup from 'yup'
-import {toast} from '@/shared/utils/toast'
+import { Gift } from 'lucide-vue-next'
+import { toast } from '@/shared/utils/toast'
 import AuthLayout from '@/shared/layouts/AuthLayout.vue'
-import {Button} from '@/shared/components/shadcn/button'
+import { Button } from '@/shared/components/shadcn/button'
 import FormField from '@/shared/components/molecules/FormField.vue'
 import Divider from '@/shared/components/atoms/Divider.vue'
 import GoogleButton from '@/shared/components/molecules/GoogleButton.vue'
 import AuthLink from '@/shared/components/molecules/AuthLink.vue'
 import { getPostAuthRedirect } from '@/shared/utils/localStorage'
-import {useUserStore} from '@/shared/stores/user'
-import {useErrorHandler} from '@/shared/composables/useErrorHandler'
+import { getReferralCode } from '@/shared/utils/referralCookie'
+import { useUserStore } from '@/shared/stores/user'
+import { useErrorHandler } from '@/shared/composables/useErrorHandler'
+
+const referralActive = ref(false)
+onMounted(() => {
+  referralActive.value = !!getReferralCode()
+})
 
 const router = useRouter()
 const route = useRoute()

@@ -17,7 +17,7 @@ const { toggleSidebar } = useSidebar()
     data-sidebar="trigger"
     variant="ghost"
     size="icon"
-    :class="cn('h-7 w-7', props.class)"
+    :class="cn('h-7 w-7 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 touch-manipulation', props.class)"
     @click="toggleSidebar"
   >
     <ViewVerticalIcon />

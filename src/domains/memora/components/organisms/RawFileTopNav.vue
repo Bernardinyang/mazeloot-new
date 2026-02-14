@@ -10,7 +10,7 @@
       <!-- Section 1: Back Button -->
       <button
         :class="[theme.borderSecondary, theme.bgCard]"
-        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 shadow-sm border hover:shadow-md"
+        class="p-2 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 shadow-sm border hover:shadow-md touch-manipulation"
         title="Go back"
         @click="handleGoBack"
       >

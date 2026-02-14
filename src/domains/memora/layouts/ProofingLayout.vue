@@ -19,6 +19,7 @@
           :proofing-id="proofing?.id || ''"
           :project-id="proofing?.projectId || null"
           :disable-add-set="proofing?.status === 'completed'"
+          :set-limit-reached="props.setLimitReached"
         />
       </ProofingSidebar>
     </template>
@@ -63,6 +64,7 @@ const props = defineProps({
   proofing: { type: [Object, null], default: null },
   isLoading: { type: Boolean, required: true },
   overallProgress: { type: Object, default: null },
+  setLimitReached: { type: Boolean, default: false },
 })
 
 defineEmits(['goBack'])

@@ -63,6 +63,7 @@ const props = defineProps({
   downloadEnabled: { type: Boolean, default: false },
   favoriteEnabled: { type: Boolean, default: false },
   disableAddSet: { type: Boolean, default: false },
+  setLimitReached: { type: Boolean, default: false },
   projectId: { type: String, default: null },
 })
 
@@ -101,6 +102,7 @@ const selectionStatus = computed(() => {
 })
 
 const disableAddSet = computed(() => {
+  if (props.setLimitReached) return true
   if (props.phaseType === 'selection' && phaseActions) {
     return selectionStatus.value === 'completed' || selectionStatus.value === 'active'
   }

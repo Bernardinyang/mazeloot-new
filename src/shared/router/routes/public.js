@@ -120,6 +120,14 @@ export const publicRoutes = [
     },
   },
   {
+    path: '/ref/:code',
+    name: 'referralLanding',
+    component: () => import('@/shared/views/public/RefLanding.vue'),
+    meta: {
+      requiresAuth: false,
+    },
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'notFound',
     component: () => import('@/shared/views/NotFound.vue'),

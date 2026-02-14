@@ -15,6 +15,7 @@
           {{ currentSubscription ? 'Manage your subscription or upgrade to unlock more features' : 'Choose the plan that works best for your photography business' }}
         </p>
         <RouterLink
+          v-if="hasPendingUpgradeOrDowngradeRequest"
           :to="{ name: 'memora-plan-requests' }"
           class="text-sm font-medium text-foreground underline hover:no-underline"
         >
@@ -680,20 +681,19 @@ const currentTierLabel = computed(() => tierDisplayName(currentTier.value))
 function displayPrice(tier) {
   const cur = currencyStore.currency
   if (cur === 'usd') {
-    if (tier.price_monthly_cents === 0) return formatMoney(0, 'usd')
-    const cents = isAnnual.value ? Math.round(tier.price_annual_cents / 12) : tier.price_monthly_cents
+    const cents = isAnnual.value ? Math.round((tier.price_annual_cents ?? 0) / 12) : (tier.price_monthly_cents ?? 0)
     return formatMoney(cents, 'usd')
   }
   const c = convertedPrices.value[tier.id]
-  if (!c) return convertedLoading.value ? '…' : '—'
+  if (!c) return convertedLoading.value ? '…' : convertUsdCentsToFormatted(0, cur, currencyRates.value)
   const usdCents = isAnnual.value ? Math.round(c.annualCents / 12) : c.monthlyCents
   return convertUsdCentsToFormatted(usdCents, cur, currencyRates.value)
 }
 
 function wasPrice(tier) {
-  if (currencyStore.currency === 'usd') return formatMoney(tier.price_monthly_cents, 'usd')
+  if (currencyStore.currency === 'usd') return formatMoney(tier.price_monthly_cents ?? 0, 'usd')
   const c = convertedPrices.value[tier.id]
-  if (!c) return convertedLoading.value ? '…' : '—'
+  if (!c) return convertedLoading.value ? '…' : convertUsdCentsToFormatted(0, currencyStore.currency, currencyRates.value)
   return convertUsdCentsToFormatted(c.monthlyCents, currencyStore.currency, currencyRates.value)
 }
 
@@ -840,12 +840,8 @@ onMounted(async () => {
     if (statusData?.subscription) {
       currentSubscription.value = statusData.subscription
     }
-    if (statusData?.can_self_service_upgrade === true) {
-      canSelfServiceUpgrade.value = true
-    }
-    if (statusData?.has_pending_upgrade_or_downgrade_request === true) {
-      hasPendingUpgradeOrDowngradeRequest.value = true
-    }
+    canSelfServiceUpgrade.value = statusData?.can_self_service_upgrade === true
+    hasPendingUpgradeOrDowngradeRequest.value = statusData?.has_pending_upgrade_or_downgrade_request === true
     if (currencyStore.currency !== 'usd') await fetchConvertedPrices()
   } catch (e) {
     error.value = e?.message ?? 'Failed to load pricing'

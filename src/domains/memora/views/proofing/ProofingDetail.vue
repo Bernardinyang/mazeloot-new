@@ -10,6 +10,7 @@
     :is-loading="isLoading || isUpdatingCoverPhoto"
     :proofing="proofing"
     :overall-progress="overallProgress"
+    :set-limit-reached="isSetLimitReached"
     @go-back="goBack"
   >
     <template #content>
@@ -77,6 +78,26 @@
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
           />
+
+          <!-- Shown only when plan set limit has been reached (dismissable) -->
+          <div
+            v-if="isSetLimitReached && !setLimitBannerDismissed"
+            data-banner="phase-set-limit"
+            class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20"
+          >
+            <Info class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <p class="min-w-0 flex-1 text-sm font-medium text-amber-900 dark:text-amber-100">
+              Set limit reached ({{ phaseSetCount }} / {{ setLimitPerPhase }}). Upgrade your plan to add more sets.
+            </p>
+            <button
+              type="button"
+              class="shrink-0 rounded p-1 text-amber-600 hover:bg-amber-200/50 dark:text-amber-400 dark:hover:bg-amber-800/50"
+              aria-label="Dismiss banner"
+              @click="dismissSetLimitBanner"
+            >
+              <X class="size-5" aria-hidden="true" />
+            </button>
+          </div>
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -248,6 +269,7 @@
             class="flex items-center justify-center py-16"
           >
             <EmptyState
+              :action-disabled="isSetLimitReached"
               :action-icon="Plus"
               :action-class="'text-white transition-colors'"
               :icon="FolderPlus"
@@ -579,6 +601,7 @@ import { useDownloadProtection } from '@/shared/composables/useDownloadProtectio
 import { useRoute, useRouter } from 'vue-router'
 import ProofingLayout from '@/domains/memora/layouts/ProofingLayout.vue'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import ProofingSettingsGeneral from '@/domains/memora/views/proofing/settings/General.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/shared/components/molecules/BulkActionsBar.vue'
@@ -614,7 +637,7 @@ import { formatMediaDate } from '@/domains/memora/utils/media/formatMediaDate'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useProofingMediaSetsSidebarStore } from '@/domains/memora/stores/proofingMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Plus, Loader2 } from '@/shared/utils/lucideAnimated'
+import { FolderPlus, ImagePlus, Info, Loader2, Plus, X } from '@/shared/utils/lucideAnimated'
 import { triggerFileInputClick } from '@/domains/memora/utils/media/triggerFileInputClick'
 import { useProofingWorkflow } from '@/domains/memora/composables/useProofingWorkflow'
 import { useProofingApi } from '@/domains/memora/api/proofing'
@@ -636,6 +659,7 @@ const proofingStore = useProofingStore()
 const mediaSetsSidebar = useProofingMediaSetsSidebarStore()
 const userStore = useUserStore()
 const { isSidebarCollapsed } = useSidebarCollapse()
+const { setLimitPerPhase } = useMemoraFeatures()
 const watermarkStore = useWatermarkStore()
 
 // Initialize download protection
@@ -1031,6 +1055,48 @@ const selectedSet = computed(() => {
   return mediaSets.value.find(set => set.id === selectedSetId.value) || mediaSets.value[0]
 })
 
+const hasMediaSetLimit = computed(() => {
+  const sets = mediaSetsSidebar.mediaSets
+  if (!Array.isArray(sets)) return false
+  return sets.some(
+    s => ((s.selectionLimit ?? s.selection_limit) != null && (s.selectionLimit ?? s.selection_limit) > 0)
+  )
+})
+const phaseSetCount = computed(() => (Array.isArray(mediaSetsSidebar.mediaSets) ? mediaSetsSidebar.mediaSets.length : 0))
+const isSetLimitReached = computed(() => {
+  const limit = setLimitPerPhase.value
+  return limit != null && phaseSetCount.value >= limit
+})
+
+const SET_LIMIT_BANNER_STORAGE_KEY = 'memora_set_limit_banner_dismissed'
+const setLimitBannerDismissed = ref(false)
+function dismissSetLimitBanner() {
+  setLimitBannerDismissed.value = true
+  const id = proofing.value?.id
+  if (id) {
+    try {
+      const raw = sessionStorage.getItem(SET_LIMIT_BANNER_STORAGE_KEY)
+      const set = new Set(raw ? JSON.parse(raw) : [])
+      set.add(`proofing_${id}`)
+      sessionStorage.setItem(SET_LIMIT_BANNER_STORAGE_KEY, JSON.stringify([...set]))
+    } catch (_) {}
+  }
+}
+watch(
+  () => proofing.value?.id,
+  id => {
+    if (!id) return
+    try {
+      const raw = sessionStorage.getItem(SET_LIMIT_BANNER_STORAGE_KEY)
+      const set = new Set(raw ? JSON.parse(raw) : [])
+      setLimitBannerDismissed.value = set.has(`proofing_${id}`)
+    } catch (_) {
+      setLimitBannerDismissed.value = false
+    }
+  },
+  { immediate: true }
+)
+
 // Initialize media items as empty array
 const mediaItems = ref([])
 
@@ -1179,7 +1245,8 @@ const handleBackgroundUploadComplete = (event) => {
 }
 
 const onStorageShouldRefresh = () => {
-  if (proofing.value?.id) loadProofing(proofing.value.id)
+  if (mediaSetsSidebar) mediaSetsSidebar.loadMediaSets()
+  loadMediaItems()
 }
 
 onMounted(() => {
@@ -1196,7 +1263,9 @@ onUnmounted(() => {
 })
 
 // Update isLoadingMedia to use pagination loading state
-const isLoadingMedia = computed(() => isLoadingMediaPagination.value)
+const isLoadingMedia = computed(() =>
+  selectedSetId.value ? isLoadingMediaPagination.value : false
+)
 
 // Initialize proofing workflow for uploads
 const {
@@ -1224,7 +1293,7 @@ const {
   onUploadComplete: async results => {
     if (results.successful.length > 0) {
       await mediaSetsSidebar.loadMediaSets()
-      await loadProofing(proofing.value?.id)
+      await loadMediaItems()
     }
   },
 })

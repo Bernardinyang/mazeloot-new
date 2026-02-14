@@ -5,6 +5,7 @@
 
 import { apiClient } from '@/shared/api/client'
 import { parseError } from '@/shared/utils/errors'
+import { getReferralCode } from '@/shared/utils/referralCookie'
 
 export function useAuthApi() {
   /**
@@ -54,17 +55,16 @@ export function useAuthApi() {
    */
   const register = async data => {
     try {
-      const response = await apiClient.post(
-        '/v1/auth/register',
-        {
-          first_name: data.name ? data.name.split(' ')[0] : data.first_name,
-          last_name: data.name ? data.name.split(' ').slice(1).join(' ') : data.last_name,
-          email: data.email,
-          password: data.password,
-          password_confirmation: data.confirmPassword || data.password,
-        },
-        { skipAuth: true }
-      )
+      const payload = {
+        first_name: data.name ? data.name.split(' ')[0] : data.first_name,
+        last_name: data.name ? data.name.split(' ').slice(1).join(' ') : data.last_name,
+        email: data.email,
+        password: data.password,
+        password_confirmation: data.confirmPassword || data.password,
+      }
+      const referralCode = getReferralCode()
+      if (referralCode) payload.referral_code = referralCode
+      const response = await apiClient.post('/v1/auth/register', payload, { skipAuth: true })
 
       return {
         user: {
@@ -263,6 +263,54 @@ export function useAuthApi() {
     }
   }
 
+  const updateProfile = async (data) => {
+    try {
+      const response = await apiClient.patch('/v1/auth/user', data)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const changePassword = async (currentPassword, newPassword, newPasswordConfirmation) => {
+    try {
+      const response = await apiClient.post('/v1/auth/change-password', {
+        current_password: currentPassword,
+        password: newPassword,
+        password_confirmation: newPasswordConfirmation ?? newPassword,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const sendDeletionCode = async () => {
+    try {
+      const response = await apiClient.post('/v1/auth/account/send-deletion-code')
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  const deleteAccount = async (payload) => {
+    try {
+      const data = payload && typeof payload === 'object'
+        ? { ...payload }
+        : {}
+      if (payload != null && typeof payload === 'string') {
+        data.password = payload
+      }
+      const response = await apiClient.delete('/v1/auth/account', {
+        body: Object.keys(data).length ? JSON.stringify(data) : undefined,
+      })
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   /**
    * Check if user has access to a specific feature
    */
@@ -317,6 +365,10 @@ export function useAuthApi() {
     sendMagicLink,
     verifyMagicLink,
     getUser,
+    updateProfile,
+    changePassword,
+    sendDeletionCode,
+    deleteAccount,
     getStorage,
     logout,
     checkFeature,

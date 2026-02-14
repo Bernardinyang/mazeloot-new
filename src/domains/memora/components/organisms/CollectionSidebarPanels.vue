@@ -7,6 +7,7 @@
     :is-loading="props.isLoading"
     :download-enabled="props.downloadEnabled"
     :favorite-enabled="props.favoriteEnabled"
+    :set-limit-reached="props.setLimitReached"
   >
     <template #phaseTabs="{ activeTab: tab, isSidebarCollapsed: collapsed }">
       <!-- DESIGN Section -->
@@ -77,5 +78,6 @@ const props = defineProps({
   isLoading: { type: Boolean, default: false },
   downloadEnabled: { type: Boolean, default: false },
   favoriteEnabled: { type: Boolean, default: false },
+  setLimitReached: { type: Boolean, default: false },
 })
 </script>

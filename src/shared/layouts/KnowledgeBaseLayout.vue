@@ -16,9 +16,9 @@
               variant="ghost"
               size="sm"
               @click="navigateTo({ name: 'gettingStarted' })"
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'group']"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'group min-h-[44px] touch-manipulation']"
             >
-              <ArrowLeft class="h-4 w-4 mr-2 group-hover:-translate-x-1 transition-transform" />
+              <ArrowLeft class="h-4 w-4 mr-2 shrink-0 group-hover:-translate-x-1 transition-transform" />
               <span class="hidden sm:inline">Back to Getting Started</span>
               <span class="sm:hidden">Back</span>
             </Button>
@@ -26,7 +26,7 @@
               variant="ghost"
               size="sm"
               @click="sidebarOpen = !sidebarOpen"
-              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'lg:hidden']"
+              :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'lg:hidden min-h-[44px] min-w-[44px] touch-manipulation']"
             >
               <Menu class="h-4 w-4" />
             </Button>
@@ -39,9 +39,9 @@
               variant="outline"
               size="sm"
               @click="navigateTo(previousRoute)"
-              :class="[theme.borderSecondary, theme.textPrimary, theme.bgButtonHover, theme.transition, 'group']"
+              :class="[theme.borderSecondary, theme.textPrimary, theme.bgButtonHover, theme.transition, 'group min-h-[44px] touch-manipulation']"
             >
-              <ChevronLeft class="h-4 w-4 mr-1 group-hover:-translate-x-1 transition-transform" />
+              <ChevronLeft class="h-4 w-4 mr-1 shrink-0 group-hover:-translate-x-1 transition-transform" />
               <span class="hidden sm:inline">Previous</span>
             </Button>
             <Button
@@ -49,10 +49,10 @@
               variant="outline"
               size="sm"
               @click="navigateTo(nextRoute)"
-              :class="[theme.borderSecondary, theme.textPrimary, theme.bgButtonHover, theme.transition, 'group']"
+              :class="[theme.borderSecondary, theme.textPrimary, theme.bgButtonHover, theme.transition, 'group min-h-[44px] touch-manipulation']"
             >
               <span class="hidden sm:inline">Next</span>
-              <ChevronRight class="h-4 w-4 ml-1 group-hover:translate-x-1 transition-transform" />
+              <ChevronRight class="h-4 w-4 ml-1 shrink-0 group-hover:translate-x-1 transition-transform" />
             </Button>
           </div>
         </div>

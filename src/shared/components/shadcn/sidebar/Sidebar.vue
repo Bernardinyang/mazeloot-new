@@ -1,5 +1,6 @@
 <script setup>
 import { cn } from '@/shared/lib/utils'
+import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent } from '@/shared/components/shadcn/sheet'
 import { SIDEBAR_WIDTH_MOBILE, useSidebar } from './utils'
 
@@ -45,13 +46,27 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
       data-sidebar="sidebar"
       data-mobile="true"
       :side="props.side"
-      class="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+      class="w-[--sidebar-width] max-w-[min(18rem,100vw-2rem)] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
       :style="{
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }"
     >
-      <div class="flex h-full w-full flex-col pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
-        <slot />
+      <div class="flex h-full w-full flex-col overflow-y-auto overscroll-contain">
+        <div class="sticky top-0 z-10 flex shrink-0 items-center justify-end border-b border-sidebar-border bg-sidebar px-2 pt-[env(safe-area-inset-top)] pb-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            class="min-h-[44px] min-w-[44px] touch-manipulation -mr-1"
+            aria-label="Close menu"
+            @click="setOpenMobile(false)"
+          >
+            <span class="sr-only">Close menu</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </Button>
+        </div>
+        <div class="flex-1 min-h-0 pb-[env(safe-area-inset-bottom)]">
+          <slot />
+        </div>
       </div>
     </SheetContent>
   </Sheet>

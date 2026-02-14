@@ -14,71 +14,31 @@ export class AppError extends Error {
 }
 
 /**
- * Parse error from API response
- * Prioritizes backend error messages in this order:
- * 1. error.message (from API client)
- * 2. error.response.data.message (direct from backend)
- * 3. error.response.data.error (alternative backend field)
- * 4. Fallback messages
+ * Parse error from API response.
+ * Backend message is always preferred: error.response.data.message / .error first, then error.message (set by API client from backend).
  */
 export function parseError(error) {
-  // If it's already an AppError, return it
   if (error instanceof AppError) {
     return error
   }
 
-  // Priority 1: API client format (already processed) - { message, code, status, errors }
-  if (error?.message && (error?.status !== undefined || error?.code !== undefined)) {
-    return {
-      message: error.message,
-      code: error.code,
-      status: error.status,
-      errors: error.errors,
-    }
-  }
+  const data = error?.response?.data
+  const backendMessage = data?.message ?? data?.error
+  let message = backendMessage
 
-  // Priority 2: Raw API response with error structure
-  if (error?.response?.data) {
-    const data = error.response.data
-    // Extract the most specific error message from backend
-    let message = data.message || data.error
+  const fieldErrors = data?.errors && typeof data.errors === 'object' ? Object.values(data.errors).flat().filter(Boolean) : []
+  if (!message && fieldErrors.length > 0) message = fieldErrors[0]
+  else if (message && fieldErrors.length > 0) message = `${message}. ${fieldErrors[0]}`
+  if (!message && error?.message) message = error.message
+  if (!message && error?.response?.status) message = `Request failed with status ${error.response.status}`
+  if (!message) message = typeof error === 'string' ? error : 'An unexpected error occurred'
 
-    // If there are field-specific errors, include the first one for more context
-    if (data.errors && typeof data.errors === 'object') {
-      const fieldErrors = Object.values(data.errors).flat()
-      if (fieldErrors.length > 0 && fieldErrors[0]) {
-        message = message ? `${message}. ${fieldErrors[0]}` : fieldErrors[0]
-      }
-    }
-
-    return {
-      message: message || `Request failed with status ${error.response.status}`,
-      code: data.code,
-      status: error.response.status,
-      errors: data.errors,
-    }
-  }
-
-  // Priority 3: Plain object with error info (API client format)
-  if (error?.message || error?.errors || error?.status) {
-    return {
-      message: error.message || 'An error occurred',
-      code: error.code,
-      status: error.status,
-      errors: error.errors,
-    }
-  }
-
-  // Priority 4: Error object
-  if (error instanceof Error) {
-    return {
-      message: error.message,
-    }
-  }
-
-  // Fallback
   return {
-    message: typeof error === 'string' ? error : 'An unexpected error occurred',
+    message,
+    code: data?.code ?? error?.code,
+    status: error?.response?.status ?? error?.status,
+    errors: data?.errors ?? error?.errors,
+    response: error?.response,
   }
 }
 
@@ -131,34 +91,16 @@ function extractBackendMessage(message) {
 }
 
 export function getErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
-  if (error === null || error === undefined) {
-    return fallback
-  }
-  
-  // Direct access to backend message (highest priority)
-  // Check both raw response and processed error object
-  const backendMessage = 
-    error?.response?.data?.message || 
-    error?.response?.data?.error ||
-    (error?.response?.data?.data?.message) ||
-    (error?.response?.data?.data?.error)
-  
-  if (backendMessage && backendMessage.trim() !== '') {
-    return extractBackendMessage(backendMessage)
-  }
-  
-  // API client processed message (second priority)
-  // This handles errors that have been parsed by parseError
-  if (error?.message && error.message.trim() !== '') {
-    return extractBackendMessage(error.message)
-  }
-  
-  // Parse error if not already parsed
+  if (error == null) return fallback
+  const backend =
+    error?.response?.data?.message ??
+    error?.response?.data?.error ??
+    error?.response?.data?.data?.message ??
+    error?.response?.data?.data?.error
+  if (backend && String(backend).trim()) return extractBackendMessage(String(backend).trim())
+  if (error?.message && String(error.message).trim()) return extractBackendMessage(String(error.message).trim())
   const parsed = parseError(error)
-  if (parsed.message && parsed.message.trim() !== '') {
-    return extractBackendMessage(parsed.message)
-  }
-  
+  if (parsed?.message && String(parsed.message).trim()) return extractBackendMessage(String(parsed.message).trim())
   return fallback
 }
 
@@ -208,13 +150,21 @@ export function isValidationError(error) {
 }
 
 /**
- * Extract backend error message for display
- * This is the recommended way to get error messages throughout the app
- * 
- * @param {*} error - Error object from catch block
- * @param {string} fallback - Fallback message if no backend message found
- * @returns {string} Error message to display
+ * Extract backend error message for display (alias for getErrorMessage).
  */
 export function getBackendErrorMessage(error, fallback = 'Something went wrong. Please try again.') {
   return getErrorMessage(error, fallback)
+}
+
+/**
+ * Get success message from API response. Prefer backend message when present.
+ * @param {*} response - API response (e.g. { data, message, status } or { data: { message } })
+ * @param {string} fallback - Fallback when no message in response
+ * @returns {string}
+ */
+export function getSuccessMessage(response, fallback = '') {
+  if (response == null) return fallback
+  const msg =
+    response?.message ?? response?.data?.message ?? response?.data?.success_message ?? ''
+  return (typeof msg === 'string' && msg.trim()) ? msg.trim() : fallback
 }

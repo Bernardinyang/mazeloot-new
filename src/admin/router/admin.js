@@ -94,6 +94,24 @@ export const adminRoutes = [
         meta: { breadcrumb: 'Contact' },
       },
       {
+        path: 'faq',
+        name: 'admin-faq',
+        component: () => import('@/admin/views/faq/Index.vue'),
+        meta: { breadcrumb: 'FAQ' },
+      },
+      {
+        path: 'faq/new',
+        name: 'admin-faq-create',
+        component: () => import('@/admin/views/faq/Form.vue'),
+        meta: { breadcrumb: 'New FAQ', breadcrumbParent: 'admin-faq' },
+      },
+      {
+        path: 'faq/:uuid',
+        name: 'admin-faq-edit',
+        component: () => import('@/admin/views/faq/Form.vue'),
+        meta: { breadcrumb: 'Edit FAQ', breadcrumbParent: 'admin-faq' },
+      },
+      {
         path: 'contact/:uuid',
         name: 'admin-contact-show',
         component: () => import('@/admin/views/contact/Show.vue'),
