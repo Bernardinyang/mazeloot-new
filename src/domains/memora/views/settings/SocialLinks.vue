@@ -8,10 +8,10 @@
       </Button>
     </template>
 
-    <div class="space-y-8 w-1/2">
+    <div class="space-y-8 w-full max-w-2xl px-4 sm:px-6 min-w-0">
       <!-- Page Header -->
       <div>
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
           Social Links
         </h1>
         <p class="text-sm mb-6" :class="theme.textSecondary">
@@ -116,9 +116,9 @@
             class="rounded-xl border p-5 transition-all hover:shadow-md"
             :class="[theme.bgCard, theme.borderCard]"
           >
-            <div class="flex items-start justify-between gap-4">
-              <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-3 mb-3">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0 flex-1">
+                <div class="flex flex-wrap items-center gap-3 mb-3">
                   <h3 class="text-base font-semibold" :class="theme.textPrimary">
                     {{ link.platform?.name || 'Unknown Platform' }}
                   </h3>
@@ -164,7 +164,7 @@
                   {{ link.url }}
                 </a>
               </div>
-              <div class="flex items-center gap-2 flex-shrink-0">
+              <div class="flex flex-wrap items-center gap-2 shrink-0">
                 <Button
                   v-if="editingLinkId === link.id"
                   variant="ghost"
@@ -199,13 +199,14 @@
 
         <!-- Save Button -->
         <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-accent" />
+              <Check class="h-4 w-4 text-accent shrink-0" />
               <span :class="theme.textSecondary">All changes saved automatically</span>
             </div>
             <Button
               variant="success"
+              class="w-full sm:w-auto"
               disabled
               :icon="Check"
             >

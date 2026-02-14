@@ -8,10 +8,10 @@
       </Button>
     </template>
 
-    <div class="space-y-8 w-1/2">
+    <div class="space-y-8 w-full max-w-2xl px-4 sm:px-6 min-w-0">
       <!-- Page Header -->
       <div>
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Branding</h1>
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Branding</h1>
         <p class="text-sm mb-6" :class="theme.textSecondary">
           Customize your brand identity, logo, colors, and visual elements for your client galleries.
         </p>
@@ -431,7 +431,7 @@
             <div class="space-y-3">
               <label class="text-sm font-medium" :class="theme.textPrimary">Logo</label>
               <div
-                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
+                class="w-full aspect-square max-h-[200px] md:max-h-none rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
@@ -468,7 +468,7 @@
             <div class="space-y-3">
               <label class="text-sm font-medium" :class="theme.textPrimary">Favicon</label>
               <div
-                class="w-full aspect-square rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
+                class="w-full aspect-square max-h-[160px] md:max-h-none rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-3 transition-all hover:border-accent/50"
                 :class="[
                   theme.borderSecondary,
                   theme.bgCard,
@@ -505,8 +505,8 @@
 
         <!-- Branding Options Card: only show when user can edit branding -->
         <div v-if="canEditBranding" class="rounded-xl border p-4 sm:p-6" :class="[theme.bgCard, theme.borderCard]">
-          <div class="flex items-center justify-between">
-            <div class="flex-1">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div class="min-w-0 flex-1">
               <h2 class="text-lg font-semibold mb-1" :class="theme.textPrimary">
                 Mazeloot Branding
               </h2>
@@ -514,7 +514,7 @@
                 Control whether Mazeloot branding appears on your collections and homepage
               </p>
             </div>
-            <div class="flex items-center gap-3 ml-6">
+            <div class="flex items-center gap-3 shrink-0">
               <label
                 class="relative inline-flex items-center group"
 :class="formDisabled ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'"
@@ -542,7 +542,7 @@
 
       <!-- Save Button -->
       <div v-if="canEditBranding" :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
-        <div class="flex items-center justify-between gap-3">
+        <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
             <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
             <span :class="theme.textSecondary">You have unsaved changes</span>
@@ -553,6 +553,7 @@
           </div>
           <Button
             variant="accent"
+            class="w-full sm:w-auto"
             :disabled="!hasChanges || isLoading"
             :loading="isSaving"
             loading-label="Saving..."

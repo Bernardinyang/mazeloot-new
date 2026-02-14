@@ -6,12 +6,14 @@
     <SidebarInset>
       <header
         :class="[
-          'sticky top-0 z-50 flex h-14 md:h-16 shrink-0 items-center gap-1 sm:gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 pt-[env(safe-area-inset-top)] border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg overflow-x-hidden',
+          'sticky top-0 z-50 flex shrink-0 items-center gap-1 sm:gap-2 transition-[width,height] ease-linear border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg overflow-x-hidden',
+          'pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]',
+          'min-h-[calc(3.5rem+env(safe-area-inset-top))] md:min-h-[calc(4rem+env(safe-area-inset-top))] group-has-[[data-collapsible=icon]]/sidebar-wrapper:min-h-[calc(3rem+env(safe-area-inset-top))]',
           theme.borderPrimary,
           theme.transitionColors,
         ]"
       >
-        <div class="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 min-w-0 flex-1 overflow-hidden">
+        <div class="flex items-center gap-1 sm:gap-2 h-14 md:h-16 pl-[max(0.5rem,env(safe-area-inset-left))] sm:pl-4 pr-2 sm:pr-4 min-w-0 flex-1 overflow-hidden">
           <SidebarTrigger :class="['-ml-1 shrink-0 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0', theme.textPrimary, theme.bgButtonHover]" />
           <Separator
             :class="['mr-1 md:mr-2 data-[orientation=vertical]:h-4 hidden sm:block', theme.borderPrimary]"
@@ -68,7 +70,7 @@
         </div>
         <div class="flex flex-1 items-center justify-end min-w-0 shrink-0">
           <slot name="header" />
-          <div class="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-4 shrink-0">
+          <div class="flex items-center gap-1 sm:gap-2 pr-[max(0.5rem,env(safe-area-inset-right))] sm:pr-4 shrink-0">
             <!-- Tier Badge -->
             <DropdownMenu v-if="!hideUserFeatures && hasMemora">
               <DropdownMenuTrigger as-child>

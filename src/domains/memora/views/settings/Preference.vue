@@ -8,10 +8,10 @@
       </Button>
     </template>
 
-    <div class="space-y-8 w-1/2">
+    <div class="space-y-8 w-full max-w-2xl px-4 sm:px-6 min-w-0">
       <!-- Page Header -->
       <div>
-        <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
+        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
           Preference
         </h1>
         <p class="text-sm mb-6" :class="theme.textSecondary">
@@ -133,7 +133,7 @@
 
             <!-- RAW Photo Support -->
             <div class="space-y-2">
-              <div class="flex items-center justify-between">
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <label class="text-sm font-medium" :class="theme.textPrimary">RAW Photo Support</label>
                 <UpgradePopover v-if="isDisabled" v-model:open="showRawPhotoPopover" />
               </div>
@@ -185,7 +185,7 @@
           <div class="space-y-2">
             <!-- Rich Text Editor Toolbar -->
             <div
-              class="flex items-center gap-2 p-2 rounded-t border-b"
+              class="flex flex-wrap items-center gap-2 p-2 rounded-t border-b"
               :class="[theme.bgCard, theme.borderSecondary]"
             >
               <button
@@ -252,7 +252,7 @@
           <div class="space-y-2">
             <!-- Rich Text Editor Toolbar -->
             <div
-              class="flex items-center gap-2 p-2 rounded-t border-b"
+              class="flex flex-wrap items-center gap-2 p-2 rounded-t border-b"
               :class="[theme.bgCard, theme.borderSecondary]"
             >
               <button
@@ -399,17 +399,18 @@
 
         <!-- Save Button -->
         <div :class="theme.borderSecondary" class="mt-8 pt-6 border-t">
-          <div class="flex items-center justify-between gap-3">
+          <div class="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div v-if="hasChanges" class="flex items-center gap-2 text-sm">
-              <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse"></div>
+              <div class="h-2 w-2 rounded-full bg-amber-500 animate-pulse shrink-0"></div>
               <span :class="theme.textSecondary">You have unsaved changes</span>
             </div>
             <div v-else class="flex items-center gap-2 text-sm">
-              <Check class="h-4 w-4 text-accent" />
+              <Check class="h-4 w-4 text-accent shrink-0" />
               <span :class="theme.textSecondary">All changes saved</span>
             </div>
             <Button
               variant="accent"
+              class="w-full sm:w-auto"
               :disabled="!hasChanges || isLoading"
               :loading="isSaving"
               loading-label="Saving..."

@@ -3,10 +3,12 @@
     <!-- Compact bar: only when queue has items -->
     <div
       v-if="uploadQueue.length > 0"
-        :class="[
+      :class="[
         theme.bgCard,
         theme.borderCard,
-        'fixed bottom-4 right-4 z-50 w-[420px] rounded-lg border shadow-lg transition-all overflow-hidden',
+        'fixed z-50 rounded-lg border shadow-lg transition-all overflow-hidden',
+        'bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]',
+        'w-[calc(100vw-2rem)] max-w-[420px] sm:w-[420px]',
       ]"
     >
       <!-- Bar header + progress -->
