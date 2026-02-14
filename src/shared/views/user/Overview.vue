@@ -3,7 +3,7 @@
     <!-- Header -->
     <header
       :class="[
-        'sticky top-0 z-50 pt-[env(safe-area-inset-top)] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
+        'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
         theme.borderPrimary,
         theme.bgHeader,
         theme.transition,

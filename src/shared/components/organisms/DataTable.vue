@@ -56,7 +56,7 @@
             theme.borderSecondary,
             theme.textTertiary,
             theme.bgCardSolid,
-            'sticky top-0 z-10 pt-[env(safe-area-inset-top)] border-b font-semibold text-xs uppercase tracking-wider shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_3px_0_rgba(0,0,0,0.3)]',
+            'sticky top-0 z-10 border-b font-semibold text-xs uppercase tracking-wider shadow-[0_1px_3px_0_rgba(0,0,0,0.08)] dark:shadow-[0_1px_3px_0_rgba(0,0,0,0.3)]',
           ]"
         >
           <tr>

@@ -66,7 +66,7 @@
         <!-- Preview Mode Banner -->
       <div
         v-if="isPreviewMode && isOwner"
-        class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+        class="sticky top-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
       >
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-center gap-2">
           <Eye class="h-4 w-4" />
@@ -75,7 +75,7 @@
       </div>
 
       <!-- Header -->
-      <header :class="['sticky z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm', isPreviewMode && isOwner ? 'top-[calc(45px+env(safe-area-inset-top))]' : 'top-0', !(isPreviewMode && isOwner) ? 'pt-[env(safe-area-inset-top)]' : '']">
+      <header :class="['sticky z-40 bg-white/90 dark:bg-gray-900/90 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 shadow-sm', isPreviewMode && isOwner ? 'top-[45px]' : 'top-0']">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
           <div class="flex items-center gap-3">
             <img

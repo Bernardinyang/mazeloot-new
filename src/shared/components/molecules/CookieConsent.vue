@@ -9,7 +9,7 @@
   >
     <div
       v-if="showBanner"
-      class="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 lg:p-6"
+      class="fixed bottom-0 left-0 right-0 z-50 p-3 sm:p-4 lg:p-6 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:pb-[max(1rem,env(safe-area-inset-bottom))] lg:pb-[max(1.5rem,env(safe-area-inset-bottom))]"
       role="dialog"
       aria-labelledby="cookie-consent-title"
       aria-describedby="cookie-consent-description"

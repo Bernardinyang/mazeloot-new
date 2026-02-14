@@ -39,7 +39,7 @@
       :class="[theme.bgCard, theme.borderSecondary, 'w-[min(20rem,100vw-2rem)] p-0 max-w-[100vw]']"
       side="left"
     >
-      <div class="h-full overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+      <div class="h-full overflow-y-auto ">
         <slot name="sidebar">
           <div class="w-full border-r border-gray-200 dark:border-gray-800">
             <slot name="sidebarContent" />

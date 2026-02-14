@@ -31,7 +31,7 @@
     <!-- Preview Mode Banner -->
     <div
       v-if="isPreviewMode && isAuthenticatedOwner"
-      class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+      class="sticky top-0 z-50  bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
     >
       <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-center gap-2">
         <Eye class="h-4 w-4" />
@@ -71,7 +71,7 @@
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
-      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -112,7 +112,7 @@
     <!-- Client Email Modal -->
     <Dialog v-if="showClientEmailModal && userMode === 'client' && requiresClientEmail && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientEmailModal = false; emailInput = ''; emailError = '' } }">
       <!-- Mazeloot Footer at Bottom -->
-      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -174,7 +174,7 @@
     <!-- Client Password Modal -->
     <Dialog v-if="showClientPasswordModal && userMode === 'client' && !isClientVerified && !isAuthenticatedOwner && !isPreviewMode" :open="true" @update:open="(val) => { if (!val) { showClientPasswordModal = false; clientPasswordInput = ''; clientPasswordError = '' } }">
       <!-- Mazeloot Footer at Bottom -->
-      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -238,7 +238,7 @@
     <!-- Email Registration Modal -->
     <Dialog v-if="showEmailModal && !isAuthenticatedOwner && !isPreviewMode && userMode !== 'client'" :open="true" :close-on-escape="!hasClientExclusiveAccess" :close-on-click-outside="!hasClientExclusiveAccess">
       <!-- Mazeloot Footer at Bottom -->
-      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -310,7 +310,7 @@
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
-      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4">
+      <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] bg-black py-4 px-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
         <p class="text-xs text-center text-white/80">
           © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
         </p>
@@ -391,7 +391,7 @@
       <!-- Download PIN Modal -->
       <Dialog v-if="showDownloadPinModal && requiresDownloadPin && !isDownloadPinVerified && !isAuthenticatedOwner" :open="showDownloadPinModal" @update:open="(val) => { if (!val) { showDownloadPinModal = false; downloadPinInput = ''; downloadPinError = '' } }">
         <!-- Mazeloot Footer at Bottom -->
-        <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] py-4">
+        <div v-if="showMazelootBranding" class="fixed bottom-0 left-0 right-0 z-[60] py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <p :class="theme.textSecondary" class="text-xs text-center">
             © {{ new Date().getFullYear() }} Mazeloot. All rights reserved.
           </p>

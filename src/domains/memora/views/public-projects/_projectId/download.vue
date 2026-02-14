@@ -6,7 +6,7 @@
     <!-- Content -->
     <div class="relative z-10">
     <!-- Header with Branding -->
-    <header :class="[theme.borderSecondary, 'sticky top-0 z-40 pt-[env(safe-area-inset-top)] backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/80 border-b']">
+    <header :class="[theme.borderSecondary, 'sticky top-0 z-40  backdrop-blur-xl bg-white/10 dark:bg-black/20 light:bg-white/80 border-b']">
       <div class="container mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
         <div class="flex items-center gap-3">
           <button

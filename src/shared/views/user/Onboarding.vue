@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col bg-background">
     <!-- Header -->
-    <header class="w-full border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50 pt-[env(safe-area-inset-top)]">
+    <header class="w-full border-b border-border/40 bg-background/80 backdrop-blur-sm sticky top-0 z-50 ">
       <div class="w-full max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
           <MazelootLogo size="sm" />

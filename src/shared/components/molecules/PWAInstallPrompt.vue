@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="(isInstallable || showManualInstall) && !isInstalled && !isDismissed"
-    class="fixed bottom-4 right-4 z-50 max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 animate-in"
+    class="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-50 max-w-sm bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 animate-in"
   >
     <div class="flex items-start gap-3">
       <div class="flex-shrink-0">

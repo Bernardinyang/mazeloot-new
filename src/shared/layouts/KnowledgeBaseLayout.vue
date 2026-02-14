@@ -1,7 +1,7 @@
 <template>
   <div :class="['min-h-screen', theme.bgPage]">
     <!-- Top Bar -->
-    <div :class="['sticky top-0 z-50 pt-[env(safe-area-inset-top)] border-b backdrop-blur supports-[backdrop-filter]:backdrop-blur-md', theme.bgHeader, theme.borderPrimary, 'shadow-sm']">
+    <div :class="['sticky top-0 z-50  border-b backdrop-blur supports-[backdrop-filter]:backdrop-blur-md', theme.bgHeader, theme.borderPrimary, 'shadow-sm']">
       <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-3">
@@ -71,7 +71,7 @@
         <!-- Sidebar -->
         <aside
           :class="[
-            'fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out',
+            'fixed lg:static inset-y-0 left-0 z-40 w-64 border-r transform transition-transform duration-300 ease-in-out pt-[env(safe-area-inset-top)] pl-[env(safe-area-inset-left)] lg:pt-0 lg:pl-0',
             'bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0',
             'lg:sticky top-0 h-screen overflow-y-auto flex flex-col',

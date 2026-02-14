@@ -1,7 +1,7 @@
 <template>
   <div
     v-if="showDebug"
-    class="fixed top-4 left-4 z-50 max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 text-xs"
+    class="fixed top-[max(1rem,env(safe-area-inset-top))] left-[max(1rem,env(safe-area-inset-left))] z-50 max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 p-4 text-xs"
   >
     <div class="flex items-center justify-between mb-2">
       <h3 class="font-semibold">PWA Debug Info</h3>

@@ -4,7 +4,7 @@
     size="sm"
     :class="[
       'relative',
-      floating ? 'fixed bottom-6 right-6 z-50 shadow-lg' : '',
+      floating ? 'fixed bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-[max(1.5rem,env(safe-area-inset-right))] z-50 shadow-lg' : '',
     ]"
     @click="$emit('click')"
   >

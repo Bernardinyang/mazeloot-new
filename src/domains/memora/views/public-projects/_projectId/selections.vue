@@ -896,7 +896,7 @@
           previewCurrentItem &&
           selection.status !== 'completed'
         "
-        class="fixed bottom-20 left-1/2 -translate-x-1/2 z-[101] flex gap-3"
+        class="fixed bottom-[max(5rem,calc(5rem+env(safe-area-inset-bottom)))] left-1/2 -translate-x-1/2 z-[101] flex gap-3"
       >
         <Button
           v-if="!previewCurrentItem.isSelected"

@@ -23,7 +23,7 @@
         backgroundColor: backgroundColor,
         borderColor: borderColor,
       }"
-      class="sticky top-0 z-50 w-full pt-[env(safe-area-inset-top)] border-b backdrop-blur-md"
+      class="sticky top-0 z-50 w-full  border-b backdrop-blur-md"
     >
       <div class="container mx-auto px-3 sm:px-4 py-3 sm:py-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
@@ -269,7 +269,7 @@
           borderColor: borderColor,
           backgroundColor: `${backgroundColor}E6`, // 90% opacity
         }"
-        class="sticky top-0 z-40 pt-[env(safe-area-inset-top)] border-t border-b backdrop-blur-md py-4 sm:py-5 md:py-6 mb-8 sm:mb-10 md:mb-12 px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-300"
+        class="sticky top-0 z-40  border-t border-b backdrop-blur-md py-4 sm:py-5 md:py-6 mb-8 sm:mb-10 md:mb-12 px-3 sm:px-4 md:px-8 lg:px-12 transition-all duration-300"
       >
         <!-- Top Row: Title and Actions -->
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6 mb-4 sm:mb-5 md:mb-6">
@@ -638,7 +638,7 @@
              backgroundColor: accentColor,
              color: accentTextColor,
            }"
-           class="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 md:bottom-8 md:right-8 z-30 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold uppercase tracking-wide shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 hover:shadow-xl"
+           class="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] sm:bottom-[max(1.5rem,env(safe-area-inset-bottom))] sm:right-[max(1.5rem,env(safe-area-inset-right))] md:bottom-[max(2rem,env(safe-area-inset-bottom))] md:right-[max(2rem,env(safe-area-inset-right))] z-30 px-4 sm:px-5 md:px-6 py-2 sm:py-2.5 md:py-3 rounded-full text-xs sm:text-sm font-semibold uppercase tracking-wide shadow-lg transition-all duration-300 hover:scale-110 active:scale-95 hover:shadow-xl"
            @click="scrollToTop"
            aria-label="Back to top"
          >

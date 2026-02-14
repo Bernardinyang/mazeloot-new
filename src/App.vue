@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen">
+  <div class="min-h-screen min-h-[100dvh]">
     <RouteLoadingOverlay :is-loading="isRouteLoading" />
     <RouterView />
     <Toaster />
