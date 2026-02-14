@@ -71,6 +71,7 @@
                             :class="{
                               'bg-sidebar-accent text-sidebar-accent-foreground': isActive(child.to),
                             }"
+                            @click="closeSidebarIfMobile"
                           >
                             <span>{{ child.label }}</span>
                           </router-link>
@@ -91,6 +92,7 @@
                 <router-link
                   :to="item.to"
                   class="flex items-center gap-3"
+                  @click="closeSidebarIfMobile"
                 >
                   <component :is="getIcon(item.icon)" class="h-5 w-5 shrink-0" />
                   <span>{{ item.label }}</span>
@@ -166,7 +168,11 @@ const props = defineProps({
 
 const route = useRoute()
 const theme = useThemeClasses()
-const { state } = useSidebar()
+const { state, isMobile, setOpenMobile } = useSidebar()
+
+function closeSidebarIfMobile() {
+  if (isMobile.value) setOpenMobile(false)
+}
 
 const iconMap = {
   LayoutDashboard,

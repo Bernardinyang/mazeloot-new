@@ -5,7 +5,7 @@
       <div class="flex items-center justify-end w-full" />
     </template>
 
-    <div class="space-y-10 max-w-7xl mx-auto pb-4 px-4 sm:px-6">
+    <div class="min-w-0 w-full space-y-10 max-w-7xl mx-auto pb-4 px-4 sm:px-6">
       <!-- Page Header -->
       <div class="space-y-1">
         <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
@@ -29,11 +29,11 @@
         class="rounded-2xl p-4 sm:p-6 border border-amber-500/20 dark:border-amber-500/30 bg-gradient-to-br from-amber-500/8 via-amber-500/4 to-transparent dark:from-amber-500/15 dark:via-amber-500/8 dark:to-transparent shadow-sm"
       >
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="flex items-center gap-4">
-            <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
+          <div class="flex items-center gap-4 min-w-0 flex-1">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400">
               <Crown class="h-6 w-6" />
             </div>
-            <div>
+            <div class="min-w-0">
               <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Current Plan</p>
               <p class="text-lg font-semibold text-foreground">{{ currentTierLabel }}</p>
               <p v-if="currentSubscription" class="text-sm text-muted-foreground mt-0.5">
@@ -44,7 +44,7 @@
               </p>
             </div>
           </div>
-          <div class="flex flex-wrap gap-2">
+          <div class="flex flex-wrap gap-2 shrink-0">
             <Button variant="outline" size="sm" class="rounded-lg" @click="goToUsage">
               <BarChart3 class="h-4 w-4 mr-2" />
               View Usage
@@ -65,8 +65,8 @@
       </div>
 
       <!-- Billing cycle + Currency -->
-      <div v-if="!loading && !error" class="flex flex-col items-center gap-4">
-        <div class="flex flex-col items-center gap-3">
+      <div v-if="!loading && !error" class="flex flex-wrap items-center justify-center gap-6 sm:gap-8">
+        <div class="flex flex-col items-center gap-2">
           <p class="text-sm text-muted-foreground">Billing cycle</p>
           <div
             class="inline-flex rounded-full border border-border bg-muted/50 dark:bg-muted/70 p-1 shadow-inner"
@@ -76,7 +76,7 @@
             <button
               type="button"
               :class="[
-                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200',
+                'rounded-full px-3 sm:px-4 py-2 text-sm font-medium transition-all duration-200',
                 !isAnnual
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',
@@ -88,7 +88,7 @@
             <button
               type="button"
               :class="[
-                'rounded-full px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
+                'rounded-full px-3 sm:px-4 py-2 text-sm font-medium transition-all duration-200 flex items-center gap-1.5',
                 isAnnual
                   ? 'bg-background text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',
@@ -105,7 +105,7 @@
           <select
             :value="currencyStore.currency"
             aria-label="Currency"
-            class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm"
+            class="rounded-lg border border-input bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm min-w-0 max-w-full"
             @change="currencyStore.setCurrency($event.target.value)"
           >
             <option v-for="c in SUPPORTED_CURRENCIES" :key="c.code" :value="c.code">
@@ -416,13 +416,13 @@
       </template>
 
       <!-- Plan Comparison Table -->
-      <section v-if="!loading && !error" class="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
-        <h2 class="py-4 px-6 text-lg font-semibold text-foreground border-b border-border">Plan comparison</h2>
-        <div class="overflow-x-auto">
+      <section v-if="!loading && !error" class="min-w-0 rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
+        <h2 class="py-4 px-4 sm:px-6 text-lg font-semibold text-foreground border-b border-border">Plan comparison</h2>
+        <div class="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0 overscroll-x-contain">
           <table class="w-full min-w-[640px] text-left text-sm" role="grid" aria-label="Plan comparison">
             <thead>
               <tr class="border-b border-border bg-muted/50 dark:bg-muted/80">
-                <th scope="col" class="py-4 pl-6 pr-4 font-semibold text-foreground w-48">Feature</th>
+                <th scope="col" class="py-4 pl-4 sm:pl-6 pr-4 font-semibold text-foreground w-40 sm:w-48">Feature</th>
                 <th scope="col" v-for="tier in tiers" :key="tier.id" class="py-4 px-4 font-semibold text-foreground text-center">{{ tier.name }}</th>
                 <th v-if="showByoInPricing" scope="col" class="py-4 px-4 font-semibold text-foreground text-center">Build Your Own</th>
               </tr>
@@ -439,12 +439,12 @@
                 ]"
               >
                 <template v-if="item.type === 'category'">
-                  <td :colspan="showByoInPricing ? 6 : 5" class="py-2 pl-6 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  <td :colspan="showByoInPricing ? 6 : 5" class="py-2 pl-4 sm:pl-6 pr-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     {{ item.category }}
                   </td>
                 </template>
                 <template v-else>
-                  <td class="py-3 pl-6 pr-4 font-medium text-foreground">{{ item.row.label }}</td>
+                  <td class="py-3 pl-4 sm:pl-6 pr-4 font-medium text-foreground">{{ item.row.label }}</td>
                   <td
                     v-for="tier in tiers"
                     :key="tier.id"
@@ -471,9 +471,9 @@
       </section>
 
       <!-- All Plans Include -->
-      <section class="rounded-2xl border bg-muted/30 dark:bg-muted/50 px-6 py-8">
+      <section class="rounded-2xl border bg-muted/30 dark:bg-muted/50 px-4 sm:px-6 py-6 sm:py-8">
         <h2 class="text-center text-lg font-semibold text-foreground mb-6">All plans include</h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 max-w-3xl mx-auto">
           <div class="flex items-start gap-4">
             <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent/10 dark:bg-accent/20 text-accent">
               <Shield class="h-5 w-5" />
@@ -514,7 +514,7 @@
           Support will send you a link to confirm; your plan will then switch to {{ tierDisplayName('starter') }}. Your current subscription will be cancelled.
         </p>
         <template #footer>
-          <div class="flex justify-end gap-2">
+          <div class="flex flex-wrap justify-end gap-2">
             <Button variant="outline" :disabled="downgradeRequestLoading" @click="showDowngradeModal = false">
               Cancel
             </Button>
@@ -536,7 +536,7 @@
           Support will send you a checkout link to complete the upgrade. You will be charged according to the selected plan.
         </p>
         <template #footer>
-          <div class="flex justify-end gap-2">
+          <div class="flex flex-wrap justify-end gap-2">
             <Button variant="outline" :disabled="upgradeRequestLoading" @click="closeUpgradeModal">
               Cancel
             </Button>

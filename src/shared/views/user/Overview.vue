@@ -3,7 +3,7 @@
     <!-- Header -->
     <header
       :class="[
-        'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
+        'sticky top-0 z-50 pt-[env(safe-area-inset-top)] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
         theme.borderPrimary,
         theme.bgHeader,
         theme.transition,
@@ -1562,7 +1562,9 @@ const handleSignOut = async () => {
   await logout()
 }
 
-const handleViewProfile = () => {}
+const handleViewProfile = () => {
+  navigateTo({ name: 'overview-account' })
+}
 
 const handleViewAllProjects = () => {
   navigateTo({ name: 'projects' })
@@ -1914,7 +1916,7 @@ const selectionLimit = ref(null)
 const freeStorage = computed(() => totalStorage.value - usedStorage.value)
 const storagePercentage = computed(() => {
   if (totalStorage.value === 0) return 0
-  return (usedStorage.value / totalStorage.value) * 100
+  return Math.round((usedStorage.value / totalStorage.value) * 100)
 })
 
 const projectLimitReached = computed(() => {

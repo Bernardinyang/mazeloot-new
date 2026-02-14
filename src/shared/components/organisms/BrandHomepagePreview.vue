@@ -1,7 +1,7 @@
 <template>
   <div class="bg-gradient-to-b from-gray-50 to-white min-h-full">
     <!-- Header -->
-    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
+    <header class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div class="px-3 py-2 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <img

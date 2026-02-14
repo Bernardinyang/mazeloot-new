@@ -6,7 +6,7 @@
     <SidebarInset>
       <header
         :class="[
-          'sticky top-0 z-50 flex h-14 md:h-16 shrink-0 items-center gap-1 sm:gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg overflow-x-hidden',
+          'sticky top-0 z-50 flex h-14 md:h-16 shrink-0 items-center gap-1 sm:gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12 pt-[env(safe-area-inset-top)] border-b backdrop-blur-xl bg-white/80 dark:bg-gray-950/80 rounded-tl-lg overflow-x-hidden',
           theme.borderPrimary,
           theme.transitionColors,
         ]"

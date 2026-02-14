@@ -31,7 +31,7 @@
     <!-- Preview Mode Banner -->
     <div
       v-if="isPreviewMode && isAuthenticatedOwner"
-      class="sticky top-0 z-50 bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
+      class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-lg"
     >
       <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-center gap-2">
         <Eye class="h-4 w-4" />

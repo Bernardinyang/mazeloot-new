@@ -1,5 +1,5 @@
 <template>
-  <header class="sticky top-0 z-50 border-b dark:border-white/10 light:border-gray-200 bg-gradient-to-br dark:from-[#0f0f23]/95 dark:via-indigo-950/95 dark:to-[#0f0f23]/95 light:from-white/95 light:via-gray-50/95 light:to-white/95 backdrop-blur-xl shadow-lg dark:shadow-black/5 light:shadow-gray-200/50">
+  <header class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] border-b dark:border-white/10 light:border-gray-200 bg-gradient-to-br dark:from-[#0f0f23]/95 dark:via-indigo-950/95 dark:to-[#0f0f23]/95 light:from-white/95 light:via-gray-50/95 light:to-white/95 backdrop-blur-xl shadow-lg dark:shadow-black/5 light:shadow-gray-200/50">
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 items-center justify-between gap-4">
         <RouterLink

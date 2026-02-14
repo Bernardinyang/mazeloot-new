@@ -1,7 +1,7 @@
 <template>
   <div :class="['min-h-screen', theme.bgPage]">
     <!-- Top Bar -->
-    <div :class="['sticky top-0 z-50 border-b backdrop-blur supports-[backdrop-filter]:backdrop-blur-md', theme.bgHeader, theme.borderPrimary, 'shadow-sm']">
+    <div :class="['sticky top-0 z-50 pt-[env(safe-area-inset-top)] border-b backdrop-blur supports-[backdrop-filter]:backdrop-blur-md', theme.bgHeader, theme.borderPrimary, 'shadow-sm']">
       <div class="container mx-auto px-4 py-3">
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-3">

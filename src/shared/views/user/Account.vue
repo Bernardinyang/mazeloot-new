@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-slate-50 via-white to-violet-50/30 dark:from-gray-950 dark:via-gray-900 dark:to-violet-950/20 transition-colors overflow-x-hidden">
     <header
-      class="sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-xl border-b border-white/20 dark:border-white/5 bg-white/70 dark:bg-gray-900/80 shadow-sm"
+      class="sticky top-0 z-50 pt-[env(safe-area-inset-top)] flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-xl border-b border-white/20 dark:border-white/5 bg-white/70 dark:bg-gray-900/80 shadow-sm"
     >
       <div class="flex items-center gap-4 min-w-0">
         <RouterLink

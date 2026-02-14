@@ -51,20 +51,18 @@ const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
         '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
       }"
     >
-      <div class="flex h-full w-full flex-col overflow-y-auto overscroll-contain">
-        <div class="sticky top-0 z-10 flex shrink-0 items-center justify-end border-b border-sidebar-border bg-sidebar px-2 pt-[env(safe-area-inset-top)] pb-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            class="min-h-[44px] min-w-[44px] touch-manipulation -mr-1"
-            aria-label="Close menu"
-            @click="setOpenMobile(false)"
-          >
-            <span class="sr-only">Close menu</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
-          </Button>
-        </div>
-        <div class="flex-1 min-h-0 pb-[env(safe-area-inset-bottom)]">
+      <div class="relative flex h-full w-full flex-col overflow-y-auto overscroll-contain pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <Button
+          variant="ghost"
+          size="icon"
+          class="absolute left-auto right-2 top-[max(0.5rem,env(safe-area-inset-top))] z-20 min-h-[44px] min-w-[44px] touch-manipulation rounded-full bg-sidebar-accent text-sidebar-accent-foreground shadow-lg ring-2 ring-white/20 hover:bg-sidebar-accent/90 hover:ring-white/30 focus-visible:ring-2 focus-visible:ring-sidebar-ring focus-visible:ring-offset-2 focus-visible:ring-offset-sidebar"
+          aria-label="Close menu"
+          @click="setOpenMobile(false)"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          <span class="sr-only">Close menu</span>
+        </Button>
+        <div class="flex-1 min-h-0">
           <slot />
         </div>
       </div>

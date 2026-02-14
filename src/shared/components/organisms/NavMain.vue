@@ -32,7 +32,12 @@ const props = defineProps({
 })
 
 const { isActiveRoute, route } = useNavigation()
-const { state, isMobile } = useSidebar()
+const { state, isMobile, setOpenMobile } = useSidebar()
+
+function closeSidebarIfMobile() {
+  if (isMobile.value) setOpenMobile(false)
+}
+
 const isCollapsed = computed(() => state === 'collapsed')
 
 const isLabelOnly = item => {
@@ -145,6 +150,7 @@ const groupedItems = computed(() => {
                             ),
                           }"
                           :to="subItem.name ? { name: subItem.name } : subItem.url || '#'"
+                          @click="closeSidebarIfMobile"
                         >
                           <span>{{ subItem.title }}</span>
                         </RouterLink>
@@ -167,6 +173,7 @@ const groupedItems = computed(() => {
                   ),
                 }"
                 :to="item.name ? { name: item.name } : item.url || '#'"
+                @click="closeSidebarIfMobile"
               >
                 <component :is="item.icon" v-if="item.icon" />
                 <span>{{ item.title }}</span>

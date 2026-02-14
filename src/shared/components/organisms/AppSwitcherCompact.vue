@@ -2,7 +2,7 @@
   <DropdownMenu>
     <DropdownMenuTrigger as-child>
       <Button
-        :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative']"
+        :class="[theme.textPrimary, theme.bgButtonHover, theme.transition, 'relative min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 touch-manipulation']"
         size="icon"
         variant="ghost"
       >

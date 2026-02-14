@@ -8,8 +8,8 @@
             theme.bgButtonHover,
             'light:hover:text-gray-900 dark:hover:text-gray-100',
             theme.transition,
-            'relative h-9 w-9 rounded-lg',
-            'hover:scale-105 active:scale-95',
+            'relative min-h-[44px] min-w-[44px] md:h-9 md:w-9 rounded-lg',
+            'hover:scale-105 active:scale-95 touch-manipulation',
           ]"
           size="icon"
           variant="ghost"
@@ -47,16 +47,16 @@
         ]"
       >
         <!-- Header -->
-        <div class="sticky top-0 z-20 border-b border-gray-200/80 dark:border-gray-800/80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl">
+        <div class="sticky top-0 z-20 border-b border-gray-200/80 dark:border-gray-800/80 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
           <!-- Title and Actions Row -->
-          <div class="px-4 sm:px-6 pt-4 sm:pt-5 pb-3">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-              <div class="flex items-center gap-2 sm:gap-3">
-                <div class="h-8 w-8 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-110">
+          <div class="px-4 sm:px-6 pt-4 sm:pt-5 pb-3 pr-[max(1rem,env(safe-area-inset-right))] sm:pr-6">
+            <div class="flex flex-row items-start sm:items-center justify-between gap-3 mb-4">
+              <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                <div class="h-9 w-9 sm:h-9 sm:w-9 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 dark:from-blue-600 dark:to-purple-700 flex items-center justify-center shrink-0 transition-transform duration-300 hover:scale-110">
                   <Bell class="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform duration-300" :class="{ 'animate-pulse-subtle': unreadCount > 0 }" />
                 </div>
                 <div class="min-w-0">
-                  <h3 class="text-base sm:text-lg font-bold tracking-tight" :class="theme.textPrimary">
+                  <h3 class="text-base sm:text-lg font-bold tracking-tight truncate" :class="theme.textPrimary">
                     Notification Center
                   </h3>
                   <p v-if="unreadCount > 0" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -65,34 +65,34 @@
                 </div>
               </div>
 
-              <div class="flex flex-col items-end gap-2 shrink-0 self-start sm:self-auto">
+              <div class="flex items-center gap-2 shrink-0">
+                <button
+                  v-if="hasUnreadNotifications"
+                  class="min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 px-3 py-2 md:py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-all duration-200 shrink-0 hover:scale-105 active:scale-95 touch-manipulation flex items-center justify-center"
+                  @click.stop="handleMarkAllAsRead"
+                >
+                  Mark all read
+                </button>
                 <Button
                   type="button"
                   variant="destructive"
                   size="icon"
-                  class="h-7 w-7 rounded-md"
+                  class="min-h-[44px] min-w-[44px] md:h-7 md:w-7 md:min-h-0 md:min-w-0 rounded-md touch-manipulation"
                   aria-label="Close notification panel"
                   @click="isOpen = false"
                 >
                   <X class="h-4 w-4" />
                 </Button>
-                <button
-                  v-if="hasUnreadNotifications"
-                  class="px-3 py-1.5 text-xs font-semibold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-300 hover:bg-green-50 dark:hover:bg-green-950/20 rounded-lg transition-all duration-200 shrink-0 hover:scale-105 active:scale-95"
-                  @click.stop="handleMarkAllAsRead"
-                >
-                  Mark all as read
-                </button>
               </div>
             </div>
 
             <!-- Priority Filters -->
-            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide">
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-hide touch-pan-x">
               <button
                 v-for="priority in priorityFilters"
                 :key="priority"
                 :class="[
-                  'px-3 sm:px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 whitespace-nowrap shrink-0',
+                  'min-h-[44px] md:min-h-0 px-3 sm:px-3.5 py-2 md:py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 whitespace-nowrap shrink-0 touch-manipulation',
                   'border border-transparent',
                   selectedPriority === priority
                     ? 'bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 shadow-sm scale-105'
@@ -115,10 +115,10 @@
               key="detail"
               class="flex-1 flex flex-col min-h-0 overflow-hidden"
             >
-              <div class="shrink-0 flex items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3">
+              <div class="shrink-0 flex items-center border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-3 pr-[max(1rem,env(safe-area-inset-right))]">
                 <button
                   type="button"
-                  class="flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                  class="min-h-[44px] -ml-2 pl-2 pr-2 flex items-center gap-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors touch-manipulation"
                   aria-label="Back to notifications"
                   @click="transitionDirection = 'back'; viewMode = 'list'; selectedNotification = null"
                 >

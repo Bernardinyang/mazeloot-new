@@ -7,6 +7,7 @@
           theme.bgButtonHover,
           'light:hover:text-gray-900 dark:hover:text-gray-100',
           theme.transition,
+          'min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 touch-manipulation',
         ]"
         size="icon"
         variant="ghost"

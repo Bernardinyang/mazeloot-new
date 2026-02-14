@@ -2,7 +2,7 @@
   <div class="flex flex-col h-screen overflow-hidden" :class="theme.bgPage">
     <!-- Full Width Header - Glassy Effect -->
     <div
-      class="w-full border-b flex-shrink-0 backdrop-blur-xl bg-white/40 dark:bg-gray-950/40 sticky top-0 z-50"
+      class="w-full border-b flex-shrink-0 backdrop-blur-xl bg-white/40 dark:bg-gray-950/40 sticky top-0 z-50 pt-[env(safe-area-inset-top)]"
       :class="theme.borderPrimary"
     >
       <div class="p-2 md:p-4 flex items-center justify-between gap-2">

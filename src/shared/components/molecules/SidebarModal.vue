@@ -1,6 +1,14 @@
 <template>
   <Sheet v-model:open="isOpen">
-    <SheetContent :side="side" :class="['flex flex-col p-0', theme.bgCard, contentClass]">
+    <SheetContent
+      :side="effectiveSide"
+      :class="[
+        'flex flex-col p-0 min-h-0',
+        theme.bgCard,
+        contentClass,
+        isMobile && 'w-full max-w-none max-h-[90dvh]',
+      ]"
+    >
       <!-- Header Section - Fixed at top -->
       <div
         v-if="title || description"
@@ -42,6 +50,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import { useMediaQuery } from '@vueuse/core'
 import {
   Sheet,
   SheetContent,
@@ -83,6 +92,8 @@ const props = defineProps({
 const emit = defineEmits(['update:modelValue'])
 
 const theme = useThemeClasses()
+const isMobile = useMediaQuery('(max-width: 768px)')
+const effectiveSide = computed(() => (isMobile.value ? 'bottom' : props.side))
 
 const isOpen = computed({
   get: () => props.modelValue,
