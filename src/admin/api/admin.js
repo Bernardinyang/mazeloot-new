@@ -97,11 +97,11 @@ export function useAdminApi() {
   }
 
   /**
-   * Suspend user
+   * Suspend user (optional reason sent to user by email)
    */
-  const suspendUser = async (uuid) => {
+  const suspendUser = async (uuid, data = {}) => {
     try {
-      const response = await apiClient.patch(`/v1/admin/users/${uuid}/suspend`)
+      const response = await apiClient.patch(`/v1/admin/users/${uuid}/suspend`, data)
       return response.data
     } catch (error) {
       throw parseError(error)

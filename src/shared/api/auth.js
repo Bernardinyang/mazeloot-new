@@ -42,6 +42,7 @@ export function useAuthApi() {
           selection_limit: response.data.user.selection_limit ?? null,
           proofing_limit: response.data.user.proofing_limit ?? null,
           early_access: response.data.user.early_access,
+          status: response.data.user.status ?? null,
         },
         token: response.data.token,
       }

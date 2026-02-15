@@ -2,6 +2,12 @@ const appDesc = 'Professional gallery and client proofing platform for creatives
 
 export const userRoutes = [
   {
+    path: '/suspended',
+    name: 'suspended',
+    component: () => import('@/shared/views/user/AccountSuspended.vue'),
+    meta: { requiresAuth: true, requiresUser: true, title: 'Account suspended | Mazeloot', description: appDesc },
+  },
+  {
     path: '/overview',
     name: 'overview',
     component: () => import('@/shared/views/user/Overview.vue'),

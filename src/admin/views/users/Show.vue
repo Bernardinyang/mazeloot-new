@@ -133,7 +133,83 @@
               </div>
             </div>
           </dl>
+
+          <!-- Status & actions -->
+          <div class="mt-6 pt-6 border-t border-border flex flex-wrap items-center gap-3">
+            <span :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">Status</span>
+            <Badge
+              :variant="user.status?.name === 'suspended' ? 'destructive' : 'secondary'"
+              class="shrink-0"
+            >
+              {{ user.status?.name ?? 'active' }}
+            </Badge>
+            <div class="flex gap-2">
+              <Button
+                v-if="user.status?.name !== 'suspended'"
+                variant="destructive"
+                size="sm"
+                :disabled="statusActionLoading"
+                @click="openSuspendDialog"
+              >
+                Suspend
+              </Button>
+              <Button
+                v-if="user.status?.name === 'suspended'"
+                variant="default"
+                size="sm"
+                :disabled="statusActionLoading"
+                @click="activateDialogOpen = true"
+              >
+                Activate
+              </Button>
+            </div>
+          </div>
         </section>
+
+        <!-- Suspend confirmation dialog -->
+        <Dialog v-model:open="suspendDialogOpen">
+          <DialogContent class="sm:max-w-md">
+            <DialogTitle>Suspend user?</DialogTitle>
+            <DialogDescription>
+              This will suspend the account. The user will receive an email. Optionally provide a reason (included in the email).
+            </DialogDescription>
+            <div class="grid gap-4 py-4">
+              <div class="grid gap-2">
+                <label :class="['text-sm font-medium', theme.textPrimary]" for="suspend-reason">Reason (optional)</label>
+                <textarea
+                  id="suspend-reason"
+                  v-model="suspendReason"
+                  :class="['min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm', theme.textPrimary]"
+                  placeholder="e.g. Violation of terms…"
+                  maxlength="2000"
+                  rows="4"
+                />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2">
+              <Button variant="outline" @click="suspendDialogOpen = false">Cancel</Button>
+              <Button variant="destructive" :disabled="statusActionLoading" @click="confirmSuspend">
+                Suspend
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        <!-- Activate confirmation dialog -->
+        <Dialog v-model:open="activateDialogOpen">
+          <DialogContent class="sm:max-w-md">
+            <DialogTitle>Activate user?</DialogTitle>
+            <DialogDescription>
+              This will reactivate the account. The user will receive an email and can sign in again.
+            </DialogDescription>
+            <div class="flex justify-end gap-2 pt-2">
+              <Button variant="outline" @click="activateDialogOpen = false">Cancel</Button>
+              <Button :disabled="statusActionLoading" @click="confirmActivate">
+                Activate
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <!-- Push subscriptions -->
         <section
@@ -262,6 +338,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/shadcn/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/shared/components/shadcn/dialog'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
@@ -274,6 +356,10 @@ const notifications = ref([])
 const notificationsLoading = ref(false)
 const resendingId = ref(null)
 const roleUpdating = ref(false)
+const statusActionLoading = ref(false)
+const suspendDialogOpen = ref(false)
+const activateDialogOpen = ref(false)
+const suspendReason = ref('')
 
 const isSuperAdmin = userStore.isSuperAdmin
 
@@ -333,6 +419,43 @@ async function updateRole(role) {
     toast.error(e?.message ?? 'Failed to update role')
   } finally {
     roleUpdating.value = false
+  }
+}
+
+function openSuspendDialog() {
+  suspendReason.value = ''
+  suspendDialogOpen.value = true
+}
+
+async function confirmSuspend() {
+  if (!user.value?.uuid) return
+  statusActionLoading.value = true
+  try {
+    await adminApi.suspendUser(user.value.uuid, { reason: suspendReason.value?.trim() || undefined })
+    suspendDialogOpen.value = false
+    const res = await adminApi.getUser(user.value.uuid)
+    user.value = res?.data ?? res
+    toast.success('User suspended. They will receive an email.')
+  } catch (e) {
+    toast.error(e?.message ?? 'Failed to suspend user')
+  } finally {
+    statusActionLoading.value = false
+  }
+}
+
+async function confirmActivate() {
+  if (!user.value?.uuid) return
+  statusActionLoading.value = true
+  try {
+    await adminApi.activateUser(user.value.uuid)
+    activateDialogOpen.value = false
+    const res = await adminApi.getUser(user.value.uuid)
+    user.value = res?.data ?? res
+    toast.success('User activated. They will receive an email.')
+  } catch (e) {
+    toast.error(e?.message ?? 'Failed to activate user')
+  } finally {
+    statusActionLoading.value = false
   }
 }
 

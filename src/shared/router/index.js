@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { ref } from 'vue'
 import { routes } from './routes'
 import { useUserStore } from '@/shared/stores/user'
+import { useAuthApi } from '@/shared/api/auth'
 import { useOnboardingApi } from '@/shared/api/onboarding'
 import { setPostAuthRedirect } from '@/shared/utils/localStorage'
 
@@ -18,7 +19,7 @@ const router = createRouter({
 })
 
 // Route exemptions that skip onboarding checks
-const EXEMPT_ROUTES = ['onboarding', 'overview', 'overview-account', 'overview-account-general', 'overview-account-billing', 'overview-account-refer', 'productSelection', 'admin', 'admin-dashboard', 'admin-users', 'admin-user-show', 'admin-products', 'admin-product-show', 'admin-pricing', 'admin-pricing-tier-create', 'admin-pricing-tier-edit', 'admin-pricing-tier-view', 'admin-early-access', 'admin-early-access-show', 'admin-analytics', 'admin-activity-logs-users', 'admin-activity-logs-admins', 'admin-faq', 'admin-faq-create', 'admin-faq-edit']
+const EXEMPT_ROUTES = ['suspended', 'onboarding', 'overview', 'overview-account', 'overview-account-general', 'overview-account-billing', 'overview-account-refer', 'productSelection', 'admin', 'admin-dashboard', 'admin-users', 'admin-user-show', 'admin-products', 'admin-product-show', 'admin-pricing', 'admin-pricing-tier-create', 'admin-pricing-tier-edit', 'admin-pricing-tier-view', 'admin-early-access', 'admin-early-access-show', 'admin-analytics', 'admin-activity-logs-users', 'admin-activity-logs-admins', 'admin-faq', 'admin-faq-create', 'admin-faq-edit']
 
 // Cache for products and onboarding status (5 minute TTL)
 const cache = {
@@ -98,6 +99,7 @@ const isProductOnboardingCompleted = (productUuid, onboardingStatus) => {
 router.beforeEach(async (to, from, next) => {
   isRouteLoading.value = true
   const userStore = useUserStore()
+  const authApi = useAuthApi()
   const onboardingApi = useOnboardingApi()
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth === true)
@@ -162,6 +164,24 @@ router.beforeEach(async (to, from, next) => {
       // Allow admins to proceed to admin routes or any other route
       next()
       return
+    }
+
+    // Non-admin: ensure we have user status, then redirect if suspended
+    if (to.name !== 'suspended') {
+      if (!userStore.user?.status) {
+        try {
+          const data = await authApi.getUser()
+          if (data?.user) {
+            userStore.updateUser({ ...data.user })
+          }
+        } catch {
+          // ignore
+        }
+      }
+      if (userStore.user?.status?.name === 'suspended') {
+        next({ name: 'suspended' })
+        return
+      }
     }
 
     // Skip fetching for exempt routes (use cached data if available)

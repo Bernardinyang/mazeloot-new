@@ -60,6 +60,7 @@ onMounted(async () => {
         emailVerified: !!response.user.email_verified_at,
         role: response.user.role,
         early_access: response.user.early_access,
+        status: response.user.status ?? null,
       }
     } catch (error) {
       throw new Error('Failed to fetch user data. Please try logging in again.')
