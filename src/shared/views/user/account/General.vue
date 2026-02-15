@@ -163,6 +163,44 @@
       </div>
     </div>
 
+    <!-- Device notifications -->
+    <div
+      v-if="notificationPermission.supported"
+      class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden"
+    >
+      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-violet-500/5 to-transparent dark:from-violet-500/10">
+        <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md">
+          <Bell class="h-5 w-5" />
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Device notifications</h2>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Get notified when you're not in the app</p>
+        </div>
+      </div>
+      <div class="p-6 space-y-3">
+        <p v-if="notificationPermission.permission === 'default'" class="text-sm text-gray-600 dark:text-gray-400">
+          Allow notifications in your browser to receive alerts on this device.
+        </p>
+        <p v-else-if="notificationPermission.permission === 'granted'" class="text-sm text-green-600 dark:text-green-400">
+          Notifications are enabled for this device.
+        </p>
+        <p v-else class="text-sm text-gray-600 dark:text-gray-400">
+          Notifications are blocked. Enable them in your browser settings to get alerts.
+        </p>
+        <Button
+          v-if="notificationPermission.permission === 'default'"
+          type="button"
+          variant="outline"
+          class="rounded-xl border-violet-500/50 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:border-violet-500"
+          :disabled="notificationPermissionRequesting"
+          @click="requestNotificationPermission"
+        >
+          <Loader2 v-if="notificationPermissionRequesting" class="h-4 w-4 animate-spin mr-2" />
+          {{ notificationPermissionRequesting ? 'Requesting…' : 'Allow notifications' }}
+        </Button>
+      </div>
+    </div>
+
     <!-- Danger zone -->
     <div class="rounded-2xl border border-red-200/80 dark:border-red-900/50 bg-white dark:bg-gray-900/80 shadow-lg overflow-hidden">
       <div class="px-6 py-4 border-b border-red-100 dark:border-red-900/30 flex items-center gap-3 bg-gradient-to-r from-red-500/5 to-transparent dark:from-red-500/10">
@@ -268,13 +306,34 @@ import AvatarDisplay from '@/shared/components/atoms/AvatarDisplay.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import { Button } from '@/shared/components/shadcn/button'
 import { Separator } from '@/shared/components/shadcn/separator'
-import { Camera, KeyRound, Loader2, Trash2, User } from 'lucide-vue-next'
+import { Bell, Camera, KeyRound, Loader2, Trash2, User } from 'lucide-vue-next'
+import { useNotificationPermission } from '@/shared/composables/useNotificationPermission'
+import { usePushSubscription } from '@/shared/composables/usePushSubscription'
 import { apiClient } from '@/shared/api/client'
 
 const router = useRouter()
 const userStore = useUserStore()
 const authApi = useAuthApi()
 const { logout } = useLogout()
+const notificationPermission = useNotificationPermission()
+const { subscribe: subscribeToPush } = usePushSubscription()
+const notificationPermissionRequesting = ref(false)
+
+async function requestNotificationPermission() {
+  notificationPermissionRequesting.value = true
+  try {
+    const result = await notificationPermission.requestPermission()
+    if (result === 'granted') {
+      await subscribeToPush()
+      toast.success('Device notifications enabled')
+    }
+  } catch (err) {
+    console.error('Push subscription failed:', err)
+    toast.error(err?.message || 'Could not enable device notifications')
+  } finally {
+    notificationPermissionRequesting.value = false
+  }
+}
 
 const user = computed(() => userStore.user)
 const firstName = ref('')
