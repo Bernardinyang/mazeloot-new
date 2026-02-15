@@ -1,15 +1,15 @@
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 
 export function useNotificationPermission() {
-  const permission = ref(
-    typeof window !== 'undefined' && 'Notification' in window
-      ? Notification.permission
-      : 'default'
-  )
+  const permission = ref('default')
+  const supported = ref(false)
 
-  const supported = computed(
-    () => typeof window !== 'undefined' && 'Notification' in window
-  )
+  onMounted(() => {
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      supported.value = true
+      permission.value = Notification.permission
+    }
+  })
 
   const requestPermission = async () => {
     if (!supported.value) return permission.value
@@ -24,7 +24,10 @@ export function useNotificationPermission() {
   }
 
   const syncPermission = () => {
-    if (supported.value) permission.value = Notification.permission
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      supported.value = true
+      permission.value = Notification.permission
+    }
   }
 
   return {

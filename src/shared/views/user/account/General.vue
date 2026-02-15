@@ -178,26 +178,51 @@
         </div>
       </div>
       <div class="p-6 space-y-3">
-        <p v-if="notificationPermission.permission === 'default'" class="text-sm text-gray-600 dark:text-gray-400">
-          Allow notifications in your browser to receive alerts on this device.
-        </p>
-        <p v-else-if="notificationPermission.permission === 'granted'" class="text-sm text-green-600 dark:text-green-400">
+        <p v-if="notificationPermission.permission === 'granted'" class="text-sm text-green-600 dark:text-green-400">
           Notifications are enabled for this device.
         </p>
-        <p v-else class="text-sm text-gray-600 dark:text-gray-400">
-          Notifications are blocked. Enable them in your browser settings to get alerts.
-        </p>
-        <Button
-          v-if="notificationPermission.permission === 'default'"
-          type="button"
-          variant="outline"
-          class="rounded-xl border-violet-500/50 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:border-violet-500"
-          :disabled="notificationPermissionRequesting"
-          @click="requestNotificationPermission"
-        >
-          <Loader2 v-if="notificationPermissionRequesting" class="h-4 w-4 animate-spin mr-2" />
-          {{ notificationPermissionRequesting ? 'Requesting…' : 'Allow notifications' }}
-        </Button>
+        <template v-else-if="notificationPermission.permission === 'default'">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Activate notifications</p>
+          <ol class="text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1 mt-1">
+            <li>Click <strong>Allow notifications</strong> below.</li>
+            <li>In the browser dialog, choose <strong>Allow</strong>.</li>
+          </ol>
+          <Button
+            type="button"
+            variant="outline"
+            class="rounded-xl border-violet-500/50 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:border-violet-500 mt-3"
+            :disabled="notificationPermissionRequesting"
+            @click="requestNotificationPermission"
+          >
+            <Loader2 v-if="notificationPermissionRequesting" class="h-4 w-4 animate-spin mr-2" />
+            {{ notificationPermissionRequesting ? 'Requesting…' : 'Allow notifications' }}
+          </Button>
+        </template>
+        <template v-else>
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300">Activate notifications (currently blocked)</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">To show the Allow dialog again:</p>
+          <ol class="text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1 mt-1">
+            <li>Click the <strong>lock</strong> or <strong>info</strong> icon in the address bar.</li>
+            <li>Open <strong>Site settings</strong> (or Permissions).</li>
+            <li>Set <strong>Notifications</strong> to <strong>Ask</strong>, then click the button below.</li>
+          </ol>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Or enable directly:</p>
+          <ol class="text-sm text-gray-600 dark:text-gray-400 list-decimal list-inside space-y-1 mt-1">
+            <li>Click the <strong>lock</strong> or <strong>info</strong> icon in the address bar.</li>
+            <li>Open <strong>Site settings</strong> → <strong>Notifications</strong> → <strong>Allow</strong>.</li>
+            <li>Click the button below to finish.</li>
+          </ol>
+          <Button
+            type="button"
+            variant="outline"
+            class="rounded-xl border-violet-500/50 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:border-violet-500 mt-3"
+            :disabled="notificationPermissionRequesting"
+            @click="requestNotificationPermission"
+          >
+            <Loader2 v-if="notificationPermissionRequesting" class="h-4 w-4 animate-spin mr-2" />
+            {{ notificationPermissionRequesting ? 'Requesting…' : 'Show notification prompt' }}
+          </Button>
+        </template>
       </div>
     </div>
 
@@ -322,6 +347,7 @@ const notificationPermissionRequesting = ref(false)
 async function requestNotificationPermission() {
   notificationPermissionRequesting.value = true
   try {
+    notificationPermission.syncPermission()
     const result = await notificationPermission.requestPermission()
     if (result === 'granted') {
       await subscribeToPush()

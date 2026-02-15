@@ -1,5 +1,20 @@
 <template>
-  <div>
+  <div class="flex items-center gap-2">
+    <Button
+      v-if="showAllowNotificationsTrigger"
+      type="button"
+      variant="outline"
+      size="sm"
+      :class="[
+        'rounded-lg min-h-[44px] md:min-h-9 px-3 text-xs font-medium shrink-0',
+        'border-violet-500/50 text-violet-600 dark:text-violet-400 hover:bg-violet-500/10 hover:border-violet-500',
+      ]"
+      :disabled="notificationPermissionRequesting"
+      @click="handleRequestNotificationPermission"
+    >
+      <Loader2 v-if="notificationPermissionRequesting" class="h-3.5 w-3.5 animate-spin mr-1.5" />
+      {{ notificationPermissionRequesting ? 'Requesting…' : 'Allow notifications' }}
+    </Button>
     <Sheet :open="isOpen" @update:open="isOpen = $event">
       <SheetTrigger as-child>
         <Button
@@ -104,31 +119,17 @@
               </button>
             </div>
 
-            <!-- Device notifications -->
+            <!-- Device notifications status -->
             <div
               v-if="notificationPermission.supported"
               class="mt-3 pt-3 border-t border-gray-200/80 dark:border-gray-800/80"
             >
-              <p v-if="notificationPermission.permission === 'default'" class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Get notifications on this device when you're not in the app.
+              <p v-if="notificationPermission.permission === 'granted'" class="text-xs text-green-600 dark:text-green-400">
+                You’ll receive alerts on this device even when the app is closed.
               </p>
-              <p v-else-if="notificationPermission.permission === 'granted'" class="text-xs text-green-600 dark:text-green-400 mb-2">
-                Device notifications on
+              <p v-else class="text-xs text-gray-500 dark:text-gray-400">
+                Enable in your browser or in Account → General to get alerts when you’re not in the app.
               </p>
-              <p v-else class="text-xs text-gray-500 dark:text-gray-400 mb-2">
-                Device notifications are blocked. Enable them in your browser settings to get alerts.
-              </p>
-              <Button
-                v-if="notificationPermission.permission === 'default'"
-                type="button"
-                variant="outline"
-                size="sm"
-                class="text-xs"
-                :disabled="notificationPermissionRequesting"
-                @click="handleRequestNotificationPermission"
-              >
-                {{ notificationPermissionRequesting ? 'Requesting…' : 'Enable device notifications' }}
-              </Button>
             </div>
           </div>
         </div>
@@ -475,6 +476,7 @@ import {
   CheckSquare,
   Copy,
   ArrowLeft,
+  Loader2,
 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/shadcn/sheet'
@@ -505,6 +507,9 @@ const notificationsStore = useNotificationsStore()
 const notificationPermission = useNotificationPermission()
 const { subscribe: subscribeToPush } = usePushSubscription()
 const notificationPermissionRequesting = ref(false)
+const showAllowNotificationsTrigger = computed(
+  () => notificationPermission.supported && notificationPermission.permission === 'default'
+)
 const isOpen = ref(false)
 const isLoading = computed(() => notificationsStore.isLoading)
 const selectedPriority = ref('All')
@@ -813,6 +818,7 @@ const handleMarkAsRead = async notification => {
 const handleRequestNotificationPermission = async () => {
   notificationPermissionRequesting.value = true
   try {
+    notificationPermission.syncPermission()
     const result = await notificationPermission.requestPermission()
     if (result === 'granted') {
       await subscribeToPush()
