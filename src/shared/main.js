@@ -20,8 +20,11 @@ app.mount('#app')
 
 const loadingEl = document.getElementById('app-loading-screen')
 if (loadingEl) {
+  loadingEl.style.pointerEvents = 'none'
   loadingEl.style.opacity = '0'
-  loadingEl.addEventListener('transitionend', () => loadingEl.remove(), { once: true })
+  const remove = () => loadingEl.remove()
+  loadingEl.addEventListener('transitionend', remove, { once: true })
+  setTimeout(remove, 500)
 }
 
 if ('serviceWorker' in navigator) {
