@@ -141,21 +141,6 @@
       v-else
       class="flex items-center gap-2 sm:gap-3 flex-shrink-0 flex-wrap justify-start sm:justify-end w-full sm:w-auto"
     >
-      <!-- Storage indicator -->
-      <div
-        v-if="proofing?.storageUsedBytes !== undefined"
-        :class="[
-          'flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
-          'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-800/50',
-          'hover:bg-purple-100/50 dark:hover:bg-purple-900/40',
-        ]"
-      >
-        <HardDrive class="h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
-        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300">
-          {{ formatBytes(proofing.storageUsedBytes || 0) }}
-        </span>
-      </div>
-
       <Button
         :class="[theme.borderSecondary, theme.textPrimary, 'shrink-0']"
         :disabled="isLoading"
@@ -226,7 +211,7 @@
 
 <script setup>
 import { computed, inject } from 'vue'
-import { Check, CheckCircle2, ChevronLeft, Eye, HardDrive, Loader2, Share2, X, } from '@/shared/utils/lucideAnimated'
+import { Check, CheckCircle2, ChevronLeft, Eye, Loader2, Share2, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
@@ -335,14 +320,6 @@ const handlePreview = async () => {
   })
 
   window.open(route.href, '_blank')
-}
-
-const formatBytes = bytes => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 </script>
 

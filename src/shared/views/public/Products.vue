@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <PublicNav />
-    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Products' }]" />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: { name: 'home' }, label: 'Home' }, { label: 'Products' }]" />
 
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div class="text-center mb-12 sm:mb-16">

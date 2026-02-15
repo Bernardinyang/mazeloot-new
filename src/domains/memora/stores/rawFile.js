@@ -81,15 +81,17 @@ export const useRawFileStore = defineStore('rawFile', () => {
 
   /**
    * Fetch rawFile by ID
+   * @param {string} id
+   * @param {boolean} forceRefresh - if true, refetch even when same id is cached (e.g. for storage refresh)
    */
-  const fetchRawFile = async id => {
+  const fetchRawFile = async (id, forceRefresh = false) => {
     // Skip if already loading the same rawFile
     if (isLoading.value && currentRawFile.value?.id === id) {
       return currentRawFile.value
     }
 
-    // Skip if already loaded with same ID
-    if (currentRawFile.value?.id === id && !error.value) {
+    // Skip if already loaded with same ID (unless force refresh)
+    if (!forceRefresh && currentRawFile.value?.id === id && !error.value) {
       return currentRawFile.value
     }
 

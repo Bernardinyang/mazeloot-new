@@ -3,13 +3,13 @@
     <Transition name="lightbox-fade">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm"
+        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]"
         @click.self="handleClose"
       >
         <!-- Top Center Container -->
         <div 
           v-if="!(isSlideshowPlaying && isFullscreen)"
-          class="absolute top-4 sm:top-2 md:top-4 left-1/2 -translate-x-1/2 z-[110] w-full max-w-4xl px-8 sm:px-4 flex items-center justify-between gap-3 sm:gap-2 md:gap-3"
+          class="absolute top-[max(1rem,env(safe-area-inset-top))] sm:top-2 md:top-4 left-1/2 -translate-x-1/2 z-[110] w-full max-w-4xl px-8 sm:px-4 flex items-center justify-between gap-3 sm:gap-2 md:gap-3"
         >
           <!-- Counter -->
           <div class="flex items-center">

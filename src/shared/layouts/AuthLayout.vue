@@ -123,7 +123,7 @@ onUnmounted(() => {
       <div class="flex justify-between items-center mb-6 md:mb-8 gap-4">
         <div class="flex justify-center gap-2 md:justify-start shrink-0">
           <RouterLink
-            to="/"
+            :to="{ name: 'home' }"
             :class="[
               theme.textPrimary,
               theme.transitionColors,

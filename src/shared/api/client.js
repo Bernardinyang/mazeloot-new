@@ -4,6 +4,7 @@
  */
 
 import { useUserStore } from '@/shared/stores/user'
+import router from '@/shared/router'
 import { API_CONFIG } from './config'
 
 class ApiClient {
@@ -61,7 +62,9 @@ class ApiClient {
         currentPath === '/about'
 
       if (!isOnAuthPage && !isPublicRoute) {
-        window.location.href = '/login'
+        router.push({ name: 'login' }).catch(() => {
+          window.location.href = '/login'
+        })
       }
     }
 

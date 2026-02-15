@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
     <PublicNav />
-    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Early Access' }]" />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: { name: 'home' }, label: 'Home' }, { label: 'Early Access' }]" />
 
     <!-- Hero Section -->
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16 lg:py-24">
@@ -80,7 +80,7 @@
               <span class="block">
                 Already have an account?
                 <RouterLink
-                  to="/login"
+                  :to="{ name: 'login' }"
                   class="ml-1 text-purple-600 dark:text-purple-400 hover:underline font-medium"
                 >
                   Sign in

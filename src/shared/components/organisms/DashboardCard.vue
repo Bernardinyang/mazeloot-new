@@ -19,9 +19,19 @@
     <template v-else>
       <div :class="{ 'flex flex-col h-full': hasFooter }">
         <div :class="{ 'flex-1 flex flex-col min-h-0': hasFooter }">
-          <CardHeader v-if="title || description">
-            <div v-if="title || description" class="flex items-center justify-between">
-              <div>
+          <CardHeader v-if="title || description || productLabel">
+            <div v-if="title || description || productLabel" class="flex items-center justify-between gap-3">
+              <div class="min-w-0 flex-1">
+                <span
+                  v-if="productLabel"
+                  :class="[
+                    'inline-block text-[10px] font-semibold uppercase tracking-wider rounded-md px-2 py-0.5 mb-1.5',
+                    theme.bgMuted,
+                    theme.textSecondary,
+                  ]"
+                >
+                  {{ productLabel }}
+                </span>
                 <CardTitle v-if="title" :class="titleClasses">{{ title }}</CardTitle>
                 <CardDescription v-if="description" :class="descriptionClasses">{{
                   description
@@ -30,7 +40,7 @@
               <slot name="header-actions"></slot>
             </div>
           </CardHeader>
-          <Separator v-if="title || description" :class="separatorClasses" />
+          <Separator v-if="title || description || productLabel" :class="separatorClasses" />
           <CardContent :class="contentClasses">
             <slot></slot>
           </CardContent>
@@ -74,6 +84,10 @@ const props = defineProps({
   animationClass: {
     type: String,
     default: '',
+  },
+  productLabel: {
+    type: String,
+    default: undefined,
   },
 })
 

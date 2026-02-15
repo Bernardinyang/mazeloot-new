@@ -18,6 +18,7 @@ export function useMoveCopyFlow({
   mediaApi,
   loadMediaItems,
   updateSetCounts,
+  onStorageRefresh,
   description,
 } = {}) {
   const handleTargetCollectionChange = async collectionId => {
@@ -93,6 +94,7 @@ export function useMoveCopyFlow({
       }
 
       await updateSetCounts()
+      if (onStorageRefresh) await onStorageRefresh()
 
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
@@ -152,6 +154,8 @@ export function useMoveCopyFlow({
       if (targetCollectionId !== collection.value.id) {
         await updateSetCounts(targetCollectionId) // Update target collection
       }
+
+      if (onStorageRefresh) await onStorageRefresh()
 
       const targetSetId = targetSetIdInCollection.value
       // If copying within the same collection and to the same set, add to local view

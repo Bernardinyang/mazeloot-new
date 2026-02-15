@@ -1,16 +1,16 @@
 <template>
   <div class="min-h-screen bg-white dark:bg-gray-950">
     <PublicNav />
-    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Pricing' }]" />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: { name: 'home' }, label: 'Home' }, { label: 'Pricing' }]" />
 
     <section class="container mx-auto px-4 sm:px-6 lg:px-8 py-20">
       <div class="text-center mb-12 sm:mb-16">
-        <a
-          href="/founders"
+        <RouterLink
+          :to="{ name: 'founders-pricing' }"
           class="inline-block mb-4 px-4 py-2 rounded-lg bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-sm font-medium hover:bg-amber-200 dark:hover:bg-amber-800/50 transition-colors"
         >
           Founder's Pricing: 40% off forever for first 500 customers →
-        </a>
+        </RouterLink>
         <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4">Pricing</h1>
         <p class="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto px-4">
           Choose the plan that works best for your photography business
@@ -118,12 +118,12 @@
       </div>
 
       <div class="mt-12 text-center">
-        <a
-          href="/build-your-own"
+        <RouterLink
+          :to="{ name: 'build-your-own' }"
           class="inline-block text-sm font-medium text-primary hover:underline"
         >
           Or build your own plan →
-        </a>
+        </RouterLink>
       </div>
 
       <div class="mt-12 text-center">

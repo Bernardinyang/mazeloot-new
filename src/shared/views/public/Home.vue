@@ -839,7 +839,7 @@
       <div class="mx-auto max-w-7xl">
         <div class="flex flex-col gap-10 sm:flex-row sm:items-center sm:justify-between">
           <div class="max-w-sm">
-            <RouterLink to="/" class="inline-block">
+            <RouterLink :to="{ name: 'home' }" class="inline-block">
               <MazelootLogo size="sm" container-class="h-9" />
             </RouterLink>
             <p class="mt-3 text-sm leading-6 dark:text-gray-400 light:text-gray-700">
@@ -869,8 +869,8 @@
             <a href="#pricing" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900" @click.prevent="scrollToSection('pricing')">Pricing</a>
             <a href="#testimonials" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900" @click.prevent="scrollToSection('testimonials')">Testimonials</a>
             <a href="#newsletter" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900" @click.prevent="scrollToSection('newsletter')">Newsletter</a>
-            <RouterLink to="/faq" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900">FAQ</RouterLink>
-            <RouterLink to="/contact" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900">Contact us</RouterLink>
+            <RouterLink :to="{ name: 'faq' }" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900">FAQ</RouterLink>
+            <RouterLink :to="{ name: 'contact' }" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900">Contact us</RouterLink>
           </nav>
         </div>
         <div class="mt-10 border-t dark:border-white/10 light:border-gray-200 pt-6">
@@ -1127,7 +1127,7 @@ function goToPricingStart() {
   if (userStore.token) {
     router.push({ name: 'memora-pricing' })
   } else {
-    setPostAuthRedirect('/memora/pricing')
+    setPostAuthRedirect({ name: 'memora-pricing' })
     router.push({ name: 'register' })
   }
 }

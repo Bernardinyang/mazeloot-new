@@ -28,7 +28,7 @@
               </Badge>
             </template>
             <template #cell-actions="{ item }">
-              <RouterLink :to="`/admin/users/${item.uuid}`">
+              <RouterLink :to="{ name: 'admin-user-show', params: { uuid: item.uuid } }">
                 <Button variant="link" size="sm">View</Button>
               </RouterLink>
             </template>

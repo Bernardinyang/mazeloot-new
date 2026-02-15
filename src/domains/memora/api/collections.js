@@ -648,6 +648,18 @@ export function useCollectionsApi() {
   /**
    * Fetch single collection by ID
    */
+  const fetchStorage = async (id, projectId = null) => {
+    if (!API_CONFIG.USE_REAL_API) return 0
+    try {
+      let url = `/v1/memora/collections/${id}/storage`
+      if (projectId) url += `?projectId=${projectId}`
+      const response = await apiClient.get(url)
+      return response.data?.storageUsedBytes ?? 0
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   const fetchCollection = async id => {
     // Use real API if configured
     if (API_CONFIG.USE_REAL_API) {
@@ -1631,6 +1643,7 @@ export function useCollectionsApi() {
   return {
     fetchCollections,
     fetchCollection,
+    fetchStorage,
     fetchProjectCollections,
     createCollection,
     updateCollection,

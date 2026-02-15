@@ -26,13 +26,29 @@ if ('serviceWorker' in navigator) {
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New service worker available
+              newWorker.postMessage({ type: 'SKIP_WAITING' })
             }
           })
         }
       })
+      if (registration.waiting && navigator.serviceWorker.controller) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+      }
     })
-    .catch(() => {
-      // Service worker registration failed
-    })
+    .catch(() => {})
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload()
+  })
+}
+
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches || !!window.navigator.standalone
+if (typeof document !== 'undefined') {
+  let hiddenAt = 0
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') hiddenAt = Date.now()
+    if (document.visibilityState === 'visible' && isStandalone() && hiddenAt && Date.now() - hiddenAt > 60 * 1000) {
+      window.location.reload()
+    }
+  })
 }

@@ -17,7 +17,7 @@
           <Button size="lg" class="w-full" @click="goToDashboard">
             Go to Dashboard
           </Button>
-          <Button variant="outline" size="lg" class="w-full" @click="router.push('/settings/subscription')">
+          <Button variant="outline" size="lg" class="w-full" @click="router.push({ name: 'overview-account-billing' })">
             Manage Subscription
           </Button>
         </div>

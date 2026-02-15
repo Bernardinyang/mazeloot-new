@@ -6,7 +6,7 @@
         <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-3">
             <router-link
-              to="/"
+              :to="{ name: 'home' }"
               class="hidden lg:flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
               <MazelootLogo size="sm" />

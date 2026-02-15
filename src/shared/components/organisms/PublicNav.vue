@@ -3,7 +3,7 @@
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex h-16 items-center justify-between gap-4">
         <RouterLink
-          to="/"
+          :to="{ name: 'home' }"
           class="flex shrink-0 items-center gap-2 rounded-lg py-2 -my-2 px-2 outline-none transition-all duration-200 dark:hover:bg-white/5 light:hover:bg-gray-100 focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
           @click="handleHomeClick"
         >
@@ -13,17 +13,17 @@
         <nav class="hidden md:flex md:items-center md:gap-1" aria-label="Main">
           <RouterLink
             v-for="link in pageLinks"
-            :key="'page-' + link.path"
-            :to="link.path"
+            :key="'page-' + link.name"
+            :to="{ name: link.name }"
             class="relative rounded-lg px-4 py-2 text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white"
-            :class="isActive(link.path)
+            :class="isActive(link.name)
               ? 'dark:text-white dark:bg-white/10 light:text-gray-900 light:bg-gray-100'
               : 'dark:text-gray-300 dark:hover:text-white dark:hover:bg-white/5 light:text-gray-600 light:hover:text-gray-900 light:hover:bg-gray-50'"
-            @click="link.path === '/' ? handleHomeClick($event) : null"
+            @click="link.name === 'home' ? handleHomeClick($event) : null"
           >
             <span class="relative z-10">{{ link.label }}</span>
             <span
-              v-if="isActive(link.path)"
+              v-if="isActive(link.name)"
               class="absolute inset-0 rounded-lg bg-gradient-to-r dark:from-indigo-500/20 dark:to-violet-500/20 light:from-indigo-500/10 light:to-violet-500/10"
             />
           </RouterLink>
@@ -121,13 +121,13 @@
         <nav class="flex flex-col p-2" aria-label="Mobile">
           <RouterLink
             v-for="link in pageLinks"
-            :key="'m-page-' + link.path"
-            :to="link.path"
+            :key="'m-page-' + link.name"
+            :to="{ name: link.name }"
             class="relative rounded-lg px-4 py-3 text-base font-medium transition-all duration-200"
-            :class="isActive(link.path)
+            :class="isActive(link.name)
               ? 'bg-gradient-to-r from-indigo-500/20 to-violet-500/20 dark:text-white light:text-gray-900'
               : 'dark:text-gray-100 dark:hover:text-white dark:hover:bg-white/15 light:text-gray-700 light:hover:text-gray-900 light:hover:bg-gray-100'"
-            @click="(e) => { mobileOpen = false; if (link.path === '/') handleHomeClick(e) }"
+            @click="(e) => { mobileOpen = false; if (link.name === 'home') handleHomeClick(e) }"
           >
             {{ link.label }}
           </RouterLink>
@@ -176,9 +176,9 @@ const themeStore = useThemeStore()
 const mobileOpen = ref(false)
 
 const pageLinks = [
-  { type: 'page', path: '/', label: 'Home' },
-  { type: 'page', path: '/faq', label: 'FAQ' },
-  { type: 'page', path: '/contact', label: 'Contact Us' },
+  { type: 'page', name: 'home', label: 'Home' },
+  { type: 'page', name: 'faq', label: 'FAQ' },
+  { type: 'page', name: 'contact', label: 'Contact Us' },
 ]
 const scrollLinks = [
   { id: 'how-it-works', label: 'How it works' },
@@ -199,22 +199,21 @@ watch(mobileOpen, (open) => {
 onUnmounted(() => document.removeEventListener('keydown', onEscape))
 
 function handleHomeClick(e) {
-  if (route.path === '/') {
+  if (route.name === 'home') {
     e.preventDefault()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 }
 
 function goToSection(id) {
-  if (route.path === '/') {
+  if (route.name === 'home') {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   } else {
-    router.push({ path: '/', hash: '#' + id })
+    router.push({ name: 'home', hash: '#' + id })
   }
 }
 
-function isActive(path) {
-  if (path === '/') return route.path === '/'
-  return route.path.startsWith(path)
+function isActive(name) {
+  return route.name === name
 }
 </script>

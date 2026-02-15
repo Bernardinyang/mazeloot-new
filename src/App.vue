@@ -20,7 +20,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted, watch } from 'vue'
+import { computed, provide, ref, onMounted, onUnmounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
 import { isRouteLoading } from '@/shared/router'
 import RouteLoadingOverlay from '@/shared/components/organisms/RouteLoadingOverlay.vue'
@@ -47,9 +47,20 @@ const isPublicRoute = computed(() => {
 })
 
 const hasActiveOrFailedUploads = computed(() => {
-  return backgroundUploadManager.activeUploadCount.value > 0 || 
+  return backgroundUploadManager.activeUploadCount.value > 0 ||
          backgroundUploadManager.failedUploadCount.value > 0
 })
+
+const phaseStorageRefreshTrigger = ref(0)
+provide('phaseStorageRefreshTrigger', phaseStorageRefreshTrigger)
+watch(
+  () => (backgroundUploadManager.uploadQueue.value || []).filter(u => u.status === 'completed').length,
+  (completedCount, prevCount) => {
+    if (prevCount != null && completedCount > prevCount) {
+      phaseStorageRefreshTrigger.value++
+    }
+  }
+)
 
 let keyDownHandler = null
 

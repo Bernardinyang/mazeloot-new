@@ -2,7 +2,7 @@
   <Dialog :open="isOpen" @update:open="(v) => emit('update:open', v)">
     <DialogContent
       :hide-close="true"
-      :class="[theme.bgDropdown, theme.borderSecondary, 'p-0 w-[calc(100vw-1rem)] max-w-2xl max-h-[85dvh] sm:max-h-[80vh] overflow-hidden rounded-lg border shadow-lg']"
+      :class="[theme.bgDropdown, theme.borderSecondary, 'p-0 w-[min(calc(100vw-2rem),calc(100vw-env(safe-area-inset-left)-env(safe-area-inset-right)-2rem))] max-w-2xl max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2rem))] sm:max-h-[80vh] overflow-hidden rounded-lg border shadow-lg m-[max(0.5rem,env(safe-area-inset-top))] mr-[max(0.5rem,env(safe-area-inset-right))] mb-[max(0.5rem,env(safe-area-inset-bottom))] ml-[max(0.5rem,env(safe-area-inset-left))]']"
     >
       <div class="flex flex-col max-h-[80vh]">
         <!-- Search -->

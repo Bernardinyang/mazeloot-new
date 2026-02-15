@@ -87,7 +87,7 @@ onMounted(() => {
     })
   } else {
     // No collection ID, show error and redirect to home
-    router.replace('/')
+    router.replace({ name: 'home' })
   }
 })
 </script>

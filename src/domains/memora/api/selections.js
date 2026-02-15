@@ -74,6 +74,15 @@ export function useSelectionsApi() {
     }
   }
 
+  const fetchStorage = async id => {
+    try {
+      const response = await apiClient.get(`/v1/selections/${id}/storage`)
+      return response.data?.storageUsedBytes ?? 0
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   /**
    * Create selection (standalone or project-based)
    */
@@ -1010,6 +1019,7 @@ export function useSelectionsApi() {
     // Selection CRUD
     fetchAllSelections,
     fetchSelection,
+    fetchStorage,
     createSelection,
     updateSelection,
     deleteSelection,

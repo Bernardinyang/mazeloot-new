@@ -74,6 +74,15 @@ export function useRawFilesApi() {
     }
   }
 
+  const fetchStorage = async id => {
+    try {
+      const response = await apiClient.get(`/v1/raw-files/${id}/storage`)
+      return response.data?.storageUsedBytes ?? 0
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   /**
    * Create raw file (standalone or project-based)
    */
@@ -1041,6 +1050,7 @@ export function useRawFilesApi() {
     // Raw File CRUD
     fetchAllRawFiles,
     fetchRawFile,
+    fetchStorage,
     createRawFile,
     updateRawFile,
     deleteRawFile,

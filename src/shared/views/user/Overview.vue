@@ -1,12 +1,19 @@
 <template>
-  <div :class="['min-h-screen', theme.bgPage, theme.transitionColors]">
+  <div
+    :class="[
+      'min-h-screen',
+      'bg-gradient-to-br from-violet-50/50 via-white to-fuchsia-50/40',
+      'dark:from-gray-950 dark:via-gray-900/95 dark:to-violet-950/20',
+      'transition-colors duration-500',
+    ]"
+  >
     <!-- Header -->
     <header
       :class="[
-        'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 backdrop-blur-md',
-        theme.borderPrimary,
-        theme.bgHeader,
-        theme.transition,
+        'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4',
+        'backdrop-blur-xl border-b',
+        'border-gray-200/80 bg-white/80 dark:border-white/10 dark:bg-gray-950/70',
+        'transition-all duration-300',
       ]"
     >
       <!-- Left -->
@@ -173,27 +180,36 @@
           >
             <DropdownMenuLabel :class="theme.textPrimary">
               <div class="flex flex-col gap-1">
-                <span class="font-semibold">{{ userData.name }}</span>
-                <span :class="['text-xs font-normal', theme.textSecondary]">{{
-                  userData.email
-                }}</span>
+                <div class="flex items-center gap-2">
+                  <span class="font-semibold">{{ userData.name }}</span>
+                  <Badge v-if="roleLabel" :variant="roleVariant" class="text-xs">
+                    {{ roleLabel }}
+                  </Badge>
+                </div>
+                <span :class="['text-xs font-normal', theme.textSecondary]">{{ userData.email }}</span>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click="navigateTo({ name: 'brandingSettings' })"
+              @click="navigateTo({ name: 'overview-account' })"
             >
-              <Settings class="h-4 w-4" />
-              <span>Mazeloot Settings</span>
+              <BadgeCheck class="h-4 w-4" />
+              <span>Account</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
-              @click="navigateTo({ name: 'overview-account-general' })"
+              @click="navigateTo({ name: 'overview-account-refer' })"
             >
               <Users2 class="h-4 w-4" />
-              <span>Manage Account</span>
-              <ChevronRight class="ml-auto h-4 w-4" />
+              <span>Refer a Friend</span>
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              :class="[theme.textPrimary, theme.bgButtonHover, 'cursor-pointer']"
+              @click="navigateTo({ name: 'overview-account-billing' })"
+            >
+              <CreditCard class="h-4 w-4" />
+              <span>Billing</span>
             </DropdownMenuItem>
             <DropdownMenuSeparator :class="theme.bgDropdownSeparator" />
             <DropdownMenuItem
@@ -209,47 +225,60 @@
     </header>
 
     <!-- Main Content -->
-    <main class="px-4 sm:px-6 pb-12 pt-8">
-      <div class="max-w-7xl mx-auto space-y-8">
+    <main class="px-4 sm:px-6 pb-16 pt-8 sm:pt-10">
+      <div class="max-w-7xl mx-auto space-y-10">
         <!-- Welcome Section -->
-        <div class="space-y-2">
+        <div class="space-y-3">
+          <p
+            :class="[
+              'text-xs font-semibold uppercase tracking-widest',
+              'text-violet-600 dark:text-violet-400/90',
+            ]"
+          >
+            Dashboard
+          </p>
           <h1
             :class="[
-              'text-4xl sm:text-5xl font-bold bg-gradient-to-r from-accent to-accent/70 bg-clip-text text-transparent',
+              'text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight',
+              'bg-gradient-to-r from-gray-900 via-violet-800 to-fuchsia-800',
+              'dark:from-white dark:via-violet-200 dark:to-fuchsia-200',
+              'bg-clip-text text-transparent',
             ]"
           >
             Welcome back, {{ userData.name.split(' ')[0] }} 👋
           </h1>
-          <p :class="['text-base sm:text-lg', theme.textSecondary]">
-            Manage your photo galleries, projects, and client workflows
+          <p :class="['text-base sm:text-lg max-w-xl', theme.textSecondary]">
+            Summary of your Mazeloot products and activity
           </p>
         </div>
 
         <!-- User Profile Cover Card -->
         <div
           :class="[
-            'group relative overflow-hidden rounded-2xl',
-            'bg-gradient-to-br from-blue-600 via-purple-600 to-pink-600',
-            'dark:from-blue-700 dark:via-purple-700 dark:to-pink-700',
-            'light:from-blue-500 light:via-purple-500 light:to-pink-500',
+            'group relative overflow-hidden rounded-3xl',
+            'bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500',
+            'dark:from-indigo-700 dark:via-violet-700 dark:to-fuchsia-700',
             'backdrop-blur-md',
-            'border border-blue-500/30 dark:border-blue-500/40 light:border-blue-300/50',
-            'shadow-2xl dark:shadow-2xl dark:shadow-blue-500/20',
-            'hover:shadow-3xl transition-all duration-300',
+            'border border-white/20 dark:border-white/10',
+            'shadow-2xl shadow-violet-500/20 dark:shadow-2xl dark:shadow-violet-500/10',
+            'hover:shadow-violet-500/25 dark:hover:shadow-violet-500/15 transition-all duration-500',
             'animate-in fade-in slide-in-from-top-4 duration-500',
           ]"
         >
-          <!-- Cover Photo Background with Pattern -->
-          <div class="absolute inset-0 opacity-20">
+          <!-- Cover: mesh + orbs -->
+          <div class="absolute inset-0 overflow-hidden">
             <div
-              class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_50%)]"
-            ></div>
+              class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(255,255,255,0.25),transparent)]"
+            />
             <div
-              class="absolute top-0 right-0 w-96 h-96 bg-white/10 rounded-full blur-3xl -mr-48 -mt-48"
-            ></div>
+              class="absolute top-0 right-0 w-[28rem] h-[28rem] bg-white/15 rounded-full blur-3xl -mr-40 -mt-40"
+            />
             <div
-              class="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/20 rounded-full blur-3xl -ml-40 -mb-40"
-            ></div>
+              class="absolute bottom-0 left-0 w-80 h-80 bg-fuchsia-400/20 rounded-full blur-3xl -ml-32 -mb-32"
+            />
+            <div
+              class="absolute top-1/2 left-1/2 w-96 h-96 bg-violet-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+            />
           </div>
 
           <!-- Content -->
@@ -323,14 +352,12 @@
                 </div>
 
                 <!-- Action Buttons -->
-                <div class="flex flex-wrap items-center gap-3 justify-center sm:justify-start mt-4">
+                <div class="flex flex-wrap items-center gap-3 justify-center sm:justify-start mt-5">
                   <Button
                     :class="[
-                      'bg-white/20 dark:bg-white/10 light:bg-white/30',
-                      'backdrop-blur-sm',
-                      'border border-white/30 dark:border-white/20 light:border-white/40',
-                      'text-white hover:bg-white/30 dark:hover:bg-white/20 light:hover:bg-white/40',
-                      'transition-all duration-300 hover:scale-105 active:scale-95',
+                      'bg-white/25 dark:bg-white/15 border border-white/40 dark:border-white/25',
+                      'text-white hover:bg-white/35 dark:hover:bg-white/25',
+                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg',
                     ]"
                     size="sm"
                     @click="handleViewProfile"
@@ -340,18 +367,14 @@
                   </Button>
                   <Button
                     :class="[
-                      'bg-red-500/30 dark:bg-red-500/30 light:bg-red-500/40',
-                      'backdrop-blur-sm',
-                      'border border-red-400/50 dark:border-red-400/50 light:border-red-400/60',
-                      'text-white hover:bg-red-500/40 dark:hover:bg-red-500/40 light:hover:bg-red-500/50',
-                      'transition-all duration-300 hover:scale-105 active:scale-95 group',
+                      'bg-red-400/30 dark:bg-red-500/25 border border-red-300/50 dark:border-red-400/40',
+                      'text-white hover:bg-red-400/40 dark:hover:bg-red-500/35',
+                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg group',
                     ]"
                     size="sm"
                     @click="handleSignOut"
                   >
-                    <LogOut
-                      class="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1"
-                    />
+                    <LogOut class="h-4 w-4 group-hover:translate-x-0.5 transition-transform" />
                     Sign Out
                   </Button>
                 </div>
@@ -360,31 +383,39 @@
           </div>
         </div>
 
-        <!-- Plan / Tier card -->
+        <!-- Plan / Tier card (Memora) -->
         <div
           v-if="hasMemora"
           :class="[
-            'group relative overflow-hidden rounded-2xl p-5',
-            'bg-gradient-to-br from-amber-500/20 via-amber-500/10 to-transparent',
-            'dark:from-amber-500/20 dark:via-amber-500/10',
-            'light:from-amber-50 light:to-amber-100/50',
-            'border border-amber-500/30 dark:border-amber-500/30 light:border-amber-200',
-            'backdrop-blur-sm',
-            'hover:scale-[1.01] transition-all duration-300',
-            'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-amber-500/10',
+            'group relative overflow-hidden rounded-2xl p-6',
+            'bg-gradient-to-br from-amber-400/15 via-orange-400/10 to-yellow-400/5',
+            'dark:from-amber-500/25 dark:via-amber-500/15 dark:to-orange-500/10',
+            'border border-amber-400/40 dark:border-amber-500/40',
+            'shadow-lg shadow-amber-500/5 dark:shadow-amber-500/10',
+            'hover:shadow-xl hover:shadow-amber-500/10 dark:hover:shadow-amber-500/15 transition-all duration-300',
           ]"
         >
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 dark:from-amber-500 dark:via-orange-500 dark:to-yellow-500 opacity-80" />
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-start gap-4">
               <div
-                class="p-2.5 rounded-xl bg-amber-500/20 dark:bg-amber-500/20 light:bg-amber-100 shrink-0"
+                class="p-3 rounded-2xl bg-amber-500/25 dark:bg-amber-500/30 shrink-0 shadow-inner"
               >
                 <Sparkles
-                  class="h-6 w-6 text-amber-500 dark:text-amber-400 light:text-amber-600"
+                  class="h-6 w-6 text-amber-600 dark:text-amber-400"
                   aria-hidden="true"
                 />
               </div>
               <div class="min-w-0">
+                <span
+                  :class="[
+                    'inline-block text-[10px] font-semibold uppercase tracking-wider rounded-md px-2 py-0.5 mb-2',
+                    theme.bgMuted,
+                    theme.textSecondary,
+                  ]"
+                >
+                  Memora
+                </span>
                 <div class="flex items-center gap-2 flex-wrap">
                   <span
                     :class="[
@@ -397,7 +428,7 @@
                     {{ planBadgeLabel }}
                   </span>
                   <span :class="['text-xs font-medium uppercase tracking-wider', theme.textSecondary]">
-                    Memora plan
+                    Plan
                   </span>
                 </div>
                 <p
@@ -411,10 +442,10 @@
             <RouterLink
               :to="{ name: 'memora-pricing' }"
               :class="[
-                'inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium shrink-0',
+                'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold shrink-0 transition-all duration-300',
                 hasPaidPlan
-                  ? 'bg-amber-500/20 text-amber-800 dark:text-amber-200 hover:bg-amber-500/30 dark:hover:bg-amber-500/30 border border-amber-500/40'
-                  : 'bg-amber-500 text-amber-950 hover:bg-amber-400 dark:bg-amber-500 dark:text-amber-950 dark:hover:bg-amber-400 border border-amber-600/50',
+                  ? 'bg-amber-500/25 text-amber-800 dark:text-amber-200 hover:bg-amber-500/35 border border-amber-500/50 shadow-sm'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-amber-950 hover:from-amber-400 hover:to-orange-400 dark:from-amber-500 dark:to-orange-500 dark:text-amber-950 border border-amber-600/50 shadow-md hover:shadow-lg',
               ]"
             >
               {{ hasPaidPlan ? 'Manage subscription' : 'Upgrade plan' }}
@@ -422,209 +453,172 @@
             </RouterLink>
           </div>
           <div
-            class="absolute bottom-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full -mr-12 -mb-12"
+            class="absolute bottom-0 right-0 w-32 h-32 bg-amber-400/10 dark:bg-amber-500/15 rounded-full -mr-16 -mb-16 blur-2xl"
             aria-hidden="true"
           />
         </div>
 
-        <!-- Stats Cards (auto-fit by visible count) -->
-        <div
-          v-if="hasMemora"
-          class="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-4"
-        >
+        <!-- Stats Cards (Memora) -->
+        <div v-if="hasMemora" class="space-y-4">
+          <span
+            :class="[
+              'inline-block text-[10px] font-semibold uppercase tracking-wider rounded-full px-3 py-1',
+              'bg-violet-500/10 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300',
+            ]"
+          >
+            Memora
+          </span>
+          <div class="grid grid-cols-2 md:grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] gap-4">
           <!-- Collections Stat -->
           <div
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-blue-500/20 via-blue-500/10 to-transparent',
-              'dark:from-blue-500/20 dark:via-blue-500/10',
-              'light:from-blue-50 light:to-blue-100/50',
-              'border border-blue-500/30 dark:border-blue-500/30 light:border-blue-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-blue-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-blue-500/15 to-cyan-500/10 dark:from-blue-500/25 dark:to-cyan-500/15',
+              'border-blue-400/30 dark:border-blue-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/15 dark:hover:shadow-blue-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Collections</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Collections</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
                   {{
                     isLoadingCollections
-                      ? '...'
+                      ? '—'
                       : galleryStore.collections.filter(c => !c.isFolder).length || 0
                   }}
                 </p>
               </div>
-              <div class="p-2 rounded-xl bg-blue-500/20 dark:bg-blue-500/20 light:bg-blue-100">
-                <Folder class="h-5 w-5 text-blue-400 dark:text-blue-400 light:text-blue-600" />
+              <div class="p-2.5 rounded-xl bg-blue-500/25 dark:bg-blue-500/30 ring-1 ring-blue-400/20">
+                <Folder class="h-5 w-5 text-blue-500 dark:text-blue-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-blue-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-blue-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
           </div>
 
           <!-- Storage Stat -->
           <div
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-purple-500/20 via-purple-500/10 to-transparent',
-              'dark:from-purple-500/20 dark:via-purple-500/10',
-              'light:from-purple-50 light:to-purple-100/50',
-              'border border-purple-500/30 dark:border-purple-500/30 light:border-purple-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-purple-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-purple-500/15 to-violet-500/10 dark:from-purple-500/25 dark:to-violet-500/15',
+              'border-purple-400/30 dark:border-purple-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/15 dark:hover:shadow-purple-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Storage</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
-                  {{ isLoadingStorage ? '...' : storagePercentage }}%
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Storage</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
+                  {{ isLoadingStorage ? '—' : storagePercentage }}%
                 </p>
               </div>
-              <div
-                class="p-2 rounded-xl bg-purple-500/20 dark:bg-purple-500/20 light:bg-purple-100"
-              >
-                <Database
-                  class="h-5 w-5 text-purple-400 dark:text-purple-400 light:text-purple-600"
-                />
+              <div class="p-2.5 rounded-xl bg-purple-500/25 dark:bg-purple-500/30 ring-1 ring-purple-400/20">
+                <Database class="h-5 w-5 text-purple-500 dark:text-purple-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-purple-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-purple-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
           </div>
 
           <!-- Projects Stat -->
           <div
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-green-500/20 via-green-500/10 to-transparent',
-              'dark:from-green-500/20 dark:via-green-500/10',
-              'light:from-green-50 light:to-green-100/50',
-              'border border-green-500/30 dark:border-green-500/30 light:border-green-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-green-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-emerald-500/15 to-green-500/10 dark:from-emerald-500/25 dark:to-green-500/15',
+              'border-emerald-400/30 dark:border-emerald-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/15 dark:hover:shadow-emerald-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Projects</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
-                  {{ isLoadingProjects ? '...' : projectStore.projects.length || 0 }}
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Projects</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
+                  {{ isLoadingProjects ? '—' : projectStore.projects.length || 0 }}
                 </p>
               </div>
-              <div class="p-2 rounded-xl bg-green-500/20 dark:bg-green-500/20 light:bg-green-100">
-                <FolderKanban
-                  class="h-5 w-5 text-green-400 dark:text-green-400 light:text-green-600"
-                />
+              <div class="p-2.5 rounded-xl bg-emerald-500/25 dark:bg-emerald-500/30 ring-1 ring-emerald-400/20">
+                <FolderKanban class="h-5 w-5 text-emerald-500 dark:text-emerald-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-green-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-emerald-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
           </div>
 
           <!-- Selections Stat (plan-gated) -->
           <div
             v-if="canAccessSelection"
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-pink-500/20 via-pink-500/10 to-transparent',
-              'dark:from-pink-500/20 dark:via-pink-500/10',
-              'light:from-pink-50 light:to-pink-100/50',
-              'border border-pink-500/30 dark:border-pink-500/30 light:border-pink-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-pink-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-pink-500/15 to-rose-500/10 dark:from-pink-500/25 dark:to-rose-500/15',
+              'border-pink-400/30 dark:border-pink-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/15 dark:hover:shadow-pink-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Selections</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
-                  {{ isLoadingSelections ? '...' : selectionStore.selections.length || 0 }}
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Selections</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
+                  {{ isLoadingSelections ? '—' : selectionStore.selections.length || 0 }}
                 </p>
               </div>
-              <div class="p-2 rounded-xl bg-pink-500/20 dark:bg-pink-500/20 light:bg-pink-100">
-                <CheckSquare class="h-5 w-5 text-pink-400 dark:text-pink-400 light:text-pink-600" />
+              <div class="p-2.5 rounded-xl bg-pink-500/25 dark:bg-pink-500/30 ring-1 ring-pink-400/20">
+                <CheckSquare class="h-5 w-5 text-pink-500 dark:text-pink-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-pink-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-pink-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
           </div>
 
           <!-- Proofing Stat (plan-gated) -->
           <div
             v-if="canAccessProofing"
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-orange-500/20 via-orange-500/10 to-transparent',
-              'dark:from-orange-500/20 dark:via-orange-500/10',
-              'light:from-orange-50 light:to-orange-100/50',
-              'border border-orange-500/30 dark:border-orange-500/30 light:border-orange-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-orange-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-orange-500/15 to-amber-500/10 dark:from-orange-500/25 dark:to-amber-500/15',
+              'border-orange-400/30 dark:border-orange-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/15 dark:hover:shadow-orange-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Proofing</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
-                  {{ isLoadingProofing ? '...' : proofingStore.proofings.length || 0 }}
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Proofing</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
+                  {{ isLoadingProofing ? '—' : proofingStore.proofings.length || 0 }}
                 </p>
               </div>
-              <div
-                class="p-2 rounded-xl bg-orange-500/20 dark:bg-orange-500/20 light:bg-orange-100"
-              >
-                <Eye class="h-5 w-5 text-orange-400 dark:text-orange-400 light:text-orange-600" />
+              <div class="p-2.5 rounded-xl bg-orange-500/25 dark:bg-orange-500/30 ring-1 ring-orange-400/20">
+                <Eye class="h-5 w-5 text-orange-500 dark:text-orange-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-orange-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-orange-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
           </div>
 
           <!-- Raw Files Stat (plan-gated) -->
           <div
             v-if="canAccessRawFiles"
             :class="[
-              'group relative overflow-hidden rounded-2xl p-5',
-              'bg-gradient-to-br from-teal-500/20 via-teal-500/10 to-transparent',
-              'dark:from-teal-500/20 dark:via-teal-500/10',
-              'light:from-teal-50 light:to-teal-100/50',
-              'border border-teal-500/30 dark:border-teal-500/30 light:border-teal-200',
-              'backdrop-blur-sm',
-              'hover:scale-[1.02] transition-all duration-300',
-              'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-teal-500/20',
+              'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
+              'bg-gradient-to-br from-teal-500/15 to-cyan-500/10 dark:from-teal-500/25 dark:to-cyan-500/15',
+              'border-teal-400/30 dark:border-teal-500/30',
+              'hover:scale-[1.02] hover:shadow-lg hover:shadow-teal-500/15 dark:hover:shadow-teal-500/20',
             ]"
           >
             <div class="flex items-start justify-between">
-              <div class="space-y-2">
-                <p :class="['text-sm font-medium', theme.textSecondary]">Raw Files</p>
-                <p :class="['text-2xl font-bold', theme.textPrimary]">
-                  {{ isLoadingRawFiles ? '...' : rawFileStore.rawFiles.length || 0 }}
+              <div class="space-y-1">
+                <p :class="['text-xs font-semibold uppercase tracking-wide', theme.textSecondary]">Raw Files</p>
+                <p :class="['text-2xl font-bold tabular-nums', theme.textPrimary]">
+                  {{ isLoadingRawFiles ? '—' : rawFileStore.rawFiles.length || 0 }}
                 </p>
               </div>
-              <div class="p-2 rounded-xl bg-teal-500/20 dark:bg-teal-500/20 light:bg-teal-100">
-                <FileText class="h-5 w-5 text-teal-400 dark:text-teal-400 light:text-teal-600" />
+              <div class="p-2.5 rounded-xl bg-teal-500/25 dark:bg-teal-500/30 ring-1 ring-teal-400/20">
+                <FileText class="h-5 w-5 text-teal-500 dark:text-teal-400" />
               </div>
             </div>
-            <div
-              class="absolute bottom-0 right-0 w-20 h-20 bg-teal-500/10 rounded-full -mr-10 -mb-10"
-            ></div>
+            <div class="absolute bottom-0 right-0 w-24 h-24 bg-teal-400/10 rounded-full -mr-12 -mb-12 blur-xl" />
+          </div>
           </div>
         </div>
 
         <!-- Products and Storage Row -->
         <div class="grid gap-6 md:grid-cols-2">
-          <!-- App Launcher Card -->
+          <!-- App Launcher Card (all products) -->
           <DashboardCard
             :loading="isLoadingApps"
             animation-class="animate-in fade-in slide-in-from-bottom-4 duration-500"
@@ -661,31 +655,25 @@
                   <div
                     :class="[
                       'relative rounded-3xl flex items-center justify-center overflow-hidden',
-                      'bg-gradient-to-br',
-                      'from-white/90 via-white/80 to-white/70',
-                      'dark:from-gray-800/90 dark:via-gray-800/80 dark:to-gray-900/70',
-                      'backdrop-blur-xl',
-                      'border border-white/20 dark:border-gray-700/50',
-                      'shadow-lg dark:shadow-2xl dark:shadow-black/30',
-                      'group-hover:shadow-xl dark:group-hover:shadow-2xl dark:group-hover:shadow-black/50',
-                      'group-hover:scale-105 group-hover:-translate-y-2',
+                      'bg-gradient-to-br from-white to-gray-100/80 dark:from-gray-800 dark:to-gray-900',
+                      'border-2 border-gray-200/80 dark:border-gray-600/50',
+                      'shadow-lg dark:shadow-xl dark:shadow-black/20',
+                      'group-hover:border-violet-400/50 dark:group-hover:border-violet-500/50',
+                      'group-hover:shadow-xl group-hover:shadow-violet-500/15 dark:group-hover:shadow-violet-500/20',
+                      'group-hover:scale-105 group-hover:-translate-y-1',
                       'group-active:scale-95 group-active:translate-y-0',
                       'transition-all duration-300 ease-out',
-                      'before:absolute before:inset-0 before:rounded-3xl',
-                      'before:bg-gradient-to-br before:from-white/20 before:via-transparent before:to-transparent',
-                      'before:opacity-0 group-hover:before:opacity-100',
-                      'before:transition-opacity before:duration-300',
+                      'ring-0 group-hover:ring-4 group-hover:ring-violet-400/20 dark:group-hover:ring-violet-500/30',
                       'w-full aspect-square',
                     ]"
                   >
-                    <!-- Animated background glow -->
                     <div
                       :class="[
                         'absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100',
-                        'bg-gradient-to-br from-accent/10 via-accent/5 to-transparent',
+                        'bg-gradient-to-br from-violet-500/10 via-fuchsia-500/5 to-transparent',
                         'transition-opacity duration-300',
                       ]"
-                    ></div>
+                    />
 
                     <!-- Icon -->
                     <div class="relative z-10 w-full h-full flex items-center justify-center p-2 transform group-hover:scale-110 transition-transform duration-300">
@@ -725,11 +713,12 @@
             </div>
           </DashboardCard>
 
-          <!-- Storage Space Section -->
+          <!-- Storage Space Section (Memora) -->
           <DashboardCard
             :loading="isLoadingStorage"
             animation-class="animate-in fade-in slide-in-from-bottom-4 duration-500"
             description="Manage your cloud storage space"
+            product-label="Memora"
             title="Storage"
           >
             <template #loading>
@@ -947,13 +936,14 @@
           </DashboardCard>
         </div>
 
-        <!-- Recent Collections and Projects - Side by Side -->
+        <!-- Recent Collections and Projects - Side by Side (Memora) -->
         <div v-if="hasMemora" class="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
           <!-- Recent Collections Widget -->
           <DashboardCard
             :loading="isLoadingCollections"
             animation-class="animate-in fade-in slide-in-from-right-4"
             description="Your latest photo collections and galleries"
+            product-label="Memora"
             title="Recent Collections"
           >
           <template #loading>
@@ -984,12 +974,13 @@
               :class="[
                 'group relative flex items-center gap-4 p-4 rounded-xl cursor-pointer',
                 'transition-all duration-300 ease-out',
-                'hover:scale-[1.02] active:scale-[0.98]',
+                'hover:scale-[1.01] active:scale-[0.99]',
                 theme.bgCard,
                 theme.borderCard,
-                'border hover:border-opacity-100',
-                'hover:shadow-xl dark:hover:shadow-2xl dark:hover:shadow-black/30',
+                'border hover:border-violet-400/30 dark:hover:border-violet-500/30',
+                'hover:shadow-lg hover:shadow-violet-500/5 dark:hover:shadow-violet-500/10',
                 'backdrop-blur-sm',
+                'rounded-l-xl border-l-4 border-l-transparent hover:border-l-violet-500',
               ]"
               :style="{ animationDelay: `${index * 100}ms` }"
               @click="navigateTo({ name: 'collectionPhotos', params: { uuid: collection.id } })"
@@ -1073,7 +1064,12 @@
           </div>
           <template #footer>
             <Button
-              :class="['w-full', theme.textSecondary, theme.bgButtonHover, 'hover:text-accent']"
+              :class="[
+                'w-full rounded-xl',
+                theme.textSecondary,
+                theme.bgButtonHover,
+                'hover:text-violet-600 dark:hover:text-violet-400 hover:bg-violet-500/10 dark:hover:bg-violet-500/10',
+              ]"
               size="sm"
               variant="ghost"
               @click="handleViewAllCollections"
@@ -1090,6 +1086,7 @@
             :show-footer="true"
             description="Organize your work into projects"
             footer-label="View All Projects"
+            product-label="Memora"
             title="Recent Projects"
             @footer-click="handleViewAllProjects"
           >
@@ -1171,6 +1168,7 @@
             animation-class="animate-in fade-in slide-in-from-bottom-4"
             description="Client photo selection workflows"
             footer-label="View All Selections"
+            product-label="Memora"
             title="Recent Selections"
             @footer-click="handleViewAllSelections"
           >
@@ -1250,6 +1248,7 @@
             animation-class="animate-in fade-in slide-in-from-bottom-4"
             description="Client approval and feedback workflows"
             footer-label="View All Proofing"
+            product-label="Memora"
             title="Recent Proofing"
             @footer-click="handleViewAllProofing"
           >
@@ -1331,6 +1330,7 @@
             animation-class="animate-in fade-in slide-in-from-bottom-4"
             description="Client raw file upload workflows"
             footer-label="View All Raw Files"
+            product-label="Memora"
             title="Recent Raw Files"
             @footer-click="handleViewAllRawFiles"
           >
@@ -1460,9 +1460,10 @@
             <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#"
               >Support</a
             >
-            <a class="hover:text-accent opacity-70 hover:opacity-100 transition-colors" href="#"
-              >About</a
-            >
+            <RouterLink
+              :to="{ name: 'faq' }"
+              class="hover:text-accent opacity-70 hover:opacity-100 transition-colors"
+              >FAQ</RouterLink>
           </div>
         </div>
       </div>
@@ -1491,6 +1492,8 @@ import {
   Plus,
   Presentation,
   Settings,
+  BadgeCheck,
+  CreditCard,
   Sparkles,
   StickyNote,
   Users2,
@@ -1510,6 +1513,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/shadcn/dropdown-menu/index'
+import Badge from '@/shared/components/shadcn/badge/Badge.vue'
 import NotificationDropdown from '@/shared/components/organisms/NotificationDropdown.vue'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { useThemeStore } from '@/shared/stores/theme'
@@ -1657,15 +1661,16 @@ const handleProductClick = product => {
     }
   }
   
-  // For other products, use route or url if available
+  const DASHBOARD_ROUTE_BY_SLUG = { memora: 'memoraDashboard' }
   if (product.route) {
     navigateTo(product.route)
   } else if (product.url) {
     navigateTo({ path: product.url })
   } else {
-    // Default: navigate to product route based on slug
     const productSlug = product.slug || product.id
-    if (productSlug) {
+    if (productSlug && DASHBOARD_ROUTE_BY_SLUG[productSlug]) {
+      navigateTo({ name: DASHBOARD_ROUTE_BY_SLUG[productSlug] })
+    } else if (productSlug) {
       navigateTo({ path: `/${productSlug}/dashboard` })
     }
   }
@@ -1677,6 +1682,16 @@ const handleAppSwitch = product => {
 }
 
 const userStore = useUserStore()
+const roleLabel = computed(() => {
+  if (userStore.isSuperAdmin) return 'Super Admin'
+  if (userStore.isAdmin) return 'Admin'
+  return null
+})
+const roleVariant = computed(() => {
+  if (userStore.isSuperAdmin) return 'destructive'
+  if (userStore.isAdmin) return 'secondary'
+  return 'default'
+})
 const productsStore = useProductsStore()
 const galleryStore = useGalleryStore()
 const projectStore = useProjectStore()

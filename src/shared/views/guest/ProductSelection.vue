@@ -178,10 +178,10 @@
             <span>&copy; {{ new Date().getFullYear() }} Mazeloot. All rights reserved.</span>
           </div>
           <div class="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="/" class="hover:text-foreground transition-colors">Home</a>
-            <a href="/products" class="hover:text-foreground transition-colors">Products</a>
-            <a href="/pricing" class="hover:text-foreground transition-colors">Pricing</a>
-            <a href="/contact" class="hover:text-foreground transition-colors">Contact</a>
+            <RouterLink :to="{ name: 'home' }" class="hover:text-foreground transition-colors">Home</RouterLink>
+            <RouterLink :to="{ name: 'products' }" class="hover:text-foreground transition-colors">Products</RouterLink>
+            <RouterLink :to="{ name: 'pricing' }" class="hover:text-foreground transition-colors">Pricing</RouterLink>
+            <RouterLink :to="{ name: 'contact' }" class="hover:text-foreground transition-colors">Contact</RouterLink>
           </div>
         </div>
       </div>

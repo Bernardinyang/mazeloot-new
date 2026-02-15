@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen bg-background">
     <PublicNav />
-    <PublicBreadcrumbBanner :breadcrumbs="[{ to: '/', label: 'Home' }, { label: 'Build Your Own' }]" />
+    <PublicBreadcrumbBanner :breadcrumbs="[{ to: { name: 'home' }, label: 'Home' }, { label: 'Build Your Own' }]" />
 
     <section class="container mx-auto max-w-[1920px] px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
       <header class="text-center mb-12 sm:mb-16">
@@ -237,7 +237,7 @@
       </div>
 
       <p class="mt-12 text-center">
-        <RouterLink to="/pricing" class="text-sm font-medium text-primary hover:underline rounded">
+        <RouterLink :to="{ name: 'pricing' }" class="text-sm font-medium text-primary hover:underline rounded">
           View fixed plans
         </RouterLink>
       </p>

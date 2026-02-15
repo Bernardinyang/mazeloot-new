@@ -110,21 +110,6 @@
       v-else
       class="flex items-center gap-2 flex-shrink-0 justify-end"
     >
-      <!-- Storage indicator -->
-      <div
-        v-if="selection?.storageUsedBytes !== undefined"
-        :class="[
-          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border transition-all',
-          'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-800/50',
-          'hover:bg-purple-100/50 dark:hover:bg-purple-900/40',
-        ]"
-      >
-        <HardDrive class="h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
-        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300 whitespace-nowrap">
-          {{ formatBytes(selection.storageUsedBytes || 0) }}
-        </span>
-      </div>
-
       <!-- Action Buttons Group -->
       <div class="flex items-center gap-2">
         <Button
@@ -217,7 +202,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { Check, CheckCircle2, ChevronLeft, Copy, Eye, HardDrive, Share2, X } from '@/shared/utils/lucideAnimated'
+import { Check, CheckCircle2, ChevronLeft, Copy, Eye, Share2, X } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
@@ -336,14 +321,6 @@ const handleCopyAllSelectedFilenames = () => {
   if (props.onCopyAllSelectedFilenames) {
     props.onCopyAllSelectedFilenames()
   }
-}
-
-const formatBytes = bytes => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 </script>
 

@@ -145,21 +145,6 @@
       <div class="h-8 w-8 rounded-lg bg-gray-200 dark:bg-gray-700/80 animate-pulse"></div>
     </div>
     <div v-else class="flex items-center gap-2 flex-shrink-0 flex-wrap justify-start sm:justify-end w-full sm:w-auto">
-      <!-- Storage indicator -->
-      <div
-        v-if="props.collection"
-        :class="[
-          'flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all',
-          'bg-purple-50/50 dark:bg-purple-950/30 border-purple-200/50 dark:border-purple-800/50',
-          'hover:bg-purple-100/50 dark:hover:bg-purple-900/40',
-        ]"
-      >
-        <HardDrive class="h-3.5 w-3.5 flex-shrink-0 text-purple-600 dark:text-purple-400" />
-        <span class="text-xs font-semibold text-purple-700 dark:text-purple-300">
-          {{ formatBytes(props.collection.storageUsedBytes ?? 0) }}
-        </span>
-      </div>
-
       <!-- Preview Button -->
       <Button
         variant="outline"
@@ -234,7 +219,6 @@ import {
   Loader2,
   Share2,
   X,
-  HardDrive,
   Eye,
 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button/index'
@@ -328,13 +312,5 @@ const collectionStatusDisplay = computed(() => {
 
 const formatDate = date => {
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-const formatBytes = bytes => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 </script>

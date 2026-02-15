@@ -56,7 +56,7 @@
                 :disabled="props.isFavoriteLoading"
                 :loading="props.isFavoriteLoading"
                 :icon="!props.isFavoriteLoading ? Star : null"
-                class="p-2 min-h-[44px] min-w-[44px] hover:bg-gray-700 dark:hover:bg-gray-800 text-white touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] hover:bg-gray-700 dark:hover:bg-gray-800 text-white touch-manipulation"
                 title="Favorite"
                 @click="handleFavorite"
               />
@@ -72,7 +72,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="View"
                 @click="handleView"
               >
@@ -90,7 +90,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="Apply Watermark"
                 @click="handleWatermark"
               >
@@ -108,7 +108,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="Move"
                 @click="handleMove"
               >
@@ -126,7 +126,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="Delete"
                 @click="handleDelete"
               >
@@ -144,7 +144,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="Edit"
                 @click="handleEdit"
               >
@@ -162,7 +162,7 @@
           <Tooltip>
             <TooltipTrigger as-child>
               <button
-                class="p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
+                class="flex items-center justify-center p-2 min-h-[44px] min-w-[44px] rounded-lg hover:bg-gray-700 dark:hover:bg-gray-800 transition-colors touch-manipulation"
                 title="Copy Filenames"
                 @click="handleCopyFilenames"
               >

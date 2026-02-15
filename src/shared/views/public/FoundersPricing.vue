@@ -72,7 +72,7 @@
 
       <div class="text-center">
         <p class="text-muted-foreground mb-4">
-          <RouterLink to="/pricing" class="text-foreground hover:underline">
+          <RouterLink :to="{ name: 'pricing' }" class="text-foreground hover:underline">
             View standard pricing
           </RouterLink>
         </p>
@@ -94,7 +94,7 @@ import PublicNav from '@/shared/components/organisms/PublicNav.vue'
 import { Button } from '@/shared/components/shadcn/button'
 
 const router = useRouter()
-const foundersBreadcrumbs = [{ to: '/', label: 'Home' }, { label: "Founder's Pricing" }]
+const foundersBreadcrumbs = [{ to: { name: 'home' }, label: 'Home' }, { label: "Founder's Pricing" }]
 
 function goToRegister(plan) {
   router.push({

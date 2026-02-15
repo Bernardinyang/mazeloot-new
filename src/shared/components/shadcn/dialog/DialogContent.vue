@@ -27,7 +27,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <DialogOverlay
       :class="
         cn(
-          'fixed inset-0 z-50 bg-black/80 backdrop-blur-sm will-change-opacity data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:duration-300 data-[state=closed]:duration-200',
+          'dialog-overlay-animate fixed inset-0 z-50 bg-black/80 backdrop-blur-sm will-change-opacity',
           typeof props.class === 'string' && props.class.includes('overlay-z-') ? 'z-[200]' : ''
         )
       "
@@ -36,7 +36,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       v-bind="forwarded"
       :class="
         cn(
-          'fixed left-1/2 top-1/2 z-50 grid w-full max-w-[calc(100vw-1rem)] sm:max-w-lg max-h-[90dvh] -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-4 sm:p-6 shadow-lg overflow-y-auto will-change-transform data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] data-[state=open]:duration-300 data-[state=closed]:duration-200 sm:rounded-lg mx-2 sm:mx-0',
+          'dialog-content-animate fixed left-1/2 top-1/2 z-50 grid w-full max-w-[min(calc(100vw-2rem),calc(100vw-env(safe-area-inset-left)-env(safe-area-inset-right)-2rem))] sm:max-w-lg max-h-[min(90dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-1rem))] -translate-x-1/2 -translate-y-1/2 gap-4 border bg-background p-4 sm:p-6 shadow-lg overflow-y-auto will-change-transform sm:rounded-lg m-[max(0.5rem,env(safe-area-inset-top))] mr-[max(0.5rem,env(safe-area-inset-right))] mb-[max(0.5rem,env(safe-area-inset-bottom))] ml-[max(0.5rem,env(safe-area-inset-left))] sm:m-2',
           props.class
         )
       "

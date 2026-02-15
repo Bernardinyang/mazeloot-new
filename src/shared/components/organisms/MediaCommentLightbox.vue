@@ -256,7 +256,7 @@
             :class="[
               'relative z-[101]',
               isMobile
-                ? 'fixed inset-x-0 bottom-0 h-3/4 transform translate-y-full transition-transform duration-300 ease-out shadow-2xl'
+                ? 'fixed inset-x-0 bottom-0 h-3/4 transform translate-y-full transition-transform duration-300 ease-out shadow-2xl pb-[env(safe-area-inset-bottom)]'
                 : 'w-full md:w-[450px] flex-shrink-0 border-l border-gray-800/50',
               { 'translate-y-0': isMobile && showComments },
             ]"

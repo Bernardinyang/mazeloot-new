@@ -65,12 +65,15 @@
           <MediaItemsHeaderBar
             v-else-if="selectedSetId"
             :disable-upload="selection?.status === 'completed'"
+            :is-refreshing-storage="isRefreshingStorage"
             :is-uploading="isUploading"
             :on-copy-selected-filenames-in-set="
               () => handleCopySelectedFilenamesInSet(selectedSetId)
             "
+            :on-refresh-storage="refreshStorage"
             :selected-count="selectedCountInCurrentSet"
             :selection-status="selection?.status"
+            :storage-used-bytes="storageUsedBytesForBadge"
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
             @toggle-select-all="handleToggleSelectAll"
@@ -506,7 +509,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import SelectionLayout from '@/domains/memora/layouts/SelectionLayout.vue'
@@ -649,7 +652,7 @@ const isLoading = ref(false)
 // Loading guard to prevent duplicate requests
 const isLoadingSelection = ref(false)
 
-const loadSelection = async () => {
+const loadSelection = async (forceRefresh = false) => {
   const selectionId = route.params.id
   if (!selectionId) {
     return
@@ -660,9 +663,9 @@ const loadSelection = async () => {
     return
   }
 
-  // If selection is already loaded with the same ID, skip unless switching phases
+  // If selection is already loaded with the same ID, skip unless switching phases or forcing refresh (e.g. storage)
   const previousSelectionId = selection.value?.id
-  if (previousSelectionId === selectionId && !isLoading.value) {
+  if (!forceRefresh && previousSelectionId === selectionId && !isLoading.value) {
     return
   }
 
@@ -674,7 +677,7 @@ const loadSelection = async () => {
       mediaItems.value = []
     }
 
-    const selectionData = await selectionStore.fetchSelection(selectionId)
+    const selectionData = await selectionStore.fetchSelection(selectionId, forceRefresh)
     selection.value = selectionData?.data !== undefined ? selectionData.data : selectionData
 
     // Set context and always fetch fresh media sets from API
@@ -719,6 +722,33 @@ const loadSelection = async () => {
     isLoadingSelection.value = false
   }
 }
+
+const isRefreshingStorage = ref(false)
+const storageBadgeKey = ref(0)
+const storageUsedBytesForBadge = computed(() => {
+  storageBadgeKey.value
+  return selection.value?.storageUsedBytes ?? 0
+})
+const refreshStorage = async () => {
+  if (!selection.value?.id || isRefreshingStorage.value) return
+  isRefreshingStorage.value = true
+  try {
+    await loadSelection(true)
+    storageBadgeKey.value++
+  } finally {
+    isRefreshingStorage.value = false
+  }
+}
+
+const phaseStorageRefreshTrigger = inject('phaseStorageRefreshTrigger', null)
+watch(
+  () => phaseStorageRefreshTrigger?.value,
+  (val) => {
+    if (val != null && val > 0 && selection.value?.id) {
+      setTimeout(() => refreshStorage(), 400)
+    }
+  }
+)
 
 // Sync selectedSetId with route query parameter
 let isUpdatingFromRoute = false
@@ -1090,9 +1120,15 @@ const handleBackgroundUploadComplete = event => {
   }
 }
 
-const onStorageShouldRefresh = () => {
+const onStorageShouldRefresh = async () => {
   if (mediaSetsSidebar) mediaSetsSidebar.loadMediaSets()
   loadMediaItems()
+  if (!selection.value?.id) return
+  try {
+    const bytes = await selectionsApi.fetchStorage(selection.value.id)
+    selection.value = { ...selection.value, storageUsedBytes: bytes }
+    storageBadgeKey.value++
+  } catch (_) {}
 }
 
 onMounted(() => {
@@ -1482,7 +1518,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: () => mediaSetsSidebar.loadMediaSets(),
-  loadPhaseDetail: loadSelection,
+  loadPhaseDetail: refreshStorage,
   getItemId,
   modals: {
     openDeleteModal,
@@ -1883,6 +1919,7 @@ const handleConfirmMoveCopy = async () => {
 
       // Reload media items to reflect changes
       await loadMediaItems()
+      await refreshStorage()
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
     } else {
@@ -1908,6 +1945,7 @@ const handleConfirmMoveCopy = async () => {
         await loadMediaItems()
       }
 
+      await refreshStorage()
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
     }

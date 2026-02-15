@@ -314,7 +314,7 @@
     
     <footer class="border-t dark:border-white/10 light:border-gray-200 bg-transparent py-12 px-6 lg:px-8">
       <div class="mx-auto max-w-7xl text-center">
-          <RouterLink to="/" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-emerald-400 transition-colors">
+          <RouterLink :to="{ name: 'home' }" class="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-emerald-400 transition-colors">
           <ArrowLeft class="h-4 w-4" />
           Back to home
         </RouterLink>

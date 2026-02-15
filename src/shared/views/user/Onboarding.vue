@@ -94,10 +94,10 @@
             <span>&copy; {{ new Date().getFullYear() }} Mazeloot. All rights reserved.</span>
           </div>
           <div class="flex items-center gap-6 text-sm text-muted-foreground">
-            <a href="/" class="hover:text-foreground transition-colors">Home</a>
-            <a href="/products" class="hover:text-foreground transition-colors">Products</a>
-            <a href="/pricing" class="hover:text-foreground transition-colors">Pricing</a>
-            <a href="/contact" class="hover:text-foreground transition-colors">Contact</a>
+            <RouterLink :to="{ name: 'home' }" class="hover:text-foreground transition-colors">Home</RouterLink>
+            <RouterLink :to="{ name: 'products' }" class="hover:text-foreground transition-colors">Products</RouterLink>
+            <RouterLink :to="{ name: 'pricing' }" class="hover:text-foreground transition-colors">Pricing</RouterLink>
+            <RouterLink :to="{ name: 'contact' }" class="hover:text-foreground transition-colors">Contact</RouterLink>
           </div>
         </div>
       </div>
@@ -108,6 +108,7 @@
 <script setup>
 import { ref, computed, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { invalidateRouterCache } from '@/shared/router'
 import { getPostAuthRedirect } from '@/shared/utils/localStorage'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/shared/components/shadcn/card'
 import { Button } from '@/shared/components/shadcn/button'
@@ -212,7 +213,6 @@ const handleNext = async () => {
         ])
         
         // Invalidate router cache to ensure fresh data on next navigation
-        const { invalidateRouterCache } = await import('@/shared/router')
         invalidateRouterCache()
         
         // Wait for computed properties to update

@@ -153,7 +153,7 @@
                 </div>
               </template>
               <template #cell-actions="{ item }">
-                <RouterLink :to="`/admin/early-access/${item.uuid}`">
+                <RouterLink :to="{ name: 'admin-early-access-show', params: { uuid: item.uuid } }">
                   <Button variant="link" size="sm">View</Button>
                 </RouterLink>
               </template>

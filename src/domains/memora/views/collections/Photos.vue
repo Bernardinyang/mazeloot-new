@@ -37,13 +37,16 @@
             :is-all-selected="
               selectedMediaIds.size === sortedMediaItems.length && sortedMediaItems.length > 0
             "
+            :is-refreshing-storage="isRefreshingStorage"
             :is-uploading="isUploading"
             :selected-count="selectedMediaIds.size"
             :sort-options="sortOptions"
+            :storage-used-bytes="storageUsedBytesForBadge"
             :title="selectedSet?.name || 'Highlights'"
             :total-items="sortedMediaItems.length"
             @toggle-select-all="handleToggleSelectAll"
             @add-media="handleAddMedia"
+            :on-refresh-storage="refreshStorage"
           />
 
           <!-- Shown only when plan set limit has been reached (dismissable) -->
@@ -551,7 +554,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useVirtualList } from '@vueuse/core'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
@@ -1468,6 +1471,7 @@ const { handleBulkMoveToSet } = useBulkMoveToSetFlow({
   description,
 })
 
+const onStorageRefreshRef = ref(null)
 const { handleTargetCollectionChange, handleCancelMoveCopy, handleConfirmMoveCopy } =
   useMoveCopyFlow({
     showMoveCopyModal,
@@ -1486,6 +1490,7 @@ const { handleTargetCollectionChange, handleCancelMoveCopy, handleConfirmMoveCop
     mediaApi,
     loadMediaItems,
     updateSetCounts,
+    onStorageRefresh: () => onStorageRefreshRef.value?.(),
     description,
   })
 
@@ -1540,6 +1545,33 @@ const { loadCollection } = useCollectionLoadFlow({
   mediaItems,
 })
 
+const isRefreshingStorage = ref(false)
+const storageBadgeKey = ref(0)
+const storageUsedBytesForBadge = computed(() => {
+  storageBadgeKey.value
+  return collection.value?.storageUsedBytes ?? 0
+})
+const refreshStorage = async () => {
+  if (!collection.value?.id || isRefreshingStorage.value) return
+  isRefreshingStorage.value = true
+  try {
+    await loadCollection(collection.value.id)
+    storageBadgeKey.value++
+  } finally {
+    isRefreshingStorage.value = false
+  }
+}
+onStorageRefreshRef.value = refreshStorage
+
+const phaseStorageRefreshTrigger = inject('phaseStorageRefreshTrigger', null)
+watch(
+  () => phaseStorageRefreshTrigger?.value,
+  (val) => {
+    if (val != null && val > 0 && collection.value?.id) {
+      setTimeout(() => refreshStorage(), 400)
+    }
+  }
+)
 
 // Track if we're loading display settings to prevent saves during load
 const isLoadingDisplaySettings = ref(false)
@@ -1646,7 +1678,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: updateSetCounts,
-  loadPhaseDetail: () => loadCollection(collection.value?.id),
+  loadPhaseDetail: refreshStorage,
   getItemId: item => item?.id || '',
   modals: {
     openDeleteModal,
@@ -1989,9 +2021,16 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
   showWarnings: false,
 })
 
-const onStorageShouldRefresh = () => {
+const onStorageShouldRefresh = async () => {
   if (mediaSetsSidebar) mediaSetsSidebar.loadMediaSets()
   loadMediaItems()
+  if (!collection.value?.id) return
+  try {
+    const projectId = collection.value.projectId ?? route.query.projectId ?? null
+    const bytes = await collectionsApi.fetchStorage(collection.value.id, projectId)
+    collection.value = { ...collection.value, storageUsedBytes: bytes }
+    storageBadgeKey.value++
+  } catch (_) {}
 }
 
 onMounted(async () => {

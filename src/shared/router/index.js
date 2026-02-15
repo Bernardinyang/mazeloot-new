@@ -206,7 +206,7 @@ router.beforeEach(async (to, from, next) => {
       // Check product selection requirement
       if (!EXEMPT_ROUTES.includes(to.name) && userStore.needsProductSelection) {
         try {
-          setPostAuthRedirect(to.fullPath)
+          setPostAuthRedirect({ name: to.name, params: to.params, query: to.query })
           const tokenData = await onboardingApi.generateProductSelectionToken()
           next({ name: 'productSelection', params: { token: tokenData.token } })
           return
@@ -233,7 +233,7 @@ router.beforeEach(async (to, from, next) => {
 
             if (!isProductOnboardingCompleted(productUuid, userStore.onboardingStatus)) {
               try {
-                setPostAuthRedirect(to.fullPath)
+                setPostAuthRedirect({ name: to.name, params: to.params, query: to.query })
                 const tokenData = await onboardingApi.generateToken(productUuid)
                 const productSlug = getProductSlug(routeProduct)
                 next({ name: 'onboarding', params: { productSlug, token: tokenData.token } })

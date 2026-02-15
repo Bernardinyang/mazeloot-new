@@ -1,60 +1,78 @@
 <template>
   <Teleport to="body">
-    <!-- Compact bar: only when queue has items -->
     <div
       v-if="uploadQueue.length > 0"
       :class="[
         theme.bgCard,
-        theme.borderCard,
-        'fixed z-50 rounded-lg border shadow-lg transition-all overflow-hidden',
+        'fixed z-50 rounded-2xl border-0 shadow-xl transition-all overflow-hidden backdrop-blur-sm',
         'bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))]',
         'w-[calc(100vw-2rem)] max-w-[420px] sm:w-[420px]',
+        'ring-1 ring-black/5 dark:ring-white/10',
       ]"
     >
-      <!-- Bar header + progress -->
-      <div class="p-3">
-        <div class="flex items-center justify-between gap-2">
-          <p :class="theme.textPrimary" class="text-sm font-semibold truncate">
-            Uploading {{ uploadQueue.length }} file{{ uploadQueue.length !== 1 ? 's' : '' }}...
-          </p>
-          <div class="flex items-center gap-0.5 shrink-0">
-            <button
-              type="button"
-              :class="[theme.textTertiary, 'p-1.5 rounded hover:opacity-80']"
-              :aria-label="expanded ? 'Minimize' : 'Expand'"
-              @click="expanded = !expanded"
-            >
-              <ChevronUp v-if="expanded" class="h-4 w-4" />
-              <ChevronDown v-else class="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              :class="[theme.textTertiary, 'p-1.5 rounded hover:opacity-80']"
-              aria-label="Close"
-              @click="emit('update:modelValue', false)"
-            >
-              <X class="h-4 w-4" />
-            </button>
+      <!-- Header: gradient strip + title -->
+      <div class="relative overflow-hidden">
+        <div
+          class="absolute inset-0 h-1 bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 opacity-90"
+          :style="{ width: `${aggregate.percentage}%` }"
+        />
+        <div class="p-3 pt-3.5">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <div
+                class="shrink-0 w-8 h-8 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center shadow-lg shadow-violet-500/25"
+              >
+                <Upload class="h-4 w-4 text-white" />
+              </div>
+              <p :class="theme.textPrimary" class="text-sm font-semibold truncate">
+                Uploading {{ uploadQueue.length }} file{{ uploadQueue.length !== 1 ? 's' : '' }}…
+              </p>
+            </div>
+            <div class="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                :class="[theme.textTertiary, 'p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors']"
+                :aria-label="expanded ? 'Minimize' : 'Expand'"
+                @click="expanded = !expanded"
+              >
+                <ChevronUp v-if="expanded" class="h-4 w-4" />
+                <ChevronDown v-else class="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                :class="[theme.textTertiary, 'p-2 rounded-lg hover:bg-black/5 dark:hover:bg-white/10 transition-colors']"
+                aria-label="Close"
+                @click="emit('update:modelValue', false)"
+              >
+                <X class="h-4 w-4" />
+              </button>
+            </div>
           </div>
-        </div>
 
-        <div class="mt-2 space-y-1">
-          <div :class="theme.textTertiary" class="flex flex-wrap items-center gap-x-3 gap-y-0 text-xs">
-            <span v-if="aggregate.speed > 0">{{ formatSpeed(aggregate.speed) }}</span>
-            <span v-if="aggregate.eta != null">{{ formatETA(aggregate.eta) }} remaining</span>
-            <span>{{ aggregate.percentage }}% Completed</span>
-            <span>{{ formatSize(aggregate.loaded) }} / {{ formatSize(aggregate.total) }}</span>
-          </div>
-          <div :class="[theme.bgInput, 'h-1.5 rounded-full overflow-hidden']">
+          <div class="mt-3 space-y-2">
             <div
-              class="h-full bg-green-500 transition-all duration-300"
-              :style="{ width: `${aggregate.percentage}%` }"
-            />
+              :class="theme.textTertiary"
+              class="flex flex-wrap items-center gap-x-4 gap-y-0 text-xs font-medium tabular-nums"
+            >
+              <span v-if="aggregate.speed > 0" class="text-emerald-600 dark:text-emerald-400">
+                {{ formatSpeed(aggregate.speed) }}
+              </span>
+              <span v-if="aggregate.eta != null">{{ formatETA(aggregate.eta) }} left</span>
+              <span class="text-violet-600 dark:text-violet-400">{{ aggregate.percentage }}%</span>
+              <span>{{ formatSize(aggregate.loaded) }} / {{ formatSize(aggregate.total) }}</span>
+            </div>
+            <div class="h-2 rounded-full overflow-hidden bg-black/5 dark:bg-white/10">
+              <div
+                class="h-full rounded-full bg-gradient-to-r from-violet-500 via-fuchsia-500 to-cyan-500 transition-all duration-500 ease-out relative overflow-hidden"
+                :style="{ width: `${aggregate.percentage}%` }"
+              >
+                <div class="absolute inset-0 bg-white/25 animate-shimmer motion-reduce:animate-none" />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Expanded list -->
       <Transition
         enter-active-class="transition-all duration-200 ease-out"
         enter-from-class="opacity-0 max-h-0"
@@ -63,157 +81,169 @@
         leave-from-class="opacity-100 max-h-[500px]"
         leave-to-class="opacity-0 max-h-0"
       >
-        <div v-if="expanded" :class="[theme.borderCard, 'border-t overflow-hidden']">
-          <!-- Alerts -->
+        <div v-if="expanded" class="border-t border-black/5 dark:border-white/10 overflow-hidden">
           <div
             v-if="!isOnline"
-            class="mx-3 mt-2 p-2 rounded-lg border border-red-500/30 bg-red-500/10 flex items-center gap-2"
+            class="mx-3 mt-3 p-3 rounded-xl bg-red-500/10 border border-red-400/30 flex items-center gap-2"
           >
             <AlertCircle class="h-4 w-4 text-red-500 shrink-0" />
-            <p class="text-xs text-red-500">Offline – uploads paused</p>
+            <p class="text-xs font-medium text-red-600 dark:text-red-400">Offline – uploads paused</p>
           </div>
           <div
             v-if="isQuotaHigh"
-            class="mx-3 mt-2 p-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 flex items-center gap-2"
+            class="mx-3 mt-3 p-3 rounded-xl bg-amber-500/10 border border-amber-400/30 flex items-center gap-2"
           >
-            <AlertCircle class="h-4 w-4 text-yellow-500 shrink-0" />
-            <p class="text-xs text-yellow-500">Storage {{ Math.round(quotaPercentage) }}% – cleanup suggested</p>
+            <AlertCircle class="h-4 w-4 text-amber-500 shrink-0" />
+            <p class="text-xs font-medium text-amber-700 dark:text-amber-400">Storage {{ Math.round(quotaPercentage) }}% – cleanup suggested</p>
           </div>
 
-          <div class="p-3 space-y-2 max-h-[400px] overflow-y-auto">
+          <div class="p-3 space-y-2.5 max-h-[400px] overflow-y-auto">
             <div
               v-for="item in uploadQueue"
               :key="item.id"
               :class="[
+                'rounded-xl p-3 transition-all',
                 theme.bgInput,
-                theme.borderSecondary,
-                'rounded-lg border p-2',
-                item.status === 'failed' ? 'border-red-500/30 bg-red-500/5' : '',
-                item.status === 'completed' ? 'border-green-500/30 bg-green-500/5' : '',
+                item.status === 'failed' ? 'ring-1 ring-red-400/40 bg-red-500/5' : '',
+                item.status === 'completed' ? 'ring-1 ring-emerald-400/40 bg-emerald-500/5' : '',
+                !['failed', 'completed'].includes(item.status) ? 'ring-1 ring-black/5 dark:ring-white/10' : '',
               ]"
             >
-              <div class="flex items-start gap-2">
+              <div class="flex items-start gap-3">
+                <div
+                  :class="[
+                    'shrink-0 w-9 h-9 rounded-lg flex items-center justify-center',
+                    item.status === 'uploading' && 'bg-gradient-to-br from-violet-500 to-fuchsia-500',
+                    item.status === 'completed' && 'bg-emerald-500/20',
+                    item.status === 'failed' && 'bg-red-500/20',
+                    item.status === 'paused' && 'bg-amber-500/20',
+                    ['pending', 'cancelled'].includes(item.status) && 'bg-black/5 dark:bg-white/10',
+                  ]"
+                >
+                  <Loader2
+                    v-if="item.status === 'uploading'"
+                    class="h-4 w-4 animate-spin text-white"
+                  />
+                  <CheckCircle2
+                    v-else-if="item.status === 'completed'"
+                    class="h-4 w-4 text-emerald-600 dark:text-emerald-400"
+                  />
+                  <XCircle v-else-if="item.status === 'failed'" class="h-4 w-4 text-red-500" />
+                  <Pause v-else-if="item.status === 'paused'" class="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                  <Upload v-else class="h-4 w-4 opacity-50" />
+                </div>
                 <div class="flex-1 min-w-0">
-                  <p :class="theme.textPrimary" class="text-xs font-medium truncate">
+                  <p :class="theme.textPrimary" class="text-sm font-medium truncate">
                     {{ item.filename }}
                   </p>
-                  <p :class="theme.textTertiary" class="text-xs mt-0.5">
+                  <p :class="theme.textTertiary" class="text-xs mt-0.5 tabular-nums">
                     {{ formatFileSize(item.size) }}
-                    <span v-if="item.progress?.speed > 0">
+                    <span v-if="item.progress?.speed > 0" class="text-emerald-600 dark:text-emerald-400">
                       · {{ formatSpeed(item.progress.speed) }}
                       <span v-if="item.progress?.eta"> · {{ formatETA(item.progress.eta) }}</span>
                     </span>
                   </p>
                 </div>
-                <div class="flex items-center gap-1 shrink-0">
-                  <Loader2
-                    v-if="item.status === 'uploading'"
-                    class="h-3.5 w-3.5 animate-spin text-accent"
-                  />
-                  <CheckCircle2
-                    v-else-if="item.status === 'completed'"
-                    class="h-3.5 w-3.5 text-green-500"
-                  />
-                  <XCircle v-else-if="item.status === 'failed'" class="h-3.5 w-3.5 text-red-500" />
-                  <Pause v-else-if="item.status === 'paused'" class="h-3.5 w-3.5 text-yellow-500" />
-                </div>
               </div>
               <div
                 v-if="item.status === 'uploading' && item.progress"
-                :class="[theme.bgInput, 'h-1.5 rounded-full overflow-hidden mt-1.5']"
+                class="h-1.5 rounded-full overflow-hidden mt-2 bg-black/5 dark:bg-white/10"
               >
                 <div
-                  class="bg-accent h-full transition-all duration-300"
+                  class="h-full rounded-full bg-gradient-to-r from-violet-500 to-fuchsia-500 transition-all duration-300"
                   :style="{ width: `${item.progress.percentage || 0}%` }"
                 />
               </div>
               <div
                 v-if="item.error"
-                :class="[theme.bgError, theme.textError, 'rounded p-1.5 text-xs mt-1']"
+                :class="[theme.bgError, theme.textError, 'rounded-lg p-2 text-xs mt-2']"
               >
                 {{ item.error.message || item.error }}
               </div>
-              <div class="flex flex-wrap gap-1 mt-1.5">
+              <div class="flex flex-wrap gap-1.5 mt-2">
                 <Button
                   v-if="item.status === 'uploading'"
                   size="sm"
                   variant="ghost"
-                  class="h-6 text-xs px-1.5"
+                  class="h-7 text-xs px-2 rounded-lg"
                   @click="handlePause(item.id)"
                 >
-                  <Pause class="h-3 w-3 mr-0.5" />
+                  <Pause class="h-3 w-3 mr-1" />
                   Pause
                 </Button>
                 <Button
                   v-if="item.status === 'paused' && isOnline"
                   size="sm"
                   variant="ghost"
-                  class="h-6 text-xs px-1.5"
+                  class="h-7 text-xs px-2 rounded-lg"
                   @click="handleResume(item.id)"
                 >
-                  <Play class="h-3 w-3 mr-0.5" />
+                  <Play class="h-3 w-3 mr-1" />
                   Resume
                 </Button>
                 <Button
                   v-if="item.status === 'failed' || item.status === 'cancelled'"
                   size="sm"
                   variant="ghost"
-                  class="h-6 text-xs px-1.5"
+                  class="h-7 text-xs px-2 rounded-lg"
                   @click="handleRetry(item.id)"
                 >
-                  <RefreshCw class="h-3 w-3 mr-0.5" />
+                  <RefreshCw class="h-3 w-3 mr-1" />
                   Retry
                 </Button>
                 <Button
                   v-if="['uploading', 'paused', 'pending'].includes(item.status)"
                   size="sm"
                   variant="ghost"
-                  class="h-6 text-xs px-1.5 text-red-500"
+                  class="h-7 text-xs px-2 rounded-lg text-red-600 hover:text-red-700 hover:bg-red-500/10 dark:text-red-400"
                   @click="handleCancel(item.id)"
                 >
-                  <X class="h-3 w-3 mr-0.5" />
+                  <X class="h-3 w-3 mr-1" />
                   Cancel
                 </Button>
               </div>
             </div>
           </div>
 
-          <div :class="[theme.borderCard, 'border-t p-2 flex flex-wrap gap-1']">
+          <div class="p-3 flex flex-wrap gap-2 border-t border-black/5 dark:border-white/10 bg-black/[0.02] dark:bg-white/[0.02]">
             <Button
               v-if="failedUploadCount > 0"
               size="sm"
               variant="outline"
-              class="h-7 text-xs"
+              class="h-8 text-xs rounded-lg border-amber-500/50 text-amber-700 dark:text-amber-400 hover:bg-amber-500/10"
               @click="handleRetryAllFailed"
             >
+              <RefreshCw class="h-3.5 w-3.5 mr-1" />
               Retry failed
             </Button>
             <Button
               v-if="activeUploadCount > 0"
               size="sm"
               variant="outline"
-              class="h-7 text-xs"
+              class="h-8 text-xs rounded-lg"
               @click="handlePauseAll"
             >
+              <Pause class="h-3.5 w-3.5 mr-1" />
               Pause all
             </Button>
             <Button
               v-if="pausedUploadCount > 0 && isOnline"
               size="sm"
               variant="outline"
-              class="h-7 text-xs"
+              class="h-8 text-xs rounded-lg"
               @click="handleResumeAll"
             >
+              <Play class="h-3.5 w-3.5 mr-1" />
               Resume all
             </Button>
             <Button
               v-if="uploadQueue.length > 0"
               size="sm"
               variant="outline"
-              class="h-7 text-xs text-red-500 border-red-500/50"
+              class="h-8 text-xs rounded-lg text-red-600 border-red-400/50 hover:bg-red-500/10 dark:text-red-400"
               @click="handleDeleteAll"
             >
-              <Trash2 class="h-3 w-3 mr-0.5" />
+              <Trash2 class="h-3.5 w-3.5 mr-1" />
               Clear
             </Button>
           </div>
@@ -237,6 +267,7 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  Upload,
 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'

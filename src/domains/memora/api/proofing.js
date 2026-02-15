@@ -136,6 +136,17 @@ export function useProofingApi() {
     }
   }
 
+  const fetchStorage = async (id, projectId = null) => {
+    try {
+      let endpoint = `/v1/memora/proofing/${id}/storage`
+      if (projectId) endpoint += `?projectId=${projectId}`
+      const response = await apiClient.get(endpoint)
+      return response.data?.storageUsedBytes ?? 0
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
   /**
    * Update proofing (standalone or project-based)
    */
@@ -1415,6 +1426,7 @@ export function useProofingApi() {
   return {
     createProofing,
     fetchProofing,
+    fetchStorage,
     fetchAllProofing,
     updateProofing,
     deleteProofing,

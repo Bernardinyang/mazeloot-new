@@ -80,15 +80,17 @@ export const useProofingStore = defineStore('proofing', () => {
 
   /**
    * Fetch proofing by ID
+   * @param {string} id
+   * @param {boolean} forceRefresh - if true, refetch even when same id is cached (e.g. for storage refresh)
    */
-  const fetchProofing = async id => {
+  const fetchProofing = async (id, forceRefresh = false) => {
     // Skip if already loading the same proofing
     if (isLoading.value && currentProofing.value?.id === id) {
       return currentProofing.value
     }
 
-    // Skip if already loaded with same ID
-    if (currentProofing.value?.id === id && !error.value) {
+    // Skip if already loaded with same ID (unless force refresh)
+    if (!forceRefresh && currentProofing.value?.id === id && !error.value) {
       return currentProofing.value
     }
 

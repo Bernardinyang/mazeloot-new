@@ -240,7 +240,7 @@
       <div class="relative mx-auto max-w-7xl">
         <div class="flex flex-col gap-10 sm:flex-row sm:items-center sm:justify-between">
           <div class="max-w-sm">
-            <RouterLink to="/" class="inline-block transition-transform hover:scale-105">
+            <RouterLink :to="{ name: 'home' }" class="inline-block transition-transform hover:scale-105">
               <MazelootLogo size="sm" container-class="h-9" />
             </RouterLink>
             <p class="mt-3 text-sm leading-6 dark:text-gray-400 light:text-gray-700">
@@ -248,8 +248,8 @@
             </p>
           </div>
           <nav class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm" aria-label="Footer">
-            <RouterLink to="/" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900 hover:underline underline-offset-4">Home</RouterLink>
-            <RouterLink to="/contact" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900 hover:underline underline-offset-4">Contact us</RouterLink>
+            <RouterLink :to="{ name: 'home' }" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900 hover:underline underline-offset-4">Home</RouterLink>
+            <RouterLink :to="{ name: 'contact' }" class="dark:text-gray-400 light:text-gray-600 transition-colors dark:hover:text-white light:hover:text-gray-900 hover:underline underline-offset-4">Contact us</RouterLink>
           </nav>
         </div>
       </div>

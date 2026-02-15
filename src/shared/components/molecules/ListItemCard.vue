@@ -5,6 +5,7 @@
     :loading="loading"
     :col-span="colSpan"
     :animation-class="animationClass"
+    :product-label="productLabel"
   >
     <template #loading>
       <slot name="loading">
@@ -71,6 +72,10 @@ const props = defineProps({
   footerLabel: {
     type: String,
     default: 'View All',
+  },
+  productLabel: {
+    type: String,
+    default: undefined,
   },
 })
 

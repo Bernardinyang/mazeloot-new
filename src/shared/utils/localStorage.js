@@ -48,15 +48,29 @@ export const removeStoredDownloadPin = (id) => {
 
 const POST_AUTH_REDIRECT_KEY = 'mazeloot_post_auth_redirect'
 
-export const setPostAuthRedirect = (path) => {
+export const setPostAuthRedirect = (pathOrLocation) => {
   if (typeof localStorage === 'undefined') return
-  if (path) localStorage.setItem(POST_AUTH_REDIRECT_KEY, path)
-  else localStorage.removeItem(POST_AUTH_REDIRECT_KEY)
+  if (!pathOrLocation) {
+    localStorage.removeItem(POST_AUTH_REDIRECT_KEY)
+    return
+  }
+  localStorage.setItem(
+    POST_AUTH_REDIRECT_KEY,
+    typeof pathOrLocation === 'object' ? JSON.stringify(pathOrLocation) : pathOrLocation
+  )
 }
 
 export const getPostAuthRedirect = () => {
   if (typeof localStorage === 'undefined') return null
-  return localStorage.getItem(POST_AUTH_REDIRECT_KEY) || null
+  const raw = localStorage.getItem(POST_AUTH_REDIRECT_KEY) || null
+  if (!raw) return null
+  try {
+    const parsed = JSON.parse(raw)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed) && 'name' in parsed) return parsed
+  } catch {
+    // not JSON, treat as path string
+  }
+  return raw
 }
 
 export const clearPostAuthRedirect = () => {

@@ -68,8 +68,11 @@
           </div>
           <MediaItemsHeaderBar
             v-else-if="selectedSetId"
+            :is-refreshing-storage="isRefreshingStorage"
             :is-uploading="isUploading"
+            :on-refresh-storage="refreshStorage"
             :selected-count="selectedCountInCurrentSet"
+            :storage-used-bytes="storageUsedBytesForBadge"
             :title="selectedSet?.name || 'All Media'"
             :total-items="sortedMediaItems.length"
             :selection-status="proofing?.status"
@@ -815,7 +818,7 @@ const handleImageError = event => {
 
 // Load proofing data
 const isLoading = ref(false)
-const loadProofing = async (proofingId) => {
+const loadProofing = async (proofingId, forceRefresh = false) => {
   if (!proofingId) {
     return
   }
@@ -829,7 +832,7 @@ const loadProofing = async (proofingId) => {
     }
 
     // Always fetch proofing from backend
-    const proofingData = await proofingStore.fetchProofing(proofingId)
+    const proofingData = await proofingStore.fetchProofing(proofingId, forceRefresh)
     proofing.value = proofingData
 
     // Set context and always fetch fresh media sets from API
@@ -877,6 +880,33 @@ const loadProofing = async (proofingId) => {
     isLoading.value = false
   }
 }
+
+const isRefreshingStorage = ref(false)
+const storageBadgeKey = ref(0)
+const storageUsedBytesForBadge = computed(() => {
+  storageBadgeKey.value
+  return proofing.value?.storageUsedBytes ?? 0
+})
+const refreshStorage = async () => {
+  if (!proofing.value?.id || isRefreshingStorage.value) return
+  isRefreshingStorage.value = true
+  try {
+    await loadProofing(proofing.value.id, true)
+    storageBadgeKey.value++
+  } finally {
+    isRefreshingStorage.value = false
+  }
+}
+
+const phaseStorageRefreshTrigger = inject('phaseStorageRefreshTrigger', null)
+watch(
+  () => phaseStorageRefreshTrigger?.value,
+  (val) => {
+    if (val != null && val > 0 && proofing.value?.id) {
+      setTimeout(() => refreshStorage(), 400)
+    }
+  }
+)
 
 // Sync selectedSetId with route query parameter
 let isUpdatingFromRoute = false
@@ -1244,9 +1274,15 @@ const handleBackgroundUploadComplete = (event) => {
   }
 }
 
-const onStorageShouldRefresh = () => {
+const onStorageShouldRefresh = async () => {
   if (mediaSetsSidebar) mediaSetsSidebar.loadMediaSets()
   loadMediaItems()
+  if (!proofing.value?.id) return
+  try {
+    const bytes = await proofingApi.fetchStorage(proofing.value.id, proofing.value.projectId ?? null)
+    proofing.value = { ...proofing.value, storageUsedBytes: bytes }
+    storageBadgeKey.value++
+  } catch (_) {}
 }
 
 onMounted(() => {
@@ -2072,6 +2108,7 @@ const handleConfirmMoveCopy = async () => {
       }
 
       await loadMediaItems()
+      await refreshStorage()
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
     } else {
@@ -2095,6 +2132,7 @@ const handleConfirmMoveCopy = async () => {
         await loadMediaItems()
       }
 
+      await refreshStorage()
       selectedMediaIds.value.clear()
       handleCancelMoveCopy()
     }
@@ -2405,7 +2443,7 @@ const {
   sortedMediaItems,
   loadMediaItems,
   loadMediaSets: () => mediaSetsSidebar.loadMediaSets(),
-  loadPhaseDetail: () => loadProofing(proofing.value?.id),
+  loadPhaseDetail: refreshStorage,
   getItemId,
   modals: {
     openDeleteModal: openDeleteModal,

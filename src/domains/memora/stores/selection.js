@@ -81,15 +81,17 @@ export const useSelectionStore = defineStore('selection', () => {
 
   /**
    * Fetch selection by ID
+   * @param {string} id
+   * @param {boolean} forceRefresh - if true, refetch even when same id is cached (e.g. for storage refresh)
    */
-  const fetchSelection = async id => {
+  const fetchSelection = async (id, forceRefresh = false) => {
     // Skip if already loading the same selection
     if (isLoading.value && currentSelection.value?.id === id) {
       return currentSelection.value
     }
 
-    // Skip if already loaded with same ID
-    if (currentSelection.value?.id === id && !error.value) {
+    // Skip if already loaded with same ID (unless force refresh)
+    if (!forceRefresh && currentSelection.value?.id === id && !error.value) {
       return currentSelection.value
     }
 

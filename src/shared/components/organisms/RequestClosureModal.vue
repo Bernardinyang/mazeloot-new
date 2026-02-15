@@ -1,7 +1,7 @@
 <template>
   <Dialog :open="isOpen" @update:open="isOpen = $event">
     <DialogContent
-      class="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 sm:max-w-[1200px] w-[95vw] max-w-[95vw] max-h-[90vh] p-0 flex flex-col overflow-hidden"
+      class="!fixed !left-1/2 !top-1/2 !-translate-x-1/2 !-translate-y-1/2 sm:max-w-[1200px] w-[95vw] max-w-[95vw] max-h-[min(90dvh,calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-1rem))] p-0 flex flex-col overflow-hidden m-[max(0.5rem,env(safe-area-inset-top))] mr-[max(0.5rem,env(safe-area-inset-right))] mb-[max(0.5rem,env(safe-area-inset-bottom))] ml-[max(0.5rem,env(safe-area-inset-left))]"
     >
       <DialogHeader
         class="px-6 pt-6 pb-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-amber-50 to-amber-100/50 dark:from-amber-900/20 dark:to-amber-800/10"

@@ -165,6 +165,31 @@
         <span class="sm:hidden">Copy ({{ props.selectedCount }})</span>
       </Button>
 
+      <div
+        v-if="props.storageUsedBytes != null"
+        :class="[
+          theme.textSecondary,
+          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border shrink-0',
+          theme.borderSecondary,
+          theme.bgCard,
+        ]"
+      >
+        <HardDrive class="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" aria-hidden="true" />
+        <span class="text-xs font-semibold tabular-nums">{{ formatBytes(props.storageUsedBytes) }}</span>
+      </div>
+      <Button
+        v-if="props.onRefreshStorage"
+        variant="outline"
+        size="sm"
+        :class="[theme.borderSecondary, theme.textSecondary, 'shrink-0']"
+        :disabled="props.isRefreshingStorage"
+        aria-label="Refresh storage size"
+        @click="props.onRefreshStorage()"
+      >
+        <RefreshCw
+          :class="[props.isRefreshingStorage ? 'animate-spin' : '', 'h-3.5 w-3.5 sm:h-4 sm:w-4']"
+        />
+      </Button>
       <Button
         v-if="!props.disableUpload"
         variant="accent"
@@ -185,7 +210,7 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ArrowUpDown, Check, Copy, Grid3x3, ImagePlus, List, Loader2 } from '@/shared/utils/lucideAnimated'
+import { ArrowUpDown, Check, Copy, Grid3x3, HardDrive, ImagePlus, List, Loader2, RefreshCw } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
@@ -229,6 +254,18 @@ const props = defineProps({
   disableUpload: {
     type: Boolean,
     default: false,
+  },
+  onRefreshStorage: {
+    type: Function,
+    default: null,
+  },
+  isRefreshingStorage: {
+    type: Boolean,
+    default: false,
+  },
+  storageUsedBytes: {
+    type: Number,
+    default: null,
   },
 })
 
@@ -380,5 +417,13 @@ const handleCopySelectedFilenames = () => {
   if (props.onCopySelectedFilenamesInSet) {
     props.onCopySelectedFilenamesInSet()
   }
+}
+
+const formatBytes = bytes => {
+  if (bytes == null || bytes === 0) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i]
 }
 </script>
