@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <link rel="icon" type="image/png" href="/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
-    <meta name="description" content="Modern web application for managing collections and media">
+    <meta name="description" content="Professional gallery and client proofing platform for creatives. Share collections, get approvals, and deliver with your brand.">
+    <meta name="robots" content="index, follow">
     <meta name="theme-color" content="#8B5CF6" media="(prefers-color-scheme: light)">
     <meta name="theme-color" content="#1F2937" media="(prefers-color-scheme: dark)">
     
@@ -30,6 +31,22 @@
     
     <title>Mazeloot - Professional Gallery & Client Proofing Platform for Creatives</title>
     
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Mazeloot">
+    <meta property="og:title" content="Mazeloot - Professional Gallery & Client Proofing Platform for Creatives">
+    <meta property="og:description" content="Professional gallery and client proofing platform for creatives. Share collections, get approvals, and deliver with your brand.">
+    <meta property="og:image" content="/icon-512.png">
+    <meta property="og:image:width" content="512">
+    <meta property="og:image:height" content="512">
+    <meta property="og:locale" content="en">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Mazeloot - Professional Gallery & Client Proofing Platform for Creatives">
+    <meta name="twitter:description" content="Professional gallery and client proofing platform for creatives. Share collections, get approvals, and deliver with your brand.">
+    <meta name="twitter:image" content="/icon-512.png">
+    
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -40,6 +57,28 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@300;400;500;600;700;800;900&family=Cormorant+Garamond:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&family=Lato:wght@300;400;700;900&family=Raleway:wght@300;400;500;600;700;800;900&family=Open+Sans:wght@300;400;500;600;700;800&family=Roboto:wght@300;400;500;700;900&family=Poppins:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&family=Nunito:wght@300;400;500;600;700;800;900&family=Merriweather:wght@300;400;700;900&family=Crimson+Text:wght@400;600;700&family=Lora:wght@400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700;900&family=Ubuntu:wght@300;400;500;700&family=Dancing+Script:wght@400;500;600;700&family=Pacifico&family=Caveat:wght@400;500;600;700&family=Bebas+Neue&family=Oswald:wght@300;400;500;600;700&family=Barlow:wght@300;400;500;600;700;800;900&family=Work+Sans:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:wght@400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Manrope:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700;800&family=Figtree:wght@300;400;500;600;700;800;900&family=Syne:wght@400;500;600;700;800&family=Space+Mono:wght@400;700&family=JetBrains+Mono:wght@300;400;500;600;700;800&family=Abril+Fatface&family=Bungee&family=Righteous&family=Comfortaa:wght@300;400;500;600;700&family=Quicksand:wght@300;400;500;600;700&family=Rubik:wght@300;400;500;600;700;800;900&family=Kalam:wght@300;400;700&family=Satisfy&family=Great+Vibes&family=Amatic+SC:wght@400;700&family=Shadows+Into+Light&family=Permanent+Marker&family=Indie+Flower&display=swap" rel="stylesheet">
   </head>
   <body>
+    <div id="app-loading-screen" class="app-loading">
+      <div class="app-loading-bg" aria-hidden="true"></div>
+      <div class="app-loading-content">
+        <img id="app-loading-logo" src="/mazeloot-logo-portrait.svg" alt="Mazeloot" width="240" height="240" class="app-loading-logo">
+        <p id="app-loading-tagline" class="app-loading-tagline">From first share to final delivery.</p>
+        <div class="app-loading-bar"><div class="app-loading-bar-fill"></div></div>
+      </div>
+    </div>
+    <style>
+      .app-loading{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,BlinkMacSystemFont,sans-serif;transition:opacity .35s ease;}
+      .app-loading-bg{position:absolute;inset:0;background:linear-gradient(155deg,#0f0a1a 0%,#1a0f2e 35%,#16213e 70%,#0f172a 100%);}
+      .app-loading-bg::before{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(139,92,246,.25) 0%,transparent 50%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(236,72,153,.15) 0%,transparent 45%);pointer-events:none;}
+      .app-loading-content{position:relative;display:flex;flex-direction:column;align-items:center;gap:1.25rem;padding:2rem;text-align:center;}
+      .app-loading-logo{width:240px;height:240px;object-fit:contain;filter:drop-shadow(0 0 24px rgba(139,92,246,.35));animation:app-load-logo .55s cubic-bezier(.22,1,.36,1) both;}
+      .app-loading-tagline{margin:0;font-size:.9375rem;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.7);animation:app-load-tagline .5s cubic-bezier(.22,1,.36,1) .15s both;}
+      .app-loading-bar{width:120px;height:3px;border-radius:999px;background:rgba(255,255,255,.12);overflow:hidden;}
+      .app-loading-bar-fill{height:100%;width:36%;border-radius:999px;background:linear-gradient(90deg,#8B5CF6,#ec4899);animation:app-load-bar 1.4s ease-in-out infinite;}
+      @keyframes app-load-logo{0%{opacity:0;transform:scale(.9) translateY(8px)}100%{opacity:1;transform:scale(1) translateY(0)}}
+      @keyframes app-load-tagline{0%{opacity:0;transform:translateY(10px)}100%{opacity:1;transform:translateY(0)}}
+      @keyframes app-load-bar{0%,100%{transform:translateX(-100%)}50%{transform:translateX(220%)}}
+      @media (prefers-reduced-motion: reduce){.app-loading-logo,.app-loading-tagline,.app-loading-bar-fill{animation:none}.app-loading-logo,.app-loading-tagline{opacity:1;transform:none}}
+    </style>
     <div id="app"></div>
     <script type="module" src="/src/shared/main.js"></script>
   </body>

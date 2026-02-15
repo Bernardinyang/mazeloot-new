@@ -18,6 +18,12 @@ useThemeStore()
 
 app.mount('#app')
 
+const loadingEl = document.getElementById('app-loading-screen')
+if (loadingEl) {
+  loadingEl.style.opacity = '0'
+  loadingEl.addEventListener('transitionend', () => loadingEl.remove(), { once: true })
+}
+
 if ('serviceWorker' in navigator) {
   let swRegistration = null
   navigator.serviceWorker

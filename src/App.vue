@@ -41,8 +41,13 @@ import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
 import { initAnalytics } from '@/shared/composables/useAnalytics'
 import { initErrorTracking } from '@/shared/composables/useErrorTracking'
+import { useSeoMeta } from '@/shared/composables/useSeoMeta'
 
 const route = useRoute()
+
+const seoTitle = computed(() => route.meta?.title ?? 'Mazeloot - Professional Gallery & Client Proofing Platform for Creatives')
+const seoDescription = computed(() => route.meta?.description ?? 'Professional gallery and client proofing platform for creatives. Share collections, get approvals, and deliver with your brand.')
+useSeoMeta({ title: seoTitle, description: seoDescription })
 const showUploadQueueModal = ref(false)
 const backgroundUploadManager = useBackgroundUploadManager()
 
