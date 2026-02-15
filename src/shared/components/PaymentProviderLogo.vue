@@ -4,6 +4,8 @@
     :src="logoSrc"
     :alt="`${name} logo`"
     class="h-8 w-auto object-contain"
+    loading="lazy"
+    decoding="async"
   />
   <CreditCard
     v-else

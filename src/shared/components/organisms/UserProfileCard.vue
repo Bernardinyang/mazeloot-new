@@ -58,7 +58,7 @@
                 'group-hover:scale-110 transition-transform duration-300',
               ]"
             >
-              <img v-if="avatar" :alt="name" :src="avatar" class="w-full h-full object-cover" />
+              <img v-if="avatar" :alt="name" :src="avatar" class="w-full h-full object-cover" loading="lazy" decoding="async" />
               <div
                 v-else
                 :class="[

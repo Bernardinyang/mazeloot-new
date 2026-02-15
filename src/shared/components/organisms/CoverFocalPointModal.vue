@@ -28,6 +28,7 @@
             loop
             muted
             playsinline
+            preload="metadata"
           />
           <!-- Image Cover -->
           <div

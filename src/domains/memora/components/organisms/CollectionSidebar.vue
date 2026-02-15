@@ -52,6 +52,7 @@
             loop
             muted
             playsinline
+            preload="metadata"
             @click.stop="toggleVideoPlay"
           />
           <!-- Focal Point Dot -->
@@ -202,6 +203,7 @@
           loop
           muted
           playsinline
+          preload="metadata"
         />
         <!-- Image Cover (Collapsed) -->
         <img

@@ -175,7 +175,7 @@
             alt="Preview"
             class="w-full max-h-[400px] object-contain"
           />
-          <video v-else :src="previewUrl" controls class="w-full max-h-[400px]" />
+          <video v-else :src="previewUrl" controls class="w-full max-h-[400px]" preload="metadata" />
         </div>
       </div>
     </div>

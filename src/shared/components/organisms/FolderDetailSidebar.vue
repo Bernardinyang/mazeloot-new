@@ -53,6 +53,7 @@
               width="128"
               height="128"
               loading="lazy"
+              decoding="async"
               @error="handleImageError"
             />
           </div>

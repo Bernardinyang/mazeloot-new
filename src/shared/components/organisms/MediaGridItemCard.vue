@@ -85,6 +85,7 @@
           width="320"
           height="240"
           loading="lazy"
+          decoding="async"
           @error="emit('image-error', $event)"
           @load="isImageLoaded = true"
         />
@@ -108,6 +109,7 @@
             width="320"
             height="240"
             loading="lazy"
+            decoding="async"
             @error="emit('image-error', $event)"
             @load="isImageLoaded = true"
           />

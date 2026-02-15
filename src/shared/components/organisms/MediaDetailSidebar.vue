@@ -24,6 +24,8 @@
             :alt="media.title || media.filename || 'Media preview'"
             draggable="false"
             :class="['w-full h-full object-cover transition-transform duration-300 protected-content', canPreviewFile(media?.file || media) ? 'group-hover:scale-105 cursor-pointer' : 'cursor-default']"
+            loading="lazy"
+            decoding="async"
             @error="handleImageError"
             @load="isImageLoading = false"
             @click="canPreviewFile(media?.file || media) ? handleViewMedia() : null"

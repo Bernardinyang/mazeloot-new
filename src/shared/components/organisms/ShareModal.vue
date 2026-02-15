@@ -220,7 +220,7 @@
               v-if="qrCodeDataUrl"
               class="p-4 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700"
             >
-              <img :src="qrCodeDataUrl" alt="QR Code" class="w-44 h-44" />
+              <img :src="qrCodeDataUrl" alt="QR Code" class="w-44 h-44" width="176" height="176" decoding="async" />
             </div>
             <div
               v-else

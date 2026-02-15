@@ -196,6 +196,8 @@
             :src="proofing.coverPhotoUrl || proofing.cover_photo_url"
             :style="getProofingCoverStyle()"
             class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
+            loading="lazy"
+            decoding="async"
             @error="handleCoverImageError"
           />
           <!-- Cover Video -->
@@ -208,6 +210,7 @@
             loop
             muted
             playsinline
+            preload="metadata"
           />
           <!-- Gradient Overlay for Light Mode -->
           <div
@@ -761,6 +764,8 @@
                     isReadyForRevision(item) ? 'opacity-50' : '',
                     isRejected(item) ? 'grayscale' : '',
                   ]"
+                  loading="lazy"
+                  decoding="async"
                   @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item, false)"
                 />
                 <video
@@ -771,6 +776,7 @@
                     'w-full h-full object-cover',
                     !isAuthenticatedOwner && !isPreviewMode ? 'cursor-pointer' : 'cursor-default',
                   ]"
+                  preload="metadata"
                   @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item, false)"
                 />
               </div>

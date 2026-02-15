@@ -80,6 +80,7 @@
         loop
         muted
         playsinline
+        preload="metadata"
       />
       <!-- Cover Image -->
       <img
@@ -89,6 +90,7 @@
         :style="coverImageStyle"
         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
         loading="lazy"
+        decoding="async"
         @error="handleImageError"
       />
 

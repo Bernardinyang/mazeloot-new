@@ -42,6 +42,7 @@
             :src="displayUrl"
             :alt="currentPhoto?.title || 'Photo'"
             class="max-w-full max-h-full object-contain"
+            decoding="async"
             @load="handleImageLoad"
             @error="handleImageError"
           />

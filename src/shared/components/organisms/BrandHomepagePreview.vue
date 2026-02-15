@@ -9,6 +9,8 @@
             :src="branding.logoUrl"
             :alt="branding.name || 'Brand'"
             class="h-7 w-auto"
+            loading="lazy"
+            decoding="async"
           />
           <div v-else class="h-7 w-7 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg"></div>
         </div>
@@ -129,12 +131,15 @@
               loop
               muted
               playsinline
+              preload="metadata"
             ></video>
             <img
               v-else
               :src="collection.image || '/placeholder.jpg'"
               :alt="collection.title"
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              loading="lazy"
+              decoding="async"
             />
             <div
               class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"

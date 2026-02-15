@@ -154,6 +154,8 @@
             objectPosition: coverFocalPoint,
           }"
           class="absolute inset-0 w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
         <video
           v-else-if="coverImageWithFallback && isVideoCover"
@@ -167,6 +169,7 @@
           loop
           muted
           playsinline
+          preload="metadata"
           @click.stop="toggleCoverVideoPlay"
         />
         <div
@@ -185,6 +188,8 @@
             :src="brandingLogoUrl"
             alt="Brand Logo"
             class="h-6 sm:h-7 md:h-8 lg:h-10 xl:h-12 w-auto object-contain max-w-[120px] sm:max-w-[140px] md:max-w-none"
+            loading="lazy"
+            decoding="async"
           />
           <MazelootLogo
             v-else

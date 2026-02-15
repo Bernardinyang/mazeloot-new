@@ -22,6 +22,8 @@
           :src="thumbnailUrl"
           :alt="progress.file?.name || 'File'"
           class="w-full h-full object-cover"
+          loading="lazy"
+          decoding="async"
         />
         <FileImage v-else-if="isImage" :class="[theme.textSecondary, 'h-6 w-6']" />
         <FileVideo v-else :class="[theme.textSecondary, 'h-6 w-6']" />

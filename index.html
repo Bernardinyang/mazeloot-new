@@ -47,6 +47,8 @@
     <meta name="twitter:description" content="Professional gallery and client proofing platform for creatives. Share collections, get approvals, and deliver with your brand.">
     <meta name="twitter:image" content="/icon-512.png">
     
+    <!-- Preload LCP image (hero on landing) -->
+    <link rel="preload" as="image" href="/images/landing/hero-dashboard.png">
     <!-- Preconnect to external domains for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,7 +62,7 @@
     <div id="app-loading-screen" class="app-loading">
       <div class="app-loading-bg" aria-hidden="true"></div>
       <div class="app-loading-content">
-        <img id="app-loading-logo" src="/mazeloot-logo-portrait.svg" alt="Mazeloot" width="240" height="240" class="app-loading-logo">
+        <img id="app-loading-logo" src="/mazeloot-logo-portrait.svg" alt="Mazeloot" width="240" height="240" class="app-loading-logo" decoding="async" fetchpriority="high">
         <p id="app-loading-tagline" class="app-loading-tagline">From first share to final delivery.</p>
         <div class="app-loading-bar"><div class="app-loading-bar-fill"></div></div>
       </div>

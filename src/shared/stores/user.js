@@ -318,6 +318,7 @@ export const useUserStore = defineStore('user', () => {
     isNewUser.value = false
     selectedProducts.value = []
     onboardingStatus.value = []
+    storage.remove('mazeloot_last_path')
     // Persistence is handled by watchers
   }
 

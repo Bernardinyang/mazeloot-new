@@ -121,6 +121,7 @@
                       isLoading ? 'opacity-0' : 'opacity-100',
                     ]"
                     draggable="false"
+                    decoding="async"
                     :style="imageStyle"
                     @error="handleImageError"
                     @load="handleImageLoad"

@@ -91,7 +91,7 @@
               class="p-3 bg-white rounded-lg shadow-sm border"
               :class="theme.borderSecondary"
             >
-              <img :src="qrCodeDataUrl" alt="QR Code" class="w-40 h-40" />
+              <img :src="qrCodeDataUrl" alt="QR Code" class="w-40 h-40" width="160" height="160" decoding="async" />
             </div>
             <div
               v-else

@@ -5,6 +5,9 @@ import { useUserStore } from '@/shared/stores/user'
 import { useAuthApi } from '@/shared/api/auth'
 import { useOnboardingApi } from '@/shared/api/onboarding'
 import { setPostAuthRedirect } from '@/shared/utils/localStorage'
+import { storage } from '@/shared/utils/storage'
+
+const LAST_PATH_KEY = 'mazeloot_last_path'
 
 export const isRouteLoading = ref(false)
 
@@ -107,6 +110,15 @@ router.beforeEach(async (to, from, next) => {
   const requiresUser = to.matched.some((record) => record.meta.requiresUser === true)
   const isGuestRoute = to.matched.some((record) => record.meta.isGuestRoute === true)
   const isPublicRoute = to.matched.some((record) => record.meta.requiresAuth === false)
+
+  const isInitialNav = from.name == null
+  if (isInitialNav && to.name === 'home' && userStore.isAuthenticated) {
+    const lastPath = storage.get(LAST_PATH_KEY)
+    if (lastPath && lastPath !== '/' && !lastPath.startsWith('/login') && !lastPath.startsWith('/register')) {
+      next({ path: lastPath, replace: true })
+      return
+    }
+  }
 
   // Public routes - allow immediately
   if (isPublicRoute) {
@@ -305,8 +317,13 @@ router.beforeEach(async (to, from, next) => {
   next()
 })
 
-router.afterEach(() => {
+router.afterEach((to) => {
   isRouteLoading.value = false
+  const userStore = useUserStore()
+  const isPublic = to.matched.some((r) => r.meta.requiresAuth === false)
+  if (userStore.isAuthenticated && !isPublic && to.fullPath) {
+    storage.set(LAST_PATH_KEY, to.fullPath)
+  }
 })
 
 router.onError(() => {

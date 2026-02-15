@@ -152,6 +152,8 @@
                         :alt="item.photoName"
                         :src="item.photoThumbnail"
                         class="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div
                         v-else
@@ -176,6 +178,8 @@
                         :alt="item.photoName"
                         :src="item.photoThumbnail"
                         class="w-full h-full object-cover"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <div
                         v-else

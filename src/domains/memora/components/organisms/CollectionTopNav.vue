@@ -33,6 +33,8 @@
               :alt="`${props.collection?.name || 'Collection'} cover`"
               :src="props.collection?.thumbnail || props.collection?.image"
               class="h-full w-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           <Transition mode="out-in" name="fade">

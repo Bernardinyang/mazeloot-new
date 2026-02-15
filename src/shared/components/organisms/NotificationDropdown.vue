@@ -168,12 +168,17 @@
                         :src="getNotificationCoverPhoto(selectedNotification)"
                         :alt="selectedNotification.title"
                         class="h-full w-full object-cover"
+                        width="48"
+                        height="48"
+                        loading="lazy"
+                        decoding="async"
                       />
                       <video
                         v-else-if="isVideo(getNotificationCoverPhoto(selectedNotification))"
                         :src="getNotificationCoverPhoto(selectedNotification)"
                         class="h-full w-full object-cover"
                         muted
+                        preload="metadata"
                       />
                     </template>
                     <component
@@ -350,12 +355,17 @@
                           :src="getNotificationCoverPhoto(notification)"
                           :alt="notification.title"
                           class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                          width="48"
+                          height="48"
+                          loading="lazy"
+                          decoding="async"
                         />
                         <video
                           v-else-if="isVideo(getNotificationCoverPhoto(notification))"
                           :src="getNotificationCoverPhoto(notification)"
                           class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                           muted
+                          preload="metadata"
                         />
                       </template>
                       <component

@@ -23,6 +23,7 @@
             width="400"
             height="300"
             loading="lazy"
+            decoding="async"
             class="w-full h-full object-cover"
           />
         </div>

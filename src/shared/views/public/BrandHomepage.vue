@@ -83,6 +83,8 @@
               :src="branding.logoUrl"
               :alt="branding.name || 'Brand'"
               class="h-10 w-auto transition-transform hover:scale-105"
+              loading="lazy"
+              decoding="async"
             />
             <div v-else class="h-10 w-10 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg"></div>
           </div>
@@ -241,6 +243,7 @@
                   loop
                   muted
                   playsinline
+                  preload="metadata"
                 ></video>
                 <!-- Image Cover -->
                 <img
@@ -249,6 +252,7 @@
                   :alt="collection.name || collection.title"
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   loading="lazy"
+                  decoding="async"
                 />
               </div>
               <div

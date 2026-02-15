@@ -32,6 +32,7 @@
               :src="preview"
               class="w-full h-full object-cover"
               loading="lazy"
+              decoding="async"
               @error="handleImageError($event)"
             />
           </div>
@@ -45,6 +46,7 @@
           loop
           muted
           playsinline
+          preload="metadata"
         />
         <!-- Single Image -->
         <img
@@ -53,6 +55,7 @@
           :src="getItemImage(item)"
           class="w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
           @error="handleImageError($event)"
         />
         <!-- Icon -->

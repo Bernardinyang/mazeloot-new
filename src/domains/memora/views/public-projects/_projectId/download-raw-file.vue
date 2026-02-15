@@ -24,6 +24,8 @@
             :src="brandingLogoUrl"
             :alt="brandFileName || 'Brand'"
             class="h-8 w-auto object-contain"
+            loading="lazy"
+            decoding="async"
           />
           <MazelootLogo
             v-else-if="showMazelootBranding"

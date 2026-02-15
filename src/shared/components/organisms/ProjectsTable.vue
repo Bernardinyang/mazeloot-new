@@ -32,6 +32,7 @@
               :src="preview"
               class="w-full h-full object-cover"
               loading="lazy"
+              decoding="async"
               @error="handleImageError($event)"
             />
           </div>
@@ -43,6 +44,7 @@
           :src="getItemImage(item)"
           class="w-full h-full object-cover"
           loading="lazy"
+          decoding="async"
           @error="handleImageError($event)"
         />
         <!-- Icon -->

@@ -185,6 +185,8 @@ onUnmounted(() => {
               :src="tips[currentIndex].image"
               :alt="`Creative Tip ${currentIndex + 1}`"
               class="h-full w-full object-cover scale-105 transition-transform duration-700 ease-out"
+              loading="lazy"
+              decoding="async"
             />
             <!-- Testimonial Overlay -->
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20">

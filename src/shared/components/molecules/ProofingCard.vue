@@ -60,6 +60,7 @@
         loop
         autoplay
         playsinline
+        preload="metadata"
         @error="handleVideoError"
       />
 

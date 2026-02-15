@@ -157,6 +157,7 @@
                   :alt="currentItem?.title || currentItem?.filename || 'Media'"
                   :src="currentMediaUrl"
                   draggable="false"
+                  decoding="async"
                   class="w-auto h-auto object-contain shadow-2xl transition-all duration-300 protected-content"
                   :class="[
                     isLoading ? 'opacity-0' : 'opacity-100',

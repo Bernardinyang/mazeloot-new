@@ -251,6 +251,8 @@
                 alt="Cover photo"
                 class="h-10 w-10 rounded object-cover border"
                 :class="theme.borderSecondary"
+                loading="lazy"
+                decoding="async"
                 @error="handleImageError"
               />
             </DetailField>

@@ -18,7 +18,7 @@
         :class="[theme.borderSecondary, theme.bgCard]"
       >
         <div class="aspect-[4/3] relative">
-          <img :src="sample.url" :alt="sample.label" class="w-full h-full object-cover" />
+          <img :src="sample.url" :alt="sample.label" class="w-full h-full object-cover" loading="lazy" decoding="async" />
           <!-- Watermark Overlay - Text -->
           <div
             v-if="watermark.type === 'text' && watermark.text"
@@ -36,6 +36,8 @@
             :alt="watermark.name"
             class="absolute pointer-events-none"
             :style="getImageWatermarkStyle(sample.aspect)"
+            loading="lazy"
+            decoding="async"
           />
         </div>
         <p class="text-xs text-center py-2" :class="theme.textSecondary">

@@ -196,6 +196,8 @@
             :src="selection.coverPhotoUrl || selection.cover_photo_url"
             :style="getSelectionCoverStyle()"
             class="w-full h-full object-cover transition-all duration-500 dark:brightness-90 dark:contrast-105"
+            loading="lazy"
+            decoding="async"
             @error="handleCoverImageError"
           />
           <!-- Cover Video -->
@@ -208,6 +210,7 @@
             loop
             muted
             playsinline
+            preload="metadata"
           />
           <!-- Gradient Overlay for Light Mode -->
           <div
@@ -656,6 +659,8 @@
                       ? 'cursor-pointer'
                       : 'cursor-default',
                   ]"
+                  loading="lazy"
+                  decoding="async"
                   @click="
                     ((!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode) &&
                     handleViewMedia(item)
@@ -671,6 +676,7 @@
                       ? 'cursor-pointer'
                       : 'cursor-default',
                   ]"
+                  preload="metadata"
                   @click="
                     ((!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode) &&
                     handleViewMedia(item)
@@ -830,8 +836,10 @@
                       :alt="item.title || 'Selected media'"
                       :src="item.thumbnailUrl || item.largeImageUrl || item.thumbnail || ''"
                       class="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
-                    <video v-else :src="item.url" class="w-full h-full object-cover" />
+                    <video v-else :src="item.url" class="w-full h-full object-cover" preload="metadata" />
                     <div
                       :style="{ backgroundColor: selectionColor }"
                       class="absolute top-1 right-1 text-white rounded-full p-0.5"

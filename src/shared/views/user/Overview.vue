@@ -318,6 +318,8 @@
                     :alt="userData.name"
                     :src="userData.avatar"
                     class="w-full h-full object-cover"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <div
                     v-else

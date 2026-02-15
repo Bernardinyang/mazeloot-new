@@ -451,6 +451,7 @@
                     :src="logoPreview"
                     alt="Logo preview"
                     class="w-full h-full object-contain p-4"
+                    decoding="async"
                   />
                   <p class="text-xs font-medium" :class="theme.textSecondary">Click to change</p>
                 </template>
@@ -488,6 +489,7 @@
                     :src="faviconPreview"
                     alt="Favicon preview"
                     class="w-16 h-16 object-contain"
+                    decoding="async"
                   />
                   <p class="text-xs font-medium" :class="theme.textSecondary">Click to change</p>
                 </template>

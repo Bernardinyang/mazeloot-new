@@ -141,6 +141,8 @@
                       :alt="item.photoName"
                       :src="item.photoThumbnail"
                       class="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div v-else class="w-full h-full flex items-center justify-center">
                       <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />
@@ -162,6 +164,8 @@
                       :alt="item.photoName"
                       :src="item.photoThumbnail"
                       class="w-full h-full object-cover"
+                      loading="lazy"
+                      decoding="async"
                     />
                     <div v-else class="w-full h-full flex items-center justify-center">
                       <ImageIcon v-if="!item.isVideo" :class="theme.textTertiary" class="h-5 w-5" />

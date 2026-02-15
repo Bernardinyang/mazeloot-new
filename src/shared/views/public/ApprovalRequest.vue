@@ -193,12 +193,15 @@
                   :src="media.file?.url"
                   :alt="media.file?.filename || 'Media'"
                   class="w-full rounded-lg"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <video
                   v-else-if="media.file?.type === 'video'"
                   :src="media.file?.url"
                   controls
                   class="w-full rounded-lg"
+                  preload="metadata"
                 />
               </div>
             </div>

@@ -8,6 +8,7 @@
         :alt="props.media?.title || 'Media'"
         :src="displayUrl"
         class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
+        decoding="async"
         @error="emit('image-error', $event)"
       />
       <button

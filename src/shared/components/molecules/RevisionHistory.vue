@@ -41,7 +41,7 @@
             :alt="revision.title"
             class="w-16 h-16 object-cover rounded"
           />
-          <video v-else :src="revision.url" class="w-16 h-16 object-cover rounded" />
+          <video v-else :src="revision.url" class="w-16 h-16 object-cover rounded" preload="metadata" />
           <div class="flex-1 min-w-0">
             <p :class="theme.textPrimary" class="text-sm truncate">{{ revision.title }}</p>
             <p :class="theme.textSecondary" class="text-xs">

@@ -14,6 +14,8 @@
         :src="coverPhotoUrl"
         :alt="collection?.name || 'Collection Cover'"
         class="w-full h-full object-cover"
+        loading="lazy"
+        decoding="async"
       />
       <!-- Cover Video -->
       <video
@@ -23,6 +25,7 @@
         loop
         muted
         playsinline
+        preload="metadata"
         class="w-full h-full object-cover"
       />
       <div class="absolute inset-0 bg-black/20"></div>
@@ -68,6 +71,8 @@
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
           class="h-12 w-auto object-contain"
+          loading="lazy"
+          decoding="async"
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
@@ -307,6 +312,8 @@
           :src="brandingLogoUrl || mazelootLogo"
           :alt="brandingName || 'Mazeloot'"
           class="h-12 w-auto object-contain"
+          loading="lazy"
+          decoding="async"
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
