@@ -121,6 +121,31 @@ export function useAdminApi() {
   }
 
   /**
+   * Get notifications for a user (admin)
+   */
+  const getUserNotifications = async (userUuid, params = {}) => {
+    try {
+      const query = new URLSearchParams(params).toString()
+      const response = await apiClient.get(`/v1/admin/users/${userUuid}/notifications${query ? `?${query}` : ''}`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
+   * Resend web push for a notification (superadmin only)
+   */
+  const resendNotificationPush = async (notificationUuid) => {
+    try {
+      const response = await apiClient.post(`/v1/admin/notifications/${notificationUuid}/resend-push`)
+      return response.data
+    } catch (error) {
+      throw parseError(error)
+    }
+  }
+
+  /**
    * Get products list
    */
   const getProducts = async () => {
@@ -858,6 +883,8 @@ export function useAdminApi() {
     getUserStats,
     getUsers,
     getUser,
+    getUserNotifications,
+    resendNotificationPush,
     updateUser,
     updateUserRole,
     suspendUser,

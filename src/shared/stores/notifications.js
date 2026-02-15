@@ -285,12 +285,35 @@ export const useNotificationsStore = defineStore('notifications', () => {
             const wasAdded = addNotification(data.notification)
 
             if (wasAdded) {
-              // Show toast only for important notifications
               if (shouldShowToast(data.notification)) {
-                toast.success(data.notification.title || 'New notification', {
-                  description: data.notification.message,
-                  duration: 5000,
-                })
+                const n = data.notification
+                const title = n.title || 'New notification'
+                const body = n.message
+                const isHidden = typeof document !== 'undefined' && document.visibilityState === 'hidden'
+                const canShowSystem =
+                  typeof window !== 'undefined' &&
+                  'Notification' in window &&
+                  Notification.permission === 'granted' &&
+                  'serviceWorker' in navigator
+
+                if (isHidden && canShowSystem) {
+                  navigator.serviceWorker.ready.then((reg) => {
+                    if (reg.active) {
+                      reg.active.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title,
+                        body,
+                        id: n.id || n.uuid,
+                        url: n.actionUrl || n.action_url || '/',
+                      })
+                    }
+                  })
+                } else if (!isHidden) {
+                  toast.success(title, {
+                    description: body,
+                    duration: 5000,
+                  })
+                }
               } else {
                 console.log('Silent notification (no toast):', data.notification.type)
               }

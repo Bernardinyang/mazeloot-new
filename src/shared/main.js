@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from '@/App.vue'
 import router from '@/shared/router'
+import { dispatchPWAUpdateAvailable } from '@/shared/composables/usePWAUpdate'
 import '@/shared/assets/main.css'
 import '@/shared/assets/styles/animations.css'
 import 'vue-sonner/style.css'
@@ -18,26 +19,33 @@ useThemeStore()
 app.mount('#app')
 
 if ('serviceWorker' in navigator) {
+  let swRegistration = null
   navigator.serviceWorker
     .register('/sw.js', { scope: '/' })
     .then((registration) => {
+      swRegistration = registration
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing
         if (newWorker) {
           newWorker.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              newWorker.postMessage({ type: 'SKIP_WAITING' })
+              dispatchPWAUpdateAvailable(registration)
             }
           })
         }
       })
       if (registration.waiting && navigator.serviceWorker.controller) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+        dispatchPWAUpdateAvailable(registration)
       }
     })
     .catch(() => {})
   navigator.serviceWorker.addEventListener('controllerchange', () => {
     window.location.reload()
+  })
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && swRegistration) {
+      swRegistration.update()
+    }
   })
 }
 

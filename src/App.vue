@@ -3,7 +3,9 @@
     <RouteLoadingOverlay :is-loading="isRouteLoading" />
     <RouterView />
     <Toaster />
+    <PWAOfflineBar />
     <PWAInstallPrompt />
+    <PWAUpdatePrompt />
     <PWADebugInfo />
     <CookieConsent v-if="isPublicRoute" />
 
@@ -27,7 +29,9 @@ import RouteLoadingOverlay from '@/shared/components/organisms/RouteLoadingOverl
 import Toaster from '@/shared/components/organisms/Toaster.vue'
 import UploadQueueButton from '@/shared/components/organisms/UploadQueueButton.vue'
 import BackgroundUploadQueueModal from '@/shared/components/organisms/BackgroundUploadQueueModal.vue'
+import PWAOfflineBar from '@/shared/components/molecules/PWAOfflineBar.vue'
 import PWAInstallPrompt from '@/shared/components/molecules/PWAInstallPrompt.vue'
+import PWAUpdatePrompt from '@/shared/components/molecules/PWAUpdatePrompt.vue'
 import PWADebugInfo from '@/shared/components/molecules/PWADebugInfo.vue'
 import CookieConsent from '@/shared/components/molecules/CookieConsent.vue'
 import { useActionHistoryStore } from '@/shared/stores/actionHistory'

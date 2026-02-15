@@ -65,11 +65,43 @@ export function useNotificationsApi() {
     }
   }
 
+  /**
+   * Get VAPID public key for web push subscription
+   */
+  const getPushVapidPublic = async () => {
+    const response = await apiClient.get('/v1/notifications/push-vapid-public')
+    return response.data?.data?.publicKey ?? response.data?.publicKey
+  }
+
+  /**
+   * Register push subscription with backend (for receiving push when app is closed)
+   */
+  const storePushSubscription = async (subscription) => {
+    const payload = subscription.toJSON?.() ?? subscription
+    const body = {
+      endpoint: payload.endpoint,
+      keys: payload.keys ?? { p256dh: payload.p256dh, auth: payload.auth },
+      contentEncoding: payload.contentEncoding ?? 'aesgcm',
+    }
+    if (!body.keys.p256dh && payload.keys) body.keys = { p256dh: payload.keys.p256dh, auth: payload.keys.auth }
+    await apiClient.post('/v1/notifications/push-subscription', body)
+  }
+
+  /**
+   * Remove push subscription
+   */
+  const destroyPushSubscription = async (endpoint) => {
+    await apiClient.delete('/v1/notifications/push-subscription', { data: { endpoint } })
+  }
+
   return {
     fetchNotifications,
     fetchUnreadCounts,
     markAsRead,
     markAllAsRead,
     deleteNotification,
+    getPushVapidPublic,
+    storePushSubscription,
+    destroyPushSubscription,
   }
 }

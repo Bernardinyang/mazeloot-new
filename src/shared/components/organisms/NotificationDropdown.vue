@@ -103,6 +103,33 @@
                 {{ priority }}
               </button>
             </div>
+
+            <!-- Device notifications -->
+            <div
+              v-if="notificationPermission.supported"
+              class="mt-3 pt-3 border-t border-gray-200/80 dark:border-gray-800/80"
+            >
+              <p v-if="notificationPermission.permission === 'default'" class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Get notifications on this device when you're not in the app.
+              </p>
+              <p v-else-if="notificationPermission.permission === 'granted'" class="text-xs text-green-600 dark:text-green-400 mb-2">
+                Device notifications on
+              </p>
+              <p v-else class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Device notifications are blocked. Enable them in your browser settings to get alerts.
+              </p>
+              <Button
+                v-if="notificationPermission.permission === 'default'"
+                type="button"
+                variant="outline"
+                size="sm"
+                class="text-xs"
+                :disabled="notificationPermissionRequesting"
+                @click="handleRequestNotificationPermission"
+              >
+                {{ notificationPermissionRequesting ? 'Requesting…' : 'Enable device notifications' }}
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -452,8 +479,11 @@ import {
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/shadcn/sheet'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useNotificationPermission } from '@/shared/composables/useNotificationPermission'
+import { usePushSubscription } from '@/shared/composables/usePushSubscription'
 import { useNotificationsStore } from '@/shared/stores/notifications'
 import { useRouter } from 'vue-router'
+import { toast } from '@/shared/utils/toast'
 
 const props = defineProps({
   product: {
@@ -472,7 +502,9 @@ const emit = defineEmits(['notification-click', 'mark-all-read'])
 const theme = useThemeClasses()
 const router = useRouter()
 const notificationsStore = useNotificationsStore()
-
+const notificationPermission = useNotificationPermission()
+const { subscribe: subscribeToPush } = usePushSubscription()
+const notificationPermissionRequesting = ref(false)
 const isOpen = ref(false)
 const isLoading = computed(() => notificationsStore.isLoading)
 const selectedPriority = ref('All')
@@ -778,6 +810,22 @@ const handleMarkAsRead = async notification => {
   }
 }
 
+const handleRequestNotificationPermission = async () => {
+  notificationPermissionRequesting.value = true
+  try {
+    const result = await notificationPermission.requestPermission()
+    if (result === 'granted') {
+      await subscribeToPush()
+      toast.success('Device notifications enabled')
+    }
+  } catch (err) {
+    console.error('Push subscription failed:', err)
+    toast.error(err?.message || 'Could not enable device notifications')
+  } finally {
+    notificationPermissionRequesting.value = false
+  }
+}
+
 const handleMarkAllAsRead = async () => {
   try {
     await notificationsStore.markAllAsRead(props.product)
@@ -797,9 +845,15 @@ const handleDelete = async id => {
 
 // Watch for sheet open/close to refresh notifications
 watch(isOpen, async newValue => {
-  if (newValue && !isLoading.value) {
-    await notificationsStore.fetchNotifications(props.product)
-    await notificationsStore.fetchUnreadCounts()
+  if (newValue) {
+    notificationPermission.syncPermission()
+    if (notificationPermission.permission === 'granted') {
+      subscribeToPush().catch(() => {})
+    }
+    if (!isLoading.value) {
+      await notificationsStore.fetchNotifications(props.product)
+      await notificationsStore.fetchUnreadCounts()
+    }
   } else {
     selectedNotification.value = null
     viewMode.value = 'list'

@@ -36,16 +36,20 @@
         <div
           v-if="isOpen"
           :class="[
-            'fixed inset-0 z-[100] flex',
+            'fixed inset-0 z-[100] flex overflow-hidden',
             isMobile ? 'flex-col' : 'flex-row',
             'bg-black/95 backdrop-blur-sm',
+            'pt-[max(0.5rem,env(safe-area-inset-top))] pr-[max(0.5rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))]',
           ]"
           @click.self="handleClose"
         >
           <!-- Close Button -->
           <button
             aria-label="Close viewer"
-            class="absolute top-4 right-4 z-[102] w-12 h-12 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10"
+            :class="[
+              'absolute z-[102] w-12 h-12 rounded-full bg-red-500/90 hover:bg-red-600 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-xl hover:scale-110 active:scale-95 border border-white/10',
+              isMobile ? 'top-2 right-2' : 'top-4 right-4',
+            ]"
             @click.stop="handleClose"
           >
             <X class="w-5 h-5" />
@@ -54,9 +58,9 @@
           <!-- Main Content Area (Media + Comments) -->
           <div
             :class="[
-              'relative flex-1 flex items-center justify-center',
+              'relative flex-1 flex items-center justify-center min-h-0 min-w-0',
               isMobile ? 'p-2' : 'p-4 md:p-8',
-              { 'hidden md:flex': isMobile && showComments }, // Hide media on mobile when comments drawer is open
+              { 'hidden md:flex': isMobile && showComments },
             ]"
           >
             <!-- Navigation Buttons (positioned at container edges, outside media) -->
@@ -111,8 +115,11 @@
                   <img
                     :alt="currentItem?.title || currentItem?.filename || 'Media'"
                     :src="currentMediaUrl"
-                    class="max-w-full max-h-[90vh] w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300 protected-content"
-                    :class="isLoading ? 'opacity-0' : 'opacity-100'"
+                    :class="[
+                      'max-w-full w-auto h-auto object-contain rounded-lg shadow-2xl select-none transition-opacity duration-300 protected-content',
+                      isMobile ? 'max-h-[min(90dvh,100dvh-6rem)]' : 'max-h-[90vh]',
+                      isLoading ? 'opacity-0' : 'opacity-100',
+                    ]"
                     draggable="false"
                     :style="imageStyle"
                     @error="handleImageError"
@@ -182,7 +189,7 @@
             v-else-if="currentItem?.isCompleted || currentItem?.is_completed"
             :class="[
               'absolute z-50 flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-300 backdrop-blur-md shadow-xl',
-              isMobile ? 'bottom-20 left-4' : 'bottom-4 left-4',
+              isMobile ? 'bottom-20 left-2 sm:left-4' : 'bottom-4 left-4',
             ]"
           >
             <CheckCircle2 class="h-4 w-4 fill-violet-500 text-violet-500" />
@@ -192,7 +199,10 @@
           <!-- Counter (Top Center) -->
           <div
             v-if="items.length > 1"
-            class="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md text-white text-sm font-medium shadow-xl border border-white/10"
+            :class="[
+              'absolute left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full bg-black/70 backdrop-blur-md text-white text-sm font-medium shadow-xl border border-white/10',
+              isMobile ? 'top-2' : 'top-4',
+            ]"
           >
             <span class="font-semibold">{{ currentIndex + 1 }}</span>
             <span class="mx-1.5 text-white/60">/</span>
@@ -204,7 +214,7 @@
             v-if="currentMediaType === 'image' && currentMediaUrl"
             :class="[
               'absolute z-50 flex flex-col gap-2',
-              isMobile ? 'bottom-20 right-4' : 'bottom-4 right-4',
+              isMobile ? 'bottom-20 right-2 sm:right-4' : 'bottom-4 right-4',
             ]"
           >
             <button
@@ -234,7 +244,7 @@
           <!-- Mobile "Show Comments" Button -->
           <div
             v-if="isMobile && !showComments"
-            class="absolute bottom-4 left-1/2 -translate-x-1/2 z-50"
+            class="absolute bottom-4 left-2 right-2 sm:left-4 sm:right-4 flex justify-center z-50"
           >
             <Button
               class="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white shadow-xl border border-white/20 transition-all duration-200 hover:scale-105 active:scale-95"
@@ -256,8 +266,9 @@
             :class="[
               'relative z-[101]',
               isMobile
-                ? 'fixed inset-x-0 bottom-0 h-3/4 transform translate-y-full transition-transform duration-300 ease-out shadow-2xl pb-[env(safe-area-inset-bottom)]'
-                : 'w-full md:w-[450px] flex-shrink-0 border-l border-gray-800/50',
+                ? 'fixed inset-x-0 bottom-0 max-h-[85dvh] min-h-[min(40dvh,40vh)] transform translate-y-full transition-transform duration-300 ease-out shadow-2xl rounded-t-2xl overflow-hidden bg-white dark:bg-gray-900'
+                : 'w-full md:w-[450px] flex-shrink-0 border-l border-gray-800/50 min-h-0',
+              isMobile && 'pb-[env(safe-area-inset-bottom)]',
               { 'translate-y-0': isMobile && showComments },
             ]"
           >

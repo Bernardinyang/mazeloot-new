@@ -3,7 +3,7 @@
     <Transition name="lightbox-fade">
       <div
         v-if="isOpen"
-        class="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-sm p-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]"
+        class="fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-black/95 backdrop-blur-sm p-[max(1rem,env(safe-area-inset-top))] pr-[max(1rem,env(safe-area-inset-right))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(1rem,env(safe-area-inset-left))]"
         @click.self="handleClose"
       >
         <!-- Top Center Container -->
@@ -135,12 +135,12 @@
 
         <!-- Main Container: Side-by-side on desktop, stacked on mobile -->
         <div 
-          class="relative w-full h-full flex flex-col md:flex-row"
+          class="relative w-full h-full min-h-0 flex flex-col md:flex-row"
           :class="isSlideshowPlaying && isFullscreen ? 'slideshow-fullscreen' : ''"
         >
           <!-- Media Section (Left on desktop, full on mobile) -->
           <div
-            class="relative flex-1 flex items-center justify-center bg-black/95 transition-all duration-300"
+            class="relative flex-1 min-h-0 flex items-center justify-center bg-black/95 transition-all duration-300"
             :class="[
               showComments ? 'md:w-[60%]' : 'w-full',
               isSlideshowPlaying && isFullscreen ? 'p-0' : 'p-8 sm:p-3'
@@ -162,7 +162,7 @@
                     isLoading ? 'opacity-0' : 'opacity-100',
                     isSlideshowPlaying && isFullscreen 
                       ? 'max-w-full max-h-full rounded-none' 
-                      : 'max-w-full max-h-[90vh] sm:max-h-[88vh] md:max-h-[90vh] rounded-lg'
+                      : 'max-w-full max-h-[min(90dvh,90vh)] sm:max-h-[min(88dvh,88vh)] md:max-h-[90vh] rounded-lg'
                   ]"
                   @error="handleImageError"
                   @load="handleImageLoad"
