@@ -100,10 +100,26 @@
               <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-500/20 text-amber-600 dark:text-amber-400">
                 <Shield class="h-5 w-5" />
               </div>
-              <div class="min-w-0">
+              <div class="min-w-0 flex-1">
                 <dt :class="['text-xs font-medium uppercase tracking-wider', theme.textTertiary]">Role</dt>
                 <dd class="mt-0.5">
+                  <Select
+                    v-if="isSuperAdmin"
+                    :model-value="user.role"
+                    :disabled="roleUpdating"
+                    @update:model-value="updateRole"
+                  >
+                    <SelectTrigger :class="['w-full max-w-[180px]', theme.textPrimary]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="user">User</SelectItem>
+                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="super_admin">Super Admin</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <Badge
+                    v-else
                     :class="[
                       user.role === 'super_admin' && 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/30',
                       user.role === 'admin' && 'bg-violet-500/20 text-violet-700 dark:text-violet-300 border-violet-500/30',
@@ -239,6 +255,13 @@ import { useUserStore } from '@/shared/stores/user'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Button } from '@/shared/components/shadcn/button'
 import { Badge } from '@/shared/components/shadcn/badge'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/shared/components/shadcn/select'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
@@ -250,6 +273,7 @@ const loading = ref(true)
 const notifications = ref([])
 const notificationsLoading = ref(false)
 const resendingId = ref(null)
+const roleUpdating = ref(false)
 
 const isSuperAdmin = userStore.isSuperAdmin
 
@@ -295,6 +319,20 @@ async function resendPush(notificationId) {
     toast.error(e?.message ?? 'Failed to resend push')
   } finally {
     resendingId.value = null
+  }
+}
+
+async function updateRole(role) {
+  if (!user.value?.uuid || user.value.role === role) return
+  roleUpdating.value = true
+  try {
+    await adminApi.updateUserRole(user.value.uuid, role)
+    user.value.role = role
+    toast.success('Role updated')
+  } catch (e) {
+    toast.error(e?.message ?? 'Failed to update role')
+  } finally {
+    roleUpdating.value = false
   }
 }
 

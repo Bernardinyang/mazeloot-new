@@ -83,7 +83,7 @@ const navItems = computed(() => {
   if (userStore.isSuperAdmin) {
     activityChildren.push({ name: 'sensitive-activity-logs', label: 'Sensitive Actions', to: { name: 'admin-activity-logs-sensitive' }, icon: 'AlertTriangle' })
   }
-  return [
+  const items = [
     { name: 'dashboard', label: 'Dashboard', to: { name: 'admin-dashboard' }, icon: 'LayoutDashboard' },
     { name: 'users', label: 'Users', to: { name: 'admin-users' }, icon: 'Users' },
     { name: 'products', label: 'Products', to: { name: 'admin-products' }, icon: 'Package' },
@@ -92,10 +92,15 @@ const navItems = computed(() => {
     { name: 'faq', label: 'FAQ', to: { name: 'admin-faq' }, icon: 'HelpCircle' },
     { name: 'waitlist', label: 'Waitlist', to: { name: 'admin-waitlist' }, icon: 'ClipboardList' },
     { name: 'newsletter', label: 'Newsletter', to: { name: 'admin-newsletter' }, icon: 'Mail' },
-    { name: 'health', label: 'Health', to: { name: 'admin-health' }, icon: 'Heart' },
     { name: 'analytics', label: 'Analytics', to: { name: 'admin-analytics' }, icon: 'BarChart3' },
-    { name: 'system', label: 'System', to: { name: 'admin-system' }, icon: 'Server' },
     { name: 'activity-logs', label: 'Activity Logs', icon: 'FileText', children: activityChildren },
   ]
+  if (userStore.isSuperAdmin) {
+    items.splice(items.length - 1, 0,
+      { name: 'health', label: 'Health', to: { name: 'admin-health' }, icon: 'Heart' },
+      { name: 'system', label: 'System', to: { name: 'admin-system' }, icon: 'Server' }
+    )
+  }
+  return items
 })
 </script>
