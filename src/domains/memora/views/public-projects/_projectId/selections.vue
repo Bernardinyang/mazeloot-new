@@ -1530,17 +1530,8 @@ const handleSubmitEmail = async () => {
       await loadMediaItems()
     }
   } catch (error) {
-    // Check if error is about email not being allowed
-    const errorMessage = error?.message || ''
-    if (
-      errorMessage.toLowerCase().includes('not authorized') ||
-      errorMessage.toLowerCase().includes('not in the allowed')
-    ) {
-      emailError.value =
-        'This email is not authorized to access this selection. Please contact the selection owner.'
-    } else {
-      emailError.value = errorMessage || 'Failed to generate access token. Please try again.'
-    }
+    const errorMessage = getErrorMessage(error, 'Failed to generate access token. Please try again.')
+    emailError.value = errorMessage
   } finally {
     isGeneratingToken.value = false
   }
@@ -2198,7 +2189,7 @@ const scrollToGallery = () => {
 }
 
 const handleLogout = () => {
-  const selectionId = route.params.projectId
+  const selectionId = route.params.selectionId || route.query.selectionId
   if (selectionId) {
     clearSelectionGuestData(selectionId)
   }

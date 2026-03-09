@@ -1211,6 +1211,7 @@ import { useMediaApi } from '@/shared/api/media'
 import { useUserStore } from '@/shared/stores/user'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { toast } from '@/shared/utils/toast'
+import { getErrorMessage } from '@/shared/utils/errors'
 import { approvalRequestUrl, closureRequestUrl } from '@/shared/utils/memoraPublicUrls'
 import { clearProofingGuestData } from '@/shared/utils/guestLogout'
 import mazelootPrimaryLogo from '@/shared/assets/images/logos/mazelootPrimaryLogo.svg'
@@ -2015,17 +2016,8 @@ const handleSubmitEmail = async () => {
       await loadMediaItems()
     }
   } catch (error) {
-    // Check if error is about email not being allowed
-    const errorMessage = error?.message || ''
-    if (
-      errorMessage.toLowerCase().includes('not authorized') ||
-      errorMessage.toLowerCase().includes('not in the allowed')
-    ) {
-      emailError.value =
-        'This email is not authorized to access this proofing. Please contact the proofing owner.'
-    } else {
-      emailError.value = errorMessage || 'Failed to generate access token. Please try again.'
-    }
+    const errorMessage = getErrorMessage(error, 'Failed to generate access token. Please try again.')
+    emailError.value = errorMessage
   } finally {
     isGeneratingToken.value = false
   }
@@ -3004,7 +2996,7 @@ const scrollToGallery = () => {
 }
 
 const handleLogout = () => {
-  const proofingId = route.params.proofingId || route.query.proofingId || route.params.projectId
+  const proofingId = route.params.proofingId || route.query.proofingId
   if (proofingId) {
     clearProofingGuestData(proofingId)
   }
