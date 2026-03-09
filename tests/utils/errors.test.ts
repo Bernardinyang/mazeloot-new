@@ -146,9 +146,9 @@ describe('Error Utilities', () => {
       expect(isAuthError(error)).toBe(true)
     })
 
-    it('should detect 403 error', () => {
+    it('should not treat 403 as auth error (only 401 triggers logout)', () => {
       const error = parseError({ status: 403 })
-      expect(isAuthError(error)).toBe(true)
+      expect(isAuthError(error)).toBe(false)
     })
 
     it('should return false for non-auth errors', () => {
