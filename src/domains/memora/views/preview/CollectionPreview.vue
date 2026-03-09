@@ -62,10 +62,7 @@
           </div>
           <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
             <div class="flex gap-2 sm:gap-3 md:gap-4 overflow-x-auto w-full sm:w-auto scrollbar-hide">
-              <template
-                v-for="tab in tabs"
-                :key="tab"
-              >
+              <template v-for="tab in tabs" :key="tab">
                 <Tooltip>
                   <TooltipTrigger as-child>
                     <button
@@ -156,6 +153,7 @@
           class="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
           decoding="async"
+          @error="handleImageError"
         />
         <video
           v-else-if="coverImageWithFallback && isVideoCover"
@@ -190,6 +188,7 @@
             class="h-6 sm:h-7 md:h-8 lg:h-10 xl:h-12 w-auto object-contain max-w-[120px] sm:max-w-[140px] md:max-w-none"
             loading="lazy"
             decoding="async"
+            @error="handleImageError"
           />
           <MazelootLogo
             v-else
@@ -390,10 +389,7 @@
         <!-- Bottom Row: Tabs -->
         <TooltipProvider v-if="designConfig.navigationStyle === 'icon-only'">
           <div class="flex gap-1 sm:gap-1.5 overflow-x-auto pb-1 scrollbar-hide -mx-3 sm:-mx-4 md:-mx-8 lg:-mx-12 px-3 sm:px-4 md:px-8 lg:px-12">
-            <template
-              v-for="tab in tabs"
-              :key="tab"
-            >
+            <template v-for="tab in tabs" :key="tab">
               <Tooltip>
                 <TooltipTrigger as-child>
                   <button
@@ -581,7 +577,7 @@
           v-for="(item, index) in paginatedMedia"
           :key="item.id"
           :item="item"
-          :placeholder-image="'/placeholder-image.png'"
+          :placeholder-image="placeholderImageDataUrl"
           :show-filename="false"
           :show-management-actions="false"
           :show-selection-checkbox="false"
@@ -781,6 +777,8 @@ import {
 import { useSetIconMatcher } from '@/domains/memora/composables/useSetIconMatcher'
 import { getColorPalettes, getTextColorFromBackground, getTextColorForAccent } from '@/shared/utils/colors'
 import { toast } from '@/shared/utils/toast'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useUserStore } from '@/shared/stores/user'
 import {
   Dialog,
@@ -823,6 +821,9 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['tab-change', 'download', 'toggle-private', 'logout'])
+
+const placeholderImageDataUrl = PLACEHOLDER_IMAGE_DATA_URL
+const handleImageError = useImagePlaceholder()
 
 const route = useRoute()
 const router = useRouter()
@@ -913,34 +914,36 @@ const designConfig = computed(() => {
   }
 
   // Build base design from preset or defaults
-    const presetDesign = preset?.design || {}
-    const baseDesign = {
+  const presetDesign = preset?.design || {}
+  const baseDesign = {
     cover: presetDesign.cover || 'center',
-      coverFocalPoint: presetDesign.coverFocalPoint || { x: 50, y: 50 },
-      fontFamily: presetDesign.fontFamily || 'sans',
-      fontStyle: presetDesign.fontStyle || 'normal',
-      colorPalette: presetDesign.colorPalette || 'light',
-      gridStyle: presetDesign.gridStyle || 'vertical',
-      gridColumns: presetDesign.gridColumns || 3,
-      thumbnailSize: presetDesign.thumbnailSize || 'medium',
-      gridSpacing: presetDesign.gridSpacing || 16,
-      navigationStyle: presetDesign.navigationStyle || 'icon-text',
-    }
+    coverFocalPoint: presetDesign.coverFocalPoint || { x: 50, y: 50 },
+    fontFamily: presetDesign.fontFamily || 'sans',
+    fontStyle: presetDesign.fontStyle || 'normal',
+    colorPalette: presetDesign.colorPalette || 'light',
+    gridStyle: presetDesign.gridStyle || 'vertical',
+    gridColumns: presetDesign.gridColumns || 3,
+    thumbnailSize: presetDesign.thumbnailSize || 'medium',
+    gridSpacing: presetDesign.gridSpacing || 16,
+    navigationStyle: presetDesign.navigationStyle || 'icon-text',
+  }
 
   // Merge collection configs (takes priority over preset)
-    return {
-      ...baseDesign,
-    // Cover design
-      coverLayoutUuid: collectionCoverDesign.coverLayoutUuid || null,
-    coverFocalPoint: (collectionCoverDesign.coverFocalPoint && typeof collectionCoverDesign.coverFocalPoint === 'object' && 'x' in collectionCoverDesign.coverFocalPoint && 'y' in collectionCoverDesign.coverFocalPoint) 
-      ? collectionCoverDesign.coverFocalPoint 
-      : baseDesign.coverFocalPoint,
-    // Typography design
+  const coverFocalPoint =
+    collectionCoverDesign.coverFocalPoint &&
+    typeof collectionCoverDesign.coverFocalPoint === 'object' &&
+    'x' in collectionCoverDesign.coverFocalPoint &&
+    'y' in collectionCoverDesign.coverFocalPoint
+      ? collectionCoverDesign.coverFocalPoint
+      : baseDesign.coverFocalPoint
+
+  return {
+    ...baseDesign,
+    coverLayoutUuid: collectionCoverDesign.coverLayoutUuid || null,
+    coverFocalPoint,
     fontFamily: collectionTypographyDesign.fontFamily || baseDesign.fontFamily,
     fontStyle: collectionTypographyDesign.fontStyle || baseDesign.fontStyle,
-    // Color design
     colorPalette: collectionColorDesign.colorPalette || baseDesign.colorPalette,
-    // Grid design
     gridStyle: collectionGridDesign.gridStyle || baseDesign.gridStyle,
     gridColumns: collectionGridDesign.gridColumns || baseDesign.gridColumns,
     thumbnailSize: collectionGridDesign.thumbnailSize || baseDesign.thumbnailSize,
@@ -2334,13 +2337,6 @@ const getCollectionGradientStyle = () => {
     return {
       background: `linear-gradient(to bottom, ${top}, ${mid}, ${bottom})`,
     }
-  }
-}
-
-const handleImageError = (event) => {
-  // Hide image if it fails to load
-  if (event.target) {
-    event.target.style.display = 'none'
   }
 }
 

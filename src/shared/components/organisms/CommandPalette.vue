@@ -138,6 +138,7 @@ import { useUserStore } from '@/shared/stores/user'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import AppIcon from '@/shared/components/atoms/AppIcon.vue'
 import { MAZELOOT_PRODUCTS } from '@/domains/memora/constants/products'
+import { escapeHtml } from '@/shared/utils/escapeHtml'
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -302,9 +303,10 @@ function setRef(key, el) {
 
 function highlight(text) {
   const q = searchQuery.value.trim()
-  if (!q || !text) return text
+  if (!q || !text) return escapeHtml(text)
+  const escaped = escapeHtml(text)
   const re = new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  return text.replace(re, '<mark class="bg-accent/30 rounded px-0.5">$1</mark>')
+  return escaped.replace(re, '<mark class="bg-accent/30 rounded px-0.5">$1</mark>')
 }
 
 let searchDebounce = null

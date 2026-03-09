@@ -302,12 +302,12 @@ import Pagination from '@/shared/components/molecules/Pagination.vue'
 import { toast } from '@/shared/utils/toast'
 import { apiClient } from '@/shared/api/client'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const router = useRouter()
 const theme = useThemeClasses()
 
-// Placeholder image
-const placeholderImage = '/placeholder-image.png'
+const placeholderImage = PLACEHOLDER_IMAGE_DATA_URL
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -590,7 +590,7 @@ const formatDate = date => {
 }
 
 const handleImageError = event => {
-  event.target.src = '/placeholder-image.png'
+  event.target.src = PLACEHOLDER_IMAGE_DATA_URL
 }
 
 onMounted(async () => {

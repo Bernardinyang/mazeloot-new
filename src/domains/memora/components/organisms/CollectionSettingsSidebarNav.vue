@@ -1,7 +1,7 @@
 <template>
   <!-- SETTINGS Section - Expanded -->
   <div v-if="!props.isSidebarCollapsed" class="space-y-5">
-    <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
+    <h2 class="text-xs font-bold uppercase tracking-wider mb-4 text-primary-foreground/80">
       SETTINGS
     </h2>
     <!-- Skeleton Loader -->
@@ -21,47 +21,47 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsGeneral'
-            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionSettingsGeneral', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Settings :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">General</span>
+        <Settings class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">General</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsPrivacy'
-            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionSettingsPrivacy', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Privacy</span>
+        <Lock class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Privacy</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name?.toString().startsWith('collectionSettingsDownload')
-            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionSettingsDownload', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between border-l-4 border-transparent"
       >
         <div class="flex items-center gap-3">
-          <Download :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-          <span :class="theme.textPrimary" class="text-sm font-medium">Download</span>
+          <Download class="h-4 w-4 flex-shrink-0 opacity-90" />
+          <span class="text-sm font-medium">Download</span>
         </div>
         <span
           :class="
             props.downloadEnabled
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+              ? 'bg-green-400/30 text-green-100'
+              : 'bg-white/20 text-primary-foreground/80'
           "
           class="px-2 py-0.5 rounded-full text-xs font-semibold"
         >
@@ -72,21 +72,21 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionSettingsFavorite'
-            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionSettingsFavorite', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group justify-between border-l-4 border-transparent"
       >
         <div class="flex items-center gap-3">
-          <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-          <span :class="theme.textPrimary" class="text-sm font-medium">Favorite</span>
+          <Heart class="h-4 w-4 flex-shrink-0 opacity-90" />
+          <span class="text-sm font-medium">Favorite</span>
         </div>
         <span
           :class="
             props.favoriteEnabled
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-              : 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400'
+              ? 'bg-green-400/30 text-green-100'
+              : 'bg-white/20 text-primary-foreground/80'
           "
           class="px-2 py-0.5 rounded-full text-xs font-semibold"
         >
@@ -111,7 +111,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsGeneral' ? 'bg-violet-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsGeneral' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20']"
             :to="{ name: 'collectionSettingsGeneral', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -126,7 +126,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsPrivacy' ? 'bg-violet-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsPrivacy' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20']"
             :to="{ name: 'collectionSettingsPrivacy', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -143,8 +143,8 @@
             v-if="props.collectionId"
             :class="[
               route.name?.toString().startsWith('collectionSettingsDownload')
-                ? 'bg-violet-500 text-white'
-                : '',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{ name: 'collectionSettingsDownload', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200 relative"
@@ -164,7 +164,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionSettingsFavorite' ? 'bg-violet-500 text-white' : '']"
+            :class="[route.name === 'collectionSettingsFavorite' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20']"
             :to="{ name: 'collectionSettingsFavorite', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200 relative"
           >
@@ -192,7 +192,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
-import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 
 const props = defineProps({
@@ -203,6 +202,5 @@ const props = defineProps({
   isLoading: { type: Boolean, default: false },
 })
 
-const theme = useThemeClasses()
 const route = useRoute()
 </script>

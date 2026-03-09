@@ -1,11 +1,12 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb>
-      <div class="flex items-center gap-2">
-        <router-link :to="{ name: 'projects' }" class="hover:underline">Projects</router-link>
-        <span>/</span>
-        <span>{{ project?.name || 'Loading...' }}</span>
-      </div>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'projects' }, label: 'Projects' },
+          { label: project?.name || 'Loading...' },
+        ]"
+      />
     </template>
 
     <!-- Loading State -->
@@ -49,7 +50,7 @@
               :class="[
                 theme.borderSecondary,
                 theme.textPrimary,
-                'hover:bg-gray-50 dark:hover:bg-gray-800',
+                'hover:bg-gray-50 dark:hover:bg-gray-800 light:hover:text-gray-900 dark:hover:text-gray-100',
               ]"
               @click="handleEdit"
             >
@@ -463,6 +464,7 @@ import {
   Image,
 } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import StatusBadge from '@/shared/components/molecules/StatusBadge.vue'
 import EditProjectDialog from '@/shared/components/organisms/EditProjectDialog.vue'

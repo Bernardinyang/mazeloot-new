@@ -57,7 +57,10 @@
           </div>
         </div>
         <ContentLoader v-if="isLoading" message="Loading proofing..." />
-
+        <div v-else-if="loadError" class="flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <p class="text-destructive font-medium">{{ loadError }}</p>
+          <Button variant="outline" @click="loadProofing(route.params.id, true)">Try again</Button>
+        </div>
         <div v-else class="p-4 sm:p-6 md:p-8">
           <!-- Section Header -->
           <div v-if="isLoadingMedia" class="mb-6">
@@ -82,25 +85,12 @@
             @add-media="handleAddMedia"
           />
 
-          <!-- Shown only when plan set limit has been reached (dismissable) -->
-          <div
-            v-if="isSetLimitReached && !setLimitBannerDismissed"
-            data-banner="phase-set-limit"
-            class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20"
-          >
-            <Info class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-            <p class="min-w-0 flex-1 text-sm font-medium text-amber-900 dark:text-amber-100">
-              Set limit reached ({{ phaseSetCount }} / {{ setLimitPerPhase }}). Upgrade your plan to add more sets.
-            </p>
-            <button
-              type="button"
-              class="shrink-0 rounded p-1 text-amber-600 hover:bg-amber-200/50 dark:text-amber-400 dark:hover:bg-amber-800/50"
-              aria-label="Dismiss banner"
-              @click="dismissSetLimitBanner"
-            >
-              <X class="size-5" aria-hidden="true" />
-            </button>
-          </div>
+          <PhaseSetLimitBanner
+            :visible="isSetLimitReached && !setLimitBannerDismissed"
+            :current-count="phaseSetCount"
+            :limit="setLimitPerPhase"
+            @dismiss="dismissSetLimitBanner"
+          />
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -164,6 +154,7 @@
             >
               <MediaGridItemCard
                 v-for="item in sortedMediaItems"
+                v-memo="[item.id, selectedMediaIds.has(getItemId(item))]"
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :was-selected-on-completion="
@@ -206,6 +197,7 @@
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
               <MediaListItemRow
                 v-for="item in sortedMediaItems"
+                v-memo="[item.id, selectedMediaIds.has(getItemId(item))]"
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :was-selected-on-completion="
@@ -599,7 +591,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, provide, ref, shallowRef, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import ProofingLayout from '@/domains/memora/layouts/ProofingLayout.vue'
@@ -640,13 +632,16 @@ import { formatMediaDate } from '@/domains/memora/utils/media/formatMediaDate'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useProofingMediaSetsSidebarStore } from '@/domains/memora/stores/proofingMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Info, Loader2, Plus, X } from '@/shared/utils/lucideAnimated'
+import { FolderPlus, ImagePlus, Loader2, Plus } from '@/shared/utils/lucideAnimated'
+import PhaseSetLimitBanner from '@/shared/components/molecules/PhaseSetLimitBanner.vue'
 import { triggerFileInputClick } from '@/domains/memora/utils/media/triggerFileInputClick'
 import { useProofingWorkflow } from '@/domains/memora/composables/useProofingWorkflow'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { apiClient } from '@/shared/api/client'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { useLoadingStates } from '@/shared/composables/useLoadingStates'
+import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import Pagination from '@/shared/components/molecules/Pagination.vue'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination.js'
 import { useUserStore } from '@/shared/stores/user'
@@ -741,7 +736,9 @@ const targetSetId = ref('')
 const availableProofings = ref([])
 const isLoadingProofings = ref(false)
 const targetProofingSets = ref([])
-const isLoadingTargetSets = ref(false)
+const { states: loadingStates, setLoading } = useLoadingStates(['detail', 'targetSets'])
+const isLoading = loadingStates.detail
+const isLoadingTargetSets = loadingStates.targetSets
 const isBulkFavoriteLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
@@ -816,14 +813,16 @@ const handleImageError = event => {
   }
 }
 
-// Load proofing data
-const isLoading = ref(false)
+// Load proofing data (isLoading, isLoadingTargetSets from useLoadingStates above)
+const { error: loadError, handleError, clearError } = useErrorHandler()
+
 const loadProofing = async (proofingId, forceRefresh = false) => {
   if (!proofingId) {
     return
   }
 
-  isLoading.value = true
+  setLoading('detail', true)
+  clearError()
   try {
     // Clear media items when switching to a different phase
     const previousProofingId = proofing.value?.id
@@ -873,11 +872,10 @@ const loadProofing = async (proofingId, forceRefresh = false) => {
     } else {
       mediaItems.value = []
     }
-  } catch (error) {
-    console.error('Error loading proofing:', error)
-    // Optionally redirect back or show error message
+  } catch (err) {
+    await handleError(err, { showToast: true, fallbackMessage: 'Failed to load proofing.' })
   } finally {
-    isLoading.value = false
+    setLoading('detail', false)
   }
 }
 
@@ -1128,7 +1126,7 @@ watch(
 )
 
 // Initialize media items as empty array
-const mediaItems = ref([])
+const mediaItems = shallowRef([])
 
 // Load media items for the selected set with pagination
 const proofingApi = useProofingApi()
@@ -2013,7 +2011,7 @@ const handleTargetProofingChange = async proofingId => {
     return
   }
 
-  isLoadingTargetSets.value = true
+  setLoading('targetSets', true)
   try {
     let allSets = []
     if (proofingId === proofing.value?.id) {
@@ -2044,7 +2042,7 @@ const handleTargetProofingChange = async proofingId => {
       description: 'Unable to load sets for the selected proofing.',
     })
   } finally {
-    isLoadingTargetSets.value = false
+    setLoading('targetSets', false)
   }
 }
 

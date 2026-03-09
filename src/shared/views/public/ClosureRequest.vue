@@ -145,7 +145,7 @@
               <div class="p-5 space-y-3">
                 <div
                   v-for="(todo, index) in todos"
-                  :key="index"
+                  :key="`todo-${index}-${todo.text || ''}`"
                   class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700"
                 >
                   <CheckCircle2
@@ -240,6 +240,7 @@
                   class="w-full rounded-lg"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                 />
                 <video
                   v-else-if="media.file?.type === 'video'"
@@ -386,9 +387,11 @@ import { useProofingApi } from '@/domains/memora/api/proofing'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
 import { publicProofingUrl } from '@/shared/utils/memoraPublicUrls'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const route = useRoute()
 const router = useRouter()
+const handleImageError = useImagePlaceholder()
 const proofingApi = useProofingApi()
 const userStore = useUserStore()
 

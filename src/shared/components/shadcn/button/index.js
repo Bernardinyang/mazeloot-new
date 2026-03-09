@@ -14,9 +14,10 @@ export const buttonVariants = cva(
         success: 'bg-success-900 text-white shadow-sm hover:bg-success-800 dark:bg-success dark:hover:bg-success/85 !text-white',
         warning: 'bg-warning text-warning-foreground shadow-sm hover:bg-warning/85 dark:hover:bg-warning/80 dark:hover:text-warning-foreground',
         outline:
-          'border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/10 light:hover:text-white',
+          'border border-input bg-background shadow-sm text-foreground hover:bg-accent light:hover:text-accent-foreground dark:hover:bg-accent/10 dark:hover:text-accent-foreground',
         secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80 dark:hover:bg-secondary/70',
-        ghost: 'hover:bg-accent/10 hover:text-accent-foreground text-foreground dark:hover:bg-accent/15 light:hover:text-white',
+        ghost:
+          'text-foreground hover:bg-accent/10 hover:text-accent dark:hover:bg-accent/15 dark:hover:text-accent-foreground',
         link: 'text-primary underline-offset-4 hover:underline hover:text-primary/80',
       },
       size: {

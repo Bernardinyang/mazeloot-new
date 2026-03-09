@@ -1,8 +1,6 @@
 <template>
   <DashboardLayout
     :breadcrumb-items="breadcrumbItems"
-    :breadcrumb-separator="breadcrumbSeparator"
-    :custom-breadcrumb-separator="customBreadcrumbSeparator"
     :hide-user-features="true"
   >
     <template #breadcrumb>
@@ -56,9 +54,6 @@ const breadcrumbItems = computed(() => {
   }
   return items
 })
-
-const breadcrumbSeparator = '/'
-const customBreadcrumbSeparator = null
 
 const userData = computed(() => {
   if (userStore.user) {

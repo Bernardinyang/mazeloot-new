@@ -316,6 +316,7 @@ import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { useMediaApi } from '@/shared/api/media'
 import { toast } from '@/shared/utils/toast'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const props = defineProps({
   modelValue: {
@@ -336,7 +337,7 @@ const props = defineProps({
   },
   placeholderImage: {
     type: String,
-    default: '/placeholder-image.png',
+    default: () => PLACEHOLDER_IMAGE_DATA_URL,
   },
   allowComments: {
     type: Boolean,
@@ -637,6 +638,8 @@ const handleImageLoad = () => {
 
 const handleImageError = event => {
   isLoading.value = false
+  const img = event.target
+  if (img?.src !== props.placeholderImage) img.src = props.placeholderImage
   emit('image-error', event)
 }
 

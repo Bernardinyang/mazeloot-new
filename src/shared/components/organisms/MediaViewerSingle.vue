@@ -9,7 +9,7 @@
         :src="displayUrl"
         class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl"
         decoding="async"
-        @error="emit('image-error', $event)"
+        @error="handleImageError"
       />
       <button
         class="absolute top-[max(1rem,env(safe-area-inset-top))] right-[max(1rem,env(safe-area-inset-right))] w-12 h-12 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-md text-white flex items-center justify-center transition-all duration-200 shadow-lg hover:scale-110"
@@ -51,4 +51,10 @@ const displayUrl = computed(
     props.media?.thumbnail ||
     props.placeholderImage
 )
+
+const handleImageError = e => {
+  const img = e.target
+  if (img?.src !== props.placeholderImage) img.src = props.placeholderImage
+  emit('image-error', e)
+}
 </script>

@@ -25,6 +25,7 @@
             alt="Cover photo"
             class="absolute inset-0 w-full h-full object-contain"
             draggable="false"
+            @error="handleImageError"
           />
 
           <!-- Dark Overlay Outside Crop Area -->
@@ -98,6 +99,7 @@
                 class="w-full h-full object-cover"
                 draggable="false"
                 :style="cropImageStyle"
+                @error="handleImageError"
               />
             </div>
           </div>
@@ -135,8 +137,10 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 
 const props = defineProps({
   isOpen: {

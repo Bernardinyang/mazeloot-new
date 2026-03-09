@@ -29,6 +29,8 @@ export function useThemeClasses() {
   // Background colors for dropdowns - better contrast
   const bgDropdown = 'bg-gray-800 dark:bg-gray-800/95 light:bg-white'
   const bgDropdownSeparator = 'bg-gray-600 dark:bg-gray-600/60 light:bg-gray-200'
+  const dropdownItemAccentHover =
+    'hover:bg-accent/10 dark:hover:bg-accent/20 light:hover:text-accent dark:hover:text-accent-foreground'
 
   // Input/Form elements - more visible inputs
   const bgInput = 'bg-white/10 dark:bg-gray-800/90 light:bg-gray-100'
@@ -88,6 +90,7 @@ export function useThemeClasses() {
     // Dropdowns
     bgDropdown,
     bgDropdownSeparator,
+    dropdownItemAccentHover,
     // Inputs
     bgInput,
     borderInput,

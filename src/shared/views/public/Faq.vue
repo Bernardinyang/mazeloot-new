@@ -32,7 +32,7 @@
           <div class="space-y-3">
             <div
               v-for="(faq, index) in faqItems"
-              :key="index"
+              :key="faq.question || index"
               class="group relative rounded-xl dark:bg-white/5 light:bg-white dark:backdrop-blur-sm light:backdrop-blur-sm border dark:border-white/10 light:border-gray-200 dark:hover:border-cyan-500/30 light:hover:border-cyan-500/50 dark:hover:bg-white/10 light:hover:bg-gray-50 hover:shadow-lg transition-all duration-300 overflow-hidden"
             >
               <button

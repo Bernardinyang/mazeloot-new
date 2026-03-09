@@ -766,6 +766,7 @@
                   ]"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                   @click="!isAuthenticatedOwner && !isPreviewMode && handleViewMedia(item, false)"
                 />
                 <video
@@ -1200,6 +1201,7 @@ import {
 } from '@/shared/components/shadcn/tooltip'
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useSelectionLimits } from '@/domains/memora/composables/useSelectionLimits'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
@@ -2944,9 +2946,8 @@ const getProofingCoverStyle = () => {
   return style
 }
 
-const handleCoverImageError = () => {
-  // Silently handle error
-}
+const handleImageError = useImagePlaceholder()
+const handleCoverImageError = handleImageError
 
 // Format date for display
 const formatDate = dateString => {

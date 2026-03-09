@@ -3,6 +3,10 @@
  * Manages global notifications across all products
  */
 
+const devLog = (...args) => { if (import.meta.env.DEV) devLog(...args) }
+const devWarn = (...args) => { if (import.meta.env.DEV) devWarn(...args) }
+const devError = (...args) => { if (import.meta.env.DEV) devError(...args) }
+
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { useNotificationsApi } from '@/shared/api/notifications'
@@ -56,10 +60,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
       // Handle both direct array and wrapped response
       const notificationsData = Array.isArray(response) ? response : (response?.data || [])
       notifications.value = notificationsData
-      console.log('Fetched notifications:', notifications.value.length, notifications.value)
+      devLog('Fetched notifications:', notifications.value.length, notifications.value)
       return notifications.value
     } catch (error) {
-      console.error('Failed to fetch notifications:', error)
+      devError('Failed to fetch notifications:', error)
       throw error
     } finally {
       isLoading.value = false
@@ -76,10 +80,10 @@ export const useNotificationsStore = defineStore('notifications', () => {
         general: 0,
         total: 0,
       }
-      console.log('Fetched unread counts:', unreadCounts.value)
+      devLog('Fetched unread counts:', unreadCounts.value)
       return unreadCounts.value
     } catch (error) {
-      console.error('Failed to fetch unread counts:', error)
+      devError('Failed to fetch unread counts:', error)
       throw error
     }
   }
@@ -95,7 +99,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       // Update unread counts
       await fetchUnreadCounts()
     } catch (error) {
-      console.error('Failed to mark notification as read:', error)
+      devError('Failed to mark notification as read:', error)
       throw error
     }
   }
@@ -115,7 +119,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       // Update unread counts
       await fetchUnreadCounts()
     } catch (error) {
-      console.error('Failed to mark all notifications as read:', error)
+      devError('Failed to mark all notifications as read:', error)
       throw error
     }
   }
@@ -128,7 +132,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       // Update unread counts
       await fetchUnreadCounts()
     } catch (error) {
-      console.error('Failed to delete notification:', error)
+      devError('Failed to delete notification:', error)
       throw error
     }
   }
@@ -187,12 +191,12 @@ export const useNotificationsStore = defineStore('notifications', () => {
   }
 
   const addNotification = (notification) => {
-    console.log('Adding notification to store:', notification)
+    devLog('Adding notification to store:', notification)
     // Check if notification already exists (check both id and uuid)
     const notificationId = notification.id || notification.uuid
     const exists = notifications.value.some(n => (n.id === notificationId || n.uuid === notificationId))
     if (exists) {
-      console.log('Notification already exists, skipping:', notificationId)
+      devLog('Notification already exists, skipping:', notificationId)
       return false
     }
     // Add to beginning of array
@@ -220,7 +224,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
             await fetchNotifications()
           }
         } catch (error) {
-          console.error('Polling fetch failed:', error)
+          devError('Polling fetch failed:', error)
         }
       }
     }, 30000) // 30 seconds
@@ -241,7 +245,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
     // Only subscribe if user is authenticated
     if (!userStore.isAuthenticated) {
-      console.log('User not authenticated, skipping Pusher subscription')
+      devLog('User not authenticated, skipping Pusher subscription')
       // Start polling as fallback
       startPolling()
       return
@@ -249,7 +253,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
     const userUuid = userStore.user?.uuid || userStore.user?.id
     if (!userUuid) {
-      console.warn('User UUID not available, skipping Pusher subscription', {
+      devWarn('User UUID not available, skipping Pusher subscription', {
         user: userStore.user,
         isAuthenticated: userStore.isAuthenticated,
       })
@@ -261,14 +265,14 @@ export const useNotificationsStore = defineStore('notifications', () => {
     // Check if Pusher is available
     const pusher = getPusher()
     if (!pusher) {
-      console.warn('Pusher not available, using polling fallback')
+      devWarn('Pusher not available, using polling fallback')
       startPolling()
       return
     }
 
     try {
       const channelName = `private-user.${userUuid}`
-      console.log('Subscribing to notification channel:', channelName, {
+      devLog('Subscribing to notification channel:', channelName, {
         userUuid,
         isAuthenticated: userStore.isAuthenticated,
         hasToken: !!userStore.token,
@@ -279,7 +283,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
         channelName,
         'notification.created',
         (data) => {
-          console.log('✅ Received new notification via Pusher:', data)
+          devLog('✅ Received new notification via Pusher:', data)
           if (data?.notification) {
             // Add notification to store
             const wasAdded = addNotification(data.notification)
@@ -315,7 +319,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
                   })
                 }
               } else {
-                console.log('Silent notification (no toast):', data.notification.type)
+                devLog('Silent notification (no toast):', data.notification.type)
               }
             }
 
@@ -326,44 +330,44 @@ export const useNotificationsStore = defineStore('notifications', () => {
       )
 
       if (pusherSubscription) {
-        console.log('✅ Successfully subscribed to notification channel:', channelName)
+        devLog('✅ Successfully subscribed to notification channel:', channelName)
 
         // Listen for subscription events
         pusherSubscription.bind('pusher:subscription_succeeded', () => {
-          console.log('✅ Pusher subscription confirmed for:', channelName)
+          devLog('✅ Pusher subscription confirmed for:', channelName)
           // Stop polling since Pusher is working
           stopPolling()
         })
 
         pusherSubscription.bind('pusher:subscription_error', (error) => {
-          console.error('❌ Pusher subscription error:', error, 'for channel:', channelName)
+          devError('❌ Pusher subscription error:', error, 'for channel:', channelName)
           // Start polling as fallback
           startPolling()
         })
 
         // Check Pusher connection status
         if (pusher) {
-          console.log('Pusher connection state:', pusher.connection.state)
+          devLog('Pusher connection state:', pusher.connection.state)
           pusher.connection.bind('connected', () => {
-            console.log('✅ Pusher connected')
+            devLog('✅ Pusher connected')
             stopPolling()
           })
           pusher.connection.bind('disconnected', () => {
-            console.warn('⚠️ Pusher disconnected, starting polling fallback')
+            devWarn('⚠️ Pusher disconnected, starting polling fallback')
             startPolling()
           })
           pusher.connection.bind('error', (error) => {
-            console.error('❌ Pusher connection error:', error)
+            devError('❌ Pusher connection error:', error)
             startPolling()
           })
         }
       } else {
-        console.warn('⚠️ Pusher subscription returned null for channel:', channelName)
+        devWarn('⚠️ Pusher subscription returned null for channel:', channelName)
         // Start polling as fallback
         startPolling()
       }
     } catch (error) {
-      console.error('Failed to subscribe to notification channel:', error)
+      devError('Failed to subscribe to notification channel:', error)
       // Start polling as fallback
       startPolling()
     }
@@ -375,7 +379,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
       if (userUuid) {
         const channelName = `private-user.${userUuid}`
         unsubscribe(channelName)
-        console.log('Unsubscribed from notification channel:', channelName)
+        devLog('Unsubscribed from notification channel:', channelName)
       }
       pusherSubscription = null
     }
@@ -396,14 +400,14 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
   const initialize = async () => {
     if (isInitialized.value) {
-      console.log('Notifications already initialized, re-setting up Pusher subscription')
+      devLog('Notifications already initialized, re-setting up Pusher subscription')
       // Re-setup Pusher subscription in case it was lost
       await setupPusherSubscription()
       return
     }
 
     try {
-      console.log('Initializing notifications store...', {
+      devLog('Initializing notifications store...', {
         isAuthenticated: userStore.isAuthenticated,
         hasUser: !!userStore.user,
         userUuid: userStore.user?.uuid || userStore.user?.id,
@@ -411,7 +415,7 @@ export const useNotificationsStore = defineStore('notifications', () => {
 
       // Wait a bit for user store to be ready if needed
       if (!userStore.user?.uuid && !userStore.user?.id) {
-        console.log('Waiting for user data...')
+        devLog('Waiting for user data...')
         await new Promise(resolve => setTimeout(resolve, 500))
       }
 
@@ -424,16 +428,16 @@ export const useNotificationsStore = defineStore('notifications', () => {
       await setupPusherSubscription()
 
       isInitialized.value = true
-      console.log('Notifications store initialized successfully. Count:', notifications.value.length)
+      devLog('Notifications store initialized successfully. Count:', notifications.value.length)
     } catch (error) {
-      console.error('Failed to initialize notifications:', error)
+      devError('Failed to initialize notifications:', error)
       // Still mark as initialized to prevent infinite retries
       isInitialized.value = true
       // Try to setup Pusher anyway
       try {
         await setupPusherSubscription()
       } catch (pusherError) {
-        console.error('Failed to setup Pusher subscription:', pusherError)
+        devError('Failed to setup Pusher subscription:', pusherError)
       }
     }
   }

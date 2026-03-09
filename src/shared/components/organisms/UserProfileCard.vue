@@ -58,7 +58,15 @@
                 'group-hover:scale-110 transition-transform duration-300',
               ]"
             >
-              <img v-if="avatar" :alt="name" :src="avatar" class="w-full h-full object-cover" loading="lazy" decoding="async" />
+              <img
+                v-if="avatar"
+                :alt="name"
+                :src="avatar"
+                class="w-full h-full object-cover"
+                loading="lazy"
+                decoding="async"
+                @error="handleAvatarError"
+              />
               <div
                 v-else
                 :class="[
@@ -164,6 +172,7 @@ import Card from '@/shared/components/shadcn/Card.vue'
 import CardContent from '@/shared/components/shadcn/CardContent.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const theme = useThemeClasses()
 
@@ -187,4 +196,9 @@ defineProps({
 })
 
 defineEmits(['viewProfile', 'logout'])
+
+const handleAvatarError = e => {
+  const img = e.target
+  if (img?.src !== PLACEHOLDER_IMAGE_DATA_URL) img.src = PLACEHOLDER_IMAGE_DATA_URL
+}
 </script>

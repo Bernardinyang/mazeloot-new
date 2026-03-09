@@ -11,6 +11,7 @@
             class="h-7 w-auto"
             loading="lazy"
             decoding="async"
+            @error="handleImageError"
           />
           <div v-else class="h-7 w-7 bg-gradient-to-br from-gray-200 to-gray-300 rounded-lg"></div>
         </div>
@@ -140,6 +141,7 @@
               class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             />
             <div
               class="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"
@@ -169,7 +171,10 @@
 <script setup>
 import { ref } from 'vue'
 import { Globe, Phone, Mail, MapPin } from '@/shared/utils/lucideAnimated'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import FeaturedMediaSlider from '@/shared/components/organisms/FeaturedMediaSlider.vue'
+
+const handleImageError = useImagePlaceholder()
 
 const isVideoCover = url => {
   if (!url) return false

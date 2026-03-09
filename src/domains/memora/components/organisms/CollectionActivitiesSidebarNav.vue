@@ -1,7 +1,7 @@
 <template>
   <!-- ACTIVITIES Section - Expanded -->
   <div v-if="!props.isSidebarCollapsed" class="space-y-5">
-    <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
+    <h2 class="text-xs font-bold uppercase tracking-wider mb-4 text-primary-foreground/80">
       ACTIVITIES
     </h2>
     <!-- Skeleton Loader -->
@@ -20,69 +20,69 @@
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesDownload'
-            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionActivitiesDownload', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Download :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Download Activity</span>
+        <Download class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Download Activity</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesFavourite'
-            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionActivitiesFavourite', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Heart :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Favourite Activity</span>
+        <Heart class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Favourite Activity</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesEmailRegistration'
-            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{
           name: 'collectionActivitiesEmailRegistration',
           params: { uuid: props.collectionId },
         }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Mail :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Email Registration</span>
+        <Mail class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Email Registration</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesQuickShare'
-            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Link :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Quick Share Links</span>
+        <Link class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Quick Share Links</span>
       </router-link>
       <router-link
         v-if="props.collectionId"
         :class="[
           route.name === 'collectionActivitiesPrivateMedia'
-            ? 'bg-accent/10 dark:bg-accent/20 border-l-4 border-accent'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-accent/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionActivitiesPrivateMedia', params: { uuid: props.collectionId } }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Lock :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">Private Media</span>
+        <Lock class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">Private Media</span>
       </router-link>
     </div>
   </div>
@@ -102,7 +102,7 @@
         <TooltipTrigger as-child>
           <router-link
             v-if="props.collectionId"
-            :class="[route.name === 'collectionActivitiesDownload' ? 'bg-accent text-accent-foreground' : '']"
+            :class="[route.name === 'collectionActivitiesDownload' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20']"
             :to="{ name: 'collectionActivitiesDownload', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
           >
@@ -118,7 +118,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesFavourite' ? 'bg-accent text-accent-foreground' : '',
+              route.name === 'collectionActivitiesFavourite' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{ name: 'collectionActivitiesFavourite', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
@@ -137,7 +137,7 @@
             :class="[
               route.name === 'collectionActivitiesEmailRegistration'
                 ? 'bg-accent text-accent-foreground'
-                : '',
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionActivitiesEmailRegistration',
@@ -157,7 +157,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesQuickShare' ? 'bg-accent text-accent-foreground' : '',
+              route.name === 'collectionActivitiesQuickShare' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{ name: 'collectionActivitiesQuickShare', params: { uuid: props.collectionId } }"
             class="p-3 rounded-lg transition-all duration-200"
@@ -174,7 +174,7 @@
           <router-link
             v-if="props.collectionId"
             :class="[
-              route.name === 'collectionActivitiesPrivateMedia' ? 'bg-accent text-accent-foreground' : '',
+              route.name === 'collectionActivitiesPrivateMedia' ? 'bg-accent text-accent-foreground' : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionActivitiesPrivateMedia',
@@ -202,7 +202,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip'
-import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 
 const props = defineProps({
@@ -211,6 +210,5 @@ const props = defineProps({
   isLoading: { type: Boolean, default: false },
 })
 
-const theme = useThemeClasses()
 const route = useRoute()
 </script>

@@ -86,7 +86,7 @@
           height="240"
           loading="lazy"
           decoding="async"
-          @error="emit('image-error', $event)"
+          @error="handleImageError"
           @load="isImageLoaded = true"
         />
         <!-- Video thumbnail with play icon -->
@@ -110,7 +110,7 @@
             height="240"
             loading="lazy"
             decoding="async"
-            @error="emit('image-error', $event)"
+            @error="handleImageError"
             @load="isImageLoaded = true"
           />
           <!-- Video play icon overlay -->
@@ -929,6 +929,11 @@ const isImageLoaded = ref(false)
 const isDropdownOpen = ref(false)
 const imageElementRef = ref(null)
 const videoThumbnailRef = ref(null)
+
+const handleImageError = e => {
+  imageSrc.value = props.placeholderImage
+  emit('image-error', e)
+}
 
 const latestClosureRequest = computed(() => {
   if (!props.closureRequests || props.closureRequests.length === 0) return null

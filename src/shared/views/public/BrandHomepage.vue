@@ -85,6 +85,7 @@
               class="h-10 w-auto transition-transform hover:scale-105"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             />
             <div v-else class="h-10 w-10 bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-600 rounded-lg"></div>
           </div>
@@ -253,6 +254,7 @@
                   class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                 />
               </div>
               <div
@@ -313,9 +315,11 @@ import { apiClient } from '@/shared/api/client'
 import { parseError } from '@/shared/utils/errors'
 import { useUserStore } from '@/shared/stores/user'
 import { useThemeStore } from '@/shared/stores/theme'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const route = useRoute()
 const router = useRouter()
+const handleImageError = useImagePlaceholder()
 const userStore = useUserStore()
 const themeStore = useThemeStore()
 

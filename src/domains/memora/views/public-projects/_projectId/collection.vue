@@ -16,6 +16,7 @@
         class="w-full h-full object-cover"
         loading="lazy"
         decoding="async"
+        @error="handleImageError"
       />
       <!-- Cover Video -->
       <video
@@ -73,6 +74,7 @@
           class="h-12 w-auto object-contain"
           loading="lazy"
           decoding="async"
+          @error="handleImageError"
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
@@ -314,6 +316,7 @@
           class="h-12 w-auto object-contain"
           loading="lazy"
           decoding="async"
+          @error="handleImageError"
         />
       </div>
       <!-- Mazeloot Footer at Bottom -->
@@ -494,6 +497,7 @@ import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 import PinInput from '@/shared/components/molecules/PinInput.vue'
 import CollectionPreview from '@/domains/memora/views/preview/CollectionPreview.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { apiClient } from '@/shared/api/client'
 import { API_CONFIG } from '@/shared/api/config'
 import { useUserStore } from '@/shared/stores/user'
@@ -510,6 +514,7 @@ const { fetchSettings, fetchPublicSettings } = useSettingsApi()
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const userStore = useUserStore()
 
 const collection = ref(null)

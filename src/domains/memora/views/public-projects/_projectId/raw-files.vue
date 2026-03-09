@@ -623,6 +623,7 @@ import {
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 import PinInput from '@/shared/components/molecules/PinInput.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import { useRawFileStore } from '@/domains/memora/stores/rawFile'
@@ -1902,10 +1903,8 @@ const getRawFileCoverStyle = () => {
 }
 
 // Handle cover image error
-const handleCoverImageError = () => {
-  // Silently handle error - fallback to no cover photo
-  console.warn('Cover photo failed to load')
-}
+const handleImageError = useImagePlaceholder()
+const handleCoverImageError = handleImageError
 
 // Format date for display
 const formatDate = dateString => {

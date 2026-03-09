@@ -1,6 +1,6 @@
 <template>
   <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 mb-6 sm:mb-8">
-    <h2 :class="[theme.textPrimary, 'text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1 sm:flex-initial']">
+    <h2 class="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight truncate flex-1 sm:flex-initial bg-gradient-to-r from-primary-700 to-primary-600 dark:from-primary-200 dark:to-primary-100 bg-clip-text text-transparent">
       {{ props.title }}
     </h2>
     <div class="flex items-center gap-2 sm:gap-3 flex-wrap sm:flex-nowrap w-full sm:w-auto justify-start sm:justify-end">
@@ -11,9 +11,9 @@
             :class="[
               theme.borderSecondary,
               theme.bgCard,
-              isSortMenuOpen ? 'ring-2 ring-accent/20' : '',
+              isSortMenuOpen ? 'ring-2 ring-accent/30' : '',
             ]"
-            class="px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-1 sm:gap-2 shrink-0"
+            class="px-2 sm:px-3 py-1.5 sm:py-2 rounded-xl border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800 flex items-center gap-1 sm:gap-2 shrink-0"
           >
             <ArrowUpDown :class="theme.textSecondary" class="h-3.5 w-3.5 sm:h-4 sm:w-4 shrink-0" />
             <span :class="[theme.textPrimary, 'text-xs sm:text-sm truncate']">{{ selectedSortLabel }}</span>
@@ -52,9 +52,9 @@
             :class="[
               theme.borderSecondary,
               theme.bgCard,
-              isViewMenuOpen ? 'ring-2 ring-accent/20' : '',
+              isViewMenuOpen ? 'ring-2 ring-accent/30' : '',
             ]"
-            class="p-2 rounded-lg border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+            class="p-2 rounded-xl border shadow-sm transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-800"
           >
             <Grid3x3 :class="theme.textSecondary" class="h-4 w-4" />
           </button>
@@ -167,15 +167,10 @@
 
       <div
         v-if="props.storageUsedBytes != null"
-        :class="[
-          theme.textSecondary,
-          'flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border shrink-0',
-          theme.borderSecondary,
-          theme.bgCard,
-        ]"
+        class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-accent/20 bg-accent/10 shrink-0"
       >
-        <HardDrive class="h-3.5 w-3.5 text-purple-600 dark:text-purple-400 shrink-0" aria-hidden="true" />
-        <span class="text-xs font-semibold tabular-nums">{{ formatBytes(props.storageUsedBytes) }}</span>
+        <HardDrive class="h-3.5 w-3.5 text-accent shrink-0" aria-hidden="true" />
+        <span class="text-xs font-semibold tabular-nums text-accent dark:text-accent-300">{{ formatBytes(props.storageUsedBytes) }}</span>
       </div>
       <Button
         v-if="props.onRefreshStorage"
@@ -197,7 +192,7 @@
         :icon="ImagePlus"
         loading-label="Uploading..."
         size="sm"
-        class="shadow-md hover:shadow-lg transition-all duration-200 font-medium shrink-0"
+        class="shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 font-medium shrink-0"
         @click="emit('add-media')"
       >
         <span class="hidden sm:inline">Upload Media</span>

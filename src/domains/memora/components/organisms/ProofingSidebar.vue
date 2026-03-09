@@ -2,25 +2,24 @@
   <aside
     :class="[
       'relative border-r transition-all duration-300 h-full',
-      'bg-white dark:bg-gray-900',
-      theme.borderSecondary,
+      'bg-primary-400/90 dark:bg-primary-900',
+      'border-r border-white/20',
       props.isSidebarCollapsed ? 'w-16 p-0 overflow-visible' : 'w-80 p-3 overflow-y-auto',
     ]"
     :style="
       props.isSidebarCollapsed
         ? 'scrollbar-width: none;'
-        : 'scrollbar-width: thin; scrollbar-color: rgba(156, 163, 175, 0.5) transparent;'
+        : 'scrollbar-width: thin; scrollbar-color: hsl(var(--primary-foreground) / 0.25) transparent;'
     "
   >
     <!-- Collapse Button (Bottom Left) - When Expanded -->
     <button
       v-if="!props.isSidebarCollapsed"
-      :class="[theme.borderSecondary, theme.bgCard]"
-      class="absolute bottom-4 left-4 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 z-10 opacity-70 hover:opacity-100 shadow-sm border"
+      class="absolute bottom-4 left-4 p-2 rounded-lg bg-white/20 dark:bg-white/15 border border-white/20 hover:bg-white/30 text-primary-foreground transition-all duration-200 z-10 opacity-90 hover:opacity-100 shadow-sm"
       title="Collapse sidebar"
       @click="emit('update:isSidebarCollapsed', true)"
     >
-      <ChevronsLeft :class="theme.textSecondary" class="h-4 w-4" />
+      <ChevronsLeft class="h-4 w-4" />
     </button>
 
     <!-- Proofing Info (only when expanded) -->
@@ -28,16 +27,14 @@
       <!-- Skeleton Loader -->
       <div
         v-if="props.isLoading"
-        :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 shadow-xl border-2 animate-pulse"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-white/25 border-2 border-white/20 shadow-xl animate-pulse"
       >
-        <div class="w-full h-full bg-gray-200 dark:bg-gray-700"></div>
+        <div class="w-full h-full bg-white/25"></div>
       </div>
       <!-- Proofing Image/Video/Icon -->
       <div
         v-else-if="props.proofing?.coverPhotoUrl || props.proofing?.cover_photo_url"
-        :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl overflow-hidden bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center border-2 shadow-md group cursor-pointer relative"
+        class="w-full aspect-square rounded-2xl overflow-hidden bg-white/10 border-2 border-white/20 shadow-md group cursor-pointer relative flex items-center justify-center"
         @click="isVideoCover ? toggleVideoPlay() : null"
       >
         <!-- Video Cover -->
@@ -105,17 +102,14 @@
       <!-- No Cover Image Placeholder -->
       <div
         v-else
-        :class="theme.borderSecondary"
-        class="w-full aspect-square rounded-2xl bg-gradient-to-br from-gray-50 via-gray-100 to-gray-200 dark:from-gray-800 dark:via-gray-850 dark:to-gray-900 flex items-center justify-center border-2 shadow-md border-dashed"
+        class="w-full aspect-square rounded-2xl flex items-center justify-center bg-white/15 dark:bg-white/10 border border-white/20 shadow-md"
       >
-        <div class="text-center px-4">
-          <div
-            class="p-5 rounded-2xl bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm mb-4 mx-auto w-fit shadow-sm"
-          >
-            <ImageIcon :class="theme.textTertiary" class="h-10 w-10 opacity-50" />
+        <div class="text-center px-4 text-primary-foreground">
+          <div class="p-5 rounded-2xl bg-white/20 dark:bg-white/15 mb-4 mx-auto w-fit">
+            <ImageIcon class="h-10 w-10 text-primary-foreground/70" />
           </div>
-          <p :class="theme.textPrimary" class="text-sm font-semibold mb-1">No cover image</p>
-          <p :class="theme.textTertiary" class="text-xs">Set a cover from media items</p>
+          <p class="text-sm font-semibold mb-1">No cover image</p>
+          <p class="text-xs text-primary-foreground/80">Set a cover from media items</p>
         </div>
       </div>
     </div>
@@ -124,28 +118,27 @@
     <div v-if="!props.isSidebarCollapsed" class="mb-6 w-full">
       <div
         v-if="props.isLoading"
-        class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800/50 border"
+        class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/20 dark:bg-white/10 border border-white/20"
       >
         <div
           v-for="i in 2"
           :key="`skeleton-${i}`"
           class="flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative"
         >
-          <div class="h-5 w-5 flex-shrink-0 bg-gray-200 dark:bg-gray-700 rounded"></div>
-          <div class="h-3 w-9 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          <div class="h-5 w-5 flex-shrink-0 bg-white/25 rounded"></div>
+          <div class="h-3 w-9 bg-white/25 rounded"></div>
         </div>
       </div>
       <div
         v-else
-        :class="theme.borderSecondary"
-        class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-gray-100 dark:bg-gray-800/50 border"
+        class="grid grid-cols-2 gap-1 p-1 rounded-xl bg-white/15 dark:bg-white/10 border border-white/20 shadow-sm"
       >
         <button
           :class="[
             activeTab === 'photos'
-              ? 'bg-violet-500 dark:bg-violet-800 text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-violet-500 dark:hover:bg-violet-500',
-            'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
+              ? 'bg-accent text-accent-foreground shadow-md scale-[1.02] ring-2 ring-white/30'
+              : 'text-primary-foreground/90 hover:bg-white/20 hover:text-primary-foreground',
+            'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-xl relative transition-all duration-200',
           ]"
           :style="activeTab === 'photos' ? { backgroundColor: proofingColor.value } : {}"
           @click="handleTabClick('photos')"
@@ -156,9 +149,9 @@
         <button
           :class="[
             activeTab === 'settings'
-              ? 'bg-violet-500 dark:bg-violet-800 text-white shadow-sm'
-              : 'text-gray-600 dark:text-gray-400 hover:text-white dark:hover:text-white hover:bg-violet-500 dark:hover:bg-violet-500',
-            'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-lg relative transition-all duration-200',
+              ? 'bg-accent text-accent-foreground shadow-md scale-[1.02] ring-2 ring-white/30'
+              : 'text-primary-foreground/90 hover:bg-white/20 hover:text-primary-foreground',
+            'flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-xl relative transition-all duration-200',
           ]"
           :style="activeTab === 'settings' ? { backgroundColor: proofingColor.value } : {}"
           @click="handleTabClick('settings')"
@@ -176,12 +169,11 @@
     >
       <!-- Cover Photo (Collapsed) -->
       <div
-        :class="theme.borderSecondary"
-        class="w-12 h-12 rounded-lg overflow-hidden border-2 shadow-sm flex-shrink-0 relative"
+        class="w-12 h-12 rounded-lg overflow-hidden border-2 border-white/20 shadow-sm flex-shrink-0 relative"
       >
         <div
           v-if="props.isLoading"
-          class="w-full h-full bg-gray-200 dark:bg-gray-800 animate-pulse"
+          class="w-full h-full bg-white/25 animate-pulse"
         ></div>
         <!-- Video Cover (Collapsed) -->
         <video
@@ -206,9 +198,9 @@
         />
         <div
           v-else
-          class="w-full h-full bg-gradient-to-br from-violet-50 to-violet-100 dark:from-violet-900/20 dark:to-violet-800/20 flex items-center justify-center"
+          class="w-full h-full bg-white/10 flex items-center justify-center"
         >
-          <Eye class="h-5 w-5" :style="{ color: proofingColor.value }" />
+          <Eye class="h-5 w-5 text-primary-foreground" :style="{ color: proofingColor.value }" />
         </div>
       </div>
 
@@ -216,19 +208,16 @@
       <Popover>
         <PopoverTrigger as-child>
           <button
-            :class="theme.borderSecondary"
             :disabled="props.isLoading"
-            class="w-12 h-12 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex items-center justify-center border-2 border-dashed"
+            class="w-12 h-12 rounded-lg bg-white/20 dark:bg-white/15 hover:bg-white/30 border border-dashed border-white/30 flex items-center justify-center transition-all duration-200 text-primary-foreground"
             title="Proofing name"
           >
             <Loader2
               v-if="props.isLoading"
-              :class="theme.textTertiary"
-              class="h-4 w-4 animate-spin"
+              class="h-4 w-4 animate-spin opacity-80"
             />
             <span
               v-else
-              :class="theme.textPrimary"
               class="text-xs font-bold truncate max-w-[2.5rem]"
             >
               {{ props.proofing?.name?.charAt(0)?.toUpperCase() || 'P' }}
@@ -264,7 +253,7 @@
         <div
           v-for="i in 2"
           :key="`skeleton-${i}`"
-          class="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"
+          class="w-12 h-12 bg-white/25 rounded-lg animate-pulse"
         ></div>
       </div>
       <TooltipProvider v-else>
@@ -274,7 +263,7 @@
               :class="[
                 props.activeTab === 'photos'
                   ? 'text-white shadow-md'
-                  : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  : 'text-primary-foreground/90 hover:bg-white/20 hover:text-primary-foreground',
               ]"
               class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
               :style="getActiveButtonStyle('photos')"
@@ -305,7 +294,7 @@
               :class="[
                 props.activeTab === 'settings'
                   ? 'text-white shadow-md'
-                  : theme.textSecondary + ' hover:bg-gray-100 dark:hover:bg-gray-800',
+                  : 'text-primary-foreground/90 hover:bg-white/20 hover:text-primary-foreground',
               ]"
               class="p-3.5 rounded-lg transition-all duration-200 w-12 h-12 flex items-center justify-center relative group"
               :style="getActiveButtonStyle('settings')"
@@ -338,17 +327,19 @@
 
       <!-- Expand Button (at bottom) -->
       <button
-        :class="[theme.borderSecondary, theme.bgCard]"
-        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 opacity-70 hover:opacity-100 shadow-sm border mb-4"
+        class="p-2 rounded-lg bg-white/20 dark:bg-white/15 border border-white/20 hover:bg-white/30 text-primary-foreground transition-all duration-200 opacity-90 hover:opacity-100 shadow-sm mb-4"
         title="Expand sidebar"
         @click="emit('update:isSidebarCollapsed', false)"
       >
-        <ChevronsRight :class="theme.textSecondary" class="h-4 w-4" />
+        <ChevronsRight class="h-4 w-4" />
       </button>
     </div>
 
     <!-- Sidebar Content Panels (only show when expanded) -->
-    <div v-if="!props.isSidebarCollapsed">
+    <div
+      v-if="!props.isSidebarCollapsed"
+      class="flex-1 overflow-y-auto min-h-0 text-primary-foreground"
+    >
       <slot />
     </div>
   </aside>

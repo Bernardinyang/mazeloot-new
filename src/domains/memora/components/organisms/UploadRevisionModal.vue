@@ -174,6 +174,7 @@
             :src="previewUrl"
             alt="Preview"
             class="w-full max-h-[400px] object-contain"
+            @error="handleImageError"
           />
           <video v-else :src="previewUrl" controls class="w-full max-h-[400px]" preload="metadata" />
         </div>
@@ -211,11 +212,13 @@ import { Button } from '@/shared/components/shadcn/button'
 import { Input } from '@/shared/components/shadcn/input'
 import { Textarea } from '@/shared/components/shadcn/textarea'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 
 import { apiClient } from '@/shared/api/client'
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const proofingApi = useProofingApi()
 const fileInputRef = ref(null)
 const selectedFile = ref(null)

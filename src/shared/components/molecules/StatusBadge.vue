@@ -33,35 +33,35 @@ const props = defineProps({
 
 const statusConfig = {
   completed: {
-    classes: 'bg-success/10 text-success border-success/20',
+    classes: 'bg-success/10 text-success border border-success/30',
     icon: CheckCircle2,
   },
   active: {
-    classes: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20',
+    classes: 'bg-accent/15 text-accent dark:text-accent-300 border border-accent/30',
     icon: CheckCircle2,
   },
   published: {
-    classes: 'bg-success/10 text-success border-success/20',
+    classes: 'bg-success/10 text-success border border-success/30',
     icon: CheckCircle2,
   },
   draft: {
-    classes: 'bg-warning/10 text-warning border-warning/20',
+    classes: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30',
     icon: Clock,
   },
   archived: {
-    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20',
+    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/30',
     icon: AlertCircle,
   },
   pending: {
-    classes: 'bg-warning/10 text-warning border-warning/20',
+    classes: 'bg-warning/10 text-warning border border-warning/30',
     icon: Clock,
   },
   failed: {
-    classes: 'bg-destructive/10 text-destructive border-destructive/20',
+    classes: 'bg-destructive/10 text-destructive border border-destructive/30',
     icon: XCircle,
   },
   cancelled: {
-    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20',
+    classes: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/30',
     icon: XCircle,
   },
 }

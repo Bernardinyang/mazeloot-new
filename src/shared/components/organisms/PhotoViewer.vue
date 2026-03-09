@@ -96,6 +96,7 @@ import { X, ChevronLeft, ChevronRight, Download } from '@/shared/utils/lucideAni
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { toast } from '@/shared/utils/toast'
 import { getMediaLightboxPreviewUrl } from '@/domains/memora/utils/media/getMediaPreviewUrl'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const theme = useThemeClasses()
 
@@ -161,11 +162,10 @@ const handleImageLoad = () => {
   isLoading.value = false
 }
 
-const handleImageError = () => {
+const handleImageError = e => {
   isLoading.value = false
-  toast.error('Failed to load image', {
-    description: 'The image could not be loaded.',
-  })
+  const img = e.target
+  if (img?.src !== PLACEHOLDER_IMAGE_DATA_URL) img.src = PLACEHOLDER_IMAGE_DATA_URL
 }
 
 const handleDownload = () => {

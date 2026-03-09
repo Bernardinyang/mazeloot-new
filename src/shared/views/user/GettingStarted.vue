@@ -5,7 +5,60 @@
       <div class="flex items-center justify-end w-full"></div>
     </template>
 
-    <div class="space-y-10">
+    <!-- Skeleton: mirrors layout until checkCompletionStatus() finishes -->
+    <div v-if="isLoading" class="space-y-10 animate-pulse">
+      <div class="space-y-6">
+        <div class="space-y-1">
+          <div :class="['h-6 w-32 rounded', theme.bgSkeleton]"></div>
+          <div :class="['h-12 w-48 rounded', theme.bgSkeleton]"></div>
+        </div>
+        <div :class="['h-4 w-full max-w-md rounded', theme.bgSkeleton]"></div>
+        <Card class="p-4 sm:p-6 border-2 border-gray-200 dark:border-gray-700">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <div :class="['h-4 w-28 rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-6 w-20 rounded-full', theme.bgSkeleton]"></div>
+            </div>
+            <div :class="['h-3 w-full rounded-full', theme.bgSkeleton]"></div>
+            <div :class="['h-3 w-48 rounded mx-auto', theme.bgSkeleton]"></div>
+          </div>
+        </Card>
+      </div>
+      <div class="space-y-6">
+        <div class="flex items-center gap-3">
+          <div :class="['h-6 w-6 rounded', theme.bgSkeleton]"></div>
+          <div :class="['h-8 w-40 rounded', theme.bgSkeleton]"></div>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <Card v-for="i in 8" :key="i" class="p-4 sm:p-6 border-2 border-gray-200 dark:border-gray-700">
+            <div class="space-y-4">
+              <div :class="['h-16 w-16 rounded-xl mx-auto', theme.bgSkeleton]"></div>
+              <div :class="['h-4 w-3/4 mx-auto rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-3 w-full rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-3 w-2/3 rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-9 w-full rounded', theme.bgSkeleton]"></div>
+            </div>
+          </Card>
+        </div>
+      </div>
+      <div class="space-y-6">
+        <div class="flex items-center gap-3">
+          <div :class="['h-6 w-6 rounded', theme.bgSkeleton]"></div>
+          <div :class="['h-8 w-36 rounded', theme.bgSkeleton]"></div>
+        </div>
+        <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <Card v-for="i in 8" :key="i" class="p-4 sm:p-6 border-2 border-gray-200 dark:border-gray-700">
+            <div class="space-y-4">
+              <div :class="['h-14 w-14 rounded-xl', theme.bgSkeleton]"></div>
+              <div :class="['h-4 w-full rounded', theme.bgSkeleton]"></div>
+              <div :class="['h-3 w-full rounded', theme.bgSkeleton]"></div>
+            </div>
+          </Card>
+        </div>
+      </div>
+    </div>
+
+    <div v-else class="space-y-10">
       <!-- Header Section -->
       <div class="space-y-6">
         <div class="relative animate-fade-in">
@@ -248,7 +301,7 @@ import { apiClient } from '@/shared/api/client'
 
 const theme = useThemeClasses()
 const userStore = useUserStore()
-const { hasFeature } = useMemoraFeatures()
+const { hasFeature, homepageEnabled, canEditBranding } = useMemoraFeatures()
 const { navigateTo } = useNavigation()
 const isStarterPlan = computed(() => (userStore.user?.memora_tier ?? 'starter') === 'starter')
 
@@ -260,10 +313,13 @@ const rawFilesApi = useRawFilesApi()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 
+const isLoading = ref(true)
 const userName = computed(() => userStore.user?.name || 'User')
 
 const visibleQuickActions = computed(() =>
   quickActions.value.filter(a => {
+    if (a.id === 4) return homepageEnabled.value
+    if (a.id === 5) return canEditBranding.value
     if (a.id === 8) return hasFeature('selection')
     if (a.id === 9) return hasFeature('proofing')
     if (a.id === 10) return hasFeature('raw_files')
@@ -276,9 +332,11 @@ const visibleKnowledgeBase = computed(() =>
   knowledgeBase.value.filter(item => {
     if (item.id === 6) return hasFeature('selection')
     if (item.id === 7) return hasFeature('proofing')
-    if (item.id === 11) return hasFeature('raw_files')
     if (item.id === 8) return !isStarterPlan.value
     if (item.id === 9) return !isStarterPlan.value
+    if (item.id === 10) return homepageEnabled.value
+    if (item.id === 11) return hasFeature('raw_files')
+    if (item.id === 14) return canEditBranding.value
     return true
   })
 )
@@ -364,27 +422,25 @@ const checkCompletionStatus = async () => {
       }
     }
     
-    // Check branding (for "Customize branding" - id: 5)
+    // Check branding (for "Customize branding" - id: 5), only if plan allows
     let hasBranding = false
-    try {
-      const brandingResponse = await apiClient.get('/v1/branding')
-      hasBranding = brandingResponse?.data && Object.keys(brandingResponse.data).length > 0
-    } catch (e) {
-      // 404 is expected if branding not configured, other errors are logged
-      if (e.response?.status !== 404) {
-        console.warn('Failed to check branding:', e)
+    if (canEditBranding.value) {
+      try {
+        const brandingResponse = await apiClient.get('/v1/branding')
+        hasBranding = brandingResponse?.data && Object.keys(brandingResponse.data).length > 0
+      } catch (e) {
+        if (e.response?.status !== 404) console.warn('Failed to check branding:', e)
       }
     }
-    
-    // Check homepage (for "Setup homepage" - id: 4)
+
+    // Check homepage (for "Setup homepage" - id: 4), only if plan allows
     let hasHomepage = false
-    try {
-      const homepageResponse = await apiClient.get('/v1/homepage')
-      hasHomepage = homepageResponse?.data && Object.keys(homepageResponse.data).length > 0
-    } catch (e) {
-      // 404 is expected if homepage not configured, other errors are logged
-      if (e.response?.status !== 404) {
-        console.warn('Failed to check homepage:', e)
+    if (homepageEnabled.value) {
+      try {
+        const homepageResponse = await apiClient.get('/v1/homepage')
+        hasHomepage = homepageResponse?.data && Object.keys(homepageResponse.data).length > 0
+      } catch (e) {
+        if (e.response?.status !== 404) console.warn('Failed to check homepage:', e)
       }
     }
     
@@ -422,7 +478,8 @@ const checkCompletionStatus = async () => {
     })
   } catch (error) {
     console.error('Failed to check completion status:', error)
-    // Keep default "To do" status on error
+  } finally {
+    isLoading.value = false
   }
 }
 

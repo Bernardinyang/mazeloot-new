@@ -11,7 +11,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-fuchsia-500/5 to-transparent dark:from-fuchsia-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-fuchsia-500/5 to-transparent dark:from-fuchsia-500/10">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-pink-500 text-white shadow-md">
           <Gift class="h-5 w-5" />
         </div>
@@ -20,7 +20,7 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">Give $20 off, get $20 credit per referral</p>
         </div>
       </div>
-      <div class="p-6">
+      <div class="p-4 sm:p-6">
         <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">
           Give your friends $20 off their first bill on Mazeloot, and get a $20 referral credit for each person that subscribes.
         </p>
@@ -28,7 +28,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-violet-500/5 to-transparent dark:from-violet-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-violet-500/5 to-transparent dark:from-violet-500/10">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 text-white shadow-md">
           <Link2 class="h-5 w-5" />
         </div>
@@ -37,15 +37,15 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">Share this link with friends</p>
         </div>
       </div>
-      <div class="p-6 space-y-4">
-        <div class="flex gap-2">
+      <div class="p-4 sm:p-6 space-y-4">
+        <div class="flex gap-2 flex-wrap min-w-0">
           <input
             :value="loading ? 'Loading…' : referralLink"
             readonly
             class="flex-1 min-w-0 rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm font-mono text-gray-900 dark:text-white focus:outline-none focus-ring-2 focus:ring-violet-500"
             aria-label="Referral link"
           />
-          <Button size="default" class="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/25 border-0" :disabled="loading" @click="copyLink">
+          <Button variant="accent" size="default" class="rounded-xl" :disabled="loading" @click="copyLink">
             {{ copied ? 'Copied' : 'Copy Link' }}
           </Button>
         </div>
@@ -53,7 +53,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-emerald-500/5 to-transparent dark:from-emerald-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-emerald-500/5 to-transparent dark:from-emerald-500/10">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-md">
           <Mail class="h-5 w-5" />
         </div>
@@ -62,17 +62,17 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">Send an invite by email</p>
         </div>
       </div>
-      <div class="p-6 space-y-4">
-        <div class="flex gap-2 flex-wrap">
+      <div class="p-4 sm:p-6 space-y-4">
+        <div class="flex gap-2 flex-wrap min-w-0">
           <input
             v-model="inviteEmail"
             type="email"
             placeholder="e.g. friend@mail.com"
-            class="flex-1 min-w-[200px] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+            class="flex-1 min-w-0 sm:min-w-[200px] rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-2.5 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
             aria-label="Friend email address"
             @keydown.enter="sendInvite"
           />
-          <Button size="default" class="rounded-xl bg-gradient-to-r from-violet-500 to-fuchsia-500 hover:from-violet-600 hover:to-fuchsia-600 text-white shadow-lg shadow-violet-500/25 border-0" :disabled="sending || !inviteEmail.trim()" @click="sendInvite">
+          <Button variant="accent" size="default" class="rounded-xl" :disabled="sending || !inviteEmail.trim()" @click="sendInvite">
             {{ sending ? 'Sending…' : 'Send Invite' }}
           </Button>
         </div>
@@ -80,7 +80,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-amber-500/5 to-transparent dark:from-amber-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-amber-500/5 to-transparent dark:from-amber-500/10">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-orange-500 text-white shadow-md">
           <BarChart3 class="h-5 w-5" />
         </div>
@@ -89,7 +89,7 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">Your referral stats</p>
         </div>
       </div>
-      <div class="p-6 space-y-6">
+      <div class="p-4 sm:p-6 space-y-6">
         <div class="grid gap-6 sm:grid-cols-4">
           <div class="rounded-xl bg-gray-50 dark:bg-gray-800/50 p-4 border border-gray-100 dark:border-gray-700/50">
             <p class="text-sm flex items-center gap-1 text-gray-500 dark:text-gray-400">
@@ -132,7 +132,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg shadow-gray-200/50 dark:shadow-none overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-indigo-500/5 to-transparent dark:from-indigo-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-indigo-500/5 to-transparent dark:from-indigo-500/10">
         <div class="rounded-xl bg-gradient-to-br from-indigo-500 to-violet-500 text-white shadow-md flex h-10 w-10 items-center justify-center">
           <Users class="h-5 w-5" />
         </div>
@@ -141,8 +141,8 @@
           <p class="text-xs text-gray-500 dark:text-gray-400">People you invited or who used your link</p>
         </div>
       </div>
-      <div class="p-6 overflow-x-auto">
-        <table class="w-full text-sm" aria-label="Referral list">
+      <div class="p-4 sm:p-6 overflow-x-auto overscroll-x-contain">
+        <table class="w-full text-sm min-w-[280px]" aria-label="Referral list">
           <thead>
             <tr class="border-b border-gray-200 dark:border-gray-700">
               <th class="text-left py-3 px-2 font-medium text-gray-600 dark:text-gray-400">Email</th>
@@ -185,7 +185,7 @@
     </div>
 
     <div class="rounded-2xl border border-gray-200/80 dark:border-gray-700/80 bg-white dark:bg-gray-900/80 shadow-lg overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-slate-500/5 to-transparent dark:from-slate-500/10">
+      <div class="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-gray-800 flex items-center gap-3 bg-gradient-to-r from-slate-500/5 to-transparent dark:from-slate-500/10">
         <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-slate-500 to-gray-600 text-white shadow-md">
           <HelpCircle class="h-5 w-5" />
         </div>

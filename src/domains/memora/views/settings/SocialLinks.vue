@@ -1,6 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Settings > Social Links </template>
+    <template #breadcrumb>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'settings' }, label: 'Settings' },
+          { label: 'Social Links' },
+        ]"
+      />
+    </template>
     <template #header>
       <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
         <ChevronLeft class="h-4 w-4" />
@@ -223,6 +230,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Loader2, Check, ChevronLeft } from '@/shared/utils/lucideAnimated'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import Input from '@/shared/components/shadcn/input/Input.vue'

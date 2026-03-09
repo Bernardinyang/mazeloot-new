@@ -1,7 +1,7 @@
 <template>
   <!-- SETTINGS Section - Expanded -->
   <div v-if="!props.isSidebarCollapsed" class="space-y-5">
-    <h2 :class="theme.textSecondary" class="text-xs font-bold uppercase tracking-wider mb-4">
+    <h2 class="text-xs font-bold uppercase tracking-wider mb-4 text-primary-foreground/80">
       SETTINGS
     </h2>
     <!-- Skeleton Loader -->
@@ -16,18 +16,18 @@
         v-if="props.proofingId"
         :class="[
           route.query?.tab === 'settings' && route.query?.section === 'general'
-            ? 'bg-violet-50 dark:bg-violet-900/20 border-l-4 border-violet-500'
-            : 'hover:bg-gray-50 dark:hover:bg-gray-800/40 hover:border-l-4 hover:border-violet-500/40',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{
           name: 'proofingDetail',
           params: { id: props.proofingId },
           query: { tab: 'settings', section: 'general' },
         }"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-lg transition-all duration-200 group border-l-4 border-transparent"
       >
-        <Settings :class="theme.textSecondary" class="h-4 w-4 flex-shrink-0" />
-        <span :class="theme.textPrimary" class="text-sm font-medium">General</span>
+        <Settings class="h-4 w-4 flex-shrink-0 opacity-90" />
+        <span class="text-sm font-medium">General</span>
       </router-link>
     </div>
   </div>
@@ -45,8 +45,8 @@
             v-if="props.proofingId"
             :class="[
               route.query?.tab === 'settings' && route.query?.section === 'general'
-                ? 'bg-violet-500 text-white'
-                : '',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'proofingDetail',
@@ -69,7 +69,6 @@
 <script setup>
 import { Settings } from '@/shared/utils/lucideAnimated'
 import { useRoute } from 'vue-router'
-import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { Skeleton } from '@/shared/components/shadcn/skeleton'
 import {
   Tooltip,
@@ -78,7 +77,6 @@ import {
   TooltipTrigger,
 } from '@/shared/components/shadcn/tooltip/index'
 
-const theme = useThemeClasses()
 const route = useRoute()
 
 const props = defineProps({

@@ -194,6 +194,7 @@
           class="w-full rounded-lg border cursor-pointer"
           :class="theme.borderSecondary"
           @click="handleViewRevision(selectedRevision)"
+          @error="handleImageError"
         />
       </div>
 
@@ -302,6 +303,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { toast } from '@/shared/utils/toast'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const theme = useThemeClasses()
 const proofingApi = useProofingApi()
@@ -317,7 +319,7 @@ const props = defineProps({
   },
   placeholderImage: {
     type: String,
-    default: '/placeholder-image.png',
+    default: () => PLACEHOLDER_IMAGE_DATA_URL,
   },
   guestToken: {
     type: String,

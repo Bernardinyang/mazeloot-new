@@ -1,18 +1,24 @@
 <template>
   <div
     :class="[
-      'min-h-screen',
-      'bg-gradient-to-br from-violet-50/50 via-white to-fuchsia-50/40',
-      'dark:from-gray-950 dark:via-gray-900/95 dark:to-violet-950/20',
+      'min-h-screen relative overflow-hidden',
+      'bg-gradient-to-br from-violet-100/80 via-fuchsia-50/60 via-30% to-cyan-50/50',
+      'dark:from-gray-950 dark:via-violet-950/40 dark:to-fuchsia-950/30',
       'transition-colors duration-500',
     ]"
   >
+    <!-- Decorative background orbs -->
+    <div class="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-violet-400/20 blur-3xl dark:bg-violet-500/10" />
+      <div class="absolute right-0 top-1/4 h-80 w-80 rounded-full bg-fuchsia-400/15 blur-3xl dark:bg-fuchsia-500/10" />
+      <div class="absolute bottom-1/4 -right-20 h-72 w-72 rounded-full bg-cyan-400/10 blur-3xl dark:bg-cyan-500/5" />
+    </div>
     <!-- Header -->
     <header
       :class="[
         'sticky top-0 z-50 flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4',
         'backdrop-blur-xl border-b',
-        'border-gray-200/80 bg-white/80 dark:border-white/10 dark:bg-gray-950/70',
+        'border-violet-200/60 bg-white/90 dark:border-violet-500/10 dark:bg-gray-950/80',
         'transition-all duration-300',
       ]"
     >
@@ -225,23 +231,25 @@
     </header>
 
     <!-- Main Content -->
-    <main class="px-4 sm:px-6 pb-16 pt-8 sm:pt-10">
+    <main class="relative z-10 px-4 sm:px-6 pb-16 pt-8 sm:pt-10">
       <div class="max-w-7xl mx-auto space-y-10">
         <!-- Welcome Section -->
-        <div class="space-y-3">
-          <p
+        <div class="space-y-4">
+          <span
             :class="[
-              'text-xs font-semibold uppercase tracking-widest',
-              'text-violet-600 dark:text-violet-400/90',
+              'inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-wider',
+              'bg-gradient-to-r from-violet-500/20 via-fuchsia-500/20 to-cyan-500/20',
+              'dark:from-violet-500/25 dark:via-fuchsia-500/25 dark:to-cyan-500/20',
+              'text-violet-700 dark:text-violet-300 border border-violet-400/30 dark:border-violet-500/30',
             ]"
           >
             Dashboard
-          </p>
+          </span>
           <h1
             :class="[
               'text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight',
-              'bg-gradient-to-r from-gray-900 via-violet-800 to-fuchsia-800',
-              'dark:from-white dark:via-violet-200 dark:to-fuchsia-200',
+              'bg-gradient-to-r from-gray-900 via-violet-700 via-40% to-fuchsia-700',
+              'dark:from-white dark:via-violet-200 dark:via-40% dark:to-fuchsia-200',
               'bg-clip-text text-transparent',
             ]"
           >
@@ -256,28 +264,27 @@
         <div
           :class="[
             'group relative overflow-hidden rounded-3xl',
-            'bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500',
-            'dark:from-indigo-700 dark:via-violet-700 dark:to-fuchsia-700',
+            'bg-gradient-to-br from-indigo-500 via-violet-500 via-40% to-fuchsia-600',
+            'dark:from-indigo-600 dark:via-violet-600 dark:via-40% dark:to-fuchsia-600',
             'backdrop-blur-md',
-            'border border-white/20 dark:border-white/10',
-            'shadow-2xl shadow-violet-500/20 dark:shadow-2xl dark:shadow-violet-500/10',
-            'hover:shadow-violet-500/25 dark:hover:shadow-violet-500/15 transition-all duration-500',
+            'border border-white/25 dark:border-white/15',
+            'transition-all duration-500',
             'animate-in fade-in slide-in-from-top-4 duration-500',
           ]"
         >
           <!-- Cover: mesh + orbs -->
           <div class="absolute inset-0 overflow-hidden">
             <div
-              class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(255,255,255,0.25),transparent)]"
+              class="absolute inset-0 bg-[radial-gradient(ellipse_80%_80%_at_50%_-20%,rgba(255,255,255,0.3),transparent)]"
             />
             <div
-              class="absolute top-0 right-0 w-[28rem] h-[28rem] bg-white/15 rounded-full blur-3xl -mr-40 -mt-40"
+              class="absolute top-0 right-0 w-[28rem] h-[28rem] bg-cyan-300/20 rounded-full blur-3xl -mr-40 -mt-40"
             />
             <div
-              class="absolute bottom-0 left-0 w-80 h-80 bg-fuchsia-400/20 rounded-full blur-3xl -ml-32 -mb-32"
+              class="absolute bottom-0 left-0 w-80 h-80 bg-fuchsia-400/25 rounded-full blur-3xl -ml-32 -mb-32"
             />
             <div
-              class="absolute top-1/2 left-1/2 w-96 h-96 bg-violet-400/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
+              class="absolute top-1/2 left-1/2 w-96 h-96 bg-violet-400/15 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"
             />
           </div>
 
@@ -308,7 +315,6 @@
                   :class="[
                     'relative w-32 h-32 rounded-full overflow-hidden',
                     'ring-4 ring-white/40 dark:ring-white/20',
-                    'shadow-2xl',
                     'border-4 border-white/50 dark:border-white/30',
                     'group-hover:scale-105 transition-transform duration-300',
                   ]"
@@ -320,6 +326,7 @@
                     class="w-full h-full object-cover"
                     loading="lazy"
                     decoding="async"
+                    @error="handleImageError"
                   />
                   <div
                     v-else
@@ -337,7 +344,7 @@
                   </div>
                   <!-- Status indicator -->
                   <div
-                    class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 rounded-full border-3 border-white dark:border-gray-900 shadow-lg"
+                    class="absolute bottom-2 right-2 w-5 h-5 bg-green-500 rounded-full border-3 border-white dark:border-gray-900"
                   ></div>
                 </div>
               </div>
@@ -345,7 +352,7 @@
               <!-- User Info -->
               <div class="flex-1 text-center sm:text-left space-y-3">
                 <div>
-                  <h2 :class="['text-3xl sm:text-4xl font-bold text-white drop-shadow-lg']">
+                  <h2 :class="['text-3xl sm:text-4xl font-bold text-white']">
                     {{ userData.name }}
                   </h2>
                   <p :class="['text-base sm:text-lg text-white/90 mt-1']">
@@ -359,7 +366,7 @@
                     :class="[
                       'bg-white/25 dark:bg-white/15 border border-white/40 dark:border-white/25',
                       'text-white hover:bg-white/35 dark:hover:bg-white/25',
-                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg',
+                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]',
                     ]"
                     size="sm"
                     @click="handleViewProfile"
@@ -371,7 +378,7 @@
                     :class="[
                       'bg-red-400/30 dark:bg-red-500/25 border border-red-300/50 dark:border-red-400/40',
                       'text-white hover:bg-red-400/40 dark:hover:bg-red-500/35',
-                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] hover:shadow-lg group',
+                      'transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group',
                     ]"
                     size="sm"
                     @click="handleSignOut"
@@ -390,18 +397,17 @@
           v-if="hasMemora"
           :class="[
             'group relative overflow-hidden rounded-2xl p-6',
-            'bg-gradient-to-br from-amber-400/15 via-orange-400/10 to-yellow-400/5',
-            'dark:from-amber-500/25 dark:via-amber-500/15 dark:to-orange-500/10',
-            'border border-amber-400/40 dark:border-amber-500/40',
-            'shadow-lg shadow-amber-500/5 dark:shadow-amber-500/10',
-            'hover:shadow-xl hover:shadow-amber-500/10 dark:hover:shadow-amber-500/15 transition-all duration-300',
+            'bg-gradient-to-br from-amber-400/20 via-orange-400/15 to-yellow-400/10',
+            'dark:from-amber-500/30 dark:via-amber-500/20 dark:to-orange-500/15',
+            'border border-amber-400/50 dark:border-amber-500/50',
+            'transition-all duration-300',
           ]"
         >
-          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-400 to-yellow-400 dark:from-amber-500 dark:via-orange-500 dark:to-yellow-500 opacity-80" />
+          <div class="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-orange-500 to-yellow-400 dark:from-amber-500 dark:via-orange-400 dark:to-yellow-500" />
           <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div class="flex items-start gap-4">
               <div
-                class="p-3 rounded-2xl bg-amber-500/25 dark:bg-amber-500/30 shrink-0 shadow-inner"
+                class="p-3 rounded-2xl bg-amber-500/25 dark:bg-amber-500/30 shrink-0"
               >
                 <Sparkles
                   class="h-6 w-6 text-amber-600 dark:text-amber-400"
@@ -446,8 +452,8 @@
               :class="[
                 'inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold shrink-0 transition-all duration-300',
                 hasPaidPlan
-                  ? 'bg-amber-500/25 text-amber-800 dark:text-amber-200 hover:bg-amber-500/35 border border-amber-500/50 shadow-sm'
-                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-amber-950 hover:from-amber-400 hover:to-orange-400 dark:from-amber-500 dark:to-orange-500 dark:text-amber-950 border border-amber-600/50 shadow-md hover:shadow-lg',
+                  ? 'bg-amber-500/25 text-amber-800 dark:text-amber-200 hover:bg-amber-500/35 border border-amber-500/50'
+                  : 'bg-gradient-to-r from-amber-500 to-orange-500 text-amber-950 hover:from-amber-400 hover:to-orange-400 dark:from-amber-500 dark:to-orange-500 dark:text-amber-950 border border-amber-600/50',
               ]"
             >
               {{ hasPaidPlan ? 'Manage subscription' : 'Upgrade plan' }}
@@ -464,8 +470,10 @@
         <div v-if="hasMemora" class="space-y-4">
           <span
             :class="[
-              'inline-block text-[10px] font-semibold uppercase tracking-wider rounded-full px-3 py-1',
-              'bg-violet-500/10 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300',
+              'inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider rounded-full px-3 py-1.5',
+              'bg-gradient-to-r from-violet-500/15 via-fuchsia-500/15 to-blue-500/15',
+              'dark:from-violet-500/25 dark:via-fuchsia-500/20 dark:to-blue-500/20',
+              'text-violet-700 dark:text-violet-300 border border-violet-400/25 dark:border-violet-500/30',
             ]"
           >
             Memora
@@ -477,7 +485,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-blue-500/15 to-cyan-500/10 dark:from-blue-500/25 dark:to-cyan-500/15',
               'border-blue-400/30 dark:border-blue-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/15 dark:hover:shadow-blue-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -504,7 +512,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-purple-500/15 to-violet-500/10 dark:from-purple-500/25 dark:to-violet-500/15',
               'border-purple-400/30 dark:border-purple-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/15 dark:hover:shadow-purple-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -527,7 +535,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-emerald-500/15 to-green-500/10 dark:from-emerald-500/25 dark:to-green-500/15',
               'border-emerald-400/30 dark:border-emerald-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-emerald-500/15 dark:hover:shadow-emerald-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -551,7 +559,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-pink-500/15 to-rose-500/10 dark:from-pink-500/25 dark:to-rose-500/15',
               'border-pink-400/30 dark:border-pink-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-pink-500/15 dark:hover:shadow-pink-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -575,7 +583,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-orange-500/15 to-amber-500/10 dark:from-orange-500/25 dark:to-amber-500/15',
               'border-orange-400/30 dark:border-orange-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-orange-500/15 dark:hover:shadow-orange-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -599,7 +607,7 @@
               'group relative overflow-hidden rounded-2xl p-5 border transition-all duration-300',
               'bg-gradient-to-br from-teal-500/15 to-cyan-500/10 dark:from-teal-500/25 dark:to-cyan-500/15',
               'border-teal-400/30 dark:border-teal-500/30',
-              'hover:scale-[1.02] hover:shadow-lg hover:shadow-teal-500/15 dark:hover:shadow-teal-500/20',
+              'hover:scale-[1.02]',
             ]"
           >
             <div class="flex items-start justify-between">
@@ -619,13 +627,14 @@
         </div>
 
         <!-- Products and Storage Row -->
-        <div class="grid gap-6 md:grid-cols-2">
+        <div class="grid gap-6 md:grid-cols-2 items-start">
           <!-- App Launcher Card (all products) -->
           <DashboardCard
             :loading="isLoadingApps"
             animation-class="animate-in fade-in slide-in-from-bottom-4 duration-500"
             description="Access all your Mazeloot products"
             title="Quick Access"
+            class="border-violet-200/50 dark:border-violet-500/20"
           >
             <template #loading>
               <div class="animate-pulse space-y-4">
@@ -641,7 +650,7 @@
                 </div>
               </div>
             </template>
-            <div class="relative w-full">
+            <div :class="['relative w-full', mazelootProducts.length <= 2 ? 'max-w-[240px] mx-auto' : '']">
               <div :class="['grid gap-4 sm:gap-6 relative z-10 w-full', appCardGridClasses]">
                 <div
                   v-for="(product, index) in mazelootProducts"
@@ -657,22 +666,20 @@
                   <div
                     :class="[
                       'relative rounded-3xl flex items-center justify-center overflow-hidden',
-                      'bg-gradient-to-br from-white to-gray-100/80 dark:from-gray-800 dark:to-gray-900',
-                      'border-2 border-gray-200/80 dark:border-gray-600/50',
-                      'shadow-lg dark:shadow-xl dark:shadow-black/20',
-                      'group-hover:border-violet-400/50 dark:group-hover:border-violet-500/50',
-                      'group-hover:shadow-xl group-hover:shadow-violet-500/15 dark:group-hover:shadow-violet-500/20',
+                      'bg-gradient-to-br from-white via-violet-50/30 to-fuchsia-50/30 dark:from-gray-800 dark:via-violet-950/30 dark:to-gray-900',
+                      'border-2 border-violet-200/60 dark:border-violet-500/25',
+                      'group-hover:border-violet-400/60 dark:group-hover:border-violet-400/50',
                       'group-hover:scale-105 group-hover:-translate-y-1',
                       'group-active:scale-95 group-active:translate-y-0',
                       'transition-all duration-300 ease-out',
-                      'ring-0 group-hover:ring-4 group-hover:ring-violet-400/20 dark:group-hover:ring-violet-500/30',
-                      'w-full aspect-square',
+                      'ring-0 group-hover:ring-4 group-hover:ring-violet-400/25 dark:group-hover:ring-violet-500/30',
+                      'w-full aspect-square max-w-[140px] max-h-[140px]',
                     ]"
                   >
                     <div
                       :class="[
                         'absolute inset-0 rounded-3xl opacity-0 group-hover:opacity-100',
-                        'bg-gradient-to-br from-violet-500/10 via-fuchsia-500/5 to-transparent',
+                        'bg-gradient-to-br from-violet-500/15 via-fuchsia-500/10 to-transparent',
                         'transition-opacity duration-300',
                       ]"
                     />
@@ -693,9 +700,8 @@
                         'absolute -top-1 -right-1 w-3.5 h-3.5',
                         'bg-gradient-to-br from-green-400 to-emerald-500',
                         'rounded-full border-2 border-white dark:border-gray-900',
-                        'shadow-lg shadow-green-500/50',
                         'animate-pulse',
-                        'group-hover:scale-125 group-hover:shadow-xl group-hover:shadow-green-500/70',
+                        'group-hover:scale-125',
                         'transition-all duration-300',
                       ]"
                     ></div>
@@ -722,6 +728,7 @@
             description="Manage your cloud storage space"
             product-label="Memora"
             title="Storage"
+            class="border-fuchsia-200/50 dark:border-fuchsia-500/20"
           >
             <template #loading>
               <div class="animate-pulse space-y-4">
@@ -743,7 +750,6 @@
                           'dark:from-purple-500/30 dark:to-blue-500/30',
                           'light:from-purple-100 light:to-blue-100',
                           'border border-purple-500/30 dark:border-purple-500/40 light:border-purple-200',
-                          'shadow-lg',
                         ]"
                       >
                         <Database
@@ -814,15 +820,13 @@
                       'h-4 rounded-full overflow-hidden relative border',
                       'bg-gray-200/50 dark:bg-gray-800/50 border-white/20 dark:border-white/10 light:border-gray-200/50',
                       'backdrop-blur-sm',
-                      'shadow-inner',
                     ]"
                   >
                     <div
                       :class="[
                         'h-full rounded-full transition-all duration-1000 ease-out relative',
-                        'shadow-lg',
                         storagePercentage >= 90
-                          ? 'bg-gradient-to-r from-red-500 via-red-600 to-red-700'
+                          ?                         'bg-gradient-to-r from-red-500 via-red-600 to-red-700'
                           : storagePercentage >= 70
                             ? 'bg-gradient-to-r from-yellow-500 via-yellow-600 to-orange-500'
                             : 'bg-gradient-to-r from-green-500 via-emerald-500 to-teal-500',
@@ -831,9 +835,6 @@
                     >
                       <div
                         class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"
-                      ></div>
-                      <div
-                        class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-current to-transparent opacity-50"
                       ></div>
                     </div>
                   </div>
@@ -962,11 +963,13 @@
           <div v-if="recentCollections.length === 0">
             <EmptyState
               :icon="Folder"
+              :action-disabled="collectionLimitReached"
               action-label="Create Collection"
               description="Start organizing your photos by creating your first collection"
               icon-bg-class="bg-blue-500/20"
               icon-class="text-blue-400"
               message="No collections yet"
+              @action="!collectionLimitReached && openCreateDialog('collection')"
             />
           </div>
           <div v-else class="space-y-2">
@@ -980,7 +983,6 @@
                 theme.bgCard,
                 theme.borderCard,
                 'border hover:border-violet-400/30 dark:hover:border-violet-500/30',
-                'hover:shadow-lg hover:shadow-violet-500/5 dark:hover:shadow-violet-500/10',
                 'backdrop-blur-sm',
                 'rounded-l-xl border-l-4 border-l-transparent hover:border-l-violet-500',
               ]"
@@ -1001,7 +1003,7 @@
                   v-if="collection.thumbnail || collection.previewImages?.[0]"
                   :class="[
                     'rounded-xl overflow-hidden ring-2 ring-transparent group-hover:ring-opacity-60 transition-all duration-300',
-                    'group-hover:ring-accent/30 shadow-md group-hover:shadow-lg',
+                    'group-hover:ring-accent/30',
                   ]"
                 >
                   <ThumbnailImage
@@ -1017,7 +1019,7 @@
                     'flex items-center justify-center p-3 rounded-xl shrink-0 transition-all duration-300',
                     'bg-gradient-to-br from-blue-500/20 to-blue-500/10',
                     'border border-blue-500/20',
-                    'group-hover:scale-110 group-hover:rotate-3 shadow-md group-hover:shadow-lg',
+                    'group-hover:scale-110 group-hover:rotate-3',
                     'group-hover:border-blue-500/40',
                   ]"
                 >
@@ -1133,7 +1135,7 @@
                     'flex items-center justify-center p-2.5 rounded-xl shrink-0 transition-all duration-300',
                     'bg-gradient-to-br from-green-500/20 to-green-500/10',
                     'border border-green-500/20',
-                    'group-hover:scale-110 group-hover:rotate-3 shadow-md group-hover:shadow-lg',
+                    'group-hover:scale-110 group-hover:rotate-3',
                   ]"
                 >
                   <FolderKanban class="h-4 w-4 text-green-400" />
@@ -1216,7 +1218,7 @@
                       'bg-gradient-to-br from-pink-500/20 to-pink-500/10',
                       'border border-pink-500/20',
                       'group-hover:scale-110 group-hover:rotate-3',
-                      'group-hover:border-pink-500/40 shadow-md group-hover:shadow-lg',
+                      'group-hover:border-pink-500/40',
                     ]"
                   >
                     <CheckSquare class="h-4 w-4 text-pink-400" />
@@ -1298,7 +1300,7 @@
                       'bg-gradient-to-br from-orange-500/20 to-orange-500/10',
                       'border border-orange-500/20',
                       'group-hover:scale-110 group-hover:rotate-3',
-                      'group-hover:border-orange-500/40 shadow-md group-hover:shadow-lg',
+                      'group-hover:border-orange-500/40',
                     ]"
                   >
                     <Eye class="h-4 w-4 text-orange-400" />
@@ -1380,7 +1382,7 @@
                       'bg-gradient-to-br from-teal-500/20 to-teal-500/10',
                       'border border-teal-500/20',
                       'group-hover:scale-110 group-hover:rotate-3',
-                      'group-hover:border-teal-500/40 shadow-md group-hover:shadow-lg',
+                      'group-hover:border-teal-500/40',
                     ]"
                   >
                     <FileText class="h-4 w-4 text-teal-400" />
@@ -1439,7 +1441,17 @@
     />
 
     <!-- Footer -->
-    <footer :class="['backdrop-blur-md mt-12', theme.borderPrimary, 'border-t', theme.bgFooter]">
+    <footer
+      :class="[
+        'relative backdrop-blur-md mt-12 border-t',
+        'border-violet-200/50 dark:border-violet-500/20',
+        theme.bgFooter,
+      ]"
+    >
+      <div
+        class="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-violet-400/50 to-transparent dark:via-violet-500/40"
+        aria-hidden="true"
+      />
       <div class="max-w-7xl mx-auto px-4 sm:px-6 py-8">
         <div class="flex flex-col md:flex-row items-center justify-between gap-6">
           <div class="flex items-center gap-3">
@@ -1474,7 +1486,7 @@
 </template>
 
 <script setup>
-import { computed, onActivated, onMounted, onUnmounted, ref } from 'vue'
+import { computed, nextTick, onActivated, onMounted, onUnmounted, ref } from 'vue'
 import {
   AlertCircle,
   Calendar,
@@ -1522,6 +1534,7 @@ import { useThemeStore } from '@/shared/stores/theme'
 import { useUserStore } from '@/shared/stores/user'
 import { useLogout } from '@/shared/composables/useLogout'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useFormatDate } from '@/shared/composables/useFormatDate'
 import { useLoadingStates } from '@/shared/composables/useLoadingStates'
 import { useAuthApi } from '@/shared/api/auth'
@@ -1546,6 +1559,7 @@ const { navigateTo } = useNavigation()
 const { canAccessSelection, canAccessProofing, canAccessRawFiles, canAccessCollection, showUpgradePrompt, recommendedTierDisplayName, tierDisplayName, features, featureLabel } = useMemoraFeatures()
 useThemeStore() // Initialize theme store for reactivity
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 
 // Loading states - consolidated
 // Start with loading=true to show skeleton loaders initially
@@ -1729,25 +1743,27 @@ const showCreateRawFileDialog = ref(false)
 const isCreatingCollection = ref(false)
 const isCreatingProject = ref(false)
 
-// Open create dialog based on type
+// Open create dialog based on type (nextTick so dropdown can close first when triggered from menu)
 const openCreateDialog = (type) => {
-  switch (type) {
-    case 'collection':
-      showCreateCollectionDialog.value = true
-      break
-    case 'project':
-      showCreateProjectDialog.value = true
-      break
-    case 'selection':
-      showCreateSelectionDialog.value = true
-      break
-    case 'proofing':
-      showCreateProofingDialog.value = true
-      break
-    case 'rawFile':
-      showCreateRawFileDialog.value = true
-      break
-  }
+  nextTick(() => {
+    switch (type) {
+      case 'collection':
+        showCreateCollectionDialog.value = true
+        break
+      case 'project':
+        showCreateProjectDialog.value = true
+        break
+      case 'selection':
+        showCreateSelectionDialog.value = true
+        break
+      case 'proofing':
+        showCreateProofingDialog.value = true
+        break
+      case 'rawFile':
+        showCreateRawFileDialog.value = true
+        break
+    }
+  })
 }
 
 // Handle collection creation

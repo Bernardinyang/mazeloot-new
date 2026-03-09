@@ -4,7 +4,9 @@
       v-if="src"
       :src="src"
       :alt="alt"
+      loading="lazy"
       class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+      @error="handleImageError"
     />
     <div v-else :class="fallbackClasses">
       <span :class="fallbackTextClasses">{{ fallbackText || alt }}</span>
@@ -15,6 +17,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
+
+const handleImageError = useImagePlaceholder()
 
 const props = defineProps({
   src: {

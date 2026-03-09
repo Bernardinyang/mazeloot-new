@@ -91,7 +91,7 @@
               class="p-3 bg-white rounded-lg shadow-sm border"
               :class="theme.borderSecondary"
             >
-              <img :src="qrCodeDataUrl" alt="QR Code" class="w-40 h-40" width="160" height="160" decoding="async" />
+              <img :src="qrCodeDataUrl" alt="QR Code" class="w-40 h-40" width="160" height="160" decoding="async" @error="handleImageError" />
             </div>
             <div
               v-else
@@ -182,6 +182,7 @@ import {
   DialogTitle,
 } from '@/shared/components/shadcn/dialog'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { toast } from '@/shared/utils/toast'
 
 const props = defineProps({
@@ -210,6 +211,7 @@ const props = defineProps({
 const emit = defineEmits(['update:open'])
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 
 const isOpen = computed({
   get: () => props.open,

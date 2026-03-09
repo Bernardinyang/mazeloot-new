@@ -38,8 +38,9 @@
           <img
             v-if="media.type === 'image' || (media.file && media.file.type === 'image')"
             :alt="media.filename || 'Media'"
-            :src="media.thumbnailUrl || media.file?.url || '/placeholder-image.png'"
+            :src="media.thumbnailUrl || media.file?.url || PLACEHOLDER_IMAGE_DATA_URL"
             class="w-full h-full object-cover"
+            @error="handleImageError"
           />
           <div
             v-else
@@ -81,6 +82,7 @@
 import { computed, ref } from 'vue'
 import { Play } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const props = defineProps({
   media: {
@@ -94,6 +96,11 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['open-comments'])
+
+const handleImageError = e => {
+  const img = e.target
+  if (img?.src !== PLACEHOLDER_IMAGE_DATA_URL) img.src = PLACEHOLDER_IMAGE_DATA_URL
+}
 
 const filters = [
   { label: 'All', value: 'all' },

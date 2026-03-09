@@ -16,6 +16,7 @@
 
 <script setup>
 import { computed, onMounted } from 'vue'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const props = defineProps({
   src: {
@@ -162,10 +163,9 @@ const imageStyles = computed(() => {
   return styles
 })
 
-/**
- * Handle image load errors
- */
 const handleImageError = event => {
+  const img = event.target
+  if (img?.src !== PLACEHOLDER_IMAGE_DATA_URL) img.src = PLACEHOLDER_IMAGE_DATA_URL
   emit('error', event)
 }
 </script>

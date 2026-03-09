@@ -38,15 +38,15 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientRawFiles"
-        :route-params="{ domain: rawFile?.brandingDomain || undefined }"
-        :route-query="{ rawFileId: rawFile?.id || '' }"
+        :route-params="{ domain: shareRawFile?.brandingDomain || shareRawFile?.branding_domain || undefined }"
+        :route-query="{ rawFileId: shareRawFile?.id || shareRawFile?.uuid || '' }"
         title="Share RawFile"
         description="Share this rawFile with your client via link, QR code, WhatsApp, or email."
-        :password="rawFile?.password || ''"
+        :password="shareRawFile?.password || ''"
         password-description="Share this password with visitors to access this rawFile"
-        :item-name="rawFile?.name || 'RawFile'"
+        :item-name="shareRawFile?.name || 'RawFile'"
         qr-code-description="Scan this QR code to access the rawFile"
-        :download-file-name="`rawFile-${rawFile?.id || 'qr'}-qr-code.png`"
+        :download-file-name="`rawFile-${shareRawFile?.id || shareRawFile?.uuid || 'qr'}-qr-code.png`"
       />
     </template>
   </PhaseLayout>
@@ -59,6 +59,7 @@ import RawFileTopNav from '@/domains/memora/components/organisms/RawFileTopNav.v
 import RawFileSidebarPanels from '@/domains/memora/components/organisms/RawFileSidebarPanels.vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useRawFileMediaSetsSidebarStore } from '@/domains/memora/stores/rawFileMediaSetsSidebar'
 import { useRawFileStore } from '@/domains/memora/stores/rawFile'
 import { useRawFileHeaderStore } from '@/domains/memora/stores/rawFileHeader'
@@ -97,7 +98,10 @@ const route = useRoute()
 const router = useRouter()
 const rawFileStore = useRawFileStore()
 const headerStore = useRawFileHeaderStore()
+const { rawFile: headerRawFile } = storeToRefs(headerStore)
 const themeStore = useThemeStore()
+
+const shareRawFile = computed(() => headerRawFile.value || rawFile.value)
 
 // Local, mutable rawFile ref:
 const rawFile = ref(props.rawFile)

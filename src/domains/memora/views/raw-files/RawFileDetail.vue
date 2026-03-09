@@ -53,7 +53,10 @@
           </div>
         </div>
         <ContentLoader v-if="isLoading" message="Loading rawFile..." />
-
+        <div v-else-if="loadError" class="flex flex-col items-center justify-center gap-4 p-8 text-center">
+          <p class="text-destructive font-medium">{{ loadError }}</p>
+          <Button variant="outline" @click="loadRawFile(true)">Try again</Button>
+        </div>
         <div v-else class="p-4 sm:p-6 md:p-8">
           <!-- Section Header -->
           <div v-if="isLoadingMedia" class="mb-6">
@@ -82,25 +85,12 @@
             @add-media="handleAddMedia"
           />
 
-          <!-- Shown only when plan set limit has been reached (dismissable) -->
-          <div
-            v-if="isSetLimitReached && !setLimitBannerDismissed"
-            data-banner="phase-set-limit"
-            class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20"
-          >
-            <Info class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-            <p class="min-w-0 flex-1 text-sm font-medium text-amber-900 dark:text-amber-100">
-              Set limit reached ({{ phaseSetCount }} / {{ setLimitPerPhase }}). Upgrade your plan to add more sets.
-            </p>
-            <button
-              type="button"
-              class="shrink-0 rounded p-1 text-amber-600 hover:bg-amber-200/50 dark:text-amber-400 dark:hover:bg-amber-800/50"
-              aria-label="Dismiss banner"
-              @click="dismissSetLimitBanner"
-            >
-              <X class="size-5" aria-hidden="true" />
-            </button>
-          </div>
+          <PhaseSetLimitBanner
+            :visible="isSetLimitReached && !setLimitBannerDismissed"
+            :current-count="phaseSetCount"
+            :limit="setLimitPerPhase"
+            @dismiss="dismissSetLimitBanner"
+          />
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -166,6 +156,7 @@
             >
               <MediaGridItemCard
                 v-for="item in sortedMediaItems"
+                v-memo="[item.id, selectedMediaIds.has(getItemId(item))]"
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :item="item"
@@ -199,6 +190,7 @@
             <TransitionGroup v-else class="space-y-2" name="media-list" tag="div">
               <MediaListItemRow
                 v-for="item in sortedMediaItems"
+                v-memo="[item.id, selectedMediaIds.has(getItemId(item))]"
                 :key="item.id"
                 :is-selected="selectedMediaIds.has(getItemId(item))"
                 :item="item"
@@ -560,7 +552,7 @@
 </template>
 
 <script setup>
-import { computed, inject, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, inject, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
 import RawFileLayout from '@/domains/memora/layouts/RawFileLayout.vue'
@@ -595,13 +587,16 @@ import { canPreviewFile } from '@/shared/utils/media/getFileTypeCover'
 import { useRawFileStore } from '@/domains/memora/stores/rawFile.js'
 import { useRawFileMediaSetsSidebarStore } from '@/domains/memora/stores/rawFileMediaSetsSidebar'
 import { storeToRefs } from 'pinia'
-import { FolderPlus, ImagePlus, Info, Loader2, Plus, X } from '@/shared/utils/lucideAnimated'
+import { FolderPlus, ImagePlus, Loader2, Plus } from '@/shared/utils/lucideAnimated'
+import PhaseSetLimitBanner from '@/shared/components/molecules/PhaseSetLimitBanner.vue'
 import { triggerFileInputClick } from '@/domains/memora/utils/media/triggerFileInputClick'
 import { useRawFileWorkflow } from '@/domains/memora/composables/useRawFileWorkflow'
 import { useRawFileActions } from '@/domains/memora/composables/useRawFileActions'
 import { useRawFileProgress } from '@/domains/memora/composables/useRawFileProgress'
 import { useRawFilesApi } from '@/domains/memora/api/rawFiles'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { useLoadingStates } from '@/shared/composables/useLoadingStates'
+import { useErrorHandler } from '@/shared/composables/useErrorHandler'
 import { useMediaWatermarkActions } from '@/domains/memora/composables/useMediaWatermarkActions'
 import { useMediaActions } from '@/domains/memora/composables/useMediaActions'
 import { apiClient } from '@/shared/api/client'
@@ -648,7 +643,10 @@ const targetSetId = ref('')
 const availableRawFiles = ref([])
 const isLoadingRawFiles = ref(false)
 const targetRawFileSets = ref([])
-const isLoadingTargetSets = ref(false)
+const { states: loadingStates, setLoading } = useLoadingStates(['detail', 'guard', 'targetSets'])
+const isLoading = loadingStates.detail
+const isLoadingRawFile = loadingStates.guard
+const isLoadingTargetSets = loadingStates.targetSets
 const isBulkFavoriteLoading = ref(false)
 const isBulkEditLoading = ref(false)
 const isBulkDeleteLoading = ref(false)
@@ -711,10 +709,8 @@ const handleImageError = event => {
   }
 }
 
-// Load rawFile data
-const isLoading = ref(false)
-// Loading guard to prevent duplicate requests
-const isLoadingRawFile = ref(false)
+// Load rawFile data (isLoading, isLoadingRawFile, isLoadingTargetSets from useLoadingStates above)
+const { error: loadError, handleError, clearError } = useErrorHandler()
 
 const loadRawFile = async (forceRefresh = false) => {
   const rawFileId = route.params.id
@@ -723,18 +719,19 @@ const loadRawFile = async (forceRefresh = false) => {
   }
 
   // Prevent duplicate concurrent requests
-  if (isLoadingRawFile.value) {
+  if (loadingStates.guard.value) {
     return
   }
 
   // If rawFile is already loaded with the same ID, skip unless switching phases or forcing refresh (e.g. storage)
   const previousRawFileId = rawFile.value?.id
-  if (!forceRefresh && previousRawFileId === rawFileId && !isLoading.value) {
+  if (!forceRefresh && previousRawFileId === rawFileId && !loadingStates.detail.value) {
     return
   }
 
-  isLoadingRawFile.value = true
-  isLoading.value = true
+  setLoading('guard', true)
+  setLoading('detail', true)
+  clearError()
   try {
     // Clear media items when switching to a different phase
     if (previousRawFileId && previousRawFileId !== rawFileId) {
@@ -778,12 +775,11 @@ const loadRawFile = async (forceRefresh = false) => {
     } else {
       mediaItems.value = []
     }
-  } catch (error) {
-    console.error('Error loading rawFile:', error)
-    // Optionally redirect back or show error message
+  } catch (err) {
+    await handleError(err, { showToast: true, fallbackMessage: 'Failed to load raw file.' })
   } finally {
-    isLoading.value = false
-    isLoadingRawFile.value = false
+    setLoading('detail', false)
+    setLoading('guard', false)
   }
 }
 
@@ -1035,7 +1031,7 @@ watch(
 )
 
 // Initialize media items as empty array
-const mediaItems = ref([])
+const mediaItems = shallowRef([])
 
 // Load media items for the selected set with pagination
 const rawFilesApi = useRawFilesApi()
@@ -1887,7 +1883,7 @@ const handleTargetRawFileChange = async rawFileId => {
     return
   }
 
-  isLoadingTargetSets.value = true
+  setLoading('targetSets', true)
   try {
     let allSets = []
     // If it's the current rawFile, use local mediaSets
@@ -1923,7 +1919,7 @@ const handleTargetRawFileChange = async rawFileId => {
       description: 'Unable to load sets for the selected rawFile.',
     })
   } finally {
-    isLoadingTargetSets.value = false
+    setLoading('targetSets', false)
   }
 }
 

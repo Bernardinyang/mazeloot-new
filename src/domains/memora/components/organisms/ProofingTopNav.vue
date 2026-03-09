@@ -283,22 +283,18 @@ const handleGoBack = () => {
   }
 }
 
-const handleEmailsSaved = async ({ emails: savedEmails, updatedItem }) => {
-  // Update proofing with the updated item returned from the API
+const handleEmailsSaved = async ({ emails: savedEmails, updatedItem } = {}) => {
   if (updatedItem && proofing.value) {
     proofing.value = updatedItem
     headerStore.setProofing(updatedItem)
-  } else if (proofing.value) {
-    // Fallback: update local state if updatedItem not provided
+  } else if (proofing.value && Array.isArray(savedEmails)) {
     proofing.value.allowedEmails = savedEmails
     proofing.value.allowed_emails = savedEmails
   }
-
-  // Small delay to ensure backend has processed the update
-  await new Promise(resolve => setTimeout(resolve, 200))
-
-  // Try to publish again (skip validation since we just added emails)
-  await headerStore.handlePublish(true)
+  if (savedEmails && savedEmails.length > 0) {
+    await new Promise(resolve => setTimeout(resolve, 200))
+    await headerStore.handlePublish(true)
+  }
 }
 
 const handlePreview = async () => {

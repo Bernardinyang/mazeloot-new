@@ -22,6 +22,7 @@
             type="email"
             placeholder="name@example.com"
             autocomplete="email"
+            inputmode="email"
           />
 
           <Button type="submit" class="w-full" :disabled="loading || !meta.valid" :loading="loading" loading-label="Sending...">

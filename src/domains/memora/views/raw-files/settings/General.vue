@@ -359,7 +359,7 @@
                     Please enter a valid email address
                   </p>
                 </div>
-                <div class="flex items-center gap-2 pt-2">
+                <div class="flex flex-wrap items-center gap-2 pt-2">
                   <Button
                     :class="[
                       'bg-violet-500 hover:bg-violet-600 text-white transition-all',
@@ -373,6 +373,16 @@
                     @click="handleAllowedEmailChange(true)"
                   >
                     {{ emailsSaved ? 'Saved' : 'Save Email' }}
+                  </Button>
+                  <Button
+                    v-if="hasAllowedEmail"
+                    variant="ghost"
+                    size="sm"
+                    :class="[theme.textSecondary, 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30']"
+                    :disabled="isSavingAllowedEmails"
+                    @click="handleRemoveAllowedEmail"
+                  >
+                    Remove email
                   </Button>
                 </div>
                 <div class="space-y-1 pt-1">
@@ -850,6 +860,7 @@ import RawFileLayout from '@/domains/memora/layouts/RawFileLayout.vue'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useRawFileStore } from '@/domains/memora/stores/rawFile'
+import { useRawFileHeaderStore } from '@/domains/memora/stores/rawFileHeader'
 import { useRawFilesApi } from '@/domains/memora/api/rawFiles'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -864,6 +875,7 @@ const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const rawFileStore = useRawFileStore()
+const rawFileHeaderStore = useRawFileHeaderStore()
 const rawFilesApi = useRawFilesApi()
 
 // RawFile data
@@ -949,6 +961,12 @@ const isValidEmail = email => {
   return emailRegex.test(email.trim())
 }
 
+const hasAllowedEmail = computed(() => {
+  const e = allowedEmail.value
+  if (e && e.trim()) return true
+  const list = rawFile.value?.allowedEmails || rawFile.value?.allowed_emails
+  return (Array.isArray(list) && list.some(x => x && String(x).trim())) || (typeof list === 'string' && list.trim())
+})
 
 const rawFileCoverImage = computed(() => {
   return rawFile.value?.coverPhotoUrl || rawFile.value?.cover_photo_url || null
@@ -1461,6 +1479,12 @@ const handleCopyPassword = async () => {
 }
 
 // Allowed email management
+const handleRemoveAllowedEmail = async () => {
+  if (!rawFile.value || isSavingAllowedEmails.value) return
+  allowedEmail.value = ''
+  await handleAllowedEmailChange(true)
+}
+
 const handleAllowedEmailChange = async (forceSave = false) => {
   if (!rawFile.value) return
   if (isSavingAllowedEmails.value && !forceSave) return
@@ -1491,9 +1515,16 @@ const handleAllowedEmailChange = async (forceSave = false) => {
     await rawFilesApi.updateRawFile(rawFile.value.id, {
       allowedEmails: emailValue ? [emailValue] : null,
     })
-    const updatedRawFile = await rawFileStore.fetchRawFile(rawFile.value.id)
+    rawFile.value.allowedEmails = emailValue ? [emailValue] : null
+    rawFile.value.allowed_emails = rawFile.value.allowedEmails
+    allowedEmail.value = emailValue || ''
+    if (rawFileHeaderStore.rawFile?.id === rawFile.value?.id) {
+      rawFileHeaderStore.rawFile.allowedEmails = rawFile.value.allowedEmails
+      rawFileHeaderStore.rawFile.allowed_emails = rawFile.value.allowed_emails
+    }
+    rawFileHeaderStore.setRawFile(rawFile.value)
+    const updatedRawFile = await rawFileStore.fetchRawFile(rawFile.value.id, true)
     rawFile.value = updatedRawFile
-    
     const savedEmails = updatedRawFile.allowedEmails || updatedRawFile.allowed_emails || []
     if (Array.isArray(savedEmails) && savedEmails.length > 0) {
       allowedEmail.value = savedEmails[0]
@@ -1508,6 +1539,12 @@ const handleAllowedEmailChange = async (forceSave = false) => {
       rawFile.value.allowedEmails = null
       rawFile.value.allowed_emails = null
     }
+
+    if (rawFileHeaderStore.rawFile?.id === rawFile.value?.id) {
+      rawFileHeaderStore.rawFile.allowedEmails = rawFile.value.allowedEmails
+      rawFileHeaderStore.rawFile.allowed_emails = rawFile.value.allowed_emails
+    }
+    rawFileHeaderStore.setRawFile(rawFile.value)
 
     emailsSaved.value = true
     setTimeout(() => {

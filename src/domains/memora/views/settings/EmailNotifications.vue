@@ -1,6 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Settings > Email Notifications </template>
+    <template #breadcrumb>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'settings' }, label: 'Settings' },
+          { label: 'Email Notifications' },
+        ]"
+      />
+    </template>
     <template #header>
       <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
         <ChevronLeft class="h-4 w-4" />
@@ -283,6 +290,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { Check, Loader2, ChevronLeft, Mail, Bell, MessageSquare } from '@/shared/utils/lucideAnimated'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'

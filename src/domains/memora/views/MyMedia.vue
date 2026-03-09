@@ -367,6 +367,7 @@ import Pagination from '@/shared/components/molecules/Pagination.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination'
 
@@ -380,8 +381,7 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
   showWarnings: false,
 })
 
-// Placeholder image
-const placeholderImage = '/placeholder-image.png'
+const placeholderImage = PLACEHOLDER_IMAGE_DATA_URL
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -767,7 +767,7 @@ const formatDate = date => {
 }
 
 const handleImageError = event => {
-  event.target.src = '/placeholder-image.png'
+  event.target.src = PLACEHOLDER_IMAGE_DATA_URL
 }
 
 onMounted(async () => {

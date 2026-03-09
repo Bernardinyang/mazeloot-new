@@ -70,7 +70,7 @@
           height="80"
           loading="lazy"
           decoding="async"
-          @error="emit('image-error', $event)"
+          @error="handleImageError"
           @load="isImageLoaded = true"
         />
         <!-- Video thumbnail with play icon -->
@@ -90,7 +90,7 @@
             height="80"
             loading="lazy"
             decoding="async"
-            @error="emit('image-error', $event)"
+            @error="handleImageError"
             @load="isImageLoaded = true"
           />
           <!-- Video play icon overlay -->
@@ -742,6 +742,11 @@ const isImageLoaded = ref(false)
 const isDropdownOpen = ref(false)
 const imageElementRef = ref(null)
 const videoThumbnailRef = ref(null)
+
+const handleImageError = e => {
+  imageSrc.value = props.placeholderImage
+  emit('image-error', e)
+}
 
 const isCollectionContext = computed(() => {
   return props.selectionStatus === 'collection' || (!props.selectionStatus && !props.publicMode)

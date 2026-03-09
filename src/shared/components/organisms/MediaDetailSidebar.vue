@@ -684,6 +684,7 @@ import { getMediaPreviewUrl } from '@/domains/memora/utils/media/getMediaPreview
 import { toast } from '@/shared/utils/toast'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { canPreviewFile } from '@/shared/utils/media/getFileTypeCover'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const props = defineProps({
   modelValue: {
@@ -696,7 +697,7 @@ const props = defineProps({
   },
   placeholderImage: {
     type: String,
-    default: '/placeholder-image.png',
+    default: () => PLACEHOLDER_IMAGE_DATA_URL,
   },
 })
 
@@ -945,7 +946,8 @@ const copyToClipboard = async (text, label = 'Text') => {
 const handleImageError = event => {
   imageError.value = true
   isImageLoading.value = false
-  event.target.style.display = 'none'
+  const img = event.target
+  if (img?.src !== props.placeholderImage) img.src = props.placeholderImage
 }
 
 const handleViewMedia = () => {

@@ -1,6 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Settings > Branding </template>
+    <template #breadcrumb>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'settings' }, label: 'Settings' },
+          { label: 'Branding' },
+        ]"
+      />
+    </template>
     <template #header>
       <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
         <ChevronLeft class="h-4 w-4" />
@@ -452,6 +459,7 @@
                     alt="Logo preview"
                     class="w-full h-full object-contain p-4"
                     decoding="async"
+                    @error="handleImageError"
                   />
                   <p class="text-xs font-medium" :class="theme.textSecondary">Click to change</p>
                 </template>
@@ -490,6 +498,7 @@
                     alt="Favicon preview"
                     class="w-16 h-16 object-contain"
                     decoding="async"
+                    @error="handleImageError"
                   />
                   <p class="text-xs font-medium" :class="theme.textSecondary">Click to change</p>
                 </template>
@@ -573,6 +582,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { Plus, Loader2, Check, ChevronLeft } from '@/shared/utils/lucideAnimated'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import Input from '@/shared/components/shadcn/input/Input.vue'
 import { Textarea } from '@/shared/components/shadcn/textarea'
@@ -582,6 +592,7 @@ import UpgradePopover from '@/shared/components/molecules/UpgradePopover.vue'
 import FormSkeleton from '@/shared/components/molecules/FormSkeleton.vue'
 import PlanLimitBanner from '@/shared/components/molecules/PlanLimitBanner.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { toast } from '@/shared/utils/toast'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { apiClient } from '@/shared/api/client'
@@ -595,6 +606,7 @@ function goBack() {
   router.back()
 }
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const userStore = useUserStore()
 const { getStorage } = useAuthApi()
 const { canEditBranding } = useMemoraFeatures()

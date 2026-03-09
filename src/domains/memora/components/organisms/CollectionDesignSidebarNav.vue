@@ -18,56 +18,52 @@
         v-if="hasCoverPhoto"
         :class="[
           route.name === 'collectionCover'
-            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
-            : '',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionCover', params: { uuid: props.collectionId || route.params.uuid } }"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border-l-4 border-transparent"
       >
-        <ImageIcon class="h-4 w-4 shrink-0" />
+        <ImageIcon class="h-4 w-4 shrink-0 opacity-90" />
         <span class="text-sm font-medium">Cover</span>
       </router-link>
       <router-link
         :class="[
           route.name === 'collectionTypography'
-            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
-            : '',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{
           name: 'collectionTypography',
           params: { uuid: props.collectionId || route.params.uuid },
         }"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border-l-4 border-transparent"
       >
-        <span class="text-lg font-bold">T</span>
+        <span class="text-lg font-bold opacity-90">T</span>
         <span class="text-sm font-medium">Typography</span>
       </router-link>
       <router-link
         :class="[
           route.name === 'collectionColor'
-            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
-            : '',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionColor', params: { uuid: props.collectionId || route.params.uuid } }"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border-l-4 border-transparent"
       >
-        <div :class="theme.borderSecondary" class="w-4 h-4 rounded border"></div>
+        <div class="w-4 h-4 rounded border-2 border-white/50 bg-white/10"></div>
         <span class="text-sm font-medium">Color</span>
       </router-link>
       <router-link
         :class="[
           route.name === 'collectionGrid'
-            ? 'bg-accent/10 dark:bg-accent/20 text-accent border-l-4 border-accent'
-            : '',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
+            ? 'bg-white/20 border-l-4 border-accent text-primary-foreground'
+            : 'text-primary-foreground/90 hover:bg-white/10 hover:border-l-4 hover:border-white/30',
         ]"
         :to="{ name: 'collectionGrid', params: { uuid: props.collectionId || route.params.uuid } }"
-        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left"
+        class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 text-left border-l-4 border-transparent"
       >
-        <Grid3x3 class="h-4 w-4 shrink-0" />
+        <Grid3x3 class="h-4 w-4 shrink-0 opacity-90" />
         <span class="text-sm font-medium">Grid</span>
       </router-link>
     </div>
@@ -90,9 +86,8 @@
           <router-link
             :class="[
               route.name === 'collectionCover'
-                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
-                : '',
-              'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionCover',
@@ -114,9 +109,8 @@
           <router-link
             :class="[
               route.name === 'collectionTypography'
-                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
-                : '',
-              'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionTypography',
@@ -138,9 +132,8 @@
           <router-link
             :class="[
               route.name === 'collectionColor'
-                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
-                : '',
-              'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionColor',
@@ -148,7 +141,7 @@
             }"
             class="p-2.5 rounded-lg transition-all duration-200"
           >
-            <div :class="theme.borderSecondary" class="w-5 h-5 rounded border"></div>
+            <div class="w-5 h-5 rounded border-2 border-white/50 bg-white/10"></div>
           </router-link>
         </TooltipTrigger>
         <TooltipContent :class="[theme.bgCard, theme.borderCard]" side="right">
@@ -162,9 +155,8 @@
           <router-link
             :class="[
               route.name === 'collectionGrid'
-                ? 'bg-accent/10 dark:bg-accent/20 text-accent'
-                : '',
-              'hover:bg-gray-100 dark:hover:bg-gray-800',
+                ? 'bg-accent text-accent-foreground'
+                : 'text-primary-foreground/90 hover:bg-white/20',
             ]"
             :to="{
               name: 'collectionGrid',

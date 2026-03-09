@@ -32,15 +32,15 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientProofing"
-        :route-params="{ domain: proofing?.brandingDomain || undefined }"
-        :route-query="{ proofingId: proofing?.id || '' }"
+        :route-params="{ domain: shareProofing?.brandingDomain || shareProofing?.branding_domain || undefined }"
+        :route-query="{ proofingId: shareProofing?.id || shareProofing?.uuid || '' }"
         title="Share Proofing"
         description="Share this proofing with your client via link, QR code, WhatsApp, or email."
-        :password="proofing?.password || ''"
+        :password="shareProofing?.password || ''"
         password-description="Share this password with visitors to access this proofing"
-        :item-name="proofing?.name || 'Proofing'"
+        :item-name="shareProofing?.name || 'Proofing'"
         qr-code-description="Scan this QR code to access the proofing"
-        :download-file-name="`proofing-${proofing?.id || 'qr'}-qr-code.png`"
+        :download-file-name="`proofing-${shareProofing?.id || shareProofing?.uuid || 'qr'}-qr-code.png`"
       />
     </template>
   </PhaseLayout>
@@ -53,6 +53,7 @@ import ProofingTopNav from '@/domains/memora/components/organisms/ProofingTopNav
 import ProofingSidebarPanels from '@/domains/memora/components/organisms/ProofingSidebarPanels.vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useProofingMediaSetsSidebarStore } from '@/domains/memora/stores/proofingMediaSetsSidebar'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
 import { useProofingHeaderStore } from '@/domains/memora/stores/proofingHeader'
@@ -92,6 +93,9 @@ provide('getProofingHoverColor', getProofingHoverColor)
 const route = useRoute()
 const proofingStore = useProofingStore()
 const headerStore = useProofingHeaderStore()
+const { proofing: headerProofing } = storeToRefs(headerStore)
+
+const shareProofing = computed(() => headerProofing.value || proofing.value)
 
 // Local, mutable proofing ref:
 const proofing = ref(props.proofing)

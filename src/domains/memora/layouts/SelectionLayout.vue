@@ -38,15 +38,15 @@
       <ShareModal
         v-model="headerStore.showShareModal"
         route-name="clientSelections"
-        :route-params="{ domain: selection?.brandingDomain || undefined }"
-        :route-query="{ selectionId: selection?.id || '' }"
+        :route-params="{ domain: shareSelection?.brandingDomain || shareSelection?.branding_domain || undefined }"
+        :route-query="{ selectionId: shareSelection?.id || shareSelection?.uuid || '' }"
         title="Share Selection"
         description="Share this selection with your client via link, QR code, WhatsApp, or email."
-        :password="selection?.password || ''"
+        :password="shareSelection?.password || ''"
         password-description="Share this password with visitors to access this selection"
-        :item-name="selection?.name || 'Selection'"
+        :item-name="shareSelection?.name || 'Selection'"
         qr-code-description="Scan this QR code to access the selection"
-        :download-file-name="`selection-${selection?.id || 'qr'}-qr-code.png`"
+        :download-file-name="`selection-${shareSelection?.id || shareSelection?.uuid || 'qr'}-qr-code.png`"
       />
     </template>
   </PhaseLayout>
@@ -59,6 +59,7 @@ import SelectionTopNav from '@/domains/memora/components/organisms/SelectionTopN
 import SelectionSidebarPanels from '@/domains/memora/components/organisms/SelectionSidebarPanels.vue'
 import ShareModal from '@/shared/components/organisms/ShareModal.vue'
 import { computed, provide, ref, watch } from 'vue'
+import { storeToRefs } from 'pinia'
 import { useSelectionMediaSetsSidebarStore } from '@/domains/memora/stores/selectionMediaSetsSidebar'
 import { useSelectionStore } from '@/domains/memora/stores/selection'
 import { useSelectionHeaderStore } from '@/domains/memora/stores/selectionHeader'
@@ -97,7 +98,11 @@ const route = useRoute()
 const router = useRouter()
 const selectionStore = useSelectionStore()
 const headerStore = useSelectionHeaderStore()
+const { selection: headerSelection } = storeToRefs(headerStore)
 const themeStore = useThemeStore()
+
+// Selection used for Share modal: header store (source of truth) so URL is always correct when opened
+const shareSelection = computed(() => headerSelection.value || selection.value)
 
 // Local, mutable selection ref:
 const selection = ref(props.selection)

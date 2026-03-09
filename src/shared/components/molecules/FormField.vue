@@ -9,6 +9,7 @@
         :type="type"
         :placeholder="placeholder"
         :autocomplete="autocomplete"
+        :inputmode="inputmode"
         :class="cn({ 'border-destructive': errorMessage }, inputClass)"
       />
       <ErrorMessage :message="errorMessage" />
@@ -47,6 +48,10 @@ const props = defineProps({
     default: undefined,
   },
   autocomplete: {
+    type: String,
+    default: undefined,
+  },
+  inputmode: {
     type: String,
     default: undefined,
   },

@@ -1,10 +1,10 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Admin > Social Media Platforms </template>
+    <template #breadcrumb> Social Media Platforms </template>
 
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="w-[50%]">
+      <div class="w-full md:w-[50%]">
         <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">
           Social Media Platforms
         </h1>
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Content -->
-      <div class="space-y-6 w-[50%]">
+      <div class="space-y-6 w-full md:w-[50%]">
         <!-- Add New Platform -->
         <div class="rounded-lg border p-6" :class="[theme.bgCard, theme.borderCard]">
           <h3 class="text-lg font-semibold mb-4" :class="theme.textPrimary">Add Platform</h3>

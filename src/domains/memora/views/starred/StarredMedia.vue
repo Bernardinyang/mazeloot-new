@@ -304,6 +304,7 @@ import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { useAsyncPagination } from '@/shared/composables/useAsyncPagination'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 
 const router = useRouter()
 const theme = useThemeClasses()
@@ -315,8 +316,7 @@ const { cleanup: cleanupProtection } = useDownloadProtection({
   showWarnings: false,
 })
 
-// Placeholder image
-const placeholderImage = '/placeholder-image.png'
+const placeholderImage = PLACEHOLDER_IMAGE_DATA_URL
 
 // View mode and sorting
 const viewMode = ref('grid')
@@ -559,7 +559,7 @@ const formatDate = date => {
 
 const handleImageError = event => {
   // Set a placeholder image on error
-  event.target.src = '/placeholder-image.png'
+  event.target.src = PLACEHOLDER_IMAGE_DATA_URL
 }
 
 onMounted(async () => {

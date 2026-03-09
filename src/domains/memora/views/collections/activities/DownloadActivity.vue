@@ -152,6 +152,7 @@
                         class="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
+                        @error="handleImageError"
                       />
                       <div
                         v-else
@@ -178,6 +179,7 @@
                         class="w-full h-full object-cover"
                         loading="lazy"
                         decoding="async"
+                        @error="handleImageError"
                       />
                       <div
                         v-else
@@ -267,12 +269,14 @@ import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import MediaLightbox from '@/shared/components/organisms/MediaLightbox.vue'
 import DataTable from '@/shared/components/organisms/DataTable.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useSidebarCollapse } from '@/shared/composables/useSidebarCollapse'
 import { useGalleryStore } from '@/shared/stores/gallery'
 
 const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const galleryStore = useGalleryStore()
 
 // Collection data

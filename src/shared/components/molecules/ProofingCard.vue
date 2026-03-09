@@ -240,6 +240,7 @@ import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { lightenColor, darkenColor, generateRandomColorFromPalette } from '@/shared/utils/colors'
 import { useFocalPoint, getFocalPointFromEntity } from '@/shared/composables/useFocalPoint'
 import { capitalize } from '@/shared/lib/utils'
+import { PLACEHOLDER_IMAGE_DATA_URL } from '@/shared/utils/placeholderImage'
 import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
 
 const props = defineProps({
@@ -375,7 +376,8 @@ const cardColorDark = computed(() => {
 })
 
 const handleImageError = event => {
-  event.target.style.display = 'none'
+  const img = event.target
+  if (img?.src !== PLACEHOLDER_IMAGE_DATA_URL) img.src = PLACEHOLDER_IMAGE_DATA_URL
 }
 
 const handleVideoError = event => {

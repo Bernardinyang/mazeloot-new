@@ -285,7 +285,7 @@
                     Please enter a valid email address
                   </p>
                 </div>
-                <div class="flex items-center gap-2 pt-2">
+                <div class="flex flex-wrap items-center gap-2 pt-2">
                   <Button
                     :class="[
                       'bg-violet-500 hover:bg-violet-600 text-white transition-all',
@@ -299,6 +299,16 @@
                     @click="handleAllowedEmailChange(true)"
                   >
                     {{ emailsSaved ? 'Saved' : 'Save Email' }}
+                  </Button>
+                  <Button
+                    v-if="hasAllowedEmail"
+                    variant="ghost"
+                    size="sm"
+                    :class="[theme.textSecondary, 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30']"
+                    :disabled="isSavingAllowedEmails"
+                    @click="handleRemoveAllowedEmail"
+                  >
+                    Remove email
                   </Button>
                 </div>
                 <div class="space-y-1 pt-1">
@@ -851,6 +861,7 @@ import SelectionLimitModal from '@/domains/memora/components/organisms/Selection
 import CoverFocalPointModal from '@/shared/components/organisms/CoverFocalPointModal.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { useSelectionStore } from '@/domains/memora/stores/selection'
+import { useSelectionHeaderStore } from '@/domains/memora/stores/selectionHeader'
 import { useSelectionsApi } from '@/domains/memora/api/selections'
 import { toast } from '@/shared/utils/toast'
 import { getErrorMessage } from '@/shared/utils/errors'
@@ -863,6 +874,7 @@ const route = useRoute()
 const router = useRouter()
 const theme = useThemeClasses()
 const selectionStore = useSelectionStore()
+const selectionHeaderStore = useSelectionHeaderStore()
 const selectionsApi = useSelectionsApi()
 
 // Selection data
@@ -959,6 +971,12 @@ const isValidEmail = email => {
   return emailRegex.test(email.trim())
 }
 
+const hasAllowedEmail = computed(() => {
+  const e = allowedEmail.value
+  if (e && e.trim()) return true
+  const list = selection.value?.allowedEmails || selection.value?.allowed_emails
+  return (Array.isArray(list) && list.some(x => x && String(x).trim())) || (typeof list === 'string' && list.trim())
+})
 
 const selectionCoverImage = computed(() => {
   return selection.value?.coverPhotoUrl || selection.value?.cover_photo_url || null
@@ -1498,6 +1516,12 @@ const handleCopyPassword = async () => {
 }
 
 // Allowed email management
+const handleRemoveAllowedEmail = async () => {
+  if (!selection.value || isSavingAllowedEmails.value) return
+  allowedEmail.value = ''
+  await handleAllowedEmailChange(true)
+}
+
 const handleAllowedEmailChange = async (forceSave = false) => {
   if (!selection.value) return
   if (isSavingAllowedEmails.value && !forceSave) return
@@ -1528,9 +1552,16 @@ const handleAllowedEmailChange = async (forceSave = false) => {
     await selectionsApi.updateSelection(selection.value.id, {
       allowedEmails: emailValue ? [emailValue] : null,
     })
-    const updatedSelection = await selectionStore.fetchSelection(selection.value.id)
+    selection.value.allowedEmails = emailValue ? [emailValue] : null
+    selection.value.allowed_emails = selection.value.allowedEmails
+    allowedEmail.value = emailValue || ''
+    if (selectionHeaderStore.selection?.id === selection.value?.id) {
+      selectionHeaderStore.selection.allowedEmails = selection.value.allowedEmails
+      selectionHeaderStore.selection.allowed_emails = selection.value.allowed_emails
+    }
+    selectionHeaderStore.setSelection(selection.value)
+    const updatedSelection = await selectionStore.fetchSelection(selection.value.id, true)
     selection.value = updatedSelection
-    
     const savedEmails = updatedSelection.allowedEmails || updatedSelection.allowed_emails || []
     if (Array.isArray(savedEmails) && savedEmails.length > 0) {
       allowedEmail.value = savedEmails[0]
@@ -1545,6 +1576,12 @@ const handleAllowedEmailChange = async (forceSave = false) => {
       selection.value.allowedEmails = null
       selection.value.allowed_emails = null
     }
+
+    if (selectionHeaderStore.selection?.id === selection.value?.id) {
+      selectionHeaderStore.selection.allowedEmails = selection.value.allowedEmails
+      selectionHeaderStore.selection.allowed_emails = selection.value.allowed_emails
+    }
+    selectionHeaderStore.setSelection(selection.value)
 
     emailsSaved.value = true
     setTimeout(() => {

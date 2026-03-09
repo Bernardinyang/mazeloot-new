@@ -1,18 +1,13 @@
 <template>
   <DashboardLayout>
     <template #breadcrumb>
-      <div class="flex items-center gap-2">
-        <router-link :to="{ name: 'projects' }" class="hover:underline">Projects</router-link>
-        <span>/</span>
-        <router-link
-          :to="{ name: 'projectDashboard', params: { id: projectId } }"
-          class="hover:underline"
-        >
-          {{ project?.name }}
-        </router-link>
-        <span>/</span>
-        <span>Collections</span>
-      </div>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'projects' }, label: 'Projects' },
+          { to: { name: 'projectDashboard', params: { id: projectId } }, label: project?.name },
+          { label: 'Collections' },
+        ]"
+      />
     </template>
 
     <div v-if="isLoading || isLoadingCollections" class="flex items-center justify-center py-12">
@@ -123,6 +118,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Loader2, ChevronRight } from '@/shared/utils/lucideAnimated'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import { Button } from '@/shared/components/shadcn/button'
 import CreateCollectionDialog from '@/domains/memora/components/organisms/CreateCollectionDialog.vue'
 import Pagination from '@/shared/components/molecules/Pagination.vue'

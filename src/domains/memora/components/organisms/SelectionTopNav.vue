@@ -2,19 +2,19 @@
   <nav
     :class="[
       theme.borderSecondary,
-      'flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-6 py-3 border-b bg-white dark:bg-gray-900 shadow-sm gap-3 sm:gap-4 min-h-[3.5rem]',
+      'flex flex-col sm:flex-row items-start sm:items-center justify-between px-4 md:px-6 py-3 border-b gap-3 sm:gap-4 min-h-[3.5rem]',
+      'bg-gradient-to-r from-white via-primary-50/30 to-white dark:from-gray-900 dark:via-primary-900/20 dark:to-gray-900 shadow-sm',
     ]"
   >
     <!-- Left Side: Back Button, Title/Status Section -->
     <div class="flex items-center gap-3 min-w-0 flex-1 w-full sm:w-auto">
       <!-- Section 1: Back Button -->
       <button
-        :class="[theme.borderSecondary, theme.bgCard]"
-        class="p-2 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 flex-shrink-0 shadow-sm border hover:shadow-md touch-manipulation"
+        class="p-2 min-h-[44px] min-w-[44px] md:min-h-0 md:min-w-0 rounded-xl border border-primary-200 dark:border-primary-700 bg-white/80 dark:bg-gray-800/80 hover:bg-accent/10 hover:border-accent/30 dark:hover:bg-accent/20 transition-all duration-200 flex-shrink-0 shadow-sm hover:shadow touch-manipulation"
         title="Go back"
         @click="handleGoBack"
       >
-        <ChevronLeft class="h-4 w-4 text-gray-700 dark:text-gray-300" />
+        <ChevronLeft class="h-4 w-4 text-primary-600 dark:text-primary-400" />
       </button>
 
       <!-- Section 2: Title and Status Row -->
@@ -29,7 +29,7 @@
               <h1
                 v-if="!isEditingName"
                 key="title"
-                class="text-base sm:text-lg font-bold leading-tight text-gray-900 dark:text-gray-100 cursor-text transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95 hover:text-accent truncate"
+                class="text-base sm:text-lg font-bold leading-tight cursor-text transition-all duration-300 ease-out hover:scale-[1.02] active:scale-95 truncate bg-gradient-to-r from-primary-700 via-accent-600 to-primary-600 dark:from-primary-200 dark:via-accent-400 dark:to-primary-100 bg-clip-text text-transparent hover:opacity-90"
                 style="line-height: 1.5rem"
                 @click="headerStore.startEditingName()"
               >
@@ -76,14 +76,13 @@
         </div>
 
         <!-- Status Badge Row -->
-        <div v-if="!isLoading" class="flex items-center gap-2 flex-wrap">
+        <div v-if="!isLoading" class="flex items-center gap-2.5 flex-wrap">
           <PhaseBadge :phase="phaseType" />
           <StatusBadge :status="selectionStatus || 'draft'" />
           <!-- Selection Progress (when completed) -->
           <span
             v-if="selection?.status === 'completed' && overallProgress"
-            :class="theme.textSecondary"
-            class="text-xs font-medium"
+            class="text-xs font-medium px-2.5 py-1 rounded-full bg-primary-100 dark:bg-primary-800/50 text-primary-700 dark:text-primary-300"
           >
             {{ overallProgress.selected }} of {{ overallProgress.total }} selected
           </span>
@@ -126,7 +125,6 @@
         </Button>
         <Button
           v-if="selectionStatus !== 'completed'"
-          :class="[theme.borderSecondary, theme.textPrimary]"
           :disabled="isLoading"
           size="sm"
           variant="outline"
@@ -176,6 +174,7 @@
         loading-label="Publishing..."
         size="sm"
         variant="accent"
+        class="shadow-md hover:shadow-lg transition-shadow"
         @click="headerStore.handlePublish()"
       >
         <span class="hidden md:inline">
@@ -285,15 +284,14 @@ const handleResetLimit = () => {
   }
 }
 
-const handleEmailsSaved = async savedEmails => {
-  // Update selection with new emails
-  if (selection.value) {
+const handleEmailsSaved = async ({ emails: savedEmails } = {}) => {
+  if (selection.value && Array.isArray(savedEmails)) {
     selection.value.allowedEmails = savedEmails
     selection.value.allowed_emails = savedEmails
   }
-
-  // Try to publish again (skip validation since we just added emails)
-  await headerStore.handlePublish(true)
+  if (savedEmails && savedEmails.length > 0) {
+    await headerStore.handlePublish(true)
+  }
 }
 
 const handlePreview = async () => {

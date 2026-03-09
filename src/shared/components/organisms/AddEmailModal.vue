@@ -13,7 +13,7 @@
 
       <div class="space-y-4 mt-6">
         <div class="space-y-3 max-w-2xl">
-          <div v-for="(email, index) in emails" :key="index" class="flex items-center gap-2">
+          <div v-for="(email, index) in emails" :key="`email-${index}-${email || ''}`" class="flex items-center gap-2">
             <Input
               :model-value="emails[index]"
               :class="[theme.bgInput, theme.borderInput, theme.textInput]"
@@ -23,24 +23,36 @@
               @update:model-value="value => (emails[index] = value)"
             />
             <Button
-              v-if="emails.length > 1"
               variant="ghost"
               size="sm"
               :class="[theme.textSecondary, theme.bgButtonHover]"
+              aria-label="Remove email"
               @click="removeEmail(index)"
             >
               <X class="h-4 w-4" />
             </Button>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            :class="[theme.borderSecondary, theme.textPrimary]"
-            @click="addEmail"
-          >
-            <Plus class="h-4 w-4 mr-2" />
-            Add Email
-          </Button>
+          <div class="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              :class="[theme.borderSecondary, theme.textPrimary]"
+              @click="addEmail"
+            >
+              <Plus class="h-4 w-4 mr-2" />
+              Add Email
+            </Button>
+            <Button
+              v-if="hasExistingEmails"
+              variant="ghost"
+              size="sm"
+              :class="[theme.textSecondary, 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30']"
+              :disabled="isSaving"
+              @click="handleRemoveAll"
+            >
+              Remove all emails
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -149,12 +161,47 @@ const hasValidEmails = computed(() => {
   return validEmails.length > 0
 })
 
+const hasExistingEmails = computed(() => {
+  const list = props.currentEmails || []
+  return Array.isArray(list) && list.length > 0 && list.some(e => e && String(e).trim())
+})
+
 const addEmail = () => {
   emails.value.push('')
 }
 
 const removeEmail = index => {
   emails.value.splice(index, 1)
+  if (emails.value.length === 0) {
+    emails.value = ['']
+  }
+}
+
+const handleRemoveAll = async () => {
+  isSaving.value = true
+  try {
+    let updatedItem = null
+    if (props.context === 'proofing') {
+      updatedItem = await proofingApi.updateProofing(props.projectId, props.selectionId, {
+        allowedEmails: [],
+      })
+    } else if (props.context === 'rawFile') {
+      updatedItem = await rawFilesApi.updateRawFile(props.selectionId, { allowedEmails: [] })
+    } else {
+      updatedItem = await selectionsApi.updateSelection(props.selectionId, { allowedEmails: [] })
+    }
+    toast.success('Emails removed', { description: 'Allowed emails cleared. Anyone with the link can access.' })
+    emails.value = ['']
+    emit('saved', [])
+    emit('save-and-publish', { emails: [], updatedItem })
+    emit('update:open', false)
+  } catch (error) {
+    toast.error('Failed to remove emails', {
+      description: error?.message || 'An unknown error occurred',
+    })
+  } finally {
+    isSaving.value = false
+  }
 }
 
 const handleGoToSettings = () => {

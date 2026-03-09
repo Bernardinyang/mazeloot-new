@@ -661,6 +661,7 @@
                   ]"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                   @click="
                     ((!isAuthenticatedOwner && !isPreviewMode && selection.status !== 'completed') || isPreviewMode) &&
                     handleViewMedia(item)
@@ -838,6 +839,7 @@
                       class="w-full h-full object-cover"
                       loading="lazy"
                       decoding="async"
+                      @error="handleImageError"
                     />
                     <video v-else :src="item.url" class="w-full h-full object-cover" preload="metadata" />
                     <div
@@ -959,6 +961,7 @@ import {
 } from '@/shared/components/shadcn/dialog'
 import PasswordInput from '@/shared/components/molecules/PasswordInput.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useSelectionLimits } from '@/domains/memora/composables/useSelectionLimits'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
@@ -2137,10 +2140,8 @@ const getSelectionCoverStyle = () => {
 }
 
 // Handle cover image error
-const handleCoverImageError = () => {
-  // Silently handle error - fallback to no cover photo
-  console.warn('Cover photo failed to load')
-}
+const handleImageError = useImagePlaceholder()
+const handleCoverImageError = handleImageError
 
 // Format date for display
 const formatDate = dateString => {

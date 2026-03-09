@@ -14,6 +14,7 @@
             :alt="media.collectionName || 'Featured work'"
             class="w-full h-full object-cover scale-105 transition-transform duration-[3000ms] ease-out"
             :class="currentSlideIndex === index ? 'scale-100' : ''"
+            @error="handleImageError"
           />
           <video
             v-else-if="showVideoMedia"
@@ -105,6 +106,7 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { ArrowRight } from '@/shared/utils/lucideAnimated'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const props = defineProps({
   featuredMedia: {
@@ -130,6 +132,7 @@ const props = defineProps({
   },
 })
 
+const handleImageError = useImagePlaceholder()
 const currentSlideIndex = ref(0)
 const videoRefs = ref([])
 let slideshowInterval = null

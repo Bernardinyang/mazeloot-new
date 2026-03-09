@@ -7,6 +7,7 @@ import IconChevronRight from '@/shared/icons/IconChevronRight.vue'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 defineProps({
   title: String,
@@ -79,6 +80,7 @@ const tips = [
 ]
 
 const currentIndex = ref(0)
+const handleImageError = useImagePlaceholder()
 let intervalId
 
 const nextSlide = () => {
@@ -187,6 +189,7 @@ onUnmounted(() => {
               class="h-full w-full object-cover scale-105 transition-transform duration-700 ease-out"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             />
             <!-- Testimonial Overlay -->
             <div class="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20">

@@ -748,13 +748,6 @@ export function useMediaUpload(options = {}) {
           }
         }
 
-        // Show success message
-        if (results.successful.length > 0) {
-          toast.success(`${results.successful.length} file(s) added to upload queue`, {
-            description: 'Uploads will continue in the background.',
-          })
-        }
-
         if (results.failed.length > 0) {
           const errorDetails = results.failed.map(f => `"${f.file?.name}": ${f.error || 'Unknown error'}`).join('; ')
           toast.warning(`${results.failed.length} file(s) failed to queue`, {

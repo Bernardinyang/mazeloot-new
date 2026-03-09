@@ -1,6 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Settings > Preset </template>
+    <template #breadcrumb>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'settings' }, label: 'Settings' },
+          { label: 'Preset' },
+        ]"
+      />
+    </template>
     <template #header>
       <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
         <ChevronLeft class="h-4 w-4" />
@@ -10,7 +17,7 @@
 
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="w-[50%]">
+      <div class="w-full md:w-[50%]">
         <h1 :class="theme.textPrimary" class="text-4xl font-bold tracking-tight mb-2">
           Collection Presets
         </h1>
@@ -22,7 +29,7 @@
       </div>
 
       <!-- Content -->
-      <div class="space-y-6 w-[50%]">
+      <div class="space-y-6 w-full md:w-[50%]">
         <PlanLimitBanner v-if="!canAddPreset" feature="preset_limit">
           Creating presets is not available on your plan.
         </PlanLimitBanner>
@@ -221,7 +228,8 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
+                        'cursor-pointer transition-colors duration-200',
+                        theme.dropdownItemAccentHover,
                       ]"
                       @click.stop="handleEditPreset(preset.id || preset.uuid)"
                     >
@@ -233,7 +241,8 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
+                        'cursor-pointer transition-colors duration-200',
+                        theme.dropdownItemAccentHover,
                       ]"
                       :disabled="presetStore.isLoading"
                       @click.stop="handleSetDefault(preset.id || preset.uuid)"
@@ -245,7 +254,8 @@
                       :class="[
                         theme.textPrimary,
                         theme.bgButtonHover,
-                        'cursor-pointer hover:bg-accent/10 dark:hover:bg-accent/20 transition-colors duration-200',
+                        'cursor-pointer transition-colors duration-200',
+                        theme.dropdownItemAccentHover,
                       ]"
                       :disabled="presetStore.isLoading"
                       @click.stop="handleDuplicatePreset(preset.id || preset.uuid)"
@@ -329,6 +339,7 @@
 import { computed, onActivated, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ChevronLeft, Copy, Loader2, MoreVertical, Pencil, Plus, Search, Star, Trash2, X } from '@/shared/utils/lucideAnimated'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'

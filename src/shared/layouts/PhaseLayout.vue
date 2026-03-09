@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-screen bg-gray-50 dark:bg-gray-950">
+  <div class="flex flex-col h-screen bg-gradient-to-br from-primary-50/40 via-gray-50 to-primary-50/20 dark:from-gray-950 dark:via-gray-950 dark:to-primary-950/30">
     <!-- Top Navigation -->
     <slot name="topNav" />
 
@@ -15,7 +15,7 @@
       </div>
 
       <!-- Main Content Slot -->
-      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6">
+      <main class="flex-1 min-w-0 min-h-0 overflow-y-auto overflow-x-hidden p-4 md:p-6 md:shadow-[inset_1px_0_0_0_rgba(0,0,0,0.06)] dark:md:shadow-[inset_1px_0_0_0_rgba(255,255,255,0.06)]">
         <!-- Mobile Sidebar Trigger Button -->
         <Button
           v-if="isMobile && !isMobileSidebarOpen"

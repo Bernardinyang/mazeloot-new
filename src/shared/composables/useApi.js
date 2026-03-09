@@ -62,6 +62,9 @@ async function retry(fn, retries, delay, signal) {
   }
 }
 
+/**
+ * @param options.key - Stable key for cache/shared requests. Default is unique per instance (no shared cache).
+ */
 export function useApi(options = {}) {
   const isLoading = ref(false)
   const error = ref(null)

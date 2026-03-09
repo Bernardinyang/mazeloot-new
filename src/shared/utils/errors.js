@@ -134,11 +134,12 @@ export function isNetworkError(error) {
 }
 
 /**
- * Check if error is an authentication error
+ * Check if error is an authentication error (401 only).
+ * 403 = forbidden resource; API client only clears auth on 401.
  */
 export function isAuthError(error) {
   const parsed = parseError(error)
-  return parsed.status === 401 || parsed.status === 403
+  return parsed.status === 401
 }
 
 /**

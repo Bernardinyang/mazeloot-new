@@ -122,7 +122,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, watch, onMounted, computed } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 import SidebarModal from '@/shared/components/molecules/SidebarModal.vue'
 import { Input } from '@/shared/components/shadcn/input'
 import {
@@ -136,6 +136,7 @@ import { Button } from '@/shared/components/shadcn/button'
 import DatePicker from '@/shared/components/shadcn/DatePicker.vue'
 import { Loader2 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { usePresetStore } from '@/domains/memora/stores/preset'
 import { useWatermarkStore } from '@/domains/memora/stores/watermark'
 import { useGalleryStore } from '@/shared/stores/gallery'
@@ -158,10 +159,16 @@ const props = defineProps({
 const emit = defineEmits(['update:open', 'create'])
 
 const theme = useThemeClasses()
+const { canAddPreset, watermarkLimit } = useMemoraFeatures()
 const presetStore = usePresetStore()
 const watermarkStore = useWatermarkStore()
 const galleryStore = useGalleryStore()
 const authApi = useAuthApi()
+
+const canFetchWatermarks = computed(() => {
+  const limit = watermarkLimit.value
+  return limit === null || limit === undefined || limit > 0
+})
 
 const collectionCount = ref(0)
 const collectionLimit = ref(null)
@@ -204,20 +211,23 @@ watch(
       } catch (error) {
         console.error('Failed to fetch storage data:', error)
       }
-      try {
-        if (presetStore.presets.length === 0) {
-          await presetStore.loadPresets()
-        }
-        // Set default preset if none selected
-        if (formData.presetId === 'none' && presetStore.defaultPreset) {
-          formData.presetId = presetStore.defaultPreset.id
-        }
-      } catch (error) {}
-      try {
-        if (watermarkStore.watermarks.length === 0) {
-          await watermarkStore.fetchWatermarks()
-        }
-      } catch (error) {}
+      if (canAddPreset.value) {
+        try {
+          if (presetStore.presets.length === 0) {
+            await presetStore.loadPresets()
+          }
+          if (formData.presetId === 'none' && presetStore.defaultPreset) {
+            formData.presetId = presetStore.defaultPreset.id
+          }
+        } catch (error) {}
+      }
+      if (canFetchWatermarks.value) {
+        try {
+          if (watermarkStore.watermarks.length === 0) {
+            await watermarkStore.fetchWatermarks()
+          }
+        } catch (error) {}
+      }
     }
   }
 )

@@ -36,6 +36,7 @@ export const memoraRoutes = [
   { path: '/memora/selections/starred', name: 'starredSelections', component: () => import('@/domains/memora/views/starred/StarredSelections.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Starred Selections') } },
   { path: '/memora/raw-files/starred', name: 'starredRawFiles', component: () => import('@/domains/memora/views/starred/StarredRawFiles.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Starred Raw Files') } },
   { path: '/memora/proofing/starred', name: 'starredProofing', component: () => import('@/domains/memora/views/starred/StarredProofing.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Starred Proofing') } },
+  { path: '/memora/settings', name: 'settings', redirect: { name: 'homepageConfig' }, meta: { requiresAuth: true, requiresUser: true, ...m('Settings') } },
   { path: '/memora/settings/homepage', name: 'homepageConfig', component: () => import('@/domains/memora/views/Homepage.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Homepage Settings') } },
   { path: '/memora/settings/branding', name: 'brandingSettings', component: () => import('@/domains/memora/views/settings/Branding.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Branding') } },
   { path: '/memora/settings/watermark', name: 'watermarkSettings', component: () => import('@/domains/memora/views/settings/watermark/Watermark.vue'), meta: { requiresAuth: true, requiresUser: true, ...m('Watermarks') } },

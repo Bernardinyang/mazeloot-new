@@ -284,15 +284,14 @@ const handleResetLimit = () => {
   }
 }
 
-const handleEmailsSaved = async savedEmails => {
-  // Update rawFile with new emails
-  if (rawFile.value) {
+const handleEmailsSaved = async ({ emails: savedEmails } = {}) => {
+  if (rawFile.value && Array.isArray(savedEmails)) {
     rawFile.value.allowedEmails = savedEmails
     rawFile.value.allowed_emails = savedEmails
   }
-
-  // Try to publish again (skip validation since we just added emails)
-  await headerStore.handlePublish(true)
+  if (savedEmails && savedEmails.length > 0) {
+    await headerStore.handlePublish(true)
+  }
 }
 
 const handlePreview = () => {

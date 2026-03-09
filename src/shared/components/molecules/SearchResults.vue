@@ -154,6 +154,7 @@ import {
 } from '@/shared/utils/lucideAnimated'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import { MAZELOOT_PRODUCTS } from '@/domains/memora/constants/products'
+import { escapeHtml } from '@/shared/utils/escapeHtml'
 
 const props = defineProps({
   isLoading: {
@@ -235,9 +236,10 @@ const getIconShape = (type) => {
 }
 
 const highlightMatch = (text, query) => {
-  if (!query || !text) return text
+  if (!query || !text) return escapeHtml(text)
+  const escaped = escapeHtml(text)
   const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
-  return text.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>')
+  return escaped.replace(regex, '<mark class="bg-yellow-200 dark:bg-yellow-800">$1</mark>')
 }
 
 const setResultRef = (el, productIdx, groupIdx, itemIdx) => {

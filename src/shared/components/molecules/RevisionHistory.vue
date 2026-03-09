@@ -40,6 +40,7 @@
             :src="revision.thumbnail || revision.url"
             :alt="revision.title"
             class="w-16 h-16 object-cover rounded"
+            @error="handleImageError"
           />
           <video v-else :src="revision.url" class="w-16 h-16 object-cover rounded" preload="metadata" />
           <div class="flex-1 min-w-0">
@@ -57,6 +58,7 @@
 <script setup>
 import { computed } from 'vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const props = defineProps({
   revisions: {
@@ -66,6 +68,7 @@ const props = defineProps({
 })
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 
 const sortedRevisions = computed(() => {
   return [...props.revisions].sort((a, b) => (b.revisionNumber || 0) - (a.revisionNumber || 0))

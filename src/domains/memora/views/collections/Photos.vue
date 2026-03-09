@@ -49,25 +49,12 @@
             :on-refresh-storage="refreshStorage"
           />
 
-          <!-- Shown only when plan set limit has been reached (dismissable) -->
-          <div
-            v-if="isSetLimitReached && !setLimitBannerDismissed"
-            data-banner="phase-set-limit"
-            class="mb-4 flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-800 dark:bg-amber-900/20"
-          >
-            <Info class="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden="true" />
-            <p class="min-w-0 flex-1 text-sm font-medium text-amber-900 dark:text-amber-100">
-              Set limit reached ({{ phaseSetCount }} / {{ setLimitPerPhase }}). Upgrade your plan to add more sets.
-            </p>
-            <button
-              type="button"
-              class="shrink-0 rounded p-1 text-amber-600 hover:bg-amber-200/50 dark:text-amber-400 dark:hover:bg-amber-800/50"
-              aria-label="Dismiss banner"
-              @click="dismissSetLimitBanner"
-            >
-              <X class="size-5" aria-hidden="true" />
-            </button>
-          </div>
+          <PhaseSetLimitBanner
+            :visible="isSetLimitReached && !setLimitBannerDismissed"
+            :current-count="phaseSetCount"
+            :limit="setLimitPerPhase"
+            @dismiss="dismissSetLimitBanner"
+          />
 
           <!-- Bulk Actions Bar -->
           <BulkActionsBar
@@ -125,7 +112,7 @@
                 <template v-if="viewMode === 'grid'">
                   <div
                     v-for="{ data: row, index } in virtualList"
-                    :key="index"
+                    :key="row[0]?.id ?? index"
                     :class="[
                       'grid gap-4 mb-4',
                       gridSize === 'small'
@@ -558,7 +545,8 @@ import { computed, inject, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useVirtualList } from '@vueuse/core'
 import { useDownloadProtection } from '@/shared/composables/useDownloadProtection'
 import { useRoute, useRouter } from 'vue-router'
-import { FolderPlus, Info, Loader2, Plus, X } from '@/shared/utils/lucideAnimated'
+import { FolderPlus, Loader2, Plus } from '@/shared/utils/lucideAnimated'
+import PhaseSetLimitBanner from '@/shared/components/molecules/PhaseSetLimitBanner.vue'
 import CollectionLayout from '@/domains/memora/layouts/CollectionLayout.vue'
 import DeleteConfirmationModal from '@/shared/components/organisms/DeleteConfirmationModal.vue'
 import BulkActionsBar from '@/shared/components/molecules/BulkActionsBar.vue'

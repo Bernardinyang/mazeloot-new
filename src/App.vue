@@ -1,7 +1,9 @@
 <template>
   <div class="min-h-screen min-h-[100dvh]">
     <RouteLoadingOverlay :is-loading="isRouteLoading" />
-    <RouterView />
+    <ErrorBoundary>
+      <RouterView />
+    </ErrorBoundary>
     <Toaster />
     <PWAOfflineBar />
     <PWAInstallPrompt />
@@ -21,6 +23,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { computed, provide, ref, onMounted, onUnmounted, watch } from 'vue'
 import { RouterView, useRoute } from 'vue-router'
@@ -34,6 +37,7 @@ import PWAInstallPrompt from '@/shared/components/molecules/PWAInstallPrompt.vue
 import PWAUpdatePrompt from '@/shared/components/molecules/PWAUpdatePrompt.vue'
 import PWADebugInfo from '@/shared/components/molecules/PWADebugInfo.vue'
 import CookieConsent from '@/shared/components/molecules/CookieConsent.vue'
+import ErrorBoundary from '@/shared/components/organisms/ErrorBoundary.vue'
 import { useActionHistoryStore } from '@/shared/stores/actionHistory'
 import { useBackgroundUploadManager } from '@/shared/composables/useBackgroundUploadManager'
 import { useNotificationsStore } from '@/shared/stores/notifications'
@@ -83,9 +87,13 @@ const initializeNotifications = async () => {
   try {
     // Initialize store (fetches from API and sets up Pusher subscription)
     await notificationsStore.initialize()
-    console.log('Notifications initialized, count:', notificationsStore.allNotifications.length)
-  } catch (error) {
-    console.error('Failed to initialize notifications:', error)
+    if (import.meta.env.DEV) {
+      console.log('Notifications initialized, count:', notificationsStore.allNotifications.length)
+    }
+  } catch (err) {
+    if (import.meta.env.DEV) {
+      console.error('Failed to initialize notifications:', err)
+    }
   }
 }
 

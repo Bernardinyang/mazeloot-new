@@ -9,7 +9,7 @@
       <div :class="['rounded-xl border border-border bg-card overflow-hidden shadow-sm min-w-0']">
         <div class="p-4 sm:p-6 border-b border-border">
           <div class="flex flex-wrap gap-3 items-end">
-            <div class="flex-1 min-w-[200px] space-y-2">
+            <div class="flex-1 min-w-0 sm:min-w-[200px] space-y-2">
               <Label for="user-logs-search" class="sr-only">Search</Label>
               <Input
                 id="user-logs-search"

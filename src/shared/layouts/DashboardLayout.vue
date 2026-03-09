@@ -35,7 +35,7 @@
                   <BreadcrumbSeparatorSelector
                     :custom-separator="customBreadcrumbSeparator"
                     :separator="breadcrumbSeparator"
-                    :separator-class="['hidden md:block shrink-0', theme.textTertiary]"
+                    :separator-class="[breadcrumbSeparatorWrapperClass, theme.textTertiary]"
                   />
                   <BreadcrumbItem :class="[idx === breadcrumbItems.length - 1 && 'min-w-0']">
                     <BreadcrumbLink v-if="item.to" as-child>
@@ -56,7 +56,7 @@
                 <BreadcrumbSeparatorSelector
                   :custom-separator="customBreadcrumbSeparator"
                   :separator="breadcrumbSeparator"
-                  :separator-class="['hidden md:block shrink-0', theme.textTertiary]"
+                  :separator-class="[breadcrumbSeparatorWrapperClass, theme.textTertiary]"
                 />
                 <BreadcrumbItem class="min-w-0">
                   <BreadcrumbPage :class="[theme.textPrimary, 'truncate']">
@@ -267,13 +267,18 @@ import { useAuthApi } from '@/shared/api/auth'
 import { useMemoraFeatures } from '@/domains/memora/composables/useMemoraFeatures'
 import { useSettingsApi } from '@/domains/memora/api/settings'
 import { useRegionalStore } from '@/shared/stores/regional'
+import { BREADCRUMB_SEPARATOR_WRAPPER_CLASS } from '@/shared/constants/breadcrumb'
+
+const breadcrumbSeparatorWrapperClass = BREADCRUMB_SEPARATOR_WRAPPER_CLASS
 
 const props = defineProps({
   breadcrumbSeparator: {
     type: String,
     default: null,
     validator: value =>
-      !value || ['chevron-right', 'chevron-left', 'slash', 'dot', 'custom'].includes(value),
+      !value ||
+      value === '/' ||
+      ['chevron-right', 'chevron-left', 'slash', 'dot', 'custom'].includes(value),
   },
   customBreadcrumbSeparator: {
     type: [String, Object, Function],
@@ -294,10 +299,15 @@ const props = defineProps({
   },
 })
 
-const { separator: defaultSeparator, customSeparator: defaultCustomSeparator } =
-  useBreadcrumbSeparator()
+const { customSeparator: defaultCustomSeparator } = useBreadcrumbSeparator()
 
-const breadcrumbSeparator = computed(() => props.breadcrumbSeparator || defaultSeparator.value)
+const breadcrumbSeparator = computed(() => {
+  if (props.breadcrumbSeparator != null && props.breadcrumbSeparator !== '') {
+    const s = props.breadcrumbSeparator
+    return s === '/' ? 'slash' : s
+  }
+  return 'chevron-right'
+})
 const customBreadcrumbSeparator = computed(
   () => props.customBreadcrumbSeparator || defaultCustomSeparator.value
 )

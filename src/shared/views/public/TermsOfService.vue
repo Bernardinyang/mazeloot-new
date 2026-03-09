@@ -49,7 +49,7 @@
                 <nav class="space-y-1.5 sm:space-y-2" :class="tocOpen || !isMobile ? 'block' : 'hidden lg:block'">
                   <a
                     v-for="(item, index) in toc"
-                    :key="index"
+                    :key="item.id"
                     :href="`#${item.id}`"
                     :class="[
                       'block text-xs sm:text-sm transition-all duration-300 py-1.5 px-2 sm:px-3 rounded-lg relative',
@@ -69,7 +69,7 @@
             <div class="space-y-6 sm:space-y-8 order-1 lg:order-2 relative z-10">
               <div
                 v-for="(section, index) in sections"
-                :key="index"
+                :key="section.id"
                 :id="section.id"
                 class="scroll-mt-20 sm:scroll-mt-24 relative"
               >
@@ -85,7 +85,7 @@
                   </div>
                   
                   <div class="prose prose-sm sm:prose-base lg:prose-lg dark:prose-invert light:prose-slate max-w-none mt-4 sm:mt-6">
-                    <div v-html="section.content"></div>
+                    <div v-html="sanitizeHtml(section.content)"></div>
                   </div>
                 </div>
               </div>
@@ -133,6 +133,7 @@ import { FileText, Mail, User, Shield, CreditCard, XCircle, ChevronDown } from '
 import { RouterLink } from 'vue-router'
 import { useSeoMeta } from '@/shared/composables/useSeoMeta'
 import { trackPageView } from '@/shared/composables/useAnalytics'
+import { sanitizeHtml } from '@/shared/utils/sanitizeHtml'
 
 const BASE_URL = typeof window !== 'undefined' 
   ? `${window.location.protocol}//${window.location.host}`

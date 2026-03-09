@@ -1,6 +1,13 @@
 <template>
   <DashboardLayout>
-    <template #breadcrumb> Settings > Watermark </template>
+    <template #breadcrumb>
+      <BreadcrumbSegments
+        :segments="[
+          { to: { name: 'settings' }, label: 'Settings' },
+          { label: 'Watermark' },
+        ]"
+      />
+    </template>
     <template #header>
       <Button variant="ghost" size="sm" class="rounded-lg gap-1" @click="goBack">
         <ChevronLeft class="h-4 w-4" />
@@ -10,7 +17,7 @@
 
     <div class="space-y-6">
       <!-- Page Header -->
-      <div class="w-[50%]">
+      <div class="w-full md:w-[50%]">
         <h1 class="text-4xl font-bold tracking-tight mb-2" :class="theme.textPrimary">Watermark</h1>
         <p class="text-sm mb-4" :class="theme.textSecondary">
           Protect your photos with custom watermarks and control how they're applied to downloads.
@@ -19,7 +26,7 @@
       </div>
 
       <!-- Content -->
-      <div class="space-y-6 w-[50%]">
+      <div class="space-y-6 w-full md:w-[50%]">
         <PlanLimitBanner v-if="!canAddWatermarkNow">
           Watermark limit reached on your plan.
         </PlanLimitBanner>
@@ -126,6 +133,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Plus, X, ChevronLeft } from '@/shared/utils/lucideAnimated'
+import BreadcrumbSegments from '@/shared/components/molecules/BreadcrumbSegments.vue'
 import DashboardLayout from '@/shared/layouts/DashboardLayout.vue'
 import { Separator } from '@/shared/components/shadcn/separator'
 import { Button } from '@/shared/components/shadcn/button'

@@ -26,6 +26,7 @@
             class="h-8 w-auto object-contain"
             loading="lazy"
             decoding="async"
+            @error="handleImageError"
           />
           <MazelootLogo
             v-else-if="showMazelootBranding"
@@ -475,6 +476,7 @@ import MazelootLogo from '@/shared/components/atoms/MazelootLogo.vue'
 import mazelootLogo from '@/shared/assets/images/logos/mazelootPrimaryLogo.svg'
 import ToggleSwitch from '@/shared/components/molecules/ToggleSwitch.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useThemeStore } from '@/shared/stores/theme'
 import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 
@@ -482,6 +484,7 @@ const route = useRoute()
 const router = useRouter()
 const { fetchPublicSettings } = useSettingsApi()
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const themeStore = useThemeStore()
 
 const collection = ref(null)

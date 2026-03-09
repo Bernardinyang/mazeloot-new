@@ -34,12 +34,12 @@ const props = defineProps({
 
 const phaseConfig = {
   collection: {
-    classes: 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/20',
+    classes: 'bg-accent/15 text-accent dark:text-accent-300 border-accent/30',
     icon: Folder,
     label: 'Collection',
   },
   selection: {
-    classes: 'bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20',
+    classes: 'bg-accent/15 text-accent dark:text-accent-300 border-accent/30',
     icon: ImageIcon,
     label: 'Selection',
   },

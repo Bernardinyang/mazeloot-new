@@ -195,6 +195,7 @@
                   class="w-full rounded-lg"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                 />
                 <video
                   v-else-if="media.file?.type === 'video'"
@@ -308,9 +309,11 @@ import { useProofingApi } from '@/domains/memora/api/proofing'
 import { useUserStore } from '@/shared/stores/user'
 import { toast } from '@/shared/utils/toast'
 import { publicProofingUrl } from '@/shared/utils/memoraPublicUrls'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const route = useRoute()
 const router = useRouter()
+const handleImageError = useImagePlaceholder()
 const proofingApi = useProofingApi()
 const userStore = useUserStore()
 

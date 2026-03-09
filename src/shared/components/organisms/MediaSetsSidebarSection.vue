@@ -1,7 +1,10 @@
 <template>
   <div v-if="props.activeTab === 'photos' && !props.isSidebarCollapsed">
     <div class="flex items-center justify-between mb-4">
-      <h2 :class="theme.textPrimary" class="text-sm font-bold">Media Sets</h2>
+      <h2 class="text-sm font-semibold text-primary-foreground flex items-center gap-2">
+        <Folder class="h-4 w-4 text-primary-foreground/80" />
+        Media Sets
+      </h2>
       <Button
         v-if="!props.hideAddSet"
         variant="accent"
@@ -10,7 +13,7 @@
         :loading="props.isSavingSets"
         loading-label="Saving..."
         :icon="!props.isSavingSets ? Plus : null"
-        class="hover:scale-105 active:scale-95"
+        class="shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all duration-200"
         @click="emit('add-set')"
       >
         Add Set
@@ -25,12 +28,12 @@
       <div
         v-for="i in 3"
         :key="`skeleton-${i}`"
-        class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white dark:bg-gray-800/50 border-2 border-transparent animate-pulse"
+        class="flex items-center gap-3 px-4 py-2.5 rounded-2xl bg-white/10 dark:bg-white/5 border border-white/10 animate-pulse"
       >
-        <div class="h-4 w-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div class="flex-1 h-4 bg-gray-200 dark:bg-gray-700 rounded"></div>
-        <div class="h-6 w-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
-        <div class="h-8 w-8 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
+        <div class="h-4 w-4 bg-white/20 rounded"></div>
+        <div class="flex-1 h-4 bg-white/20 rounded"></div>
+        <div class="h-6 w-10 bg-white/20 rounded-full"></div>
+        <div class="h-8 w-8 bg-white/20 rounded-lg"></div>
       </div>
     </div>
 
@@ -58,8 +61,8 @@
           :class="[
             'flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all duration-300 ease-out group relative overflow-hidden',
             props.selectedSetId === set.id
-              ? 'bg-accent border-2 border-accent shadow-sm scale-[1.01]'
-              : '',
+              ? 'bg-accent border-2 border-accent shadow-md scale-[1.01]'
+              : 'bg-white/5 dark:bg-white/5 border border-white/10 hover:bg-white/10',
             props.draggedSetId === set.id ? 'opacity-50 scale-95' : '',
             props.dragOverIndex === index ? 'ring-2 ring-accent ring-offset-2 scale-[1.02]' : '',
             props.isSavingSets ? 'opacity-60 pointer-events-none' : '',
@@ -123,8 +126,7 @@
             <DropdownMenuTrigger as-child>
               <button
                 :class="[
-                  props.selectedSetId === set.id ? 'text-white hover:bg-white/20' : '',
-                  props.selectedSetId !== set.id ? theme.textSecondary : '',
+                  props.selectedSetId === set.id ? 'text-white hover:bg-white/20' : 'text-primary-foreground/80 hover:text-primary-foreground hover:bg-white/10',
                 ]"
                 :disabled="props.isSavingSets"
                 class="p-2 rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -172,11 +174,13 @@
       </TransitionGroup>
     </div>
     <div v-else class="text-center py-10">
-      <div class="p-5 rounded-2xl bg-gray-50 dark:bg-gray-800/50 w-fit mx-auto mb-4 shadow-sm">
-        <ImageIcon :class="theme.textTertiary" class="h-8 w-8 opacity-40" />
+      <div
+        class="p-6 rounded-2xl w-fit mx-auto mb-4 bg-white/10 dark:bg-white/5 border border-white/15"
+      >
+        <ImageIcon class="h-10 w-10 text-primary-foreground/60" />
       </div>
-      <p :class="theme.textPrimary" class="text-sm font-semibold mb-1.5">No sets yet</p>
-      <p :class="theme.textTertiary" class="text-xs">Create your first media set to get started</p>
+      <p class="text-sm font-semibold mb-1.5 text-primary-foreground">No sets yet</p>
+      <p class="text-xs text-primary-foreground/75 max-w-[12rem] mx-auto">Create your first media set to organize and upload files.</p>
     </div>
   </div>
 </template>
@@ -184,6 +188,7 @@
 <script setup>
 import {
   Copy,
+  Folder,
   Loader2,
   MoreVertical,
   Pencil,

@@ -6,6 +6,7 @@
     class="h-8 w-auto object-contain"
     loading="lazy"
     decoding="async"
+    @error="handleImageError"
   />
   <CreditCard
     v-else
@@ -17,6 +18,7 @@
 <script setup>
 import { computed } from 'vue'
 import { CreditCard } from '@/shared/utils/lucideAnimated'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import stripeLogo from '@/shared/assets/images/payment/stripe.jpeg'
 import paypalLogo from '@/shared/assets/images/payment/paypal.svg'
 import paystackLogo from '@/shared/assets/images/payment/paystack.svg'
@@ -35,4 +37,5 @@ const props = defineProps({
 })
 
 const logoSrc = computed(() => LOGO_URLS[props.providerId?.toLowerCase()] ?? null)
+const handleImageError = useImagePlaceholder()
 </script>

@@ -24,6 +24,7 @@
           class="w-full h-full object-cover"
           loading="lazy"
           decoding="async"
+          @error="handleImageError"
         />
         <FileImage v-else-if="isImage" :class="[theme.textSecondary, 'h-6 w-6']" />
         <FileVideo v-else :class="[theme.textSecondary, 'h-6 w-6']" />
@@ -146,8 +147,10 @@ import {
 } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 
 const props = defineProps({
   fileId: { type: String, required: true },

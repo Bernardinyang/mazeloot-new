@@ -11,7 +11,7 @@
             :src="displayUrl"
             class="max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl mx-auto"
             decoding="async"
-            @error="emit('image-error', $event)"
+            @error="handleImageError"
           />
         </div>
       </Transition>
@@ -77,4 +77,10 @@ const displayUrl = computed(
     currentItem.value?.thumbnail ||
     props.placeholderImage
 )
+
+const handleImageError = e => {
+  const img = e.target
+  if (img?.src !== props.placeholderImage) img.src = props.placeholderImage
+  emit('image-error', e)
+}
 </script>

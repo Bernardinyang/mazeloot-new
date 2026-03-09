@@ -35,6 +35,7 @@
               class="h-full w-full object-cover"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             />
           </div>
           <Transition mode="out-in" name="fade">
@@ -230,6 +231,7 @@ import ThemeToggle from '@/shared/components/organisms/ThemeToggle.vue'
 import StatusBadge from '@/shared/components/atoms/StatusBadge.vue'
 import PhaseBadge from '@/shared/components/molecules/PhaseBadge.vue'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const props = defineProps({
   collection: { type: [Object, null], default: null },
@@ -278,6 +280,7 @@ const emit = defineEmits([
 ])
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const nameInputRef = ref(null)
 
 const isDatePickerOpen = computed({

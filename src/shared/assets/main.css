@@ -624,3 +624,14 @@
     font-family: 'Indie Flower', cursive;
   }
 }
+
+/* Dark mode: no purple/violet hover text */
+@layer utilities {
+  .dark .hover\:text-accent:hover,
+  .dark .group:hover .group-hover\:text-accent,
+  .dark .hover\:text-violet-400:hover,
+  .dark .hover\:text-violet-500:hover,
+  .dark .hover\:text-violet-600:hover {
+    color: hsl(var(--foreground));
+  }
+}

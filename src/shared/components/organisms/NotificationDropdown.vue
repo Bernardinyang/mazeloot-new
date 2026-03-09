@@ -172,6 +172,7 @@
                         height="48"
                         loading="lazy"
                         decoding="async"
+                        @error="handleImageError"
                       />
                       <video
                         v-else-if="isVideo(getNotificationCoverPhoto(selectedNotification))"
@@ -192,6 +193,15 @@
                       {{ selectedNotification.title }}
                     </h2>
                     <div class="flex flex-wrap items-center gap-2 text-xs" :class="theme.textSecondary">
+                      <span
+                        v-if="!product && getProductDisplayName(selectedNotification)"
+                        :class="[
+                          'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider transition-colors',
+                          getProductBadgeClass(selectedNotification),
+                        ]"
+                      >
+                        {{ getProductDisplayName(selectedNotification) }}
+                      </span>
                       <span
                         :class="[
                           'px-2 py-0.5 rounded font-semibold uppercase tracking-wide',
@@ -359,6 +369,7 @@
                           height="48"
                           loading="lazy"
                           decoding="async"
+                          @error="handleImageError"
                         />
                         <video
                           v-else-if="isVideo(getNotificationCoverPhoto(notification))"
@@ -410,6 +421,15 @@
                       <!-- Meta Info Row -->
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
                         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                          <span
+                            v-if="!product && getProductDisplayName(notification)"
+                            :class="[
+                              'inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold uppercase tracking-wider',
+                              getProductBadgeClass(notification),
+                            ]"
+                          >
+                            {{ getProductDisplayName(notification) }}
+                          </span>
                           <span class="text-xs text-gray-500 dark:text-gray-500">
                             {{ formatRelativeTime(notification.createdAt) }}
                           </span>
@@ -491,6 +511,7 @@ import {
 import { Button } from '@/shared/components/shadcn/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/shared/components/shadcn/sheet'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useNotificationPermission } from '@/shared/composables/useNotificationPermission'
 import { usePushSubscription } from '@/shared/composables/usePushSubscription'
 import { useNotificationsStore } from '@/shared/stores/notifications'
@@ -512,6 +533,7 @@ const props = defineProps({
 const emit = defineEmits(['notification-click', 'mark-all-read'])
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const router = useRouter()
 const notificationsStore = useNotificationsStore()
 const notificationPermission = useNotificationPermission()
@@ -597,6 +619,21 @@ const formatRelativeTime = dateString => {
   if (diffWeeks < 4) return `${diffWeeks}w ago`
   if (diffMonths < 12) return `${diffMonths}mo ago`
   return `${Math.floor(diffDays / 30)}mo ago`
+}
+
+const PRODUCT_DISPLAY_NAMES = { memora: 'Memora', profolio: 'Profolio', general: 'General' }
+const PRODUCT_BADGE_CLASSES = {
+  memora: 'bg-blue-100 text-blue-700 dark:bg-blue-500/25 dark:text-blue-200 ring-1 ring-blue-200/50 dark:ring-blue-400/20',
+  profolio: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/25 dark:text-emerald-200 ring-1 ring-emerald-200/50 dark:ring-emerald-400/20',
+  general: 'bg-violet-100 text-violet-700 dark:bg-violet-500/25 dark:text-violet-200 ring-1 ring-violet-200/50 dark:ring-violet-400/20',
+}
+const getProductDisplayName = (notification) => {
+  const p = notification.product
+  return p ? (PRODUCT_DISPLAY_NAMES[p] || p) : ''
+}
+const getProductBadgeClass = (notification) => {
+  const p = notification.product
+  return p ? (PRODUCT_BADGE_CLASSES[p] || PRODUCT_BADGE_CLASSES.general) : ''
 }
 
 const getPriority = (notification) => {

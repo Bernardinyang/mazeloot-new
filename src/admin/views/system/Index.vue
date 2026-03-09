@@ -7,7 +7,7 @@
           <p :class="['mt-1.5 text-sm', theme.textSecondary]">Server, environment, extensions, binaries, and configuration.</p>
         </div>
         <div v-if="data" class="flex flex-wrap items-center gap-2">
-          <Button variant="outline" size="sm" :disabled="refreshing" class="shadow-sm border-primary/30 hover:bg-primary/10" @click="refresh">
+          <Button variant="outline" size="sm" :disabled="refreshing" class="shadow-sm" @click="refresh">
             {{ refreshing ? 'Refreshing…' : 'Refresh' }}
           </Button>
           <a
@@ -25,7 +25,7 @@
           <Button variant="outline" size="sm" :disabled="clearingAllCache" class="shadow-sm" @click="showClearAllCacheModal = true">
             {{ clearingAllCache ? 'Running…' : 'Clear all cache & optimize' }}
           </Button>
-          <Button variant="outline" size="sm" :disabled="!data || exportLoading" class="shadow-sm border-emerald-500/30 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10" @click="exportReport">
+          <Button variant="outline" size="sm" :disabled="!data || exportLoading" class="shadow-sm" @click="exportReport">
             {{ exportLoading ? 'Exporting…' : 'Download report' }}
           </Button>
         </div>

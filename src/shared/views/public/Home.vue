@@ -125,14 +125,14 @@
             <li class="flex items-center gap-2"><span class="size-1.5 rounded-full bg-pink-400 shrink-0" aria-hidden="true" /><span class="break-words">One link per project—clients never need an account</span></li>
           </ul>
           <div class="mt-8 sm:mt-10 flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-3 sm:gap-4">
-            <Button class="inline-flex h-11 sm:h-12 items-center justify-center rounded-xl bg-gradient-to-r from-primary-500 to-accent-500 px-6 sm:px-7 py-2.5 sm:py-3 text-sm font-semibold text-white shadow-lg shadow-primary-500/25 transition-all duration-200 hover:from-primary-400 hover:to-accent-400 hover:shadow-primary-500/40 hover:-translate-y-0.5 border-0 focus-visible:ring-2 focus-visible:ring-primary-400 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0f0f23] light:focus-visible:ring-offset-white" @click="router.push({ name: 'register' })">Get started</Button>
+            <Button variant="accent" size="lg" class="rounded-xl" @click="router.push({ name: 'register' })">Get started</Button>
             <button type="button" class="flex h-11 sm:h-12 items-center justify-center rounded-xl dark:border-white/20 light:border-gray-300 dark:bg-white/5 light:bg-gray-50 px-5 sm:px-6 py-2.5 sm:py-3 text-sm font-medium dark:text-white/90 light:text-gray-900 transition-all duration-200 dark:hover:border-white/30 dark:hover:bg-white/10 light:hover:border-gray-400 light:hover:bg-gray-100 dark:hover:text-white light:hover:text-gray-900 hover:-translate-y-0.5" @click="router.push({ name: 'memora' })">Learn more →</button>
           </div>
           <p class="mt-4 sm:mt-6 text-xs sm:text-sm dark:text-gray-500 light:text-gray-600">No credit card required.</p>
         </div>
         <div class="hero-dashboard-wrap relative z-0 min-h-[20rem] flex-1 lg:min-h-0">
           <div class="absolute inset-0 -z-10 shadow-[inset_8px_0_24px_-8px_rgba(0,0,0,0.4)]" aria-hidden="true" />
-          <img src="/images/landing/hero-dashboard.png" alt="Dashboard overview" class="absolute inset-0 -z-10 h-full w-full object-cover object-left-top" width="800" height="480" loading="eager" decoding="async" fetchpriority="high" />
+          <img src="/images/landing/hero-dashboard.png" alt="Dashboard overview" class="absolute inset-0 -z-10 h-full w-full object-cover object-left-top" width="800" height="480" loading="eager" decoding="async" fetchpriority="high" @error="handleImageError" />
         </div>
       </div>
     </section>
@@ -143,16 +143,16 @@
       <div class="mx-auto max-w-7xl px-6 lg:px-8">
         <div class="logo-marquee overflow-hidden" aria-hidden="true">
           <div class="logo-marquee__track flex shrink-0 items-center gap-x-12">
-            <div class="flex shrink-0 items-center" aria-label="Transistor"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Reform"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Tuple"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="SavvyCal"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Statamic"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Transistor"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Reform"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Tuple"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="SavvyCal"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
-            <div class="flex shrink-0 items-center" aria-label="Statamic"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Transistor"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Reform"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Tuple"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="SavvyCal"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Statamic"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Transistor"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/transistor-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Reform"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/reform-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Tuple"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/tuple-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="SavvyCal"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/savvycal-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
+            <div class="flex shrink-0 items-center" aria-label="Statamic"><img width="158" height="48" src="https://tailwindcss.com/plus-assets/img/logos/158x48/statamic-logo-white.svg" alt="" class="h-12 w-auto object-contain dark:opacity-100 light:brightness-0" loading="lazy" decoding="async" @error="handleImageError" /></div>
           </div>
         </div>
         <div class="mt-12 flex justify-center">
@@ -284,6 +284,7 @@
                 height="1067"
                 loading="lazy"
                 decoding="async"
+                @error="handleImageError"
               >
             </div>
           </div>
@@ -314,7 +315,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">One link. Clients view and pick on any device—no sign-up, no app. Your work, front and center.</p>
             </div>
             <div class="relative z-0 min-h-[180px] sm:min-h-[220px] md:min-h-[280px] flex-1 lg:min-h-0">
-              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80" alt="Gallery on device" class="absolute inset-0 -z-10 size-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" decoding="async" />
+              <img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80" alt="Gallery on device" class="absolute inset-0 -z-10 size-full object-cover object-top transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" decoding="async" @error="handleImageError" />
               <div class="absolute inset-0 -z-10 dark:bg-gradient-to-t dark:from-[#0f0f23]/80 light:bg-gradient-to-t light:from-white/80 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
@@ -327,7 +328,7 @@
               <p class="mt-2 text-sm leading-6 dark:text-gray-400 light:text-gray-600">Selections and comments update in real time. No “did you get my email?”—everyone’s on the same page.</p>
             </div>
             <div class="relative h-44 shrink-0 overflow-hidden sm:h-52">
-              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" alt="Collaboration" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="208" loading="lazy" decoding="async" />
+              <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=600&q=80" alt="Collaboration" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="208" loading="lazy" decoding="async" @error="handleImageError" />
               <div class="absolute inset-0 dark:bg-gradient-to-t dark:from-[#0f0f23]/60 light:bg-gradient-to-t light:from-white/60 to-transparent pointer-events-none" />
             </div>
           </div>
@@ -340,7 +341,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">Passwords, watermarks, download limits. You control who sees what and when.</p>
             </div>
             <div class="relative h-32 sm:h-36 md:h-44 shrink-0 overflow-hidden">
-              <img src="https://images.unsplash.com/photo-1614064548230-8aa2fc22f8b2?w=600&q=80" alt="Secure delivery" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="176" loading="lazy" decoding="async" />
+              <img src="https://images.unsplash.com/photo-1614064548230-8aa2fc22f8b2?w=600&q=80" alt="Secure delivery" class="size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="600" height="176" loading="lazy" decoding="async" @error="handleImageError" />
               <div class="absolute inset-0 dark:bg-gradient-to-t dark:from-[#0f0f23]/60 light:bg-gradient-to-t light:from-white/60 to-transparent pointer-events-none" />
             </div>
           </div>
@@ -353,7 +354,7 @@
               <p class="mt-2 text-xs sm:text-sm leading-6 dark:text-gray-400 light:text-gray-600">Your logo and style on every client page. One workflow from first share to final delivery.</p>
             </div>
             <div class="relative z-0 min-h-[180px] sm:min-h-[220px] md:min-h-[280px] flex-1 lg:min-h-0">
-              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Workspace" class="absolute inset-0 -z-10 size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" decoding="async" />
+              <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&q=80" alt="Workspace" class="absolute inset-0 -z-10 size-full object-cover object-center transition-transform duration-300 group-hover:scale-[1.02]" width="800" height="600" loading="lazy" decoding="async" @error="handleImageError" />
               <div class="absolute inset-0 -z-10 dark:bg-gradient-to-t dark:from-[#0f0f23]/80 light:bg-gradient-to-t light:from-white/80 via-transparent to-transparent pointer-events-none" />
             </div>
           </div>
@@ -405,6 +406,7 @@
               height="1067"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             >
           </div>
         </div>
@@ -514,7 +516,7 @@
           <p class="mt-1 text-sm dark:text-gray-400 light:text-gray-600">Compare features across plans</p>
         </div>
         <div class="flex-1 overflow-auto">
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto overscroll-x-contain touch-pan-x">
             <table class="w-full min-w-[600px] text-left text-sm" role="grid" aria-label="Plan comparison">
               <thead>
                 <tr class="border-b dark:border-white/10 light:border-gray-200 dark:bg-white/5 light:bg-gray-50">
@@ -630,6 +632,7 @@
                   height="56"
                   loading="lazy"
                   decoding="async"
+                  @error="handleImageError"
                 >
                 <div class="text-center sm:text-left">
                   <p class="font-semibold dark:text-white light:text-gray-900">{{ t.name }}</p>
@@ -738,6 +741,7 @@
               height="1080"
               loading="lazy"
               decoding="async"
+              @error="handleImageError"
             >
           </div>
       </div>
@@ -923,10 +927,13 @@ import { useSeoMeta } from '@/shared/composables/useSeoMeta'
 import { trackPageView } from '@/shared/composables/useAnalytics'
 import { apiClient } from '@/shared/api/client'
 import { toast } from '@/shared/utils/toast'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 
 const BASE_URL = typeof window !== 'undefined' 
   ? `${window.location.protocol}//${window.location.host}`
   : 'https://mazeloot.com'
+
+const handleImageError = useImagePlaceholder()
 
 // SEO Meta Tags
 useSeoMeta({

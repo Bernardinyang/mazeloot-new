@@ -53,6 +53,7 @@
         >
           <FormField
             autocomplete="email"
+            inputmode="email"
             label="Email"
             name="email"
             placeholder="name@example.com"

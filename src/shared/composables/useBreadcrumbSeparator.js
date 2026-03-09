@@ -1,14 +1,11 @@
 /**
  * Composable for managing breadcrumb separator preferences
- * Allows users to set and persist their preferred separator
  */
 
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 
-const STORAGE_KEY = 'mazeloot_breadcrumb_separator'
 const DEFAULT_SEPARATOR = 'chevron-right'
 
-// Available separator types
 export const BREADCRUMB_SEPARATORS = {
   'chevron-right': {
     label: 'Chevron Right (>)',
@@ -32,46 +29,9 @@ export const BREADCRUMB_SEPARATORS = {
   },
 }
 
-/**
- * Get separator from localStorage or return default
- */
-const getStoredSeparator = () => {
-  if (typeof window === 'undefined') return DEFAULT_SEPARATOR
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    return stored && BREADCRUMB_SEPARATORS[stored] ? stored : DEFAULT_SEPARATOR
-  } catch {
-    return DEFAULT_SEPARATOR
-  }
-}
-
-/**
- * Save separator to localStorage
- */
-const saveSeparator = separator => {
-  if (typeof window === 'undefined') return
-  try {
-    localStorage.setItem(STORAGE_KEY, separator)
-  } catch (error) {}
-}
-
-/**
- * Composable for breadcrumb separator management
- */
 export function useBreadcrumbSeparator(initialSeparator = null) {
-  const separator = ref(initialSeparator || getStoredSeparator())
+  const separator = ref(initialSeparator || DEFAULT_SEPARATOR)
   const customSeparator = ref(null)
-
-  // Watch for changes and persist to localStorage
-  watch(
-    separator,
-    newValue => {
-      if (newValue && newValue !== 'custom') {
-        saveSeparator(newValue)
-      }
-    },
-    { immediate: false }
-  )
 
   const setSeparator = newSeparator => {
     if (BREADCRUMB_SEPARATORS[newSeparator] || newSeparator === 'custom') {

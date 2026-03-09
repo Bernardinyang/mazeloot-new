@@ -78,7 +78,7 @@
                   <RouterLink :to="{ name: 'admin-pricing-tier-edit', params: { slug: tier.slug } }">
                     <Button variant="outline" size="sm">Edit</Button>
                   </RouterLink>
-                  <Button variant="outline" size="sm" class="text-destructive hover:text-destructive hover:bg-destructive/10" @click="tierToDelete = tier">
+                  <Button variant="outline" size="sm" @click="tierToDelete = tier">
                     Delete
                   </Button>
                 </div>
@@ -180,7 +180,7 @@
               <Label for="byo-storage" class="text-sm font-medium">Storage</Label>
               <p class="text-xs text-muted-foreground">1 GB = 1,000,000,000 bytes. Enter bytes or use the GB field.</p>
               <div class="flex flex-wrap items-end gap-4">
-                <div class="min-w-[180px]">
+                <div class="min-w-0 flex-1 sm:flex-initial sm:min-w-[180px]">
                   <Label for="byo-storage" class="sr-only">Base storage (bytes)</Label>
                   <Input
                     id="byo-storage"
@@ -337,7 +337,7 @@
           <template #cell-actions="{ item }">
             <div class="flex items-center justify-end gap-2">
               <Button variant="link" size="sm" @click="openAddonEdit(item)">Edit</Button>
-              <Button variant="link" size="sm" class="text-destructive hover:text-destructive hover:underline" @click="addonToDelete = item">
+              <Button variant="link" size="sm" @click="addonToDelete = item">
                 Delete
               </Button>
             </div>
@@ -370,7 +370,7 @@
           <Button variant="outline" :disabled="deletingTier" @click="tierToDelete = null">
             Cancel
           </Button>
-          <Button variant="default" class="bg-destructive text-destructive-foreground hover:bg-destructive/90" :disabled="deletingTier" @click="submitDeleteTier">
+          <Button variant="destructive" :disabled="deletingTier" @click="submitDeleteTier">
             <span v-if="deletingTier" class="inline-flex items-center gap-2">
               <span class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
               Deleting…
@@ -395,7 +395,7 @@
           <Button variant="outline" :disabled="deletingAddon" @click="addonToDelete = null">
             Cancel
           </Button>
-          <Button variant="default" class="bg-destructive text-destructive-foreground hover:bg-destructive/90" :disabled="deletingAddon" @click="submitDeleteAddon">
+          <Button variant="destructive" :disabled="deletingAddon" @click="submitDeleteAddon">
             <span v-if="deletingAddon" class="inline-flex items-center gap-2">
               <span class="size-4 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden />
               Deleting…

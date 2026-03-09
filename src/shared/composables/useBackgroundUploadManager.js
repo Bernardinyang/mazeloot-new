@@ -197,14 +197,15 @@ const resolveOnUploadCompleteCallback = (contextType, contextId, setId) => {
   }
 }
 
-// Singleton instance
-let managerInstance = null
+const SINGLETON_KEY = '__mazeloot_background_upload_manager'
 
 /**
  * Background Upload Manager Composable (Singleton)
  */
 export function useBackgroundUploadManager(options = {}) {
-  // Update existing instance if options provided
+  const managerInstance =
+    typeof globalThis !== 'undefined' ? globalThis[SINGLETON_KEY] : null
+
   if (managerInstance) {
     if (options.concurrentLimit !== undefined) {
       managerInstance.concurrentLimit.value = options.concurrentLimit
@@ -518,6 +519,8 @@ export function useBackgroundUploadManager(options = {}) {
 
     try {
       await saveUploadItem(uploadItem)
+      // Update in-memory queue immediately so bottom-right progress UI shows before loadQueue resolves
+      uploadQueue.value = [...uploadQueue.value, uploadItem]
       await loadQueue()
       processQueue()
       return { success: true, uploadId: uploadItem.id, uploadItem }
@@ -867,9 +870,16 @@ export function useBackgroundUploadManager(options = {}) {
       eta,
     }
 
+    // Update in-memory queue so bottom-right progress bar updates smoothly
+    const idx = uploadQueue.value.findIndex(u => u.id === uploadId)
+    if (idx !== -1) {
+      const next = [...uploadQueue.value]
+      next[idx] = { ...next[idx], progress }
+      uploadQueue.value = next
+    }
+
     try {
       await updateUploadProgress(uploadId, progress)
-      // Reload queue periodically (not on every progress update to avoid overhead)
       if (progress.percentage % 10 === 0 || progress.percentage === 100) {
         await loadQueue()
       }
@@ -1133,8 +1143,9 @@ export function useBackgroundUploadManager(options = {}) {
     loadHistory,
   }
 
-  // Store singleton instance
-  managerInstance = instance
+  if (typeof globalThis !== 'undefined') {
+    globalThis[SINGLETON_KEY] = instance
+  }
 
   // Initialize immediately (singleton pattern)
   init()

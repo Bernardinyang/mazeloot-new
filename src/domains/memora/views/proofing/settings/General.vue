@@ -262,7 +262,7 @@
                     <div v-else class="w-9"></div>
                   </div>
                 </div>
-                <div class="flex items-center gap-2 pt-2">
+                <div class="flex flex-wrap items-center gap-2 pt-2">
                   <Button
                     variant="outline"
                     size="sm"
@@ -271,6 +271,16 @@
                   >
                     <Plus class="h-4 w-4 mr-2" />
                     Add Email
+                  </Button>
+                  <Button
+                    v-if="hasAllowedEmailsToRemove"
+                    variant="ghost"
+                    size="sm"
+                    :class="[theme.textSecondary, 'text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30']"
+                    :disabled="isSavingAllowedEmails"
+                    @click="handleRemoveAllAllowedEmails"
+                  >
+                    Remove all emails
                   </Button>
                 </div>
                 <div class="pt-4 mt-4 border-t" :class="theme.borderSecondary">
@@ -655,6 +665,7 @@ import FontFamilySelect from '@/shared/components/organisms/FontFamilySelect.vue
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
 import CoverFocalPointModal from '@/shared/components/organisms/CoverFocalPointModal.vue'
 import { useProofingStore } from '@/domains/memora/stores/proofing'
+import { useProofingHeaderStore } from '@/domains/memora/stores/proofingHeader'
 import { useProofingApi } from '@/domains/memora/api/proofing'
 import { toast } from '@/shared/utils/toast'
 import { fontStyleOptions as baseFontStyleOptions } from '@/shared/utils/designConstants'
@@ -664,6 +675,7 @@ const theme = useThemeClasses()
 const route = useRoute()
 const router = useRouter()
 const proofingStore = useProofingStore()
+const proofingHeaderStore = useProofingHeaderStore()
 const proofingApi = useProofingApi()
 
 // Proofing data
@@ -764,6 +776,8 @@ const hasValidEmails = computed(() => {
 const validEmailsCount = computed(() => {
   return allowedEmails.value.filter(email => isValidEmail(email)).length
 })
+
+const hasAllowedEmailsToRemove = computed(() => validEmailsCount.value > 0)
 
 const proofingCoverImage = computed(() => {
   return proofing.value?.coverPhotoUrl || proofing.value?.cover_photo_url || null
@@ -1046,6 +1060,14 @@ const removeAllowedEmail = index => {
   }
 }
 
+const handleRemoveAllAllowedEmails = async () => {
+  if (!proofing.value || isSavingAllowedEmails.value) return
+  allowedEmails.value = ['']
+  primaryEmail.value = null
+  touchedEmailIndices.value = new Set()
+  await handleAllowedEmailsChange(true)
+}
+
 const handleAllowedEmailsChange = async (forceSave = false) => {
   if (!proofing.value) return
 
@@ -1190,10 +1212,22 @@ const handleAllowedEmailsChange = async (forceSave = false) => {
 
       // Force reactivity update
       await nextTick()
+      if (proofingHeaderStore.proofing?.id === proofing.value?.id) {
+        proofingHeaderStore.proofing.allowedEmails = proofing.value.allowedEmails
+        proofingHeaderStore.proofing.allowed_emails = proofing.value.allowed_emails
+        proofingHeaderStore.proofing.primaryEmail = proofing.value.primaryEmail
+        proofingHeaderStore.proofing.primary_email = proofing.value.primary_email
+      }
+      proofingHeaderStore.setProofing(proofing.value)
     } else {
       // Fallback: update local state
       proofing.value.allowedEmails = uniqueEmails
       proofing.value.allowed_emails = uniqueEmails
+      if (proofingHeaderStore.proofing?.id === proofing.value?.id) {
+        proofingHeaderStore.proofing.allowedEmails = uniqueEmails
+        proofingHeaderStore.proofing.allowed_emails = uniqueEmails
+      }
+      proofingHeaderStore.setProofing(proofing.value)
     }
 
     emailsSaved.value = true

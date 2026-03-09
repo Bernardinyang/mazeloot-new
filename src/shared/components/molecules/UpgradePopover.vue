@@ -2,7 +2,7 @@
   <Popover v-model:open="isOpen">
     <PopoverTrigger as-child>
       <slot name="trigger">
-        <Button variant="secondary" size="sm" :icon="Rocket" class="text-accent border-0">
+        <Button variant="secondary" size="sm" :icon="Rocket">
           UPGRADE
         </Button>
       </slot>
@@ -25,6 +25,7 @@
             loading="lazy"
             decoding="async"
             class="w-full h-full object-cover"
+            @error="handleImageError"
           />
         </div>
 
@@ -64,10 +65,12 @@ import { Rocket } from '@/shared/utils/lucideAnimated'
 import { Button } from '@/shared/components/shadcn/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/shadcn/popover'
 import { useThemeClasses } from '@/shared/composables/useThemeClasses'
+import { useImagePlaceholder } from '@/shared/composables/useImagePlaceholder'
 import { useNavigation } from '@/shared/composables/useNavigation'
 import { toast } from '@/shared/utils/toast'
 
 const theme = useThemeClasses()
+const handleImageError = useImagePlaceholder()
 const { navigateTo } = useNavigation()
 
 const props = defineProps({
